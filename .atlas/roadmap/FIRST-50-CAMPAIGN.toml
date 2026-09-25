@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 41
+campaign_terminal = 42
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 10
 reference_only = 25
-external_boundary = 8
+external_boundary = 9
 rejected = 0
 deferred = 1
 extinct = 42
-remaining = 6
-next_donor = "git"
-next_step = "G110 (P3): git (#46) -- object model / pack representation for census storage identity (P5); the tracked unadmitted git checkout stays BLOCKED_ON_USER"
+remaining = 5
+next_donor = "nix"
+next_step = "G111 (P3): nix (#47) -- derivation identity + closure of construction inputs (P6)"
 
 [[donor]]
 ordinal = 1
@@ -793,13 +793,15 @@ canonical_url = "https://github.com/git/git.git"
 serves = "P5"
 target_capability = "content-addressed objects"
 mechanism_hypothesis = "object model / pack representation for census storage identity"
-materialization_mode = "SPARSE_CHECKOUT (object-file.c, packfile.c) -- replaces the unadmitted tracked checkout"
+materialization_mode = "never materialized (decided at the consumer gate); the separate unadmitted tracked checkout stays BLOCKED_ON_USER"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "QUEUED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
-note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+completed_in = "G110"
+evidence = ".atlas/evidence/campaign/46-git.json"
+note = "Atlas already observes revisions through the installed git binary (adapter/src/vcs, git 2.43.0); census storage identity is native BLAKE3 and committed evidence already lives in git's own object store and packs, so no consumer needs git's object model or pack format natively; the tracked unadmitted checkout is untouched (deletion BLOCKED_ON_USER)"
 
 [[donor]]
 ordinal = 47

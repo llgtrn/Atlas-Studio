@@ -1759,6 +1759,7 @@ objective = "test in-toto's step-attestation mechanisms against Atlas's own cons
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0037-generation-product-match.md"
 self_recensus = ".atlas/evidence/census/G109/recensus.json"
+result_commits = ["d99f6d339414e93365df182ef9feb5276b0d0050", "9392941e494633fdc62e7a1ff2b049eeb0c65a84"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 307e474c0e = G108 post digest 9e9b1c7e... (bcd21f45c4 adds only out-of-scope evidence)"
@@ -1771,3 +1772,23 @@ proof = "PROVEN on the first run (post 05977220...)"
 
 [generation.next]
 objective = "G110 (P3): first-50 #46 git (object model / pack representation for census storage identity, P5) -- the tracked unadmitted git checkout stays BLOCKED_ON_USER"
+
+[[generation]]
+id = "G110"
+base_commit = "9392941e494633fdc62e7a1ff2b049eeb0c65a84"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #46 git to a terminal state (P5 content-addressed storage)"
+objective = "decide the consumer-gated git/git without admission and without touching the tracked unadmitted git checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/46-git.json"
+self_recensus = ".atlas/evidence/census/G110/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of d99f6d3394 = G109 post digest 05977220... (9392941e49 adds only out-of-scope evidence)"
+falsification = "Atlas already observes revisions through the installed git binary (adapter/src/vcs); census and container identities are native BLAKE3; committed evidence already lives in git's own object store and packs -- no consumer needs git's object model or pack format natively"
+no_code_change = "no in-scope census change at all (decision records only); the tracked unadmitted .atlas/temporary/donors/git checkout is untouched -- its deletion stays BLOCKED_ON_USER"
+decision = "EXTERNAL_BOUNDARY, decided at the consumer gate; object model and packs REFERENCE_ONLY"
+proof = "PROVEN on the first run with an empty intent (post 05977220..., equal to the pre-change census)"
+
+[generation.next]
+objective = "G111 (P3): first-50 #47 nix (derivation identity + closure of construction inputs, P6)"

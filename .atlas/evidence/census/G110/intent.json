@@ -1,0 +1,6 @@
+{
+  "objective": "P3 first-50 #46 git: decided at the consumer gate without admission -- Atlas already observes revisions through the installed git binary and keeps native BLAKE3 storage identity; EXTERNAL_BOUNDARY; no in-scope census change (the tracked unadmitted git checkout is untouched, BLOCKED_ON_USER)",
+  "changed_paths": [],
+  "total_changes": [],
+  "entity_changes": []
+}

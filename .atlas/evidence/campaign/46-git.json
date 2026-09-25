@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 46,
+ "donor": "git",
+ "canonical_url": "https://github.com/git/git.git",
+ "verified_head": "0f8e75abebff0877cae681a3d5ff31ac47f54220",
+ "generation": "G110",
+ "base_commit": "9392941e49",
+ "hypothesis": "object model / pack representation for census storage identity (P5)",
+ "blocking_question": "git/git is QUEUED and CONSUMER_GATED: is there a content-addressing consumer that would justify admitting it?",
+ "measurement": {
+  "vcs_boundary": "Atlas already uses git at a process boundary: adapter/src/vcs runs the installed git binary (2.43.0 here) for revision identity and working-tree status; RevisionRef kind \"git\" throughout",
+  "storage_identity": "census and container identities are native BLAKE3 over canonical content (blake3 absorbed historically); the extraction cache (ADR 0008) is content-keyed; committed evidence (pre/post/atlas JSON) already lives in git's own object store, where identical blobs deduplicate and packs delta-compress them",
+  "consumer": "none needs git's object model (typed object headers) or pack format natively; compression of .atlas payloads was decided separately (G87, G88)"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["git as the VCS Atlas observes through its binary"],
+  "REFERENCE_ONLY": ["typed object headers", "packfiles and delta chains", "multi-pack index", "commit-graph"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "unadmitted_checkout": "the tracked .atlas/temporary/donors/git (4,869 files, 49.4 MB) is a separate, unadmitted checkout recorded in DONOR-WORKING-SET.toml with remedy DELETE; its deletion stays BLOCKED_ON_USER and this generation does not touch it",
+ "extinction": {
+  "action": "none: git/git was never admitted; the unadmitted checkout awaits user approval"
+ }
+}

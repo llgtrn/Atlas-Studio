@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G110",
+  "base_revision": "bcd21f45c4227263f0014b2f8da5f083263067d1",
+  "candidate_revision": "9392941e494633fdc62e7a1ff2b049eeb0c65a84",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:05977220efa1feb8e9bca4195cacc9b795557b6371997f2314bccaf055aa0092",
+  "after_census_digest": "blake3-256:05977220efa1feb8e9bca4195cacc9b795557b6371997f2314bccaf055aa0092",
+  "replay_digest": "blake3-256:05977220efa1feb8e9bca4195cacc9b795557b6371997f2314bccaf055aa0092",
+  "inventory_delta": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [],
+    "counts": {}
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {},
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1295,
+    "total_after": 1295
+  },
+  "intent": {
+    "objective": "P3 first-50 #46 git: decided at the consumer gate without admission -- Atlas already observes revisions through the installed git binary and keeps native BLAKE3 storage identity; EXTERNAL_BOUNDARY; no in-scope census change (the tracked unadmitted git checkout is untouched, BLOCKED_ON_USER)",
+    "changed_paths": [],
+    "total_changes": [],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": []
+  },
+  "intended_changes": [],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
