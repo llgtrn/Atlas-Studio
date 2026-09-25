@@ -95,3 +95,15 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 runtime/storage compression and atlas shard compression primitives
+
+## G87 — terminal REFERENCE_ONLY; source extinct
+
+The recorded block (no section writer) lifted at G64, so the question was measured against the real census container. At level 3 the container shrinks 5.8x (3.44 MB to 0.59 MB), and gzip -9 does as well. No consumer exists, though: the container is a gitignored local cache that is never committed or transmitted. Neither a native codec nor an external one is justified.
+
+The measurement did expose one contract gap. A streaming encode omits `Frame_Content_Size` and the single-segment flag, so a reader could not enforce the decoded-length limit before decompressing. The Compression section now pins the ZSTD section profile:
+- exactly one single-segment frame;
+- `Frame_Content_Size` equals `decoded_length`;
+- no dictionary;
+- no skippable or trailing frame.
+
+Encoder output varies with level, so only a decoder is ever a trust surface. The checkout was physically deleted. Evidence: `../../evidence/campaign/23-zstd.json`.

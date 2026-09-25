@@ -468,7 +468,8 @@ mod tests {
                 "semgrep",
                 "souffle",
                 "sourcetrail",
-                "tree-sitter"
+                "tree-sitter",
+                "zstd"
             ]
         );
     }

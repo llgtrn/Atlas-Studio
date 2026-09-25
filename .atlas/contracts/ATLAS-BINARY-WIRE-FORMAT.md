@@ -233,6 +233,8 @@ Compression MUST be deterministic for canonical publication under the pinned pub
 
 Readers enforce decoded-length limits before decompression to prevent resource-exhaustion attacks.
 
+A `ZSTD` (codec 1) section payload is therefore exactly one Zstandard frame (RFC 8878). Its `Single_Segment_flag` is set, and its `Frame_Content_Size` is present and equal to the directory entry's `decoded_length`, so the window a decoder must allocate is that length and is known before decompression. It has no `Dictionary_ID` and no skippable or trailing frames. A streaming encoder omits `Frame_Content_Size` and leaves the window up to 3.75 TB, which no reader can bound in advance, so such a frame is rejected rather than decompressed. The frame's own `Content_Checksum` is optional because `decoded_content_hash` already authenticates the decoded bytes. Encoder output is not canonical (it varies with level and implementation), so only the decoder is a trust surface; identity stays over decoded content (G87).
+
 ## Content addressing and sharding
 
 A shard identity is derived from canonical decoded content according to the digest algorithm declared by its root/profile.

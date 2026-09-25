@@ -1,0 +1,37 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 23,
+ "donor": "zstd",
+ "commit_sha": "01b7154f1172432f8abe9b3bb9909e14a1176b7d",
+ "generation": "G87",
+ "base_commit": "726fe496c1",
+ "hypothesis": "frame format for compressed .atlas payloads (P2)",
+ "blocking_question": "ATLAS-BINARY-WIRE-FORMAT.md names ZSTD as codec id 1; should it be an Atlas-native codec or an EXTERNAL_BOUNDARY vetted implementation? (recorded as sequencing-blocked until a section writer existed -- it has since G64)",
+ "measurement": {
+  "oracle": "the donor's lib+programs built in a scratch directory (zstd CLI) as a measurement instrument only; never linked, vendored or referenced by Atlas",
+  "container": "the real census container of 38a3147040 (.atlas/.cache/atlas-studio.census.atlas): 3,444,275 bytes, 7 sections",
+  "per_section_level_3": {
+   "STRING_TABLE (2)": "1,715,504 -> 366,708 (4.7x)",
+   "SEMANTIC_RECORDS (6)": "1,628,622 -> 223,839 (7.3x)",
+   "OBLIGATIONS (12)": "97,614 -> 2,386 (40.9x)",
+   "ROOT_MANIFEST, GRAPH_NODES, GRAPH_EDGES, CENSUS_CERTIFICATE": "under 1 KB each"
+  },
+  "totals": "level 1: 600,652 (5.73x); level 3: 593,974 (5.80x); level 19: 442,213 (7.79x, 0.74-0.89 s per large section); gzip -9 over the same sections is within 2% of level 3; every decode < 10 ms",
+  "consumer": "none: the container is written to the gitignored .atlas/.cache, regenerated on demand, never committed (git ls-files '*.atlas' is empty) and never transmitted; committed evidence stores its JSON summary only",
+  "frame_bounds": "a file encode emits Frame_Content_Size (flag 2) with Single_Segment_flag = 1, so the window equals the content size; a streaming (stdin) encode of the same bytes emits neither, leaving Window_Size up to (1<<41)+7*(1<<38) bytes per doc/zstd_compression_format.md -- a reader cannot enforce the contract's decoded-length limit before decompression unless the section profile forbids that form",
+  "determinism": "level 3 output is byte-identical across runs and with -T4, but level 1 differs from level 3: encoder output is not canonical, so the contract's decoded-content identity is the branch that applies and only a decoder is a trust surface"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["frame format, entropy coders (FSE/Huffman), dictionaries, seekable format, the CLI and library"],
+  "contract_change": "ATLAS-BINARY-WIRE-FORMAT.md Compression: a ZSTD section is one single-segment frame whose Frame_Content_Size equals decoded_length, with no Dictionary_ID and no skippable or trailing frame; Content_Checksum optional (decoded_content_hash authenticates); encoder output non-canonical, identity over decoded content",
+  "not_absorbed_because": "no consumer needs fewer bytes; a native codec would be thousands of lines serving nothing, and an external one a runtime dependency serving nothing"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "reopen_trigger": "a published container (sealing / FAT mode, exit criterion E) whose size is a measured cost; then the smallest native unit is a decoder bounded by the pinned profile, since the encoder need not be canonical",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/zstd; scratch oracle build removed"
+ }
+}

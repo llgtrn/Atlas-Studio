@@ -1257,6 +1257,7 @@ objective = "answer the recorded vtable/conformance question against the executi
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/22-flatbuffers.json"
 self_recensus = ".atlas/evidence/census/G86/recensus.json"
+result_commits = ["38a3147040682ea560782de90f254fe6fd3f02ad", "726fe496c12abb11d0949f522c77f7ada935f035"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 417e7f8475 = G85 post digest c76171cc... (9d88f29fc4 adds only out-of-scope evidence)"
@@ -1269,3 +1270,24 @@ proof = "PROVEN (post cd1a4d86...) after the history moved from a .txt file (cen
 
 [generation.next]
 objective = "G87 (P3): first-50 #23 zstd (frame format for compressed .atlas payloads, P2)"
+
+[[generation]]
+id = "G87"
+base_commit = "726fe496c12abb11d0949f522c77f7ada935f035"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #23 zstd to a terminal state (P2 codec question)"
+objective = "answer the recorded native-vs-external codec question now that a section writer exists (G64), decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/23-zstd.json"
+self_recensus = ".atlas/evidence/census/G87/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 38a3147040 = G86 post digest cd1a4d86... (726fe496c1 adds only out-of-scope evidence)"
+falsification = "the real 3.44 MB census container compresses 5.80x at level 3 (7.79x at 19; gzip -9 within 2%), decode < 10 ms per section -- but no consumer exists: the container is a gitignored local cache, never committed or transmitted. A streaming encode omits Frame_Content_Size and Single_Segment_flag, so the window (up to 3.75 TB) is unknown before decompression; level 1 and level 3 outputs differ, so encoder output is not canonical"
+change = "ATLAS-BINARY-WIRE-FORMAT.md Compression: a ZSTD section is one single-segment frame, Frame_Content_Size = decoded_length, no Dictionary_ID, no skippable or trailing frame; Content_Checksum optional; only the decoder is a trust surface"
+no_code_change = "no zstd mechanism absorbed (the writer emits and the reader accepts codec NONE only); the only in-scope census change is the pinned deleted-donor list; the donor was built in scratch as a measurement oracle only and removed"
+extinction = "git rm -r .atlas/temporary/donors/zstd; no build, runtime or test reference"
+proof = "PROVEN on the first run (post b0b781e5...)"
+
+[generation.next]
+objective = "G88 (P3): first-50 #24 arrow (IPC columnar layout for large fact tables, P2)"

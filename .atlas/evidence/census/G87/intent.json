@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #23 zstd: no .atlas container is committed or transmitted, so the measured 5.8x saving serves no consumer; the wire contract now pins a bounded ZSTD section profile (single-segment frame, Frame_Content_Size = decoded_length, no dictionary); REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

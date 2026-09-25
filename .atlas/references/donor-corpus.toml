@@ -749,18 +749,19 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/zstd/COPYING", ".atlas/licenses/donors/zstd/LICENSE"]
 technology_domains = ["compression", "binary_payloads", "compiler_artifact_compression"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
-blocking_question = "ATLAS-BINARY-WIRE-FORMAT.md already names ZSTD as section codec id 1 and permits either an Atlas-native or an independently maintained implementation, but no .atlas section writer/reader exists (R8, W6 PLANNED) and this donor's census is an admission-stage inventory only (no algorithms, invariants, state/effect boundaries or benchmarks classified). Should ZSTD be an Atlas-native codec or an EXTERNAL_BOUNDARY vetted implementation?"
-evidence_needed = "the deep census the census record requires before absorption (format, entropy coders, dictionaries, decoder bounds), plus a real section writer to measure codec cost against the contract's decoded-length limits"
-cheapest_falsification = "none available before the .atlas section writer exists -- a genuine sequencing block; the contract already keys identity on decoded_content_hash, so codec output nondeterminism is not an identity blocker"
-next_action = "prerequisite: .atlas section writer/reader (R8/W6) and a W6 deep census; owners compiler, runtime/binary, core/atlas-format (provenance target_owners); coordinator decides disposition"
-native_replacement = "runtime/storage compression and atlas shard compression primitives"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G87: neither an Atlas-native nor a vetted external codec now -- no .atlas container is committed or transmitted (the census container is a gitignored 3.4 MB local cache), so the measured 5.8x saving (level 3; gzip -9 is equal) serves no consumer. Because identity is over decoded content, only a decoder is ever a trust surface; the contract now pins a bounded ZSTD section profile (one single-segment frame, Frame_Content_Size = decoded_length, no dictionary) that any future implementation must satisfy"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/23-zstd.json); re-materialize the pinned commit if a published container (sealing / FAT mode, exit criterion E) makes size a measured need"
+cheapest_falsification = "performed G87: per-section compression of the real census container (a scratch build of the donor as measurement oracle only) and frame-header inspection of file vs streaming output"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
+native_replacement = "none needed: codec 0 (NONE) is the only codec the writer emits and the reader accepts; the ZSTD section profile is pinned in ATLAS-BINARY-WIRE-FORMAT.md"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/zstd.json", ".atlas/census/donors/zstd.md"]
+evidence = [".atlas/evidence/campaign/23-zstd.json", ".atlas/provenance/donors/zstd.json", ".atlas/census/donors/zstd.md"]
 
 [[donor]]
 id = "blake3"
