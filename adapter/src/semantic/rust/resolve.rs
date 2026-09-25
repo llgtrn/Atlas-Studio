@@ -152,6 +152,7 @@ fn resolve_on_this_stack(
     for (index, krate) in crates.iter().enumerate() {
         map.collect_crate(index, krate, sources, &mut parsed);
     }
+    map.resolve_macro_calls();
     map.resolve_imports(crates);
     map.resolve_impls(crates);
     let mut out = Vec::new();
@@ -290,9 +291,14 @@ struct Module {
     items: Scope,
     scope: Scope,
     imports: Vec<Import>,
-    /// Names may exist that this pass cannot see (item macros, an unresolvable glob, a missing
-    /// or unparsable module file).
+    /// Names may exist that this pass cannot see (an unbounded item macro, an unresolvable glob,
+    /// a missing or unparsable module file).
     open: bool,
+    /// G145: the names this module's own item-position `macro_rules!` invocations may define.
+    macro_names: BTreeSet<String>,
+    /// G145: `macro_names` and those a glob import brings in -- a lookup of one of these names is
+    /// uncertain in this module, every other name is not.
+    shadow: BTreeSet<String>,
     /// The module's own name (empty for a crate root and a block).
     name: String,
 }
@@ -397,6 +403,261 @@ struct DefMap {
     blocks: BTreeMap<(String, usize, usize), ModId>,
     crate_roots: BTreeMap<usize, ModId>,
     crate_packages: BTreeMap<usize, String>,
+    /// G145: every workspace `macro_rules!` definition and item-position macro invocation.
+    macro_defs: Vec<MacroDef>,
+    macro_calls: Vec<MacroCall>,
+}
+
+/// G145: a workspace `macro_rules!` definition and the names its expansions may define.
+#[derive(Debug, Clone)]
+struct MacroDef {
+    module: ModId,
+    file: String,
+    line: usize,
+    name: String,
+    exported: bool,
+    names: MacroNames,
+}
+
+/// G145: what an expansion of a `macro_rules!` may define, read from its transcribers without
+/// expanding: an item is named by the identifier after its keyword, which is either spelled in the
+/// transcriber or substituted for a metavariable from the invocation's tokens. Anything that could
+/// name items another way (an import, a macro outside the expression allowlist, an attribute
+/// outside the attribute allowlist) leaves the expansion unbounded.
+#[derive(Debug, Clone, Default)]
+struct MacroNames {
+    literal: BTreeSet<String>,
+    from_invocation: bool,
+    unbounded: bool,
+}
+
+/// G145: an item-position macro invocation, resolved once every definition is collected.
+#[derive(Debug, Clone)]
+struct MacroCall {
+    module: ModId,
+    file: String,
+    line: usize,
+    segments: Vec<String>,
+    leading_colon: bool,
+    idents: BTreeSet<String>,
+    attributes_allowed: bool,
+}
+
+/// Keywords whose next identifier names an item.
+const ITEM_KEYWORDS: [&str; 9] = [
+    "struct", "enum", "union", "trait", "type", "fn", "mod", "const", "static",
+];
+
+/// Standard macros that expand to expressions or nothing: never to a named item.
+const EXPRESSION_MACROS: [&str; 24] = [
+    "assert",
+    "assert_eq",
+    "assert_ne",
+    "cfg",
+    "column",
+    "concat",
+    "dbg",
+    "debug_assert",
+    "debug_assert_eq",
+    "debug_assert_ne",
+    "env",
+    "file",
+    "format",
+    "format_args",
+    "line",
+    "matches",
+    "panic",
+    "print",
+    "println",
+    "stringify",
+    "todo",
+    "unimplemented",
+    "unreachable",
+    "vec",
+];
+
+/// Attributes that never introduce a name, and the derives whose output names nothing (std's, and
+/// serde's, which expand to anonymous `const _` items).
+const ATTRIBUTES: [&str; 14] = [
+    "allow",
+    "cfg",
+    "cfg_attr",
+    "default",
+    "deny",
+    "derive",
+    "doc",
+    "expect",
+    "inline",
+    "must_use",
+    "non_exhaustive",
+    "repr",
+    "serde",
+    "warn",
+];
+const DERIVES: [&str; 12] = [
+    "Clone",
+    "Copy",
+    "Debug",
+    "Default",
+    "Deserialize",
+    "Eq",
+    "Hash",
+    "Ord",
+    "PartialEq",
+    "PartialOrd",
+    "Serialize",
+    "serde",
+];
+
+fn ident_text(ident: &proc_macro2::Ident) -> String {
+    let text = ident.to_string();
+    text.strip_prefix("r#").map_or(text.clone(), str::to_owned)
+}
+
+/// Every identifier in a token stream, groups included.
+fn stream_idents(tokens: proc_macro2::TokenStream, out: &mut BTreeSet<String>) {
+    for token in tokens {
+        match token {
+            proc_macro2::TokenTree::Ident(ident) => {
+                out.insert(ident_text(&ident));
+            }
+            proc_macro2::TokenTree::Group(group) => stream_idents(group.stream(), out),
+            _ => {}
+        }
+    }
+}
+
+/// Whether every `#[..]` in a token stream is an allowlisted attribute (a leading metavariable,
+/// `#[$meta]`, stands for the invocation's attributes, which are checked there).
+fn attributes_allowed(tokens: proc_macro2::TokenStream) -> bool {
+    use proc_macro2::TokenTree;
+    let tokens: Vec<TokenTree> = tokens.into_iter().collect();
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            TokenTree::Punct(punct) if punct.as_char() == '#' => {
+                let Some(TokenTree::Group(group)) = tokens.get(index + 1) else {
+                    continue;
+                };
+                if group.delimiter() != proc_macro2::Delimiter::Bracket {
+                    continue;
+                }
+                let inner: Vec<TokenTree> = group.stream().into_iter().collect();
+                match inner.first() {
+                    Some(TokenTree::Punct(punct)) if punct.as_char() == '$' => {}
+                    Some(TokenTree::Ident(ident)) => {
+                        let name = ident_text(ident);
+                        if !ATTRIBUTES.contains(&name.as_str()) {
+                            return false;
+                        }
+                        if name == "derive" {
+                            let mut derived = BTreeSet::new();
+                            for part in &inner[1..] {
+                                stream_idents(part.clone().into(), &mut derived);
+                            }
+                            if derived.iter().any(|d| !DERIVES.contains(&d.as_str())) {
+                                return false;
+                            }
+                        }
+                    }
+                    _ => return false,
+                }
+            }
+            TokenTree::Group(group) if !attributes_allowed(group.stream()) => return false,
+            _ => {}
+        }
+    }
+    true
+}
+
+/// The names a transcriber may define (see `MacroNames`).
+fn transcriber_names(tokens: proc_macro2::TokenStream, names: &mut MacroNames) {
+    use proc_macro2::TokenTree;
+    let tokens: Vec<TokenTree> = tokens.into_iter().collect();
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            TokenTree::Ident(ident) => {
+                let text = ident_text(ident);
+                let previous = index
+                    .checked_sub(1)
+                    .map(|i| tokens[i].to_string())
+                    .unwrap_or_default();
+                // `$name` is a metavariable and `'static` a lifetime, never a keyword.
+                let after_dollar = previous == "$";
+                let lifetime = previous == "'";
+                if lifetime {
+                    continue;
+                }
+                if text == "use" || text == "extern" {
+                    names.unbounded = true;
+                } else if ITEM_KEYWORDS.contains(&text.as_str()) && !after_dollar {
+                    let mut next = index + 1;
+                    while tokens.get(next).is_some_and(|t| t.to_string() == "mut") {
+                        next += 1;
+                    }
+                    match tokens.get(next) {
+                        Some(TokenTree::Ident(name)) => {
+                            names.literal.insert(ident_text(name));
+                        }
+                        Some(TokenTree::Punct(punct)) if punct.as_char() == '$' => {
+                            names.from_invocation = true;
+                        }
+                        _ => {}
+                    }
+                }
+                let bang = tokens.get(index + 1).is_some_and(|t| t.to_string() == "!");
+                if bang
+                    && text != "macro_rules"
+                    && (after_dollar || !EXPRESSION_MACROS.contains(&text.as_str()))
+                {
+                    names.unbounded = true;
+                }
+            }
+            TokenTree::Group(group) => transcriber_names(group.stream(), names),
+            _ => {}
+        }
+    }
+}
+
+/// The names a `macro_rules!` body's arms may define: every transcriber, since the arm an
+/// invocation selects is not decided here.
+fn macro_rules_names(body: proc_macro2::TokenStream) -> MacroNames {
+    use proc_macro2::TokenTree;
+    let mut names = MacroNames::default();
+    let tokens: Vec<TokenTree> = body.into_iter().collect();
+    let mut index = 0;
+    let mut arms = 0;
+    while index < tokens.len() {
+        // matcher `=` `>` transcriber [`;`]
+        let (Some(TokenTree::Group(_)), Some(TokenTree::Punct(eq)), Some(TokenTree::Punct(gt))) = (
+            tokens.get(index),
+            tokens.get(index + 1),
+            tokens.get(index + 2),
+        ) else {
+            names.unbounded = true;
+            return names;
+        };
+        let Some(TokenTree::Group(transcriber)) = tokens.get(index + 3) else {
+            names.unbounded = true;
+            return names;
+        };
+        if eq.as_char() != '=' || gt.as_char() != '>' {
+            names.unbounded = true;
+            return names;
+        }
+        transcriber_names(transcriber.stream(), &mut names);
+        if !attributes_allowed(transcriber.stream()) {
+            names.unbounded = true;
+        }
+        arms += 1;
+        index += 4;
+        if tokens.get(index).is_some_and(|t| t.to_string() == ";") {
+            index += 1;
+        }
+    }
+    if arms == 0 {
+        names.unbounded = true;
+    }
+    names
 }
 
 fn dir_of(path: &str) -> &str {
@@ -456,6 +717,8 @@ impl DefMap {
             scope: Scope::default(),
             imports: Vec::new(),
             open: false,
+            macro_names: BTreeSet::new(),
+            shadow: BTreeSet::new(),
             name: String::new(),
         });
         self.modules.len() - 1
@@ -798,8 +1061,40 @@ impl DefMap {
                     self.add_item(module, Ns::Types, &name, def, &item.vis);
                 }
                 syn::Item::Impl(item) => self.collect_impl(module, file, item),
-                // An item-position macro may define any name.
-                syn::Item::Macro(item) if item.ident.is_none() => self.modules[module].open = true,
+                // G145: an item-position macro defines what its expansion names; a workspace
+                // `macro_rules!` bounds that (`resolve_macro_calls`), anything else may define any
+                // name.
+                syn::Item::Macro(item) if item.ident.is_none() => {
+                    let mut idents = BTreeSet::new();
+                    stream_idents(item.mac.tokens.clone(), &mut idents);
+                    self.macro_calls.push(MacroCall {
+                        module,
+                        file: file.to_owned(),
+                        line: start(item.span()).0,
+                        segments: item
+                            .mac
+                            .path
+                            .segments
+                            .iter()
+                            .map(|s| s.ident.to_string())
+                            .collect(),
+                        leading_colon: item.mac.path.leading_colon.is_some(),
+                        idents,
+                        attributes_allowed: attributes_allowed(item.mac.tokens.clone()),
+                    });
+                }
+                syn::Item::Macro(item) if item.mac.path.is_ident("macro_rules") => {
+                    if let Some(ident) = &item.ident {
+                        self.macro_defs.push(MacroDef {
+                            module,
+                            file: file.to_owned(),
+                            line: start(item.span()).0,
+                            name: ident.to_string(),
+                            exported: item.attrs.iter().any(|a| a.path().is_ident("macro_export")),
+                            names: macro_rules_names(item.mac.tokens.clone()),
+                        });
+                    }
+                }
                 _ => {}
             }
         }
@@ -953,23 +1248,89 @@ impl DefMap {
 
     /// The fixed point: every iteration recomputes every scope from its items plus its imports,
     /// resolved against the previous iteration's scopes, until no scope changes.
+    /// G145: an item-position invocation of a workspace `macro_rules!` -- `name!` defined earlier
+    /// in the same module of the same file (textual scope, which precedes any path-based macro),
+    /// or `crate::name!` naming the crate's `#[macro_export]` definitions -- may define only the
+    /// names its definitions' transcribers bound; every other invocation opens its module.
+    fn resolve_macro_calls(&mut self) {
+        for call in std::mem::take(&mut self.macro_calls) {
+            let krate = self.modules[call.module].krate;
+            let candidates: Vec<&MacroDef> = match call.segments.as_slice() {
+                [name] if !call.leading_colon => self
+                    .macro_defs
+                    .iter()
+                    .filter(|d| {
+                        d.module == call.module
+                            && d.file == call.file
+                            && d.line < call.line
+                            && d.name == *name
+                    })
+                    .collect(),
+                [root, name] if !call.leading_colon && root == "crate" => self
+                    .macro_defs
+                    .iter()
+                    .filter(|d| {
+                        d.exported && self.modules[d.module].krate == krate && d.name == *name
+                    })
+                    .collect(),
+                _ => Vec::new(),
+            };
+            let bounded = !candidates.is_empty()
+                && call.attributes_allowed
+                && candidates.iter().all(|d| !d.names.unbounded);
+            if !bounded {
+                self.modules[call.module].open = true;
+                continue;
+            }
+            let mut names = BTreeSet::new();
+            for definition in candidates {
+                names.extend(definition.names.literal.iter().cloned());
+                if definition.names.from_invocation {
+                    names.extend(call.idents.iter().cloned());
+                }
+            }
+            self.modules[call.module].macro_names.extend(names);
+        }
+    }
+
+    /// Whether a lookup of `name` in `module` is uncertain: the module is open, or an item macro
+    /// there (or one a glob import reaches) may define `name` (G145).
+    fn uncertain(&self, module: ModId, name: &str) -> bool {
+        let module = &self.modules[module];
+        module.open || module.shadow.contains(name)
+    }
+
     fn resolve_imports(&mut self, crates: &[CrateInput]) {
         for module in &mut self.modules {
             module.scope = module.items.clone();
+            module.shadow = module.macro_names.clone();
         }
         for _ in 0..64 {
             let mut next: Vec<Scope> = self.modules.iter().map(|m| m.items.clone()).collect();
             let mut opened = vec![false; self.modules.len()];
+            let mut shadows: Vec<BTreeSet<String>> =
+                self.modules.iter().map(|m| m.macro_names.clone()).collect();
             for (id, module) in self.modules.iter().enumerate() {
                 for import in &module.imports {
-                    self.apply_import(crates, id, import, &mut next[id], &mut opened[id]);
+                    self.apply_import(
+                        crates,
+                        id,
+                        import,
+                        &mut next[id],
+                        &mut opened[id],
+                        &mut shadows[id],
+                    );
                 }
             }
             let mut changed = false;
-            for (id, scope) in next.into_iter().enumerate() {
+            for (id, (scope, shadow)) in next.into_iter().zip(shadows).enumerate() {
                 if self.modules[id].scope != scope {
                     changed = true;
                     self.modules[id].scope = scope;
+                }
+                if self.modules[id].shadow != shadow {
+                    changed = true;
+                    self.modules[id].shadow = shadow;
                 }
                 if opened[id] && !self.modules[id].open {
                     changed = true;
@@ -993,6 +1354,7 @@ impl DefMap {
         import: &Import,
         into: &mut Scope,
         opened: &mut bool,
+        shadow: &mut BTreeSet<String>,
     ) {
         let whole_is_prefix = import.name.is_none() || import.self_import;
         let Some(prefix) = self.resolve_prefix(
@@ -1025,6 +1387,7 @@ impl DefMap {
                 if self.modules[target].open {
                     *opened = true;
                 }
+                shadow.extend(self.modules[target].shadow.iter().cloned());
                 for ns in [Ns::Types, Ns::Values] {
                     for (name, entry) in self.modules[target].scope.ns(ns) {
                         if self.visible(&entry.vis, id) {
@@ -1152,6 +1515,11 @@ impl DefMap {
                 Def::Module(module) => {
                     let entry = self.modules[module].scope.types.get(segment);
                     match entry {
+                        Some(entry)
+                            if entry.origin == Origin::Glob && self.uncertain(module, segment) =>
+                        {
+                            return None;
+                        }
                         Some(entry) if self.visible(&entry.vis, scope) => entry.def.clone(),
                         _ => return None,
                     }
@@ -1212,12 +1580,12 @@ impl DefMap {
             let module = &self.modules[scope];
             if let Some(entry) = module.scope.ns(ns).get(name) {
                 // A glob-provided name in an open scope may be shadowed by one we cannot see.
-                if entry.origin == Origin::Glob && module.open {
+                if entry.origin == Origin::Glob && self.uncertain(scope, name) {
                     return Lookup::Open;
                 }
                 return Lookup::Found(entry.def.clone());
             }
-            if module.open {
+            if self.uncertain(scope, name) {
                 return Lookup::Open;
             }
             match module.lexical_parent {
@@ -1530,6 +1898,7 @@ impl DefMap {
         while let Some(id) = cursor {
             let module = &self.modules[id];
             if module.open
+                || !module.shadow.is_empty()
                 || module
                     .scope
                     .types
@@ -1922,7 +2291,7 @@ impl CallWalker<'_> {
                 Def::Module(module) => {
                     // In an open module only a glob-provided name is uncertain: an explicit item
                     // or named import cannot be redefined by what this pass does not see.
-                    let open = self.map.modules[module].open;
+                    let open = self.map.uncertain(module, &last.ident.to_string());
                     match self.map.modules[module]
                         .scope
                         .types
@@ -2561,13 +2930,13 @@ impl CallWalker<'_> {
         match prefix {
             Def::Module(module) => match self.map.modules[module].scope.values.get(last) {
                 Some(entry) if self.map.visible(&entry.vis, scope) => {
-                    if entry.origin == Origin::Glob && self.map.modules[module].open {
+                    if entry.origin == Origin::Glob && self.map.uncertain(module, last) {
                         PathCallOutcome::Unresolved("open-scope")
                     } else {
                         outcome_of(entry.def.clone())
                     }
                 }
-                _ if self.map.modules[module].open => PathCallOutcome::Unresolved("open-scope"),
+                _ if self.map.uncertain(module, last) => PathCallOutcome::Unresolved("open-scope"),
                 _ => PathCallOutcome::Unresolved("not-found"),
             },
             Def::Type(_) => {

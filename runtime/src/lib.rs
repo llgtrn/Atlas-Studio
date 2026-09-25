@@ -3066,13 +3066,28 @@ mod tests {
                 "the queue head is planned for the next native generation (G{planned} at G{current})"
             );
             // Dependency order before pressure (tightened G124): the head's primary debt is not
-            // blocked by another open debt, and among such bounded attacks the head carries the
+            // blocked by another open debt -- nor (G145) confined to construction nodes whose
+            // requirements are missing -- and among such bounded attacks the head carries the
             // largest summed stale_generations.
+            let nodes = blocks(&ledger.text, "construction_node");
+            let status: BTreeMap<String, String> = nodes
+                .iter()
+                .map(|block| (text(block, "id"), text(block, "status")))
+                .collect();
+            let reachable = |debt: &str| {
+                let owned: Vec<bool> = nodes
+                    .iter()
+                    .filter(|b| text(b, "status") == "MISSING" && text(b, "debt") == debt)
+                    .map(|b| list(b, "requires").iter().all(|r| status[r] == "EXISTS"))
+                    .collect();
+                owned.is_empty() || owned.contains(&true)
+            };
             let unblocked_primary = |attack: &str| {
                 list(attack, "debts").first().is_some_and(|d| {
-                    debts
-                        .get(d)
-                        .is_some_and(|b| list(b, "blocked_by").is_empty())
+                    reachable(d)
+                        && debts
+                            .get(d)
+                            .is_some_and(|b| list(b, "blocked_by").is_empty())
                 })
             };
             let pressure = |attack: &str| -> i64 {
@@ -4183,6 +4198,37 @@ mod tests {
             for milestone in ["MIN_ATLASX", "FIRST_ARTIFACT"] {
                 assert!(nodes.contains_key(milestone), "{milestone} missing");
             }
+        }
+
+        /// G145: dependency order includes the construction graph. The queue head's primary debt,
+        /// when it owns construction nodes, owns one whose requirements all EXIST -- NA-FIRST-ARTIFACT
+        /// was planned for G145 while its M17 sat behind ten missing nodes.
+        #[test]
+        fn the_queue_head_is_construction_reachable() {
+            let ledger = Ledger::load();
+            let nodes = blocks(&ledger.text, "construction_node");
+            let status: BTreeMap<String, String> = nodes
+                .iter()
+                .map(|block| (text(block, "id"), text(block, "status")))
+                .collect();
+            let head = blocks(&ledger.text, "native_attack")[0];
+            let primary = list(head, "debts")[0].clone();
+            let frontier: Vec<bool> = nodes
+                .iter()
+                .filter(|block| {
+                    text(block, "status") == "MISSING" && text(block, "debt") == primary
+                })
+                .map(|block| {
+                    list(block, "requires")
+                        .iter()
+                        .all(|r| status[r] == "EXISTS")
+                })
+                .collect();
+            assert!(
+                frontier.is_empty() || frontier.contains(&true),
+                "{}: {primary} owns no construction node whose requirements exist",
+                text(head, "id")
+            );
         }
     }
 

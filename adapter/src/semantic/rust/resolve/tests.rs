@@ -653,3 +653,166 @@ fn type_canonicalization_never_guesses() {
         "a glob name in an open module"
     );
 }
+
+/// G145: the 1-based line of the first line of `text` containing `needle`.
+fn line_of(text: &str, needle: &str) -> usize {
+    text.lines()
+        .position(|line| line.contains(needle))
+        .unwrap_or_else(|| panic!("{needle} not in the fixture"))
+        + 1
+}
+
+/// G145: the canonical identity of each occurrence of `spelling` on `line` of `path`.
+fn canonicals_at(
+    resolution: &WorkspaceResolution,
+    path: &str,
+    line: usize,
+    spelling: &str,
+) -> Vec<Option<String>> {
+    let found: Vec<Option<String>> = resolution
+        .types
+        .iter()
+        .filter(|t| t.path == path && t.line == line && t.spelling == spelling)
+        .map(|t| t.canonical.clone())
+        .collect();
+    assert!(
+        !found.is_empty(),
+        "{spelling} on {line}: {:#?}",
+        resolution.types
+    );
+    found
+}
+
+const VOCAB: &str = "#[macro_export]\nmacro_rules! vocab {\n    ($(#[$meta:meta])* $vis:vis enum $name:ident { $($variant:ident => $text:literal),+ $(,)? }) => {\n        $(#[$meta])*\n        #[derive(Debug, Clone, Copy, serde::Serialize)]\n        $vis enum $name { $($variant),+ }\n        impl $name {\n            pub const fn as_str(&self) -> &'static str { match self { $(Self::$variant => $text),+ } }\n        }\n    };\n}\nmacro_rules! id {\n    ($name:ident) => { pub struct $name(String); };\n}\nmacro_rules! imports {\n    () => { use std::collections::*; };\n}\nmacro_rules! nested {\n    () => { other!(); };\n}\n";
+
+#[test]
+fn a_workspace_macro_rules_bounds_the_names_its_invocation_may_define() {
+    // The invocation may define `Verdict` (a metavariable in a name position, bound from its
+    // tokens) and what the transcriber spells after an item keyword (`as_str`); `String`, `str`
+    // (after the lifetime `'static`, which is not the keyword `static`) and a glob-imported
+    // `Status` are certain; the glob's `Verdict` is not, since the macro's would shadow it.
+    let lib = format!(
+        "{VOCAB}mod model {{\n    pub struct Status;\n    pub struct Verdict;\n}}\nmod bounded {{\n    crate::vocab! {{\n        /// doc\n        pub enum Verdict {{ Held => \"HELD\" }}\n    }}\n    crate::vocab! {{ pub enum Mode {{ On => \"ON\" }} }}\n    pub use super::model::*;\n    pub fn helper() {{}}\n    pub fn f(s: String, t: &'static str, v: Verdict, w: Status) {{\n        helper();\n        Verdict::held();\n        Mode::on();\n    }}\n}}\nid!(Named);\npub fn g(n: Named, s: String) {{}}\n"
+    );
+    let resolution = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", &lib)]));
+    let f = line_of(&lib, "pub fn f(");
+    assert_eq!(
+        canonicals_at(&resolution, "src/lib.rs", f, "String"),
+        [Some("std::string::String".into())]
+    );
+    assert_eq!(
+        canonicals_at(&resolution, "src/lib.rs", f, "&'static str"),
+        [Some("&str".into())]
+    );
+    assert_eq!(
+        canonicals_at(&resolution, "src/lib.rs", f, "Verdict"),
+        [None],
+        "the macro defines it"
+    );
+    assert_eq!(
+        canonicals_at(&resolution, "src/lib.rs", f, "Status"),
+        [Some(". model/Status#".into())]
+    );
+    // Textual scope: `id!` is defined above its invocation in the same module.
+    let g = line_of(&lib, "pub fn g(");
+    assert_eq!(canonicals_at(&resolution, "src/lib.rs", g, "Named"), [None]);
+    assert_eq!(
+        canonicals_at(&resolution, "src/lib.rs", g, "String"),
+        [Some("std::string::String".into())]
+    );
+    let results = resolve_path_calls(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", &lib)]));
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            (
+                "helper".into(),
+                format!("src/lib.rs:{}:helper", line_of(&lib, "pub fn helper"))
+            ),
+            // A name the macro may define is uncertain, not an external crate.
+            (
+                "Verdict::held".into(),
+                "unresolved:unresolved-prefix".into()
+            ),
+            ("Mode::on".into(), "unresolved:unresolved-prefix".into()),
+        ]
+    );
+}
+
+#[test]
+fn an_unbounded_item_macro_still_opens_its_module() {
+    // A transcriber that imports, one that invokes a macro outside the expression allowlist, an
+    // invocation carrying an attribute outside the allowlist, an invocation before the
+    // definition (no textual scope) and a macro no workspace definition names: each may define
+    // any name, so even `String` stays unresolved there. The control case, a bounded invocation
+    // in the same position, resolves it.
+    let cases = [
+        ("imports!();", None),
+        ("nested!();", None),
+        (
+            "crate::vocab! { #[my_attr] pub enum E { A => \"A\" } }",
+            None,
+        ),
+        ("late!(X);", None),
+        ("external::make!();", None),
+        ("early!(X);", Some("std::string::String".to_owned())),
+    ];
+    for (case, expected) in cases {
+        let lib = format!(
+            "{VOCAB}mod m {{\n    macro_rules! imports {{\n        () => {{ use std::collections::*; }};\n    }}\n    macro_rules! nested {{\n        () => {{ other!(); }};\n    }}\n    macro_rules! early {{\n        ($name:ident) => {{ pub struct $name; }};\n    }}\n    {case}\n    pub fn f(s: String) {{}}\n    macro_rules! late {{\n        ($name:ident) => {{ pub struct $name; }};\n    }}\n}}\n"
+        );
+        let resolution =
+            resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", &lib)]));
+        let f = line_of(&lib, "pub fn f(");
+        assert_eq!(
+            canonicals_at(&resolution, "src/lib.rs", f, "String"),
+            [expected],
+            "{case}"
+        );
+    }
+}
+
+#[test]
+fn a_glob_import_carries_the_names_a_macro_may_define() {
+    // `Kind` may exist in `gen` (the macro defines it, shadowing the glob's), so through
+    // `gen::*` it is uncertain in `user` -- never taken for an external crate or for
+    // `model::Kind` -- while `Other` is still a plain miss.
+    let lib = format!(
+        "{VOCAB}mod model {{\n    pub struct Kind;\n    impl Kind {{\n        pub fn from_str() {{}}\n    }}\n}}\nmod gen {{\n    crate::vocab! {{ pub enum Kind {{ A => \"A\" }} }}\n    pub use super::model::*;\n}}\nmod user {{\n    use super::gen::*;\n    pub fn t() {{\n        Kind::from_str();\n        Other::f();\n        super::gen::Kind::from_str();\n        super::model::Kind::from_str();\n    }}\n}}\n"
+    );
+    let results = resolve_path_calls(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", &lib)]));
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            (
+                "Kind::from_str".into(),
+                "unresolved:unresolved-prefix".into()
+            ),
+            ("Other::f".into(), "unresolved:external".into()),
+            // Through a path, too: `gen`'s glob `Kind` may be shadowed by the macro's.
+            (
+                "super::gen::Kind::from_str".into(),
+                "unresolved:unresolved-prefix".into()
+            ),
+            (
+                "super::model::Kind::from_str".into(),
+                format!("src/lib.rs:{}:from_str", line_of(&lib, "pub fn from_str")),
+            ),
+        ]
+    );
+}
+
+#[test]
+fn transcriber_names_skip_lifetimes_and_metavariables() {
+    let body: proc_macro2::TokenStream =
+        "($name:ident) => { const fn a() -> &'static str { \"\" } static mut B: u8 = 0; fn $name() {} struct C<'static_ish>; };"
+            .parse()
+            .expect("tokens");
+    let names = macro_rules_names(body);
+    assert!(!names.unbounded);
+    assert!(names.from_invocation);
+    for name in ["a", "B", "C"] {
+        assert!(names.literal.contains(name), "{name}: {names:?}");
+    }
+    assert!(!names.literal.contains("str"), "{names:?}");
+    assert!(!names.literal.contains("u8"), "{names:?}");
+}

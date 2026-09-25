@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G144"
+current_generation = "G145"
 
 [[generation]]
 id = "G35"
@@ -3068,3 +3068,38 @@ after = 149
 key = "records:CALL|atlas.resolution.rust-paths"
 before = 5763
 after = 5783
+
+[[generation]]
+id = "G145"
+kind = "NATIVE_ATTACK"
+base_commit = "b8819e08a04c1acd8ca478f12d1aaf5e716a9d99"
+priority = "P0"
+serves = "planned NA-FIRST-ARTIFACT (P6), found not construction-reachable; re-selected queue head NA-CALL-TYPE-RESIDUAL (DEBT-TYPE, 61 stale generations)"
+objective = "queue selection respects the construction graph; an item-position workspace macro_rules! invocation makes only the names its transcribers can define uncertain, so the rest of its module resolves"
+writer = "coordinator (sole writer); one read-only lane scoped M1 (typed-record .atlas sections) for the next construction attack"
+evidence = ".atlas/evidence/census/G145/macro-names-scip-differential.json"
+self_recensus = ".atlas/evidence/census/G145/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 0e68ebe0ff = G144 post digest (the evidence commit b8819e08a0 adds only out-of-scope evidence)"
+atlas_first = "the construction graph put NA-FIRST-ARTIFACT's M17 behind M16, M15, MIN_ATLASX and seven more missing nodes, while the selection read only debt-level blocked_by edges; the census showed the resolution engine canonicalizing no type in 8 core files -- String, usize and str included -- because crate::vocabulary_enum! and typed_id! invocations opened their modules"
+change = "gen selection and runtime test the_queue_head_is_construction_reachable (primary debt owns a MISSING construction node whose requirements all EXIST, or none); construction nodes M5 and M6 EXISTS (G138); adapter resolve.rs: MacroDef/MacroCall/MacroNames, macro_rules_names over every arm's transcriber (item-keyword names, metavariable names from the invocation, imports and non-expression macros and unlisted attributes unbounded, lifetimes and metavariables not keywords), resolve_macro_calls (textual scope or crate::name!), Module.macro_names and shadow, glob imports carry shadow, uncertain() in lexical lookup, resolve_prefix, path-call targets and type canonicalization; ADR 0062"
+oracle = "same tree, G144 vs G145 engine: 1,250 more type occurrences canonicalized, none changed, resolution-engine TYPE records 1,983 -> 2,123; 15 more workspace path-call resolutions (CALL records 5,826 -> 5,841), all agreeing with SCIP; 190 more external, the 42 std paths SCIP-confirmed; no resolution lost"
+falsification = "10 mutants killed (unbounded flag, glob propagation, lifetime skip, invocation names, textual order, invocation attributes, resolve_prefix glob check, lexical miss, use in a transcriber, macro allowlist); the reachability test fails on the G144 ledger (NA-FIRST-ARTIFACT owns no construction node whose requirements exist)"
+debts = "DEBT-TYPE and DEBT-CALL last advance G145; revalidation milestone ITEM_MACRO_NAMES; NA-FIRST-ARTIFACT stays queued behind the construction frontier; next native head NA-ATLAS-TYPED-SECTIONS (M1) at G147 after the G146 AGENT_MISSION"
+proof = "PROVEN (post 73a2d210...): no new UNKNOWN obligation; records:TYPE|atlas.resolution.rust-paths and records:CALL|atlas.resolution.rust-paths grow"
+
+[[generation.metric]]
+key = "typed_records"
+before = 146800
+after = 148139
+
+[[generation.metric]]
+key = "records:TYPE|atlas.resolution.rust-paths"
+before = 1971
+after = 2123
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5783
+after = 5847

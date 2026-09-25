@@ -1,0 +1,450 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G145",
+  "base_revision": "e71cb0394bba9b388135eb30389ea478644a6af6",
+  "candidate_revision": "b8819e08a04c1acd8ca478f12d1aaf5e716a9d99",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:6ca764cd0e4ea83849a3f76d71e0fb4169505df6380841924ed80b78af5410c5",
+  "after_census_digest": "blake3-256:73a2d210423153b88bc88564eb6c2dea54fb0ed88b019a34dca6d9501b0ef1e6",
+  "replay_digest": "blake3-256:73a2d210423153b88bc88564eb6c2dea54fb0ed88b019a34dca6d9501b0ef1e6",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/mod.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/integrity/tests.rs",
+      "core/src/verification/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 38,
+      "fact:FunctionSignature|OBSERVED": 14,
+      "fact:Symbol|OBSERVED": 66,
+      "fact:Type|DERIVED": 152,
+      "fact:Type|OBSERVED": 29,
+      "record:CALL|DERIVED": 64,
+      "record:CALL|OBSERVED": 246,
+      "record:CONTROL_FLOW|INFERRED": 17,
+      "record:CONTROL_FLOW|OBSERVED": 99,
+      "record:DATA_FLOW|OBSERVED": 479,
+      "record:EFFECT|INFERRED": 17,
+      "record:FUNCTION_IDENTITY|OBSERVED": 38,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 14,
+      "record:OWNERSHIP|OBSERVED": 113,
+      "record:STATE|OBSERVED": 5,
+      "record:SYMBOL|OBSERVED": 66,
+      "record:TYPE|DERIVED": 152,
+      "record:TYPE|OBSERVED": 29
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1640,
+    "graph_nodes": 1276
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/uncertain()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/attributes_allowed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/ident_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/macro_rules_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/stream_idents()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_unbounded_item_macro_still_opens_its_module()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/canonicals_at()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/line_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/transcriber_names_skip_lifetimes_and_metavariables()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/transcriber_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/the_queue_head_is_construction_reachable()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "bounded item-macro names: an item-position invocation of a workspace macro_rules! makes only the names its transcribers can define uncertain, so the rest of its module resolves; construction reachability in queue selection",
+    "changed_paths": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/mod.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/integrity/tests.rs",
+      "core/src/verification/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+      "CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+      "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/uncertain().",
+      "CREATED adapter semantic/rust/resolve/attributes_allowed().",
+      "CREATED adapter semantic/rust/resolve/ident_text().",
+      "CREATED adapter semantic/rust/resolve/macro_rules_names().",
+      "CREATED adapter semantic/rust/resolve/stream_idents().",
+      "CREATED adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define().",
+      "CREATED adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define().",
+      "CREATED adapter semantic/rust/resolve/tests/an_unbounded_item_macro_still_opens_its_module().",
+      "CREATED adapter semantic/rust/resolve/tests/canonicals_at().",
+      "CREATED adapter semantic/rust/resolve/tests/line_of().",
+      "CREATED adapter semantic/rust/resolve/tests/transcriber_names_skip_lifetimes_and_metavariables().",
+      "CREATED adapter semantic/rust/resolve/transcriber_names().",
+      "CREATED runtime tests/essential_complexity/the_queue_head_is_construction_reachable()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/graph/mod.rs",
+    "path core/src/identity/mod.rs",
+    "path core/src/integrity/mod.rs",
+    "path core/src/integrity/tests.rs",
+    "path core/src/verification/mod.rs",
+    "path runtime/src/lib.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/uncertain().",
+    "entity CREATED adapter semantic/rust/resolve/attributes_allowed().",
+    "entity CREATED adapter semantic/rust/resolve/ident_text().",
+    "entity CREATED adapter semantic/rust/resolve/macro_rules_names().",
+    "entity CREATED adapter semantic/rust/resolve/stream_idents().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_unbounded_item_macro_still_opens_its_module().",
+    "entity CREATED adapter semantic/rust/resolve/tests/canonicals_at().",
+    "entity CREATED adapter semantic/rust/resolve/tests/line_of().",
+    "entity CREATED adapter semantic/rust/resolve/tests/transcriber_names_skip_lifetimes_and_metavariables().",
+    "entity CREATED adapter semantic/rust/resolve/transcriber_names().",
+    "entity CREATED runtime tests/essential_complexity/the_queue_head_is_construction_reachable()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -1,0 +1,155 @@
+{
+  "schema": "atlas.evidence.macro-names-scip-differential.v1",
+  "generation": "G145",
+  "decision": ".atlas/decisions/0062-bounded-item-macro-names-and-construction-reachability.md",
+  "method": "adapter::resolve_workspace run on the same workspace sources (every tracked .rs file, the five Cargo targets) with the G144 engine (HEAD b8819e08a0) and the G145 engine; adapter/src/semantic/rust/resolve.rs itself excluded from the comparison because the change edits it; SCIP index: rust-analyzer scip of the G144 tree, whose other files are unchanged; a resolution agrees when the SCIP reference on the call line names the callee and its definition lies at the callee target",
+  "type_occurrences_compared": 12326,
+  "newly_canonical": 1250,
+  "canonical_changed": 0,
+  "newly_canonical_by_file": {
+    "core/src/composition/closure.rs": 149,
+    "core/src/composition/lens.rs": 400,
+    "core/src/composition/mod.rs": 432,
+    "core/src/graph/mod.rs": 46,
+    "core/src/identity/mod.rs": 33,
+    "core/src/integrity/mod.rs": 100,
+    "core/src/integrity/tests.rs": 16,
+    "core/src/verification/mod.rs": 74
+  },
+  "calls_compared": 9664,
+  "newly_resolved": 15,
+  "newly_resolved_scip_agree": 15,
+  "newly_resolved_scip_disagree": 0,
+  "newly_external": 190,
+  "newly_external_std": 42,
+  "newly_external_std_scip_confirmed": 42,
+  "resolutions_lost": 0,
+  "newly_resolved_sites": [
+    {
+      "path": "core/src/composition/mod.rs",
+      "line": 1781,
+      "column": 44,
+      "target": "path: \"core/src/composition/mod.rs\", line: 224, column: 0, name: \"trait_method_key_of\""
+    },
+    {
+      "path": "core/src/identity/mod.rs",
+      "line": 221,
+      "column": 38,
+      "target": "path: \"core/src/identity/mod.rs\", line: 152, column: 4, name: \"of_bytes\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 59,
+      "column": 19,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 211, column: 0, name: \"derive_envelope\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 122,
+      "column": 17,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 211, column: 0, name: \"derive_envelope\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 135,
+      "column": 17,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 211, column: 0, name: \"derive_envelope\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 136,
+      "column": 16,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 383, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 155,
+      "column": 19,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 383, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 163,
+      "column": 18,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 383, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 168,
+      "column": 19,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 211, column: 0, name: \"derive_envelope\""
+    },
+    {
+      "path": "core/src/integrity/tests.rs",
+      "line": 176,
+      "column": 17,
+      "target": "path: \"core/src/integrity/mod.rs\", line: 383, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/verification/mod.rs",
+      "line": 354,
+      "column": 40,
+      "target": "path: \"core/src/verification/mod.rs\", line: 152, column: 4, name: \"library_package\""
+    },
+    {
+      "path": "core/src/verification/mod.rs",
+      "line": 366,
+      "column": 21,
+      "target": "path: \"core/src/verification/mod.rs\", line: 259, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/verification/mod.rs",
+      "line": 378,
+      "column": 21,
+      "target": "path: \"core/src/verification/mod.rs\", line: 259, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/verification/mod.rs",
+      "line": 392,
+      "column": 21,
+      "target": "path: \"core/src/verification/mod.rs\", line: 259, column: 0, name: \"evaluate\""
+    },
+    {
+      "path": "core/src/verification/mod.rs",
+      "line": 419,
+      "column": 21,
+      "target": "path: \"core/src/verification/mod.rs\", line: 259, column: 0, name: \"evaluate\""
+    }
+  ],
+  "mutants": {
+    "killed": 10,
+    "survived": 0,
+    "cases": [
+      "unbounded flag ignored",
+      "glob shadow propagation dropped",
+      "lifetime not skipped",
+      "invocation names dropped",
+      "textual order ignored",
+      "invocation attributes ignored",
+      "resolve_prefix glob check dropped",
+      "lexical miss not uncertain",
+      "use in transcriber allowed",
+      "any macro allowed in transcriber"
+    ]
+  },
+  "remaining": "macro-defined items themselves (NodeId, EnvelopeStatus) stay uncanonical and their functions unresolved until macro_rules expansion; external enum globs (std::cmp::Ordering::*) still open their block",
+  "census_same_tree": {
+    "method": "atlas-systemizer recensus snapshot of the G145 tree by the G144 engine (HEAD b8819e08a0 built separately) vs the G145 post census",
+    "records:TYPE|atlas.resolution.rust-paths": {
+      "g144_engine": 1983,
+      "g145_engine": 2123
+    },
+    "records:CALL|atlas.resolution.rust-paths": {
+      "g144_engine": 5826,
+      "g145_engine": 5841
+    },
+    "records:EFFECT|atlas.resolution.rust-paths": {
+      "g144_engine": 467,
+      "g145_engine": 467
+    },
+    "records:PERSISTENCE|atlas.resolution.rust-paths": {
+      "g144_engine": 149,
+      "g145_engine": 149
+    }
+  }
+}

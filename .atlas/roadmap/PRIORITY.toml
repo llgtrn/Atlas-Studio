@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-FIRST-ARTIFACT"
+next_native_attack = "NA-ATLAS-TYPED-SECTIONS"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -624,8 +624,8 @@ objective = "std receivers through declared std signatures (done: the .atlas con
 
 [[planned_generation]]
 id = "G145"
-priority = "P6"
-objective = "native attack queue head (pressure map, primary-debt dependency order): NA-FIRST-ARTIFACT"
+priority = "P0"
+objective = "planned NA-FIRST-ARTIFACT, which is not construction-reachable (M17 behind M16, M15 and MIN_ATLASX); selection now requires a construction-frontier node for the primary debt (M5 and M6 recorded EXISTS) and re-selects NA-CALL-TYPE-RESIDUAL (done: bounded item-macro names -- 1,250 more type occurrences canonicalized, 15 path calls resolved, all agreeing with SCIP; 10 mutants killed)"
 
 [[planned_generation]]
 id = "G146"
@@ -633,6 +633,11 @@ priority = "P0"
 objective = "AGENT_MISSION: the sixth mission through the agent interface (cadence: within five generations of G141)"
 
 [[planned_generation]]
-id = "G147+"
+id = "G147"
+priority = "P2"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-ATLAS-TYPED-SECTIONS, construction node M1 -- the first missing node on the FIRST_ARTIFACT critical path"
+
+[[planned_generation]]
+id = "G148+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
