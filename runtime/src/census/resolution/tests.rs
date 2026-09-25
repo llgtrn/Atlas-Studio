@@ -474,3 +474,70 @@ fn resolved_standard_library_paths_are_concurrency_sites_of_the_caller() {
     assert_eq!(obligation.observation_ids.len(), 3);
     fs::remove_dir_all(&dir).unwrap();
 }
+
+/// G125 (NA-PERSISTENCE-RESOLVED): a path call resolved to a std path the declared persistence
+/// table names is a DERIVED persistence site of its caller -- the resolved API is the evidence, the
+/// place is not claimed -- and nothing else is: an opened file, a workspace function spelled like
+/// std, or a method call.
+#[test]
+fn resolved_standard_library_paths_are_persistence_sites_of_the_caller() {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "atlas-g125-persistence-{}-{nonce}",
+        std::process::id()
+    ));
+    fs::create_dir_all(dir.join("core/src")).unwrap();
+    fs::write(dir.join("core/Cargo.toml"), "[package]\nname = \"core\"\n").unwrap();
+    fs::write(dir.join("core/src/lib.rs"), "pub mod store;\n").unwrap();
+    fs::write(
+        dir.join("core/src/store.rs"),
+        "use std::fs;\npub fn keep() {\n    fs::write(\"a\", \"b\");\n    let _ = std::fs::read_to_string(\"a\");\n    let f = fs::File::open(\"a\");\n    local::write();\n    f.sync_all();\n}\nmod local {\n    pub fn write() {}\n}\n",
+    )
+    .unwrap();
+    let inventory = InventoryReport::new(
+        dir.to_string_lossy().into_owned(),
+        vec![
+            artifact("core/Cargo.toml", "toml"),
+            artifact("core/src/lib.rs", "rust"),
+            artifact("core/src/store.rs", "rust"),
+        ],
+    );
+    let batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
+    let resolution = resolve_rust_path_calls(&inventory, &batches);
+    let store = resolution
+        .iter()
+        .find(|b| b.artifact.as_str() == "artifact:core/src/store.rs")
+        .unwrap();
+    let sites: Vec<(usize, &str)> = store
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Persistence(h) => {
+                assert_eq!(h.status, EpistemicStatus::Derived);
+                assert_eq!(h.extractor.id, RUST_PATH_RESOLUTION_ID);
+                assert_eq!(
+                    h.subject.resolution,
+                    atlas_core::PersistenceResolution::Resolved
+                );
+                assert_eq!(h.subject.place, atlas_core::PlaceRef::Unresolved);
+                Some((h.subject.span.line, h.subject.kind.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(sites, [(3, "DURABLE_WRITE"), (4, "DURABLE_READ")]);
+    let obligation = store
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Persistence)
+        .expect("the engine accounts for PERSISTENCE");
+    assert_eq!(
+        obligation.status,
+        EpistemicStatus::Unknown,
+        "method calls stay outside"
+    );
+    fs::remove_dir_all(&dir).unwrap();
+}

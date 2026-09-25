@@ -1,0 +1,33 @@
+{
+  "oracle": "rust-analyzer SCIP (rust-analyzer scip, offline, the committed G125 tree)",
+  "derived": 129,
+  "scip_std_occurrences": 134,
+  "agree": 129,
+  "disagree": [],
+  "atlas_only": [],
+  "scip_only": [
+    "adapter/src/source/frontend.rs:189:26",
+    "apps/cli/src/main.rs:379:38",
+    "runtime/src/atlas.rs:357:17",
+    "runtime/src/census/extraction.rs:137:21",
+    "runtime/src/lib.rs:2826:39"
+  ],
+  "explained_scip_only": {
+    "apps/cli/src/main.rs:379:38": "inside a closure body (NA-CLOSURE-REGIONS)",
+    "runtime/src/lib.rs:2826:39": "inside a closure body (NA-CLOSURE-REGIONS)",
+    "runtime/src/census/extraction.rs:137:21": "inside a closure body (and_then closure; NA-CLOSURE-REGIONS)",
+    "runtime/src/atlas.rs:357:17": "inside assert_eq! arguments: macro arguments are outside the resolution engine",
+    "adapter/src/source/frontend.rs:189:26": "inside a closure body (find_map closure; NA-CLOSURE-REGIONS)"
+  },
+  "schema": "atlas.evidence.persistence-scip-differential.v1",
+  "generation": "G125",
+  "scip_symbols": [
+    "std fs/write()",
+    "std fs/copy()",
+    "std fs/read()",
+    "std fs/read_to_string()",
+    "std File#sync_all()",
+    "std File#sync_data()"
+  ],
+  "method": "every DERIVED PERSISTENCE record of the resolution engine compared at its anchor (line, column) with rust-analyzer SCIP occurrences of the declared std symbols; kind compared through the declared table"
+}

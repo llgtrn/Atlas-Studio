@@ -79,6 +79,7 @@ pub use semantic::{
     SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope,
     StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity, SymbolRole,
     TypeIdentity, ValueIdentity, ValueRole, std_path_concurrency, std_path_effects,
+    std_path_persistence,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

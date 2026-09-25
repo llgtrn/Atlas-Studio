@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G124"
+current_generation = "G125"
 
 [[generation]]
 id = "G35"
@@ -2244,6 +2244,7 @@ objective = "quantity kinds that never combine across kinds, exact interval unce
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0045-quantity-kinds-and-intervals-in-core.md"
 self_recensus = ".atlas/evidence/census/G124/recensus.json"
+result_commits = ["db3a71e8b20c5f4e4ea0321d88080ebbf45ccc03", "be291db2f634f49dbbe4dc6e3076e7a5cd735792"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 7e90a0e91edddf340644fe693d8c9ce182563d02 = G123 post digest 83633b5c... (71b0ddf0d1 adds only out-of-scope evidence)"
@@ -2276,3 +2277,45 @@ after = 118048
 key = "composed:function_behavior"
 before = 2182
 after = 2200
+
+[generation.next]
+objective = "G125 (P0): native attack queue head NA-PERSISTENCE-RESOLVED (primary-debt dependency order)"
+
+[[generation]]
+id = "G125"
+kind = "NATIVE_ATTACK"
+base_commit = "be291db2f634f49dbbe4dc6e3076e7a5cd735792"
+priority = "P0"
+serves = "P0 native attack queue head NA-PERSISTENCE-RESOLVED (DEBT-PERSISTENCE; DEBT-STATE listed, not advanced)"
+objective = "PERSISTENCE from resolved std paths as a DERIVED engine beside the spelling guesses, confirmed by the pinned SCIP oracle"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0046-persistence-from-resolved-std-paths.md"
+self_recensus = ".atlas/evidence/census/G125/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of db3a71e8b20c5f4e4ea0321d88080ebbf45ccc03 = G124 post digest 0b562ef2... (be291db2f6 adds only out-of-scope evidence)"
+atlas_first = "agent explain fn:std_path_effects and fn:std_path_concurrency showed the template (declared tables consumed only by resolve_rust_path_calls); agent understand bounded the PERSISTENCE extractor (entry point build_persistence); manual reads: the resolution engine's concurrency derivation (the body to mirror) and the PERSISTENCE record contract"
+oracle = "rust-analyzer SCIP (offline index of the candidate): 129 of 129 derived sites agree at their anchors with the same kind, 0 disagree; 5 SCIP-only occurrences, 4 in closure bodies and 1 in assert_eq! arguments, outside the engine's declared profile (evidence/census/G125/persistence-scip-differential.json)"
+certificate = "MULTI_ENGINE_RECONCILIATION_ABSENT no longer names PERSISTENCE (CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, STATE, SYMBOL remain)"
+falsification = "5 mutants killed: write declared a durable read; resolved API recorded as a spelling guess; any std::fs path a durable write; persistence obligation dropped; derived sites claimed OBSERVED"
+debts = "last advance G125 for DEBT-PERSISTENCE and DEBT-MULTI_ENGINE; DEBT-STATE not advanced (no STATE record changes)"
+proof = "PROVEN (post 8d732e2d...): every Rust artifact gains one UNKNOWN obligation, the resolution engine's new PERSISTENCE accounting, explained in the intent"
+
+
+[[generation.metric]]
+key = "records:PERSISTENCE|atlas.resolution.rust-paths"
+after = 129
+
+[[generation.metric]]
+key = "records:PERSISTENCE|atlas.rust.source-semantic.v1"
+before = 15
+after = 15
+
+[[generation.metric]]
+key = "obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN"
+after = 101
+
+[[generation.metric]]
+key = "typed_records"
+before = 112029
+after = 112438

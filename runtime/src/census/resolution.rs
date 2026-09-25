@@ -16,7 +16,9 @@
 //! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
 //! names -- an effect site of the calling function, anchored at the call -- and (G117)
 //! CONCURRENCY for path calls resolved to a std path the declared std-path concurrency table
-//! (`atlas_core::std_path_concurrency`) names. Every obligation is
+//! (`atlas_core::std_path_concurrency`) names, and (G125) PERSISTENCE for path calls resolved to a
+//! std path the declared std-path persistence table (`atlas_core::std_path_persistence`) names.
+//! Every obligation is
 //! UNKNOWN (method calls, closure bodies, macro arguments and every other effect source are
 //! outside it), and a resolution that cannot be attached -- no syntactic claim at the anchor, or
 //! no FunctionIdentity for the definition -- is a diagnosed disagreement, never a fabricated
@@ -40,10 +42,11 @@ pub const RUST_PATH_RESOLUTION_VERSION: &str = "1";
 
 /// The dimensions the resolution engine is asked to evaluate (accounting closure is checked
 /// against these, not against every dimension).
-pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 4] = [
+pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 5] = [
     SemanticDimension::Call,
     SemanticDimension::Concurrency,
     SemanticDimension::Effect,
+    SemanticDimension::Persistence,
     SemanticDimension::Type,
 ];
 
@@ -56,6 +59,8 @@ struct ArtifactWork {
     effect_evidence: Vec<Evidence>,
     concurrency: Vec<SemanticObservation>,
     concurrency_evidence: Vec<Evidence>,
+    persistence: Vec<SemanticObservation>,
+    persistence_evidence: Vec<Evidence>,
     types: Vec<SemanticObservation>,
     type_evidence: Vec<Evidence>,
     unattached: usize,
@@ -292,7 +297,8 @@ pub fn resolve_rust_path_calls(
             PathCallOutcome::External(path) => {
                 let categories = atlas_core::std_path_effects(path);
                 let concurrency = atlas_core::std_path_concurrency(path);
-                if categories.is_empty() && concurrency.is_none() {
+                let persistence = atlas_core::std_path_persistence(path);
+                if categories.is_empty() && concurrency.is_none() && persistence.is_none() {
                     continue;
                 }
                 let Some(claim) = claim else {
@@ -345,6 +351,56 @@ pub fn resolve_rust_path_calls(
                     });
                     assert!(observation.is_dimension_consistent());
                     entry.concurrency.push(observation);
+                }
+                // G125: a call resolved to a std path the declared persistence table names is a
+                // persistence site of the calling function, anchored at the call; the resolved API
+                // is the evidence (`Resolved`), the place it touches is not claimed.
+                if let Some(kind) = persistence {
+                    let subject = atlas_core::PersistenceIdentity {
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        function: claim.subject.function.clone(),
+                        kind,
+                        span: claim.subject.span.clone(),
+                        place: atlas_core::PlaceRef::Unresolved,
+                        resolution: atlas_core::PersistenceResolution::Resolved,
+                    };
+                    let record_id = SemanticRecordId::new(
+                        SemanticDimension::Persistence,
+                        &subject.identity_key(),
+                    );
+                    let evidence_id = EvidenceId::new(stable_id(
+                        "evidence",
+                        &format!("{RUST_PATH_RESOLUTION_ID}:{}", record_id.as_str()),
+                    ));
+                    entry.persistence_evidence.push(Evidence {
+                        id: evidence_id.as_str().to_owned(),
+                        kind: "NAME_RESOLUTION".into(),
+                        path: resolution.path.clone(),
+                        summary: format!(
+                            "`{}` at {}:{}:{} resolves to `{path}`: {} (declared std-path persistence table)",
+                            resolution.callee,
+                            resolution.path,
+                            resolution.line,
+                            resolution.column,
+                            kind.as_str()
+                        ),
+                        revision: Some(revision.clone()),
+                    });
+                    let observation = SemanticObservation::Persistence(SemanticRecordHeader {
+                        record_id,
+                        dimension: SemanticDimension::Persistence,
+                        status: EpistemicStatus::Derived,
+                        scope: claim.scope.clone(),
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        extractor: extractor.clone(),
+                        evidence_refs: vec![evidence_id],
+                        provenance: provenance(resolution),
+                        subject,
+                    });
+                    assert!(observation.is_dimension_consistent());
+                    entry.persistence.push(observation);
                 }
                 for &category in categories {
                     let subject = atlas_core::EffectIdentity {
@@ -469,6 +525,15 @@ pub fn resolve_rust_path_calls(
                 "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
             )
         };
+        let persistence_scope = if reached {
+            format!(
+                "{RUST_PATH_RESOLUTION_ID} derives persistence only for path calls resolved to a standard-library path the declared std-path persistence table names ({path}); method calls (sync_all, flush, commit), non-std storage and macro arguments are outside it"
+            )
+        } else {
+            format!(
+                "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
+            )
+        };
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
@@ -523,6 +588,20 @@ pub fn resolve_rust_path_calls(
             ids(&work.concurrency_evidence),
             concurrency_diagnostic.id.clone(),
         );
+        let persistence_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::IncompleteAnalysis,
+            Some(SemanticDimension::Persistence),
+            persistence_scope,
+        );
+        let persistence_obligation = ObligationResult::unknown_with_observations(
+            SemanticDimension::Persistence,
+            work.persistence
+                .iter()
+                .map(|o| o.record_id().clone())
+                .collect(),
+            ids(&work.persistence_evidence),
+            persistence_diagnostic.id.clone(),
+        );
         let type_diagnostic = ExtractionDiagnostic::new(
             DiagnosticCode::IncompleteAnalysis,
             Some(SemanticDimension::Type),
@@ -538,6 +617,7 @@ pub fn resolve_rust_path_calls(
             call_diagnostic,
             concurrency_diagnostic,
             effect_diagnostic,
+            persistence_diagnostic,
             type_diagnostic,
         ];
         if work.unattached > 0 {
@@ -555,10 +635,12 @@ pub fn resolve_rust_path_calls(
         let mut observations = work.calls;
         observations.extend(work.concurrency);
         observations.extend(work.effects);
+        observations.extend(work.persistence);
         observations.extend(work.types);
         let mut evidence = work.call_evidence;
         evidence.extend(work.concurrency_evidence);
         evidence.extend(work.effect_evidence);
+        evidence.extend(work.persistence_evidence);
         evidence.extend(work.type_evidence);
         out.push(ExtractionBatch {
             extractor: extractor.clone(),
@@ -575,6 +657,7 @@ pub fn resolve_rust_path_calls(
                 call_obligation,
                 concurrency_obligation,
                 effect_obligation,
+                persistence_obligation,
                 type_obligation,
             ],
             diagnostics,

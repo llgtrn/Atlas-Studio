@@ -35,7 +35,9 @@ pub use function::{
 pub use obligation::SemanticObligationRecord;
 pub use observation::SemanticObservation;
 pub use ownership::{OwnershipIdentity, OwnershipKind, OwnershipResolution};
-pub use persistence::{PersistenceIdentity, PersistenceKind, PersistenceResolution};
+pub use persistence::{
+    PersistenceIdentity, PersistenceKind, PersistenceResolution, std_path_persistence,
+};
 pub use place::PlaceRef;
 pub use state::{StateAccessIdentity, StateAccessKind, StateResolution};
 pub use symbol::{SymbolIdentity, SymbolRole};

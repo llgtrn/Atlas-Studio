@@ -73,9 +73,10 @@ pub enum PersistenceKind {
     Snapshot,
     /// Reserved; never emitted this wave (would require resolved-API evidence).
     JournalAppend,
-    /// Reserved; never emitted this wave.
+    /// A durable read of file content: derived only from a call resolved to a std path the
+    /// declared table ([`std_path_persistence`]) names (G125).
     DurableRead,
-    /// Reserved; never emitted this wave.
+    /// A durable write of file content: derived as [`Self::DurableRead`] is (G125).
     DurableWrite,
     /// Reserved; never emitted this wave.
     TransactionBegin,
@@ -118,6 +119,29 @@ pub enum PersistenceResolution {
     Unresolved,
 }
 
+/// The declared std-path persistence table (G125, NA-PERSISTENCE-RESOLVED), sorted by path: the
+/// standard-library functions whose call reads or writes durable file content, or forces it to
+/// stable storage, by their documented contract. A path is the canonical spelling through imports
+/// (`std::fs::write`). Method calls (`file.sync_all()`, `writer.flush()`) need receiver types and
+/// are not covered; durable-state mutations without a fitting kind (`rename`, `remove_file`,
+/// `create_dir`) are not declared; a path absent here declares nothing (never "not persistent").
+const STD_PATH_PERSISTENCE: &[(&str, PersistenceKind)] = &[
+    ("std::fs::File::sync_all", PersistenceKind::Sync),
+    ("std::fs::File::sync_data", PersistenceKind::Sync),
+    ("std::fs::copy", PersistenceKind::DurableWrite),
+    ("std::fs::read", PersistenceKind::DurableRead),
+    ("std::fs::read_to_string", PersistenceKind::DurableRead),
+    ("std::fs::write", PersistenceKind::DurableWrite),
+];
+
+/// The persistence operation [`STD_PATH_PERSISTENCE`] declares for `path`, if any.
+pub fn std_path_persistence(path: &str) -> Option<PersistenceKind> {
+    STD_PATH_PERSISTENCE
+        .binary_search_by(|(declared, _)| declared.cmp(&path))
+        .ok()
+        .map(|index| STD_PATH_PERSISTENCE[index].1)
+}
+
 impl PersistenceResolution {
     pub const fn as_str(&self) -> &'static str {
         match self {
@@ -157,6 +181,39 @@ impl PersistenceIdentity {
             self.span.column,
             self.kind.as_str(),
         )
+    }
+}
+
+#[cfg(test)]
+mod std_path_table_tests {
+    use super::*;
+
+    #[test]
+    fn the_declared_persistence_table_is_sorted_and_exact() {
+        assert!(STD_PATH_PERSISTENCE.windows(2).all(|w| w[0].0 < w[1].0));
+        assert_eq!(
+            std_path_persistence("std::fs::write"),
+            Some(PersistenceKind::DurableWrite)
+        );
+        assert_eq!(
+            std_path_persistence("std::fs::read_to_string"),
+            Some(PersistenceKind::DurableRead)
+        );
+        assert_eq!(
+            std_path_persistence("std::fs::File::sync_all"),
+            Some(PersistenceKind::Sync)
+        );
+        assert_eq!(
+            std_path_persistence("std::fs::rename"),
+            None,
+            "no fitting kind is declared"
+        );
+        assert_eq!(
+            std_path_persistence("std::fs::writ"),
+            None,
+            "exact paths only"
+        );
+        assert_eq!(std_path_persistence("crate::fs::write"), None);
     }
 }
 
