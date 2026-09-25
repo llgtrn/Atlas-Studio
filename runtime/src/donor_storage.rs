@@ -465,6 +465,7 @@ mod tests {
                 "joern",
                 "kythe",
                 "ladybird",
+                "llvm-project",
                 "miri",
                 "mlir",
                 "rkyv",

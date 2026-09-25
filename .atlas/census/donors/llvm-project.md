@@ -68,3 +68,11 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 external native backend roadmap and differential codegen oracle
+
+## G96 — terminal EXTERNAL_BOUNDARY (+ REFERENCE_ONLY); source extinct
+
+Both recorded roles are external boundaries that a source tree does not serve:
+- **Native backend.** LLVM consumes LIR through the adapter COMPILER-IR-PIPELINE.md declares, and Atlas has no LIR yet.
+- **Differential codegen oracle.** This is an installed toolchain (clang/llc/opt 18.1.3, rustc's LLVM 20.1.8), the way rust-analyzer's SCIP is the CALL/TYPE oracle today.
+
+Its algorithms stay REFERENCE_ONLY. The checkout was the full monorepo, not the recorded CodeGen slice (184,819 files, 2.7 GB), and it was physically deleted. The mlir slice (#25) went extinct at G89, so the shared frontier repository is now EXTINCT. Evidence: `../../evidence/campaign/32-llvm-project.json`.

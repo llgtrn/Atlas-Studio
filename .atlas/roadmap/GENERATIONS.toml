@@ -1456,6 +1456,7 @@ objective = "run the recorded loss-disclosure falsification against the fact pro
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/31-agentir.json"
 self_recensus = ".atlas/evidence/census/G95/recensus.json"
+result_commits = ["a698017df8a89f09fd8aeab2c33d25571fc275fc", "c85ea766f84c5f25c98c2c4101b110885c1c30ef"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 415e1c268b = G94 post digest 316faa22... (618dab0273 adds only out-of-scope evidence)"
@@ -1466,3 +1467,23 @@ proof = "PROVEN on the first run (post d4a28808...)"
 
 [generation.next]
 objective = "G96 (P3): first-50 #32 llvm-project (IR -> machine code boundary, P6; the mlir slice is already extinct)"
+
+[[generation]]
+id = "G96"
+base_commit = "c85ea766f84c5f25c98c2c4101b110885c1c30ef"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #32 llvm-project to a terminal state (P6 native backend)"
+objective = "decide the recorded backend/oracle roles against the pipeline contract and the environment, physically extinct the checkout and, with the mlir slice gone, the shared repository"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/32-llvm-project.json"
+self_recensus = ".atlas/evidence/census/G96/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of a698017df8 = G95 post digest d4a28808... (c85ea766f8 adds only out-of-scope evidence)"
+falsification = "the backend role is COMPILER-IR-PIPELINE.md's declared LIR adapter, and core/src has no LIR or codegen; the oracle role is an installed toolchain (clang/llc/opt/llvm-config 18.1.3, rustc LLVM 20.1.8), as rust-analyzer SCIP is today; neither needs a source tree"
+no_code_change = "no LLVM mechanism absorbed (EXTERNAL_BOUNDARY; algorithms REFERENCE_ONLY); the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/llvm-project -- the full monorepo (184,819 tracked files, 2.7 GB), not the recorded CodeGen slice; the frontier repository llvm/llvm-project becomes EXTINCT under the G89 shared-repository rule"
+proof = "PROVEN on the first run (post a14c705d...)"
+
+[generation.next]
+objective = "G97 (P3): first-50 #33 wasm-spec (instruction validation algorithm, verify-then-encode, P6)"

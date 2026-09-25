@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #32 llvm-project: backend and differential codegen oracle are installed-toolchain boundaries consumed through the contract's LIR adapter; algorithms REFERENCE_ONLY; EXTERNAL_BOUNDARY; the full 2.7 GB checkout physically extinct (the shared llvm/llvm-project repository is now extinct); census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

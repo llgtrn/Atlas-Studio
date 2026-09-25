@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 32,
+ "donor": "llvm-project",
+ "commit_sha": "0bd330675f9eb08126e467505a0800f167084473",
+ "generation": "G96",
+ "base_commit": "c85ea766f8",
+ "hypothesis": "IR -> machine code boundary (P6)",
+ "blocking_question": "none recorded (admission-stage COARSE_CENSUSED inventory); the campaign's terminal goal reads 'EXTERNAL_BOUNDARY (backend) + REFERENCE_ONLY' and the corpus names its role 'external native backend roadmap and differential codegen oracle'",
+ "measurement": {
+  "backend_role": "COMPILER-IR-PIPELINE.md#external-native-backends: LLVM, Cranelift, WASM or accelerator backends consume LIR through an adapter that declares accepted IR version, supported semantics, target and ABI coverage, unsupported operations and verification strategy -- a boundary, never an absorption; core/src has no LIR or codegen module",
+  "oracle_role": "an installed toolchain, the way rust-analyzer 1.90.0 SCIP is the CALL/TYPE oracle today: this environment carries clang/llc/opt/llvm-config 18.1.3 (Ubuntu) and rustc 1.90.0's LLVM 20.1.8",
+  "checkout": "the materialized tree was the full monorepo (184,819 tracked files, 2.7 GB), not the SPARSE_CHECKOUT llvm/lib/CodeGen slice the campaign recorded; the separate mlir slice (#25, pin 4790b21292) went extinct at G89",
+  "shared_repository": "with both slices extinct, the frontier repository llvm/llvm-project becomes EXTINCT under the G89 shared-repository rule"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["native backend (via a declared LIR adapter, once LIR exists)", "differential codegen oracle (installed toolchain)"],
+  "REFERENCE_ONLY": ["SelectionDAG / GlobalISel instruction selection", "register allocation", "MC layer and object emission", "optimizer pass pipeline", "debug info"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/llvm-project (184,819 files, 2.7 GB)"
+ }
+}

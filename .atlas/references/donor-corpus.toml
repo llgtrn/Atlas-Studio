@@ -854,14 +854,19 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/llvm-project/LICENSE.TXT"]
 technology_domains = ["compiler_backend", "ir", "optimizer", "codegen", "debug_info"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "resolved G96: both recorded roles are external boundaries a source tree does not serve. As a native backend, LLVM consumes LIR through a declared adapter (COMPILER-IR-PIPELINE.md#external-native-backends: accepted IR version, semantics, targets, ABI, unsupported operations, verification) -- and Atlas has no LIR or codegen yet. As a differential codegen oracle it is an installed toolchain, exactly as rust-analyzer SCIP is the CALL/TYPE oracle today: the environment carries clang/llc/opt/llvm-config 18.1.3 and rustc's LLVM 20.1.8. No LLVM mechanism is absorbed; its algorithms (SelectionDAG/GlobalISel, register allocation, MC layer) stay REFERENCE_ONLY until an Atlas LIR exists"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/32-llvm-project.json)"
+cheapest_falsification = "performed G96: COMPILER-IR-PIPELINE.md's backend clause read, core/src checked for LIR/codegen (none), the installed LLVM toolchains located"
+next_action = "none: TERMINAL EXTERNAL_BOUNDARY (backend and oracle as installed toolchains) + REFERENCE_ONLY (algorithms); source physically deleted (the mlir slice went at G89)"
+implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "external native backend roadmap and differential codegen oracle"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/llvm-project.json", ".atlas/census/donors/llvm-project.md"]
+evidence = [".atlas/evidence/campaign/32-llvm-project.json", ".atlas/provenance/donors/llvm-project.json", ".atlas/census/donors/llvm-project.md"]
 
 [[donor]]
 id = "wasmtime"

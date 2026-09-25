@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 27
+campaign_terminal = 28
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 2
 absorbed = 9
 reference_only = 19
-external_boundary = 1
+external_boundary = 2
 rejected = 0
 deferred = 1
-extinct = 30
-remaining = 20
-next_donor = "llvm-project"
-next_step = "G96 (P3): llvm-project (#32) -- IR -> machine code boundary (P6; the mlir slice is already extinct)"
+extinct = 31
+remaining = 19
+next_donor = "wasm-spec"
+next_step = "G97 (P3): wasm-spec (#33) -- instruction validation algorithm, verify-then-encode (P6)"
 
 [[donor]]
 ordinal = 1
@@ -555,13 +555,15 @@ canonical_url = "https://github.com/llvm/llvm-project.git"
 serves = "P6"
 target_capability = "native code generation"
 mechanism_hypothesis = "IR -> machine code boundary"
-materialization_mode = "SPARSE_CHECKOUT (llvm/lib/CodeGen)"
+materialization_mode = "n/a (source deleted; the checkout was the full tree, not the recorded CodeGen slice)"
 dependency_expectation = "huge: progressive slices only"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "EXTERNAL_BOUNDARY (backend) + REFERENCE_ONLY"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G96"
+evidence = ".atlas/evidence/campaign/32-llvm-project.json"
+note = "backend and differential codegen oracle are installed-toolchain boundaries (clang/llc/opt 18.1.3, rustc LLVM 20.1.8) consumed through the contract's declared backend adapter once an Atlas LIR exists; algorithms REFERENCE_ONLY; source physically deleted (184,819 files, 2.7 GB)"
 
 [[donor]]
 ordinal = 33
