@@ -10,6 +10,7 @@ pub mod normalize;
 pub mod physical;
 pub mod product;
 pub mod recensus;
+pub mod sandbox;
 pub mod visual;
 
 use atlas_core::{

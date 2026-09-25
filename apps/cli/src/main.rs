@@ -543,6 +543,17 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("WORK_PREPARE_NOT_ALLOWED".into());
             }
         }
+        [cmd, sub, ..] if cmd == "sandbox" && sub == "probe" => {
+            // G126 (ADR 0047): the isolation the restricted-subprocess backend can enforce here.
+            let network = runtime::sandbox::network_isolation_available();
+            let probe = serde_json::json!({
+                "backend": runtime::sandbox::RESTRICTED_SUBPROCESS,
+                "enforced": ["ENVIRONMENT_CLEARED", "INPUTS_STAGED", "WORKING_DIRECTORY_CONFINED", "STDIN_CLOSED", "TIME_LIMITED"],
+                "network_denied": if network { "ENFORCED" } else { "UNENFORCED: unprivileged user namespaces are unavailable on this host" },
+                "filesystem_confined": "UNENFORCED: no filesystem namespace or Landlock ruleset in this class",
+            });
+            println!("{}", json(&probe)?);
+        }
         [cmd, op, rest @ ..] if cmd == "agent" => {
             // G122 (ADR 0044): the Agent-Worn Atlas operations over the composed world model.
             // `--model <world-model.json>` reuses a composed model; otherwise `--root` is censused
@@ -638,7 +649,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe> ..."
                     .into(),
             );
         }

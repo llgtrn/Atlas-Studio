@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G125"
+current_generation = "G126"
 
 [[generation]]
 id = "G35"
@@ -2291,6 +2291,7 @@ objective = "PERSISTENCE from resolved std paths as a DERIVED engine beside the 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0046-persistence-from-resolved-std-paths.md"
 self_recensus = ".atlas/evidence/census/G125/recensus.json"
+result_commits = ["9fffcbda69b140d0932ec5942e91575fcad86c6e", "63f1ed91c10104f83afcae73da151524c6de24cf"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of db3a71e8b20c5f4e4ea0321d88080ebbf45ccc03 = G124 post digest 0b562ef2... (be291db2f6 adds only out-of-scope evidence)"
@@ -2319,3 +2320,48 @@ after = 101
 key = "typed_records"
 before = 112029
 after = 112438
+
+[generation.next]
+objective = "G126 (P6): native attack queue head NA-SANDBOX-SUBPROCESS (construction node M16)"
+
+[[generation]]
+id = "G126"
+kind = "NATIVE_ATTACK"
+base_commit = "63f1ed91c10104f83afcae73da151524c6de24cf"
+priority = "P6"
+serves = "P6 native attack queue head NA-SANDBOX-SUBPROCESS (DEBT-SANDBOXED_EXECUTION, construction node M16)"
+objective = "a restricted-subprocess sandbox backend that records every isolation property it enforces and names what it cannot"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0047-restricted-subprocess-sandbox.md"
+self_recensus = ".atlas/evidence/census/G126/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 9fffcbda69b140d0932ec5942e91575fcad86c6e = G125 post digest 8d732e2d... (63f1ed91c1 adds only out-of-scope evidence)"
+atlas_first = "agent invariants per subsystem answered where process-spawning authority originates (Runtime 4, Adapter 8, AtlasCli and Core none; INFERRED: spawning goes through unresolved methods); the backend is new code, no donor read"
+enforced = "environment cleared; digest-verified inputs staged in a fresh directory; working directory confined; stdin closed; process group killed at the timeout; network namespace when a probe shows unprivileged namespaces (enforced on the generating host)"
+never_claimed = "filesystem confinement: absolute-path and .. reads are not confined; Atlas carries no unsafe code, so no Landlock or mount namespace in this class"
+finding = "the first timeout test showed the child kill left a descendant alive and holding the output pipes; the run now owns a process group killed as a whole, and the test proves no descendant outlives the timeout"
+falsification = "5 mutants killed: environment inherited; digests unverified; filesystem confinement claimed; network denial claimed without a namespace; only the direct child killed"
+debts = "last advance G126 for DEBT-SANDBOXED_EXECUTION (M1 -> M2); success condition (reads outside declared inputs refused) not met; next NA-SANDBOX-FS-CONFINEMENT; construction node M16 stays MISSING (toolchain identity, M15)"
+proof = "PROVEN (post 8dd30de7...): two new source files explained as carrying the standing per-file UNKNOWN obligations"
+
+
+[[generation.metric]]
+key = "typed_records"
+before = 112438
+after = 113666
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2203
+after = 2227
+
+[[generation.metric]]
+key = "composed:component_behavior"
+before = 120
+after = 122
+
+[[generation.metric]]
+key = "facts"
+before = 17084
+after = 17338

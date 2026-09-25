@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-SANDBOX-SUBPROCESS"
+next_native_attack = "NA-VERIFICATION-EVIDENCE"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -530,9 +530,19 @@ objective = "native attack queue head (pressure map, primary-debt dependency ord
 [[planned_generation]]
 id = "G126"
 priority = "P6"
-objective = "native attack queue head (pressure map, primary-debt dependency order): NA-SANDBOX-SUBPROCESS"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-SANDBOX-SUBPROCESS (done: restricted-subprocess backend; filesystem confinement UNENFORCED and named; 5 mutants killed)"
 
 [[planned_generation]]
-id = "G127+"
+id = "G127"
+priority = "P2"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-VERIFICATION-EVIDENCE (construction node M2)"
+
+[[planned_generation]]
+id = "G128"
+priority = "P0"
+objective = "AGENT_MISSION: the second mission through the agent interface (cadence: within five generations of G123)"
+
+[[planned_generation]]
+id = "G129+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

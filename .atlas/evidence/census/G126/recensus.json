@@ -1,0 +1,487 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G126",
+  "base_revision": "be291db2f634f49dbbe4dc6e3076e7a5cd735792",
+  "candidate_revision": "63f1ed91c10104f83afcae73da151524c6de24cf",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:8d732e2dfdf04ea3f109f486c053ee8a228b6a78bf0510a23b52ca3e22f167d9",
+  "after_census_digest": "blake3-256:8dd30de7e92fd7e32b26a87295ae69bfb34735ccab6f02ddf33e1983d3d2888d",
+  "replay_digest": "blake3-256:8dd30de7e92fd7e32b26a87295ae69bfb34735ccab6f02ddf33e1983d3d2888d",
+  "inventory_delta": {
+    "created": [
+      "core/src/sandbox/mod.rs",
+      "runtime/src/sandbox.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 24,
+      "fact:FunctionSignature|OBSERVED": 24,
+      "fact:SemanticObligation|OBSERVED": 9,
+      "fact:SemanticObligation|UNKNOWN": 25,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 78,
+      "fact:Type|DERIVED": 37,
+      "fact:Type|OBSERVED": 53,
+      "record:CALL|DERIVED": 45,
+      "record:CALL|OBSERVED": 305,
+      "record:CONCURRENCY|DERIVED": 2,
+      "record:CONCURRENCY|INFERRED": 2,
+      "record:CONTROL_FLOW|INFERRED": 26,
+      "record:CONTROL_FLOW|OBSERVED": 62,
+      "record:DATA_FLOW|OBSERVED": 388,
+      "record:EFFECT|DERIVED": 21,
+      "record:EFFECT|INFERRED": 45,
+      "record:FUNCTION_IDENTITY|OBSERVED": 24,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 24,
+      "record:OWNERSHIP|OBSERVED": 112,
+      "record:PERSISTENCE|DERIVED": 4,
+      "record:SYMBOL|OBSERVED": 78,
+      "record:TYPE|DERIVED": 37,
+      "record:TYPE|OBSERVED": 53
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 1560,
+    "graph_nodes": 1247
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/`impl:Enforcement`/is_enforced()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/`impl:IsolationProperty`/as_str()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/`impl:SandboxRun`/unenforced()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/canonical_request()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/is_confined_path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/tests/declared_paths_never_escape_the_staging_root()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/tests/request()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core sandbox/tests/request_identity_is_independent_of_declaration_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/declare_inputs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/drain()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/find_on_path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/input_digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/kill_group()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/network_isolation_available()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/run()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/a_run_is_killed_at_its_timeout_with_its_descendants()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/a_tampered_or_escaping_input_is_refused_before_anything_runs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/execute()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/network_denial_is_claimed_only_when_probed_and_real()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/only_declared_inputs_and_environment_reach_the_run()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/request()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime sandbox/tests/scratch()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/sandbox/mod.rs: 0 -> 13",
+      "runtime/src/sandbox.rs: 0 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 1464,
+    "total_after": 1489
+  },
+  "intent": {
+    "objective": "NA-SANDBOX-SUBPROCESS (ADR 0047): restricted-subprocess sandbox backend and SandboxRun records; every isolation property ENFORCED or UNENFORCED",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/sandbox/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/sandbox.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONCURRENCY|atlas.resolution.rust-paths",
+      "+records:CONCURRENCY|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/sandbox/mod.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations",
+      "runtime/src/sandbox.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CREATED core sandbox/`impl:Enforcement`/is_enforced().",
+      "CREATED core sandbox/`impl:IsolationProperty`/as_str().",
+      "CREATED core sandbox/`impl:SandboxRun`/unenforced().",
+      "CREATED core sandbox/canonical_request().",
+      "CREATED core sandbox/is_confined_path().",
+      "CREATED core sandbox/tests/declared_paths_never_escape_the_staging_root().",
+      "CREATED core sandbox/tests/request().",
+      "CREATED core sandbox/tests/request_identity_is_independent_of_declaration_order().",
+      "CREATED runtime sandbox/declare_inputs().",
+      "CREATED runtime sandbox/digest().",
+      "CREATED runtime sandbox/drain().",
+      "CREATED runtime sandbox/find_on_path().",
+      "CREATED runtime sandbox/input_digest().",
+      "CREATED runtime sandbox/kill_group().",
+      "CREATED runtime sandbox/network_isolation_available().",
+      "CREATED runtime sandbox/refused().",
+      "CREATED runtime sandbox/run().",
+      "CREATED runtime sandbox/tests/a_run_is_killed_at_its_timeout_with_its_descendants().",
+      "CREATED runtime sandbox/tests/a_tampered_or_escaping_input_is_refused_before_anything_runs().",
+      "CREATED runtime sandbox/tests/execute().",
+      "CREATED runtime sandbox/tests/network_denial_is_claimed_only_when_probed_and_real().",
+      "CREATED runtime sandbox/tests/only_declared_inputs_and_environment_reach_the_run().",
+      "CREATED runtime sandbox/tests/request().",
+      "CREATED runtime sandbox/tests/scratch()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/lib.rs",
+    "path core/src/sandbox/mod.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/sandbox.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONCURRENCY|atlas.resolution.rust-paths",
+    "total +records:CONCURRENCY|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CREATED core sandbox/`impl:Enforcement`/is_enforced().",
+    "entity CREATED core sandbox/`impl:IsolationProperty`/as_str().",
+    "entity CREATED core sandbox/`impl:SandboxRun`/unenforced().",
+    "entity CREATED core sandbox/canonical_request().",
+    "entity CREATED core sandbox/is_confined_path().",
+    "entity CREATED core sandbox/tests/declared_paths_never_escape_the_staging_root().",
+    "entity CREATED core sandbox/tests/request().",
+    "entity CREATED core sandbox/tests/request_identity_is_independent_of_declaration_order().",
+    "entity CREATED runtime sandbox/declare_inputs().",
+    "entity CREATED runtime sandbox/digest().",
+    "entity CREATED runtime sandbox/drain().",
+    "entity CREATED runtime sandbox/find_on_path().",
+    "entity CREATED runtime sandbox/input_digest().",
+    "entity CREATED runtime sandbox/kill_group().",
+    "entity CREATED runtime sandbox/network_isolation_available().",
+    "entity CREATED runtime sandbox/refused().",
+    "entity CREATED runtime sandbox/run().",
+    "entity CREATED runtime sandbox/tests/a_run_is_killed_at_its_timeout_with_its_descendants().",
+    "entity CREATED runtime sandbox/tests/a_tampered_or_escaping_input_is_refused_before_anything_runs().",
+    "entity CREATED runtime sandbox/tests/execute().",
+    "entity CREATED runtime sandbox/tests/network_denial_is_claimed_only_when_probed_and_real().",
+    "entity CREATED runtime sandbox/tests/only_declared_inputs_and_environment_reach_the_run().",
+    "entity CREATED runtime sandbox/tests/request().",
+    "entity CREATED runtime sandbox/tests/scratch()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
