@@ -370,6 +370,16 @@ impl CensusSnapshot {
                 format!("composed:purpose:{}", component.purpose.status.as_str()),
             );
         }
+        // G132 (mission M3): the same for functions.
+        for function in &model.functions {
+            bump(
+                &mut totals,
+                format!(
+                    "composed:function_purpose:{}",
+                    function.purpose.status.as_str()
+                ),
+            );
+        }
 
         let closure = &report.dependency_closure;
         let mut edges: Vec<String> = closure

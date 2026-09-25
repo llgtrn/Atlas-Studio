@@ -220,5 +220,31 @@
     ],
     "manual_alternative": "read the function's doc comment by hand (item documentation is not carried yet)",
     "class": "UNKNOWN_HONESTY"
+  },
+  {
+    "id": "B17",
+    "question": "What is ExtractionContext::emit_documented_symbol for?",
+    "op": "function_purpose",
+    "args": [
+      "fn:ExtractionContext::emit_documented_symbol"
+    ],
+    "expect": [
+      "DECLARED"
+    ],
+    "manual_alternative": "read the function's doc comment by hand (carried as DECLARED text since G132)",
+    "class": "PURPOSE"
+  },
+  {
+    "id": "B18",
+    "question": "What is ExtractionContext::emit_symbol for?",
+    "op": "function_purpose",
+    "args": [
+      "fn:ExtractionContext::emit_symbol"
+    ],
+    "expect": [
+      "UNKNOWN"
+    ],
+    "manual_alternative": "guess from the function name (forbidden: purpose is never named from identifiers; the function has no documentation)",
+    "class": "UNKNOWN_HONESTY"
   }
 ]

@@ -7242,3 +7242,48 @@ fn module_documentation_is_declared_on_the_module_symbol() {
     assert_eq!(id(&batch), id(&undocumented));
     assert!(find_symbol(&undocumented, &[], "self").is_none());
 }
+
+/// G132 (mission M3): `///` on a function, an impl method and a trait method rides the function's
+/// symbol and the symbol its FunctionIdentity embeds; it never enters either identity.
+#[test]
+fn function_documentation_is_declared_on_the_function_identity() {
+    let source = "/// Adds one.\npub fn inc(x: u64) -> u64 { x + 1 }\npub fn bare() {}\n\
+                  struct S;\nimpl S {\n    /// Makes one.\n    fn make() -> Self { S }\n}\n\
+                  trait T {\n    /// Runs it.\n    fn run(&self);\n}\n";
+    let batch = extract_all("core/src/lib.rs", source);
+    let summary = |name: &str| {
+        batch.observations.iter().find_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == name => Some(
+                h.subject
+                    .symbol
+                    .documentation
+                    .as_ref()
+                    .map(|d| d.summary.clone()),
+            ),
+            _ => None,
+        })
+    };
+    assert_eq!(summary("inc"), Some(Some("Adds one.".into())));
+    assert_eq!(summary("make"), Some(Some("Makes one.".into())));
+    assert_eq!(summary("run"), Some(Some("Runs it.".into())));
+    assert_eq!(summary("bare"), Some(None));
+    assert_eq!(
+        find_symbol(&batch, &[], "inc")
+            .unwrap()
+            .documentation
+            .as_ref()
+            .unwrap()
+            .summary,
+        "Adds one."
+    );
+    let undocumented = extract_all("core/src/lib.rs", "pub fn inc(x: u64) -> u64 { x + 1 }\n");
+    let id = |batch: &ExtractionBatch| {
+        batch.observations.iter().find_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == "inc" => {
+                Some(h.record_id.clone())
+            }
+            _ => None,
+        })
+    };
+    assert_eq!(id(&batch), id(&undocumented));
+}

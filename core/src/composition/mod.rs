@@ -93,6 +93,14 @@ pub struct Claim {
 }
 
 impl Claim {
+    /// The purpose of a function with no `///` documentation (G132); also the purpose a model
+    /// written before G132 reads back with.
+    fn undocumented_function() -> Self {
+        Self::unknown(
+            "no documentation (///) on the function; purpose is never named from identifiers",
+        )
+    }
+
     fn unknown(basis: &str) -> Self {
         Self {
             value: None,
@@ -190,6 +198,10 @@ pub struct FunctionBehavior {
     pub control: ControlSummary,
     /// Raw typed records composed into this behavior.
     pub records: usize,
+    /// G132 (mission M3): the function's own documentation (`///`) as DECLARED purpose, citing
+    /// its FUNCTION_IDENTITY record; UNKNOWN without one.
+    #[serde(default = "Claim::undocumented_function")]
+    pub purpose: Claim,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -537,6 +549,17 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     data_flow: DataFlowSummary::default(),
                     control: ControlSummary::default(),
                     records: 0,
+                    purpose: match &f.symbol.documentation {
+                        Some(documentation) => Claim {
+                            value: Some(documentation.summary.clone()),
+                            status: EpistemicStatus::Declared,
+                            evidence: vec![header.record_id.as_str().to_owned()],
+                            basis: "the function's own documentation (///): its author's \
+                                    statement, not checked against behavior"
+                                .into(),
+                        },
+                        None => Claim::undocumented_function(),
+                    },
                 })
                 .records += 1;
         }
@@ -1486,10 +1509,14 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
         UnderstandingGap {
             id: "GAP-ITEM-DOCUMENTATION".into(),
             question_class: "what is this function for?".into(),
-            missing: "item documentation (/// on functions and types) is not carried: a \
-                      function's purpose is UNKNOWN even where its author wrote one (G128)"
+            missing: "functions with no documentation (///): their purpose is UNKNOWN (G132); \
+                      type documentation is carried on SYMBOL records but no type-level \
+                      behavior composes it"
                 .into(),
-            magnitude: functions.len(),
+            magnitude: functions
+                .values()
+                .filter(|f| f.purpose.status == EpistemicStatus::Unknown)
+                .count(),
             debt: "DEBT-SEMANTIC-COMPOSITION".into(),
         },
         UnderstandingGap {

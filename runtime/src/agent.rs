@@ -263,6 +263,22 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
             let gap = lens::unanswerable(model, arg(0)?).ok_or("no such gap")?;
             (vec![gap.id, gap.debt], 0)
         }
+        "function_purpose" => {
+            let scope = index.resolve(arg(0)?)?;
+            let [id] = scope.functions.iter().collect::<Vec<_>>()[..] else {
+                return Err(format!(
+                    "{}: {} names {} functions, not one",
+                    case.id,
+                    arg(0)?,
+                    scope.functions.len()
+                ));
+            };
+            let f = find(&model.functions, |f| &f.id == id, "function")?;
+            (
+                vec![f.purpose.status.as_str().to_owned()],
+                f.purpose.evidence.len(),
+            )
+        }
         "component_purpose" => {
             let path = arg(0)?;
             let component = find(&model.components, |c| c.path == path, "component")?;
@@ -375,7 +391,7 @@ materialize App {
 "#;
 
     const CORE_LIB: &str = "//! The shared core.\n/// Holds one count and persists it.\npub mod store;\n\
-                            pub fn helper(x: u64) -> u64 { x + 1 }\n";
+                            /// Adds one.\npub fn helper(x: u64) -> u64 { x + 1 }\n";
     const STORE: &str = r#"pub struct Store { count: u64 }
 impl Store {
     pub fn new() -> Self { Store { count: 0 } }
@@ -568,6 +584,28 @@ fn run(s: &core::store::Store) { s.save(); }
             purpose("app/src/main.rs"),
             (EpistemicStatus::Unknown, None, 0),
             "purpose is never named from identifiers"
+        );
+        // G132: a function's purpose is its own `///` text, UNKNOWN without one.
+        let helper = function(&model, "helper");
+        assert_eq!(helper.purpose.status, EpistemicStatus::Declared);
+        assert_eq!(helper.purpose.value.as_deref(), Some("Adds one."));
+        assert_eq!(helper.purpose.evidence, vec![helper.id.clone()]);
+        assert_eq!(
+            function(&model, "bump").purpose.status,
+            EpistemicStatus::Unknown
+        );
+        let items = model
+            .gaps
+            .iter()
+            .find(|g| g.id == "GAP-ITEM-DOCUMENTATION")
+            .unwrap();
+        assert_eq!(
+            items.magnitude,
+            model
+                .functions
+                .iter()
+                .filter(|f| f.purpose.status == EpistemicStatus::Unknown)
+                .count()
         );
         let gap = model
             .gaps
@@ -1296,6 +1334,36 @@ fn run(s: &core::store::Store) { s.save(); }
             }
         }
         assert!(declared > 0, "the workspace documents its modules");
+        // G132: likewise every DECLARED function purpose is its FUNCTION_IDENTITY's documentation.
+        let function_docs: BTreeMap<&str, &str> = report
+            .census
+            .typed_semantic_records
+            .iter()
+            .filter_map(|r| match r {
+                atlas_core::SemanticObservation::FunctionIdentity(h) => Some((
+                    h.record_id.as_str(),
+                    h.subject.symbol.documentation.as_ref()?.summary.as_str(),
+                )),
+                _ => None,
+            })
+            .collect();
+        let mut documented = 0;
+        for f in &model.functions {
+            match f.purpose.status {
+                EpistemicStatus::Unknown => assert!(f.purpose.value.is_none()),
+                EpistemicStatus::Declared => {
+                    documented += 1;
+                    assert_eq!(
+                        f.purpose.value.as_deref(),
+                        function_docs.get(f.id.as_str()).copied(),
+                        "{}",
+                        f.name
+                    );
+                }
+                other => panic!("{}: purpose {other:?}", f.name),
+            }
+        }
+        assert!(documented > 0, "the workspace documents its functions");
         assert!(model.subsystems.iter().all(|s| matches!(
             s.responsibility.status,
             EpistemicStatus::Declared | EpistemicStatus::Unknown

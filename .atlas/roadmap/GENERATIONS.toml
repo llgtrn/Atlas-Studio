@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G131"
+current_generation = "G132"
 
 [[generation]]
 id = "G35"
@@ -2568,3 +2568,41 @@ after = 2279
 key = "composed:state_variable"
 before = 251
 after = 253
+
+[[generation]]
+id = "G132"
+kind = "AGENT_MISSION"
+base_commit = "16381d2f71c154615c94456868bcc62e0f3d2066"
+priority = "P0"
+serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the third agent mission worked through Atlas (cadence: within five generations of G128), closing the gap mission M2 opened (GAP-ITEM-DOCUMENTATION, NA-ITEM-DOCUMENTATION)"
+objective = "mission M3: carry function documentation as DECLARED function purpose; unknowns -> explain -> impact -> change -> verify -> benchmark -> recensus"
+writer = "coordinator (sole writer)"
+mission = ".atlas/evidence/agent/M3-function-purpose.json"
+evidence = ".atlas/evidence/agent/benchmark.json"
+self_recensus = ".atlas/evidence/census/G132/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 848a5ee7ea = G131 post digest 2d117be0... (16381d2f71 adds only out-of-scope evidence)"
+atlas_first = "unknowns(subsystem:Adapter) named the gap (2,279 functions without purpose); explain(function_identity) showed no resolved caller, and impact named its only caller, handle_function, as an INFERRED callee-spelling candidate; explain(handle_function) showed its three resolved callers hold the item attributes: the edit point found without reading the extractor"
+change = "handle_function takes the item's Documentation onto the function's symbol and the symbol its FunctionIdentity embeds (outside identity); FunctionBehavior.purpose (DECLARED citing the FUNCTION_IDENTITY record, else UNKNOWN; defaulted for older models); GAP-ITEM-DOCUMENTATION counts undocumented functions; composed:function_purpose:* recensus totals; benchmark op function_purpose"
+manual_reads = "4 (3 implementation detail, 1 falsification: the INFERRED candidate caller confirmed); none driven by an UNKNOWN (M1 7, M2 8)"
+gaps = "narrowed: GAP-ITEM-DOCUMENTATION (0 to 570 of 2,281 functions DECLARED; public non-test 259 of 435); type purpose remains; GAP-TYPE-USE-SITES not hit"
+challenge = "what is ExtractionContext::emit_symbol for: UNKNOWN (no documentation), never a guess from its name"
+verify = "HELD: no invariant broken, dropped, weakened or added; no dependency or authority change"
+benchmark = "18 of 18: B17 DECLARED with FUNCTION_IDENTITY evidence, B18 UNKNOWN for an undocumented function"
+falsification = "5 mutants killed: composition ignores function documentation; documentation not on the FunctionIdentity; an undocumented purpose named from the function name; the item gap counts every function; documentation enters the function identity"
+debts = "DEBT-SEMANTIC-COMPOSITION last advance G132 (NA-ITEM-DOCUMENTATION done; NA-CAPABILITY-REALIZATION queued)"
+proof = "PROVEN (post 362b0984...): no new UNKNOWN obligation; documented symbols and function identities carry their documentation"
+
+[[generation.metric]]
+key = "typed_records"
+before = 117734
+after = 117946
+
+[[generation.metric]]
+key = "composed:function_purpose:DECLARED"
+after = 570
+
+[[generation.metric]]
+key = "composed:function_purpose:UNKNOWN"
+after = 1711

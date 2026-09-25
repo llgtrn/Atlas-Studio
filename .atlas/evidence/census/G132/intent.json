@@ -1,0 +1,49 @@
+{
+  "objective": "AGENT_MISSION M3 (NA-ITEM-DOCUMENTATION): function documentation carried on the FunctionIdentity's symbol and composed into DECLARED function purpose",
+  "changed_paths": [
+    "adapter/src/semantic/rust/mod.rs",
+    "adapter/src/semantic/rust/tests.rs",
+    "core/src/composition/mod.rs",
+    "core/src/recensus/mod.rs",
+    "runtime/src/agent.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function().",
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_impl().",
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_trait().",
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+    "CHANGED core composition/compose_input().",
+    "CHANGED core recensus/`impl:CensusSnapshot`/from_report().",
+    "CHANGED runtime agent/answer().",
+    "CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "CHANGED runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture().",
+    "CREATED adapter semantic/rust/tests/function_documentation_is_declared_on_the_function_identity().",
+    "CREATED core composition/`impl:Claim`/undocumented_function()."
+  ],
+  "adl_changes": []
+}

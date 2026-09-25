@@ -1,0 +1,277 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G132",
+  "base_revision": "7a77740e051ce4f31506d44504d6adc8563dc706",
+  "candidate_revision": "16381d2f71c154615c94456868bcc62e0f3d2066",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+  "after_census_digest": "blake3-256:362b0984f6b3ac0d4167c6138427b112044851ecd51d194a4283daced8a848c2",
+  "replay_digest": "blake3-256:362b0984f6b3ac0d4167c6138427b112044851ecd51d194a4283daced8a848c2",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/recensus/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/recensus/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 2,
+      "fact:FunctionSignature|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 3,
+      "fact:Type|OBSERVED": 1,
+      "record:CALL|DERIVED": 9,
+      "record:CALL|OBSERVED": 61,
+      "record:CONTROL_FLOW|INFERRED": 15,
+      "record:CONTROL_FLOW|OBSERVED": 5,
+      "record:DATA_FLOW|OBSERVED": 83,
+      "record:EFFECT|INFERRED": 15,
+      "record:FUNCTION_IDENTITY|OBSERVED": 2,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 2,
+      "record:OWNERSHIP|OBSERVED": 16,
+      "record:SYMBOL|OBSERVED": 3,
+      "record:TYPE|OBSERVED": 1
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 302,
+    "graph_nodes": 215
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_impl()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_impl()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_trait()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_trait()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core recensus/`impl:CensusSnapshot`/from_report()."
+      ],
+      "after": [
+        "core recensus/`impl:CensusSnapshot`/from_report()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/answer()."
+      ],
+      "after": [
+        "runtime agent/answer()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "after": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture()."
+      ],
+      "after": [
+        "runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/function_documentation_is_declared_on_the_function_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/`impl:Claim`/undocumented_function()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1538,
+    "total_after": 1538
+  },
+  "intent": {
+    "objective": "AGENT_MISSION M3 (NA-ITEM-DOCUMENTATION): function documentation carried on the FunctionIdentity's symbol and composed into DECLARED function purpose",
+    "changed_paths": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/recensus/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_impl().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_trait().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core recensus/`impl:CensusSnapshot`/from_report().",
+      "CHANGED runtime agent/answer().",
+      "CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+      "CHANGED runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture().",
+      "CREATED adapter semantic/rust/tests/function_documentation_is_declared_on_the_function_identity().",
+      "CREATED core composition/`impl:Claim`/undocumented_function()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/recensus/mod.rs",
+    "path runtime/src/agent.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_impl().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_trait().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core recensus/`impl:CensusSnapshot`/from_report().",
+    "entity CHANGED runtime agent/answer().",
+    "entity CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "entity CHANGED runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture().",
+    "entity CREATED adapter semantic/rust/tests/function_documentation_is_declared_on_the_function_identity().",
+    "entity CREATED core composition/`impl:Claim`/undocumented_function()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

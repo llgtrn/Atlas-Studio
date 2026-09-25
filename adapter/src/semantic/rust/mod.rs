@@ -1357,8 +1357,11 @@ impl<'a> ExtractionContext<'a> {
         role: SymbolRole,
         declaration_kind: FunctionDeclarationKind,
         owner: FunctionOwner,
+        documentation: Option<Documentation>,
     ) {
-        self.emit_symbol(scope, name, role, span.clone());
+        // G132 (mission M3): the function's `///` text is DECLARED on its symbol and on the
+        // symbol its FunctionIdentity embeds, never part of either identity.
+        self.emit_documented_symbol(scope, name, role, span.clone(), documentation.clone());
 
         let mut generics: Vec<String> = sig
             .generics
@@ -1370,7 +1373,7 @@ impl<'a> ExtractionContext<'a> {
             generics.extend(spelling::where_predicate_spelling(where_clause));
         }
 
-        let identity = self.function_identity(
+        let mut identity = self.function_identity(
             scope,
             name,
             span,
@@ -1379,6 +1382,7 @@ impl<'a> ExtractionContext<'a> {
             owner,
             generics.clone(),
         );
+        identity.symbol.documentation = documentation;
         // Computed independently of whether FUNCTION_IDENTITY itself is requested: a caller
         // attribution for CALL must not silently disappear just because the FunctionIdentity
         // observation was suppressed by the caller's requested-dimension set.
@@ -1468,6 +1472,7 @@ impl<'a> ExtractionContext<'a> {
                     SymbolRole::Definition,
                     FunctionDeclarationKind::FreeFunction,
                     FunctionOwner::none(),
+                    spelling::documentation(&item_fn.attrs),
                 );
             }
             syn::Item::Struct(item_struct) => self.handle_struct(item_struct, scope),
@@ -1606,6 +1611,7 @@ impl<'a> ExtractionContext<'a> {
                         role,
                         declaration_kind,
                         owner,
+                        spelling::documentation(&method.attrs),
                     );
                 }
                 syn::TraitItem::Const(assoc_const) => {
@@ -1699,6 +1705,7 @@ impl<'a> ExtractionContext<'a> {
                         SymbolRole::Definition,
                         declaration_kind,
                         owner,
+                        spelling::documentation(&method.attrs),
                     );
                 }
                 syn::ImplItem::Const(assoc_const) => {

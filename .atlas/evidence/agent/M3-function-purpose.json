@@ -1,0 +1,109 @@
+{
+ "schema": "atlas.agent.mission.v1",
+ "id": "M3",
+ "generation": "G132",
+ "mission": "carry function documentation as DECLARED function purpose so 'what is this function for?' is answered from the author's words or honestly UNKNOWN (GAP-ITEM-DOCUMENTATION, opened by mission M2; NA-ITEM-DOCUMENTATION)",
+ "pilot": "coding agent (the AI); Atlas as the worn semantic body",
+ "base_commit": "16381d2f71c154615c94456868bcc62e0f3d2066",
+ "atlas_first_sequence": [
+  {
+   "op": "unknowns",
+   "target": "subsystem:Adapter",
+   "answered": "the gap list names GAP-ITEM-DOCUMENTATION; the composed gap reports 2,279 functions whose purpose Atlas cannot state"
+  },
+  {
+   "op": "explain",
+   "target": "fn:ExtractionContext::function_identity",
+   "answered": "signature (scope, name, span, role, declaration kind, owner, generics) -> FunctionIdentity; 0 resolved callers"
+  },
+  {
+   "op": "impact",
+   "target": "fn:ExtractionContext::function_identity",
+   "answered": "LOWER BOUND: 0 resolved callers, 1 INFERRED candidate by callee spelling -- handle_function -- and 9 unnamed sites; the candidate was the only caller (confirmed)"
+  },
+  {
+   "op": "explain",
+   "target": "fn:ExtractionContext::handle_function",
+   "answered": "no attribute parameter; 3 resolved callers (the fn, impl-method and trait-method walkers), which hold the item attributes: the edit threads documentation through it"
+  },
+  {
+   "op": "verify",
+   "target": "world model before vs after",
+   "answered": "HELD: no invariant broken, dropped, weakened or added; no dependency or authority change"
+  },
+  {
+   "op": "benchmark",
+   "target": ".atlas/evidence/agent/benchmark.json",
+   "answered": "18 of 18: new B17 (emit_documented_symbol) DECLARED with its FUNCTION_IDENTITY evidence, new B18 (emit_symbol, undocumented) UNKNOWN"
+  },
+  {
+   "op": "explain",
+   "target": "fn:compose_input",
+   "answered": "purpose DECLARED '`compose` over its inputs.' citing its FUNCTION_IDENTITY record"
+  }
+ ],
+ "atlas_knew": [
+  "the size of the question (2,279 functions without purpose) and the gap and debt that own it",
+  "the only caller of function_identity, by callee spelling, although no call to it resolves",
+  "that handle_function's three callers hold the item attributes (the edit point)",
+  "that the change moved no invariant, dependency or authority (verify)"
+ ],
+ "unknown": [
+  "why function_identity has no resolved caller: the self-receiver call inside the generic impl ExtractionContext<'a> does not resolve (receiver typing, NA-CALL-TYPE-RESIDUAL); Atlas answered with an INFERRED candidate instead of zero",
+  "type purpose: struct, enum and trait documentation is carried on SYMBOL records (G128) but no type-level behavior composes it",
+  "whether any documentation is true: purpose stays DECLARED, never checked against behavior"
+ ],
+ "manual_source_reads": [
+  {
+   "what": "adapter/src/semantic/rust/mod.rs handle_function body and its three call sites (about 90 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the edit targets; Atlas carries signatures and relations, not bodies"
+  },
+  {
+   "what": "core/src/composition/mod.rs FunctionBehavior construction (about 40 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the edit target in composition"
+  },
+  {
+   "what": "runtime/src/agent.rs benchmark answer ops (about 40 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: adding the function_purpose operation"
+  },
+  {
+   "what": "grep `self.function_identity(` in adapter/src/semantic/rust/mod.rs",
+   "reason": "FALSIFICATION: the INFERRED candidate caller confirmed as the only call site"
+  }
+ ],
+ "manual_reads_summary": {
+  "reads": 4,
+  "implementation_detail": 3,
+  "unknown": 0,
+  "falsification": 1,
+  "lines_read": "about 170 lines in 3 files plus 1 grep"
+ },
+ "gaps": [
+  {
+   "id": "GAP-ITEM-DOCUMENTATION",
+   "status": "NARROWED",
+   "fix": "function documentation carried on the FunctionIdentity's symbol and composed into FunctionBehavior.purpose; UNKNOWN only where no documentation exists; type-level purpose remains"
+  },
+  {
+   "id": "GAP-TYPE-USE-SITES",
+   "status": "NOT HIT (first mission not to need a grep for construction sites)",
+   "debt": "DEBT-SYMBOL"
+  }
+ ],
+ "measured": {
+  "functions_with_declared_purpose": "0 of 2,279 before; 570 of 2,281 after (non-test: 445 of 1,103; public: 259 of 435)",
+  "manual_reads": "M1 7, M2 8, M3 4 (no UNKNOWN-driven read in M3)"
+ },
+ "challenge": "what is ExtractionContext::emit_symbol for? Atlas answers UNKNOWN (no documentation), never a guess from its name; emit_documented_symbol, documented, answers DECLARED",
+ "falsification": [
+  "MF1 composition ignores function documentation: killed",
+  "MF2 documentation not on the FunctionIdentity: killed",
+  "MF3 an undocumented purpose named from the function name: killed",
+  "MF4 the item gap counts every function: killed",
+  "MF5 documentation enters the function identity: killed"
+ ],
+ "benchmark": {
+  "cases": 18,
+  "correct": 18
+ }
+}
