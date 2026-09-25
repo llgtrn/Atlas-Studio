@@ -568,3 +568,9 @@ files directly inspected (spot-checked: `Integration.fs`, `NanopassArchitecture.
 `.fsproj`/build-system files). Deep behavioral/correctness verification of the ~27 Witness modules, the
 17 Pattern modules, and the 9 Element modules was not performed and would require either running the
 (untrusted, unexecuted per this task's constraints) build or a further line-by-line reading pass.
+
+## G94 — terminal REFERENCE_ONLY; source extinct
+
+The recorded hyperedge falsification was executed on Atlas's real system graph. Every call claim is already reified as a `CallSite` join node with pairwise caller, callee, position-keyed argument and result edges. All 17,421 reconstruct unambiguously, and 3,244 of them join more than two identities (up to 9), so pairwise decomposition loses nothing.
+
+The thin-middle-end doctrine constrains lowering code that does not exist yet. COMPILER-IR-PIPELINE.md's semantic-equivalence section already anticipates it, so it stays a design reference. The checkout was physically deleted. Evidence: `../../evidence/campaign/30-composer.json`.

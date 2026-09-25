@@ -1,9 +1,0 @@
-[package]
-name = "ProgramLifetimeProjection"
-[compilation]
-target = "fpga"
-[dependencies]
-platform = { path = "Platform.fidproj" }
-[build]
-sources = ["Main.clef"]
-output_kind = "library"

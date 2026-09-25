@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 30,
+ "donor": "composer",
+ "commit_sha": "c46485096c38dc2c9fef9db4ae60caa1905ca1a3",
+ "generation": "G94",
+ "base_commit": "51b1499ab6",
+ "hypothesis": "nanopass PSG lowering (P6)",
+ "blocking_question": "two ABSORB_LATER discoveries without a consumer: (1) the thin-middle-end doctrine applies once HIR->MIR->LIR lowerings exist; (2) PHG hyperedges: does any Atlas semantic claim span more than two identities jointly, so that pairwise Node/Edge/Binding decomposition loses information?",
+ "measurement": {
+  "graph": "atlas-systemizer graph --root . at 51b1499ab6: 85,696 nodes, 113,217 edges, 17,421 CallSite nodes",
+  "join_node_encoding": "a CALL claim relates a caller, callees, position-keyed arguments and a result; the projection reifies it as a CallSite node with MAKES_CALL (caller), CALLS, BINDS_ARGUMENT (position in edge identity and attributes) and BINDS_RESULT edges",
+  "reconstruction": "17,421 / 17,421 CallSite nodes reconstruct their claim unambiguously (exactly one caller, unique argument positions, at most one result); 3,244 join more than two identities, the largest 9",
+  "other_nary_families": "OwnershipOperation (HAS_OPERATION + TARGETS), Effect (PRODUCES_EFFECT) and StateAccess (HAS_ACCESS) are reified the same way; the typed records remain the source of truth and the graph a derived projection (UNIVERSAL-GRAPH-CONTRACT.md)",
+  "thin_middle_end": "no HIR/MIR/LIR lowering code exists in core/src; COMPILER-IR-PIPELINE.md already requires lineage and semantic-equivalence checks per stage, which the doctrine instantiates"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["PSG and nanopass structure", "thin-middle-end doctrine and materialize/scatter round-trip law (design reference for future lowering)", "coeffect and escape analyses", "PHG hyperedges (falsified: no joint-claim failure mode)"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; F#, not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/composer"
+ }
+}

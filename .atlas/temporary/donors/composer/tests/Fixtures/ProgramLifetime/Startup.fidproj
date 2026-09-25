@@ -1,7 +1,0 @@
-[package]
-name = "StartupProjection"
-[compilation]
-target = "library"
-[build]
-sources = ["Startup.clef"]
-output_kind = "library"

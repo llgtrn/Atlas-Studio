@@ -1413,6 +1413,7 @@ objective = "check the census's open items and recensus triggers, run the DC1 ex
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/29-duumbi.json"
 self_recensus = ".atlas/evidence/census/G93/recensus.json"
+result_commits = ["d867333a930156464954382db601392e1fa1831d", "51b1499ab60a94992059b15ffee624a836da7f84"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 0d84da8419 = G92 post digest 96829620... (a6e7e9a09c adds only out-of-scope evidence)"
@@ -1424,3 +1425,23 @@ proof = "PROVEN on the first run (post 1d7b86ea...)"
 
 [generation.next]
 objective = "G94 (P3): first-50 #30 composer (nanopass PSG lowering, P6)"
+
+[[generation]]
+id = "G94"
+base_commit = "51b1499ab60a94992059b15ffee624a836da7f84"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #30 composer to a terminal state (P6 graph-language lane)"
+objective = "execute the recorded hyperedge falsification on the real system graph, decide the thin-middle-end doctrine, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/30-composer.json"
+self_recensus = ".atlas/evidence/census/G94/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of d867333a93 = G93 post digest 1d7b86ea... (51b1499ab6 adds only out-of-scope evidence)"
+falsification = "the real system graph (85,696 nodes, 113,217 edges) reifies every CALL claim as a CallSite join node with MAKES_CALL, CALLS, position-keyed BINDS_ARGUMENT and BINDS_RESULT edges; all 17,421 reconstruct unambiguously, 3,244 joining more than two identities (max arity 9) -- no joint-claim failure mode, so hyperedges are not needed; no HIR/MIR/LIR lowering code exists for the thin-middle-end doctrine to constrain"
+no_code_change = "no Composer mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/composer (7.9 MB) plus untracked sample build intermediates; no build, runtime or test reference"
+proof = "PROVEN on the first run (post 316faa22...)"
+
+[generation.next]
+objective = "G95 (P3): first-50 #31 agentir (trace-IR staged construction process, P6)"

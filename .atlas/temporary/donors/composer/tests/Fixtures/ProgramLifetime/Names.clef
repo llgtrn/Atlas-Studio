@@ -1,3 +1,0 @@
-module StorageNames
-let immutableName = "constant-vault"
-let mutableName = "state-vault"

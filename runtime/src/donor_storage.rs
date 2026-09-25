@@ -453,6 +453,7 @@ mod tests {
                 "buck2",
                 "capnproto",
                 "clef",
+                "composer",
                 "datafrog",
                 "differential-dataflow",
                 "duumbi",

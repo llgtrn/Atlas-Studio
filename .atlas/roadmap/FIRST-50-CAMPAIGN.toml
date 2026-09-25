@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 25
+campaign_terminal = 26
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 3
 absorbed = 9
-reference_only = 17
+reference_only = 18
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 28
-remaining = 22
-next_donor = "composer"
-next_step = "G94 (P3): composer (#30) -- nanopass PSG lowering (P6)"
+extinct = 29
+remaining = 21
+next_donor = "agentir"
+next_step = "G95 (P3): agentir (#31) -- trace-IR staged construction process (P6)"
 
 [[donor]]
 ordinal = 1
@@ -521,13 +521,15 @@ canonical_url = "https://github.com/FidelityFramework/Composer.git"
 serves = "P6"
 target_capability = "program semantic graph -> MLIR"
 mechanism_hypothesis = "nanopass PSG lowering"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "mlir (#25)"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+completed_in = "G94"
+evidence = ".atlas/evidence/campaign/30-composer.json"
+note = "PHG hyperedges falsified: all 17,421 real CallSite join nodes reconstruct their N-ary claim (3,244 join >2 identities, max arity 9); the thin-middle-end doctrine constrains lowering code that does not exist; source physically deleted"
 
 [[donor]]
 ordinal = 31

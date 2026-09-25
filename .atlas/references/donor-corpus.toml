@@ -1093,18 +1093,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T14:08:05.000000Z"
 license = [".atlas/licenses/donors/composer/LICENSE", ".atlas/licenses/donors/composer/Commercial.md", ".atlas/licenses/donors/composer/PATENTS.md"]
 technology_domains = ["program_semantic_graph", "nanopass_compiler", "mlir_lowering", "coeffect_analysis", "escape_analysis", "semantic_preservation_verification"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS"
-decision_status = "STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
-blocking_question = "two ABSORB_LATER discoveries without a consumer: (1) the thin-middle-end doctrine (zero semantic dialects below the witness boundary, with a named checkable round-trip law) applies only once HIR->MIR->LIR lowerings exist, and COMPILER-IR-PIPELINE.md has no code; (2) PHG hyperedges: does any Atlas semantic claim genuinely span more than two identities jointly, so that pairwise Node/Edge/Binding decomposition loses information?"
-evidence_needed = "for (2), as the lane synthesis records BLUEPRINT-EVOLUTION.md's bar: deep census of the actual PHG implementation (in clef, unverified in code), a concrete Atlas use case pairwise edges demonstrably cannot represent, and a falsification/benchmark step; for any PSG/coeffect mechanism, reconciliation against clef's own source before a disposition change"
-cheapest_falsification = "for (2): encode one candidate N-ary claim the census names (an FFI boundary's joint lifetime claim, or a multi-variable closure capture) in UNIVERSAL-GRAPH-CONTRACT.md's pairwise Node/Edge/Binding with an explicit join node; if no joint-claim failure mode remains, hyperedges stay deferred. For (1): none available before HIR->MIR lowering is implemented (sequencing block)"
-next_action = "prerequisite: (1) compiler HIR/MIR/LIR lowering implementation; (2) a live Atlas graph-model question needing N-ary relations; owners compiler/hir, compiler/mir, compiler/lir, graph/engineering_graph (provenance target_owners); coordinator decides disposition"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G94: (2) PHG hyperedges falsified by execution -- the real system graph already encodes N-ary claims pairwise through a reified join node: all 17,421 CallSite nodes reconstruct their claim (one caller, callees, position-keyed arguments, at most one result) with no ambiguity, 3,244 of them joining more than two identities (max arity 9), so no joint-claim failure mode remains; (1) the thin-middle-end doctrine (zero semantic dialects below the witness boundary, a named checkable round-trip law) constrains lowering code that does not exist, and COMPILER-IR-PIPELINE.md's semantic-equivalence section already anticipates translation validation -- a design reference, not a mechanism to absorb"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/30-composer.json)"
+cheapest_falsification = "performed G94: the recorded join-node encoding checked on the real system graph (atlas-systemizer graph: 85,696 nodes, 113,217 edges)"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "compiler/hir, compiler/mir, compiler/lir reference once Atlas's own IR pipeline is implemented"
 runtime_dependency_status = "NOT_APPLICABLE"
-evidence = [".atlas/provenance/donors/composer.json", ".atlas/census/donors/composer.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = [".atlas/evidence/campaign/30-composer.json", ".atlas/provenance/donors/composer.json", ".atlas/census/donors/composer.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "clef"

@@ -1,6 +1,0 @@
-# Expected outcome for W-1/reject. Read by vet.sh; keys are one-line strings.
-rule = "there is no width-named type (D10)"
-verdict = "reject"
-code = "CCS8706"
-count = "2"
-pending = "step 7"
