@@ -72,3 +72,9 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 compiler linker integration and post-link layout reference
+
+## G103 — terminal EXTERNAL_BOUNDARY (+ REFERENCE_ONLY); source extinct
+
+The own-vs-integrate question is decided as **integrate**. No object/link stage exists, and Atlas links only through its rustc/cargo bootstrap boundary, which installed linkers serve (GNU ld 2.42, LLD 18.1.3). The pipeline contract makes linkers blueprint-revisable, so owning one needs a measured cost that no workload produces. Parallel layout stays REFERENCE_ONLY.
+
+The pinned checkout is upstream's Rust rewrite, and it was a DC1 Cargo test input. The ledger-driven tests pass without it. The checkout was physically deleted. Evidence: `../../evidence/campaign/39-mold.json`.

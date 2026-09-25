@@ -1610,6 +1610,7 @@ objective = "decide regalloc2 against the pipeline's Machine IR stage and the ex
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/38-regalloc2.json"
 self_recensus = ".atlas/evidence/census/G102/recensus.json"
+result_commits = ["80ca0fc6246ee75d7996bf14e424a7440cc1a670", "71561f2d9aab8388945173b2ee98ccdae078d5d8"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 941537e735 = G101 post digest 62f1d524... (43e8f1f8c4 adds only out-of-scope evidence)"
@@ -1620,3 +1621,23 @@ proof = "PROVEN on the first run (post 6d24bac4...)"
 
 [generation.next]
 objective = "G103 (P3): first-50 #39 mold (parallel ELF linker layout, P6)"
+
+[[generation]]
+id = "G103"
+base_commit = "71561f2d9aab8388945173b2ee98ccdae078d5d8"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #39 mold to a terminal state (P6 linking)"
+objective = "decide the recorded own-vs-integrate linker question against the pipeline contract and the host, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/39-mold.json"
+self_recensus = ".atlas/evidence/census/G103/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 80ca0fc624 = G102 post digest 6d24bac4... (71561f2d9a adds only out-of-scope evidence)"
+falsification = "no object/link stage exists; Atlas links only through its rustc/cargo bootstrap boundary, served by installed linkers (GNU ld 2.42, LLD 18.1.3); the pipeline contract makes linkers blueprint-revisable, so owning one needs a measured cost no workload produces"
+no_code_change = "no mold mechanism absorbed (EXTERNAL_BOUNDARY: integrate an installed linker; parallel layout REFERENCE_ONLY); the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/mold (4.7 MB, upstream's Rust rewrite at the pin); 362/362 adapter tests pass with the 3 remaining DC1 donors"
+proof = "PROVEN on the first run (post d9386c3e...)"
+
+[generation.next]
+objective = "G104 (P3): first-50 #40 kani (harness-driven proofs as constraint evidence, P0)"

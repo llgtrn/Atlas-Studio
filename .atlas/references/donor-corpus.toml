@@ -984,18 +984,19 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/mold/LICENSE"]
 technology_domains = ["linker", "elf", "parallel_linking", "binary_layout"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
-blocking_question = "linking belongs to COMPILER-IR-PIPELINE.md's Machine IR -> object/code stage (the object writer/linker must preserve declared ABI), for which no compiler code exists; this donor's census is an admission-stage inventory only, and its recorded native replacement (linker integration and post-link layout reference) leaves open whether Atlas owns a linker or integrates an external one at an EXTERNAL_BOUNDARY."
-evidence_needed = "a Machine IR -> object/link stage being scheduled, the own-vs-integrate linker decision, and the deep census the census record requires before absorption"
-cheapest_falsification = "none available before the compiler's object/link stage is scheduled -- this is a genuine sequencing block, not a missing-evidence block"
-next_action = "prerequisite: compiler Machine IR -> object/link stage (R8/W6) and a W6 deep census; owners compiler, runtime/binary, core/atlas-format (provenance target_owners); coordinator decides disposition"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "resolved G103: own-vs-integrate is decided as integrate. No Machine IR -> object/link stage exists. Atlas links only through its rustc/cargo bootstrap boundary, and installed linkers serve that boundary (GNU ld 2.42, LLD 18.1.3 on this host). COMPILER-IR-PIPELINE.md lists linkers among blueprint-revisable choices, so owning one needs BLUEPRINT-EVOLUTION evidence -- a measured link-time or layout-control cost -- that no workload produces. The checkout (upstream's Rust rewrite at the pin) is also a DC1 real-donor Cargo test input, and its glob-member case is locked by synthetic fixtures"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/39-mold.json)"
+cheapest_falsification = "performed G103: link/object code searched (none), installed linkers located, the pipeline's blueprint-revision clause read; the DC1 tests run from the corpus record after extinction"
+next_action = "none: TERMINAL EXTERNAL_BOUNDARY (installed linker) + REFERENCE_ONLY (parallel layout, post-link optimization); source physically deleted"
+implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "compiler linker integration and post-link layout reference"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/mold.json", ".atlas/census/donors/mold.md"]
+evidence = [".atlas/evidence/campaign/39-mold.json", ".atlas/provenance/donors/mold.json", ".atlas/census/donors/mold.md"]
 
 [[donor]]
 id = "arrow"

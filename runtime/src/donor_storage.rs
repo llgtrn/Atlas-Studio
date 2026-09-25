@@ -468,6 +468,7 @@ mod tests {
                 "llvm-project",
                 "miri",
                 "mlir",
+                "mold",
                 "object",
                 "regalloc2",
                 "rkyv",

@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 39,
+ "donor": "mold",
+ "commit_sha": "89a9b334e8a7ddda367adf05591342b2766eb1e7",
+ "generation": "G103",
+ "base_commit": "71561f2d9a",
+ "hypothesis": "parallel ELF linker layout (P6)",
+ "blocking_question": "linking belongs to the Machine IR -> object/link stage, for which no compiler code exists; open whether Atlas owns a linker or integrates an external one at an EXTERNAL_BOUNDARY",
+ "measurement": {
+  "consumer": "none: no object/link stage in core/src; Atlas links only through its rustc/cargo bootstrap boundary",
+  "installed_linkers": "GNU ld 2.42 and LLD 18.1.3 (compatible with GNU linkers) on this host",
+  "contract": "COMPILER-IR-PIPELINE.md lists linkers among blueprint-revisable choices (revision via BLUEPRINT-EVOLUTION.md on evidence) and requires the object writer/linker to preserve declared ABI; owning a linker would need a measured link-time or layout-control cost no workload produces",
+  "checkout": "the pinned commit is upstream's Rust rewrite (a Cargo workspace with `members = [\"cli\", \"arch/*\", \"tests\"]`), which made it a DC1 real-donor Cargo test input; its glob-member case is covered by synthetic fixtures, and the ledger-driven DC1 tests pass without it (362/362 adapter tests, 3 DC1 donors remaining)"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["linking: an installed linker integrated at the object/link stage boundary"],
+  "REFERENCE_ONLY": ["parallel symbol resolution and section layout", "post-link optimization", "per-target instantiation into crates"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "DC1 real-donor Cargo tests only (ledger-driven)",
+  "action": "git rm -r .atlas/temporary/donors/mold"
+ }
+}

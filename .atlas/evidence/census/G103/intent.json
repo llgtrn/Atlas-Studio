@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #39 mold: own-vs-integrate decided as integrate (installed linkers at the object/link boundary; owning one needs BLUEPRINT-EVOLUTION evidence); EXTERNAL_BOUNDARY; checkout physically extinct (DC1 tests pass without it); census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}
