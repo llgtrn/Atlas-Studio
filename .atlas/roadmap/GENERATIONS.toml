@@ -1543,6 +1543,7 @@ objective = "decide wasm-tools, re-base the DC1 real-donor Cargo tests so extinc
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/35-wasm-tools.json"
 self_recensus = ".atlas/evidence/census/G99/recensus.json"
+result_commits = ["2773598039d3d1d8d8a139c183869f5d2729753f", "4cb3dfa6ba79884b8b7553dd2856b39965ba4287"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of db6087ba0c = G98 post digest b8f4e305... (68af8beb23 adds only out-of-scope evidence)"
@@ -1555,3 +1556,24 @@ proof = "PROVEN on the first run (post b72daddb...)"
 
 [generation.next]
 objective = "G100 (P3): first-50 #36 wasmtime (cranelift lowering, WASI capability sandbox, P6)"
+
+[[generation]]
+id = "G100"
+base_commit = "4cb3dfa6ba79884b8b7553dd2856b39965ba4287"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #36 wasmtime to a terminal state (P6 backend and sandbox)"
+objective = "decide the Cranelift and sandbox roles against the pipeline and host-runtime contracts, move the last silently-skipping real-donor test onto the corpus ledger, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/36-wasmtime.json"
+self_recensus = ".atlas/evidence/census/G100/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 2773598039 = G99 post digest b72daddb... (4cb3dfa6ba adds only out-of-scope evidence)"
+falsification = "no LIR/codegen exists for Cranelift to consume and no SandboxBackend code exists for a Wasm runtime to back; both are crate-dependency boundaries; the donor's Cargo-census cases have synthetic fixtures"
+change = "real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped finds wasmtime through materialized_cargo_donors() (runs while materialized, returns only on a recorded extinction) instead of silently returning when absent"
+decision = "EXTERNAL_BOUNDARY (Cranelift backend, Wasm sandbox backend) + REFERENCE_ONLY (engine internals)"
+extinction = "git rm -r .atlas/temporary/donors/wasmtime (97 MB); 362/362 adapter tests pass with the 5 remaining DC1 donors"
+proof = "PROVEN on the first run (post f32ceab6...)"
+
+[generation.next]
+objective = "G101 (P3): first-50 #37 object (ELF/COFF/Mach-O writer, P6)"

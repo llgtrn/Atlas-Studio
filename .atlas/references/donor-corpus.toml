@@ -880,14 +880,19 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/wasmtime/LICENSE"]
 technology_domains = ["wasm_runtime", "sandboxing", "cranelift", "component_model"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "resolved G100: both recorded roles are external boundaries with no consumer yet. Cranelift is a native backend that consumes LIR through COMPILER-IR-PIPELINE.md's declared adapter, and Atlas has no LIR (as with llvm-project, G96). The Wasm/WASI capability sandbox is one candidate SandboxBackend (AGENT-HOST-EMBEDDED-RUNTIME.md), and no SandboxBackend code exists; Atlas executes no candidate job today. Either would be a vetted crate dependency (cranelift-*, wasmtime) when a consumer appears, never absorbed source. Its Cargo-census contributions (a mixed root package + workspace manifest, dotted [dev-dependencies.X] headers) are locked by synthetic fixtures, and the wasmtime-specific real-donor test now follows the corpus ledger"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/36-wasmtime.json)"
+cheapest_falsification = "performed G100: LIR/codegen and SandboxBackend code searched (none); Cargo-census fixtures confirmed; the real-donor tests run with the corpus record before extinction"
+next_action = "none: TERMINAL EXTERNAL_BOUNDARY (Cranelift backend, Wasm sandbox backend) + REFERENCE_ONLY (engine internals); source physically deleted"
+implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "runtime wasm backend/sandbox and Cranelift integration reference"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/wasmtime.json", ".atlas/census/donors/wasmtime.md"]
+evidence = [".atlas/evidence/campaign/36-wasmtime.json", ".atlas/provenance/donors/wasmtime.json", ".atlas/census/donors/wasmtime.md"]
 
 [[donor]]
 id = "wasm-tools"

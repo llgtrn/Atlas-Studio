@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 36,
+ "donor": "wasmtime",
+ "commit_sha": "7ad2e732ab9ca8665d3cdd91f9c395315eeafc81",
+ "generation": "G100",
+ "base_commit": "4cb3dfa6ba",
+ "hypothesis": "cranelift lowering, WASI capability sandbox (P6)",
+ "blocking_question": "none recorded (admission-stage COARSE_CENSUSED); corpus role 'runtime wasm backend/sandbox and Cranelift integration reference'; also a DC1 real-donor Cargo test input with a dedicated real-donor test",
+ "measurement": {
+  "cranelift": "a native backend consumes LIR through COMPILER-IR-PIPELINE.md#external-native-backends; core/src has no LIR or codegen (as recorded for llvm-project, G96); DUUMBI's census (G93) already placed the Cranelift 0.135.2 evidence here as EXTERNAL_BOUNDARY",
+  "sandbox": "AGENT-HOST-EMBEDDED-RUNTIME.md's SandboxBackend lists possible isolation implementations; no SandboxBackend code exists and Atlas runs no candidate build/test job today",
+  "cargo_census_cases": "the mixed root-package + workspace manifest (a_mixed_root_package_and_workspace_manifest_attributes_the_roots_own_dependency_roles) and dotted [dev-dependencies.X] headers have synthetic fixtures; real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped now follows the corpus ledger (runs while wasmtime is materialized, returns only on a recorded extinction) instead of silently returning when absent"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["Cranelift as a LIR-consuming native backend (cranelift-* crates)", "Wasm/WASI runtime as a candidate SandboxBackend (wasmtime crate)"],
+  "REFERENCE_ONLY": ["engine internals: pooling allocator, epoch interruption, component model host bindings, WASI implementation"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "DC1 real-donor Cargo tests and the wasmtime-specific test, all ledger-driven; trial below",
+  "action": "git rm -r .atlas/temporary/donors/wasmtime"
+ }
+}

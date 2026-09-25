@@ -480,6 +480,7 @@ mod tests {
                 "wasm-component-model",
                 "wasm-spec",
                 "wasm-tools",
+                "wasmtime",
                 "xdsl",
                 "zstd"
             ]

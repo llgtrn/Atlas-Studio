@@ -123,3 +123,7 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 runtime wasm backend/sandbox and Cranelift integration reference
+
+## G100 — terminal EXTERNAL_BOUNDARY (+ REFERENCE_ONLY); source extinct
+
+Both roles are crate-dependency boundaries with no consumer yet. Cranelift is a native backend behind the pipeline contract's LIR adapter, and Atlas has no LIR. A Wasm/WASI runtime is one candidate SandboxBackend, and no sandbox backend code exists. The donor's Cargo-census cases are locked by synthetic fixtures, and its dedicated real-donor test now follows the corpus ledger instead of silently returning. The checkout was physically deleted. Evidence: `../../evidence/campaign/36-wasmtime.json`.

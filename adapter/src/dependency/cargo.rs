@@ -2557,15 +2557,17 @@ version = "0.1.0"
         // back to `role: None`, `evidence_path: "Cargo.lock"` -- this test locks the fix in against
         // this repository's own real, committed donor corpus, not only the synthetic fixture in
         // `a_mixed_root_package_and_workspace_manifest_attributes_the_roots_own_dependency_roles`.
-        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("adapter/ has a parent directory")
-            .join(".atlas/temporary/donors/wasmtime");
-        let Ok(Some(report)) = census_cargo_workspace(&root) else {
-            // Tolerate donor-corpus reorganization the same way the other real-donor tests do --
-            // this test only strengthens the claim when wasmtime is present, it never requires it.
+        let Some((_, root)) = materialized_cargo_donors()
+            .into_iter()
+            .find(|(name, _)| *name == "wasmtime")
+        else {
+            // wasmtime's extinction is recorded in the corpus (G100); the synthetic fixture above
+            // carries this case from then on.
             return;
         };
+        let report = census_cargo_workspace(&root)
+            .expect("wasmtime census")
+            .expect("wasmtime is a Cargo workspace");
         let root_edges: Vec<_> = report
             .edges
             .iter()

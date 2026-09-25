@@ -1,0 +1,111 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G100",
+  "base_revision": "68af8beb23d17407edc5b744d32704d4fa815c99",
+  "candidate_revision": "4cb3dfa6ba79884b8b7553dd2856b39965ba4287",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:b72daddbd332dc5def88a3440cf060de282cede4da985e1e439c7fcab6339133",
+  "after_census_digest": "blake3-256:f32ceab6f6bb92a851c9057497ca2d2f95d9d73199723144839eee563e112e0d",
+  "replay_digest": "blake3-256:f32ceab6f6bb92a851c9057497ca2d2f95d9d73199723144839eee563e112e0d",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/dependency/cargo.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/dependency/cargo.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "counts": {
+      "record:CALL|DERIVED": 1,
+      "record:CALL|OBSERVED": 1,
+      "record:DATA_FLOW|OBSERVED": 1
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 4,
+    "graph_nodes": 3
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/tests/real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped()."
+      ],
+      "after": [
+        "adapter dependency/cargo/tests/real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1295,
+    "total_after": 1295
+  },
+  "intent": {
+    "objective": "P3 first-50 #36 wasmtime: Cranelift (LIR backend) and the Wasm/WASI sandbox (candidate SandboxBackend) are crate-dependency boundaries with no consumer; the wasmtime-specific real-donor test follows the corpus ledger; EXTERNAL_BOUNDARY; checkout physically extinct",
+    "changed_paths": [
+      "adapter/src/dependency/cargo.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "total_changes": [
+      "+evidence",
+      "+graph_edges",
+      "+graph_nodes",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter dependency/cargo/tests/real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped().",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/dependency/cargo.rs",
+    "path runtime/src/donor_storage.rs",
+    "total +evidence",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +typed_records",
+    "entity CHANGED adapter dependency/cargo/tests/real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

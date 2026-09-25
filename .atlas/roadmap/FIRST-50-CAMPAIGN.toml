@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 31
+campaign_terminal = 32
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
 reference_only = 22
-external_boundary = 2
+external_boundary = 3
 rejected = 0
 deferred = 1
-extinct = 34
-remaining = 16
-next_donor = "wasmtime"
-next_step = "G100 (P3): wasmtime (#36) -- cranelift lowering, WASI capability sandbox (P6)"
+extinct = 35
+remaining = 15
+next_donor = "object"
+next_step = "G101 (P3): object (#37) -- ELF/COFF/Mach-O writer (P6)"
 
 [[donor]]
 ordinal = 1
@@ -623,13 +623,15 @@ canonical_url = "https://github.com/bytecodealliance/wasmtime.git"
 serves = "P6"
 target_capability = "sandboxed execution + Cranelift"
 mechanism_hypothesis = "cranelift lowering, WASI capability sandbox"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "cranelift sub-crates: same tree"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G100"
+evidence = ".atlas/evidence/campaign/36-wasmtime.json"
+note = "Cranelift (LIR backend) and the Wasm/WASI sandbox (a candidate SandboxBackend) are crate-dependency boundaries with no consumer yet; Cargo-census cases locked by synthetic fixtures; the wasmtime-specific real-donor test follows the corpus ledger; source physically deleted"
 
 [[donor]]
 ordinal = 37

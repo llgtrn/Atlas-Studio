@@ -1,0 +1,17 @@
+{
+  "objective": "P3 first-50 #36 wasmtime: Cranelift (LIR backend) and the Wasm/WASI sandbox (candidate SandboxBackend) are crate-dependency boundaries with no consumer; the wasmtime-specific real-donor test follows the corpus ledger; EXTERNAL_BOUNDARY; checkout physically extinct",
+  "changed_paths": [
+    "adapter/src/dependency/cargo.rs",
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter dependency/cargo/tests/real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped().",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}
