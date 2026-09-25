@@ -6,6 +6,12 @@ canonical: true
 ---
 # Essential Complexity Contract
 
+~~~text
+REMOVE ACCIDENTAL COMPLEXITY AGGRESSIVELY.
+CONQUER ESSENTIAL COMPLEXITY DELIBERATELY.
+NEVER CONFUSE THE TWO.
+~~~
+
 ## Purpose
 
 Atlas falsifies mechanisms before absorbing them and refuses machinery that has no measured need. That discipline has a failure mode:
@@ -14,7 +20,7 @@ Atlas falsifies mechanisms before absorbing them and refuses machinery that has 
 current Atlas is small → mechanism not needed today → REFERENCE_ONLY / DEFERRED → source deleted → repeat
 ~~~
 
-Repeat that often enough and Atlas becomes excellent at explaining why difficult machinery is unnecessary, while never building the machinery its declared end-state requires (`../architecture/constitution/NORTH-STAR.md`, `../architecture/CAPABILITY-ARCHITECTURE.md`, `../roadmap/FUTURISM-END-STATE.toml`).
+Repeat that often enough and Atlas becomes excellent at explaining why difficult machinery is unnecessary, while never building the machinery its declared end-state requires (`../architecture/constitution/NORTH-STAR.md`, `../architecture/CAPABILITY-ARCHITECTURE.md`, `../roadmap/FUTURISM-ENGINEERING-END-STATE.toml`).
 
 This contract separates three questions that earlier decisions sometimes merged:
 
@@ -22,7 +28,9 @@ This contract separates three questions that earlier decisions sometimes merged:
 - Does Atlas need **the underlying capability**?
 - Does the **current scale** justify building it **now**?
 
-It was established by the G116 retrospective audit (`../decisions/0038-essential-complexity-audit.md`).
+It was established by the G116 retrospective audit (`../decisions/0038-essential-complexity-audit.md`) and made machine-enforced by the G118 hard stop (`../decisions/0040-hard-stop-anti-avoidance.md`).
+
+**Accounting.** Three quantities, never interchangeable: the First-50 campaign (50 donors, 5 of them never admitted to the corpus), the donor corpus (58 records in `../references/donor-corpus.toml`, 13 outside the First-50), and the repo-exact OSS frontier (153 repositories). `../roadmap/DONOR-CAPABILITY-AUDIT.toml` classifies all 63 distinct donors.
 
 ## Complexity classes
 
@@ -38,12 +46,12 @@ A capability's class is derived from the canonical documents, never from what th
 
 ## Canonical rules
 
-These rules have equal force. Tests enforce them (`runtime` tests, module `essential_complexity`).
+These rules have equal force. Tests enforce them (`runtime` tests, module `essential_complexity`); a regression fails CI.
 
 1. **DONOR_REJECTED does not imply CAPABILITY_CLOSED.**
 2. **REFERENCE_ONLY does not imply CAPABILITY_UNNECESSARY.**
 3. **CURRENT_SCALE_DOES_NOT_JUSTIFY does not imply FUTURE_ARCHITECTURE_DOES_NOT_REQUIRE.**
-4. **No current consumer does not imply never build the consumer.** When the missing consumer is itself on an essential critical path, its absence is debt, not a reason.
+4. **No current consumer does not imply never build the consumer.** "No current consumer" is a valid reason only for an `OPTIONAL` capability, or for a `SCALE_TRIGGERED` one with an explicit trigger. For `ESSENTIAL` complexity it means the consumer itself may be missing, and that missing consumer is audited as debt.
 5. **Anti-avoidance rule.** A donor may be terminal. An essential capability may not become terminal merely because a donor is terminal. It stays `OPEN` until Atlas has one of:
    - a native solution (`NATIVE_SOLUTION`),
    - an explicit permanent external boundary (`PERMANENT_EXTERNAL_BOUNDARY`), or
@@ -86,20 +94,22 @@ The thresholds are derived from the ledger, not chosen blindly:
 - **Healthy gap.** While the generation loop was working, native P0 attacks came at G59–G62, G74, G75, G77, G79 and G83. The longest gap between two of them was 12 generations (G62→G74, spanning exit criteria C and D and seven donor cycles).
 - **The failure run.** After G83 came 32 generations (G84–G115) with no native attack on any open P0 dimension. They included 15 consecutive compiler/construction donors (G89–G103) that built no construction component.
 
-| Threshold | Value | Consequence |
+| `escalation_state` | `stale_generations` | Consequence |
 | --- | --- | --- |
-| `REVIEW` | `stale_generations > 12` | The debt carries a dated review with a concrete next attack. |
-| `PRIORITY_ESCALATION` | `stale_generations > 24` | The debt is escalated. It holds a position in the ledger's ordered `native_attack_queue`, which preempts donor progression. The queue head is the next generation planned in `PRIORITY.toml`. |
+| `TRACK` | `< 13` | Tracked; within the healthy gap. |
+| `REVIEW_REQUIRED` | `>= 13` | The debt carries a review within the last 12 generations, with a concrete next attack. |
+| `PRIORITY_ESCALATION` | `>= 25` | The debt holds a place in the ordered `native_attack_queue` (directly or through a queued blocker), which preempts donor progression. The queue head is the next generation planned in `PRIORITY.toml`. |
+| `BLOCK_NEW_DONOR_PROGRESS` | `>= 32` | The length of the documented failure run. While any `OPEN` debt is here, donor progression is blocked (`../roadmap/FOUNDATIONAL-ATLAS-READY.toml` `[donor_progression]`). |
 
 ## Skip budget
 
 When a native attack did follow donor study, it came after 1 to 5 donor attempts (EFFECT 1 at G76→G77, TYPE 2 at G78/G82→G83, CALL 5 at G69–G73→G74; median 2). The skip budget is therefore **N = 3**.
 
-If 3 consecutive donor decisions link to the same `ESSENTIAL` debt and leave its maturity unchanged, donor progression stops. The next generation is a mandatory **native attack generation** on that debt. The ledger records the trigger, and the test enforces that a native attack is planned.
+If 3 consecutive donor decisions link to the same `ESSENTIAL` debt and leave its maturity unchanged, donor progression stops. The next generation is a mandatory **native attack generation** on that debt. The ledger records the trigger, the test enforces that a native attack is planned, and the debt blocks donor progression until a native advance resets it.
 
 ## Decision classes
 
-Every donor decision is re-audited in `../roadmap/DONOR-DECISION-REAUDIT.toml` with two independent questions:
+Every donor decision is re-audited in `../roadmap/DONOR-CAPABILITY-AUDIT.toml` (63 donors) with two independent decisions, the mechanism decision (`ABSORBED`, `REFERENCE_ONLY`, `REFERENCE_ONLY_UNTIL_TRIGGER`, `EXTERNAL_BOUNDARY`, `DEFERRED`, `REJECTED`) and the capability decision (`CAPABILITY_CLOSED`, `CAPABILITY_PARTIAL`, `CAPABILITY_OPEN_ESSENTIAL`, `CAPABILITY_OPEN_SCALE_TRIGGERED`, `CAPABILITY_NOT_REQUIRED`), from two questions:
 
 - **Q1, donor-specific:** does Atlas need this donor's mechanism? `YES`, `NO`, `NOT_YET` or `EXTERNAL_BOUNDARY`.
 - **Q2, capability-level:** is the underlying capability `ESSENTIAL_OPEN`, `ESSENTIAL_CLOSED`, `SCALE_TRIGGERED` or `OPTIONAL`?
@@ -124,7 +134,7 @@ Terminal decisions also carry the following classifications:
 
 ## Gates
 
-`FIRST_50_CAMPAIGN_COMPLETE` and `FOUNDATIONAL_ATLAS_READY` are separate gates and never synonyms. `FOUNDATIONAL_ATLAS_READY` requires all of:
+`FIRST_50_CAMPAIGN_COMPLETE` and `FOUNDATIONAL_ATLAS_READY` are separate gates and never synonyms; both live in `../roadmap/FOUNDATIONAL-ATLAS-READY.toml`. `FOUNDATIONAL_ATLAS_READY` requires all of (the file carries the ten evaluated criteria):
 
 1. self-recensus operational;
 2. P0 essential semantic dimensions closed, or with bounded, enumerated residuals;
@@ -133,10 +143,21 @@ Terminal decisions also carry the following classifications:
 5. a `SelectedDesign`;
 6. a minimum `.atlasx`;
 7. a construction path to at least one artifact;
-8. an explicit incremental/scaling strategy with numeric triggers;
-9. no essential debt that is unbounded, meaning without an attack plan or past escalation without a planned generation.
+8. an explicit incremental/scaling strategy with numeric, mechanically evaluated triggers;
+9. an executable construction substrate (P6);
+10. no essential debt that is unbounded, meaning without an attack plan or past escalation without a planned generation.
 
 Until `FOUNDATIONAL_ATLAS_READY` is `MET`, frontier expansion stays frozen, and generation selection draws from the debt ledger before the donor frontier.
+
+## Hard stop
+
+The G118 audit made the stop machine-enforced. `../roadmap/FOUNDATIONAL-ATLAS-READY.toml` records:
+
+- `[audit]`: `COMPLETE` only after a native attack generation proven by self-recensus;
+- `[donor_progression]`: `BLOCKED` while the audit is incomplete, and afterwards while any `OPEN` debt is at `BLOCK_NEW_DONOR_PROGRESS` or past its skip budget. It pins the materialized donor checkouts;
+- `[frontier_expansion]`: `BLOCKED`, pinning the repository count and lifecycle counts.
+
+While blocked, the runtime tests fail on any change to a pinned donor-corpus record (`DONOR-CAPABILITY-AUDIT.toml` `corpus_*` fields), any new donor checkout, any frontier growth, and any generation of `kind = "DONOR"`. `../roadmap/ARCHITECTURE-PRESSURE-MAP.toml` ranks every debt by pressure, independent of donor counts, and records the selection of the next native attack.
 
 ## Frontier
 

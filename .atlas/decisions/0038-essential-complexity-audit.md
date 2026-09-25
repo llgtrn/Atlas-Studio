@@ -38,8 +38,8 @@ The first-50 campaign reached its gate at G115: every donor is terminal. The ret
    - Skip budget N = 3, derived from the donor attempts that preceded past native attacks (1, 2 and 5, median 2).
    - An escalated or skip-budget debt must be queued, be blocked by a queued debt, or be frozen with an unfreeze gate.
    - At G116, 36 debts are escalated and 9 have exhausted their skip budget.
-4. **Re-audit.** `roadmap/DONOR-DECISION-REAUDIT.toml` re-audits all 50 decisions with Q1 (mechanism) and Q2 (capability). It adds `reference_class` (FOREVER or UNTIL_TRIGGER, with a numeric or milestone trigger), DEFERRED fields, a `boundary_type` for each EXTERNAL_BOUNDARY, and counterfactuals. Terminal donor states are not reverted, and no donor is re-absorbed.
-5. **Routes.** `roadmap/FUTURISM-END-STATE.toml` maps each of the 18 end-state capabilities and 17 domains to debts. `roadmap/FRONTIER-CAPABILITY-CLUSTERS.toml` routes all 129 frontier families into capability clusters.
+4. **Re-audit.** The G116 re-audit (superseded at G118 by `roadmap/DONOR-CAPABILITY-AUDIT.toml`, which covers all 63 donors) re-audits all 50 decisions with Q1 (mechanism) and Q2 (capability). It adds `reference_class` (FOREVER or UNTIL_TRIGGER, with a numeric or milestone trigger), DEFERRED fields, a `boundary_type` for each EXTERNAL_BOUNDARY, and counterfactuals. Terminal donor states are not reverted, and no donor is re-absorbed.
+5. **Routes.** `roadmap/FUTURISM-ENGINEERING-END-STATE.toml` maps each of the 18 end-state capabilities and 17 domains to debts. `roadmap/FRONTIER-CAPABILITY-CLUSTERS.toml` routes all 129 frontier families into capability clusters.
 6. **Gates.** `FIRST_50_CAMPAIGN_COMPLETE` (MET_G115) and `FOUNDATIONAL_ATLAS_READY` (NOT_MET, 9 criteria) are separate gates. While the latter is NOT_MET, frontier expansion stays frozen and generation selection draws from the queue head before any donor.
 
 ## Consequences

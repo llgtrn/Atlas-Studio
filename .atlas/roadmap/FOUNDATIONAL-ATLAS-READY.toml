@@ -1,0 +1,96 @@
+schema = "atlas.foundational-atlas-ready.v1"
+canonical = true
+established_in = "G118"
+contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
+debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+
+# FIRST_50_CAMPAIGN_COMPLETE (donor campaign) and FOUNDATIONAL_ATLAS_READY (architecture) are separate
+# gates; the first may be true while the second is false. Accounting (G118): 50 First-50 donors,
+# 58 donor-corpus records, 153 repo-exact frontier repositories -- three different quantities.
+
+[first_50_campaign_complete]
+status = "MET_G115"
+value = true
+evidence = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml"
+
+[foundational_atlas_ready]
+status = "NOT_MET"
+value = false
+
+[[criterion]]
+id = "1_p1_self_recensus_operational"
+status = "MET"
+evidence = "exit A MET_G57; every generation from G57 PROVEN (generation_ledger_self_recensus_chain)"
+
+[[criterion]]
+id = "2_p0_dimensions_closed_or_bounded"
+status = "NOT_MET"
+evidence = "COVERAGE_UNKNOWN on 8 dimensions; MULTI_ENGINE_RECONCILIATION_ABSENT on 8; RESOURCE, UNCERTAINTY, CAUSALITY absent"
+
+[[criterion]]
+id = "3_adl_consumes_meaningful_semantic_truth"
+status = "NOT_MET"
+evidence = "DEBT-ADL_BEYOND_DEPENDENCIES: only member-level dependencies"
+
+[[criterion]]
+id = "4_sealed_atlas"
+status = "NOT_MET"
+evidence = "DEBT-SEAL_GATE; certificate RECONCILED with 14 blockers"
+
+[[criterion]]
+id = "5_selected_design"
+status = "NOT_MET"
+evidence = "DEBT-SELECTED_DESIGN"
+
+[[criterion]]
+id = "6_minimum_real_atlasx"
+status = "NOT_MET"
+evidence = "DEBT-ATLASX; the construction_node graph in the debt ledger"
+
+[[criterion]]
+id = "7_minimum_construction_path"
+status = "NOT_MET"
+evidence = "DEBT-COMPILER_LOWERING, DEBT-SANDBOXED_EXECUTION, DEBT-ARTIFACT_IDENTITY"
+
+[[criterion]]
+id = "8_p4_incremental_or_threshold_strategy"
+status = "MET"
+evidence = "[[scale_threshold]] entries: mechanically evaluated numeric thresholds; DEBT-IMPACT_CLOSURE queued"
+
+[[criterion]]
+id = "9_p6_executable_construction_substrate"
+status = "NOT_MET"
+evidence = "DEBT-CONSTRUCTION_IR, DEBT-CONSTRUCTION_TRANSACTION, DEBT-BACKEND_ADAPTER"
+
+[[criterion]]
+id = "10_no_unbounded_essential_debt"
+status = "MET"
+evidence = "every alarmed debt is queued, blocked by a queued debt, or frozen with an unfreeze gate (tests)"
+
+# The G118 hard stop. While status is not COMPLETE, and afterwards while any OPEN debt is at
+# BLOCK_NEW_DONOR_PROGRESS or past its skip budget, donor progression is BLOCKED: no donor #51+,
+# none of the 13 non-First-50 corpus records, no clone or materialization, no frontier expansion.
+[audit]
+status = "NATIVE_ATTACK_PENDING"
+base_commit = "19256e7d0f08a0f6fd40851f5187b847c016c26a"
+audit_generation = "G118"
+native_attack_generation = ""
+selected_attack = "NA-MACRO-ARGUMENTS"
+
+[donor_progression]
+status = "BLOCKED"
+blocking_debts = ["DEBT-CALL", "DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-OWNERSHIP", "DEBT-PERSISTENCE", "DEBT-TYPE", "DEBT-SYMBOL", "DEBT-MULTILANGUAGE", "DEBT-EPISTEMIC_UNIFICATION", "DEBT-IMPACT_CLOSURE", "DEBT-CONSTRAINT_REASONING", "DEBT-ATLAS_COMPLETENESS", "DEBT-VERIFICATION_EVIDENCE", "DEBT-SEAL_GATE", "DEBT-INTEGRITY_ENVELOPE", "DEBT-SELECTED_DESIGN", "DEBT-ATLASX", "DEBT-CONSTRUCTION_IR", "DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER", "DEBT-SANDBOXED_EXECUTION", "DEBT-TRANSFORMATION", "DEBT-ADL_BEYOND_DEPENDENCIES", "DEBT-QUANTITY_UNITS", "DEBT-UNCERTAINTY", "DEBT-CAUSALITY", "DEBT-DISTRIBUTED_SEMANTICS", "DEBT-IDENTITY_AUTHORITY", "DEBT-DESIGN_GENERATION", "DEBT-REAL_WORLD_OBSERVATION", "DEBT-SIMULATION", "DEBT-PHYSICAL_ONTOLOGY", "DEBT-CONSTRUCTION_TRANSACTION"]
+reason = "hard stop until the audit is COMPLETE, then while any OPEN essential debt is at BLOCK_NEW_DONOR_PROGRESS or past its skip budget"
+materialized_checkouts = ["borg", "cdc-file-transfer", "crubit", "cytoscape-js", "elkjs", "fastcdc-rs", "git", "lz4", "opendesign", "py2many", "restic", "security", "xyflow", "xz", "zed"]
+
+[frontier_expansion]
+status = "BLOCKED"
+pinned_repositories = 153
+pinned_lifecycle_admitted = 12
+pinned_lifecycle_admitted_remote = 1
+pinned_lifecycle_candidate = 84
+pinned_lifecycle_candidate_overlapping = 1
+pinned_lifecycle_external_oracle = 1
+pinned_lifecycle_external_provider_artifact = 8
+pinned_lifecycle_extinct = 44
+pinned_lifecycle_rejected_unlicensed = 2

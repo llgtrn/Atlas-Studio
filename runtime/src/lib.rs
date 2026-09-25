@@ -1009,7 +1009,7 @@ mod tests {
     }
 
     // `.atlas/references/donor-corpus.toml` is this repository's own canonical donor tracker
-    // (57 donors as of this writing), consulted and hand-edited repeatedly across this session's
+    // (58 records at G118), consulted and hand-edited repeatedly across this session's
     // donor-research generations. Every edit was verified ad hoc with a one-off
     // `python3 -c "import tomllib; ..."` shell command re-run by hand each time -- exactly the
     // "self-hosting pressure" this repository's own roadmap names: a script that runs once and is
@@ -1039,7 +1039,7 @@ mod tests {
 
         /// Hand-rolled, deliberately narrow parse: extracts only the first `id = "..."` line and
         /// the `evidence = [...]` line (confirmed single-line for every one of this file's current
-        /// 57 entries) within each `[[donor]]` block. Does not attempt to parse TOML in general --
+        /// 58 entries) within each `[[donor]]` block. Does not attempt to parse TOML in general --
         /// exactly the same scope discipline `adapter::dependency::cargo`'s own hand-rolled parser
         /// already applies to `Cargo.lock`/`Cargo.toml`.
         /// Appends every `"..."` quoted substring found in `s` to `out`.
@@ -2096,12 +2096,13 @@ mod tests {
         }
     }
 
-    /// ADR 0038 (G116 retrospective audit): essential complexity is debt, not a donor verdict.
-    /// These tests keep `.atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml` and its companions honest:
-    /// the age and skip-budget alarms are recomputed from the ledger head and the donor re-audit,
-    /// an alarmed debt must be planned (queued, blocked by a queued debt, or frozen with an
-    /// unfreeze gate), a debt closes only with native or boundary evidence, and
-    /// FIRST_50_CAMPAIGN_COMPLETE never stands in for FOUNDATIONAL_ATLAS_READY.
+    /// ADR 0038 (G116) and ADR 0040 (G118 hard stop): essential complexity is debt, not a donor
+    /// verdict. These tests make the anti-avoidance discipline a CI property: the age, escalation
+    /// and skip-budget alarms are recomputed from the ledger head and the donor audit; an alarmed
+    /// debt must be planned; a debt closes only with native or boundary evidence; every donor
+    /// carries separate mechanism and capability decisions; and while
+    /// `.atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml` blocks donor progression and frontier
+    /// expansion, any donor or frontier progress fails the build.
     mod essential_complexity {
         use std::collections::{BTreeMap, BTreeSet};
         use std::path::{Path, PathBuf};
@@ -2113,6 +2114,31 @@ mod tests {
             "M3_SINGLE_ENGINE_BOUNDED",
             "M4_MULTI_ENGINE_RECONCILED",
             "M5_CLOSED_WITH_ORACLE",
+        ];
+        const LEDGER: &str = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml";
+        const AUDIT: &str = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml";
+        const GATE: &str = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml";
+        const PRESSURE: &str = ".atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml";
+        const TERMINAL: [&str; 5] = [
+            "ABSORBED",
+            "REFERENCE_ONLY",
+            "REFERENCE_ONLY_UNTIL_TRIGGER",
+            "EXTERNAL_BOUNDARY",
+            "REJECTED",
+        ];
+        const BOUNDARY_TYPES: [&str; 4] = [
+            "PERMANENT_REALITY",
+            "BOOTSTRAP",
+            "ORACLE",
+            "TEMPORARY_UNTIL_NATIVE",
+        ];
+        const VAGUE: [&str; 6] = [
+            "later",
+            "when needed",
+            "tbd",
+            "todo",
+            "someday",
+            "eventually",
         ];
 
         fn root() -> PathBuf {
@@ -2132,6 +2158,15 @@ mod tests {
                 .skip(1)
                 .map(|block| block.split("\n[").next().unwrap_or(block))
                 .collect()
+        }
+
+        /// The body of a `[table]`, cut at the next table header.
+        fn table<'a>(text: &'a str, name: &str) -> &'a str {
+            let body = text
+                .split(&format!("\n[{name}]\n"))
+                .nth(1)
+                .unwrap_or_else(|| panic!("missing [{name}]"));
+            body.split("\n[").next().unwrap_or(body)
         }
 
         fn raw<'a>(block: &'a str, name: &str) -> Option<&'a str> {
@@ -2191,16 +2226,36 @@ mod tests {
                 .unwrap_or_else(|_| panic!("not a generation id: {id}"))
         }
 
-        /// The ledger head: the last `[[generation]]` of GENERATIONS.toml, which its header's
-        /// `current_generation` must name.
-        fn current_generation() -> i64 {
-            let ledger = read(".atlas/roadmap/GENERATIONS.toml");
-            let last = ledger
+        fn is_vague(value: &str) -> bool {
+            let lower = value.to_ascii_lowercase();
+            let words: Vec<&str> = lower.split(|c: char| !c.is_ascii_alphanumeric()).collect();
+            VAGUE.iter().any(|v| {
+                if v.contains(' ') {
+                    lower.contains(v)
+                } else {
+                    words.contains(v)
+                }
+            })
+        }
+
+        /// The ledger's `[[generation]]` blocks with their ids.
+        fn ledger_generations() -> Vec<(String, String)> {
+            read(".atlas/roadmap/GENERATIONS.toml")
                 .split("\n[[generation]]\n")
                 .skip(1)
-                .filter_map(|block| string(block, "id"))
-                .last()
-                .expect("ledger has generations");
+                .map(|block| {
+                    (
+                        string(block, "id").expect("generation id"),
+                        block.to_owned(),
+                    )
+                })
+                .collect()
+        }
+
+        /// The ledger head, which the GENERATIONS.toml header's `current_generation` must name.
+        fn current_generation() -> i64 {
+            let ledger = read(".atlas/roadmap/GENERATIONS.toml");
+            let last = ledger_generations().last().expect("generations").0.clone();
             let header = ledger.split("\n[[").next().unwrap();
             assert_eq!(
                 string(header, "current_generation").as_deref(),
@@ -2217,7 +2272,7 @@ mod tests {
 
         impl Ledger {
             fn load() -> Self {
-                let text = read(".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml");
+                let text = read(LEDGER);
                 let header = text.split("\n[[").next().unwrap().to_owned();
                 Ledger { text, header }
             }
@@ -2252,19 +2307,52 @@ mod tests {
                 }
                 queued
             }
+            fn attack_ids(&self) -> BTreeSet<String> {
+                let mut ids: BTreeSet<String> = blocks(&self.text, "native_attack")
+                    .into_iter()
+                    .map(|b| text(b, "id"))
+                    .collect();
+                ids.extend(
+                    blocks(&self.text, "native_attack_done")
+                        .into_iter()
+                        .map(|b| text(b, "id")),
+                );
+                ids
+            }
         }
 
-        /// Trailing run of non-advancing donor decisions on `debt` made after its last advance,
-        /// in decision order (the skip budget's input).
-        fn non_advancing_streak(reaudit: &str, debt: &str, last_advance: i64) -> i64 {
-            let mut decisions: Vec<(i64, i64, bool)> = blocks(reaudit, "reaudit")
+        struct Donor {
+            name: String,
+            block: String,
+        }
+
+        fn donors() -> Vec<Donor> {
+            let audit = read(AUDIT);
+            blocks(&audit, "donor")
                 .into_iter()
-                .filter(|block| list(block, "debts").iter().any(|d| d == debt))
-                .map(|block| {
+                .map(|block| Donor {
+                    name: text(block, "donor"),
+                    block: block.to_owned(),
+                })
+                .collect()
+        }
+
+        /// Trailing run of non-advancing First-50 donor decisions on `debt` made after its last
+        /// advance, in decision order (the skip budget's input). Only decided (terminal)
+        /// decisions count; a DEFERRED record behind the hard stop is not a decision.
+        fn non_advancing_streak(debt: &str, last_advance: i64) -> i64 {
+            let mut decisions: Vec<(i64, i64, bool)> = donors()
+                .iter()
+                .filter(|d| {
+                    list(&d.block, "debts").iter().any(|x| x == debt)
+                        && TERMINAL.contains(&text(&d.block, "mechanism_decision").as_str())
+                        && number(&d.block, "first_50_ordinal") > 0
+                })
+                .map(|d| {
                     (
-                        generation(&text(block, "decided_in")),
-                        number(block, "ordinal"),
-                        flag(block, "advanced"),
+                        generation(&text(&d.block, "decided_in")),
+                        number(&d.block, "first_50_ordinal"),
+                        flag(&d.block, "advanced"),
                     )
                 })
                 .collect();
@@ -2279,42 +2367,92 @@ mod tests {
             streak
         }
 
+        fn escalation(stale: i64, header: &str) -> &'static str {
+            if stale >= number(header, "block_donor_progress_at") {
+                "BLOCK_NEW_DONOR_PROGRESS"
+            } else if stale >= number(header, "escalate_at") {
+                "PRIORITY_ESCALATION"
+            } else if stale >= number(header, "review_at") {
+                "REVIEW_REQUIRED"
+            } else {
+                "TRACK"
+            }
+        }
+
+        /// The debts that block donor progression now: OPEN and at BLOCK_NEW_DONOR_PROGRESS, or
+        /// past the skip budget -- recomputed, never read from the gate file.
+        fn progression_blockers() -> Vec<String> {
+            let ledger = Ledger::load();
+            let current = current_generation();
+            let budget = number(&ledger.header, "skip_budget");
+            ledger
+                .debts()
+                .into_iter()
+                .filter(|(id, block)| {
+                    let last = generation(&text(block, "last_advance_generation"));
+                    text(block, "current_state") == "OPEN"
+                        && (escalation(current - last, &ledger.header)
+                            == "BLOCK_NEW_DONOR_PROGRESS"
+                            || non_advancing_streak(id, last) >= budget)
+                })
+                .map(|(id, _)| id)
+                .collect()
+        }
+
+        fn donor_progression_blocked() -> bool {
+            let gate = read(GATE);
+            text(table(&gate, "audit"), "status") != "COMPLETE"
+                || !progression_blockers().is_empty()
+        }
+
         #[test]
         fn debt_ledger_is_complete_and_its_alarms_are_planned() {
             let ledger = Ledger::load();
             let debts = ledger.debts();
             let queued = ledger.queued();
-            let reaudit = read(".atlas/roadmap/DONOR-DECISION-REAUDIT.toml");
             let current = current_generation();
             let as_of = generation(&text(&ledger.header, "ages_as_of"));
-            let review = number(&ledger.header, "review_threshold");
-            let escalation = number(&ledger.header, "escalation_threshold");
-            let budget = number(&ledger.header, "skip_budget");
-            assert_eq!(
-                (review, escalation, budget),
-                (12, 24, 3),
-                "derived thresholds (ADR 0038)"
+            let (review, escalate, block, budget) = (
+                number(&ledger.header, "review_at"),
+                number(&ledger.header, "escalate_at"),
+                number(&ledger.header, "block_donor_progress_at"),
+                number(&ledger.header, "skip_budget"),
             );
-            assert!(debts.len() >= 30, "the G116 audit recorded 39 debts");
+            assert_eq!(
+                (review, escalate, block, budget),
+                (13, 25, 32, 3),
+                "ADR 0040 thresholds"
+            );
+            assert!(debts.len() >= 40, "the G118 audit recorded 41 debts");
             for (id, block) in &debts {
                 for field in [
                     "capability",
-                    "evidence",
-                    "current_native_support",
-                    "known_unknowns",
-                    "why_still_open",
                     "required_end_state",
+                    "current_support",
+                    "current_evidence",
+                    "known_unknowns",
+                    "known_unsoundness",
+                    "known_blind_spots",
+                    "why_open",
                     "next_attack",
-                    "next_proof",
+                    "attack_type",
+                    "native_or_external",
+                    "success_condition",
+                    "falsification_condition",
                     "deadline_gate",
                     "risk_if_deferred",
                     "first_observed_note",
+                    "escalation_state",
                 ] {
                     text(block, field);
                 }
                 for field in [
                     "donors_examined",
+                    "mechanisms_rejected",
+                    "mechanisms_absorbed",
                     "external_boundaries",
+                    "blocking_priorities",
+                    "blocking_exit_criteria",
                     "blocking_milestones",
                 ] {
                     list(block, field);
@@ -2325,6 +2463,21 @@ mod tests {
                     ["P0", "P1", "P2", "P3", "P4", "P5", "P6", "END_STATE"]
                         .contains(&priority.as_str()),
                     "{id}: priority {priority}"
+                );
+                assert!(
+                    [
+                        "NATIVE_IMPLEMENTATION",
+                        "NATIVE_MEASUREMENT",
+                        "BOUNDARY_ADAPTER",
+                        "ORACLE_INTEGRATION"
+                    ]
+                    .contains(&text(block, "attack_type").as_str()),
+                    "{id}: attack_type"
+                );
+                assert!(
+                    ["NATIVE", "EXTERNAL_BOUNDARY", "NATIVE_ABOVE_EXTERNAL"]
+                        .contains(&text(block, "native_or_external").as_str()),
+                    "{id}: native_or_external"
                 );
                 let rank = |field: &str| {
                     let level = text(block, field);
@@ -2342,6 +2495,11 @@ mod tests {
                 assert!(
                     first <= last && last <= current,
                     "{id}: {first} {last} {current}"
+                );
+                assert_eq!(
+                    generation(&text(block, "current_generation")),
+                    as_of,
+                    "{id}: current_generation"
                 );
                 assert_eq!(number(block, "age_generations"), as_of - first, "{id}: age");
                 assert_eq!(
@@ -2381,35 +2539,92 @@ mod tests {
                     other => panic!("{id}: state {other}"),
                 }
                 let stale = current - last;
+                // The recorded escalation state is the state as of the ledger's `ages_as_of`.
+                assert_eq!(
+                    text(block, "escalation_state"),
+                    escalation(as_of - last, &ledger.header),
+                    "{id}: escalation_state"
+                );
                 let reviewed = generation(&text(block, "reviewed_in"));
-                if stale > review {
+                if stale >= review {
                     assert!(
-                        current - reviewed <= review,
-                        "{id}: REVIEW alarm -- stale {stale} generations, last reviewed G{reviewed}"
+                        current - reviewed < review,
+                        "{id}: REVIEW_REQUIRED -- stale {stale} generations, last reviewed G{reviewed}"
                     );
                 }
                 let planned = queued.contains_key(id)
                     || blocked_by.iter().any(|b| queued.contains_key(b))
                     || frozen;
                 if state == "OPEN" {
-                    assert_eq!(
-                        flag(block, "escalated"),
-                        stale > escalation,
-                        "{id}: PRIORITY_ESCALATION is stale > {escalation} (stale {stale})"
-                    );
-                    let triggered = non_advancing_streak(&reaudit, id, last) >= budget;
+                    let triggered = non_advancing_streak(id, last) >= budget;
                     assert_eq!(
                         flag(block, "skip_budget_triggered"),
                         triggered,
-                        "{id}: skip budget recomputed from the re-audit"
+                        "{id}: skip budget recomputed from the donor audit"
                     );
-                    if stale > escalation || triggered {
+                    if stale >= escalate || triggered {
                         assert!(
                             planned,
                             "{id}: alarmed debt must be queued, blocked by a queued debt, or frozen with an unfreeze gate"
                         );
                     }
                 }
+            }
+        }
+
+        #[test]
+        fn essential_debt_has_explicit_next_attack() {
+            let ledger = Ledger::load();
+            let debts = ledger.debts();
+            let attacks = ledger.attack_ids();
+            for (id, block) in &debts {
+                let next = text(block, "next_attack");
+                assert!(
+                    !is_vague(&next),
+                    "{id}: next_attack `{next}` is not an attack"
+                );
+                let named: Vec<&str> = next
+                    .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-' || c == '_'))
+                    .filter(|w| w.starts_with("NA-") || w.starts_with("DEBT-"))
+                    .collect();
+                assert!(
+                    !named.is_empty() || next.starts_with("frozen"),
+                    "{id}: next_attack names no native attack, blocking debt, or freeze: {next}"
+                );
+                for word in named {
+                    if word.starts_with("NA-") {
+                        assert!(attacks.contains(word), "{id}: unknown attack {word}");
+                    } else {
+                        assert!(debts.contains_key(word), "{id}: unknown debt {word}");
+                    }
+                }
+                for field in ["success_condition", "falsification_condition"] {
+                    assert!(!is_vague(&text(block, field)), "{id}: vague {field}");
+                }
+            }
+        }
+
+        #[test]
+        fn essential_debt_has_deadline_gate() {
+            let ledger = Ledger::load();
+            let nodes: BTreeSet<String> = blocks(&ledger.text, "construction_node")
+                .into_iter()
+                .map(|b| text(b, "id"))
+                .collect();
+            for (id, block) in ledger.debts() {
+                let gate = text(block, "deadline_gate");
+                assert!(!is_vague(&gate), "{id}: deadline_gate `{gate}`");
+                assert!(
+                    nodes.contains(&gate)
+                        || [
+                            "FOUNDATIONAL_ATLAS_READY",
+                            "SEALED .atlas",
+                            "ASIR admission",
+                            "unfreeze gate"
+                        ]
+                        .contains(&gate.as_str()),
+                    "{id}: deadline_gate `{gate}` is not a named gate or construction milestone"
+                );
             }
         }
 
@@ -2428,6 +2643,7 @@ mod tests {
                 );
                 assert!(ids.insert(text(block, "id")), "attack id twice");
                 text(block, "objective");
+                flag(block, "bounded");
                 let priority = text(block, "priority");
                 assert!(
                     ["P0", "P1", "P2", "P3", "P4", "P5", "P6"].contains(&priority.as_str()),
@@ -2442,7 +2658,16 @@ mod tests {
                     assert_ne!(text(target, "current_state"), "CLOSED", "{debt} is closed");
                 }
             }
-            // The queue head is the next generation's plan (Rule B): PRIORITY.toml names it.
+            for done in blocks(&ledger.text, "native_attack_done") {
+                let generation_id = text(done, "generation");
+                assert!(
+                    ledger_generations()
+                        .iter()
+                        .any(|(id, _)| *id == generation_id),
+                    "done attack names unknown {generation_id}"
+                );
+            }
+            // Rule B: the queue head is the next generation's plan and PRIORITY.toml names it.
             let head = attacks[0];
             let priority = read(".atlas/roadmap/PRIORITY.toml");
             assert_eq!(
@@ -2458,140 +2683,755 @@ mod tests {
         }
 
         #[test]
-        fn donor_reaudit_separates_mechanism_from_capability() {
-            let ledger = Ledger::load();
-            let known = ledger.known_ids();
-            let debts = ledger.debts();
-            let campaign = read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml");
-            let terminal: BTreeMap<String, String> = blocks(&campaign, "donor")
+        fn all_donor_corpus_records_have_capability_classification() {
+            let corpus = read(".atlas/references/donor-corpus.toml");
+            let corpus_ids: BTreeSet<String> = blocks(&corpus, "donor")
                 .into_iter()
-                .map(|block| (text(block, "repository"), text(block, "terminal_state")))
+                .map(|b| text(b, "id"))
                 .collect();
-            let reaudit = read(".atlas/roadmap/DONOR-DECISION-REAUDIT.toml");
-            let mut seen = BTreeSet::new();
-            for block in blocks(&reaudit, "reaudit") {
-                let donor = text(block, "donor");
-                assert!(seen.insert(donor.clone()), "{donor} re-audited twice");
-                let state = text(block, "terminal_state");
+            let campaign = read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml");
+            let first_50: BTreeMap<String, String> = blocks(&campaign, "donor")
+                .into_iter()
+                .map(|b| (text(b, "repository"), text(b, "terminal_state")))
+                .collect();
+            let audited = donors();
+            let names: BTreeSet<String> = audited.iter().map(|d| d.name.clone()).collect();
+            assert_eq!(names.len(), audited.len(), "a donor audited twice");
+            let first_50_ids: BTreeSet<String> = first_50.keys().cloned().collect();
+            let expected: BTreeSet<String> = corpus_ids.union(&first_50_ids).cloned().collect();
+            assert_eq!(
+                names, expected,
+                "every corpus record and every First-50 donor is audited"
+            );
+            let header = read(AUDIT);
+            let header = header.split("\n[[").next().unwrap();
+            let outside = first_50.keys().filter(|d| !corpus_ids.contains(*d)).count() as i64;
+            assert_eq!(
+                number(header, "donor_corpus_records"),
+                corpus_ids.len() as i64
+            );
+            assert_eq!(number(header, "first_50_donors"), first_50.len() as i64);
+            assert_eq!(number(header, "first_50_outside_donor_corpus"), outside);
+            assert_eq!(
+                number(header, "donor_corpus_outside_first_50"),
+                corpus_ids
+                    .iter()
+                    .filter(|d| !first_50.contains_key(*d))
+                    .count() as i64
+            );
+            assert_eq!(number(header, "donors_audited"), audited.len() as i64);
+            let known = Ledger::load().known_ids();
+            let mut suspicious = BTreeSet::new();
+            for donor in &audited {
+                let (name, block) = (&donor.name, &donor.block);
                 assert_eq!(
-                    terminal.get(&donor),
-                    Some(&state),
-                    "{donor}: campaign state"
+                    flag(block, "in_donor_corpus"),
+                    corpus_ids.contains(name),
+                    "{name}"
                 );
-                let q1 = text(block, "q1_mechanism");
+                let mechanism = text(block, "mechanism_decision");
                 assert!(
-                    ["YES", "NO", "NOT_YET", "EXTERNAL_BOUNDARY"].contains(&q1.as_str()),
-                    "{donor}: q1 {q1}"
+                    TERMINAL.contains(&mechanism.as_str()) || mechanism == "DEFERRED",
+                    "{name}: mechanism_decision {mechanism}"
                 );
-                let q2 = text(block, "q2_capability");
+                let capability = text(block, "capability_decision");
                 assert!(
                     [
-                        "ESSENTIAL_OPEN",
-                        "ESSENTIAL_CLOSED",
-                        "SCALE_TRIGGERED",
-                        "OPTIONAL"
+                        "CAPABILITY_CLOSED",
+                        "CAPABILITY_PARTIAL",
+                        "CAPABILITY_OPEN_ESSENTIAL",
+                        "CAPABILITY_OPEN_SCALE_TRIGGERED",
+                        "CAPABILITY_NOT_REQUIRED"
                     ]
-                    .contains(&q2.as_str()),
-                    "{donor}: q2 {q2}"
+                    .contains(&capability.as_str()),
+                    "{name}: capability_decision {capability}"
                 );
-                let linked = list(block, "debts");
-                for debt in &linked {
-                    assert!(known.contains(debt), "{donor}: unknown debt {debt}");
+                if let Some(state) = first_50.get(name) {
+                    let expected = if mechanism.starts_with("REFERENCE_ONLY") {
+                        "REFERENCE_ONLY"
+                    } else {
+                        mechanism.as_str()
+                    };
+                    assert_eq!(state, expected, "{name}: campaign terminal state");
                 }
-                // DONOR_REJECTED does not imply CAPABILITY_CLOSED: an open capability names a
-                // debt that is still open.
-                if q2 == "ESSENTIAL_OPEN" {
+                for debt in list(block, "debts") {
+                    assert!(known.contains(&debt), "{name}: unknown debt {debt}");
+                }
+                if mechanism == "DEFERRED" {
+                    for field in [
+                        "deferred_trigger",
+                        "deferred_owner",
+                        "deferred_milestone",
+                        "deferred_readmission",
+                    ] {
+                        assert!(!is_vague(&text(block, field)), "{name}: {field}");
+                    }
+                }
+                if mechanism == "REFERENCE_ONLY_UNTIL_TRIGGER" {
+                    let trigger = text(block, "trigger");
+                    assert!(!is_vague(&trigger), "{name}: `later` is not a trigger");
                     assert!(
-                        linked.iter().any(|d| debts
-                            .get(d)
-                            .is_some_and(|b| text(b, "current_state") != "CLOSED")),
-                        "{donor}: ESSENTIAL_OPEN without an open debt"
+                        trigger.contains("milestone")
+                            || trigger.chars().any(|c| c.is_ascii_digit())
+                            || known.iter().any(|id| trigger.contains(id.as_str())),
+                        "{name}: trigger names no number, milestone or debt: {trigger}"
                     );
                 }
                 if flag(block, "conflated") {
                     text(block, "conflation_quote");
                 }
-                if state != "ABSORBED" {
-                    let counterfactual = text(block, "counterfactual");
+                if raw(block, "suspicious_case").is_some() {
+                    suspicious.insert(name.clone());
+                    let answer = text(block, "mechanism_unnecessary");
                     assert!(
-                        [
-                            "ALREADY_SCALES_CONCEPTUALLY",
-                            "EXPLICIT_TRIGGER",
-                            "REQUIRES_REDESIGN"
-                        ]
-                        .contains(&counterfactual.as_str()),
-                        "{donor}: counterfactual {counterfactual}"
+                        ["YES", "NO", "NOT_YET"].contains(&answer.as_str()),
+                        "{name}: {answer}"
+                    );
+                    // Was THIS mechanism unnecessary, AND is the capability still required: the
+                    // second answer follows the capability decision, never the donor verdict.
+                    assert_eq!(
+                        flag(block, "capability_still_required"),
+                        capability != "CAPABILITY_NOT_REQUIRED",
+                        "{name}"
                     );
                 }
-                match state.as_str() {
-                    "REFERENCE_ONLY" => match text(block, "reference_class").as_str() {
-                        "REFERENCE_ONLY_FOREVER" => {}
-                        "REFERENCE_ONLY_UNTIL_TRIGGER" => {
-                            let trigger = text(block, "trigger");
-                            assert!(
-                                !trigger
-                                    .to_ascii_lowercase()
-                                    .split(|c: char| !c.is_ascii_alphabetic())
-                                    .any(|w| w == "later"),
-                                "{donor}: `later` is not a trigger"
-                            );
-                            assert!(
-                                trigger.contains("milestone")
-                                    || trigger.chars().any(|c| c.is_ascii_digit())
-                                    || known.iter().any(|id| trigger.contains(id.as_str())),
-                                "{donor}: trigger names no number, milestone or debt: {trigger}"
-                            );
-                        }
-                        other => panic!("{donor}: reference_class {other}"),
-                    },
-                    "DEFERRED" => {
-                        for field in [
-                            "deferred_trigger",
-                            "deferred_owner",
-                            "deferred_milestone",
-                            "deferred_readmission",
-                        ] {
-                            text(block, field);
-                        }
-                    }
-                    "EXTERNAL_BOUNDARY" => {
-                        let kind = text(block, "boundary_type");
-                        assert!(
-                            [
-                                "PERMANENT_REALITY",
-                                "BOOTSTRAP",
-                                "ORACLE",
-                                "TEMPORARY_UNTIL_NATIVE"
-                            ]
-                            .contains(&kind.as_str()),
-                            "{donor}: boundary_type {kind}"
-                        );
-                    }
-                    "ABSORBED" => {}
-                    other => panic!("{donor}: terminal state {other}"),
-                }
             }
-            assert_eq!(
-                seen,
-                terminal.keys().cloned().collect(),
-                "every first-50 donor is re-audited exactly once"
-            );
+            for name in [
+                "differential-dataflow",
+                "buck2",
+                "egglog",
+                "joern",
+                "miri",
+                "mlir",
+                "xdsl",
+                "wasm-spec",
+                "wasm-component-model",
+                "wasm-tools",
+                "wasmtime",
+                "llvm-project",
+                "regalloc2",
+                "mold",
+                "kani",
+                "verus",
+                "z3",
+                "tlaplus",
+                "nix",
+                "openrewrite",
+                "c2rust",
+                "salsa",
+            ] {
+                assert!(
+                    suspicious.contains(name),
+                    "{name}: suspicious case not re-audited"
+                );
+            }
         }
 
         #[test]
-        fn scale_triggers_are_numeric() {
+        fn donor_terminal_does_not_close_capability() {
             let ledger = Ledger::load();
+            let debts = ledger.debts();
+            for donor in donors() {
+                let block = &donor.block;
+                let linked = list(block, "debts");
+                if text(block, "capability_decision") == "CAPABILITY_CLOSED" {
+                    assert!(
+                        !linked.is_empty()
+                            && linked.iter().all(|d| debts
+                                .get(d)
+                                .is_some_and(|b| text(b, "current_state") == "CLOSED")),
+                        "{}: a donor decision cannot close a capability whose debt is open",
+                        donor.name
+                    );
+                }
+                if matches!(
+                    text(block, "capability_decision").as_str(),
+                    "CAPABILITY_OPEN_ESSENTIAL" | "CAPABILITY_PARTIAL"
+                ) {
+                    assert!(
+                        linked.iter().any(|d| debts
+                            .get(d)
+                            .is_some_and(|b| text(b, "current_state") != "CLOSED")),
+                        "{}: an open capability needs an open debt",
+                        donor.name
+                    );
+                }
+            }
+        }
+
+        #[test]
+        fn reference_only_does_not_mean_capability_unnecessary() {
+            let audit = read(AUDIT);
+            let optional: BTreeSet<String> = blocks(&audit, "donor_cluster")
+                .into_iter()
+                .filter(|b| text(b, "class") == "OPTIONAL")
+                .map(|b| text(b, "id"))
+                .collect();
+            for donor in donors() {
+                let block = &donor.block;
+                if text(block, "capability_decision") == "CAPABILITY_NOT_REQUIRED" {
+                    assert!(
+                        optional.contains(&text(block, "capability_cluster")),
+                        "{}: CAPABILITY_NOT_REQUIRED only in an OPTIONAL cluster",
+                        donor.name
+                    );
+                    assert!(list(block, "debts").is_empty(), "{}", donor.name);
+                }
+                // `no consumer` is a reason only for OPTIONAL, or SCALE_TRIGGERED with a trigger.
+                let reasoning = format!(
+                    "{} {}",
+                    string(block, "note").unwrap_or_default(),
+                    string(block, "conflation_quote").unwrap_or_default()
+                )
+                .to_ascii_lowercase();
+                if reasoning.contains("consumer")
+                    && matches!(
+                        text(block, "capability_decision").as_str(),
+                        "CAPABILITY_OPEN_ESSENTIAL" | "CAPABILITY_PARTIAL"
+                    )
+                {
+                    assert!(
+                        flag(block, "conflated"),
+                        "{}: `no consumer` used against essential complexity must be recorded as drift",
+                        donor.name
+                    );
+                }
+            }
+        }
+
+        #[test]
+        fn external_boundaries_have_boundary_class() {
+            for donor in donors() {
+                if text(&donor.block, "mechanism_decision") == "EXTERNAL_BOUNDARY" {
+                    let kind = text(&donor.block, "boundary_type");
+                    assert!(
+                        BOUNDARY_TYPES.contains(&kind.as_str()),
+                        "{}: {kind}",
+                        donor.name
+                    );
+                }
+            }
+            let ledger = Ledger::load();
+            let debts = ledger.debts();
+            for block in blocks(&ledger.text, "construction_component") {
+                let id = text(block, "id");
+                let debt = text(block, "debt");
+                let owner = debts.get(&debt).unwrap_or_else(|| panic!("{id}: {debt}"));
+                match text(block, "ownership").as_str() {
+                    "NATIVE_REQUIRED" => {
+                        if text(block, "status") != "IMPLEMENTED" {
+                            assert_ne!(text(owner, "current_state"), "CLOSED", "{id}");
+                        }
+                    }
+                    "EXTERNAL_BOUNDARY_ALLOWED" => {
+                        let kind = text(block, "boundary_type");
+                        assert!(BOUNDARY_TYPES.contains(&kind.as_str()), "{id}: {kind}");
+                    }
+                    other => panic!("{id}: ownership {other}"),
+                }
+            }
+        }
+
+        #[test]
+        fn scale_triggered_debt_has_measurable_trigger() {
+            let ledger = Ledger::load();
+            let scale = ledger.scale_ids();
+            let mut fired = BTreeMap::new();
             for block in blocks(&ledger.text, "scale_trigger") {
                 let id = text(block, "id");
                 assert!(id.starts_with("SCALE-"), "{id}");
                 assert_eq!(text(block, "class"), "SCALE_TRIGGERED");
                 let trigger = text(block, "trigger");
+                assert!(!is_vague(&trigger), "{id}: vague trigger");
                 assert!(
                     trigger.chars().any(|c| c.is_ascii_digit()),
                     "{id}: a scale trigger must name a number: {trigger}"
                 );
                 text(block, "current_measurement");
-                text(block, "counterfactual");
+                fired.insert(id, text(block, "status") == "FIRED");
+            }
+            // Thresholds read from the post-change census are evaluated against the ledger head.
+            let head = format!("G{}", current_generation());
+            let post: serde_json::Value =
+                serde_json::from_str(&read(&format!(".atlas/evidence/census/{head}/post.json")))
+                    .expect("post.json");
+            let mut evaluated = 0;
+            for block in blocks(&ledger.text, "scale_threshold") {
+                let trigger = text(block, "trigger");
+                assert!(scale.contains(&trigger), "{trigger}");
+                let threshold = number(block, "threshold");
+                assert!(threshold > 0);
+                let source = text(block, "source");
+                if let Some(key) = source.strip_prefix("post.json:") {
+                    let value = post["totals"][key]
+                        .as_i64()
+                        .unwrap_or_else(|| panic!("post.json totals has no {key}"));
+                    if value > threshold {
+                        assert!(
+                            fired[&trigger],
+                            "{trigger}: {key} {value} > {threshold} but NOT_FIRED"
+                        );
+                    }
+                    evaluated += 1;
+                } else {
+                    assert!(source.starts_with("measured:"), "{source}");
+                }
+            }
+            assert!(
+                evaluated >= 4,
+                "census-size thresholds are mechanically evaluated"
+            );
+        }
+
+        #[test]
+        fn first_50_complete_is_not_foundational_ready() {
+            let gate = read(GATE);
+            let first_50 = table(&gate, "first_50_campaign_complete");
+            let foundational = table(&gate, "foundational_atlas_ready");
+            let criteria = blocks(&gate, "criterion");
+            assert_eq!(criteria.len(), 10, "the contract's ten criteria");
+            let all_met = criteria.iter().all(|c| {
+                let status = text(c, "status");
+                assert!(["MET", "NOT_MET"].contains(&status.as_str()), "{status}");
+                status == "MET"
+            });
+            assert_eq!(
+                flag(foundational, "value"),
+                all_met,
+                "foundational = all criteria"
+            );
+            assert_eq!(
+                text(foundational, "status"),
+                if all_met { "MET" } else { "NOT_MET" }
+            );
+            // The campaign gate never stands in for the foundational one.
+            let campaign = read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml");
+            let remaining: i64 = blocks(&campaign, "donor")
+                .iter()
+                .filter(|b| text(b, "lifecycle") != "TERMINAL")
+                .count() as i64;
+            assert_eq!(flag(first_50, "value"), remaining == 0);
+            let priority = read(".atlas/roadmap/PRIORITY.toml");
+            let exit = string(&priority, "J_foundational_atlas_ready").expect("exit J");
+            assert!(
+                exit.starts_with(&text(foundational, "status")),
+                "exit J restates the gate"
+            );
+            if !all_met {
+                assert_eq!(
+                    raw(&priority, "frontier_expansion_frozen").map(str::trim),
+                    Some("true"),
+                    "the frontier stays frozen until FOUNDATIONAL_ATLAS_READY"
+                );
+                assert_eq!(
+                    text(table(&gate, "frontier_expansion"), "status"),
+                    "BLOCKED"
+                );
+            }
+            let g = string(&priority, "G_first_50_sequential_lifecycle_substantial").unwrap();
+            assert!(
+                g.contains("not FOUNDATIONAL_ATLAS_READY"),
+                "exit G must not read as foundational readiness"
+            );
+        }
+
+        #[test]
+        fn frontier_expansion_blocked_until_audit_complete() {
+            let gate = read(GATE);
+            let frontier_gate = table(&gate, "frontier_expansion");
+            if text(frontier_gate, "status") != "BLOCKED" {
+                assert_eq!(
+                    text(table(&gate, "foundational_atlas_ready"), "status"),
+                    "MET"
+                );
+                return;
+            }
+            let frontier = read(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml");
+            let repositories = blocks(&frontier, "repository");
+            assert_eq!(
+                repositories.len() as i64,
+                number(frontier_gate, "pinned_repositories"),
+                "the frontier grew while expansion is BLOCKED"
+            );
+            let mut lifecycles: BTreeMap<String, i64> = BTreeMap::new();
+            for block in &repositories {
+                *lifecycles.entry(text(block, "lifecycle")).or_default() += 1;
+            }
+            for (lifecycle, count) in &lifecycles {
+                assert_eq!(
+                    number(
+                        frontier_gate,
+                        &format!("pinned_lifecycle_{}", lifecycle.to_ascii_lowercase())
+                    ),
+                    *count,
+                    "frontier lifecycle {lifecycle} changed while expansion is BLOCKED"
+                );
+            }
+        }
+
+        #[test]
+        fn remaining_donor_corpus_progress_blocked_until_audit_complete() {
+            let gate = read(GATE);
+            let progression = table(&gate, "donor_progression");
+            let blocked = donor_progression_blocked();
+            assert_eq!(
+                text(progression, "status") == "BLOCKED",
+                blocked,
+                "[donor_progression] status must equal the recomputed state"
+            );
+            let recorded: BTreeSet<String> =
+                list(progression, "blocking_debts").into_iter().collect();
+            let computed: BTreeSet<String> = progression_blockers().into_iter().collect();
+            assert_eq!(
+                recorded, computed,
+                "blocking_debts must equal the recomputed blockers"
+            );
+            if !blocked {
+                return;
+            }
+            // No donor-corpus record moves while progression is blocked.
+            let corpus = read(".atlas/references/donor-corpus.toml");
+            let records: BTreeMap<String, &str> = blocks(&corpus, "donor")
+                .into_iter()
+                .map(|b| (text(b, "id"), b))
+                .collect();
+            for donor in donors() {
+                let Some(record) = records.get(&donor.name) else {
+                    continue;
+                };
+                for field in [
+                    "decision_status",
+                    "ingestion_status",
+                    "census_status",
+                    "storage_state",
+                ] {
+                    assert_eq!(
+                        string(record, field).unwrap_or_default(),
+                        string(&donor.block, &format!("corpus_{field}")).unwrap_or_default(),
+                        "{}: donor-corpus {field} changed while donor progression is BLOCKED",
+                        donor.name
+                    );
+                }
+            }
+            assert_eq!(
+                records.len(),
+                donors()
+                    .iter()
+                    .filter(|d| flag(&d.block, "in_donor_corpus"))
+                    .count(),
+                "a donor-corpus record was added while blocked"
+            );
+            // No new donor checkout is materialized.
+            let pinned: BTreeSet<String> = list(progression, "materialized_checkouts")
+                .into_iter()
+                .collect();
+            let donors_dir = root().join(".atlas/temporary/donors");
+            if donors_dir.is_dir() {
+                for entry in std::fs::read_dir(&donors_dir).unwrap() {
+                    let name = entry.unwrap().file_name().to_string_lossy().into_owned();
+                    assert!(
+                        pinned.contains(&name),
+                        "donor checkout `{name}` materialized while BLOCKED"
+                    );
+                }
+            }
+            // No donor generation after the audit.
+            let audit_generation = generation(&text(table(&gate, "audit"), "audit_generation"));
+            for (id, block) in ledger_generations() {
+                if generation(&id) < 116 {
+                    continue;
+                }
+                let kind = text(&block, "kind");
+                assert!(
+                    ["AUDIT", "NATIVE_ATTACK", "DONOR"].contains(&kind.as_str()),
+                    "{id}: kind {kind}"
+                );
+                if generation(&id) >= audit_generation {
+                    assert_ne!(
+                        kind, "DONOR",
+                        "{id}: donor generation while donor progression is BLOCKED"
+                    );
+                    assert_ne!(
+                        text(&block, "priority"),
+                        "P3",
+                        "{id}: P3 donor campaign while BLOCKED"
+                    );
+                }
+            }
+        }
+
+        #[test]
+        fn audit_completion_requires_a_proven_native_attack() {
+            let gate = read(GATE);
+            let audit = table(&gate, "audit");
+            let ledger = Ledger::load();
+            let status = text(audit, "status");
+            let selected = text(audit, "selected_attack");
+            assert!(ledger.attack_ids().contains(&selected), "{selected}");
+            match status.as_str() {
+                "NATIVE_ATTACK_PENDING" => {
+                    let head = blocks(&ledger.text, "native_attack")[0];
+                    assert_eq!(
+                        text(head, "id"),
+                        selected,
+                        "the selected attack heads the queue"
+                    );
+                }
+                "COMPLETE" => {
+                    let generation_id = text(audit, "native_attack_generation");
+                    let (_, block) = ledger_generations()
+                        .into_iter()
+                        .find(|(id, _)| *id == generation_id)
+                        .unwrap_or_else(|| panic!("{generation_id} not in the ledger"));
+                    assert_eq!(text(&block, "kind"), "NATIVE_ATTACK");
+                    assert!(
+                        blocks(&ledger.text, "native_attack_done")
+                            .iter()
+                            .any(|b| text(b, "generation") == generation_id
+                                && text(b, "id") == selected),
+                        "the completed attack is recorded as done in {generation_id}"
+                    );
+                    // generation_ledger_self_recensus_chain proves every ledger generation.
+                    text(&block, "self_recensus");
+                }
+                other => panic!("audit status {other}"),
+            }
+            let pressure = read(PRESSURE);
+            assert_eq!(
+                text(table(&pressure, "selection"), "selected_attack"),
+                selected
+            );
+        }
+
+        #[test]
+        fn pressure_map_restates_the_ledger() {
+            let ledger = Ledger::load();
+            let debts = ledger.debts();
+            let pressure = read(PRESSURE);
+            let mut seen = BTreeSet::new();
+            let mut previous = i64::MAX;
+            for (index, block) in blocks(&pressure, "pressure").iter().enumerate() {
+                assert_eq!(number(block, "rank"), index as i64 + 1);
+                let id = text(block, "debt");
+                let debt = debts.get(&id).unwrap_or_else(|| panic!("{id}"));
+                for (map_field, ledger_field) in [
+                    ("current_maturity", "current_maturity"),
+                    ("required_maturity", "required_maturity"),
+                    ("next_attack", "next_attack"),
+                    ("blocking_gate", "deadline_gate"),
+                    ("escalation_state", "escalation_state"),
+                ] {
+                    assert_eq!(
+                        text(block, map_field),
+                        text(debt, ledger_field),
+                        "{id}: {map_field}"
+                    );
+                }
+                assert_eq!(
+                    number(block, "debt_age"),
+                    number(debt, "stale_generations"),
+                    "{id}"
+                );
+                assert_eq!(
+                    list(block, "dependencies"),
+                    list(debt, "blocked_by"),
+                    "{id}"
+                );
+                assert_eq!(
+                    list(block, "donors_tried"),
+                    list(debt, "donors_examined"),
+                    "{id}"
+                );
+                let score = number(block, "pressure");
+                assert!(score <= previous, "pressure ranks descend");
+                previous = score;
+                seen.insert(id);
+            }
+            let open: BTreeSet<String> = debts
+                .iter()
+                .filter(|(_, b)| text(b, "current_state") != "CLOSED")
+                .map(|(id, _)| id.clone())
+                .collect();
+            assert_eq!(seen, open, "every non-closed debt is on the pressure map");
+        }
+
+        #[test]
+        fn donor_clusters_expose_unattacked_essential_capabilities() {
+            let audit = read(AUDIT);
+            let ledger = Ledger::load();
+            let known = ledger.known_ids();
+            let debts = ledger.debts();
+            let queued = ledger.queued();
+            let all = donors();
+            let mut placed = BTreeSet::new();
+            for cluster in blocks(&audit, "donor_cluster") {
+                let id = text(cluster, "id");
+                let class = text(cluster, "class");
+                let members = list(cluster, "donors");
+                let absorbed = members
+                    .iter()
+                    .filter(|m| {
+                        all.iter().any(|d| {
+                            &d.name == *m && text(&d.block, "mechanism_decision") == "ABSORBED"
+                        })
+                    })
+                    .count() as i64;
+                assert_eq!(number(cluster, "donor_count"), members.len() as i64, "{id}");
+                assert_eq!(number(cluster, "absorbed_count"), absorbed, "{id}");
+                assert_eq!(
+                    flag(cluster, "hole"),
+                    class == "ESSENTIAL" && absorbed == 0,
+                    "{id}"
+                );
+                for member in &members {
+                    assert!(placed.insert(member.clone()), "{member} in two clusters");
+                    let donor = all
+                        .iter()
+                        .find(|d| &d.name == member)
+                        .expect("audited donor");
+                    assert_eq!(text(&donor.block, "capability_cluster"), id, "{member}");
+                }
+                let routed = list(cluster, "debts");
+                assert_eq!(class == "OPTIONAL", routed.is_empty(), "{id}");
+                for debt in &routed {
+                    assert!(known.contains(debt), "{id}: {debt}");
+                }
+                // A hole (no donor absorbed) is priority debt: each essential debt it names is
+                // planned -- queued, or blocked by a queued debt, or frozen.
+                if flag(cluster, "hole") {
+                    for debt in routed.iter().filter(|d| d.starts_with("DEBT-")) {
+                        let block = debts[debt.as_str()];
+                        assert!(
+                            queued.contains_key(debt)
+                                || list(block, "blocked_by")
+                                    .iter()
+                                    .any(|b| queued.contains_key(b))
+                                || flag(block, "frozen"),
+                            "{id}: hole debt {debt} has no planned attack"
+                        );
+                    }
+                }
+            }
+            assert_eq!(
+                placed.len(),
+                all.len(),
+                "every donor sits in exactly one cluster"
+            );
+        }
+
+        #[test]
+        fn semantic_dimensions_and_avoidance_drift_are_audited() {
+            let ledger = Ledger::load();
+            let debts = ledger.debts();
+            let dimensions: Vec<String> = blocks(&ledger.text, "dimension")
+                .into_iter()
+                .map(|b| {
+                    let id = text(b, "id");
+                    let debt = text(b, "debt");
+                    let owner = debts.get(&debt).unwrap_or_else(|| panic!("{id}: {debt}"));
+                    for field in [
+                        "resolution_quality",
+                        "oracle",
+                        "known_blind_spots",
+                        "closure_requirement",
+                    ] {
+                        text(b, field);
+                    }
+                    for field in [
+                        "independent_engines",
+                        "unknown_count",
+                        "unsupported_count",
+                        "conflict_count",
+                    ] {
+                        assert!(number(b, field) >= 0);
+                    }
+                    assert_eq!(
+                        list(b, "native_engines").len() as i64,
+                        number(b, "independent_engines"),
+                        "{id}"
+                    );
+                    // An incomplete essential dimension stays OPEN whatever its donors became.
+                    if text(b, "debt_class") == "ESSENTIAL" && text(b, "coverage") != "OBSERVED" {
+                        assert_ne!(text(owner, "current_state"), "CLOSED", "{id}");
+                    }
+                    id
+                })
+                .collect();
+            let expected = [
+                "SYMBOL",
+                "TYPE",
+                "CALL",
+                "CONTROL_FLOW",
+                "DATA_FLOW",
+                "STATE",
+                "EFFECT",
+                "OWNERSHIP",
+                "RESOURCE",
+                "CONCURRENCY",
+                "PERSISTENCE",
+                "DEPENDENCY",
+                "PROVENANCE",
+                "UNCERTAINTY",
+                "CAUSALITY",
+            ];
+            assert_eq!(
+                dimensions, expected,
+                "the fifteen fundamental dimensions, in order"
+            );
+            let drift: Vec<&str> = blocks(&ledger.text, "avoidance_drift");
+            for block in &drift {
+                assert_eq!(text(block, "proved"), "NOT_NEEDED_NOW");
+                let treated = text(block, "treated_as");
+                assert_eq!(
+                    flag(block, "drift"),
+                    treated == "NOT_ARCHITECTURALLY_REQUIRED"
+                );
+                for debt in list(block, "debts") {
+                    assert!(ledger.known_ids().contains(&debt), "{debt}");
+                }
+                text(block, "correction");
+            }
+            for donor in donors() {
+                if flag(&donor.block, "conflated") {
+                    assert!(
+                        drift
+                            .iter()
+                            .any(|b| text(b, "source") == donor.name && flag(b, "drift")),
+                        "{}: conflated decision without a drift record",
+                        donor.name
+                    );
+                }
+            }
+            let epistemic: Vec<String> = blocks(&ledger.text, "epistemic_state")
+                .into_iter()
+                .map(|b| text(b, "id"))
+                .collect();
+            assert_eq!(
+                epistemic,
+                [
+                    "OBSERVED",
+                    "DECLARED",
+                    "DERIVED",
+                    "SIMULATED",
+                    "PREDICTED",
+                    "HYPOTHESIZED",
+                    "COUNTERFACTUAL",
+                    "FALSIFIED",
+                    "VALIDATED"
+                ]
+            );
+            for table_name in ["physical_primitive", "chronica_blocker"] {
+                for block in blocks(&ledger.text, table_name) {
+                    let named = string(block, "debt")
+                        .map(|d| vec![d])
+                        .unwrap_or_else(|| list(block, "debts"));
+                    for debt in named {
+                        assert!(
+                            debts.contains_key(&debt),
+                            "{table_name}: unknown debt {debt}"
+                        );
+                    }
+                }
             }
         }
 
@@ -2663,9 +3503,10 @@ mod tests {
         fn every_end_state_capability_is_owned_by_debt_or_closed() {
             let ledger = Ledger::load();
             let known = ledger.known_ids();
-            let end_state = read(".atlas/roadmap/FUTURISM-END-STATE.toml");
+            let end_state = read(".atlas/roadmap/FUTURISM-ENGINEERING-END-STATE.toml");
             let capabilities = blocks(&end_state, "capability");
             assert_eq!(capabilities.len(), 18, "the 18 end-state capabilities");
+            let mut ids = BTreeSet::new();
             for block in capabilities {
                 let id = text(block, "id");
                 let owned = list(block, "debts");
@@ -2677,7 +3518,45 @@ mod tests {
                 for debt in owned {
                     assert!(known.contains(&debt), "{id}: unknown debt {debt}");
                 }
+                ids.insert(id);
             }
+            let verbs: Vec<String> = blocks(&end_state, "verb")
+                .into_iter()
+                .map(|b| {
+                    for capability in list(b, "capabilities") {
+                        assert!(
+                            ids.contains(&capability),
+                            "verb routes to unknown {capability}"
+                        );
+                    }
+                    text(b, "id")
+                })
+                .collect();
+            assert_eq!(
+                verbs,
+                [
+                    "understand",
+                    "represent",
+                    "reason",
+                    "derive",
+                    "constrain",
+                    "search",
+                    "compare",
+                    "select",
+                    "simulate",
+                    "predict",
+                    "construct",
+                    "compile",
+                    "fabricate",
+                    "execute",
+                    "observe",
+                    "measure",
+                    "falsify",
+                    "verify",
+                    "recensus",
+                    "evolve"
+                ]
+            );
             let domains = blocks(&end_state, "domain");
             assert_eq!(domains.len(), 17, "the 17 end-state domains");
             for block in domains {
@@ -2689,40 +3568,6 @@ mod tests {
                 );
                 for debt in list(block, "core_debts") {
                     assert!(known.contains(&debt), "{id}: unknown debt {debt}");
-                }
-            }
-            let debts = ledger.debts();
-            let epistemic = blocks(&ledger.text, "epistemic_state");
-            let names: BTreeSet<String> = epistemic.iter().map(|b| text(b, "id")).collect();
-            let expected = [
-                "OBSERVED",
-                "DERIVED",
-                "SIMULATED",
-                "PREDICTED",
-                "HYPOTHESIZED",
-                "COUNTERFACTUAL",
-                "FALSIFIED",
-                "VALIDATED",
-            ];
-            assert_eq!(names, expected.iter().map(|s| s.to_string()).collect());
-            for block in epistemic {
-                if text(block, "home") == "UNDECIDED" {
-                    let owner = debts["DEBT-EPISTEMIC_UNIFICATION"];
-                    assert_ne!(
-                        text(owner, "current_state"),
-                        "CLOSED",
-                        "an UNDECIDED epistemic state needs its owning debt open"
-                    );
-                }
-            }
-            for table in ["physical_primitive", "chronica_blocker"] {
-                for block in blocks(&ledger.text, table) {
-                    let named = string(block, "debt")
-                        .map(|d| vec![d])
-                        .unwrap_or_else(|| list(block, "debts"));
-                    for debt in named {
-                        assert!(debts.contains_key(&debt), "{table}: unknown debt {debt}");
-                    }
                 }
             }
         }
@@ -2776,49 +3621,6 @@ mod tests {
             }
             for milestone in ["MIN_ATLASX", "FIRST_ARTIFACT"] {
                 assert!(nodes.contains_key(milestone), "{milestone} missing");
-            }
-        }
-
-        #[test]
-        fn foundational_gate_is_distinct_and_freezes_the_frontier() {
-            let ledger = Ledger::load();
-            let gates: BTreeMap<String, String> = blocks(&ledger.text, "gate")
-                .into_iter()
-                .map(|block| (text(block, "id"), text(block, "status")))
-                .collect();
-            let first_50 = &gates["FIRST_50_CAMPAIGN_COMPLETE"];
-            let foundational = &gates["FOUNDATIONAL_ATLAS_READY"];
-            let criteria: Vec<String> = blocks(&ledger.text, "gate_criterion")
-                .into_iter()
-                .filter(|b| text(b, "gate") == "FOUNDATIONAL_ATLAS_READY")
-                .map(|b| text(b, "status"))
-                .collect();
-            assert_eq!(criteria.len(), 9, "the contract's nine criteria");
-            for status in &criteria {
-                assert!(["MET", "NOT_MET"].contains(&status.as_str()), "{status}");
-            }
-            let all_met = criteria.iter().all(|s| s == "MET");
-            assert_eq!(foundational == "MET", all_met, "FOUNDATIONAL_ATLAS_READY");
-            let priority = read(".atlas/roadmap/PRIORITY.toml");
-            let exit = string(&priority, "J_foundational_atlas_ready").expect("exit J");
-            assert!(
-                exit.starts_with(foundational.as_str()),
-                "exit J restates the gate"
-            );
-            if foundational != "MET" {
-                assert_eq!(
-                    raw(&priority, "frontier_expansion_frozen").map(str::trim),
-                    Some("true"),
-                    "the frontier stays frozen until FOUNDATIONAL_ATLAS_READY"
-                );
-            }
-            // The campaign gate never stands in for the foundational one.
-            if first_50.starts_with("MET") {
-                let g = string(&priority, "G_first_50_sequential_lifecycle_substantial").unwrap();
-                assert!(
-                    g.contains("not FOUNDATIONAL_ATLAS_READY"),
-                    "exit G must not read as foundational readiness"
-                );
             }
         }
     }

@@ -4,7 +4,7 @@ established_in = "G57"
 priority = "P3"
 decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 
-# The canonical first-50 donor campaign (P3). The 146-repository frontier is the global universe;
+# The canonical first-50 donor campaign (P3). The 153-repository frontier (repo-exact, RECOMMENDED-OSS-FRONTIER.toml) is the global universe;
 # this is the execution order. Ordering is stable: a reorder requires a [[reorder]] record with
 # evidence. Lifecycle: QUEUED -> MATERIALIZED -> COARSE_CENSUSED -> DEEP_CENSUSED -> DECIDED ->
 # VERIFIED -> EXTINCTION_ELIGIBLE -> SOURCE_DELETED -> POST_DELETE_RECENSUS -> TERMINAL.

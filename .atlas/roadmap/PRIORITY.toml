@@ -97,6 +97,7 @@ questions = [
 ]
 all_false = "DEFER"
 frontier_expansion_frozen = true
+hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and frontier expansion BLOCKED, machine-enforced since G118)"
 # G116 (ADR 0038): selection obeys both rules, and the essential-complexity debt queue comes
 # before any donor while FOUNDATIONAL_ATLAS_READY is NOT_MET.
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
@@ -173,7 +174,7 @@ F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first
 G_first_50_sequential_lifecycle_substantial = "MET_G115: 4 historic terminals + 46 campaign terminals (salsa #5 G115; c2rust #50 G114 REFERENCE_ONLY; openrewrite #49 G113 REFERENCE_ONLY; tlaplus #48 G112 EXTERNAL_BOUNDARY at the consumer gate; nix #47 G111 REFERENCE_ONLY at the consumer gate; git #46 G110 EXTERNAL_BOUNDARY at the consumer gate; in-toto #45 G109 ABSORBED; z3 #44 G108 EXTERNAL_BOUNDARY at the consumer gate; containers-image #43 G107 REFERENCE_ONLY; podman #42 G106 EXTERNAL_BOUNDARY; verus #41 G105 EXTERNAL_BOUNDARY; kani #40 G104 EXTERNAL_BOUNDARY; mold #39 G103 EXTERNAL_BOUNDARY; regalloc2 #38 G102 REFERENCE_ONLY; object #37 G101 REFERENCE_ONLY; wasmtime #36 G100 EXTERNAL_BOUNDARY; wasm-tools #35 G99 REFERENCE_ONLY; wasm-component-model #34 G98 REFERENCE_ONLY; wasm-spec #33 G97 REFERENCE_ONLY; llvm-project #32 G96 EXTERNAL_BOUNDARY; agentir #31 G95 REFERENCE_ONLY; composer #30 G94 REFERENCE_ONLY; duumbi #29 G93 REFERENCE_ONLY; sigil-lang #28 G92 REFERENCE_ONLY; iris #27 G91 ABSORBED; xdsl #26 G90 REFERENCE_ONLY; mlir #25 G89 REFERENCE_ONLY; arrow #24 G88 REFERENCE_ONLY; zstd #23 G87 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED; rkyv #21 G85 REFERENCE_ONLY; capnproto #20 G84 REFERENCE_ONLY; egglog #19 G82 REFERENCE_ONLY; buck2 #18 G81 DEFERRED to AIF1; differential-dataflow #17 G80 REFERENCE_ONLY; clef #16 G78 REFERENCE_ONLY; miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; clef #16 G78 REFERENCE_ONLY; G79 P0 self.m() done; differential-dataflow #17 G80 REFERENCE_ONLY; buck2 #18 G81 DEFERRED (AIF1); egglog #19 G82 REFERENCE_ONLY; G83 P0 canonical types done; capnproto #20 G84 REFERENCE_ONLY (+ SEALED unknown-field clause); rkyv #21 G85 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED (schema-evolution conformance); zstd #23 G87 REFERENCE_ONLY (+ bounded ZSTD section profile); arrow #24 G88 REFERENCE_ONLY (codec before columnar); mlir #25 G89 REFERENCE_ONLY (slice extinct, llvm-project stays); xdsl #26 G90 REFERENCE_ONLY; iris #27 G91 ABSORBED (ambient-input effects, +59 EFFECT sites); sigil-lang #28 G92 REFERENCE_ONLY; duumbi #29 G93 REFERENCE_ONLY; composer #30 G94 REFERENCE_ONLY (hyperedges falsified); agentir #31 G95 REFERENCE_ONLY; llvm-project #32 G96 EXTERNAL_BOUNDARY; wasm-spec #33 G97 REFERENCE_ONLY (+ section_flags = 0 pinned); wasm-component-model #34 G98 REFERENCE_ONLY; wasm-tools #35 G99 REFERENCE_ONLY (DC1 tests ledger-driven); wasmtime #36 G100 EXTERNAL_BOUNDARY; object #37 G101 REFERENCE_ONLY; regalloc2 #38 G102 REFERENCE_ONLY; mold #39 G103 EXTERNAL_BOUNDARY; kani #40 G104 EXTERNAL_BOUNDARY; verus #41 G105 EXTERNAL_BOUNDARY; podman #42 G106 EXTERNAL_BOUNDARY; containers-image #43 G107 REFERENCE_ONLY; z3 #44 G108 EXTERNAL_BOUNDARY (never admitted); in-toto #45 G109 ABSORBED (generation-product-match); git #46 G110 EXTERNAL_BOUNDARY; nix #47 G111 REFERENCE_ONLY; tlaplus #48 G112 EXTERNAL_BOUNDARY; openrewrite #49 G113 REFERENCE_ONLY; c2rust #50 G114 REFERENCE_ONLY; salsa #5 G115 ABSORBED (memo; invalidation REFERENCE_ONLY at the measured scale); every first-50 donor is terminal; campaign completion is not FOUNDATIONAL_ATLAS_READY (ADR 0038)"
 H_incremental_recensus_with_oracle = "OPEN: incremental recompute speed is SCALE-INCREMENTAL_RECOMPUTE behind a numeric trigger; the affected-impact closure is essential (DEBT-IMPACT_CLOSURE, queued)"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); 45 first-50 donors physically extinct, each followed by a PROVEN post-delete self-recensus (through G115); the 7 unadmitted tracked checkouts (borg, cdc-file-transfer, fastcdc-rs, git, lz4, restic, xz) await user approval (BLOCKED_ON_USER)"
-J_foundational_atlas_ready = "NOT_MET (G116): 3 of 9 criteria MET (self-recensus, numeric scaling triggers, no unbounded essential debt); see ESSENTIAL-COMPLEXITY-DEBT.toml [[gate_criterion]]; distinct from G"
+J_foundational_atlas_ready = "NOT_MET (G118): 3 of 10 criteria MET (self-recensus, threshold-backed P4 strategy, no unbounded essential debt); FOUNDATIONAL-ATLAS-READY.toml is canonical; distinct from G"
 
 # Planned trajectory (adapted to HEAD); each item one bounded, self-recensus-proven generation.
 [[planned_generation]]
@@ -479,9 +480,14 @@ objective = "native attack queue head NA-CONCURRENCY-RESOLVED: CONCURRENCY from 
 [[planned_generation]]
 id = "G118"
 priority = "P0"
-objective = "native attack queue head NA-MACRO-ARGUMENTS: walk macro-invocation arguments that parse as expressions in the eight expression walkers; per-file coverage where every macro is recovered"
+objective = "HARD STOP anti-avoidance audit (ADR 0040): 63-donor capability audit, debt ledger v2, pressure map, FOUNDATIONAL-ATLAS-READY gate, machine-enforced donor/frontier stop"
 
 [[planned_generation]]
-id = "G119+"
+id = "G119"
+priority = "P0"
+objective = "mandatory native attack after the audit, selected by the pressure map: NA-MACRO-ARGUMENTS (CALL slice) -- recover std macro expression arguments; per-file CALL coverage proven by an independent syntax oracle"
+
+[[planned_generation]]
+id = "G120+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

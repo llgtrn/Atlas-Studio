@@ -1,0 +1,49 @@
+{
+  "objective": "P0 HARD STOP anti-avoidance audit (ADR 0040): 63-donor capability audit, debt ledger v2, pressure map, FOUNDATIONAL-ATLAS-READY gate and a machine-enforced donor/frontier stop; the only production-crate change is the runtime essential_complexity test module (19 tests) and two corrected count comments",
+  "changed_paths": [
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED runtime tests/essential_complexity/`impl:Ledger`/load().",
+    "CHANGED runtime tests/essential_complexity/current_generation().",
+    "CHANGED runtime tests/essential_complexity/debt_ledger_is_complete_and_its_alarms_are_planned().",
+    "CHANGED runtime tests/essential_complexity/every_end_state_capability_is_owned_by_debt_or_closed().",
+    "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+    "CHANGED runtime tests/essential_complexity/non_advancing_streak().",
+    "DELETED runtime tests/essential_complexity/donor_reaudit_separates_mechanism_from_capability().",
+    "DELETED runtime tests/essential_complexity/foundational_gate_is_distinct_and_freezes_the_frontier().",
+    "DELETED runtime tests/essential_complexity/scale_triggers_are_numeric().",
+    "CREATED runtime tests/essential_complexity/`impl:Ledger`/attack_ids().",
+    "CREATED runtime tests/essential_complexity/all_donor_corpus_records_have_capability_classification().",
+    "CREATED runtime tests/essential_complexity/audit_completion_requires_a_proven_native_attack().",
+    "CREATED runtime tests/essential_complexity/donor_clusters_expose_unattacked_essential_capabilities().",
+    "CREATED runtime tests/essential_complexity/donor_progression_blocked().",
+    "CREATED runtime tests/essential_complexity/donor_terminal_does_not_close_capability().",
+    "CREATED runtime tests/essential_complexity/donors().",
+    "CREATED runtime tests/essential_complexity/escalation().",
+    "CREATED runtime tests/essential_complexity/essential_debt_has_deadline_gate().",
+    "CREATED runtime tests/essential_complexity/essential_debt_has_explicit_next_attack().",
+    "CREATED runtime tests/essential_complexity/external_boundaries_have_boundary_class().",
+    "CREATED runtime tests/essential_complexity/first_50_complete_is_not_foundational_ready().",
+    "CREATED runtime tests/essential_complexity/frontier_expansion_blocked_until_audit_complete().",
+    "CREATED runtime tests/essential_complexity/is_vague().",
+    "CREATED runtime tests/essential_complexity/ledger_generations().",
+    "CREATED runtime tests/essential_complexity/pressure_map_restates_the_ledger().",
+    "CREATED runtime tests/essential_complexity/progression_blockers().",
+    "CREATED runtime tests/essential_complexity/reference_only_does_not_mean_capability_unnecessary().",
+    "CREATED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
+    "CREATED runtime tests/essential_complexity/scale_triggered_debt_has_measurable_trigger().",
+    "CREATED runtime tests/essential_complexity/semantic_dimensions_and_avoidance_drift_are_audited().",
+    "CREATED runtime tests/essential_complexity/table()."
+  ]
+}

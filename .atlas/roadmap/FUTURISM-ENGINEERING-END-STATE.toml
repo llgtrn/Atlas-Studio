@@ -1,6 +1,7 @@
-schema = "atlas.futurism-end-state.v1"
+schema = "atlas.futurism-engineering-end-state.v2"
 canonical = true
 established_in = "G116"
+revised_in = "G118"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 sources = [".atlas/architecture/constitution/NORTH-STAR.md", ".atlas/architecture/CAPABILITY-ARCHITECTURE.md", ".atlas/architecture/INVENTION-PIPELINE.md", ".atlas/roadmap/ROADMAP.md", ".atlas/roadmap/SELF-BUILDING-R4-R8.md"]
@@ -15,7 +16,8 @@ sources = [".atlas/architecture/constitution/NORTH-STAR.md", ".atlas/architectur
 #
 # Each [[capability]] names the debts (ESSENTIAL-COMPLEXITY-DEBT.toml) that must close for it; a
 # capability with no open debt is recorded as such. Enforced by runtime test
-# essential_complexity::every_end_state_capability_is_owned_by_debt_or_closed.
+# essential_complexity::every_end_state_capability_is_owned_by_debt_or_closed. G118 adds [[verb]]: the
+# twenty engineering verbs the end-state requires, each routed to the capabilities that carry it.
 
 [target]
 name = "FUTURISM_ENGINEERING_SYSTEM"
@@ -236,3 +238,83 @@ core_debts = ["DEBT-ARTIFACT_IDENTITY"]
 id = "FUTURES"
 state = "FROZEN"
 core_debts = ["DEBT-EPISTEMIC_UNIFICATION", "DEBT-UNCERTAINTY", "DEBT-CAUSALITY"]
+
+[[verb]]
+id = "understand"
+capabilities = ["UNDERSTAND_EXISTING_SYSTEMS"]
+
+[[verb]]
+id = "represent"
+capabilities = ["MODEL_SEMANTICS", "REPRESENT_INTENT"]
+
+[[verb]]
+id = "reason"
+capabilities = ["REASON_ABOUT_CONSTRAINTS"]
+
+[[verb]]
+id = "derive"
+capabilities = ["MODEL_SEMANTICS", "REASON_ABOUT_CONSTRAINTS"]
+
+[[verb]]
+id = "constrain"
+capabilities = ["REASON_ABOUT_CONSTRAINTS"]
+
+[[verb]]
+id = "search"
+capabilities = ["GENERATE_DESIGNS"]
+
+[[verb]]
+id = "compare"
+capabilities = ["COMPARE_AND_SELECT_ALTERNATIVES"]
+
+[[verb]]
+id = "select"
+capabilities = ["COMPARE_AND_SELECT_ALTERNATIVES", "SEAL_AND_MATERIALIZE"]
+
+[[verb]]
+id = "simulate"
+capabilities = ["SIMULATE"]
+
+[[verb]]
+id = "predict"
+capabilities = ["PREDICT"]
+
+[[verb]]
+id = "construct"
+capabilities = ["CONSTRUCT"]
+
+[[verb]]
+id = "compile"
+capabilities = ["COMPILE"]
+
+[[verb]]
+id = "fabricate"
+capabilities = ["FABRICATE"]
+
+[[verb]]
+id = "execute"
+capabilities = ["CONSTRUCT", "INTERACT_WITH_REAL_WORLD"]
+
+[[verb]]
+id = "observe"
+capabilities = ["OBSERVE_RESULTS"]
+
+[[verb]]
+id = "measure"
+capabilities = ["OBSERVE_RESULTS"]
+
+[[verb]]
+id = "falsify"
+capabilities = ["FALSIFY"]
+
+[[verb]]
+id = "verify"
+capabilities = ["FALSIFY", "SEAL_AND_MATERIALIZE"]
+
+[[verb]]
+id = "recensus"
+capabilities = ["RECENSUS"]
+
+[[verb]]
+id = "evolve"
+capabilities = ["EVOLVE", "LEARN"]

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G117"
+current_generation = "G118"
 
 [[generation]]
 id = "G35"
@@ -1902,6 +1902,7 @@ objective = "first-50 campaign complete; the next generation returns to the prio
 
 [[generation]]
 id = "G116"
+kind = "AUDIT"
 base_commit = "ff4f425b2c9758bfb3cedc5052583ffd695b44f1"
 priority = "P0"
 serves = "P0 census closure first, and every essential debt: generation selection draws from the native attack queue before any donor (ADR 0038); P2/P6 exit E becomes a finite graph"
@@ -1930,6 +1931,7 @@ objective = "G117 (P0): native attack queue head NA-CONCURRENCY-RESOLVED -- CONC
 
 [[generation]]
 id = "G117"
+kind = "NATIVE_ATTACK"
 base_commit = "0a9bce13eff1ec9d54ac6d2282f4814c7a5f9460"
 priority = "P0"
 serves = "P0 census closure: native attack queue head NA-CONCURRENCY-RESOLVED (DEBT-CONCURRENCY, DEBT-MULTI_ENGINE) under Rule B"
@@ -1949,3 +1951,26 @@ proof = "PROVEN on the first run with the explained unknowns (post e0fb415f...)"
 
 [generation.next]
 objective = "G118 (P0): native attack queue head NA-MACRO-ARGUMENTS"
+
+[[generation]]
+id = "G118"
+kind = "AUDIT"
+base_commit = "19256e7d0f08a0f6fd40851f5187b847c016c26a"
+priority = "P0"
+serves = "P0 census closure first and every essential debt: the HARD STOP anti-avoidance audit makes the debt discipline a CI property before any further donor or frontier work (ADR 0040)"
+objective = "audit all 63 donors (58 corpus records + 5 First-50 donors never admitted) with separate mechanism and capability decisions; extend the debt ledger to the full field set, 15 dimensions, construction ownership, drift, P4 thresholds, physical and epistemic primitives; pressure map; FOUNDATIONAL-ATLAS-READY gate; machine-enforced donor and frontier stop"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml"
+self_recensus = ".atlas/evidence/census/G118/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 028788bb19 = G117 post digest e0fb415f... (19256e7d0f adds only out-of-scope evidence)"
+accounting = "donor corpus 58 records (not 57): 45 in the First-50, 13 outside; First-50 50 donors, 5 never admitted (git, in-toto, nix, tlaplus, z3); 63 distinct donors; frontier 153 repositories; stale 146/57 comments corrected"
+findings = "compiler_ir 13 donors / 0 absorbed; construction 8 / 0; distributed execution, simulation, physical engineering, AI reasoning, causal/probabilistic reasoning and real-world observation 0 donors; 33 drift decisions (NOW-evidence treated as not required), incl. glean's query IR; 34 OPEN debts block donor progression (stale >= 32 or past the skip budget)"
+enforcement = "runtime essential_complexity: 19 tests incl. donor_terminal_does_not_close_capability, reference_only_does_not_mean_capability_unnecessary, all_donor_corpus_records_have_capability_classification, essential_debt_has_explicit_next_attack, essential_debt_has_deadline_gate, scale_triggered_debt_has_measurable_trigger, external_boundaries_have_boundary_class, first_50_complete_is_not_foundational_ready, frontier_expansion_blocked_until_audit_complete, remaining_donor_corpus_progress_blocked_until_audit_complete"
+selection = "pressure map: bounded attack with the largest summed staleness is NA-MACRO-ARGUMENTS; the audit stays NATIVE_ATTACK_PENDING until G119 proves it"
+falsification = "10 enforcement mutants killed: corpus record progress, frontier growth, next_attack later, joern closing DATA_FLOW, mlir not required, new checkout, FOUNDATIONAL read as MET, DONOR generation, untyped boundary, stale debt downgraded"
+proof = "PROVEN on the first run (post cf5f0733...)"
+
+[generation.next]
+objective = "G119 (P0): mandatory native attack NA-MACRO-ARGUMENTS (CALL slice)"

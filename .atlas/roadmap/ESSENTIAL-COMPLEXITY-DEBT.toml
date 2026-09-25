@@ -1,28 +1,34 @@
-schema = "atlas.essential-complexity-debt.v1"
+schema = "atlas.essential-complexity-debt.v2"
 canonical = true
 established_in = "G116"
+revised_in = "G118"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
-decision = ".atlas/decisions/0038-essential-complexity-audit.md"
-reaudit = ".atlas/roadmap/DONOR-DECISION-REAUDIT.toml"
-end_state = ".atlas/roadmap/FUTURISM-END-STATE.toml"
+decision = ".atlas/decisions/0040-hard-stop-anti-avoidance.md"
+donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
+end_state = ".atlas/roadmap/FUTURISM-ENGINEERING-END-STATE.toml"
+pressure_map = ".atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml"
+foundational_gate = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml"
 clusters = ".atlas/roadmap/FRONTIER-CAPABILITY-CLUSTERS.toml"
-ages_as_of = "G117"
-review_threshold = 12
-escalation_threshold = 24
+ages_as_of = "G118"
+review_at = 13
+escalate_at = 25
+block_donor_progress_at = 32
 skip_budget = 3
 
-# The essential complexity debt ledger and architecture pressure map (G116 retrospective audit).
-# One [[debt]] per ESSENTIAL capability that is not closed; [[scale_trigger]] for SCALE_TRIGGERED
-# capabilities; [[native_attack]] is the ordered native_attack_queue that preempts donor progression.
-# age_generations / stale_generations are recorded as of `ages_as_of`; the live alarm is recomputed
-# by runtime tests (essential_complexity::*) from the ledger head in GENERATIONS.toml:
-#   stale > review_threshold     -> reviewed_in within review_threshold generations of the head
-#   stale > escalation_threshold -> escalated = true and the debt is queued, blocked by a queued
-#                                   debt, or frozen with an unfreeze_gate
-#   skip budget (3 consecutive non-advancing donor decisions after the last advance, from the
-#   reaudit) -> skip_budget_triggered = true and the same queue obligation.
-# A debt leaves this ledger only as CLOSED with closure_kind NATIVE_SOLUTION,
-# PERMANENT_EXTERNAL_BOUNDARY or PROVEN_ALTERNATIVE and closure evidence that is not a donor decision.
+# REMOVE ACCIDENTAL COMPLEXITY AGGRESSIVELY. CONQUER ESSENTIAL COMPLEXITY DELIBERATELY.
+# NEVER CONFUSE THE TWO.
+#
+# The essential complexity debt ledger (G116, extended by the G118 hard-stop audit). One [[debt]] per
+# ESSENTIAL capability that is not closed; [[scale_trigger]] / [[scale_threshold]] for SCALE_TRIGGERED
+# capabilities; [[native_attack]] is the ordered queue that preempts donor progression.
+# Escalation of an OPEN debt by stale_generations (generations since its last material advance),
+# derived from the ledger: healthy native-attack gap 12 (G62->G74), failure run 32 (G84-G115):
+#   stale < 13 TRACK | >= 13 REVIEW_REQUIRED | >= 25 PRIORITY_ESCALATION | >= 32 BLOCK_NEW_DONOR_PROGRESS
+# Skip budget: 3 consecutive donor decisions after the last advance that leave a debt unchanged.
+# Any OPEN debt at BLOCK_NEW_DONOR_PROGRESS or past its skip budget blocks donor progression
+# (FOUNDATIONAL-ATLAS-READY.toml [donor_progression]); runtime tests recompute every state from the
+# ledger head. A debt leaves the ledger only as CLOSED (NATIVE_SOLUTION, PERMANENT_EXTERNAL_BOUNDARY
+# or PROVEN_ALTERNATIVE) with repository evidence that is not a donor decision.
 
 [[debt]]
 id = "DEBT-CALL"
@@ -32,33 +38,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.5 (pre-ledger; the ledger starts at G35)"
 last_advance_generation = "G79"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 39
 current_state = "OPEN"
 current_maturity = "M3_SINGLE_ENGINE_BOUNDED"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 38
-evidence = "G115 post.json + certificate.json: DERIVED 4331 + OBSERVED 17450 records; obligations UNKNOWN 194, UNSUPPORTED 19"
-current_native_support = "adapter/src/semantic/rust (call walker); engines: 2 (syntactic call sites; native hir-def path + self.m() resolution)"
-known_unknowns = "macro-argument calls; 10,776 method calls without receiver types; trait dispatch; closures and fn pointers"
-donors_examined = ["joern", "rust", "rust-analyzer", "clef"]
-external_boundaries = ["rust:ORACLE"]
-why_still_open = "the method-call residual needs receiver types; five donors (joern, rust, clef, ...) were studied without a native follow-up after G79"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (call walker); engines: 2 (syntactic call sites; native hir-def path + self.m() resolution)"
+current_evidence = "G115 post.json + certificate.json: DERIVED 4331 + OBSERVED 17450 records; obligations UNKNOWN 194, UNSUPPORTED 19"
+known_unknowns = "macro-argument calls; 10,776 method calls without receiver types; trait dispatch; closures and fn pointers"
+known_unsoundness = "dispatch of method calls without receiver types is never claimed, so no unsound resolution; syntactic records inside macro arguments are missing (false negatives)"
+known_blind_spots = "macro-argument calls; 10,776 method calls without receiver types; trait dispatch; closures and fn pointers"
+donors_examined = ["rust-analyzer", "joern", "rust", "clef"]
+mechanisms_rejected = ["joern", "clef"]
+mechanisms_absorbed = ["rust-analyzer"]
+external_boundaries = ["rust:ORACLE"]
+why_open = "the method-call residual needs receiver types; five donors (joern, rust, clef, ...) were studied without a native follow-up after G79"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS, then NA-CALL-TYPE-RESIDUAL"
-next_proof = "CALL obligations UNKNOWN 194 fall; new resolutions SCIP-confirmed"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "CALL obligations UNKNOWN 194 fall; new resolutions SCIP-confirmed"
+falsification_condition = "a call site enumerated by an independent syntax walk that the CALL walker does not record on a file claiming OBSERVED coverage"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "the call graph that impact closure, SelectedDesign roots and AtlasX selection closure need stays partial"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "DERIVED 4331 + OBSERVED 17450 records; obligations UNKNOWN 194, UNSUPPORTED 19"
-p0_engines = "2 (syntactic call sites; native hir-def path + self.m() resolution)"
-p0_oracle = "SCIP pinned oracle (95.1% path-call recall, 0 disagreement)"
-p0_blind_spots = "macro-argument calls; 10,776 method calls without receiver types; trait dispatch; closures and fn pointers"
-p0_closure_mechanism = "per-file exhaustive coverage once macro arguments are walked (NA-MACRO-ARGUMENTS) plus method resolution through receiver types (NA-CALL-TYPE-RESIDUAL); residual UNSUPPORTED enumerated"
 
 [[debt]]
 id = "DEBT-CONTROL_FLOW"
@@ -68,33 +79,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.6 (pre-ledger)"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "G115 post.json + certificate.json: OBSERVED 5849 + INFERRED 23 records; obligations UNKNOWN 97"
-current_native_support = "adapter/src/semantic/rust (control_flow walker); engines: 1 (statement-level CFG walker)"
-known_unknowns = "macro arguments; no split below statement level; no second engine"
-donors_examined = ["joern"]
-external_boundaries = []
-why_still_open = "no native attack since the R4 wave; only joern (REFERENCE_ONLY) was examined"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (control_flow walker); engines: 1 (statement-level CFG walker)"
+current_evidence = "G115 post.json + certificate.json: OBSERVED 5849 + INFERRED 23 records; obligations UNKNOWN 97"
+known_unknowns = "macro arguments; no split below statement level; no second engine"
+known_unsoundness = "statement-level blocks hide intra-expression branching (?, &&, ||, match arms inside expressions); a calling, effecting or state-touching site written only inside macro arguments is invisible"
+known_blind_spots = "macro arguments; no split below statement level; no second engine"
+donors_examined = ["joern"]
+mechanisms_rejected = ["joern"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no native attack since the R4 wave; only joern (REFERENCE_ONLY) was examined"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS"
-next_proof = "CONTROL_FLOW obligations move from UNKNOWN to OBSERVED on files whose macros are all recovered"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "CONTROL_FLOW obligations move from UNKNOWN to OBSERVED on files whose macros are all recovered"
+falsification_condition = "an early-return edge (? inside an expression) absent from the CFG of a function claiming OBSERVED coverage"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "AtlasX bodies (M14) and HIR lowering have no trustworthy CFG"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "OBSERVED 5849 + INFERRED 23 records; obligations UNKNOWN 97"
-p0_engines = "1 (statement-level CFG walker)"
-p0_oracle = "none"
-p0_blind_spots = "macro arguments; no split below statement level; no second engine"
-p0_closure_mechanism = "macro-argument recovery for per-file coverage, then a second independent engine or the rustc MIR ORACLE boundary for reconciliation"
 
 [[debt]]
 id = "DEBT-DATA_FLOW"
@@ -104,33 +120,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.7 (pre-ledger)"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "G115 post.json + certificate.json: OBSERVED 30337 records; obligations UNKNOWN 97"
-current_native_support = "adapter/src/semantic/rust (data_flow walker); engines: 1 (syntactic def-use walker)"
-known_unknowns = "macro arguments; no alias or field-sensitive flow; no second engine"
-donors_examined = ["joern"]
-external_boundaries = []
-why_still_open = "no native attack since the R4 wave"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (data_flow walker); engines: 1 (syntactic def-use walker)"
+current_evidence = "G115 post.json + certificate.json: OBSERVED 30337 records; obligations UNKNOWN 97"
+known_unknowns = "macro arguments; no alias or field-sensitive flow; no second engine"
+known_unsoundness = "format-string implicit captures ({x}) are reads the walker never sees; a calling, effecting or state-touching site written only inside macro arguments is invisible"
+known_blind_spots = "macro arguments; no alias or field-sensitive flow; no second engine"
+donors_examined = ["joern"]
+mechanisms_rejected = ["joern"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no native attack since the R4 wave"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS"
-next_proof = "DATA_FLOW obligations UNKNOWN 97 fall"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "DATA_FLOW obligations UNKNOWN 97 fall"
+falsification_condition = "a def-use pair visible to rustc MIR but absent from DATA_FLOW on a file claiming coverage"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "no lowerable body semantics; impact closure cannot follow values"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "OBSERVED 30337 records; obligations UNKNOWN 97"
-p0_engines = "1 (syntactic def-use walker)"
-p0_oracle = "none"
-p0_blind_spots = "macro arguments; no alias or field-sensitive flow; no second engine"
-p0_closure_mechanism = "macro-argument recovery for per-file coverage, then a second independent engine or the rustc MIR ORACLE boundary"
 
 [[debt]]
 id = "DEBT-STATE"
@@ -140,33 +161,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.8 (pre-ledger)"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "G115 post.json + certificate.json: OBSERVED 309 records; obligations UNKNOWN 97"
-current_native_support = "adapter/src/semantic/rust (state walker); engines: 1"
-known_unknowns = "macro arguments; interior mutability behind method calls; no second engine"
-donors_examined = []
-external_boundaries = []
-why_still_open = "no native attack since the R4 wave"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (state walker); engines: 1"
+current_evidence = "G115 post.json + certificate.json: OBSERVED 309 records; obligations UNKNOWN 97"
+known_unknowns = "macro arguments; interior mutability behind method calls; no second engine"
+known_unsoundness = "interior mutability through method calls (RefCell::borrow_mut, Mutex::lock) is not a STATE access; a calling, effecting or state-touching site written only inside macro arguments is invisible"
+known_blind_spots = "macro arguments; interior mutability behind method calls; no second engine"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no native attack since the R4 wave"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS"
-next_proof = "STATE obligations UNKNOWN 97 fall"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "STATE obligations UNKNOWN 97 fall"
+falsification_condition = "a static or field mutation reachable by rustc MIR but absent from STATE"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "state model of constructed systems (and the Chronica counterfactual) stays unrepresentable"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "OBSERVED 309 records; obligations UNKNOWN 97"
-p0_engines = "1"
-p0_oracle = "none"
-p0_blind_spots = "macro arguments; interior mutability behind method calls; no second engine"
-p0_closure_mechanism = "macro-argument recovery, resolved std interior-mutability paths, then reconciliation"
 
 [[debt]]
 id = "DEBT-EFFECT"
@@ -176,33 +202,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.8 (pre-ledger)"
 last_advance_generation = "G91"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 27
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 26
-evidence = "G115 post.json + certificate.json: DERIVED 385 + INFERRED 363 records; obligations UNKNOWN 194"
-current_native_support = "adapter/src/semantic/rust (effect walker); engines: 2 (spelling candidates; resolved std paths, ADR 0032/0036)"
-known_unknowns = "macro arguments; effects behind non-std crates and trait objects"
-donors_examined = ["iris"]
-external_boundaries = []
-why_still_open = "G77 and G91 advanced it; coverage stays UNKNOWN only because of the shared macro-argument gap"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (effect walker); engines: 2 (spelling candidates; resolved std paths, ADR 0032/0036)"
+current_evidence = "G115 post.json + certificate.json: DERIVED 385 + INFERRED 363 records; obligations UNKNOWN 194"
+known_unknowns = "macro arguments; effects behind non-std crates and trait objects"
+known_unsoundness = "syntactic EFFECT records only panic-like macros (INFERRED by spelling); effects through methods or non-std crates are absent"
+known_blind_spots = "macro arguments; effects behind non-std crates and trait objects"
+donors_examined = ["iris"]
+mechanisms_rejected = []
+mechanisms_absorbed = ["iris"]
+external_boundaries = []
+why_open = "G77 and G91 advanced it; coverage stays UNKNOWN only because of the shared macro-argument gap"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS"
-next_proof = "EFFECT obligations UNKNOWN 194 fall"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "EFFECT obligations UNKNOWN 194 fall"
+falsification_condition = "an effectful std call reached by name resolution but absent from EFFECT"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "effect envelopes of the integrity envelope stay partial"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "PRIORITY_ESCALATION"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "DERIVED 385 + INFERRED 363 records; obligations UNKNOWN 194"
-p0_engines = "2 (spelling candidates; resolved std paths, ADR 0032/0036)"
-p0_oracle = "none"
-p0_blind_spots = "macro arguments; effects behind non-std crates and trait objects"
-p0_closure_mechanism = "macro-argument recovery for per-file coverage; residual effects behind non-std crates enumerated as bounded UNKNOWN"
 
 [[debt]]
 id = "DEBT-OWNERSHIP"
@@ -212,33 +243,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.9 (pre-ledger)"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "G115 post.json + certificate.json: OBSERVED 9012 records; obligations UNKNOWN 97"
-current_native_support = "adapter/src/semantic/rust (ownership walker); engines: 1 (syntactic move/borrow walker)"
-known_unknowns = "macro arguments; implicit reborrows and auto-ref; no second engine"
-donors_examined = ["miri"]
-external_boundaries = []
-why_still_open = "no native attack since the R4 wave; miri examined (REFERENCE_ONLY)"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (ownership walker); engines: 1 (syntactic move/borrow walker)"
+current_evidence = "G115 post.json + certificate.json: OBSERVED 9012 records; obligations UNKNOWN 97"
+known_unknowns = "macro arguments; implicit reborrows and auto-ref; no second engine"
+known_unsoundness = "implicit reborrows and auto-ref are not records; macro-argument borrows (format args take references) are unmodelled"
+known_blind_spots = "macro arguments; implicit reborrows and auto-ref; no second engine"
+donors_examined = ["miri"]
+mechanisms_rejected = ["miri"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no native attack since the R4 wave; miri examined (REFERENCE_ONLY)"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS"
-next_proof = "OWNERSHIP obligations UNKNOWN 97 fall"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "OWNERSHIP obligations UNKNOWN 97 fall"
+falsification_condition = "a move reported by rustc borrowck that OWNERSHIP records as a borrow, or the reverse"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "no ownership truth for lowering or transformation"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "OBSERVED 9012 records; obligations UNKNOWN 97"
-p0_engines = "1 (syntactic move/borrow walker)"
-p0_oracle = "none (rustc borrow checker is the natural ORACLE boundary)"
-p0_blind_spots = "macro arguments; implicit reborrows and auto-ref; no second engine"
-p0_closure_mechanism = "macro-argument recovery, then the rustc borrow checker / MIR as ORACLE boundary for reconciliation"
 
 [[debt]]
 id = "DEBT-CONCURRENCY"
@@ -248,33 +284,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.10 (pre-ledger)"
 last_advance_generation = "G117"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 1
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 0
-evidence = "G115 post.json + certificate.json: DERIVED 2 records (THREAD_SCOPE, G117); obligations UNKNOWN 194"
-current_native_support = "adapter/src/semantic/rust (concurrency walker); engines: 2 (await syntax + spawn spelling; resolved std paths, G117)"
-known_unknowns = "closure bodies (the 2 spawn_scoped and 2 join calls sit inside thread::scope closures); method receivers (lock, send, recv, atomics); macro arguments"
-donors_examined = ["miri"]
-external_boundaries = []
-why_still_open = "G117 observes both scopes, but coverage stays UNKNOWN: closure bodies and method calls are outside both engines"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (concurrency walker); engines: 2 (await syntax + spawn spelling; resolved std paths, G117)"
+current_evidence = "G115 post.json + certificate.json: DERIVED 2 records (THREAD_SCOPE, G117); obligations UNKNOWN 194"
+known_unknowns = "closure bodies (the 2 spawn_scoped and 2 join calls sit inside thread::scope closures); method receivers (lock, send, recv, atomics); macro arguments"
+known_unsoundness = "the spelling engine infers SPAWN from any callee named spawn; only resolved std paths are DERIVED"
+known_blind_spots = "closure bodies (the 2 spawn_scoped and 2 join calls sit inside thread::scope closures); method receivers (lock, send, recv, atomics); macro arguments"
+donors_examined = ["miri"]
+mechanisms_rejected = ["miri"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "G117 observes both scopes, but coverage stays UNKNOWN: closure bodies and method calls are outside both engines"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-MACRO-ARGUMENTS, then NA-CLOSURE-REGIONS (the scoped spawns live in closures)"
-next_proof = "spawn_scoped and join inside the scope closures are attributed; CONCURRENCY obligations UNKNOWN fall"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "spawn_scoped and join inside the scope closures are attributed; CONCURRENCY obligations UNKNOWN fall"
+falsification_condition = "a std concurrency operation SCIP resolves in profile that neither engine records"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "distributed semantics and runtime model have no foundation"
 reviewed_in = "G117"
-escalated = false
+escalation_state = "TRACK"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "DERIVED 2 records (THREAD_SCOPE, G117); obligations UNKNOWN 194"
-p0_engines = "2 (await syntax + spawn spelling; resolved std paths, G117)"
-p0_oracle = "SCIP pinned oracle (2 of 2 THREAD_SCOPE anchors resolve to std thread/scoped/scope(); SCIP sees no other std concurrency operation in the workspace)"
-p0_blind_spots = "closure bodies (the 2 spawn_scoped and 2 join calls sit inside thread::scope closures); method receivers (lock, send, recv, atomics); macro arguments"
-p0_closure_mechanism = "resolved std concurrency paths (thread spawn/scope/Builder, Mutex/RwLock, mpsc, atomics) as the OBSERVED engine beside the spelling engine, then macro-argument recovery"
 
 [[debt]]
 id = "DEBT-PERSISTENCE"
@@ -284,33 +325,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.11 (pre-ledger)"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "G115 post.json + certificate.json: INFERRED 11 records; obligations UNKNOWN 97"
-current_native_support = "adapter/src/semantic/rust (persistence walker); engines: 1 (callee spelling guesses)"
-known_unknowns = "no resolved-API adapter; every record is a spelling guess; macro arguments"
-donors_examined = []
-external_boundaries = []
-why_still_open = "every record is a spelling guess; no resolved-API engine was ever built"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (persistence walker); engines: 1 (callee spelling guesses)"
+current_evidence = "G115 post.json + certificate.json: INFERRED 11 records; obligations UNKNOWN 97"
+known_unknowns = "no resolved-API adapter; every record is a spelling guess; macro arguments"
+known_unsoundness = "every record is a spelling guess (INFERRED); a function named commit is persistence by spelling alone"
+known_blind_spots = "no resolved-API adapter; every record is a spelling guess; macro arguments"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "every record is a spelling guess; no resolved-API engine was ever built"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-PERSISTENCE-RESOLVED"
-next_proof = "PERSISTENCE records from resolved std::fs/std::io paths are DERIVED, spelling guesses remain INFERRED"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "PERSISTENCE records from resolved std::fs/std::io paths are DERIVED, spelling guesses remain INFERRED"
+falsification_condition = "a spelling-guessed PERSISTENCE record whose callee resolves to a non-persistent function"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "no persistence semantics for any constructed system"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "INFERRED 11 records; obligations UNKNOWN 97"
-p0_engines = "1 (callee spelling guesses)"
-p0_oracle = "none"
-p0_blind_spots = "no resolved-API adapter; every record is a spelling guess; macro arguments"
-p0_closure_mechanism = "resolved std::fs / std::io paths as an OBSERVED engine replacing spelling guesses, then macro-argument recovery"
 
 [[debt]]
 id = "DEBT-TYPE"
@@ -320,33 +366,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.3 (pre-ledger; typed in the ledger at G66)"
 last_advance_generation = "G83"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 35
 current_state = "OPEN"
 current_maturity = "M3_SINGLE_ENGINE_BOUNDED"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 34
-evidence = "G115 post.json + certificate.json: DERIVED 1737 + OBSERVED 2957 records; obligations OBSERVED 97, UNKNOWN 97"
-current_native_support = "adapter/src/semantic/rust (type walker); engines: 2 (declarations; canonical type identity through native name resolution)"
-known_unknowns = "inferred types of expressions; generic instantiation; the resolution engine's obligations stay UNKNOWN"
-donors_examined = ["kythe", "rust", "rust-analyzer", "egglog"]
-external_boundaries = ["rust:ORACLE"]
-why_still_open = "the resolution engine covers named types only"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (type walker); engines: 2 (declarations; canonical type identity through native name resolution)"
+current_evidence = "G115 post.json + certificate.json: DERIVED 1737 + OBSERVED 2957 records; obligations OBSERVED 97, UNKNOWN 97"
+known_unknowns = "inferred types of expressions; generic instantiation; the resolution engine's obligations stay UNKNOWN"
+known_unsoundness = "none known: canonical identities are SCIP-confirmed with 0 disagreement"
+known_blind_spots = "inferred types of expressions; generic instantiation; the resolution engine's obligations stay UNKNOWN"
+donors_examined = ["rust-analyzer", "kythe", "rust", "egglog"]
+mechanisms_rejected = ["egglog"]
+mechanisms_absorbed = ["rust-analyzer", "kythe"]
+external_boundaries = ["rust:ORACLE"]
+why_open = "the resolution engine covers named types only"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-CALL-TYPE-RESIDUAL"
-next_proof = "resolution-engine TYPE obligations UNKNOWN 97 fall; SCIP 0 disagreement kept"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "resolution-engine TYPE obligations UNKNOWN 97 fall; SCIP 0 disagreement kept"
+falsification_condition = "a canonical type identity the SCIP oracle contradicts"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "AtlasX TYPES objects and HIR type identity rest on a partial engine"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "DERIVED 1737 + OBSERVED 2957 records; obligations OBSERVED 97, UNKNOWN 97"
-p0_engines = "2 (declarations; canonical type identity through native name resolution)"
-p0_oracle = "SCIP pinned oracle (3,077 agree, 0 disagree)"
-p0_blind_spots = "inferred types of expressions; generic instantiation; the resolution engine's obligations stay UNKNOWN"
-p0_closure_mechanism = "method-receiver type resolution closes the resolution engine's UNKNOWN obligations; SCIP stays the oracle"
 
 [[debt]]
 id = "DEBT-SYMBOL"
@@ -356,33 +407,38 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4.3 (pre-ledger; kythe G67)"
 last_advance_generation = "G67"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 51
 current_state = "OPEN"
 current_maturity = "M3_SINGLE_ENGINE_BOUNDED"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 50
-evidence = "G115 post.json + certificate.json: OBSERVED 4502 records; obligations OBSERVED"
-current_native_support = "adapter/src/semantic/rust (symbol walker); engines: 1"
-known_unknowns = "macro-generated items (declared OUT_OF_PROFILE); certificate MULTI_ENGINE_RECONCILIATION_ABSENT"
-donors_examined = ["scip", "kythe", "sourcetrail"]
-external_boundaries = []
-why_still_open = "multi-engine reconciliation was never attempted after G67"
 required_end_state = "obligations OBSERVED or enumerated bounded residuals on every admitted artifact, reconciled by two engines or an oracle; certificate blockers for this dimension cleared"
+current_support = "adapter/src/semantic/rust (symbol walker); engines: 1"
+current_evidence = "G115 post.json + certificate.json: OBSERVED 4502 records; obligations OBSERVED"
+known_unknowns = "macro-generated items (declared OUT_OF_PROFILE); certificate MULTI_ENGINE_RECONCILIATION_ABSENT"
+known_unsoundness = "none known inside the declared profile"
+known_blind_spots = "macro-generated items (declared OUT_OF_PROFILE); certificate MULTI_ENGINE_RECONCILIATION_ABSENT"
+donors_examined = ["scip", "kythe"]
+mechanisms_rejected = []
+mechanisms_absorbed = ["scip", "kythe"]
+external_boundaries = []
+why_open = "multi-engine reconciliation was never attempted after G67"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY", "SEALED_ATLAS"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "SEALED .atlas (certificate blockers)"]
 blocked_by = []
 next_attack = "NA-SECOND-ENGINE"
-next_proof = "MULTI_ENGINE_RECONCILIATION_ABSENT no longer names SYMBOL"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "MULTI_ENGINE_RECONCILIATION_ABSENT no longer names SYMBOL"
+falsification_condition = "a declaration SCIP defines in profile that SYMBOL omits"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "SelectedDesign root identities rest on one engine"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
-p0_coverage = "OBSERVED 4502 records; obligations OBSERVED"
-p0_engines = "1"
-p0_oracle = "SCIP available but not reconciled per symbol"
-p0_blind_spots = "macro-generated items (declared OUT_OF_PROFILE); certificate MULTI_ENGINE_RECONCILIATION_ABSENT"
-p0_closure_mechanism = "reconcile the declaration engine with the native DefMap (and SCIP as oracle) per symbol so disagreement is explicit CONFLICT"
 
 [[debt]]
 id = "DEBT-DEPENDENCY"
@@ -392,26 +448,36 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "DC1"
 last_advance_generation = "G63"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 55
 current_state = "BOUNDED_RESIDUAL"
 current_maturity = "M3_SINGLE_ENGINE_BOUNDED"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 54
-evidence = "certificate G115: DYNAMIC_DEPENDENCY_OBLIGATIONS 9 (enumerated)"
-current_native_support = "datafrog-derived semi-naive closure (ADR 0004); Cargo metadata adapter"
-known_unknowns = "9 dynamic dependency obligations (build scripts, proc macros, env-dependent inputs)"
-donors_examined = ["datafrog"]
-external_boundaries = []
-why_still_open = "closure is complete except 9 enumerated dynamic obligations"
 required_end_state = "dynamic obligations resolved or permitted by a recorded scope policy"
+current_support = "datafrog-derived semi-naive closure (ADR 0004); Cargo metadata adapter"
+current_evidence = "certificate G115: DYNAMIC_DEPENDENCY_OBLIGATIONS 9 (enumerated)"
+known_unknowns = "9 dynamic dependency obligations (build scripts, proc macros, env-dependent inputs)"
+known_unsoundness = "none known: the 9 dynamic obligations are enumerated, not guessed"
+known_blind_spots = "build scripts, proc macros and environment-dependent inputs (9 obligations)"
+donors_examined = ["datafrog"]
+mechanisms_rejected = []
+mechanisms_absorbed = ["datafrog"]
+external_boundaries = []
+why_open = "closure is complete except 9 enumerated dynamic obligations"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["SEALED_ATLAS"]
 blocking_milestones = ["SEALED .atlas (scoped certificate policy)"]
 blocked_by = []
 next_attack = "NA-SEAL-POLICY records the 9 as permitted residuals or resolves them"
-next_proof = "certificate DYNAMIC_DEPENDENCY_OBLIGATIONS cleared or policy-permitted"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "certificate DYNAMIC_DEPENDENCY_OBLIGATIONS cleared or policy-permitted"
+falsification_condition = "a dependency Cargo resolves that the closure omits"
 deadline_gate = "SEALED .atlas"
 risk_if_deferred = "low: residual is enumerated"
 reviewed_in = "G116"
-escalated = false
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -423,26 +489,36 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "ADR 0003 (pre-ledger)"
 last_advance_generation = "G109"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 9
 current_state = "OPEN"
 current_maturity = "M3_SINGLE_ENGINE_BOUNDED"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 8
-evidence = "G62 provenance completeness (certificate RECONCILED); G109 generation-product match (ADR 0037)"
-current_native_support = "evidence refs on every typed record; origins; clean-HEAD product match"
-known_unknowns = "constructed-product provenance does not exist yet"
-donors_examined = []
-external_boundaries = []
-why_still_open = "provenance covers census products only"
 required_end_state = "provenance chain from intent to constructed artifact and back through recensus"
+current_support = "evidence refs on every typed record; origins; clean-HEAD product match"
+current_evidence = "G62 provenance completeness (certificate RECONCILED); G109 generation-product match (ADR 0037)"
+known_unknowns = "constructed-product provenance does not exist yet"
+known_unsoundness = "none known for census products"
+known_blind_spots = "constructed products have no provenance because none exist"
+donors_examined = ["clair"]
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "provenance covers census products only"
+blocking_priorities = ["P0", "P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["FIRST_ARTIFACT"]
 blocked_by = []
 next_attack = "NA-FIRST-ARTIFACT extends product match to constructed artifacts"
-next_proof = "a constructed artifact's lineage verifies against its .atlasx root"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a constructed artifact's lineage verifies against its .atlasx root"
+falsification_condition = "a typed record without revision or extractor provenance"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "construction without provenance would be unverifiable"
 reviewed_in = "G116"
-escalated = false
+escalation_state = "TRACK"
 skip_budget_triggered = false
 frozen = false
 
@@ -454,26 +530,36 @@ priority = "P0"
 first_observed_generation = "G59"
 first_observed_note = "R6 / certificate v2"
 last_advance_generation = "G117"
+current_generation = "G118"
+age_generations = 59
+stale_generations = 1
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M4_MULTI_ENGINE_RECONCILED"
-age_generations = 58
-stale_generations = 0
-evidence = "certificate G117 MULTI_ENGINE_RECONCILIATION_ABSENT for CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, PERSISTENCE, STATE, SYMBOL (CONCURRENCY left the list at G117)"
-current_native_support = "CALL, TYPE, EFFECT and (G117) CONCURRENCY have two engines"
-known_unknowns = "which dimensions admit an honest second engine versus an ORACLE boundary (rustc MIR)"
-donors_examined = []
-external_boundaries = []
-why_still_open = "no generation targeted it after G83"
 required_end_state = "every P0 dimension has two engines or an oracle, disagreement explicit CONFLICT"
+current_support = "CALL, TYPE, EFFECT and (G117) CONCURRENCY have two engines"
+current_evidence = "certificate G117 MULTI_ENGINE_RECONCILIATION_ABSENT for CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, PERSISTENCE, STATE, SYMBOL (CONCURRENCY left the list at G117)"
+known_unknowns = "which dimensions admit an honest second engine versus an ORACLE boundary (rustc MIR)"
+known_unsoundness = "single-engine dimensions are reported as such (certificate blocker), never as reconciled"
+known_blind_spots = "CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, PERSISTENCE, STATE, SYMBOL have one engine"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no generation targeted it after G83"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["SEALED_ATLAS"]
 blocking_milestones = ["SEALED .atlas"]
 blocked_by = []
 next_attack = "NA-SECOND-ENGINE"
-next_proof = "the certificate's multi-engine blocker list shrinks"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "the certificate's multi-engine blocker list shrinks"
+falsification_condition = "a dimension counted as multi-engine whose second engine emits no record or obligation"
 deadline_gate = "SEALED .atlas"
 risk_if_deferred = "single-engine truth is sealed as if it were reconciled"
 reviewed_in = "G117"
-escalated = false
+escalation_state = "TRACK"
 skip_budget_triggered = false
 frozen = false
 
@@ -485,26 +571,36 @@ priority = "P0"
 first_observed_generation = "G35"
 first_observed_note = "R4 Rust-only extraction profile (pre-ledger); tree-sitter G65 was the first donor"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "PRIORITY.toml P0: JS parsed only, HTML/CSS registered unsupported (UNSUPPORTED 228 facts)"
-current_native_support = "Rust extractor only; JS parse without semantics"
-known_unknowns = "which second language the first constructed artifact needs"
-donors_examined = ["tree-sitter", "clef", "c2rust"]
-external_boundaries = []
-why_still_open = "three donors (tree-sitter, clef, c2rust) left it unchanged; no native extractor was attempted"
 required_end_state = "a second language with the same typed-record contract and obligations"
+current_support = "Rust extractor only; JS parse without semantics"
+current_evidence = "PRIORITY.toml P0: JS parsed only, HTML/CSS registered unsupported (UNSUPPORTED 228 facts)"
+known_unknowns = "which second language the first constructed artifact needs"
+known_unsoundness = "none (non-Rust artifacts are UNSUPPORTED, never guessed)"
+known_blind_spots = "every non-Rust artifact (19 UNSUPPORTED obligations per dimension)"
+donors_examined = ["tree-sitter", "clef", "c2rust", "crubit", "py2many"]
+mechanisms_rejected = ["tree-sitter", "clef", "c2rust"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "three donors (tree-sitter, clef, c2rust) left it unchanged; no native extractor was attempted"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2"]
 blocked_by = []
 next_attack = "NA-MULTILANGUAGE"
-next_proof = "UNSUPPORTED facts fall for the chosen language"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "UNSUPPORTED facts fall for the chosen language"
+falsification_condition = "a non-Rust artifact receiving an OBSERVED semantic obligation without an extractor"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "generated web or TS artifacts can never be recensused semantically"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -516,26 +612,36 @@ priority = "P0"
 first_observed_generation = "G38"
 first_observed_note = "ADR 0002"
 last_advance_generation = "G51"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 67
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 66
-evidence = "G116 ontology lane: product EvidenceBasis + String status, physical evidence_level String, graph f32 confidence (UNIVERSAL-GRAPH forbids), SIMULATED missing from SEMANTIC-FACTS/genome, DYNAMIC named but absent, VALIDATED has four meanings"
-current_native_support = "core EpistemicStatus (10 states incl. SIMULATED)"
-known_unknowns = "whether PREDICTED, COUNTERFACTUAL and FALSIFIED are statuses or record types; MEASURED/CALIBRATED wait for telemetry"
-donors_examined = []
-external_boundaries = []
-why_still_open = "parallel carriers were added per domain and never mapped"
 required_end_state = "every carrier maps onto EpistemicStatus or is a typed record kind; futures states OBSERVED, DERIVED, SIMULATED, PREDICTED, HYPOTHESIZED, COUNTERFACTUAL, FALSIFIED, VALIDATED each have a decided home"
+current_support = "core EpistemicStatus (10 states incl. SIMULATED)"
+current_evidence = "G116 ontology lane: product EvidenceBasis + String status, physical evidence_level String, graph f32 confidence (UNIVERSAL-GRAPH forbids), SIMULATED missing from SEMANTIC-FACTS/genome, DYNAMIC named but absent, VALIDATED has four meanings"
+known_unknowns = "whether PREDICTED, COUNTERFACTUAL and FALSIFIED are statuses or record types; MEASURED/CALIBRATED wait for telemetry"
+known_unsoundness = "graph f32 confidence and product String status bypass the vocabulary (UNIVERSAL-GRAPH forbids a second vocabulary)"
+known_blind_spots = "PREDICTED, COUNTERFACTUAL, FALSIFIED undecided; VALIDATED overloaded"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "parallel carriers were added per domain and never mapped"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 9"]
 blocked_by = []
 next_attack = "NA-EPISTEMIC-UNIFICATION"
-next_proof = "a test rejects any status carrier outside the vocabulary map"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a test rejects any status carrier outside the vocabulary map"
+falsification_condition = "a status carrier outside EpistemicStatus that the vocabulary map does not name"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "futures and physical work fork a second incompatible architecture"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -547,26 +653,36 @@ priority = "P4"
 first_observed_generation = "G35"
 first_observed_note = "R5"
 last_advance_generation = "G40"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 78
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 77
-evidence = "ASIR admission pipeline evaluates the affected impact closure; ADR 0009 chose full recompute (speed, not closure)"
-current_native_support = "semantic diff of recensus (changed entities only)"
-known_unknowns = "edge kinds that propagate impact"
-donors_examined = ["datafrog", "differential-dataflow", "salsa"]
-external_boundaries = []
-why_still_open = "the speed argument (SCALE-INCREMENTAL_RECOMPUTE) was used to close the closure question too (conflated)"
 required_end_state = "transitive affected set of any change, proven equal to the full-recompute diff"
+current_support = "semantic diff of recensus (changed entities only)"
+current_evidence = "ASIR admission pipeline evaluates the affected impact closure; ADR 0009 chose full recompute (speed, not closure)"
+known_unknowns = "edge kinds that propagate impact"
+known_unsoundness = "none (no closure is claimed)"
+known_blind_spots = "transitive dependents of a change are never computed"
+donors_examined = ["datafrog", "salsa", "differential-dataflow"]
+mechanisms_rejected = ["differential-dataflow"]
+mechanisms_absorbed = ["datafrog", "salsa"]
+external_boundaries = []
+why_open = "the speed argument (SCALE-INCREMENTAL_RECOMPUTE) was used to close the closure question too (conflated)"
+blocking_priorities = ["P4"]
+blocking_exit_criteria = ["H_incremental_recensus_with_oracle"]
 blocking_milestones = ["ASIR admission"]
 blocked_by = []
 next_attack = "NA-IMPACT-CLOSURE"
-next_proof = "affected set equals the full-recompute diff on recorded generations"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "affected set equals the full-recompute diff on recorded generations"
+falsification_condition = "an affected set that differs from the full-recompute diff"
 deadline_gate = "ASIR admission"
 risk_if_deferred = "admission cannot bound what a change touches"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -578,26 +694,36 @@ priority = "P2"
 first_observed_generation = "G38"
 first_observed_note = "ADR 0007"
 last_advance_generation = "G42"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 76
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 75
-evidence = "ADR 0007 no SAT consumer; ADR 0010 quantity checks; z3 EXTERNAL_BOUNDARY G108"
-current_native_support = "ground Datalog derivation (souffle, ADR 0003) and ConstraintVerdict"
-known_unknowns = "the first non-ground invariant the seal policy needs"
-donors_examined = ["souffle", "semgrep", "verus", "z3"]
-external_boundaries = ["verus:ORACLE", "z3:PERMANENT_REALITY"]
-why_still_open = "three donors (semgrep, verus, z3) left it unchanged"
 required_end_state = "non-ground invariants over census truth decided natively or through a recorded solver boundary"
+current_support = "ground Datalog derivation (souffle, ADR 0003) and ConstraintVerdict"
+current_evidence = "ADR 0007 no SAT consumer; ADR 0010 quantity checks; z3 EXTERNAL_BOUNDARY G108"
+known_unknowns = "the first non-ground invariant the seal policy needs"
+known_unsoundness = "none known for ground constraints"
+known_blind_spots = "non-ground invariants (for all functions ...) are not expressible"
+donors_examined = ["souffle", "semgrep", "verus", "z3", "openscap"]
+mechanisms_rejected = ["semgrep"]
+mechanisms_absorbed = ["souffle"]
+external_boundaries = ["verus:ORACLE", "z3:PERMANENT_REALITY"]
+why_open = "three donors (semgrep, verus, z3) left it unchanged"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["SEALED_ATLAS"]
 blocking_milestones = ["SEALED .atlas (seal policy invariants)"]
 blocked_by = []
 next_attack = "NA-CONSTRAINT-NONGROUND"
-next_proof = "an invariant over all functions is decided with UNKNOWN when undecidable"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "an invariant over all functions is decided with UNKNOWN when undecidable"
+falsification_condition = "a non-ground invariant decided SATISFIED on a tree with a counterexample"
 deadline_gate = "SEALED .atlas"
 risk_if_deferred = "integrity envelope invariants stay ground-only"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -609,26 +735,36 @@ priority = "P2"
 first_observed_generation = "G64"
 first_observed_note = "ADR 0027"
 last_advance_generation = "G86"
+current_generation = "G118"
+age_generations = 54
+stale_generations = 32
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 53
-stale_generations = 31
-evidence = "GENERATIONS G88: the 81,080 typed records are not in the container; ADR 0027 defers typed records, EVIDENCE and DESIGN sections"
-current_native_support = "unsealed 7-section census container (core/src/atlas)"
-known_unknowns = "section size once typed records are included"
-donors_examined = ["glean", "capnproto", "flatbuffers", "agentir"]
-external_boundaries = []
-why_still_open = "zstd, arrow and agentir called the container consumerless because its consumers (seal gate, materializer) were unbuilt (circular)"
 required_end_state = "typed IDENTITY/TYPE/SYMBOL tables, SEMANTIC_RECORDS, EVIDENCE and DESIGN sections, verified by the reader"
+current_support = "unsealed 7-section census container (core/src/atlas)"
+current_evidence = "GENERATIONS G88: the 81,080 typed records are not in the container; ADR 0027 defers typed records, EVIDENCE and DESIGN sections"
+known_unknowns = "section size once typed records are included"
+known_unsoundness = "the container is explicitly UNSEALED and names what it omits"
+known_blind_spots = "81,000+ typed records, evidence and design are absent from .atlas"
+donors_examined = ["glean", "capnproto", "flatbuffers", "agentir"]
+mechanisms_rejected = ["capnproto", "agentir"]
+mechanisms_absorbed = ["glean", "flatbuffers"]
+external_boundaries = []
+why_open = "zstd, arrow and agentir called the container consumerless because its consumers (seal gate, materializer) were unbuilt (circular)"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["E_atlasx_production_validation", "MIN_ATLASX"]
 blocking_milestones = ["M1 typed-record sections", "MIN_ATLASX"]
 blocked_by = []
 next_attack = "NA-ATLAS-TYPED-SECTIONS"
-next_proof = "atlas pack round-trips every typed record; digest recorded"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "atlas pack round-trips every typed record; digest recorded"
+falsification_condition = "atlas pack loses a typed record that the reader cannot return"
 deadline_gate = "MIN_ATLASX"
 risk_if_deferred = "every later object (SelectedDesign roots, AtlasX selection) has no identities to refer to"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -640,26 +776,36 @@ priority = "P2"
 first_observed_generation = "G38"
 first_observed_note = "VERIFICATION-METRICS contract; proof class first decided G38"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "kani G104 / verus G105 / tlaplus G112: no VerificationEvidence code, so no consumer (circular)"
-current_native_support = "three-valued ConstraintResult (ADR 0007) only"
-known_unknowns = "minimum verification policy per artifact class"
-donors_examined = ["miri", "xdsl", "sigil-lang", "kani", "verus", "tlaplus"]
-external_boundaries = ["kani:ORACLE", "verus:ORACLE", "tlaplus:ORACLE"]
-why_still_open = "six donors examined; its own absence was cited as the reason nothing consumes it"
 required_end_state = "obligation state computed from typed evidence; report consumed by the seal gate"
+current_support = "three-valued ConstraintResult (ADR 0007) only"
+current_evidence = "kani G104 / verus G105 / tlaplus G112: no VerificationEvidence code, so no consumer (circular)"
+known_unknowns = "minimum verification policy per artifact class"
+known_unsoundness = "none (nothing is claimed verified)"
+known_blind_spots = "no obligation-state computation exists"
+donors_examined = ["miri", "xdsl", "sigil-lang", "kani", "verus", "tlaplus"]
+mechanisms_rejected = ["miri", "xdsl", "sigil-lang"]
+mechanisms_absorbed = []
+external_boundaries = ["kani:ORACLE", "verus:ORACLE", "tlaplus:ORACLE"]
+why_open = "six donors examined; its own absence was cited as the reason nothing consumes it"
+blocking_priorities = ["P2", "P6"]
+blocking_exit_criteria = ["SEALED_ATLAS", "FIRST_ARTIFACT"]
 blocking_milestones = ["M2", "SEALED .atlas", "FIRST_ARTIFACT"]
 blocked_by = []
 next_attack = "NA-VERIFICATION-EVIDENCE"
-next_proof = "a SEMANTIC/UNIT/COMPATIBILITY obligation set evaluated for the self scope"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a SEMANTIC/UNIT/COMPATIBILITY obligation set evaluated for the self scope"
+falsification_condition = "an obligation reported SATISFIED without typed evidence"
 deadline_gate = "SEALED .atlas"
 risk_if_deferred = "nothing can be sealed or selected"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -671,26 +817,36 @@ priority = "P2"
 first_observed_generation = "G64"
 first_observed_note = "exit criterion E"
 last_advance_generation = "G64"
+current_generation = "G118"
+age_generations = 54
+stale_generations = 54
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 53
-stale_generations = 53
-evidence = "writer refuses non-UNSEALED (core/src/atlas); no SealPolicy schema; CertificateInputs has no scope permission input"
-current_native_support = "none beyond the unsealed codec"
-known_unknowns = "the seal policy's field set (contract underspecified)"
-donors_examined = ["capnproto", "wasm-spec", "containers-image"]
-external_boundaries = []
-why_still_open = "capnproto, wasm-spec and containers-image each deferred to the unimplemented seal gate"
 required_end_state = "M3 scoped certificate policy + M4 SealPolicy + M8 eligibility + M9 SEALED encoder/reader"
+current_support = "none beyond the unsealed codec"
+current_evidence = "writer refuses non-UNSEALED (core/src/atlas); no SealPolicy schema; CertificateInputs has no scope permission input"
+known_unknowns = "the seal policy's field set (contract underspecified)"
+known_unsoundness = "none (writer refuses SEALED)"
+known_blind_spots = "no seal policy or scoped certificate policy"
+donors_examined = ["capnproto", "wasm-spec", "containers-image"]
+mechanisms_rejected = ["capnproto", "wasm-spec", "containers-image"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "capnproto, wasm-spec and containers-image each deferred to the unimplemented seal gate"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["E_atlasx_production_validation", "SEALED_ATLAS"]
 blocking_milestones = ["M3", "M4", "M8", "M9", "MIN_ATLASX"]
 blocked_by = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-ATLAS_COMPLETENESS"]
 next_attack = "NA-SEAL-POLICY, then NA-SEAL-GATE"
-next_proof = "a SEALED self-scope .atlas whose reader verifies seal and policy identity"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a SEALED self-scope .atlas whose reader verifies seal and policy identity"
+falsification_condition = "a SEALED container produced while a HARD blocker is open"
 deadline_gate = "MIN_ATLASX"
 risk_if_deferred = ".atlasx is permanently blocked"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -702,26 +858,36 @@ priority = "P2"
 first_observed_generation = "G63"
 first_observed_note = "ADR 0026 precursor"
 last_advance_generation = "G63"
+current_generation = "G118"
+age_generations = 55
+stale_generations = 55
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 54
-stale_generations = 54
-evidence = "ARCHITECTURAL-INTEGRITY.md: implementation TARGET; two schemas"
-current_native_support = "member-level declared-vs-observed dependency reconciliation (ADR 0026)"
-known_unknowns = "first HARD invariant set beyond dependencies"
-donors_examined = []
-external_boundaries = []
-why_still_open = "never scheduled after exit E was marked blocked (G65)"
 required_end_state = "pinned invariants + evaluated report, HARD violations fail closed at seal"
+current_support = "member-level declared-vs-observed dependency reconciliation (ADR 0026)"
+current_evidence = "ARCHITECTURAL-INTEGRITY.md: implementation TARGET; two schemas"
+known_unknowns = "first HARD invariant set beyond dependencies"
+known_unsoundness = "none"
+known_blind_spots = "only member-level dependency invariants are checked"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "never scheduled after exit E was marked blocked (G65)"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["SEALED_ATLAS"]
 blocking_milestones = ["M5", "M6", "M8"]
 blocked_by = []
 next_attack = "NA-INTEGRITY-ENVELOPE"
-next_proof = "a seeded HARD violation fails the gate; the clean tree passes"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a seeded HARD violation fails the gate; the clean tree passes"
+falsification_condition = "a seeded HARD violation that the gate passes"
 deadline_gate = "SEALED .atlas"
 risk_if_deferred = "seal binds no architecture"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -733,26 +899,36 @@ priority = "P2"
 first_observed_generation = "G64"
 first_observed_note = "exit criterion E survey"
 last_advance_generation = "G64"
+current_generation = "G118"
+age_generations = 54
+stale_generations = 54
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 53
-stale_generations = 53
-evidence = "SELECTED-DESIGN.md; no schema, no code"
-current_native_support = "none"
-known_unknowns = "authority modes needed for the first scope"
-donors_examined = []
-external_boundaries = []
-why_still_open = "blocked behind .atlas typed records and verification evidence that were never scheduled"
 required_end_state = "SELECTED state with authority event, resolving roots and validation evidence"
+current_support = "none"
+current_evidence = "SELECTED-DESIGN.md; no schema, no code"
+known_unknowns = "authority modes needed for the first scope"
+known_unsoundness = "none"
+known_blind_spots = "no design record, no authority event"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "blocked behind .atlas typed records and verification evidence that were never scheduled"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["E_atlasx_production_validation"]
 blocking_milestones = ["M7", "M8"]
 blocked_by = ["DEBT-ATLAS_COMPLETENESS", "DEBT-VERIFICATION_EVIDENCE"]
 next_attack = "NA-SELECTED-DESIGN"
-next_proof = "selection refuses a design with unresolved roots or missing evidence"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "selection refuses a design with unresolved roots or missing evidence"
+falsification_condition = "a design SELECTED with unresolved roots or without evidence"
 deadline_gate = "MIN_ATLASX"
 risk_if_deferred = "AtlasX has no design to materialize"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -764,26 +940,36 @@ priority = "P2"
 first_observed_generation = "G38"
 first_observed_note = "G42 lane: its only consumer would be itself"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "exit E BLOCKED_ON_PREREQUISITES since G65; G116 dependency graph M10-M13"
-current_native_support = "wire-type id table reused only"
-known_unknowns = "whether the first scope can be architecture-only (member bodies as typed EXTERNAL_BOUNDARY) to keep M14 off the path"
-donors_examined = []
-external_boundaries = []
-why_still_open = "no prerequisite of exit E was attacked from G65 to G115"
 required_end_state = "MIN_ATLASX: validated .atlasx from a SEALED parent"
+current_support = "wire-type id table reused only"
+current_evidence = "exit E BLOCKED_ON_PREREQUISITES since G65; G116 dependency graph M10-M13"
+known_unknowns = "whether the first scope can be architecture-only (member bodies as typed EXTERNAL_BOUNDARY) to keep M14 off the path"
+known_unsoundness = "none"
+known_blind_spots = "no codec, gate, materializer or validator"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no prerequisite of exit E was attacked from G65 to G115"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["E_atlasx_production_validation", "MIN_ATLASX"]
 blocking_milestones = ["M10", "M11", "M12", "M13", "MIN_ATLASX"]
 blocked_by = ["DEBT-SEAL_GATE", "DEBT-SELECTED_DESIGN", "DEBT-INTEGRITY_ENVELOPE"]
 next_attack = "NA-ATLASX-CODEC, then NA-ATLASX-MATERIALIZE"
-next_proof = "validator accepts the materialized .atlasx and rejects a tampered one"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "validator accepts the materialized .atlasx and rejects a tampered one"
+falsification_condition = "a tampered .atlasx the validator accepts"
 deadline_gate = "MIN_ATLASX"
 risk_if_deferred = "construction never starts"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -795,26 +981,36 @@ priority = "P6"
 first_observed_generation = "G38"
 first_observed_note = "COMPILER-IR-SCHEMAS contract"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "COMPILER-IR-SCHEMAS.md; HIR requires atlasx_root_id; five IR donors (mlir, xdsl, duumbi, wasm-spec, wasm-component-model) REFERENCE_ONLY"
-current_native_support = "none"
-known_unknowns = "minimum HIR vocabulary for a first delegated artifact"
-donors_examined = ["mlir", "xdsl", "duumbi", "wasm-spec", "wasm-component-model"]
-external_boundaries = []
-why_still_open = "skip budget exhausted: five donors, no native IR"
 required_end_state = "HIR/MIR records produced from .atlasx with lineage and validation barriers"
+current_support = "none"
+current_evidence = "COMPILER-IR-SCHEMAS.md; HIR requires atlasx_root_id; five IR donors (mlir, xdsl, duumbi, wasm-spec, wasm-component-model) REFERENCE_ONLY"
+known_unknowns = "minimum HIR vocabulary for a first delegated artifact"
+known_unsoundness = "none"
+known_blind_spots = "no HIR/MIR records; census CFG/DF records are relational identities, not lowerable bodies"
+donors_examined = ["mlir", "xdsl", "duumbi", "wasm-spec", "wasm-component-model"]
+mechanisms_rejected = ["mlir", "xdsl", "duumbi", "wasm-spec", "wasm-component-model"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "skip budget exhausted: five donors, no native IR"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["MIN_ATLASX", "FIRST_ARTIFACT"]
 blocked_by = ["DEBT-ATLASX"]
 next_attack = "blocked by DEBT-ATLASX; first HIR slice after NA-ATLASX-MATERIALIZE"
-next_proof = "HIR round-trips its .atlasx root"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "HIR round-trips its .atlasx root"
+falsification_condition = "HIR that does not round-trip its .atlasx root"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "Atlas stays a front end to someone else's compiler"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -826,26 +1022,36 @@ priority = "P6"
 first_observed_generation = "G38"
 first_observed_note = "COMPILER-IR-PIPELINE phase 1"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "genome [compiler] current_phase = 0; composer, llvm, object, regalloc2, mold examined"
-current_native_support = "Creator HTML lowering only (frozen, not from AtlasX)"
-known_unknowns = "projection format of the first artifact (Cargo workspace manifest vs Rust source)"
-donors_examined = ["sigil-lang", "composer", "llvm-project", "regalloc2", "mold"]
-external_boundaries = ["llvm-project:TEMPORARY_UNTIL_NATIVE", "mold:BOOTSTRAP"]
-why_still_open = "skip budget exhausted: five donors, no native lowering"
 required_end_state = "phase-1 delegated backend: validated .atlasx lowered with lineage and recorded toolchain identity"
+current_support = "Creator HTML lowering only (frozen, not from AtlasX)"
+current_evidence = "genome [compiler] current_phase = 0; composer, llvm, object, regalloc2, mold examined"
+known_unknowns = "projection format of the first artifact (Cargo workspace manifest vs Rust source)"
+known_unsoundness = "none"
+known_blind_spots = "no lowering from Atlas truth to any backend input"
+donors_examined = ["sigil-lang", "composer", "llvm-project", "regalloc2", "mold"]
+mechanisms_rejected = ["sigil-lang", "composer", "regalloc2"]
+mechanisms_absorbed = []
+external_boundaries = ["llvm-project:TEMPORARY_UNTIL_NATIVE", "mold:BOOTSTRAP"]
+why_open = "skip budget exhausted: five donors, no native lowering"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["M15", "FIRST_ARTIFACT"]
 blocked_by = ["DEBT-ATLASX"]
 next_attack = "NA-DELEGATED-BACKEND"
-next_proof = "the lowered artifact builds and its lineage maps back to .atlasx objects"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE_ABOVE_EXTERNAL"
+success_condition = "the lowered artifact builds and its lineage maps back to .atlasx objects"
+falsification_condition = "a lowered artifact whose lineage does not map back to .atlasx objects"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "no artifact is ever constructed from Atlas truth"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -857,26 +1063,36 @@ priority = "P6"
 first_observed_generation = "G38"
 first_observed_note = "COMPILER-IR-PIPELINE"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "llvm G96 and wasmtime G100 EXTERNAL_BOUNDARY; object and regalloc2 REFERENCE_ONLY"
-current_native_support = "none"
-known_unknowns = "which boundary (cargo/rustc BOOTSTRAP, LLVM TEMPORARY_UNTIL_NATIVE) the first artifact uses"
-donors_examined = ["llvm-project", "wasm-tools", "wasmtime", "object"]
-external_boundaries = ["llvm-project:TEMPORARY_UNTIL_NATIVE", "wasmtime:PERMANENT_REALITY"]
-why_still_open = "boundaries were decided without an Atlas-side adapter above them"
 required_end_state = "adapter record binding backend identity, IR version and coverage to each artifact"
+current_support = "none"
+current_evidence = "llvm G96 and wasmtime G100 EXTERNAL_BOUNDARY; object and regalloc2 REFERENCE_ONLY"
+known_unknowns = "which boundary (cargo/rustc BOOTSTRAP, LLVM TEMPORARY_UNTIL_NATIVE) the first artifact uses"
+known_unsoundness = "toolchain identity of cargo/rustc builds is not recorded per artifact"
+known_blind_spots = "rustc, cargo and linkers are ambient"
+donors_examined = ["llvm-project", "wasm-tools", "wasmtime", "object"]
+mechanisms_rejected = ["wasm-tools", "object"]
+mechanisms_absorbed = []
+external_boundaries = ["llvm-project:TEMPORARY_UNTIL_NATIVE", "wasmtime:PERMANENT_REALITY"]
+why_open = "boundaries were decided without an Atlas-side adapter above them"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["M15", "FIRST_ARTIFACT"]
 blocked_by = ["DEBT-COMPILER_LOWERING"]
 next_attack = "NA-DELEGATED-BACKEND"
-next_proof = "artifact evidence names the backend adapter and toolchain digest"
+attack_type = "BOUNDARY_ADAPTER"
+native_or_external = "NATIVE_ABOVE_EXTERNAL"
+success_condition = "artifact evidence names the backend adapter and toolchain digest"
+falsification_condition = "an artifact whose evidence omits the backend and toolchain digest"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "hidden toolchain dependency"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -888,26 +1104,36 @@ priority = "P6"
 first_observed_generation = "G35"
 first_observed_note = "AGENT-HOST-EMBEDDED-RUNTIME.md AH1 (pre-ledger)"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "podman G106: no SandboxBackend code exists, so no consumer (circular)"
-current_native_support = "none"
-known_unknowns = "minimum isolation class for self-scope builds (restricted subprocess)"
-donors_examined = ["wasm-tools", "wasmtime", "podman", "nix"]
-external_boundaries = ["wasmtime:PERMANENT_REALITY", "podman:PERMANENT_REALITY"]
-why_still_open = "skip budget exhausted: wasm-tools, wasmtime, podman, nix"
 required_end_state = "restricted-subprocess backend with recorded inputs, then stronger isolation classes"
+current_support = "none"
+current_evidence = "podman G106: no SandboxBackend code exists, so no consumer (circular)"
+known_unknowns = "minimum isolation class for self-scope builds (restricted subprocess)"
+known_unsoundness = "builds and tests run with ambient authority"
+known_blind_spots = "no isolation of candidate construction"
+donors_examined = ["wasm-tools", "wasmtime", "podman", "nix", "selinux"]
+mechanisms_rejected = ["wasm-tools", "nix"]
+mechanisms_absorbed = []
+external_boundaries = ["wasmtime:PERMANENT_REALITY", "podman:PERMANENT_REALITY"]
+why_open = "skip budget exhausted: wasm-tools, wasmtime, podman, nix"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["M16", "FIRST_ARTIFACT"]
 blocked_by = []
 next_attack = "NA-SANDBOX-SUBPROCESS"
-next_proof = "a build in the sandbox cannot read outside its declared inputs (negative test)"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE_ABOVE_EXTERNAL"
+success_condition = "a build in the sandbox cannot read outside its declared inputs (negative test)"
+falsification_condition = "a sandboxed build that reads outside its declared inputs"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "candidate construction runs with ambient authority"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -919,26 +1145,36 @@ priority = "P6"
 first_observed_generation = "G35"
 first_observed_note = "artifact integrity"
 last_advance_generation = "G109"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 9
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 8
-evidence = "ADR 0037 generation-product match (census products only)"
-current_native_support = "BLAKE3 identities; atlas pack root identity"
-known_unknowns = "identity of reproducible vs non-reproducible build outputs"
-donors_examined = ["blake3", "object", "containers-image", "in-toto", "git", "nix"]
-external_boundaries = ["git:PERMANENT_REALITY"]
-why_still_open = "only census products have identity"
 required_end_state = "every constructed artifact bound to its .atlasx root, toolchain and evidence, re-derivable by recensus"
+current_support = "BLAKE3 identities; atlas pack root identity"
+current_evidence = "ADR 0037 generation-product match (census products only)"
+known_unknowns = "identity of reproducible vs non-reproducible build outputs"
+known_unsoundness = "none for census products"
+known_blind_spots = "constructed artifacts have no identity"
+donors_examined = ["blake3", "object", "containers-image", "in-toto", "git", "nix", "keylime"]
+mechanisms_rejected = ["object", "containers-image", "nix"]
+mechanisms_absorbed = ["blake3", "in-toto"]
+external_boundaries = ["git:PERMANENT_REALITY"]
+why_open = "only census products have identity"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["M17", "FIRST_ARTIFACT"]
 blocked_by = []
 next_attack = "NA-FIRST-ARTIFACT"
-next_proof = "recensus of the constructed artifact matches its recorded identity"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "recensus of the constructed artifact matches its recorded identity"
+falsification_condition = "a constructed artifact whose recensus identity differs from its record"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "construction output cannot be verified"
 reviewed_in = "G116"
-escalated = false
+escalation_state = "TRACK"
 skip_budget_triggered = false
 frozen = false
 
@@ -950,26 +1186,36 @@ priority = "P6"
 first_observed_generation = "G71"
 first_observed_note = "ast-grep decision"
 last_advance_generation = "G71"
+current_generation = "G118"
+age_generations = 47
+stale_generations = 47
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 46
-stale_generations = 46
-evidence = "CAPABILITY-ARCHITECTURE transformation flow; openrewrite G113: recipe engine has no consumer because construction change model is TARGET"
-current_native_support = "none"
-known_unknowns = "first transformation class (rename, dependency edit)"
-donors_examined = ["ast-grep", "duumbi", "openrewrite", "c2rust"]
-external_boundaries = []
-why_still_open = "skip budget exhausted: ast-grep, duumbi, openrewrite, c2rust"
 required_end_state = "a verified transformation applied and proven by self-recensus"
+current_support = "none"
+current_evidence = "CAPABILITY-ARCHITECTURE transformation flow; openrewrite G113: recipe engine has no consumer because construction change model is TARGET"
+known_unknowns = "first transformation class (rename, dependency edit)"
+known_unsoundness = "none (no transformation is applied)"
+known_blind_spots = "every self-change is hand-edited"
+donors_examined = ["ast-grep", "duumbi", "openrewrite", "c2rust", "crubit", "py2many"]
+mechanisms_rejected = ["ast-grep", "duumbi", "openrewrite", "c2rust"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "skip budget exhausted: ast-grep, duumbi, openrewrite, c2rust"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["self-building loop R8"]
 blocked_by = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-SANDBOXED_EXECUTION"]
 next_attack = "blocked by DEBT-VERIFICATION_EVIDENCE and DEBT-SANDBOXED_EXECUTION; then NA-TRANSFORMATION"
-next_proof = "a transformation whose verification fails is not applied (negative test)"
-deadline_gate = "FOUNDATIONAL_ATLAS_READY criterion 7"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a transformation whose verification fails is not applied (negative test)"
+falsification_condition = "a transformation applied although its verification failed"
+deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "self-building stays hand-edited"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = true
 frozen = false
 
@@ -981,26 +1227,36 @@ priority = "P2"
 first_observed_generation = "G63"
 first_observed_note = "exit criterion C minimum"
 last_advance_generation = "G63"
+current_generation = "G118"
+age_generations = 55
+stale_generations = 55
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 54
-stale_generations = 54
-evidence = "exit C: external packages, symbols, effects and state are not lowered to ADL"
-current_native_support = "census.adl member-level derivation (ADR 0026)"
-known_unknowns = "ADL syntax for effects and state"
-donors_examined = []
-external_boundaries = []
-why_still_open = "no generation after G63 extended it"
 required_end_state = "ADL declarations reconciled with census for packages, symbols, effects and state"
+current_support = "census.adl member-level derivation (ADR 0026)"
+current_evidence = "exit C: external packages, symbols, effects and state are not lowered to ADL"
+known_unknowns = "ADL syntax for effects and state"
+known_unsoundness = "none"
+known_blind_spots = "symbols, effects, state and external packages are not lowered to ADL"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no generation after G63 extended it"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["C_adl_consumes_census_truth", "FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 3", "M5"]
 blocked_by = []
 next_attack = "NA-ADL-BEYOND-DEPENDENCIES"
-next_proof = "census.adl lowers effect envelopes and the declared/observed check catches a seeded mismatch"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "census.adl lowers effect envelopes and the declared/observed check catches a seeded mismatch"
+falsification_condition = "a declared/observed effect mismatch the reconciliation misses"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "integrity envelope has only dependency invariants"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1012,26 +1268,36 @@ priority = "END_STATE"
 first_observed_generation = "G42"
 first_observed_note = "ADR 0010"
 last_advance_generation = "G42"
+current_generation = "G118"
+age_generations = 76
+stale_generations = 76
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 75
-stale_generations = 75
-evidence = "core/src/quantity: torque and energy cannot be told apart; affine units rejected; physical/product IRs emit side JSON never entering graph, certificate or .atlas"
-current_native_support = "dimensional Quantity with exact rationals"
-known_unknowns = "quantity-kind lattice"
-donors_examined = []
-external_boundaries = []
-why_still_open = "the Physical and Product domains were frozen and the core primitive froze with them"
 required_end_state = "Quantity with kind carried by typed records and graph attributes; side reports enter the core"
+current_support = "dimensional Quantity with exact rationals"
+current_evidence = "core/src/quantity: torque and energy cannot be told apart; affine units rejected; physical/product IRs emit side JSON never entering graph, certificate or .atlas"
+known_unknowns = "quantity-kind lattice"
+known_unsoundness = "torque and energy share a dimension and compare equal"
+known_blind_spots = "Quantity never enters typed records, graph, certificate or .atlas"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "the Physical and Product domains were frozen and the core primitive froze with them"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 9"]
 blocked_by = []
 next_attack = "NA-QUANTITY-IN-CORE"
-next_proof = "torque and energy are distinct kinds; a physical fact reaches the graph"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "torque and energy are distinct kinds; a physical fact reaches the graph"
+falsification_condition = "torque compared equal to energy after the attack"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "a second, incompatible physical architecture grows beside the core"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1043,26 +1309,36 @@ priority = "END_STATE"
 first_observed_generation = "G42"
 first_observed_note = "units lane"
 last_advance_generation = "G42"
+current_generation = "G118"
+age_generations = 76
+stale_generations = 76
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 75
-stale_generations = 75
-evidence = "three incompatible carriers: product Interval<Rational> (money only), visual f64, graph f32"
-current_native_support = "money interval only"
-known_unknowns = "interval vs distribution representation"
-donors_examined = []
-external_boundaries = []
-why_still_open = "frozen with its domains"
 required_end_state = "one uncertainty carrier on Quantity and predictions"
+current_support = "money interval only"
+current_evidence = "three incompatible carriers: product Interval<Rational> (money only), visual f64, graph f32"
+known_unknowns = "interval vs distribution representation"
+known_unsoundness = "physical values drop from Rational to f64 without an epistemic marker"
+known_blind_spots = "no tolerance or uncertainty carrier on Quantity"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "frozen with its domains"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["PREDICT", "SIMULATE"]
 blocked_by = []
 next_attack = "with NA-QUANTITY-IN-CORE"
-next_proof = "interval arithmetic propagates through a derived quantity"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "interval arithmetic propagates through a derived quantity"
+falsification_condition = "a derived quantity whose interval does not contain the exact result"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "predictions carry no honest confidence"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1074,26 +1350,36 @@ priority = "END_STATE"
 first_observed_generation = "G38"
 first_observed_note = "futures lanes"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M0_ABSENT"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "graph edges carry kind: String; causal_reasoning ABSENT"
-current_native_support = "none"
-known_unknowns = "relation schema with cardinality and ownership"
-donors_examined = []
-external_boundaries = []
-why_still_open = "futures frozen"
 required_end_state = "typed relation kinds incl. causal, with cardinality and ownership"
+current_support = "none"
+current_evidence = "graph edges carry kind: String; causal_reasoning ABSENT"
+known_unknowns = "relation schema with cardinality and ownership"
+known_unsoundness = "none claimed"
+known_blind_spots = "relations are strings; no causal kind"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "futures frozen"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["PREDICT", "COUNTERFACTUAL"]
 blocked_by = ["DEBT-EPISTEMIC_UNIFICATION"]
 next_attack = "blocked by DEBT-EPISTEMIC_UNIFICATION"
-next_proof = "an untyped relation kind is rejected"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "an untyped relation kind is rejected"
+falsification_condition = "an untyped relation kind accepted by the graph"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "relations (social, causal, permission) stay strings"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1105,26 +1391,36 @@ priority = "END_STATE"
 first_observed_generation = "G38"
 first_observed_note = "VERIFICATION-METRICS Workload/FailureScenario"
 last_advance_generation = "G38"
+current_generation = "G118"
+age_generations = 80
+stale_generations = 80
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 79
-stale_generations = 79
-evidence = "contract only; persistence is spelling guesses"
-current_native_support = "none"
-known_unknowns = "consistency model vocabulary"
-donors_examined = []
-external_boundaries = []
-why_still_open = "depends on CONCURRENCY and PERSISTENCE which were never closed"
 required_end_state = "typed consistency and failure semantics over concurrency and persistence truth"
+current_support = "none"
+current_evidence = "contract only; persistence is spelling guesses"
+known_unknowns = "consistency model vocabulary"
+known_unsoundness = "none claimed"
+known_blind_spots = "no consistency, replication or failure model"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "depends on CONCURRENCY and PERSISTENCE which were never closed"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["DISTRIBUTED domain"]
 blocked_by = ["DEBT-CONCURRENCY", "DEBT-PERSISTENCE"]
 next_attack = "blocked by DEBT-CONCURRENCY and DEBT-PERSISTENCE"
-next_proof = "a replication claim is checked against persistence records"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a replication claim is checked against persistence records"
+falsification_condition = "a replication claim unchecked against persistence records"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "distributed systems cannot be modelled"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1136,26 +1432,36 @@ priority = "END_STATE"
 first_observed_generation = "G35"
 first_observed_note = "capability module"
 last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
 current_state = "OPEN"
 current_maturity = "M1_CONTRACT_ONLY"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 82
-stale_generations = 82
-evidence = "typed_id covers code and artifact ids only; capability module grants no authority; SelectedDesign needs an authority event"
-current_native_support = "none"
-known_unknowns = "authority modes"
-donors_examined = ["wasm-component-model"]
-external_boundaries = []
-why_still_open = "no consumer until SelectedDesign"
 required_end_state = "principals and authority events typed and bound to selections and admissions"
+current_support = "none"
+current_evidence = "typed_id covers code and artifact ids only; capability module grants no authority; SelectedDesign needs an authority event"
+known_unknowns = "authority modes"
+known_unsoundness = "none claimed"
+known_blind_spots = "no principal, actor, tenant or authority event"
+donors_examined = ["wasm-component-model", "keycloak"]
+mechanisms_rejected = ["wasm-component-model"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "no consumer until SelectedDesign"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["E_atlasx_production_validation"]
 blocking_milestones = ["M7"]
 blocked_by = []
 next_attack = "with NA-SELECTED-DESIGN (selection authority event)"
-next_proof = "a selection without an authority event is rejected"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a selection without an authority event is rejected"
+falsification_condition = "a selection or admission accepted without an authority event"
 deadline_gate = "MIN_ATLASX"
 risk_if_deferred = "selection and admission are unaccountable"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1167,26 +1473,36 @@ priority = "END_STATE"
 first_observed_generation = "G50"
 first_observed_note = "ADR 0018"
 last_advance_generation = "G52"
+current_generation = "G118"
+age_generations = 68
+stale_generations = 66
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 67
-stale_generations = 65
-evidence = "Creator genome search (ADR 0018/0020) only, frozen workload"
-current_native_support = "visual Pareto front"
-known_unknowns = "candidate representation outside Creator"
-donors_examined = ["egglog"]
-external_boundaries = []
-why_still_open = "frozen with Futures x Creator"
 required_end_state = "candidates over .atlas designs compared and handed to selection"
+current_support = "visual Pareto front"
+current_evidence = "Creator genome search (ADR 0018/0020) only, frozen workload"
+known_unknowns = "candidate representation outside Creator"
+known_unsoundness = "none claimed outside Creator"
+known_blind_spots = "no candidate designs over .atlas"
+donors_examined = ["egglog"]
+mechanisms_rejected = ["egglog"]
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "frozen with Futures x Creator"
+blocking_priorities = ["P2"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["M7"]
 blocked_by = ["DEBT-SELECTED_DESIGN"]
 next_attack = "blocked by DEBT-SELECTED_DESIGN"
-next_proof = "two candidates compared with explicit criteria"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "two candidates compared with explicit criteria"
+falsification_condition = "a selection among fewer than two compared candidates"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "selection has one candidate by construction"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1198,26 +1514,36 @@ priority = "END_STATE"
 first_observed_generation = "G51"
 first_observed_note = "ADR 0002 amendment"
 last_advance_generation = "G55"
+current_generation = "G118"
+age_generations = 67
+stale_generations = 63
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 66
-stale_generations = 62
-evidence = "browser instrument (G54/G55) only; telemetry ABSENT; MEASURED waits for its first consumer"
-current_native_support = "BrowserInstrument"
-known_unknowns = "first observable constructed artifact"
-donors_examined = []
-external_boundaries = []
-why_still_open = "nothing is constructed to observe"
 required_end_state = "runtime behaviour of a constructed artifact returns as typed MEASURED facts"
+current_support = "BrowserInstrument"
+current_evidence = "browser instrument (G54/G55) only; telemetry ABSENT; MEASURED waits for its first consumer"
+known_unknowns = "first observable constructed artifact"
+known_unsoundness = "OBSERVED conflates source extraction with measurement"
+known_blind_spots = "no telemetry, MEASURED or CALIBRATED"
+donors_examined = ["ladybird"]
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = ["ladybird:PERMANENT_REALITY"]
+why_open = "nothing is constructed to observe"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
 blocking_milestones = ["FIRST_ARTIFACT"]
 blocked_by = ["DEBT-ARTIFACT_IDENTITY"]
 next_attack = "blocked by DEBT-ARTIFACT_IDENTITY"
-next_proof = "a measured fact of a constructed artifact enters recensus"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a measured fact of a constructed artifact enters recensus"
+falsification_condition = "a measured fact of a constructed artifact that recensus cannot reproduce"
 deadline_gate = "FIRST_ARTIFACT"
 risk_if_deferred = "recensus stays source-diff only"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1229,26 +1555,36 @@ priority = "END_STATE"
 first_observed_generation = "G51"
 first_observed_note = "ADR 0019"
 last_advance_generation = "G51"
+current_generation = "G118"
+age_generations = 67
+stale_generations = 67
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 66
-stale_generations = 66
-evidence = "one 2R arm RK4 with BLAKE3 run identity (core/src/physical/dynamics.rs); f64 without epistemic marker"
-current_native_support = "dynamics.rs"
-known_unknowns = "continuous-time state primitive"
-donors_examined = []
-external_boundaries = []
-why_still_open = "frozen with PHYSICAL"
 required_end_state = "simulation runs over core quantities with SIMULATED status and uncertainty"
+current_support = "dynamics.rs"
+current_evidence = "one 2R arm RK4 with BLAKE3 run identity (core/src/physical/dynamics.rs); f64 without epistemic marker"
+known_unknowns = "continuous-time state primitive"
+known_unsoundness = "simulation values are f64 without uncertainty"
+known_blind_spots = "one 2R arm only; no continuous-time primitive in the core"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "frozen with PHYSICAL"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["SIMULATE"]
 blocked_by = ["DEBT-QUANTITY_UNITS"]
 next_attack = "blocked by DEBT-QUANTITY_UNITS"
-next_proof = "a simulated quantity carries SIMULATED status and uncertainty"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a simulated quantity carries SIMULATED status and uncertainty"
+falsification_condition = "a SIMULATED quantity without run identity or uncertainty"
 deadline_gate = "FOUNDATIONAL_ATLAS_READY"
 risk_if_deferred = "simulation stays a domain island"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = false
 
@@ -1260,29 +1596,121 @@ priority = "END_STATE"
 first_observed_generation = "G51"
 first_observed_note = "PHYSICAL-ENGINEERING.md"
 last_advance_generation = "G51"
+current_generation = "G118"
+age_generations = 67
+stale_generations = 67
 current_state = "OPEN"
 current_maturity = "M2_PARTIAL"
 required_maturity = "M5_CLOSED_WITH_ORACLE"
-age_generations = 66
-stale_generations = 66
-evidence = "G116 ontology lane: no geometry, material properties, inertia type, thermal model, nets, sensors, frames or spatial scope"
-current_native_support = "PlanarArm, Motor, Rail"
-known_unknowns = "which primitives the first physical scope needs"
-donors_examined = []
-external_boundaries = []
-why_still_open = "PHYSICAL frozen at G57 (secondary workload)"
 required_end_state = "core physical primitives expressed through core Quantity and scope"
+current_support = "PlanarArm, Motor, Rail"
+current_evidence = "G116 ontology lane: no geometry, material properties, inertia type, thermal model, nets, sensors, frames or spatial scope"
+known_unknowns = "which primitives the first physical scope needs"
+known_unsoundness = "none claimed"
+known_blind_spots = "geometry, materials, inertia, thermal, nets, sensors, frames absent"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "PHYSICAL frozen at G57 (secondary workload)"
+blocking_priorities = ["P0"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
 blocking_milestones = ["FABRICATE"]
 blocked_by = []
 next_attack = "frozen until its unfreeze gate"
-next_proof = "a physical entity round-trips through the graph"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "a physical entity round-trips through the graph"
+falsification_condition = "a physical entity that cannot round-trip through the graph"
 deadline_gate = "unfreeze gate"
 risk_if_deferred = "physical work later forks the architecture"
 reviewed_in = "G116"
-escalated = true
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
 skip_budget_triggered = false
 frozen = true
 unfreeze_gate = "FOUNDATIONAL_ATLAS_READY MET and NA-QUANTITY-IN-CORE done"
+
+[[debt]]
+id = "DEBT-RESOURCE"
+capability = "RESOURCE semantic dimension: acquisition, lifetime and release of handles, memory, locks and external resources"
+class = "ESSENTIAL"
+priority = "P0"
+first_observed_generation = "G118"
+first_observed_note = "G118 audit: SemanticDimension has no RESOURCE; OWNERSHIP records moves and borrows, PERSISTENCE durable identity, neither acquisition/release"
+last_advance_generation = "G118"
+current_generation = "G118"
+age_generations = 0
+stale_generations = 0
+current_state = "OPEN"
+current_maturity = "M0_ABSENT"
+required_maturity = "M5_CLOSED_WITH_ORACLE"
+required_end_state = "typed acquire/release/lifetime records with Drop-derived release points, reconciled against OWNERSHIP"
+current_support = "none"
+current_evidence = "core/src/semantic/mod.rs SemanticDimension (12 dimensions, no RESOURCE); SEMANTIC-FACTS.md names durable resource identity only under persistence"
+known_unknowns = "whether RAII drop points are derivable from OWNERSHIP plus TYPE"
+known_unsoundness = "absent: nothing is claimed"
+known_blind_spots = "every acquisition and release"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "never named as a dimension; construction and physical domains both need resource semantics"
+blocking_priorities = ["P0", "P6"]
+blocking_exit_criteria = ["FOUNDATIONAL_ATLAS_READY"]
+blocking_milestones = ["FOUNDATIONAL_ATLAS_READY criterion 2", "M14"]
+blocked_by = []
+next_attack = "NA-RESOURCE-DIMENSION"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "File/Mutex guard acquisition and scope-end release recorded for the self-census"
+falsification_condition = "a guard acquisition in profile without a RESOURCE record after the attack"
+deadline_gate = "FOUNDATIONAL_ATLAS_READY"
+risk_if_deferred = "construction IR and physical models get no resource semantics; leaks and double release are unrepresentable"
+reviewed_in = "G118"
+escalation_state = "TRACK"
+skip_budget_triggered = false
+frozen = false
+
+[[debt]]
+id = "DEBT-CONSTRUCTION_TRANSACTION"
+capability = "construction transactions (ACP operations, AdmissionTransaction) over candidate state"
+class = "ESSENTIAL"
+priority = "P6"
+first_observed_generation = "G35"
+first_observed_note = "ADMISSION-TRANSACTION.md and ASIR admission pipeline (pre-ledger)"
+last_advance_generation = "G35"
+current_generation = "G118"
+age_generations = 83
+stale_generations = 83
+current_state = "OPEN"
+current_maturity = "M1_CONTRACT_ONLY"
+required_maturity = "M5_CLOSED_WITH_ORACLE"
+required_end_state = "typed operations decoded, checked (type, semantic, architectural, security, obligation) and committed atomically with authority"
+current_support = "self-recensus prove (post-hoc admission of a whole generation)"
+current_evidence = ".atlas/schemas/atlas-construction-operation.schema.json exists; decode and admission are TARGET; analogues: recensus prove, CodingAdmission"
+known_unknowns = "minimum operation set for a first construction"
+known_unsoundness = "none"
+known_blind_spots = "no operation decoding or atomic admission"
+donors_examined = []
+mechanisms_rejected = []
+mechanisms_absorbed = []
+external_boundaries = []
+why_open = "blocked behind ASIR and AtlasX; never scheduled"
+blocking_priorities = ["P6"]
+blocking_exit_criteria = ["FIRST_ARTIFACT"]
+blocking_milestones = ["ASIR admission"]
+blocked_by = ["DEBT-ATLASX"]
+next_attack = "blocked by DEBT-ATLASX; first operation decoder after MIN_ATLASX"
+attack_type = "NATIVE_IMPLEMENTATION"
+native_or_external = "NATIVE"
+success_condition = "an operation violating an invariant is rejected and leaves state unchanged"
+falsification_condition = "a rejected operation that leaves partial state"
+deadline_gate = "FIRST_ARTIFACT"
+risk_if_deferred = "construction mutates state without atomic admission"
+reviewed_in = "G118"
+escalation_state = "BLOCK_NEW_DONOR_PROGRESS"
+skip_budget_triggered = false
+frozen = false
 
 [[scale_trigger]]
 id = "SCALE-INCREMENTAL_RECOMPUTE"
@@ -1292,6 +1720,7 @@ trigger = "full release recensus > 30 s OR census artifacts > 10000 OR median ch
 current_measurement = "full recensus runs in seconds at 118 artifacts (G115)"
 history = "salsa memo absorbed G115; invalidation REFERENCE_ONLY"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
 [[scale_trigger]]
 id = "SCALE-COMPRESSION"
@@ -1301,6 +1730,7 @@ trigger = "an .atlas is published or transmitted OR container > 64 MB"
 current_measurement = "unpublished local container"
 history = "zstd G87 bounded ZSTD section profile"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
 [[scale_trigger]]
 id = "SCALE-COLUMNAR"
@@ -1310,6 +1740,7 @@ trigger = "one record family > 10000000 records OR a section > 1 GB after codec"
 current_measurement = "largest family ~30,000 records"
 history = "arrow G88 codec before columnar"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
 [[scale_trigger]]
 id = "SCALE-SHARDING"
@@ -1319,6 +1750,7 @@ trigger = "container > 4 GB OR a scope spans > 1 repository with independent rev
 current_measurement = "one repository, one container"
 history = "ADR 0027 deferral"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
 [[scale_trigger]]
 id = "SCALE-ZERO_COPY"
@@ -1328,6 +1760,7 @@ trigger = "container load > 2 s AND > 10 percent of recensus time"
 current_measurement = "load well under one second"
 history = "rkyv G85"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
 [[scale_trigger]]
 id = "SCALE-BRANCHING"
@@ -1337,6 +1770,7 @@ trigger = ">= 2 CandidateWorkspaces open concurrently"
 current_measurement = "0 CandidateWorkspaces exist"
 history = "buck2 G81 DEFERRED (AIF1)"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
 [[scale_trigger]]
 id = "SCALE-DISTRIBUTED_EXECUTION"
@@ -1346,20 +1780,94 @@ trigger = "single-host recensus > 600 s OR > 3 admitted repositories"
 current_measurement = "one host, one repository"
 history = "none"
 counterfactual = "EXPLICIT_TRIGGER"
+status = "NOT_FIRED"
 
-# The ordered native_attack_queue. Position 1 is the next generation (PRIORITY.toml
-# next_native_attack). Order: the census-closure P0 attacks the certificate needs, with the
-# construction co-frontier nodes that do not depend on them (M1 typed sections, M2 verification
-# evidence) interleaved, then the critical path M3..M17 to MIN_ATLASX and FIRST_ARTIFACT, then
-# the remaining essential debts. A native attack may study donor evidence (Rule A); it may not
-# end as a donor decision without a native change.
+# P4 as mechanically evaluable thresholds (G118). Incremental recensus itself: the affected-impact
+# closure is ESSENTIAL (DEBT-IMPACT_CLOSURE); recompute speed is SCALE_TRIGGERED. Totals scale with
+# the measured 10.45 s whole-release recensus at G115 (graph 85,813 nodes); 30 s is about 3x, so the
+# census-size thresholds sit at about 3x the G115 totals. source post.json:<key> is evaluated by the
+# tests against the ledger head post-change census; a crossed threshold requires status FIRED.
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "artifacts"
+source = "post.json:artifacts"
+threshold = 350
+current = "118 at G115"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "typed_records"
+source = "post.json:typed_records"
+threshold = 250000
+current = "81,276 at G115"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "graph_nodes"
+source = "post.json:graph_nodes"
+threshold = 260000
+current = "85,813 at G115"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "graph_edges"
+source = "post.json:graph_edges"
+threshold = 340000
+current = "113,368 at G115"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "full_recensus_wall_seconds"
+source = "measured:release systemize"
+threshold = 30
+current = "10.45 s cold at G115 (campaign/05-salsa.json)"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "edit_loop_latency_seconds"
+source = "measured:recensus per edit"
+threshold = 10
+current = "about 9-10 s at G115"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "median_changed_paths_percent"
+source = "measured:changed census paths per generation"
+threshold = 10
+current = "median 1 of 118 (0.8 percent) G86-G114"
+
+[[scale_threshold]]
+trigger = "SCALE-BRANCHING"
+metric = "concurrent_candidate_workspaces"
+source = "measured:open CandidateWorkspaces"
+threshold = 2
+current = "0"
+
+[[scale_threshold]]
+trigger = "SCALE-DISTRIBUTED_EXECUTION"
+metric = "admitted_repositories"
+source = "measured:repositories in census scope"
+threshold = 4
+current = "1"
+
+[[scale_threshold]]
+trigger = "SCALE-INCREMENTAL_RECOMPUTE"
+metric = "telemetry_events_per_second"
+source = "measured:admitted continuous telemetry sources"
+threshold = 1
+current = "0 (no telemetry)"
+
+# The ordered native_attack_queue. Position 1 is the next generation (PRIORITY.toml next_native_attack).
+# bounded = the attack fits one generation. Selection after an audit (Rule B): the bounded attack with
+# the largest summed stale_generations over its OPEN debts (pressure) -- recorded in the pressure map.
 [[native_attack]]
 position = 1
 id = "NA-MACRO-ARGUMENTS"
 priority = "P0"
 debts = ["DEBT-CALL", "DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY", "DEBT-PERSISTENCE"]
 objective = "walk macro-invocation arguments that parse as expression lists in all eight expression walkers; per-file coverage OBSERVED when every macro in the file is recovered, the rest enumerated"
-planned_generation = "G118"
+planned_generation = "G119"
+bounded = true
 
 [[native_attack]]
 position = 2
@@ -1368,6 +1876,7 @@ priority = "P0"
 debts = ["DEBT-CALL", "DEBT-CONCURRENCY", "DEBT-EFFECT", "DEBT-DATA_FLOW", "DEBT-OWNERSHIP", "DEBT-STATE", "DEBT-CONTROL_FLOW"]
 objective = "executable-region identity for closure bodies so their calls, effects and concurrency (the scoped spawns found at G117; 1,476 calls measured at G74) are attributed instead of excluded"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 3
@@ -1376,6 +1885,7 @@ priority = "P0"
 debts = ["DEBT-PERSISTENCE", "DEBT-STATE"]
 objective = "PERSISTENCE from resolved std::fs / std::io paths replacing spelling guesses"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 4
@@ -1384,6 +1894,7 @@ priority = "P2"
 debts = ["DEBT-ATLAS_COMPLETENESS"]
 objective = "M1: typed identity/type/symbol tables and SEMANTIC_RECORDS, EVIDENCE sections in .atlas (first missing node of the critical path)"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 5
@@ -1392,6 +1903,7 @@ priority = "P2"
 debts = ["DEBT-VERIFICATION_EVIDENCE"]
 objective = "M2: typed VerificationObligation/Evidence/Report and a minimal library-class policy"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 6
@@ -1400,6 +1912,7 @@ priority = "P0"
 debts = ["DEBT-MULTI_ENGINE", "DEBT-SYMBOL", "DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-OWNERSHIP", "DEBT-STATE"]
 objective = "second engine or ORACLE boundary (SCIP for SYMBOL; rustc MIR for flow and ownership) per single-engine dimension"
 planned_generation = "queued"
+bounded = false
 
 [[native_attack]]
 position = 7
@@ -1408,6 +1921,7 @@ priority = "P0"
 debts = ["DEBT-CALL", "DEBT-TYPE"]
 objective = "method-call resolution through receiver types; closes the resolution engine's TYPE obligations"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 8
@@ -1416,6 +1930,7 @@ priority = "P0"
 debts = ["DEBT-EPISTEMIC_UNIFICATION"]
 objective = "map every status/confidence carrier onto EpistemicStatus or a typed record kind; decide futures states"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 9
@@ -1424,6 +1939,7 @@ priority = "P2"
 debts = ["DEBT-ADL_BEYOND_DEPENDENCIES"]
 objective = "lower external packages, effects and state from census into ADL and reconcile"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 10
@@ -1432,6 +1948,7 @@ priority = "P2"
 debts = ["DEBT-INTEGRITY_ENVELOPE"]
 objective = "M5/M6: envelope record and report evaluator"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 11
@@ -1440,6 +1957,7 @@ priority = "P2"
 debts = ["DEBT-SEAL_GATE", "DEBT-DEPENDENCY"]
 objective = "M3/M4: scoped certificate policy and SealPolicy record"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 12
@@ -1448,6 +1966,7 @@ priority = "P2"
 debts = ["DEBT-SELECTED_DESIGN", "DEBT-IDENTITY_AUTHORITY"]
 objective = "M7: SelectedDesign record, schema and selection authority event"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 13
@@ -1456,6 +1975,7 @@ priority = "P2"
 debts = ["DEBT-SEAL_GATE"]
 objective = "M8/M9: seal eligibility gate and SEALED encoder/reader"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 14
@@ -1464,6 +1984,7 @@ priority = "P2"
 debts = ["DEBT-ATLASX"]
 objective = "M12: .atlasx object codec"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 15
@@ -1472,6 +1993,7 @@ priority = "P2"
 debts = ["DEBT-ATLASX"]
 objective = "M10/M11/M13: precondition gate, materializer, validator -> MIN_ATLASX"
 planned_generation = "queued"
+bounded = false
 
 [[native_attack]]
 position = 16
@@ -1480,6 +2002,7 @@ priority = "P6"
 debts = ["DEBT-SANDBOXED_EXECUTION"]
 objective = "M16: restricted-subprocess SandboxBackend with recorded inputs"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 17
@@ -1488,6 +2011,7 @@ priority = "P6"
 debts = ["DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER"]
 objective = "M15: phase-1 delegated backend from .atlasx with lineage and toolchain identity"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 18
@@ -1496,6 +2020,7 @@ priority = "P6"
 debts = ["DEBT-ARTIFACT_IDENTITY", "DEBT-PROVENANCE"]
 objective = "M17: constructed-artifact identity, evidence and recensus -> FIRST_ARTIFACT"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 19
@@ -1504,6 +2029,7 @@ priority = "P6"
 debts = ["DEBT-TRANSFORMATION"]
 objective = "first verified transformation applied and proven by self-recensus"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 20
@@ -1512,6 +2038,7 @@ priority = "P2"
 debts = ["DEBT-CONSTRAINT_REASONING"]
 objective = "first non-ground invariant decided with three-valued verdict"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 21
@@ -1520,6 +2047,7 @@ priority = "P0"
 debts = ["DEBT-QUANTITY_UNITS", "DEBT-UNCERTAINTY"]
 objective = "Quantity with kind and uncertainty carried by core records and graph"
 planned_generation = "queued"
+bounded = true
 
 [[native_attack]]
 position = 22
@@ -1528,6 +2056,7 @@ priority = "P0"
 debts = ["DEBT-MULTILANGUAGE"]
 objective = "second-language semantic extractor under the same obligation contract"
 planned_generation = "queued"
+bounded = false
 
 [[native_attack]]
 position = 23
@@ -1536,79 +2065,23 @@ priority = "P4"
 debts = ["DEBT-IMPACT_CLOSURE"]
 objective = "affected-impact closure proven equal to the full-recompute diff"
 planned_generation = "queued"
+bounded = true
 
-# Completed native attacks, kept as the record of what each generation advanced.
+[[native_attack]]
+position = 24
+id = "NA-RESOURCE-DIMENSION"
+priority = "P0"
+debts = ["DEBT-RESOURCE"]
+objective = "RESOURCE dimension: std guard/handle acquisition and scope-end release records"
+planned_generation = "queued"
+bounded = true
+
+# Completed native attacks.
 [[native_attack_done]]
 id = "NA-CONCURRENCY-RESOLVED"
 generation = "G117"
 debts = ["DEBT-CONCURRENCY", "DEBT-MULTI_ENGINE"]
 result = "declared std-path concurrency table; the resolution engine derives THREAD_SCOPE/SPAWN/CHANNEL_CREATE; 2 of 2 workspace thread scopes DERIVED and SCIP-confirmed; CONCURRENCY left the multi-engine blocker (ADR 0039)"
-
-# FIRST_50_CAMPAIGN_COMPLETE and FOUNDATIONAL_ATLAS_READY are separate gates (contract, Gates).
-# While FOUNDATIONAL_ATLAS_READY is NOT_MET, PRIORITY.toml frontier_expansion_frozen stays true.
-[[gate]]
-id = "FIRST_50_CAMPAIGN_COMPLETE"
-status = "MET_G115"
-evidence = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml (every first-50 donor terminal)"
-
-[[gate]]
-id = "FOUNDATIONAL_ATLAS_READY"
-status = "NOT_MET"
-evidence = "criteria below; the native_attack_queue is the plan to meet them"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "1_self_recensus_operational"
-status = "MET"
-evidence = "exit A MET_G57; every generation G57-G115 PROVEN (generation_ledger_self_recensus_chain)"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "2_p0_closed_or_bounded"
-status = "NOT_MET"
-evidence = "COVERAGE_UNKNOWN on 8 dimensions; MULTI_ENGINE_RECONCILIATION_ABSENT on 8 (CONCURRENCY left it at G117)"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "3_adl_beyond_dependencies"
-status = "NOT_MET"
-evidence = "DEBT-ADL_BEYOND_DEPENDENCIES"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "4_sealed_atlas"
-status = "NOT_MET"
-evidence = "DEBT-SEAL_GATE; certificate state RECONCILED with 14 blockers"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "5_selected_design"
-status = "NOT_MET"
-evidence = "DEBT-SELECTED_DESIGN"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "6_minimum_atlasx"
-status = "NOT_MET"
-evidence = "DEBT-ATLASX; exit E BLOCKED_ON_PREREQUISITES, now the finite graph below"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "7_construction_path_to_one_artifact"
-status = "NOT_MET"
-evidence = "DEBT-COMPILER_LOWERING, DEBT-SANDBOXED_EXECUTION, DEBT-ARTIFACT_IDENTITY"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "8_incremental_scaling_strategy"
-status = "MET"
-evidence = "every SCALE_TRIGGERED capability above carries a numeric trigger; DEBT-IMPACT_CLOSURE is queued as essential"
-
-[[gate_criterion]]
-gate = "FOUNDATIONAL_ATLAS_READY"
-id = "9_no_unbounded_essential_debt"
-status = "MET"
-evidence = "every escalated or skip-budget debt is queued, blocked by a queued debt, or frozen with an unfreeze gate (enforced by essential_complexity tests)"
 
 # Exit criterion E as a finite dependency graph (G116 construction lane). EXISTS nodes are in
 # production code; MISSING nodes name the debt that owns them. `requires` edges point at nodes
@@ -1795,18 +2268,357 @@ debt = "DEBT-ARTIFACT_IDENTITY"
 requires = ["M16", "M2", "E6"]
 
 [[construction_node]]
+id = "M18"
+name = "recensus of the materialized output against its .atlasx root"
+status = "MISSING"
+debt = "DEBT-PROVENANCE"
+requires = ["M17"]
+
+[[construction_node]]
 id = "FIRST_ARTIFACT"
 name = "milestone: first artifact constructed from Atlas truth"
 status = "MISSING"
 debt = "DEBT-ARTIFACT_IDENTITY"
-requires = ["M17"]
+requires = ["M18"]
 
-# Where each futures epistemic state lives today (G116 ontology lane). UNDECIDED states are owned
-# by DEBT-EPISTEMIC_UNIFICATION; none may be invented as a new status without that decision.
+
+# The compiler/construction transition audited (G118): "rustc can remain external" never means "Atlas
+# needs no compiler architecture". ownership NATIVE_REQUIRED = Atlas must own it; EXTERNAL_BOUNDARY_ALLOWED
+# = a typed boundary may serve it (boundary_type given). Every non-implemented NATIVE_REQUIRED component
+# names an OPEN debt.
+[[construction_component]]
+id = "ASIR"
+meaning = "mutable pre-seal construction state in the HIR vocabulary"
+ownership = "NATIVE_REQUIRED"
+status = "CONTRACT_ONLY"
+debt = "DEBT-CONSTRUCTION_IR"
+
+[[construction_component]]
+id = "HIR_LAYER"
+meaning = "typed high-level construction records rooted at an .atlasx root"
+ownership = "NATIVE_REQUIRED"
+status = "CONTRACT_ONLY"
+debt = "DEBT-CONSTRUCTION_IR"
+
+[[construction_component]]
+id = "MIR_BARRIER"
+meaning = "validated control/data/effect barrier before lowering"
+ownership = "NATIVE_REQUIRED"
+status = "CONTRACT_ONLY"
+debt = "DEBT-CONSTRUCTION_IR"
+
+[[construction_component]]
+id = "LOWERING"
+meaning = "Atlas-owned lowering from .atlasx to a backend input, with lineage"
+ownership = "NATIVE_REQUIRED"
+status = "ABSENT"
+debt = "DEBT-COMPILER_LOWERING"
+
+[[construction_component]]
+id = "EFFECT_PRESERVATION"
+meaning = "declared effect envelopes survive lowering and are re-checked on the artifact"
+ownership = "NATIVE_REQUIRED"
+status = "ABSENT"
+debt = "DEBT-CONSTRUCTION_IR"
+
+[[construction_component]]
+id = "RESOURCE_SEMANTICS"
+meaning = "acquisition/lifetime/release semantics carried into construction"
+ownership = "NATIVE_REQUIRED"
+status = "ABSENT"
+debt = "DEBT-RESOURCE"
+
+[[construction_component]]
+id = "CONTROL_DATA_STATE_SEMANTICS"
+meaning = "lowerable body semantics (M14), not relational census identities"
+ownership = "NATIVE_REQUIRED"
+status = "PARTIAL"
+debt = "DEBT-DATA_FLOW"
+
+[[construction_component]]
+id = "ARTIFACT_IDENTITY"
+meaning = "constructed-artifact identity bound to .atlasx root, toolchain and evidence"
+ownership = "NATIVE_REQUIRED"
+status = "PARTIAL"
+debt = "DEBT-ARTIFACT_IDENTITY"
+
+[[construction_component]]
+id = "CONSTRUCTION_TRANSACTIONS"
+meaning = "typed operations admitted atomically with authority"
+ownership = "NATIVE_REQUIRED"
+status = "CONTRACT_ONLY"
+debt = "DEBT-CONSTRUCTION_TRANSACTION"
+
+[[construction_component]]
+id = "VERIFICATION_BARRIERS"
+meaning = "obligation state from typed evidence at seal and at artifact"
+ownership = "NATIVE_REQUIRED"
+status = "CONTRACT_ONLY"
+debt = "DEBT-VERIFICATION_EVIDENCE"
+
+[[construction_component]]
+id = "CODE_GENERATION_BOUNDARY"
+meaning = "machine code generation (rustc/LLVM) behind a recorded adapter"
+ownership = "EXTERNAL_BOUNDARY_ALLOWED"
+boundary_type = "TEMPORARY_UNTIL_NATIVE"
+status = "ABSENT"
+debt = "DEBT-BACKEND_ADAPTER"
+
+[[construction_component]]
+id = "RUNTIME_BOUNDARY"
+meaning = "execution of candidates in a SandboxBackend with recorded inputs"
+ownership = "EXTERNAL_BOUNDARY_ALLOWED"
+boundary_type = "PERMANENT_REALITY"
+status = "ABSENT"
+debt = "DEBT-SANDBOXED_EXECUTION"
+
+[[construction_component]]
+id = "PHYSICAL_CONSTRUCTION_BOUNDARY"
+meaning = "fabrication by external machines, never actuated autonomously by Atlas"
+ownership = "EXTERNAL_BOUNDARY_ALLOWED"
+boundary_type = "PERMANENT_REALITY"
+status = "ABSENT"
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+
+# The 15 fundamental semantic dimensions (G118, measured on the G117 tree: release systemize of HEAD).
+# independent_engines counts extractors emitting records or obligations; an essential dimension whose
+# coverage is not OBSERVED keeps its debt OPEN whatever happened to its donors.
+[[dimension]]
+id = "SYMBOL"
+coverage = "OBSERVED"
+resolution_quality = "declaration-exhaustive in profile"
+native_engines = ["atlas.rust.source-semantic.v1"]
+independent_engines = 1
+oracle = "SCIP (not reconciled per symbol)"
+unknown_count = 0
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "macro-generated items (OUT_OF_PROFILE)"
+closure_requirement = "second engine or SCIP reconciliation per symbol"
+debt_class = "ESSENTIAL"
+debt = "DEBT-SYMBOL"
+
+[[dimension]]
+id = "TYPE"
+coverage = "OBSERVED"
+resolution_quality = "canonical identity through native name resolution, SCIP 0 disagreement"
+native_engines = ["atlas.rust.source-semantic.v1", "atlas.resolution.rust-paths"]
+independent_engines = 2
+oracle = "SCIP pinned rust-analyzer 1.90.0"
+unknown_count = 97
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "expression types, generic instantiation"
+closure_requirement = "resolution-engine obligations OBSERVED"
+debt_class = "ESSENTIAL"
+debt = "DEBT-TYPE"
+
+[[dimension]]
+id = "CALL"
+coverage = "UNKNOWN"
+resolution_quality = "syntactic call sites; path and self.m() calls STATIC_RESOLVED"
+native_engines = ["atlas.rust.source-semantic.v1", "atlas.resolution.rust-paths"]
+independent_engines = 2
+oracle = "SCIP pinned rust-analyzer 1.90.0"
+unknown_count = 194
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "macro arguments; method receivers; closures (profile)"
+closure_requirement = "per-file exhaustive enumeration proven by an independent syntax oracle; method resolution"
+debt_class = "ESSENTIAL"
+debt = "DEBT-CALL"
+
+[[dimension]]
+id = "CONTROL_FLOW"
+coverage = "UNKNOWN"
+resolution_quality = "statement-level blocks and edges"
+native_engines = ["atlas.rust.source-semantic.v1"]
+independent_engines = 1
+oracle = "none"
+unknown_count = 97
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "sub-statement branching; macro arguments"
+closure_requirement = "second engine or rustc MIR oracle"
+debt_class = "ESSENTIAL"
+debt = "DEBT-CONTROL_FLOW"
+
+[[dimension]]
+id = "DATA_FLOW"
+coverage = "UNKNOWN"
+resolution_quality = "syntactic local def-use"
+native_engines = ["atlas.rust.source-semantic.v1"]
+independent_engines = 1
+oracle = "none"
+unknown_count = 97
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "format implicit captures; aliasing; macro arguments"
+closure_requirement = "second engine or rustc MIR oracle"
+debt_class = "ESSENTIAL"
+debt = "DEBT-DATA_FLOW"
+
+[[dimension]]
+id = "STATE"
+coverage = "UNKNOWN"
+resolution_quality = "syntactic field/static accesses"
+native_engines = ["atlas.rust.source-semantic.v1"]
+independent_engines = 1
+oracle = "none"
+unknown_count = 97
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "interior mutability; macro arguments"
+closure_requirement = "resolved std interior-mutability paths and reconciliation"
+debt_class = "ESSENTIAL"
+debt = "DEBT-STATE"
+
+[[dimension]]
+id = "EFFECT"
+coverage = "UNKNOWN"
+resolution_quality = "panic spellings (INFERRED) and resolved std paths (DERIVED)"
+native_engines = ["atlas.rust.source-semantic.v1", "atlas.resolution.rust-paths"]
+independent_engines = 2
+oracle = "SCIP for resolved paths"
+unknown_count = 194
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "method-level effects; non-std crates; macro arguments"
+closure_requirement = "bounded residual per file"
+debt_class = "ESSENTIAL"
+debt = "DEBT-EFFECT"
+
+[[dimension]]
+id = "OWNERSHIP"
+coverage = "UNKNOWN"
+resolution_quality = "syntactic moves and borrows"
+native_engines = ["atlas.rust.source-semantic.v1"]
+independent_engines = 1
+oracle = "none (rustc borrowck is the natural oracle)"
+unknown_count = 97
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "auto-ref; implicit reborrow; macro argument borrows"
+closure_requirement = "rustc borrowck/MIR oracle"
+debt_class = "ESSENTIAL"
+debt = "DEBT-OWNERSHIP"
+
+[[dimension]]
+id = "RESOURCE"
+coverage = "ABSENT"
+resolution_quality = "none"
+native_engines = []
+independent_engines = 0
+oracle = "none"
+unknown_count = 0
+unsupported_count = 0
+conflict_count = 0
+known_blind_spots = "every acquisition and release"
+closure_requirement = "a RESOURCE dimension reconciled with OWNERSHIP"
+debt_class = "ESSENTIAL"
+debt = "DEBT-RESOURCE"
+
+[[dimension]]
+id = "CONCURRENCY"
+coverage = "UNKNOWN"
+resolution_quality = "await syntax, spawn spellings; resolved std paths (G117)"
+native_engines = ["atlas.resolution.rust-paths", "atlas.rust.source-semantic.v1"]
+independent_engines = 2
+oracle = "SCIP (2/2 thread scopes)"
+unknown_count = 194
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "closure bodies; typed receivers"
+closure_requirement = "closure regions and receiver typing"
+debt_class = "ESSENTIAL"
+debt = "DEBT-CONCURRENCY"
+
+[[dimension]]
+id = "PERSISTENCE"
+coverage = "UNKNOWN"
+resolution_quality = "callee spelling guesses only (INFERRED)"
+native_engines = ["atlas.rust.source-semantic.v1"]
+independent_engines = 1
+oracle = "none"
+unknown_count = 97
+unsupported_count = 19
+conflict_count = 0
+known_blind_spots = "no resolved-API engine"
+closure_requirement = "resolved std::fs/io engine"
+debt_class = "ESSENTIAL"
+debt = "DEBT-PERSISTENCE"
+
+[[dimension]]
+id = "DEPENDENCY"
+coverage = "BOUNDED"
+resolution_quality = "Cargo closure, semi-naive fixed point"
+native_engines = ["cargo metadata adapter"]
+independent_engines = 1
+oracle = "cargo_oracle"
+unknown_count = 9
+unsupported_count = 0
+conflict_count = 0
+known_blind_spots = "build scripts, proc macros, environment inputs (9 obligations)"
+closure_requirement = "scoped certificate policy or resolution of the 9"
+debt_class = "ESSENTIAL"
+debt = "DEBT-DEPENDENCY"
+
+[[dimension]]
+id = "PROVENANCE"
+coverage = "OBSERVED"
+resolution_quality = "revision and extractor on every census fact (G62); product match (G109)"
+native_engines = ["census provenance"]
+independent_engines = 1
+oracle = "clean-HEAD atlas pack"
+unknown_count = 0
+unsupported_count = 0
+conflict_count = 0
+known_blind_spots = "constructed products"
+closure_requirement = "provenance of constructed artifacts"
+debt_class = "ESSENTIAL"
+debt = "DEBT-PROVENANCE"
+
+[[dimension]]
+id = "UNCERTAINTY"
+coverage = "ABSENT"
+resolution_quality = "none (three incompatible carriers outside the core)"
+native_engines = []
+independent_engines = 0
+oracle = "none"
+unknown_count = 0
+unsupported_count = 0
+conflict_count = 0
+known_blind_spots = "every quantity and prediction"
+closure_requirement = "one uncertainty carrier on Quantity"
+debt_class = "ESSENTIAL"
+debt = "DEBT-UNCERTAINTY"
+
+[[dimension]]
+id = "CAUSALITY"
+coverage = "ABSENT"
+resolution_quality = "none (edge kind is a String)"
+native_engines = []
+independent_engines = 0
+oracle = "none"
+unknown_count = 0
+unsupported_count = 0
+conflict_count = 0
+known_blind_spots = "every causal relation"
+closure_requirement = "typed relation schema with causal kinds"
+debt_class = "ESSENTIAL"
+debt = "DEBT-CAUSALITY"
+
+# Where each futures epistemic state lives today (G116 ontology lane, G118 adds DECLARED). UNDECIDED
+# states are owned by DEBT-EPISTEMIC_UNIFICATION; none may be invented without that decision.
 [[epistemic_state]]
 id = "OBSERVED"
 home = "STATUS"
 note = "EpistemicStatus::Observed; conflates extraction with physical measurement (MEASURED absent)"
+
+[[epistemic_state]]
+id = "DECLARED"
+home = "STATUS"
+note = "EpistemicStatus::Declared (ADL declarations)"
 
 [[epistemic_state]]
 id = "DERIVED"
@@ -1843,63 +2655,168 @@ id = "VALIDATED"
 home = "UNDECIDED"
 note = "four meanings: SelectedDesign lifecycle, CandidateAtlas, blueprint, product EvidenceBasis::Validated"
 
-# Physical primitives (G116 ontology lane). core = true: needed in the semantic core now so the
-# frozen domains cannot later force a second architecture; the domain itself stays frozen.
+# Physical and real-world primitives (G118). core = true: the semantic core must carry it so the frozen
+# domains cannot later force a second, incompatible architecture. The Physical Engine is NOT built now.
 [[physical_primitive]]
-id = "QUANTITY_KIND"
+id = "QUANTITY"
 state = "PARTIAL"
 core = true
 debt = "DEBT-QUANTITY_UNITS"
-note = "dimensions exist; torque and energy indistinguishable; Quantity absent from typed records and graph"
+note = "exact rational SI quantities exist but never enter typed records, graph or .atlas"
 
 [[physical_primitive]]
-id = "UNCERTAINTY_TOLERANCE"
+id = "UNIT"
+state = "PARTIAL"
+core = true
+debt = "DEBT-QUANTITY_UNITS"
+note = "units exist; affine units refused; torque and energy indistinguishable (no quantity kind)"
+
+[[physical_primitive]]
+id = "GEOMETRY"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "link-length scalars only"
+
+[[physical_primitive]]
+id = "MATERIAL"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "product Material is a priced leaf without properties"
+
+[[physical_primitive]]
+id = "MASS"
+state = "PARTIAL"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "mass dimension and PlanarLink.mass"
+
+[[physical_primitive]]
+id = "INERTIA"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "f64 inside dynamics only"
+
+[[physical_primitive]]
+id = "FORCE"
+state = "PARTIAL"
+core = false
+debt = "DEBT-QUANTITY_UNITS"
+note = "unit N exists"
+
+[[physical_primitive]]
+id = "TORQUE"
+state = "PARTIAL"
+core = true
+debt = "DEBT-QUANTITY_UNITS"
+note = "N m exists but is the same kind as energy"
+
+[[physical_primitive]]
+id = "ENERGY"
+state = "PARTIAL"
+core = false
+debt = "DEBT-QUANTITY_UNITS"
+note = "J exists; energy() is f64"
+
+[[physical_primitive]]
+id = "POWER"
+state = "PARTIAL"
+core = false
+debt = "DEBT-QUANTITY_UNITS"
+note = "W exists; rail power V I"
+
+[[physical_primitive]]
+id = "ELECTRICAL_STATE"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "per-rail current sums only; no net type"
+
+[[physical_primitive]]
+id = "THERMAL_STATE"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "I2R holding heat only; degC refused"
+
+[[physical_primitive]]
+id = "SENSOR"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "named in capability text only"
+
+[[physical_primitive]]
+id = "ACTUATOR"
+state = "PARTIAL"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "Motor limits and saturation in simulation"
+
+[[physical_primitive]]
+id = "MEASUREMENT"
+state = "ABSENT"
+core = true
+debt = "DEBT-EPISTEMIC_UNIFICATION"
+note = "no instrument, calibration or environment on Evidence; MEASURED absent"
+
+[[physical_primitive]]
+id = "UNCERTAINTY"
 state = "ABSENT"
 core = true
 debt = "DEBT-UNCERTAINTY"
-note = "three incompatible carriers; no tolerance type"
+note = "no carrier on Quantity"
+
+[[physical_primitive]]
+id = "TOLERANCE"
+state = "ABSENT"
+core = true
+debt = "DEBT-UNCERTAINTY"
+note = "only a tracking_tolerance attribute"
+
+[[physical_primitive]]
+id = "FAILURE"
+state = "ABSENT"
+core = true
+debt = "DEBT-DISTRIBUTED_SEMANTICS"
+note = "FailureScenario is software-only contract"
+
+[[physical_primitive]]
+id = "SAFETY"
+state = "CONTRACT_ONLY"
+core = true
+debt = "DEBT-CONSTRAINT_REASONING"
+note = "PHYSICAL-ENGINEERING safety boundary; no evaluator"
+
+[[physical_primitive]]
+id = "MANUFACTURING"
+state = "ABSENT"
+core = false
+debt = "DEBT-PHYSICAL_ONTOLOGY"
+note = "Part.process string only"
+
+[[physical_primitive]]
+id = "CALIBRATION"
+state = "ABSENT"
+core = true
+debt = "DEBT-REAL_WORLD_OBSERVATION"
+note = "performance-model contract only"
 
 [[physical_primitive]]
 id = "CONTINUOUS_TIME_STATE"
 state = "ABSENT"
 core = true
 debt = "DEBT-SIMULATION"
-note = "temporal is git revision only; dynamics are f64 arrays inside a domain module"
-
-[[physical_primitive]]
-id = "CAUSAL_RELATION"
-state = "ABSENT"
-core = true
-debt = "DEBT-CAUSALITY"
-note = "edge kind is a String"
-
-[[physical_primitive]]
-id = "MEASUREMENT_EPISTEMICS"
-state = "ABSENT"
-core = true
-debt = "DEBT-EPISTEMIC_UNIFICATION"
-note = "no instrument, calibration or environment on Evidence"
+note = "temporal is git revision only"
 
 [[physical_primitive]]
 id = "SPATIAL_SCOPE"
 state = "ABSENT"
 core = true
 debt = "DEBT-PHYSICAL_ONTOLOGY"
-note = "SemanticScope is crate and module segments only"
-
-[[physical_primitive]]
-id = "EXACT_TO_APPROXIMATE_MARKER"
-state = "ABSENT"
-core = true
-debt = "DEBT-EPISTEMIC_UNIFICATION"
-note = "Rational becomes f64 in physical/dynamics without an epistemic marker"
-
-[[physical_primitive]]
-id = "GEOMETRY_MATERIAL_INERTIA_THERMAL_NETWORK_SENSOR"
-state = "ABSENT"
-core = false
-debt = "DEBT-PHYSICAL_ONTOLOGY"
-note = "domain primitives; frozen until the unfreeze gate"
+note = "SemanticScope is crate/module segments only"
 
 # Chronica as a counterfactual stress test only: architectural blockers to
 # NL -> ADL -> social intent -> identity -> permissions -> relationships -> state -> effects ->
@@ -1938,3 +2855,379 @@ note = "no construction action; only Rust is recensusable"
 id = "SOURCE_DIFF_ONLY_OBSERVATION"
 debts = ["DEBT-REAL_WORLD_OBSERVATION"]
 note = "no path from running-system behaviour back into typed facts"
+
+
+# Historical complexity-avoidance drift (G118). Each entry: what the evidence proved (NOT_NEEDED_NOW)
+# versus how the decision was treated. drift = true when NOW-evidence closed an essential or untriggered
+# capability as if NOT_ARCHITECTURALLY_REQUIRED. History is not rewritten; the correction names the
+# debt that now carries the capability.
+[[avoidance_drift]]
+generation = "G65"
+source = "tree-sitter"
+quote = "sub-file incremental parsing has no consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-MULTILANGUAGE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G70"
+source = "semgrep"
+quote = "no rule-as-data consumer exists"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-CONSTRAINT_REASONING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G71"
+source = "ast-grep"
+quote = "no Atlas stage rewrites source"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-TRANSFORMATION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G76"
+source = "miri"
+quote = "Atlas has 0 unsafe constructs, so the UB interpreter has no target"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G80"
+source = "differential-dataflow"
+quote = "shallow invalidation plus recompute suffices"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["SCALE-INCREMENTAL_RECOMPUTE", "DEBT-IMPACT_CLOSURE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G81"
+source = "buck2"
+quote = "DICE keyed invalidation is not needed at measured scale"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["SCALE-BRANCHING", "SCALE-INCREMENTAL_RECOMPUTE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G82"
+source = "egglog"
+quote = "no DecisionProposal workload exists"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-TYPE", "DEBT-DESIGN_GENERATION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G90"
+source = "xdsl"
+quote = "the merged trait+interface dispatch default has no consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-VERIFICATION_EVIDENCE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G92"
+source = "sigil-lang"
+quote = "Atlas has no materialized AtlasX/HIR stage to compare against"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-COMPILER_LOWERING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G93"
+source = "duumbi"
+quote = "no Atlas AI-mutation surface exists to trigger a recensus"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-TRANSFORMATION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G94"
+source = "composer"
+quote = "constrains lowering code that does not exist"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-COMPILER_LOWERING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G95"
+source = "agentir"
+quote = "no loss-disclosure consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-ATLAS_COMPLETENESS"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G96"
+source = "llvm-project"
+quote = "Atlas has no LIR or codegen yet"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-BACKEND_ADAPTER", "DEBT-COMPILER_LOWERING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G99"
+source = "wasm-tools"
+quote = "no Wasm artifact, no Wasm code path and no Wasm dependency"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-BACKEND_ADAPTER", "DEBT-SANDBOXED_EXECUTION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G100"
+source = "wasmtime"
+quote = "both recorded roles are external boundaries with no consumer yet"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-SANDBOXED_EXECUTION", "DEBT-BACKEND_ADAPTER"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G101"
+source = "object"
+quote = "no consumer -- ... no compiler code exists"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-BACKEND_ADAPTER", "DEBT-ARTIFACT_IDENTITY"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G102"
+source = "regalloc2"
+quote = "no consumer -- ... no LIR or Machine IR code exists"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-COMPILER_LOWERING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G104"
+source = "kani"
+quote = "needs a consumer Atlas does not have"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-VERIFICATION_EVIDENCE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G105"
+source = "verus"
+quote = "needs the same missing consumer as Kani"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G106"
+source = "podman"
+quote = "No SandboxBackend code exists ... so there is no consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-SANDBOXED_EXECUTION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G107"
+source = "containers-image"
+quote = "no consumer for signature verification ... the seal gate itself is unimplemented"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-SEAL_GATE", "DEBT-ARTIFACT_IDENTITY"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G108"
+source = "z3"
+quote = "no code holds a non-ground ... constraint"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-CONSTRAINT_REASONING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G111"
+source = "nix"
+quote = "hermetic construction is unimplemented P6"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-SANDBOXED_EXECUTION", "DEBT-ARTIFACT_IDENTITY"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G112"
+source = "tlaplus"
+quote = "evidence_consumer: none"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-VERIFICATION_EVIDENCE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G113"
+source = "openrewrite"
+quote = "neither the lossless tree nor the recipe engine has a consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-TRANSFORMATION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G114"
+source = "c2rust"
+quote = "the self-census holds no C artifact"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-MULTILANGUAGE", "DEBT-TRANSFORMATION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G115"
+source = "salsa"
+quote = "save at most ~8.5 s per run at this scale... reopen when ... tens of seconds per edit"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G68"
+source = "glean"
+quote = "typed query IR REFERENCE_ONLY: no census-query consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-CONSTRAINT_REASONING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G38"
+source = "ADR 0007"
+quote = "no SAT consumer exists yet"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-CONSTRAINT_REASONING"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G40"
+source = "ADR 0009"
+quote = "recompute is now cheap enough; no measured justification"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-IMPACT_CLOSURE"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G42"
+source = "atlasx lane"
+quote = "its only consumer would be itself"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-ATLASX"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G51"
+source = "ADR 0002 amendment"
+quote = "MEASURED and CALIBRATED wait for their first consumer"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-REAL_WORLD_OBSERVATION"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G65"
+source = "exit criterion E"
+quote = "BLOCKED_ON_PREREQUISITES with no attacked prerequisite for 50 generations"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_ARCHITECTURALLY_REQUIRED"
+drift = true
+debts = ["DEBT-ATLASX", "DEBT-SEAL_GATE", "DEBT-SELECTED_DESIGN"]
+correction = "capability kept OPEN in the debt ledger with a queued attack"
+
+[[avoidance_drift]]
+generation = "G85"
+source = "rkyv"
+quote = "no internal pointers to relativize at the measured container"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_NEEDED_NOW"
+drift = false
+debts = ["SCALE-ZERO_COPY"]
+correction = "scale-triggered: now carries a numeric trigger"
+
+[[avoidance_drift]]
+generation = "G87"
+source = "zstd"
+quote = "no consumer of a compressed container yet"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_NEEDED_NOW"
+drift = false
+debts = ["SCALE-COMPRESSION"]
+correction = "scale-triggered: now carries a numeric trigger"
+
+[[avoidance_drift]]
+generation = "G88"
+source = "arrow"
+quote = "codec before columnar at the measured family size"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_NEEDED_NOW"
+drift = false
+debts = ["SCALE-COLUMNAR"]
+correction = "scale-triggered: now carries a numeric trigger"
+
+[[avoidance_drift]]
+generation = "G35"
+source = "generation counter"
+quote = "no caller exists yet"
+proved = "NOT_NEEDED_NOW"
+treated_as = "NOT_NEEDED_NOW"
+drift = false
+debts = ["DEBT-IMPACT_CLOSURE"]
+correction = "scale-triggered: now carries a numeric trigger"
+

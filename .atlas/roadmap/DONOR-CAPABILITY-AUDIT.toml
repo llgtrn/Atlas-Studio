@@ -1,0 +1,1625 @@
+schema = "atlas.donor-capability-audit.v1"
+canonical = true
+established_in = "G118"
+contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
+debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+donor_corpus = ".atlas/references/donor-corpus.toml"
+campaign = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml"
+donor_corpus_records = 58
+first_50_donors = 50
+first_50_in_donor_corpus = 45
+first_50_outside_donor_corpus = 5
+donor_corpus_outside_first_50 = 13
+donors_audited = 63
+frontier_repositories = 153
+
+# G118 hard-stop audit: every donor-corpus record (58) and every First-50 donor (50; 5 of them were
+# never admitted to the corpus) carries two independent decisions, 63 donors in total:
+#   mechanism_decision  ABSORBED | REFERENCE_ONLY | REFERENCE_ONLY_UNTIL_TRIGGER | EXTERNAL_BOUNDARY | DEFERRED | REJECTED
+#   capability_decision CAPABILITY_CLOSED | CAPABILITY_PARTIAL | CAPABILITY_OPEN_ESSENTIAL |
+#                       CAPABILITY_OPEN_SCALE_TRIGGERED | CAPABILITY_NOT_REQUIRED
+# A terminal donor never closes a capability; CAPABILITY_NOT_REQUIRED only in an OPTIONAL cluster.
+# corpus_* fields pin the donor-corpus record while FOUNDATIONAL-ATLAS-READY.toml blocks donor
+# progression: any change to a pinned record fails runtime test
+# essential_complexity::remaining_donor_corpus_progress_blocked_until_audit_complete.
+# Supersedes DONOR-DECISION-REAUDIT.toml (G116, First-50 only).
+
+[[donor]]
+ordinal = 1
+donor = "souffle"
+first_50_ordinal = 1
+in_donor_corpus = true
+corpus_decision_status = "ABSORB_NOW"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "pre-G57"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "formal_verification"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "constraint-derivation-provenance absorbed; ground Datalog only -- non-ground constraint reasoning stays open"
+
+[[donor]]
+ordinal = 2
+donor = "datafrog"
+first_50_ordinal = 2
+in_donor_corpus = true
+corpus_decision_status = "ABSORB_NOW"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G35"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "incremental_computation"
+debts = ["DEBT-DEPENDENCY", "DEBT-IMPACT_CLOSURE"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "semi-naive fixed point absorbed (ADR 0004); dependency closure CLOSED, 9 dynamic obligations remain"
+
+[[donor]]
+ordinal = 3
+donor = "blake3"
+first_50_ordinal = 3
+in_donor_corpus = true
+corpus_decision_status = "ABSORB_NOW"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G36"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "artifact_integrity"
+debts = ["DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "content identity native; artifact identity of constructed products stays open"
+
+[[donor]]
+ordinal = 4
+donor = "rust-analyzer"
+first_50_ordinal = 4
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G75"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-CALL", "DEBT-TYPE"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "path resolution absorbed; hir-ty type inference REFERENCE_ONLY -- expression type inference (method receivers, 10,776 unresolved method calls at G78) remains DEBT-TYPE/DEBT-CALL work"
+
+[[donor]]
+ordinal = 5
+donor = "salsa"
+first_50_ordinal = 5
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G115"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "incremental_computation"
+debts = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "save at most ~8.5 s per run at this scale... reopen when ... tens of seconds per edit"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "the memo is absorbed; the G115 reasoning judged only recompute speed and recorded a vague trigger, while the essential capability -- the affected-impact closure the ASIR admission pipeline evaluates -- was not kept open"
+
+[[donor]]
+ordinal = 6
+donor = "tree-sitter"
+first_50_ordinal = 6
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G65"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-MULTILANGUAGE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "sub-file incremental parsing has no consumer"
+trigger = "the DEBT-MULTILANGUAGE native attack selects a frontend strategy (milestone)"
+counterfactual = "REQUIRES_REDESIGN"
+note = "incremental parsing was rightly falsified, but the grammar runtime was parked with it: the self-census still marks 19 artifacts UNSUPPORTED (TypeScript/HTML/CSS/JS of Atlas's own frontend) and arbitrary-repository census needs non-Rust semantic frontends"
+
+[[donor]]
+ordinal = 7
+donor = "scip"
+first_50_ordinal = 7
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G66"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-SYMBOL"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "position-free descriptor identity absorbed; SYMBOL remains single-engine"
+
+[[donor]]
+ordinal = 8
+donor = "kythe"
+first_50_ordinal = 8
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G67"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-SYMBOL", "DEBT-TYPE"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "VName path identity absorbed"
+
+[[donor]]
+ordinal = 9
+donor = "glean"
+first_50_ordinal = 9
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G68"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-ATLAS_COMPLETENESS"]
+q1_mechanism = "YES"
+advanced = true
+conflated = true
+conflation_quote = "typed query IR REFERENCE_ONLY: no census-query consumer"
+note = "definition-derived schema identity absorbed; typed query IR REFERENCE_ONLY ('no census-query consumer') -- adversarial gap queries are in the technical spine and stay under DEBT-CONSTRAINT_REASONING"
+
+[[donor]]
+ordinal = 10
+donor = "joern"
+first_50_ordinal = 10
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G69"
+mechanism_decision = "REFERENCE_ONLY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "control_data_state"
+debts = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
+q1_mechanism = "NO"
+advanced = false
+conflated = false
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "YES"
+capability_still_required = true
+note = "Rust coverage hypothesis falsified (rust2cpg falls back to Any): the mechanism is rightly rejected; DATA_FLOW/CONTROL_FLOW stay essential and open via a native route"
+
+[[donor]]
+ordinal = 11
+donor = "semgrep"
+first_50_ordinal = 11
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G70"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no rule-as-data consumer exists"
+trigger = "the adversarial gap-query stage (CAPABILITY-ARCHITECTURE technical spine) is scheduled (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "rule-as-data over semantic facts is the shape of the technical spine's 'Adversarial Gap Queries' stage; the missing consumer is itself essential"
+
+[[donor]]
+ordinal = 12
+donor = "ast-grep"
+first_50_ordinal = 12
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G71"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-TRANSFORMATION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no Atlas stage rewrites source"
+trigger = "the DEBT-TRANSFORMATION native attack (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "TransformCandidate -> Preview/Diff -> Verify -> Apply -> Recensus is canonical (CAPABILITY-ARCHITECTURE 'Transformation'); no stage rewrites source because none was built"
+
+[[donor]]
+ordinal = 13
+donor = "sourcetrail"
+first_50_ordinal = 13
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G72"
+mechanism_decision = "REFERENCE_ONLY"
+capability_decision = "CAPABILITY_NOT_REQUIRED"
+capability_cluster = "studio_projection"
+debts = []
+q1_mechanism = "NO"
+advanced = false
+conflated = false
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "navigation UI is a Studio projection; the element/occurrence model is native"
+
+[[donor]]
+ordinal = 14
+donor = "rust"
+first_50_ordinal = 14
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G73"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-CALL", "DEBT-TYPE"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = false
+boundary_type = "ORACLE"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "rustc/cargo are bootstrap boundaries and rust-analyzer SCIP the differential oracle; Atlas's own resolution must stay the census engine"
+
+[[donor]]
+ordinal = 15
+donor = "miri"
+first_50_ordinal = 15
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G76"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "control_data_state"
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "Atlas has 0 unsafe constructs, so the UB interpreter has no target"
+trigger = "a censused scope holds >= 1 unsafe block or FFI boundary AND DEBT-VERIFICATION_EVIDENCE has an evidence model"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "Atlas's own source was treated as the workload; censused systems (Chronica, embedded, FFI) have unsafe/FFI surfaces whose execution evidence is VerificationEvidence"
+
+[[donor]]
+ordinal = 16
+donor = "clef"
+first_50_ordinal = 16
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G78"
+mechanism_decision = "REFERENCE_ONLY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "semantic_resolution"
+debts = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+q1_mechanism = "NO"
+advanced = false
+conflated = false
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "F# member lookup is not Rust's method probe; the bounded native slice (G79) followed; F# itself is optional"
+
+[[donor]]
+ordinal = 17
+donor = "differential-dataflow"
+first_50_ordinal = 17
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G80"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_SCALE_TRIGGERED"
+capability_cluster = "incremental_computation"
+debts = ["SCALE-INCREMENTAL_RECOMPUTE", "DEBT-IMPACT_CLOSURE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "shallow invalidation plus recompute suffices"
+trigger = "SCALE-INCREMENTAL_RECOMPUTE fires AND derived-view fanout > 10^6 edges re-derived per edit"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "valid NOT_NOW evidence recorded as terminal without a numeric trigger; incremental recompute is scale-triggered, impact closure essential"
+
+[[donor]]
+ordinal = 18
+donor = "buck2"
+first_50_ordinal = 18
+in_donor_corpus = true
+corpus_decision_status = "DEFERRED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G81"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_SCALE_TRIGGERED"
+capability_cluster = "construction"
+debts = ["SCALE-BRANCHING", "SCALE-INCREMENTAL_RECOMPUTE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "DICE keyed invalidation is not needed at measured scale"
+deferred_trigger = "SCALE-BRANCHING fires: >= 2 CandidateWorkspaces evaluated concurrently against one base"
+deferred_owner = "SCALE-BRANCHING"
+deferred_milestone = "DEBT-SELECTED_DESIGN at M2_PARTIAL (candidate alternatives exist)"
+deferred_readmission = "re-fetch the pinned commit into a scratch slice"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "DICE branching deferred to AIF1 (frozen); the deferral now carries an explicit trigger and owner"
+
+[[donor]]
+ordinal = 19
+donor = "egglog"
+first_50_ordinal = 19
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G82"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "optimization_search"
+debts = ["DEBT-TYPE", "DEBT-DESIGN_GENERATION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no DecisionProposal workload exists"
+trigger = "the world/semantic optimization stage over a SelectedDesign is scheduled (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "type congruence was solved natively (G83); equality saturation for 'world / semantic optimization' (NORTH-STAR chain) was parked because the design layer it serves was never built"
+
+[[donor]]
+ordinal = 20
+donor = "capnproto"
+first_50_ordinal = 20
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G84"
+mechanism_decision = "REFERENCE_ONLY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "storage"
+debts = ["DEBT-SEAL_GATE", "DEBT-ATLAS_COMPLETENESS"]
+q1_mechanism = "NO"
+advanced = false
+conflated = false
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "pointer/packing machinery inapplicable to the flat wire; the SEALED unknown-field clause was pinned"
+
+[[donor]]
+ordinal = 21
+donor = "rkyv"
+first_50_ordinal = 21
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G85"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_SCALE_TRIGGERED"
+capability_cluster = "storage"
+debts = ["SCALE-ZERO_COPY"]
+q1_mechanism = "NO"
+advanced = false
+conflated = false
+trigger = "SCALE-ZERO_COPY fires (cache or container load > 2 s AND > 10% of a recensus)"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "no internal pointers to relativize (structural); cache load is small"
+
+[[donor]]
+ordinal = 22
+donor = "flatbuffers"
+first_50_ordinal = 22
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G86"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "storage"
+debts = ["DEBT-ATLAS_COMPLETENESS"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "schema-evolution conformance absorbed (ADR 0035)"
+
+[[donor]]
+ordinal = 23
+donor = "zstd"
+first_50_ordinal = 23
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G87"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_SCALE_TRIGGERED"
+capability_cluster = "storage"
+debts = ["SCALE-COMPRESSION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+trigger = "SCALE-COMPRESSION fires (a sealed container is published or transmitted, OR a container exceeds 64 MB)"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "bounded ZSTD profile pinned; codec justified only by a consumer of bytes"
+
+[[donor]]
+ordinal = 24
+donor = "arrow"
+first_50_ordinal = 24
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G88"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_SCALE_TRIGGERED"
+capability_cluster = "storage"
+debts = ["SCALE-COLUMNAR"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+trigger = "SCALE-COLUMNAR fires (one semantic family > 10^7 records OR a container section > 1 GB after codec)"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "codec before columnar recorded in ATLAS-SEMANTIC-COMPACTION.md"
+
+[[donor]]
+ordinal = 25
+donor = "mlir"
+first_50_ordinal = 25
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUS_ACTIVE"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G89"
+mechanism_decision = "REFERENCE_ONLY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-CONSTRUCTION_IR"]
+q1_mechanism = "NO"
+advanced = false
+conflated = false
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "YES"
+capability_still_required = true
+note = "the TypeId registry's preconditions do not hold in Rust (mechanism rightly rejected); construction IR itself stays unbuilt -- counts toward the skip budget"
+
+[[donor]]
+ordinal = 26
+donor = "xdsl"
+first_50_ordinal = 26
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUS_ACTIVE"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G90"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-VERIFICATION_EVIDENCE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "the merged trait+interface dispatch default has no consumer"
+trigger = "the DEBT-CONSTRUCTION_IR native attack (milestone)"
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "IRDL-style dialect definition is the target shape of ASIR (TARGET, unbuilt); verification fork settled only in contract text"
+
+[[donor]]
+ordinal = 27
+donor = "iris"
+first_50_ordinal = 27
+in_donor_corpus = true
+corpus_decision_status = "ABSORBED"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUS_ACTIVE"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G91"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "control_data_state"
+debts = ["DEBT-EFFECT"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "ambient-input effect categories absorbed (ADR 0036)"
+
+[[donor]]
+ordinal = 28
+donor = "sigil-lang"
+first_50_ordinal = 28
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUS_ACTIVE"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G92"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-COMPILER_LOWERING"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "Atlas has no materialized AtlasX/HIR stage to compare against"
+trigger = "DEBT-COMPILER_LOWERING reaches M2_PARTIAL (HIR exists)"
+counterfactual = "REQUIRES_REDESIGN"
+note = "per-behavior guarantee checks belong to the MIR barrier contract, which is essential and unbuilt"
+
+[[donor]]
+ordinal = 29
+donor = "duumbi"
+first_50_ordinal = 29
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G93"
+mechanism_decision = "REFERENCE_ONLY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-TRANSFORMATION"]
+q1_mechanism = "NO"
+advanced = false
+conflated = true
+conflation_quote = "no Atlas AI-mutation surface exists to trigger a recensus"
+counterfactual = "REQUIRES_REDESIGN"
+note = "JSON-LD rightly rejected; the AI-mutation surface is ACP, which is essential and unbuilt"
+
+[[donor]]
+ordinal = 30
+donor = "composer"
+first_50_ordinal = 30
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G94"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-COMPILER_LOWERING"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "constrains lowering code that does not exist"
+trigger = "DEBT-COMPILER_LOWERING reaches M2_PARTIAL (first lowering exists)"
+counterfactual = "REQUIRES_REDESIGN"
+note = "hyperedges falsified by execution (valid); the thin-middle-end round-trip law applies to lowering that must be built"
+
+[[donor]]
+ordinal = 31
+donor = "agentir"
+first_50_ordinal = 31
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G95"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-ATLAS_COMPLETENESS"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no loss-disclosure consumer"
+trigger = "the DEBT-ATLAS_COMPLETENESS native attack adds typed records to .atlas (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "the .atlas census container is itself a lossy export (typed records omitted, ADR 0027); the contract requires the complete typed record, so the consumer is essential debt"
+
+[[donor]]
+ordinal = 32
+donor = "llvm-project"
+first_50_ordinal = 32
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G96"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-BACKEND_ADAPTER", "DEBT-COMPILER_LOWERING"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "Atlas has no LIR or codegen yet"
+boundary_type = "TEMPORARY_UNTIL_NATIVE"
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "external native backends stay adapters/oracles only until Atlas-native stages mature (CAPABILITY-ARCHITECTURE 'Compiler boundary'); Atlas still needs its own lowering and adapter layer"
+
+[[donor]]
+ordinal = 33
+donor = "wasm-spec"
+first_50_ordinal = 33
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G97"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-SEAL_GATE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+trigger = "the first cross-version .atlas reader exists (sealed publication, DEBT-SEAL_GATE)"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "section_flags = 0 pinned and asserted; verify-then-encode is the target shape of ASIR admission"
+
+[[donor]]
+ordinal = 34
+donor = "wasm-component-model"
+first_50_ordinal = 34
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G98"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-IDENTITY_AUTHORITY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+trigger = "the first atlas.interface.* / atlas.cap.* construction is modeled (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "the own/borrow question was moved into ASIR-CONSTRUCTION-MODEL.md, not dropped"
+
+[[donor]]
+ordinal = 35
+donor = "wasm-tools"
+first_50_ordinal = 35
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G99"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-BACKEND_ADAPTER", "DEBT-SANDBOXED_EXECUTION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no Wasm artifact, no Wasm code path and no Wasm dependency"
+trigger = "a construction target or SandboxBackend selects Wasm (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "Wasm is a construction target and a bounded-execution lane (adapter/execution/exchange); Atlas's own source was treated as the workload"
+
+[[donor]]
+ordinal = 36
+donor = "wasmtime"
+first_50_ordinal = 36
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G100"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "sandboxing"
+debts = ["DEBT-SANDBOXED_EXECUTION", "DEBT-BACKEND_ADAPTER"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "both recorded roles are external boundaries with no consumer yet"
+boundary_type = "PERMANENT_REALITY"
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "sandboxed execution is in the technical spine; the Atlas-owned SandboxBackend layer is essential debt above this boundary"
+
+[[donor]]
+ordinal = 37
+donor = "object"
+first_50_ordinal = 37
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G101"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-BACKEND_ADAPTER", "DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no consumer -- ... no compiler code exists"
+trigger = "DEBT-COMPILER_LOWERING reaches Machine IR (milestone)"
+counterfactual = "REQUIRES_REDESIGN"
+note = "object emission is on the NORTH-STAR chain (codegen / link)"
+
+[[donor]]
+ordinal = 38
+donor = "regalloc2"
+first_50_ordinal = 38
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G102"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "compiler_ir"
+debts = ["DEBT-COMPILER_LOWERING"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no consumer -- ... no LIR or Machine IR code exists"
+trigger = "DEBT-COMPILER_LOWERING reaches LIR (milestone)"
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "register allocation is a Machine IR stage of the canonical compiler chain"
+
+[[donor]]
+ordinal = 39
+donor = "mold"
+first_50_ordinal = 39
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G103"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-COMPILER_LOWERING"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = false
+boundary_type = "BOOTSTRAP"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "integrating an installed linker is a valid blueprint decision; link/post-link remains a stage Atlas orchestrates"
+
+[[donor]]
+ordinal = 40
+donor = "kani"
+first_50_ordinal = 40
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G104"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "formal_verification"
+debts = ["DEBT-VERIFICATION_EVIDENCE"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "needs a consumer Atlas does not have"
+boundary_type = "ORACLE"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "the missing VerificationEvidence model is essential debt, not a reason"
+
+[[donor]]
+ordinal = 41
+donor = "verus"
+first_50_ordinal = 41
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G105"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "formal_verification"
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "needs the same missing consumer as Kani"
+boundary_type = "ORACLE"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "as kani"
+
+[[donor]]
+ordinal = 42
+donor = "podman"
+first_50_ordinal = 42
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G106"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "sandboxing"
+debts = ["DEBT-SANDBOXED_EXECUTION"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "No SandboxBackend code exists ... so there is no consumer"
+boundary_type = "PERMANENT_REALITY"
+counterfactual = "REQUIRES_REDESIGN"
+note = "a probed container runtime is a valid boundary; the Atlas SandboxBackend layer is essential debt"
+
+[[donor]]
+ordinal = 43
+donor = "containers-image"
+first_50_ordinal = 43
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G107"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "artifact_integrity"
+debts = ["DEBT-SEAL_GATE", "DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "no consumer for signature verification ... the seal gate itself is unimplemented"
+trigger = "DEBT-SEAL_GATE reaches M2_PARTIAL (a seal gate exists) or a sealed artifact is published"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "the seal gate is on the critical path to .atlasx; its absence is debt"
+
+[[donor]]
+ordinal = 44
+donor = "z3"
+first_50_ordinal = 44
+in_donor_corpus = false
+corpus_decision_status = ""
+corpus_ingestion_status = ""
+corpus_census_status = ""
+corpus_storage_state = ""
+decided_in = "G108"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "formal_verification"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "no code holds a non-ground ... constraint"
+boundary_type = "PERMANENT_REALITY"
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "design selection, physical tolerances and scheduling are inherently non-ground; a solver is a permanent boundary, Atlas's constraint layer is essential debt"
+
+[[donor]]
+ordinal = 45
+donor = "in-toto"
+first_50_ordinal = 45
+in_donor_corpus = false
+corpus_decision_status = ""
+corpus_ingestion_status = ""
+corpus_census_status = ""
+corpus_storage_state = ""
+decided_in = "G109"
+mechanism_decision = "ABSORBED"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "artifact_integrity"
+debts = ["DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "YES"
+advanced = true
+conflated = false
+note = "generation-product-match absorbed (ADR 0037)"
+
+[[donor]]
+ordinal = 46
+donor = "git"
+first_50_ordinal = 46
+in_donor_corpus = false
+corpus_decision_status = ""
+corpus_ingestion_status = ""
+corpus_census_status = ""
+corpus_storage_state = ""
+decided_in = "G110"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "artifact_integrity"
+debts = ["DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = false
+boundary_type = "PERMANENT_REALITY"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "the host VCS is part of the world Atlas observes"
+
+[[donor]]
+ordinal = 47
+donor = "nix"
+first_50_ordinal = 47
+in_donor_corpus = false
+corpus_decision_status = ""
+corpus_ingestion_status = ""
+corpus_census_status = ""
+corpus_storage_state = ""
+decided_in = "G111"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-SANDBOXED_EXECUTION", "DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "hermetic construction is unimplemented P6"
+trigger = "the DEBT-SANDBOXED_EXECUTION native attack defines hermetic construction inputs (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "input-closure identity is native for extraction; hermetic construction is essential and unbuilt"
+
+[[donor]]
+ordinal = 48
+donor = "tlaplus"
+first_50_ordinal = 48
+in_donor_corpus = false
+corpus_decision_status = ""
+corpus_ingestion_status = ""
+corpus_census_status = ""
+corpus_storage_state = ""
+decided_in = "G112"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "formal_verification"
+debts = ["DEBT-VERIFICATION_EVIDENCE"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = true
+conflation_quote = "evidence_consumer: none"
+boundary_type = "ORACLE"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NO"
+capability_still_required = true
+note = "as kani"
+
+[[donor]]
+ordinal = 49
+donor = "openrewrite"
+first_50_ordinal = 49
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G113"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-TRANSFORMATION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "neither the lossless tree nor the recipe engine has a consumer"
+trigger = "the DEBT-TRANSFORMATION native attack (milestone)"
+counterfactual = "REQUIRES_REDESIGN"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "Transformation (preview/diff/verify/apply) is canonical; source-faithful rewriting is needed by it"
+
+[[donor]]
+ordinal = 50
+donor = "c2rust"
+first_50_ordinal = 50
+in_donor_corpus = true
+corpus_decision_status = "REFERENCE_ONLY"
+corpus_ingestion_status = "EXTINCT"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G114"
+mechanism_decision = "REFERENCE_ONLY_UNTIL_TRIGGER"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-MULTILANGUAGE", "DEBT-TRANSFORMATION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = true
+conflation_quote = "the self-census holds no C artifact"
+trigger = "the DEBT-MULTILANGUAGE native attack selects a frontend strategy (milestone)"
+counterfactual = "EXPLICIT_TRIGGER"
+suspicious_case = true
+mechanism_unnecessary = "NOT_YET"
+capability_still_required = true
+note = "Atlas's own source was treated as the workload; C census is essential for embedded/robotics/FFI systems"
+
+[[donor]]
+ordinal = 51
+donor = "crubit"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "PENDING"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-TRANSFORMATION"
+deferred_milestone = "the queued native attack of DEBT-TRANSFORMATION"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "C++/Rust interop and translation: the capability (transformation, second language) is essential and unattacked"
+
+[[donor]]
+ordinal = 52
+donor = "cytoscape-js"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "PENDING"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_NOT_REQUIRED"
+capability_cluster = "studio_projection"
+debts = []
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "STUDIO_PROJECTION (OPTIONAL)"
+deferred_milestone = "FOUNDATIONAL_ATLAS_READY MET"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "graph rendering is a Studio projection (NORTH-STAR puts UI last); engine capabilities do not depend on it"
+
+[[donor]]
+ordinal = 53
+donor = "elkjs"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "PENDING"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_NOT_REQUIRED"
+capability_cluster = "studio_projection"
+debts = []
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "STUDIO_PROJECTION (OPTIONAL)"
+deferred_milestone = "FOUNDATIONAL_ATLAS_READY MET"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "automatic layout is a Studio projection"
+
+[[donor]]
+ordinal = 54
+donor = "py2many"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "PENDING"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "construction"
+debts = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-TRANSFORMATION"
+deferred_milestone = "the queued native attack of DEBT-TRANSFORMATION"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "source translation: essential transformation capability, no native translator"
+
+[[donor]]
+ordinal = 55
+donor = "xyflow"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "PENDING"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "SKELETON"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_NOT_REQUIRED"
+capability_cluster = "studio_projection"
+debts = []
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "STUDIO_PROJECTION (OPTIONAL)"
+deferred_milestone = "FOUNDATIONAL_ATLAS_READY MET"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "node-editor interaction is a Studio projection"
+
+[[donor]]
+ordinal = 56
+donor = "opendesign"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_DONOR_GAP"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "DEEP_CENSUSED"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_NOT_REQUIRED"
+capability_cluster = "studio_projection"
+debts = []
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "STUDIO_PROJECTION (OPTIONAL)"
+deferred_milestone = "FOUNDATIONAL_ATLAS_READY MET"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "design authoring workspace is a Studio projection; design generation itself is DEBT-DESIGN_GENERATION"
+
+[[donor]]
+ordinal = 57
+donor = "selinux"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_SECURITY_LANE"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "sandboxing"
+debts = ["DEBT-SANDBOXED_EXECUTION"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-SANDBOXED_EXECUTION"
+deferred_milestone = "the queued native attack of DEBT-SANDBOXED_EXECUTION"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "least-privilege policy is the isolation class a SandboxBackend needs"
+
+[[donor]]
+ordinal = 58
+donor = "openscap"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_SECURITY_LANE"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "formal_verification"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-CONSTRAINT_REASONING"
+deferred_milestone = "the queued native attack of DEBT-CONSTRAINT_REASONING"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "compliance profiles are non-ground policy constraints"
+
+[[donor]]
+ordinal = 59
+donor = "keycloak"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_SECURITY_LANE"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "identity_authority"
+debts = ["DEBT-IDENTITY_AUTHORITY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-IDENTITY_AUTHORITY"
+deferred_milestone = "the queued native attack of DEBT-IDENTITY_AUTHORITY"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "principal/role/scope semantics: the authority model is absent"
+
+[[donor]]
+ordinal = 60
+donor = "keylime"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_SECURITY_LANE"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "artifact_integrity"
+debts = ["DEBT-ARTIFACT_IDENTITY"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-ARTIFACT_IDENTITY"
+deferred_milestone = "the queued native attack of DEBT-ARTIFACT_IDENTITY"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "attestation of executing artifacts: constructed-artifact identity is absent"
+
+[[donor]]
+ordinal = 61
+donor = "clair"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_SECURITY_LANE"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "PENDING_DEEP_CENSUS"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_OPEN_ESSENTIAL"
+capability_cluster = "artifact_integrity"
+debts = ["DEBT-PROVENANCE"]
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "DEBT-PROVENANCE"
+deferred_milestone = "the queued native attack of DEBT-PROVENANCE"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "vulnerability intelligence over supply chain: provenance of dependencies"
+
+[[donor]]
+ordinal = 62
+donor = "zed"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "APPROVED_IDE_DONOR_REFERENCE"
+corpus_ingestion_status = "CLONED"
+corpus_census_status = "INITIAL_COMPONENT_LICENSE_MAPPED"
+corpus_storage_state = "MATERIALIZED_CHECKOUT"
+decided_in = "G118"
+mechanism_decision = "DEFERRED"
+capability_decision = "CAPABILITY_NOT_REQUIRED"
+capability_cluster = "studio_projection"
+debts = []
+q1_mechanism = "NOT_YET"
+advanced = false
+conflated = false
+deferred_trigger = "FOUNDATIONAL-ATLAS-READY.toml donor_progression becomes OPEN (hard stop since G118)"
+deferred_owner = "STUDIO_PROJECTION (OPTIONAL)"
+deferred_milestone = "FOUNDATIONAL_ATLAS_READY MET"
+deferred_readmission = "census of the existing checkout answers its blocking question against the owning debt; no new materialization"
+counterfactual = "ALREADY_SCALES_CONCEPTUALLY"
+note = "IDE surfaces are a Studio projection"
+
+[[donor]]
+ordinal = 63
+donor = "ladybird"
+first_50_ordinal = 0
+in_donor_corpus = true
+corpus_decision_status = "EXTERNAL_BOUNDARY"
+corpus_ingestion_status = "REMOTE_CENSUSED"
+corpus_census_status = "COARSE_CENSUSED"
+corpus_storage_state = "SOURCE_DELETED"
+decided_in = "G55"
+mechanism_decision = "EXTERNAL_BOUNDARY"
+capability_decision = "CAPABILITY_PARTIAL"
+capability_cluster = "web_observation"
+debts = ["DEBT-REAL_WORLD_OBSERVATION"]
+q1_mechanism = "EXTERNAL_BOUNDARY"
+advanced = false
+conflated = false
+boundary_type = "PERMANENT_REALITY"
+counterfactual = "EXPLICIT_TRIGGER"
+note = "browser observation exists through the native W3C WebDriver instrument; the engine stays external"
+
+[[donor_cluster]]
+id = "semantic_resolution"
+class = "ESSENTIAL"
+debts = ["DEBT-SYMBOL", "DEBT-TYPE", "DEBT-CALL", "DEBT-MULTILANGUAGE"]
+donors = ["rust-analyzer", "tree-sitter", "scip", "kythe", "glean", "semgrep", "clef"]
+donor_count = 7
+absorbed_count = 4
+hole = false
+
+[[donor_cluster]]
+id = "control_data_state"
+class = "ESSENTIAL"
+debts = ["DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY", "DEBT-PERSISTENCE", "DEBT-RESOURCE"]
+donors = ["joern", "miri", "iris"]
+donor_count = 3
+absorbed_count = 1
+hole = false
+
+[[donor_cluster]]
+id = "compiler_ir"
+class = "ESSENTIAL"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER"]
+donors = ["rust", "mlir", "xdsl", "sigil-lang", "duumbi", "composer", "agentir", "llvm-project", "wasm-spec", "wasm-component-model", "wasm-tools", "object", "regalloc2"]
+donor_count = 13
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "construction"
+class = "ESSENTIAL"
+debts = ["DEBT-TRANSFORMATION", "DEBT-CONSTRUCTION_TRANSACTION", "DEBT-ARTIFACT_IDENTITY"]
+donors = ["ast-grep", "buck2", "mold", "nix", "openrewrite", "c2rust", "crubit", "py2many"]
+donor_count = 8
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "formal_verification"
+class = "ESSENTIAL"
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
+donors = ["souffle", "kani", "verus", "z3", "tlaplus", "openscap"]
+donor_count = 6
+absorbed_count = 1
+hole = false
+
+[[donor_cluster]]
+id = "incremental_computation"
+class = "ESSENTIAL"
+debts = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE"]
+donors = ["datafrog", "salsa", "differential-dataflow"]
+donor_count = 3
+absorbed_count = 2
+hole = false
+
+[[donor_cluster]]
+id = "storage"
+class = "SCALE_TRIGGERED"
+debts = ["SCALE-COMPRESSION", "SCALE-COLUMNAR", "SCALE-ZERO_COPY", "DEBT-ATLAS_COMPLETENESS"]
+donors = ["capnproto", "rkyv", "flatbuffers", "zstd", "arrow"]
+donor_count = 5
+absorbed_count = 1
+hole = false
+
+[[donor_cluster]]
+id = "distributed_execution"
+class = "ESSENTIAL"
+debts = ["DEBT-DISTRIBUTED_SEMANTICS", "SCALE-DISTRIBUTED_EXECUTION"]
+donors = []
+donor_count = 0
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "sandboxing"
+class = "ESSENTIAL"
+debts = ["DEBT-SANDBOXED_EXECUTION"]
+donors = ["wasmtime", "podman", "selinux"]
+donor_count = 3
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "artifact_integrity"
+class = "ESSENTIAL"
+debts = ["DEBT-ARTIFACT_IDENTITY", "DEBT-PROVENANCE", "DEBT-SEAL_GATE"]
+donors = ["blake3", "containers-image", "in-toto", "git", "keylime", "clair"]
+donor_count = 6
+absorbed_count = 2
+hole = false
+
+[[donor_cluster]]
+id = "simulation"
+class = "ESSENTIAL"
+debts = ["DEBT-SIMULATION"]
+donors = []
+donor_count = 0
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "physical_engineering"
+class = "ESSENTIAL"
+debts = ["DEBT-PHYSICAL_ONTOLOGY", "DEBT-QUANTITY_UNITS"]
+donors = []
+donor_count = 0
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "optimization_search"
+class = "ESSENTIAL"
+debts = ["DEBT-DESIGN_GENERATION"]
+donors = ["egglog"]
+donor_count = 1
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "ai_reasoning"
+class = "ESSENTIAL"
+debts = ["DEBT-DESIGN_GENERATION", "DEBT-EPISTEMIC_UNIFICATION"]
+donors = []
+donor_count = 0
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "causal_probabilistic_reasoning"
+class = "ESSENTIAL"
+debts = ["DEBT-CAUSALITY", "DEBT-UNCERTAINTY"]
+donors = []
+donor_count = 0
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "web_observation"
+class = "ESSENTIAL"
+debts = ["DEBT-REAL_WORLD_OBSERVATION"]
+donors = ["ladybird"]
+donor_count = 1
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "real_world_observation"
+class = "ESSENTIAL"
+debts = ["DEBT-REAL_WORLD_OBSERVATION"]
+donors = []
+donor_count = 0
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "identity_authority"
+class = "ESSENTIAL"
+debts = ["DEBT-IDENTITY_AUTHORITY"]
+donors = ["keycloak"]
+donor_count = 1
+absorbed_count = 0
+hole = true
+
+[[donor_cluster]]
+id = "studio_projection"
+class = "OPTIONAL"
+debts = []
+donors = ["sourcetrail", "cytoscape-js", "elkjs", "xyflow", "opendesign", "zed"]
+donor_count = 6
+absorbed_count = 0
+hole = false
+
