@@ -531,4 +531,29 @@ impl<'a> ExtractionContext<'a> {
         walker.walk_block(body, true);
         walker.pop_scope();
     }
+
+    /// G133: a closure region's data flow -- its parameters are bindings like a function's.
+    pub(super) fn build_closure_data_flow(
+        &mut self,
+        closure: &syn::ExprClosure,
+        body: &syn::Block,
+        scope: &SemanticScope,
+        function: &SemanticRecordId,
+    ) {
+        if !self.wants(SemanticDimension::DataFlow) {
+            return;
+        }
+        let mut walker = DataFlowWalker {
+            ctx: self,
+            function: function.clone(),
+            scope: scope.clone(),
+            scope_stack: Vec::new(),
+        };
+        walker.push_scope();
+        for input in &closure.inputs {
+            walker.walk_binding_pat(input, true);
+        }
+        walker.walk_block(body, true);
+        walker.pop_scope();
+    }
 }

@@ -6808,7 +6808,8 @@ impl<'ast> syn::visit::Visit<'ast> for IndependentCallSites {
         self.attributes(&item.attrs);
         syn::visit::visit_item_mod(self, item);
     }
-    fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+    // G133: a closure body is its own executable region, inside the profile (its calls are the
+    // closure region's); `async` blocks stay outside it.
     fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
     fn visit_item_const(&mut self, _: &'ast syn::ItemConst) {}
     fn visit_item_static(&mut self, _: &'ast syn::ItemStatic) {}
@@ -7286,4 +7287,93 @@ fn function_documentation_is_declared_on_the_function_identity() {
         })
     };
     assert_eq!(id(&batch), id(&undocumented));
+}
+
+/// G133 (NA-CLOSURE-REGIONS): a closure is its own executable region -- a CLOSURE
+/// FunctionIdentity named by its position, scoped under `fn <enclosing region>` -- and its calls,
+/// effects and parameters belong to it, never to the function that defines it. A closure in a
+/// `const` initializer (no enclosing function) and an `async` block stay outside the profile.
+#[test]
+fn a_closure_is_its_own_executable_region() {
+    let source = "fn helper(x: u64) -> u64 { x }\n\
+                  fn outer() {\n    let f = |x: u64| helper(x);\n    let _ = move || {\n        let g = || std::fs::remove_file(\"a\");\n        g()\n    };\n    let _ = async { helper(3) };\n    f(1);\n}\n\
+                  const C: fn() -> u64 = || helper(9);\n";
+    let batch = extract_all("src/lib.rs", source);
+    let mut closures: Vec<&FunctionIdentity> = batch
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h)
+                if h.subject.declaration_kind == FunctionDeclarationKind::Closure =>
+            {
+                Some(&h.subject)
+            }
+            _ => None,
+        })
+        .collect();
+    closures.sort_by(|a, b| a.symbol.name.cmp(&b.symbol.name));
+    let named: Vec<(String, Vec<String>)> = closures
+        .iter()
+        .map(|c| (c.symbol.name.clone(), c.scope.segments.clone()))
+        .collect();
+    assert_eq!(
+        named,
+        vec![
+            ("{closure@3:12}".to_owned(), vec!["fn outer".to_owned()]),
+            ("{closure@4:12}".to_owned(), vec!["fn outer".to_owned()]),
+            (
+                "{closure@5:16}".to_owned(),
+                vec!["fn outer".to_owned(), "fn {closure@4:12}".to_owned()]
+            ),
+        ],
+        "three regions: the const initializer's closure has no enclosing function"
+    );
+    let outer = find_function_identity(&batch, &[], "outer").unwrap();
+    let outer_calls: Vec<String> = calls_by_caller(&batch, outer)
+        .iter()
+        .map(|c| c.callee_spelling.clone().unwrap_or_default())
+        .collect();
+    assert_eq!(
+        outer_calls,
+        vec!["f".to_owned()],
+        "only the call written in outer's own body"
+    );
+    let first = calls_by_caller(&batch, closures[0]);
+    assert_eq!(first.len(), 1);
+    assert_eq!(first[0].callee_spelling.as_deref(), Some("helper"));
+    let inner = calls_by_caller(&batch, closures[2]);
+    assert_eq!(
+        inner.len(),
+        1,
+        "remove_file is the innermost closure's call"
+    );
+    // The effect belongs to the innermost closure region.
+    let inner_id = SemanticRecordId::new(
+        SemanticDimension::FunctionIdentity,
+        &closures[2].identity_key(),
+    );
+    assert!(batch.observations.iter().any(|o| matches!(
+        o,
+        SemanticObservation::Effect(h) if h.subject.function == inner_id
+    )));
+    // The closure's parameter is a definition of its own region.
+    let first_id = SemanticRecordId::new(
+        SemanticDimension::FunctionIdentity,
+        &closures[0].identity_key(),
+    );
+    assert!(batch.observations.iter().any(|o| matches!(
+        o,
+        SemanticObservation::DataFlow(h)
+            if h.subject.function == first_id
+                && h.subject.name == "x"
+                && h.subject.role == ValueRole::Definition
+    )));
+    // `async { helper(3) }` stays outside: no call of helper with argument 3 anywhere.
+    assert_eq!(
+        all_calls(&batch)
+            .iter()
+            .filter(|c| c.callee_spelling.as_deref() == Some("helper"))
+            .count(),
+        1
+    );
 }

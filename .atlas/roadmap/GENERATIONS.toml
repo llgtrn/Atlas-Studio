@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G132"
+current_generation = "G133"
 
 [[generation]]
 id = "G35"
@@ -2606,3 +2606,49 @@ after = 570
 [[generation.metric]]
 key = "composed:function_purpose:UNKNOWN"
 after = 1711
+
+[[generation]]
+id = "G133"
+kind = "NATIVE_ATTACK"
+base_commit = "4d715ab5b19eabc36bd69798fc99400444129374"
+priority = "P0"
+serves = "P0 native attack queue head NA-CLOSURE-REGIONS (DEBT-CALL, DEBT-CONCURRENCY, DEBT-EFFECT, DEBT-DATA_FLOW, DEBT-OWNERSHIP, DEBT-STATE, DEBT-CONTROL_FLOW)"
+objective = "closure bodies as their own executable regions: identity, every dimension walked and attributed, resolution inside them, and the link to the enclosing region"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0052-closure-regions.md"
+self_recensus = ".atlas/evidence/census/G133/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 1cd1ff7f16 = G132 post digest 362b0984... (4d715ab5b1 adds only out-of-scope evidence)"
+atlas_first = "the attack is on the extractor's own walkers; impact(Index::label) and every impact residual named the gap (calls inside closure bodies not censused); the closure skips were then read directly in each walker (implementation detail)"
+change = "FunctionDeclarationKind::Closure; handle_closure and walk_region (all eight builders on a closure body, attributed to the closure's record); closure data flow; the path-resolution engine visits closure bodies with captured plus own locals; opaque-site counting and the independent oracle follow the profile; FunctionBehavior.enclosing; async blocks stay outside"
+measured = "2,591 closure regions all linked to their enclosing region; 3,319 call sites and 97 effect sites attributed to closures; resolved call edges 3,514 to 3,786; impact(Index::label) candidate sites 6 to 16, resolving mission M1's falsification finding"
+finding = "verify HELD with one new authority origin the old census could not see: two CLI test functions spawn the CLI binary inside closures (AtlasCli: PROCESS_SPAWN)"
+falsification = "7 mutants killed: closures skipped again; a closure body attributed to its enclosing function; a closure scope not nested; opaque sites in closures uncounted; closure parameters unbound (first assertion too weak, strengthened); the resolver skipping closure bodies; closure parameters not shadowing"
+debts = "last advance G133 for DEBT-CALL, DEBT-CONTROL_FLOW, DEBT-DATA_FLOW, DEBT-STATE, DEBT-EFFECT and DEBT-OWNERSHIP; DEBT-CONCURRENCY not advanced (its closure-held spawns are method calls: NA-CALL-TYPE-RESIDUAL); NA-ASYNC-REGIONS queued"
+proof = "PROVEN (post 0779bd33...): closure regions add per-file obligations and residuals, explained in the intent"
+
+[[generation.metric]]
+key = "typed_records"
+before = 117946
+after = 140475
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2281
+after = 4874
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 3514
+after = 3786
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5021
+after = 5321
+
+[[generation.metric]]
+key = "records:EFFECT|atlas.rust.source-semantic.v1"
+before = 3585
+after = 3695

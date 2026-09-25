@@ -548,8 +548,8 @@ pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
         residual: format!(
             "LOWER BOUND: resolved callers only; {candidate_sites} unresolved call sites spelled \
              with a scope function's name are INFERRED candidates; {unnamed} unresolved call sites \
-             with a non-name callee may reach anything (GAP-UNRESOLVED-CALLEE); calls inside \
-             closure bodies are not censused at all (NA-CLOSURE-REGIONS)"
+             with a non-name callee may reach anything (GAP-UNRESOLVED-CALLEE); a closure's \
+             calls are its own region's (G133), and calls inside `async` blocks are not censused"
         ),
     }
 }

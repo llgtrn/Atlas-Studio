@@ -391,7 +391,8 @@ materialize App {
 "#;
 
     const CORE_LIB: &str = "//! The shared core.\n/// Holds one count and persists it.\npub mod store;\n\
-                            /// Adds one.\npub fn helper(x: u64) -> u64 { x + 1 }\n";
+                            /// Adds one.\npub fn helper(x: u64) -> u64 { x + 1 }\n\
+                            pub fn apply(v: Vec<u64>) -> Vec<u64> { v.into_iter().map(|x| helper(x)).collect() }\n";
     const STORE: &str = r#"pub struct Store { count: u64 }
 impl Store {
     pub fn new() -> Self { Store { count: 0 } }
@@ -594,6 +595,17 @@ fn run(s: &core::store::Store) { s.save(); }
             function(&model, "bump").purpose.status,
             EpistemicStatus::Unknown
         );
+        // G133: the closure in `apply` is its own region, linked to `apply`, and its resolved
+        // call to `helper` is the closure's, not `apply`'s.
+        let closure = model
+            .functions
+            .iter()
+            .find(|f| f.kind == "CLOSURE" && f.path == "core/src/lib.rs")
+            .unwrap();
+        let apply = function(&model, "apply");
+        assert_eq!(closure.enclosing.as_deref(), Some(apply.id.as_str()));
+        assert!(closure.calls.contains(&helper.id), "{closure:?}");
+        assert!(!apply.calls.contains(&helper.id));
         let items = model
             .gaps
             .iter()
@@ -1220,10 +1232,31 @@ fn run(s: &core::store::Store) { s.save(); }
             model.accounting.obligations,
             report.census.typed_obligations.len()
         );
+        // G133: a closure region has no declared signature; every other function's joins.
         assert!(
-            model.functions.iter().all(|f| f.visibility.is_some()),
+            model
+                .functions
+                .iter()
+                .filter(|f| f.kind != "CLOSURE")
+                .all(|f| f.visibility.is_some()),
             "every signature joins"
         );
+        // Every closure region names the region that defines it.
+        let ids: std::collections::BTreeSet<&str> =
+            model.functions.iter().map(|f| f.id.as_str()).collect();
+        let closures: Vec<_> = model
+            .functions
+            .iter()
+            .filter(|f| f.kind == "CLOSURE")
+            .collect();
+        assert!(!closures.is_empty(), "Atlas's own closures are regions");
+        for c in &closures {
+            let enclosing = c
+                .enclosing
+                .as_deref()
+                .unwrap_or_else(|| panic!("{}", c.name));
+            assert!(ids.contains(enclosing), "{}", c.name);
+        }
         let resolved_sites: usize = model
             .relations
             .iter()

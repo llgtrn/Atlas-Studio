@@ -44,7 +44,7 @@ Around these levels sit:
 5. **Absence.** "No path observed" or "no effect observed" is `UNKNOWN` while unresolved call sites exist. It is never reported as absence.
    - **Callee spelling (G123).** Every CALL record carries its callee as written (OBSERVED syntax). An unresolved site spelled with a function's name makes its caller an `INFERRED` candidate, listed apart from resolved callers and never merged with them.
    - **Unattributed sites.** An unresolved site without a name (a closure, a function pointer) may reach anything. It is counted as unresolved minus named, never read from a stored counter, so a model written before spellings existed claims no narrowing.
-   - **Closure bodies.** Calls inside closure bodies are not censused at all (`NA-CLOSURE-REGIONS`), and every impact residual says so.
+   - **Closure regions (G133).** A closure is its own executable region: a `CLOSURE` function named `{closure@line:column}`, whose calls, effects, state, data flow and the rest are its own, never the enclosing function's, and whose `enclosing` names the region that defines it. Calls inside `async` blocks are not censused, and every impact residual says so.
    - **State identity.** State is `<self type>.<field>`: a `self.field` touched by an inherent and a trait impl is one piece of state. Identity is by spelling, so same-named types of different modules share a key.
 6. **Determinism.** Composition is deterministic and independent of record order. Its totals (`composed:*`) are part of the census snapshot, so a change in composed understanding is a census change that `recensus prove` must see intended.
 

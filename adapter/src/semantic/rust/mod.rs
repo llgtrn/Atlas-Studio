@@ -495,6 +495,12 @@ fn max_structural_recursion_risk(source: &str) -> usize {
     max_risk
 }
 
+/// What defines an executable region's parameters (G133).
+enum RegionInputs<'a> {
+    Signature(&'a syn::Signature),
+    Closure(&'a syn::ExprClosure),
+}
+
 fn nested_scope(scope: &SemanticScope, segment: &str) -> SemanticScope {
     let mut segments = scope.segments.clone();
     segments.push(segment.to_owned());
@@ -601,6 +607,8 @@ struct ExtractionContext<'a> {
     /// G119: depth of recovered macro arguments being walked. DATA_FLOW does not walk macro
     /// arguments, so CALL never builds a `Resolved` DATA_FLOW `PlaceRef` inside them.
     macro_argument_depth: usize,
+    /// G133: the executable regions (functions, then closures) being walked, innermost last.
+    regions: Vec<String>,
 }
 
 impl<'a> ExtractionContext<'a> {
@@ -618,6 +626,7 @@ impl<'a> ExtractionContext<'a> {
             shadowed_macros: BTreeSet::new(),
             opaque_macro_sites: None,
             macro_argument_depth: 0,
+            regions: Vec::new(),
         }
     }
 
@@ -1281,7 +1290,7 @@ impl<'a> ExtractionContext<'a> {
             // (`ExecutableRegionIdentity`-shaped work is future scope), so a closure's calls are
             // left explicitly outside this dimension's current profile rather than misattributed
             // to the outer function. Corrects a prior version of this walker that recursed here.
-            syn::Expr::Closure(_) => {}
+            syn::Expr::Closure(closure) => self.handle_closure(closure, scope),
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr, scope, caller),
             syn::Expr::Range(range) => {
                 if let Some(start) = &range.start {
@@ -1345,6 +1354,73 @@ impl<'a> ExtractionContext<'a> {
         }
     }
 
+    /// Every dimension of one executable region's body, attributed to `region` (G133: shared by
+    /// functions and closures).
+    fn walk_region(
+        &mut self,
+        inputs: RegionInputs<'_>,
+        body: &syn::Block,
+        scope: &SemanticScope,
+        region: &SemanticRecordId,
+    ) {
+        self.walk_block(body, scope, region);
+        self.build_control_flow(body, scope, region);
+        match inputs {
+            RegionInputs::Signature(sig) => self.build_data_flow(sig, body, scope, region),
+            RegionInputs::Closure(closure) => {
+                self.build_closure_data_flow(closure, body, scope, region)
+            }
+        }
+        self.build_state(body, scope, region);
+        self.build_effects(body, scope, region);
+        self.build_ownership(body, scope, region);
+        self.build_concurrency(body, scope, region);
+        self.build_persistence(body, scope, region);
+    }
+
+    /// G133 (NA-CLOSURE-REGIONS): a closure is its own executable region. It runs later --
+    /// possibly never, possibly from another caller -- than the region that defines it, so its
+    /// calls, effects, state accesses and the rest are attributed to a CLOSURE FunctionIdentity
+    /// named `{closure@line:column}` in a scope under `fn <enclosing region>`, never to the
+    /// enclosing function. Only this walker (CALL) starts a closure region; every other walker
+    /// keeps skipping closure bodies, so nothing is attributed twice. A closure outside any
+    /// function (a `const`/`static` initializer) stays outside the profile.
+    fn handle_closure(&mut self, closure: &syn::ExprClosure, scope: &SemanticScope) {
+        let Some(enclosing) = self.regions.last().cloned() else {
+            return;
+        };
+        let span = self.span_of(closure);
+        let name = format!("{{closure@{}:{}}}", span.line, span.column);
+        let region_scope = nested_scope(scope, &format!("fn {enclosing}"));
+        self.emit_symbol(&region_scope, &name, SymbolRole::Definition, span.clone());
+        let identity = self.function_identity(
+            &region_scope,
+            &name,
+            span,
+            SymbolRole::Definition,
+            FunctionDeclarationKind::Closure,
+            FunctionOwner::none(),
+            Vec::new(),
+        );
+        let region = SemanticRecordId::new(
+            SemanticDimension::FunctionIdentity,
+            &identity.identity_key(),
+        );
+        self.emit_function_identity(identity);
+        let body = syn::Block {
+            brace_token: Default::default(),
+            stmts: vec![syn::Stmt::Expr((*closure.body).clone(), None)],
+        };
+        self.regions.push(name);
+        self.walk_region(
+            RegionInputs::Closure(closure),
+            &body,
+            &region_scope,
+            &region,
+        );
+        self.regions.pop();
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn handle_function(
         &mut self,
@@ -1393,14 +1469,9 @@ impl<'a> ExtractionContext<'a> {
         self.emit_function_identity(identity.clone());
 
         if let Some(body) = body {
-            self.walk_block(body, scope, &caller_record_id);
-            self.build_control_flow(body, scope, &caller_record_id);
-            self.build_data_flow(sig, body, scope, &caller_record_id);
-            self.build_state(body, scope, &caller_record_id);
-            self.build_effects(body, scope, &caller_record_id);
-            self.build_ownership(body, scope, &caller_record_id);
-            self.build_concurrency(body, scope, &caller_record_id);
-            self.build_persistence(body, scope, &caller_record_id);
+            self.regions.push(name.to_owned());
+            self.walk_region(RegionInputs::Signature(sig), body, scope, &caller_record_id);
+            self.regions.pop();
         }
 
         let mut parameters = Vec::new();

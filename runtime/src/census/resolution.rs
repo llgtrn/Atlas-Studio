@@ -19,7 +19,7 @@
 //! (`atlas_core::std_path_concurrency`) names, and (G125) PERSISTENCE for path calls resolved to a
 //! std path the declared std-path persistence table (`atlas_core::std_path_persistence`) names.
 //! Every obligation is
-//! UNKNOWN (method calls, closure bodies, macro arguments and every other effect source are
+//! UNKNOWN (method calls, `async` blocks, macro arguments and every other effect source are
 //! outside it), and a resolution that cannot be attached -- no syntactic claim at the anchor, or
 //! no FunctionIdentity for the definition -- is a diagnosed disagreement, never a fabricated
 //! record.
@@ -518,7 +518,7 @@ pub fn resolve_rust_path_calls(
         let reached = workspace.reached.contains(&path);
         let concurrency_scope = if reached {
             format!(
-                "{RUST_PATH_RESOLUTION_ID} derives concurrency only for path calls resolved to a standard-library path the declared std-path concurrency table names ({path}); method calls (spawn_scoped, lock, send, recv, atomics), closure bodies and macro arguments are outside it"
+                "{RUST_PATH_RESOLUTION_ID} derives concurrency only for path calls resolved to a standard-library path the declared std-path concurrency table names ({path}); method calls (spawn_scoped, lock, send, recv, atomics), `async` blocks and macro arguments are outside it"
             )
         } else {
             format!(
@@ -537,7 +537,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls and `self.m()` calls decided by the method probe's first step ({path}); other method calls, closure bodies and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls and `self.m()` calls decided by the method probe's first step ({path}); other method calls, `async` blocks and macro arguments are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"

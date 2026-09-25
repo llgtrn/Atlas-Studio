@@ -198,6 +198,10 @@ pub struct FunctionBehavior {
     pub control: ControlSummary,
     /// Raw typed records composed into this behavior.
     pub records: usize,
+    /// G133 (NA-CLOSURE-REGIONS): for a CLOSURE region, the region that defines it (a function
+    /// or another closure), DERIVED from the closure's scope; `None` otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enclosing: Option<String>,
     /// G132 (mission M3): the function's own documentation (`///`) as DECLARED purpose, citing
     /// its FUNCTION_IDENTITY record; UNKNOWN without one.
     #[serde(default = "Claim::undocumented_function")]
@@ -549,6 +553,7 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     data_flow: DataFlowSummary::default(),
                     control: ControlSummary::default(),
                     records: 0,
+                    enclosing: None,
                     purpose: match &f.symbol.documentation {
                         Some(documentation) => Claim {
                             value: Some(documentation.summary.clone()),
@@ -562,6 +567,32 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     },
                 })
                 .records += 1;
+        }
+    }
+
+    // G133: a closure region is scoped under `fn <enclosing region>`; the enclosing region is the
+    // function of the same file named so, in the scope above that segment.
+    let region_of: BTreeMap<(String, String, String), String> = functions
+        .values()
+        .map(|f| {
+            (
+                (f.path.clone(), f.scope.clone(), f.name.clone()),
+                f.id.clone(),
+            )
+        })
+        .collect();
+    for f in functions.values_mut() {
+        if f.kind != "CLOSURE" {
+            continue;
+        }
+        let (parent, segment) = match f.scope.rsplit_once("::") {
+            Some((parent, segment)) => (parent.to_owned(), segment),
+            None => (String::new(), f.scope.as_str()),
+        };
+        if let Some(name) = segment.strip_prefix("fn ") {
+            f.enclosing = region_of
+                .get(&(f.path.clone(), parent, name.to_owned()))
+                .cloned();
         }
     }
 

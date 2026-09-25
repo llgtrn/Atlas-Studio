@@ -91,10 +91,9 @@
     ],
     "expect": [
       "candidates:true",
-      "NA-CLOSURE-REGIONS",
       "GAP-UNRESOLVED-CALLEE"
     ],
-    "manual_alternative": "grep every `.label(` call in the workspace and inspect each receiver",
+    "manual_alternative": "grep every `.label(` call in the workspace and inspect each receiver (closure bodies are censused since G133)",
     "class": "IMPACT"
   },
   {

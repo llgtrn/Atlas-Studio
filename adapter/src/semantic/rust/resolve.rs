@@ -1947,8 +1947,34 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
         syn::visit::visit_expr_method_call(self, call);
     }
 
-    // The CALL profile's exclusions: deferred executable regions and initializers with no caller.
-    fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+    // G133 (NA-CLOSURE-REGIONS): a closure body is its own executable region inside the CALL
+    // profile. Its locals are the enclosing region's (captures) plus its own parameters and
+    // bindings, so a parameter shadowing a function name stays a local.
+    fn visit_expr_closure(&mut self, closure: &'ast syn::ExprClosure) {
+        let Some(enclosing) = self.fn_ctx.last() else {
+            return;
+        };
+        let mut bindings = Bindings(enclosing.locals.clone());
+        for input in &closure.inputs {
+            bindings.visit_pat(input);
+        }
+        bindings.visit_expr(&closure.body);
+        let ctx = FnCtx {
+            locals: bindings.0,
+            generics: enclosing.generics.clone(),
+            receiver: enclosing.receiver,
+        };
+        self.fn_ctx.push(ctx);
+        for input in &closure.inputs {
+            self.visit_pat(input);
+        }
+        if let syn::ReturnType::Type(_, ty) = &closure.output {
+            self.visit_type(ty);
+        }
+        self.visit_expr(&closure.body);
+        self.fn_ctx.pop();
+    }
+    // The CALL profile's exclusions: `async` blocks and initializers with no caller.
     fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
     fn visit_item_const(&mut self, item: &'ast syn::ItemConst) {
         self.visit_type(&item.ty);

@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G132"
+evaluated_at = "G133"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -111,6 +111,14 @@ observes = "each dimension's semantics inside standard macro arguments, implicit
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
 
 [[capability_milestone]]
+id = "CLOSURE_REGIONS"
+generation = "G133"
+debts = ["DEBT-CALL", "DEBT-EFFECT", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-OWNERSHIP", "DEBT-CONTROL_FLOW"]
+languages = ["rust"]
+observes = "closure bodies as their own executable regions, walked in every dimension and resolved"
+evidence = ".atlas/decisions/0052-closure-regions.md"
+
+[[capability_milestone]]
 id = "ONE_UNCERTAINTY_CARRIER"
 generation = "G131"
 debts = ["DEBT-UNCERTAINTY", "DEBT-SIMULATION"]
@@ -187,7 +195,7 @@ capabilities_available_then = []
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 97
+priority = 98
 rank = 3
 
 [[donor]]
@@ -216,10 +224,10 @@ last_materialized_generation = "G75"
 last_deep_census_generation = "G75"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
-semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS"]
+semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 291
+priority = 392
 rank = 1
 
 [[donor]]
@@ -235,8 +243,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 97
-rank = 6
+priority = 98
+rank = 7
 
 [[donor]]
 donor = "tree-sitter"
@@ -312,7 +320,7 @@ last_materialized_generation = "G69"
 last_deep_census_generation = "G69"
 capabilities_examined = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS"]
+semantic_delta = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
 reason = "the advanced capabilities are Rust semantic engines; a scala source exposes nothing new to them (condition 3 fails)"
 priority = 0
@@ -376,11 +384,11 @@ last_materialized_generation = "G121"
 last_deep_census_generation = "G121"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = []
-status = "REVALIDATED"
-reason = "revalidated with every capability gained since its decision"
-priority = 0
-rank = 0
+semantic_delta = ["CLOSURE_REGIONS"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
+priority = 98
+rank = 6
 
 [[donor]]
 donor = "miri"
@@ -392,10 +400,10 @@ last_materialized_generation = "G76"
 last_deep_census_generation = "G76"
 capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
-semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS"]
+semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 194
+priority = 294
 rank = 2
 
 [[donor]]
@@ -408,7 +416,7 @@ last_materialized_generation = "G78"
 last_deep_census_generation = "G78"
 capabilities_examined = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS"]
-semantic_delta = ["SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS"]
+semantic_delta = ["SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "LANGUAGE_UNDETERMINED"
 reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
 priority = 0
@@ -427,7 +435,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 97
+priority = 98
 rank = 4
 
 [[donor]]
@@ -459,7 +467,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 97
+priority = 98
 rank = 5
 
 [[donor]]
@@ -584,7 +592,7 @@ last_materialized_generation = "G91"
 last_deep_census_generation = "G91"
 capabilities_examined = ["DEBT-EFFECT"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = ["ROLE_AWARE_MACRO_ARGUMENTS"]
+semantic_delta = ["ROLE_AWARE_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "LANGUAGE_UNDETERMINED"
 reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
 priority = 0
@@ -811,8 +819,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 94
-rank = 7
+priority = 95
+rank = 8
 
 [[donor]]
 donor = "podman"

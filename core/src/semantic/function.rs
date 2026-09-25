@@ -46,6 +46,10 @@ pub enum FunctionDeclarationKind {
     TraitDefaultMethod,
     /// A method inside an `impl Trait for Type { ... }` block, receiver or not.
     TraitImplementationMethod,
+    /// G133 (NA-CLOSURE-REGIONS): a closure expression -- its own executable region, run later
+    /// (possibly never, possibly by another caller) than the function that defines it. Named
+    /// `{closure@line:column}` and scoped under `fn <enclosing region>`.
+    Closure,
 }
 
 impl FunctionDeclarationKind {
@@ -57,6 +61,7 @@ impl FunctionDeclarationKind {
             Self::TraitMethodDeclaration => "TRAIT_METHOD_DECLARATION",
             Self::TraitDefaultMethod => "TRAIT_DEFAULT_METHOD",
             Self::TraitImplementationMethod => "TRAIT_IMPLEMENTATION_METHOD",
+            Self::Closure => "CLOSURE",
         }
     }
 }
