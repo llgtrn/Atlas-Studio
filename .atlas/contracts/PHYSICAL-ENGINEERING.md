@@ -75,3 +75,9 @@ Every physical report states its level, and a report never claims a level above 
   - computed-torque RK4 simulation saturated at actuator capability;
   - a divergence guard;
   - joint-limit, actuator-capability and tracking verdicts.
+- **G131 (ADR 0051): uncertainty reaches every verdict.**
+  - **Declared ± bounds are the one exact carrier.** Quantity bounds and product money share it (`quantity::Interval`).
+  - **Every f64 drop is recorded.** Each value a simulation takes as `f64` is listed in `SimulationRecord.inputs` as a `FloatDrop`, with its exactness and any declared bounds it left behind.
+  - **Joint limits are decided exactly** on the declared angles and limits; an uncertain angle that overlaps a limit is `UNKNOWN`.
+  - **Actuator capability** is the exact interval of rated torque × gear ratio × efficiency. It is `SATISFIED` only when the whole interval covers the requirement, and `VIOLATED` only when all of it falls short.
+  - **Uncertain model inputs.** A dynamic or tracking verdict is `UNKNOWN` whenever a model or trajectory input carries declared uncertainty, because a nominal simulation bounds nothing.

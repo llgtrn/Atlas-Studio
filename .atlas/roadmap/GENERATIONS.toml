@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G130"
+current_generation = "G131"
 
 [[generation]]
 id = "G35"
@@ -2528,3 +2528,43 @@ proof = "PROVEN (post b30ce162...): one new source file explained as carrying th
 key = "composed:invariant:DEPENDENCY|DERIVED"
 before = 4
 after = 10
+
+[[generation]]
+id = "G131"
+kind = "NATIVE_ATTACK"
+base_commit = "7a77740e051ce4f31506d44504d6adc8563dc706"
+priority = "P0"
+serves = "P0 native attack queue head NA-UNCERTAINTY-PREDICTIONS (DEBT-UNCERTAINTY, DEBT-SIMULATION)"
+objective = "one exact uncertainty carrier for quantity bounds and product money, every f64 drop recorded, and physical verdicts that honor declared uncertainty"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0051-one-uncertainty-carrier-and-marked-float-drops.md"
+self_recensus = ".atlas/evidence/census/G131/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 17b058d37e = G130 post digest b30ce162... (7a77740e05 adds only out-of-scope evidence)"
+atlas_first = "understand(path:core/src/physical), (path:core/src/product) and (path:core/src/quantity) showed two structurally identical interval types (product money, quantity bounds) and the simulation's public surface taking plain f64 (ArmDynamics, simulate); the six to_f64 sites were then read directly (implementation detail)"
+finding = "the f64 drop was not only unmarked but unsound: a declared 0.3 +- 0.01 N*m rated torque fed the actuator-capability verdict as 0.3, and an uncertain link mass fed the dynamics as its nominal value"
+change = "quantity::Interval with sign-aware exact arithmetic; product::Interval re-exports it; Quantity arithmetic and bounds through it; FloatDrop and Quantity::drop_to_f64; SimulationRecord.inputs; exact joint-limit verdicts; interval actuator capability; UNKNOWN when uncertain model or trajectory inputs feed the nominal simulation"
+falsification = "6 mutants killed: dropped bounds not recorded; nominal simulation decides uncertain inputs; actuator compared at nominal; joint limits compared at nominal; product not sign-aware; actuator uncertainty treated as model uncertainty"
+debts = "last advance G131 for DEBT-UNCERTAINTY and DEBT-SIMULATION; both stay OPEN: visual and graph carriers, no distributions, predictions from uncertain inputs UNKNOWN rather than bounded (NA-BOUNDED-SIMULATION)"
+proof = "PROVEN (post 2d117be0...): no new UNKNOWN obligation"
+
+[[generation.metric]]
+key = "typed_records"
+before = 117224
+after = 117734
+
+[[generation.metric]]
+key = "facts"
+before = 17980
+after = 18029
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2270
+after = 2279
+
+[[generation.metric]]
+key = "composed:state_variable"
+before = 251
+after = 253

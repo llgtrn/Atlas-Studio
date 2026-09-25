@@ -1,0 +1,422 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G131",
+  "base_revision": "ebc0b5f49d766690376fd4701db58db8a98bb32e",
+  "candidate_revision": "7a77740e051ce4f31506d44504d6adc8563dc706",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:b30ce16201151c6732938fa1f7452f5944cb2ee627fc6c5206e767714af7a538",
+  "after_census_digest": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+  "replay_digest": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/quantity/mod.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/quantity/mod.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 9,
+      "fact:FunctionSignature|OBSERVED": 9,
+      "fact:Symbol|OBSERVED": 12,
+      "fact:Type|DERIVED": 7,
+      "fact:Type|OBSERVED": 12,
+      "record:CALL|DERIVED": 20,
+      "record:CALL|OBSERVED": 136,
+      "record:CONTROL_FLOW|INFERRED": 29,
+      "record:CONTROL_FLOW|OBSERVED": 14,
+      "record:DATA_FLOW|OBSERVED": 200,
+      "record:EFFECT|INFERRED": 29,
+      "record:FUNCTION_IDENTITY|OBSERVED": 9,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 9,
+      "record:OWNERSHIP|OBSERVED": 34,
+      "record:STATE|OBSERVED": -1,
+      "record:SYMBOL|OBSERVED": 12,
+      "record:TYPE|DERIVED": 7,
+      "record:TYPE|OBSERVED": 12
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 702,
+    "graph_nodes": 512
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/dynamics/`impl:ArmDynamics`/from_arm()."
+      ],
+      "after": [
+        "core physical/dynamics/`impl:ArmDynamics`/from_arm()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/joint_torque_limit()."
+      ],
+      "after": [
+        "core physical/joint_torque_limit()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/simulate_trajectories()."
+      ],
+      "after": [
+        "core physical/simulate_trajectories()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core product/variant_economics()."
+      ],
+      "after": [
+        "core product/variant_economics()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_add()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_add()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_mul()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_mul()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_sub()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_sub()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "core product/`impl:Interval`/checked_add()."
+      ],
+      "after": [
+        "core quantity/`impl:Interval`/checked_add()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "core product/`impl:Interval`/checked_sub()."
+      ],
+      "after": [
+        "core quantity/`impl:Interval`/checked_sub()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "core product/`impl:Interval`/point()."
+      ],
+      "after": [
+        "core quantity/`impl:Interval`/point()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core product/`impl:Interval`/is_nonnegative()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core product/`impl:Interval`/mul_nonnegative()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core product/`impl:Interval`/scale()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core physical/angle_within()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core physical/at_most()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core physical/tests/declared_uncertainty_is_never_decided_from_a_nominal_simulation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core physical/tests/every_value_a_simulation_takes_as_f64_is_recorded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Interval`/checked_mul()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Interval`/hull()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Interval`/is_nonnegative()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Interval`/locate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Interval`/scale()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/drop_to_f64()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/interval()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/tests/interval_arithmetic_is_exact_and_sign_aware()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1538,
+    "total_after": 1538
+  },
+  "intent": {
+    "objective": "NA-UNCERTAINTY-PREDICTIONS: one exact uncertainty carrier (quantity::Interval for quantity bounds and product money), every f64 drop recorded (FloatDrop), physical verdicts honor declared uncertainty (ADR 0051)",
+    "changed_paths": [
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/quantity/mod.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "-records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core physical/dynamics/`impl:ArmDynamics`/from_arm().",
+      "CHANGED core physical/joint_torque_limit().",
+      "CHANGED core physical/simulate_trajectories().",
+      "CHANGED core product/variant_economics().",
+      "CHANGED core quantity/`impl:Quantity`/checked_add().",
+      "CHANGED core quantity/`impl:Quantity`/checked_mul().",
+      "CHANGED core quantity/`impl:Quantity`/checked_sub().",
+      "MOVED core product/`impl:Interval`/checked_add(). -> core quantity/`impl:Interval`/checked_add().",
+      "MOVED core product/`impl:Interval`/checked_sub(). -> core quantity/`impl:Interval`/checked_sub().",
+      "MOVED core product/`impl:Interval`/point(). -> core quantity/`impl:Interval`/point().",
+      "DELETED core product/`impl:Interval`/is_nonnegative().",
+      "DELETED core product/`impl:Interval`/mul_nonnegative().",
+      "DELETED core product/`impl:Interval`/scale().",
+      "CREATED core physical/angle_within().",
+      "CREATED core physical/at_most().",
+      "CREATED core physical/tests/declared_uncertainty_is_never_decided_from_a_nominal_simulation().",
+      "CREATED core physical/tests/every_value_a_simulation_takes_as_f64_is_recorded().",
+      "CREATED core quantity/`impl:Interval`/checked_mul().",
+      "CREATED core quantity/`impl:Interval`/hull().",
+      "CREATED core quantity/`impl:Interval`/is_nonnegative().",
+      "CREATED core quantity/`impl:Interval`/locate().",
+      "CREATED core quantity/`impl:Interval`/scale().",
+      "CREATED core quantity/`impl:Quantity`/drop_to_f64().",
+      "CREATED core quantity/`impl:Quantity`/interval().",
+      "CREATED core quantity/tests/interval_arithmetic_is_exact_and_sign_aware()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/physical/dynamics.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/product/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "total +composed:function_behavior",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total -records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED core physical/dynamics/`impl:ArmDynamics`/from_arm().",
+    "entity CHANGED core physical/joint_torque_limit().",
+    "entity CHANGED core physical/simulate_trajectories().",
+    "entity CHANGED core product/variant_economics().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_add().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_mul().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_sub().",
+    "entity MOVED core product/`impl:Interval`/checked_add(). -> core quantity/`impl:Interval`/checked_add().",
+    "entity MOVED core product/`impl:Interval`/checked_sub(). -> core quantity/`impl:Interval`/checked_sub().",
+    "entity MOVED core product/`impl:Interval`/point(). -> core quantity/`impl:Interval`/point().",
+    "entity DELETED core product/`impl:Interval`/is_nonnegative().",
+    "entity DELETED core product/`impl:Interval`/mul_nonnegative().",
+    "entity DELETED core product/`impl:Interval`/scale().",
+    "entity CREATED core physical/angle_within().",
+    "entity CREATED core physical/at_most().",
+    "entity CREATED core physical/tests/declared_uncertainty_is_never_decided_from_a_nominal_simulation().",
+    "entity CREATED core physical/tests/every_value_a_simulation_takes_as_f64_is_recorded().",
+    "entity CREATED core quantity/`impl:Interval`/checked_mul().",
+    "entity CREATED core quantity/`impl:Interval`/hull().",
+    "entity CREATED core quantity/`impl:Interval`/is_nonnegative().",
+    "entity CREATED core quantity/`impl:Interval`/locate().",
+    "entity CREATED core quantity/`impl:Interval`/scale().",
+    "entity CREATED core quantity/`impl:Quantity`/drop_to_f64().",
+    "entity CREATED core quantity/`impl:Quantity`/interval().",
+    "entity CREATED core quantity/tests/interval_arithmetic_is_exact_and_sign_aware()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

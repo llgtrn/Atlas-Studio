@@ -117,6 +117,10 @@ pub struct SimulationRecord {
     pub arm: String,
     pub config: dynamics::SimulationConfig,
     pub run: dynamics::SimulationRun,
+    /// G131: every declared value the simulation took as `f64`, marked exact or not, with the
+    /// declared uncertainty it did not carry.
+    #[serde(default)]
+    pub inputs: Vec<crate::quantity::FloatDrop>,
 }
 
 fn quantity_of(
@@ -741,8 +745,9 @@ const SIM_KD: [f64; 2] = [60.0, 60.0];
 const SIM_STEP_S: f64 = 1e-3;
 const SIM_HOLD_S: f64 = 0.3;
 
-/// Actuator torque available at a joint: rated motor torque x gear ratio x efficiency.
-fn joint_torque_limit(nodes: &[DeclaredNode], joint: &str) -> Option<f64> {
+/// Actuator torque available at a joint: rated motor torque x gear ratio x efficiency, exact and
+/// with the declared uncertainty of each factor (G131).
+fn joint_torque_limit(nodes: &[DeclaredNode], joint: &str) -> Option<Quantity> {
     let motor = nodes.iter().find(|node| {
         node.node_kind == "Motor" && node.attributes.get("joint").map(String::as_str) == Some(joint)
     })?;
@@ -750,7 +755,41 @@ fn joint_torque_limit(nodes: &[DeclaredNode], joint: &str) -> Option<f64> {
     let rated = quantity_of(motor, "rated_torque", TORQUE, &mut scratch)?;
     let ratio = ratio_of(motor, "gear_ratio", &mut scratch)?;
     let efficiency = ratio_of(motor, "efficiency", &mut scratch)?;
-    Some(rated.si_value.to_f64() * ratio.si_value.to_f64() * efficiency.si_value.to_f64())
+    rated
+        .checked_mul(&ratio)
+        .ok()?
+        .checked_mul(&efficiency)
+        .ok()
+}
+
+/// Whether `angle` lies within `joint`'s declared limits, decided exactly on the declared
+/// quantities: UNKNOWN when an uncertain angle or limit overlaps the boundary.
+fn angle_within(joint: &RevoluteJoint, angle: &Quantity) -> ConstraintVerdict {
+    use ConstraintVerdict::{Satisfied, Unknown, Violated};
+    let at_least = match angle.checked_cmp(&joint.lower) {
+        Ok(Ordering::Less) => Violated,
+        Ok(_) => Satisfied,
+        Err(_) => Unknown,
+    };
+    let at_most = match angle.checked_cmp(&joint.upper) {
+        Ok(Ordering::Greater) => Violated,
+        Ok(_) => Satisfied,
+        Err(_) => Unknown,
+    };
+    ConstraintVerdict::all([at_least, at_most])
+}
+
+/// `value` against a declared interval, in `f64`: SATISFIED at or below its low bound, VIOLATED
+/// above its high bound, UNKNOWN between them.
+fn at_most(value: f64, bound: &Quantity) -> ConstraintVerdict {
+    let interval = bound.interval();
+    if value <= interval.low.to_f64() {
+        ConstraintVerdict::Satisfied
+    } else if value > interval.high.to_f64() {
+        ConstraintVerdict::Violated
+    } else {
+        ConstraintVerdict::Unknown
+    }
 }
 
 /// Physical milestone 3 (ADR 0019): simulate every declared `Trajectory` of an assembled 2-link
@@ -781,8 +820,9 @@ fn simulate_trajectories(
         };
         let before = findings.len();
         let angle = |name: &str, findings: &mut Vec<PhysicalFinding>| {
-            quantity_of(trajectory, name, ANGLE, findings).map(|q| q.si_value.to_f64())
+            quantity_of(trajectory, name, ANGLE, findings)
         };
+        let mut drops = Vec::new();
         let from = [
             angle("shoulder_from", findings),
             angle("elbow_from", findings),
@@ -811,7 +851,7 @@ fn simulate_trajectories(
             duration,
             tolerance,
             limits,
-            dynamics::ArmDynamics::from_arm(arm),
+            dynamics::ArmDynamics::from_arm(arm, &mut drops),
         )
         else {
             if findings.len() == before {
@@ -826,26 +866,39 @@ fn simulate_trajectories(
         if findings.len() != before {
             continue;
         }
-        let within = arm.within_limits(&[f0, f1]) && arm.within_limits(&[t0, t1]);
+        // Joint limits are decided exactly on the declared quantities (G131).
+        let within = ConstraintVerdict::all(
+            arm.joints
+                .iter()
+                .zip([[&f0, &t0], [&f1, &t1]])
+                .flat_map(|(joint, ends)| ends.map(|angle| angle_within(joint, angle))),
+        );
         requirements.push(RequirementCheck {
             subject: trajectory.name.clone(),
             requirement: "trajectory within joint limits".into(),
-            verdict: if within {
-                ConstraintVerdict::Satisfied
-            } else {
-                ConstraintVerdict::Violated
-            },
-            detail: "minimum-jerk moves are monotone per joint, so the endpoints bound the path"
+            verdict: within,
+            detail: "minimum-jerk moves are monotone per joint, so the endpoints bound the path; \
+                     decided exactly on the declared angles and limits"
                 .into(),
         });
+        let name = |attribute: &str| format!("{}.{attribute}", trajectory.name);
         let config = dynamics::SimulationConfig {
             dynamics,
             trajectory: dynamics::JointMove {
-                from: [f0, f1],
-                to: [t0, t1],
-                duration_s: duration.si_value.to_f64(),
+                from: [
+                    f0.drop_to_f64(name("shoulder_from"), &mut drops),
+                    f1.drop_to_f64(name("elbow_from"), &mut drops),
+                ],
+                to: [
+                    t0.drop_to_f64(name("shoulder_to"), &mut drops),
+                    t1.drop_to_f64(name("elbow_to"), &mut drops),
+                ],
+                duration_s: duration.drop_to_f64(name("duration"), &mut drops),
             },
-            torque_limits: [limit0, limit1],
+            torque_limits: [
+                limit0.drop_to_f64(format!("{} torque limit", arm.joints[0].name), &mut drops),
+                limit1.drop_to_f64(format!("{} torque limit", arm.joints[1].name), &mut drops),
+            ],
             kp: SIM_KP,
             kd: SIM_KD,
             step_s: SIM_STEP_S,
@@ -866,36 +919,56 @@ fn simulate_trajectories(
                 arm: arm.name.clone(),
                 config,
                 run,
+                inputs: drops,
             });
             continue;
         }
+        // G131: the simulation runs on nominal values. A model or trajectory input with declared
+        // uncertainty makes every verdict drawn from it UNKNOWN: the nominal run bounds nothing.
+        let uncertain: Vec<&str> = drops
+            .iter()
+            .filter(|d| d.dropped_bounds.is_some() && !d.subject.ends_with("torque limit"))
+            .map(|d| d.subject.as_str())
+            .collect();
+        let from_simulation = |verdict: ConstraintVerdict| {
+            if uncertain.is_empty() {
+                verdict
+            } else {
+                ConstraintVerdict::Unknown
+            }
+        };
+        let uncertainty_note = if uncertain.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "; UNKNOWN: {} carry declared uncertainty the nominal simulation does not bound",
+                uncertain.join(", ")
+            )
+        };
         for (joint, index) in arm.joints.iter().zip(0..2) {
-            let (required, limit) = (run.ideal_peak[index], config.torque_limits[index]);
+            let required = run.ideal_peak[index];
+            let limit = [&limit0, &limit1][index];
+            let (low, high) = limit.bounds();
             requirements.push(RequirementCheck {
                 subject: trajectory.name.clone(),
                 requirement: format!("{} dynamic torque within actuator capability", joint.name),
-                verdict: if required <= limit {
-                    ConstraintVerdict::Satisfied
-                } else {
-                    ConstraintVerdict::Violated
-                },
+                verdict: from_simulation(at_most(required, limit)),
                 detail: format!(
-                    "DERIVED peak torque the trajectory requires (inverse dynamics) {required:.4} N*m vs {limit:.4} N*m available (rated x gear x efficiency); SIMULATED controller peak {:.4} N*m, {} saturated steps",
-                    run.peak_demand[index], run.saturated_steps[index]
+                    "DERIVED peak torque the trajectory requires (inverse dynamics) {required:.4} N*m vs [{:.4}, {:.4}] N*m available (rated x gear x efficiency, exact bounds); SIMULATED controller peak {:.4} N*m, {} saturated steps{uncertainty_note}",
+                    low.to_f64(),
+                    high.to_f64(),
+                    run.peak_demand[index],
+                    run.saturated_steps[index]
                 ),
             });
         }
-        let tolerance = tolerance.si_value.to_f64();
+        let tolerance_shown = tolerance.approximate().value;
         requirements.push(RequirementCheck {
             subject: trajectory.name.clone(),
-            requirement: format!("tracking error <= {tolerance} rad"),
-            verdict: if run.max_tracking_error_rad <= tolerance {
-                ConstraintVerdict::Satisfied
-            } else {
-                ConstraintVerdict::Violated
-            },
+            requirement: format!("tracking error <= {tolerance_shown} rad"),
+            verdict: from_simulation(at_most(run.max_tracking_error_rad, &tolerance)),
             detail: format!(
-                "SIMULATED max tracking error {:.6} rad, final error {:.6} rad",
+                "SIMULATED max tracking error {:.6} rad, final error {:.6} rad{uncertainty_note}",
                 run.max_tracking_error_rad, run.final_error_rad
             ),
         });
@@ -904,6 +977,7 @@ fn simulate_trajectories(
             arm: arm.name.clone(),
             config,
             run,
+            inputs: drops,
         });
     }
     records
@@ -1438,6 +1512,106 @@ mod tests {
         // Available torque: 0.3 N*m x 50 x 0.8 = 12 N*m at the shoulder, 0.2 x 30 x 0.8 = 4.8 at the elbow.
         assert!((report.simulations[0].config.torque_limits[0] - 12.0).abs() < 1e-12);
         assert!((report.simulations[0].config.torque_limits[1] - 4.8).abs() < 1e-12);
+    }
+
+    /// G131: every value a simulation takes as `f64` is recorded, marked exact or not.
+    #[test]
+    fn every_value_a_simulation_takes_as_f64_is_recorded() {
+        let report = analyze_physical(&with_trajectory("0.8 s"));
+        let inputs = &report.simulations[0].inputs;
+        let subjects: Vec<&str> = inputs.iter().map(|d| d.subject.as_str()).collect();
+        for subject in [
+            "Upper.length",
+            "Upper.mass",
+            "Fore.length",
+            "Fore.mass",
+            "A.payload",
+            "standard_gravity",
+            "Reach1.shoulder_from",
+            "Reach1.elbow_from",
+            "Reach1.shoulder_to",
+            "Reach1.elbow_to",
+            "Reach1.duration",
+            "Shoulder torque limit",
+            "Elbow torque limit",
+        ] {
+            assert!(subjects.contains(&subject), "{subject}: {subjects:?}");
+        }
+        assert_eq!(inputs.len(), 13);
+        let drop = |subject: &str| inputs.iter().find(|d| d.subject == subject).unwrap();
+        assert!(!drop("Upper.length").exact, "0.3 m has no exact f64");
+        assert!(drop("Fore.length").exact, "0.25 m does");
+        assert!(inputs.iter().all(|d| d.dropped_bounds.is_none()));
+    }
+
+    /// G131: a nominal simulation never decides a requirement whose inputs carry declared
+    /// uncertainty; an uncertain actuator is decided only when its whole interval is on one side;
+    /// joint limits are decided exactly.
+    #[test]
+    fn declared_uncertainty_is_never_decided_from_a_nominal_simulation() {
+        use ConstraintVerdict::{Satisfied, Unknown, Violated};
+        let mut nodes = with_trajectory("0.8 s");
+        nodes[1]
+            .attributes
+            .insert("mass".into(), "0.4 ± 0.05 kg".into());
+        let report = analyze_physical(&nodes);
+        for requirement in ["Shoulder dynamic", "Elbow dynamic", "tracking error"] {
+            let c = check(&report, requirement);
+            assert_eq!(c.verdict, Unknown, "{requirement}: {c:?}");
+            assert!(c.detail.contains("Upper.mass"), "{c:?}");
+        }
+        assert_eq!(
+            check(&report, "trajectory within joint limits").verdict,
+            Satisfied
+        );
+        let mass = report.simulations[0]
+            .inputs
+            .iter()
+            .find(|d| d.subject == "Upper.mass")
+            .unwrap();
+        assert_eq!(mass.dropped_bounds, Some((0.35, 0.45)));
+
+        let nominal = analyze_physical(&with_trajectory("0.8 s"));
+        let required = nominal.simulations[0].run.ideal_peak[0];
+        let shoulder = |rated: String| {
+            let mut nodes = with_trajectory("0.8 s");
+            nodes[5].attributes.insert("rated_torque".into(), rated);
+            check(&analyze_physical(&nodes), "Shoulder dynamic").verdict
+        };
+        // 0.3 ± 0.01 N*m x 50 x 0.8: [11.6, 12.4] N*m, all of it above the requirement.
+        assert!(required < 11.6, "{required}");
+        assert_eq!(shoulder("0.3 ± 0.01 N*m torque".into()), Satisfied);
+        // An interval around the requirement decides nothing; one wholly below it violates.
+        let at = required / 40.0;
+        assert_eq!(
+            shoulder(format!("{at:.6} ± {:.6} N*m torque", at * 0.1)),
+            Unknown
+        );
+        let low = required / 80.0;
+        assert_eq!(
+            shoulder(format!("{low:.6} ± {:.6} N*m torque", low * 0.01)),
+            Violated
+        );
+
+        // An uncertain angle overlapping the 1.5 rad shoulder limit.
+        let mut nodes = with_trajectory("0.8 s");
+        nodes[8]
+            .attributes
+            .insert("shoulder_to".into(), "1.45 ± 0.1 rad".into());
+        let report = analyze_physical(&nodes);
+        assert_eq!(
+            check(&report, "trajectory within joint limits").verdict,
+            Unknown
+        );
+        assert_eq!(check(&report, "Shoulder dynamic").verdict, Unknown);
+        let mut nodes = with_trajectory("0.8 s");
+        nodes[8]
+            .attributes
+            .insert("shoulder_to".into(), "1.7 ± 0.1 rad".into());
+        assert_eq!(
+            check(&analyze_physical(&nodes), "trajectory within joint limits").verdict,
+            Violated
+        );
     }
 
     #[test]

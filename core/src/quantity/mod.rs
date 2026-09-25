@@ -160,6 +160,84 @@ pub struct Interval {
     pub high: Rational,
 }
 
+impl Interval {
+    /// G131 (NA-UNCERTAINTY-PREDICTIONS): the one exact uncertainty carrier -- a quantity's bounds
+    /// and product money are both this interval.
+    pub fn point(value: Rational) -> Self {
+        Self {
+            low: value,
+            high: value,
+        }
+    }
+
+    /// The hull of `values`; `None` for no values or an overflowing comparison.
+    pub fn hull(values: &[Rational]) -> Option<Self> {
+        let (low, high) = Rational::min_max(values)?;
+        Some(Self { low, high })
+    }
+
+    pub fn checked_add(self, other: Self) -> Option<Self> {
+        Some(Self {
+            low: self.low.checked_add(other.low)?,
+            high: self.high.checked_add(other.high)?,
+        })
+    }
+
+    pub fn checked_sub(self, other: Self) -> Option<Self> {
+        Some(Self {
+            low: self.low.checked_add(other.high.checked_neg()?)?,
+            high: self.high.checked_add(other.low.checked_neg()?)?,
+        })
+    }
+
+    /// The exact product: the hull of the four corner products, whatever the signs.
+    pub fn checked_mul(self, other: Self) -> Option<Self> {
+        Self::hull(&[
+            self.low.checked_mul(other.low)?,
+            self.low.checked_mul(other.high)?,
+            self.high.checked_mul(other.low)?,
+            self.high.checked_mul(other.high)?,
+        ])
+    }
+
+    /// Scales by an exact factor; a negative factor swaps the bounds.
+    pub fn scale(self, factor: Rational) -> Option<Self> {
+        Self::hull(&[
+            self.low.checked_mul(factor)?,
+            self.high.checked_mul(factor)?,
+        ])
+    }
+
+    pub fn is_nonnegative(self) -> bool {
+        self.low.checked_cmp(Rational::ZERO) != Some(Ordering::Less)
+    }
+
+    /// Where `value` lies relative to the interval: `Less` below it, `Greater` above it, `Equal`
+    /// inside it (bounds included); `None` on overflow.
+    pub fn locate(self, value: Rational) -> Option<Ordering> {
+        if value.checked_cmp(self.low)? == Ordering::Less {
+            Some(Ordering::Less)
+        } else if value.checked_cmp(self.high)? == Ordering::Greater {
+            Some(Ordering::Greater)
+        } else {
+            Some(Ordering::Equal)
+        }
+    }
+}
+
+/// G131: a declared value that left exact arithmetic for `f64` -- what it was, the `f64` used,
+/// whether that `f64` is exact, and the declared bounds the `f64` did not carry along. Every such
+/// drop in a verdict path is recorded; a verdict never rests silently on a nominal value.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct FloatDrop {
+    pub subject: String,
+    pub value: f64,
+    pub exact: bool,
+    /// The declared uncertainty, approximated: the `f64` above is only its nominal value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dropped_bounds: Option<(f64, f64)>,
+}
+
 /// An `f64` stand-in for an exact rational, marked with whether it is exact (G124): a value that
 /// leaves exact arithmetic says so.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -761,47 +839,65 @@ impl Quantity {
     pub fn checked_add(&self, other: &Self) -> Result<Self, QuantityError> {
         self.same_dimension(other)?;
         let kind = self.shared_kind(other)?;
-        let add = |a: Rational, b: Rational| a.checked_add(b).ok_or(QuantityError::Overflow);
-        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
-        let value = add(self.si_value, other.si_value)?;
+        let value = self
+            .si_value
+            .checked_add(other.si_value)
+            .ok_or(QuantityError::Overflow)?;
+        let bounds = self
+            .interval()
+            .checked_add(other.interval())
+            .ok_or(QuantityError::Overflow)?;
         self.derived(
             other,
             value,
             self.dimension,
             kind,
-            &[add(l1, l2)?, add(h1, h2)?],
+            &[bounds.low, bounds.high],
         )
     }
 
     pub fn checked_sub(&self, other: &Self) -> Result<Self, QuantityError> {
         self.same_dimension(other)?;
         let kind = self.shared_kind(other)?;
-        let sub = |a: Rational, b: Rational| {
-            a.checked_add(b.checked_neg().ok_or(QuantityError::Overflow)?)
-                .ok_or(QuantityError::Overflow)
-        };
-        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
-        let value = sub(self.si_value, other.si_value)?;
+        let value = other
+            .si_value
+            .checked_neg()
+            .and_then(|negated| self.si_value.checked_add(negated))
+            .ok_or(QuantityError::Overflow)?;
+        let bounds = self
+            .interval()
+            .checked_sub(other.interval())
+            .ok_or(QuantityError::Overflow)?;
         self.derived(
             other,
             value,
             self.dimension,
             kind,
-            &[sub(l1, h2)?, sub(h1, l2)?],
+            &[bounds.low, bounds.high],
         )
     }
 
     /// A product has no declared kind: torque times angle is not a torque.
     pub fn checked_mul(&self, other: &Self) -> Result<Self, QuantityError> {
-        let mul = |a: Rational, b: Rational| a.checked_mul(b).ok_or(QuantityError::Overflow);
-        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
         let dimension = self
             .dimension
             .combine(other.dimension, 1)
             .ok_or(QuantityError::Overflow)?;
-        let value = mul(self.si_value, other.si_value)?;
-        let corners = [mul(l1, l2)?, mul(l1, h2)?, mul(h1, l2)?, mul(h1, h2)?];
-        self.derived(other, value, dimension, QuantityKind::Unspecified, &corners)
+        let value = self
+            .si_value
+            .checked_mul(other.si_value)
+            .ok_or(QuantityError::Overflow)?;
+        let bounds = self
+            .interval()
+            .checked_mul(other.interval())
+            .ok_or(QuantityError::Overflow)?;
+        self.derived(
+            other,
+            value,
+            dimension,
+            QuantityKind::Unspecified,
+            &[bounds.low, bounds.high],
+        )
     }
 
     pub fn checked_div(&self, other: &Self) -> Result<Self, QuantityError> {
@@ -846,6 +942,27 @@ impl Quantity {
     pub fn approximate(&self) -> Approximation {
         self.si_value.approximate()
     }
+
+    /// The SI value as `f64` for a computation that cannot stay exact (G131), recorded in
+    /// `drops` with its exactness and the declared bounds it leaves behind.
+    pub fn drop_to_f64(&self, subject: impl Into<String>, drops: &mut Vec<FloatDrop>) -> f64 {
+        let approximation = self.approximate();
+        drops.push(FloatDrop {
+            subject: subject.into(),
+            value: approximation.value,
+            exact: approximation.exact,
+            dropped_bounds: self
+                .uncertainty
+                .map(|Interval { low, high }| (low.to_f64(), high.to_f64())),
+        });
+        approximation.value
+    }
+
+    /// The exact bounds as the one uncertainty carrier.
+    pub fn interval(&self) -> Interval {
+        let (low, high) = self.bounds();
+        Interval { low, high }
+    }
 }
 
 impl fmt::Display for Quantity {
@@ -865,6 +982,66 @@ impl fmt::Display for Quantity {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// G131: the one uncertainty carrier's arithmetic is exact and sign-aware.
+    #[test]
+    fn interval_arithmetic_is_exact_and_sign_aware() {
+        let r = |n: i128| Rational::integer(n);
+        let a = Interval {
+            low: r(-1),
+            high: r(2),
+        };
+        let b = Interval {
+            low: r(3),
+            high: r(4),
+        };
+        assert_eq!(
+            a.checked_mul(b),
+            Some(Interval {
+                low: r(-4),
+                high: r(8)
+            })
+        );
+        assert_eq!(
+            a.checked_add(b),
+            Some(Interval {
+                low: r(2),
+                high: r(6)
+            })
+        );
+        assert_eq!(
+            a.checked_sub(b),
+            Some(Interval {
+                low: r(-5),
+                high: r(-1)
+            })
+        );
+        assert_eq!(
+            b.scale(r(-2)),
+            Some(Interval {
+                low: r(-8),
+                high: r(-6)
+            })
+        );
+        assert!(b.is_nonnegative() && !a.is_nonnegative());
+        assert_eq!(a.locate(r(-2)), Some(Ordering::Less));
+        assert_eq!(a.locate(r(2)), Some(Ordering::Equal));
+        assert_eq!(a.locate(r(3)), Some(Ordering::Greater));
+        assert_eq!(
+            Interval::point(r(5)),
+            Interval {
+                low: r(5),
+                high: r(5)
+            }
+        );
+        // A quantity's bounds are this carrier; dropping one to f64 records what was left behind.
+        let q = Quantity::parse("0.4 ± 0.05 kg").unwrap();
+        let mut drops = Vec::new();
+        assert_eq!(q.drop_to_f64("m", &mut drops), 0.4);
+        assert_eq!(drops[0].dropped_bounds, Some((0.35, 0.45)));
+        assert!(!drops[0].exact);
+        assert_eq!(q.interval().low, Rational::parse_decimal("0.35").unwrap());
+    }
 
     fn q(text: &str) -> Quantity {
         Quantity::parse(text).unwrap_or_else(|e| panic!("{text}: {e}"))

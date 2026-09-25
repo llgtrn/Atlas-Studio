@@ -50,55 +50,9 @@ impl EvidenceBasis {
     }
 }
 
-/// An exact closed interval `[low, high]` of money in one currency.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Interval {
-    pub low: Rational,
-    pub high: Rational,
-}
-
-impl Interval {
-    pub fn point(value: Rational) -> Self {
-        Self {
-            low: value,
-            high: value,
-        }
-    }
-
-    pub fn checked_add(self, other: Self) -> Option<Self> {
-        Some(Self {
-            low: self.low.checked_add(other.low)?,
-            high: self.high.checked_add(other.high)?,
-        })
-    }
-
-    pub fn checked_sub(self, other: Self) -> Option<Self> {
-        Some(Self {
-            low: self.low.checked_add(other.high.checked_neg()?)?,
-            high: self.high.checked_add(other.low.checked_neg()?)?,
-        })
-    }
-
-    /// Scales by a non-negative exact factor.
-    pub fn scale(self, factor: Rational) -> Option<Self> {
-        Some(Self {
-            low: self.low.checked_mul(factor)?,
-            high: self.high.checked_mul(factor)?,
-        })
-    }
-
-    /// Product of two non-negative intervals.
-    pub fn mul_nonnegative(self, other: Self) -> Option<Self> {
-        Some(Self {
-            low: self.low.checked_mul(other.low)?,
-            high: self.high.checked_mul(other.high)?,
-        })
-    }
-
-    pub fn is_nonnegative(self) -> bool {
-        self.low.checked_cmp(Rational::ZERO) != Some(std::cmp::Ordering::Less)
-    }
-}
+/// An exact closed interval `[low, high]` of money in one currency: the one uncertainty carrier
+/// (G131, `core::quantity::Interval`), shared with every quantity's bounds.
+pub use crate::quantity::Interval;
 
 /// A commercial value: an interval in a currency, its basis, and where it came from.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -1007,7 +961,7 @@ fn variant_economics(
     let channel = (|| {
         let (price, (rates, rates_basis), items) =
             (price.as_ref()?, rate_total?, channel_items.as_ref()?);
-        let share = rates.mul_nonnegative(price.amount)?;
+        let share = rates.checked_mul(price.amount)?;
         Some(Value {
             amount: items.amount.checked_add(share)?,
             basis: items.basis.min(rates_basis).min(price.basis),

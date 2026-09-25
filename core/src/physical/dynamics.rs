@@ -8,6 +8,7 @@
 //! independent derivations.
 
 use super::{PlanarArm, standard_gravity};
+use crate::quantity::FloatDrop;
 use crate::{EpistemicStatus, IntegrityDigest};
 use serde::{Deserialize, Serialize};
 
@@ -24,17 +25,29 @@ pub struct ArmDynamics {
 
 impl ArmDynamics {
     /// From a validated 2-link `PlanarArm`; `None` for other chain lengths.
-    pub fn from_arm(arm: &PlanarArm) -> Option<Self> {
+    /// The arm's parameters in `f64` for integration; every conversion is recorded in `drops`
+    /// (G131) with its exactness and any declared uncertainty it leaves behind.
+    pub fn from_arm(arm: &PlanarArm, drops: &mut Vec<FloatDrop>) -> Option<Self> {
         let [first, second] = arm.links.as_slice() else {
             return None;
         };
         Some(Self {
-            l1: first.length.si_value.to_f64(),
-            m1: first.mass.si_value.to_f64(),
-            l2: second.length.si_value.to_f64(),
-            m2: second.mass.si_value.to_f64(),
-            payload: arm.payload.si_value.to_f64(),
-            gravity: standard_gravity().si_value.to_f64(),
+            l1: first
+                .length
+                .drop_to_f64(format!("{}.length", first.name), drops),
+            m1: first
+                .mass
+                .drop_to_f64(format!("{}.mass", first.name), drops),
+            l2: second
+                .length
+                .drop_to_f64(format!("{}.length", second.name), drops),
+            m2: second
+                .mass
+                .drop_to_f64(format!("{}.mass", second.name), drops),
+            payload: arm
+                .payload
+                .drop_to_f64(format!("{}.payload", arm.name), drops),
+            gravity: standard_gravity().drop_to_f64("standard_gravity", drops),
         })
     }
 
