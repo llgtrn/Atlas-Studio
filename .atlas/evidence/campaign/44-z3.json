@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 44,
+ "donor": "z3",
+ "canonical_url": "https://github.com/Z3Prover/z3.git",
+ "verified_head": "fccce195c8d735ae415c994b935955390b75ff6f",
+ "generation": "G108",
+ "base_commit": "478803367b",
+ "hypothesis": "incremental SMT (push/pop) for non-ground constraints (P0)",
+ "blocking_question": "z3 is QUEUED, remote-discovered only, and CONSUMER_GATED in the frontier: is there a consumer that would justify admitting it?",
+ "measurement": {
+  "atlas_constraints": "the only derivation engine is core/src/closure: monotone semi-naive Datalog over ground tuples (ADR 0004, re-derived from datafrog); core/src/constraint holds manifest admission checks; no code holds a non-ground (free-variable or arithmetic) constraint",
+  "contracts": "SMT appears only as a future option: COMPILER-IR-PIPELINE.md's semantic-equivalence 'SMT/proof checks' (P6, no IR exists) and VERIFICATION-METRICS-PERFORMANCE.md's replaceable solvers (LP/MILP/SMT)",
+  "boundary": "an SMT solver is always an external boundary for Atlas, never absorbed -- as Z3 already is behind Verus (G105)",
+  "admission": "admitting z3 only to delete it would spend working-set budget (ADR 0021) on a decision that needs no source"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["Z3 as an external SMT solver, admitted only when an SMT consumer exists"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "rule_change": "first_50_campaign_is_canonical_and_accounted allows a CAMPAIGN_PROVEN donor without a corpus record only while the frontier records it as never admitted (lifecycle CANDIDATE, working_set CONSUMER_GATED); such a donor is terminal but never counted extinct",
+ "extinction": {
+  "action": "none: never materialized, so there is no source to delete; the frontier keeps it CANDIDATE / CONSUMER_GATED"
+ }
+}

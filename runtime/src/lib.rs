@@ -1596,11 +1596,31 @@ mod tests {
                         root.join(&evidence).is_file(),
                         "{repository}: {evidence} missing"
                     );
-                    let (ingestion, decision) = corpus.get(&repository).unwrap_or_else(|| {
-                        panic!("{repository}: campaign proof outside the corpus")
-                    });
-                    assert_eq!(ingestion, "EXTINCT", "{repository}: source not extinct");
-                    assert_eq!(decision, &terminal, "{repository}: corpus decision differs");
+                    match corpus.get(&repository) {
+                        Some((ingestion, decision)) => {
+                            assert_eq!(ingestion, "EXTINCT", "{repository}: source not extinct");
+                            assert_eq!(
+                                decision, &terminal,
+                                "{repository}: corpus decision differs"
+                            );
+                        }
+                        // Decided at the consumer gate (G108): a donor with no consumer is never
+                        // admitted, so there is no corpus record and no source to extinguish --
+                        // allowed only while the frontier still records it as never admitted.
+                        None => {
+                            let url = url.to_ascii_lowercase();
+                            let record = frontier
+                                .split("[[repository]]")
+                                .find(|r| r.contains(&format!("canonical_url = \"{url}\"")))
+                                .unwrap();
+                            assert!(
+                                record.contains("lifecycle = \"candidate\"")
+                                    && record.contains("working_set = \"consumer_gated\""),
+                                "{repository}: campaign proof outside the corpus for an admitted \
+                                 repository"
+                            );
+                        }
+                    }
                 }
                 if terminal == "REFERENCE_ONLY" {
                     reference_only += 1;

@@ -1,0 +1,15 @@
+{
+  "objective": "P3 first-50 #44 z3: decided at the consumer gate without admission (no non-ground constraint or SMT consumer exists; an SMT solver is always an external boundary); EXTERNAL_BOUNDARY; the campaign integrity test allows such a proof only while the frontier records the repository as never admitted",
+  "changed_paths": [
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED runtime tests/donor_corpus_integrity/first_50_campaign_is_canonical_and_accounted()."
+  ]
+}

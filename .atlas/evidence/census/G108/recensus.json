@@ -1,0 +1,95 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G108",
+  "base_revision": "7cb4d30128fd6ea4606665f42719575560737df9",
+  "candidate_revision": "478803367b8aa412fb8c3eff5de06f75edf64607",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:3e27884ef2c6d17754d52b0618fa83f9928a998765495a16346d71655bfa8e59",
+  "after_census_digest": "blake3-256:9e9b1c7e7f19881feb924c51f1898243e26d815ac2e25ffbecd2afe00ecd19cf",
+  "replay_digest": "blake3-256:9e9b1c7e7f19881feb924c51f1898243e26d815ac2e25ffbecd2afe00ecd19cf",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "record:CALL|OBSERVED": 3,
+      "record:CONTROL_FLOW|OBSERVED": 2,
+      "record:DATA_FLOW|OBSERVED": 5
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 17,
+    "graph_nodes": 10
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/donor_corpus_integrity/first_50_campaign_is_canonical_and_accounted()."
+      ],
+      "after": [
+        "runtime tests/donor_corpus_integrity/first_50_campaign_is_canonical_and_accounted()."
+      ],
+      "evidence": "body"
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1295,
+    "total_after": 1295
+  },
+  "intent": {
+    "objective": "P3 first-50 #44 z3: decided at the consumer gate without admission (no non-ground constraint or SMT consumer exists; an SMT solver is always an external boundary); EXTERNAL_BOUNDARY; the campaign integrity test allows such a proof only while the frontier records the repository as never admitted",
+    "changed_paths": [
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+evidence",
+      "+graph_edges",
+      "+graph_nodes",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED runtime tests/donor_corpus_integrity/first_50_campaign_is_canonical_and_accounted()."
+    ]
+  },
+  "intended_changes": [
+    "path runtime/src/lib.rs",
+    "total +evidence",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +typed_records",
+    "entity CHANGED runtime tests/donor_corpus_integrity/first_50_campaign_is_canonical_and_accounted()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

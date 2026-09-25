@@ -1715,6 +1715,7 @@ objective = "test the signed-provenance hypothesis against Atlas's seal/attestat
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/43-containers-image.json"
 self_recensus = ".atlas/evidence/census/G107/recensus.json"
+result_commits = ["9ee10e90517b9ec334bf029b0a9e1efaec0fc353", "478803367b8aa412fb8c3eff5de06f75edf64607"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of ff367352a6 = G106 post digest 1cc9412f... (7cb4d30128 adds only out-of-scope evidence)"
@@ -1725,3 +1726,25 @@ proof = "PROVEN on the first run (post 3e27884e...)"
 
 [generation.next]
 objective = "G108 (P3): first-50 #44 z3 (incremental SMT push/pop for non-ground constraints, P0)"
+
+[[generation]]
+id = "G108"
+base_commit = "478803367b8aa412fb8c3eff5de06f75edf64607"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #44 z3 to a terminal state (P0 SMT constraints); P5 working-set discipline"
+objective = "decide the consumer-gated z3 without admitting it, and let the campaign record a decision made at the consumer gate"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/44-z3.json"
+self_recensus = ".atlas/evidence/census/G108/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 9ee10e9051 = G107 post digest 3e27884e... (478803367b adds only out-of-scope evidence)"
+falsification = "Atlas's only derivation engine is monotone semi-naive Datalog over ground tuples; no code holds a non-ground constraint; SMT appears only as a future option in contract text; an SMT solver is an external boundary (as behind Verus, G105) -- the decision needs no source, so admission would only spend working-set budget"
+change = "first_50_campaign_is_canonical_and_accounted: a CAMPAIGN_PROVEN donor without a corpus record is allowed only while the frontier records it as never admitted (CANDIDATE / CONSUMER_GATED); it is terminal but never counted extinct"
+mutation = "the z3 frontier record flipped to ADMITTED makes the test fail ('campaign proof outside the corpus for an admitted repository'); restored"
+decision = "EXTERNAL_BOUNDARY, decided at the consumer gate; the frontier keeps z3 CANDIDATE / CONSUMER_GATED"
+extinction = "none: never materialized"
+proof = "PROVEN on the first run (post 9e9b1c7e...)"
+
+[generation.next]
+objective = "G109 (P3): first-50 #45 in-toto (layout/link attestation of construction steps, P5)"
