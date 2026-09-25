@@ -1,0 +1,11 @@
+{
+  "path": ".atlas/.cache/atlas-studio.census.atlas",
+  "root_id": "blake3-256:16fe3861652c3b846d91ada01eef016bf6fd9e543211994c192415d5e1da2551",
+  "bytes": 3084250,
+  "census_digest": "blake3-256:2107f20d4841b76d539f51daf0ddd27c3d2eee8ef6078155fecaa56bd326c441",
+  "facts": 12974,
+  "obligations": 1476,
+  "declared_nodes": 9,
+  "declared_edges": 12,
+  "certificate_state": "RECONCILED"
+}
