@@ -23,6 +23,8 @@ fn outcomes(results: &[PathCallResolution], path: &str) -> Vec<(String, String)>
         .map(|r| {
             let outcome = match &r.outcome {
                 PathCallOutcome::Resolved(t) => format!("{}:{}:{}", t.path, t.line, t.name),
+                PathCallOutcome::External(path) if path.is_empty() => "unresolved:external".into(),
+                PathCallOutcome::External(path) => format!("external:{path}"),
                 PathCallOutcome::Unresolved(reason) => format!("unresolved:{reason}"),
             };
             (r.callee.clone(), outcome)
@@ -305,4 +307,34 @@ fn a_file_the_recursion_pre_scan_refuses_is_open_and_never_parsed() {
         [("deep::g".into(), "unresolved:open-scope".into())]
     );
     assert!(outcomes(&results, "src/deep.rs").is_empty());
+}
+
+#[test]
+fn standard_library_paths_are_spelled_canonically_through_imports() {
+    // `fs::write` through `use std::fs`, a renamed type's associated function, a `self` import,
+    // an absolute `::std` path and a direct import all name their std path; a workspace module
+    // named `fs` shadows nothing it should not, and a registry crate's path stays unknown.
+    let lib = "use std::fs;\nuse std::fs::File as Handle;\nuse std::env::{self};\nuse std::fs::read_to_string;\nmod local {\n    pub mod fs {\n        pub fn write() {}\n    }\n    fn t() {\n        fs::write();\n    }\n}\nfn t() {\n    fs::write();\n    Handle::open();\n    env::var();\n    ::std::fs::remove_dir_all();\n    read_to_string();\n    serde_json::from_str();\n    std::io::stdout();\n}\nmod globbed {\n    use std::fs::*;\n    fn t() {\n        write();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("fs::write".into(), "src/lib.rs:7:write".into()),
+            ("fs::write".into(), "external:std::fs::write".into()),
+            ("Handle::open".into(), "external:std::fs::File::open".into()),
+            ("env::var".into(), "external:std::env::var".into()),
+            (
+                "std::fs::remove_dir_all".into(),
+                "external:std::fs::remove_dir_all".into()
+            ),
+            (
+                "read_to_string".into(),
+                "external:std::fs::read_to_string".into()
+            ),
+            ("serde_json::from_str".into(), "unresolved:external".into()),
+            ("std::io::stdout".into(), "external:std::io::stdout".into()),
+            // A glob of an external module could provide any name: never claimed.
+            ("write".into(), "unresolved:open-scope".into()),
+        ]
+    );
 }

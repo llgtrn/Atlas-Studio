@@ -152,6 +152,8 @@ Independent extractors MAY analyze the same dimension. Their identities/evidence
 
 **Implementation note (G75, ADR 0031)**: CALL has two engines. `atlas.rust.source-semantic.v1` observes every call site (callee `UNRESOLVED`). `atlas.resolution.rust-paths` resolves path calls natively, crate-wide: module tree, items, `use` imports to a fixed point, block scopes, the extern prelude of workspace crates, and inherent/trait-impl associated functions. It observes the same claim (`record_id`) with `STATIC_RESOLVED` and the callee's FunctionIdentity record. It is asked for CALL only, so accounting closure holds each engine to the dimensions it was asked for. An UNRESOLVED observation makes no callee claim, so it is not a disagreement with a resolution; two different resolutions are. A resolution that matches no syntactic claim is a diagnosed engine disagreement, never a record. Unsound cases stay unresolved with a reason: locals, generic parameters, open scopes (item macros, external globs), ambiguity, trait dispatch, constructors. The pinned rust-analyzer SCIP output is the differential verification oracle, never a census input.
 
+**Implementation note (G77, ADR 0032)**: the same engine also evaluates EFFECT. A path call it resolves to a standard-library path named by the declared std-path effect table (`atlas_core::std_path_effects`: `std::fs` entry points) is a DERIVED FILESYSTEM_READ/WRITE effect site of the caller, anchored at the call. A path the table does not name declares nothing.
+
 ## Failure semantics
 
 Extractor crashes, parser errors, resource limits and unsupported syntax become diagnostics plus UNKNOWN or UNSUPPORTED according to cause. A failure must not remove the artifact from census accounting.

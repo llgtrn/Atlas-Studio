@@ -27,7 +27,7 @@ deferred = 0
 extinct = 14
 remaining = 36
 next_donor = "clef"
-next_step = "G77 (P0): derive EFFECT for effectful std calls from resolved external paths (miri-cycle input); then clef (#16)"
+next_step = "G78 (P3): clef (#16)"
 
 [[donor]]
 ordinal = 1

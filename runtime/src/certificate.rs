@@ -253,8 +253,9 @@ mod tests {
         assert!(has("UNSUPPORTED_FACTS"));
 
         // An engine is an extractor that evaluated the obligation, and reconciliation is per
-        // dimension (G75): CALL has two engines on this repository (the syntactic extractor and
-        // path resolution), every other evaluated dimension one, and the blocker names them.
+        // dimension (G75): CALL and EFFECT (G77) have two engines on this repository (the
+        // syntactic extractor and path resolution), every other evaluated dimension one, and the
+        // blocker names them.
         let multi = |cert: &CensusCertificate| {
             cert.blockers
                 .iter()
@@ -263,7 +264,10 @@ mod tests {
         };
         assert_eq!(cert.independent_passes.passes_total, 2);
         let named = multi(&cert).unwrap();
-        assert!(!named.contains("CALL"), "{named}");
+        assert!(
+            !named.contains("CALL") && !named.contains("EFFECT"),
+            "{named}"
+        );
         assert!(
             named.contains("SYMBOL") && named.contains("DATA_FLOW"),
             "{named}"
@@ -276,7 +280,7 @@ mod tests {
             .iter()
             .find(|o| {
                 o.status != atlas_core::EpistemicStatus::Unsupported
-                    && o.dimension != atlas_core::SemanticDimension::Call
+                    && o.dimension == atlas_core::SemanticDimension::Symbol
             })
             .unwrap()
             .clone();

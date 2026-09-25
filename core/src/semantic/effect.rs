@@ -10,6 +10,10 @@
 //! persistence/event/auth/allocation/free/external-IO effects remain unmaterialized. The Rust
 //! extractor therefore keeps the overall EFFECT obligation UNKNOWN until the declared profile can
 //! prove closure over these cases.
+//!
+//! G77: a call a name-resolution engine resolves to a standard-library path is an effect site when
+//! [`std_path_effects`] declares that path's effects -- the declared std-path effect table, today
+//! the filesystem entry points of `std::fs` and the platform `symlink` functions.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;
@@ -57,6 +61,48 @@ impl EffectCategory {
     }
 }
 
+/// The declared std-path effect table (G77), sorted by path: the standard-library functions whose
+/// call is a filesystem effect by their documented contract. A path is the canonical spelling
+/// through imports (`std::fs::File::open`); re-exports and method calls are not covered, and a
+/// path absent here declares nothing (never "no effect").
+const STD_PATH_EFFECTS: &[(&str, &[EffectCategory])] = {
+    use EffectCategory::{FilesystemRead as R, FilesystemWrite as W};
+    &[
+        ("std::fs::File::create", &[W]),
+        ("std::fs::File::create_new", &[W]),
+        ("std::fs::File::open", &[R]),
+        ("std::fs::canonicalize", &[R]),
+        ("std::fs::copy", &[R, W]),
+        ("std::fs::create_dir", &[W]),
+        ("std::fs::create_dir_all", &[W]),
+        ("std::fs::exists", &[R]),
+        ("std::fs::hard_link", &[W]),
+        ("std::fs::metadata", &[R]),
+        ("std::fs::read", &[R]),
+        ("std::fs::read_dir", &[R]),
+        ("std::fs::read_link", &[R]),
+        ("std::fs::read_to_string", &[R]),
+        ("std::fs::remove_dir", &[W]),
+        ("std::fs::remove_dir_all", &[W]),
+        ("std::fs::remove_file", &[W]),
+        ("std::fs::rename", &[W]),
+        ("std::fs::set_permissions", &[W]),
+        ("std::fs::soft_link", &[W]),
+        ("std::fs::symlink_metadata", &[R]),
+        ("std::fs::write", &[W]),
+        ("std::os::unix::fs::symlink", &[W]),
+        ("std::os::windows::fs::symlink_dir", &[W]),
+        ("std::os::windows::fs::symlink_file", &[W]),
+    ]
+};
+
+/// The effects [`STD_PATH_EFFECTS`] declares for `path`; empty when the table says nothing.
+pub fn std_path_effects(path: &str) -> &'static [EffectCategory] {
+    STD_PATH_EFFECTS
+        .binary_search_by(|(declared, _)| declared.cmp(&path))
+        .map_or(&[], |index| STD_PATH_EFFECTS[index].1)
+}
+
 /// Identity of one effect-producing site within a function.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EffectIdentity {
@@ -88,6 +134,32 @@ impl EffectIdentity {
 mod tests {
     use super::super::SemanticDimension;
     use super::*;
+
+    #[test]
+    fn the_std_path_effect_table_is_sorted_unique_and_looked_up_exactly() {
+        assert!(
+            STD_PATH_EFFECTS.windows(2).all(|w| w[0].0 < w[1].0),
+            "binary search needs a strictly sorted table"
+        );
+        assert_eq!(
+            std_path_effects("std::fs::write"),
+            [EffectCategory::FilesystemWrite]
+        );
+        assert_eq!(
+            std_path_effects("std::fs::copy"),
+            [
+                EffectCategory::FilesystemRead,
+                EffectCategory::FilesystemWrite
+            ]
+        );
+        assert_eq!(
+            std_path_effects("std::fs::File::open"),
+            [EffectCategory::FilesystemRead]
+        );
+        for undeclared in ["std::fs", "std::fs::writ", "std::env::var", "fs::write", ""] {
+            assert!(std_path_effects(undeclared).is_empty(), "{undeclared}");
+        }
+    }
 
     fn base() -> EffectIdentity {
         EffectIdentity {

@@ -10,10 +10,13 @@
 //! the syntactic extractor's own FunctionIdentity record for the definition the resolver found,
 //! never a re-derived one.
 //!
-//! The engine evaluates only CALL, and only path calls: its obligation is UNKNOWN (method calls,
-//! closure bodies and macro arguments are outside it), and a resolution that cannot be attached --
-//! no syntactic claim at the anchor, or no FunctionIdentity for the definition -- is a diagnosed
-//! disagreement, never a fabricated record.
+//! The engine evaluates CALL for path calls, and (G77) EFFECT for path calls it resolves to a
+//! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
+//! names -- an effect site of the calling function, anchored at the call. Both obligations are
+//! UNKNOWN (method calls, closure bodies, macro arguments and every other effect source are
+//! outside it), and a resolution that cannot be attached -- no syntactic claim at the anchor, or
+//! no FunctionIdentity for the definition -- is a diagnosed disagreement, never a fabricated
+//! record.
 
 use adapter::join_path as join;
 use adapter::{
@@ -33,7 +36,18 @@ pub const RUST_PATH_RESOLUTION_VERSION: &str = "1";
 
 /// The dimensions the resolution engine is asked to evaluate (accounting closure is checked
 /// against these, not against every dimension).
-pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 1] = [SemanticDimension::Call];
+pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 2] =
+    [SemanticDimension::Call, SemanticDimension::Effect];
+
+/// What the engine produced for one artifact.
+#[derive(Default)]
+struct ArtifactWork {
+    calls: Vec<SemanticObservation>,
+    call_evidence: Vec<Evidence>,
+    effects: Vec<SemanticObservation>,
+    effect_evidence: Vec<Evidence>,
+    unattached: usize,
+}
 
 fn identity() -> ExtractorIdentity {
     ExtractorIdentity {
@@ -189,117 +203,190 @@ pub fn resolve_rust_path_calls(
     };
 
     let extractor = identity();
-    let mut per_artifact: BTreeMap<String, (Vec<SemanticObservation>, Vec<Evidence>, usize)> =
-        artifacts
-            .keys()
-            .map(|path| (path.clone(), Default::default()))
-            .collect();
+    let mut per_artifact: BTreeMap<String, ArtifactWork> = artifacts
+        .keys()
+        .map(|path| (path.clone(), ArtifactWork::default()))
+        .collect();
+    let provenance = |resolution: &adapter::PathCallResolution| Provenance {
+        source_path: resolution.path.clone(),
+        source_revision: Some(revision.clone()),
+        extractor: RUST_PATH_RESOLUTION_ID.into(),
+        content_hash: None,
+        span: Some(format!("{}:{}", resolution.line, resolution.column)),
+    };
     for resolution in resolutions {
         let entry = per_artifact.entry(resolution.path.clone()).or_default();
-        let PathCallOutcome::Resolved(target) = &resolution.outcome else {
-            continue;
-        };
         let claim = claims.get(&(resolution.path.clone(), resolution.line, resolution.column));
-        let callee = functions.get(&(
-            target.path.clone(),
-            target.line,
-            target.column,
-            target.name.clone(),
-        ));
-        let (Some(claim), Some(callee)) = (claim, callee) else {
-            entry.2 += 1;
-            continue;
-        };
-        let evidence_id = EvidenceId::new(stable_id(
-            "evidence",
-            &format!("{RUST_PATH_RESOLUTION_ID}:{}", claim.record_id.as_str()),
-        ));
-        entry.1.push(Evidence {
-            id: evidence_id.as_str().to_owned(),
-            kind: "NAME_RESOLUTION".into(),
-            path: resolution.path.clone(),
-            summary: format!(
-                "resolved `{}` at {}:{}:{} to `{}` at {}:{}:{}",
-                resolution.callee,
-                resolution.path,
-                resolution.line,
-                resolution.column,
-                target.name,
-                target.path,
-                target.line,
-                target.column
-            ),
-            revision: Some(revision.clone()),
-        });
-        let mut subject = claim.subject.clone();
-        subject.dispatch = CallDispatchKind::StaticResolved;
-        subject.callees = vec![callee.clone()];
-        let header = SemanticRecordHeader {
-            record_id: claim.record_id.clone(),
-            dimension: SemanticDimension::Call,
-            status: EpistemicStatus::Derived,
-            scope: claim.scope.clone(),
-            repository: repository.clone(),
-            revision: revision.clone(),
-            extractor: extractor.clone(),
-            evidence_refs: vec![evidence_id],
-            provenance: Provenance {
-                source_path: resolution.path.clone(),
-                source_revision: Some(revision.clone()),
-                extractor: RUST_PATH_RESOLUTION_ID.into(),
-                content_hash: None,
-                span: Some(format!("{}:{}", resolution.line, resolution.column)),
-            },
-            subject,
-        };
-        let observation = SemanticObservation::Call(header);
-        assert!(observation.is_dimension_consistent());
-        entry.0.push(observation);
+        match &resolution.outcome {
+            PathCallOutcome::Resolved(target) => {
+                let callee = functions.get(&(
+                    target.path.clone(),
+                    target.line,
+                    target.column,
+                    target.name.clone(),
+                ));
+                let (Some(claim), Some(callee)) = (claim, callee) else {
+                    entry.unattached += 1;
+                    continue;
+                };
+                let evidence_id = EvidenceId::new(stable_id(
+                    "evidence",
+                    &format!("{RUST_PATH_RESOLUTION_ID}:{}", claim.record_id.as_str()),
+                ));
+                entry.call_evidence.push(Evidence {
+                    id: evidence_id.as_str().to_owned(),
+                    kind: "NAME_RESOLUTION".into(),
+                    path: resolution.path.clone(),
+                    summary: format!(
+                        "resolved `{}` at {}:{}:{} to `{}` at {}:{}:{}",
+                        resolution.callee,
+                        resolution.path,
+                        resolution.line,
+                        resolution.column,
+                        target.name,
+                        target.path,
+                        target.line,
+                        target.column
+                    ),
+                    revision: Some(revision.clone()),
+                });
+                let mut subject = claim.subject.clone();
+                subject.dispatch = CallDispatchKind::StaticResolved;
+                subject.callees = vec![callee.clone()];
+                let observation = SemanticObservation::Call(SemanticRecordHeader {
+                    record_id: claim.record_id.clone(),
+                    dimension: SemanticDimension::Call,
+                    status: EpistemicStatus::Derived,
+                    scope: claim.scope.clone(),
+                    repository: repository.clone(),
+                    revision: revision.clone(),
+                    extractor: extractor.clone(),
+                    evidence_refs: vec![evidence_id],
+                    provenance: provenance(resolution),
+                    subject,
+                });
+                assert!(observation.is_dimension_consistent());
+                entry.calls.push(observation);
+            }
+            // G77: a call resolved to a standard-library path whose effects the declared table
+            // names is an effect site of the calling function, anchored at the call.
+            PathCallOutcome::External(path) => {
+                let categories = atlas_core::std_path_effects(path);
+                if categories.is_empty() {
+                    continue;
+                }
+                let Some(claim) = claim else {
+                    entry.unattached += 1;
+                    continue;
+                };
+                for &category in categories {
+                    let subject = atlas_core::EffectIdentity {
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        function: claim.subject.function.clone(),
+                        category,
+                        span: claim.subject.span.clone(),
+                    };
+                    let record_id =
+                        SemanticRecordId::new(SemanticDimension::Effect, &subject.identity_key());
+                    let evidence_id = EvidenceId::new(stable_id(
+                        "evidence",
+                        &format!("{RUST_PATH_RESOLUTION_ID}:{}", record_id.as_str()),
+                    ));
+                    entry.effect_evidence.push(Evidence {
+                        id: evidence_id.as_str().to_owned(),
+                        kind: "NAME_RESOLUTION".into(),
+                        path: resolution.path.clone(),
+                        summary: format!(
+                            "`{}` at {}:{}:{} resolves to `{path}`: {} (declared std-path effect table)",
+                            resolution.callee,
+                            resolution.path,
+                            resolution.line,
+                            resolution.column,
+                            category.as_str()
+                        ),
+                        revision: Some(revision.clone()),
+                    });
+                    let observation = SemanticObservation::Effect(SemanticRecordHeader {
+                        record_id,
+                        dimension: SemanticDimension::Effect,
+                        status: EpistemicStatus::Derived,
+                        scope: claim.scope.clone(),
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        extractor: extractor.clone(),
+                        evidence_refs: vec![evidence_id],
+                        provenance: provenance(resolution),
+                        subject,
+                    });
+                    assert!(observation.is_dimension_consistent());
+                    entry.effects.push(observation);
+                }
+            }
+            PathCallOutcome::Unresolved(_) => {}
+        }
     }
 
     let mut out = Vec::new();
-    for (path, (observations, evidence, unattached)) in per_artifact {
+    for (path, work) in per_artifact {
         let Some(artifact) = artifacts.get(&path) else {
             continue;
         };
-        let scope = if workspace.reached.contains(&path) {
-            format!(
-                "{RUST_PATH_RESOLUTION_ID} resolves path calls only ({path}); method calls, closure bodies and macro arguments are outside it"
+        let reached = workspace.reached.contains(&path);
+        let (call_scope, effect_scope) = if reached {
+            (
+                format!(
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls only ({path}); method calls, closure bodies and macro arguments are outside it"
+                ),
+                format!(
+                    "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"
+                ),
             )
         } else {
-            format!(
+            let unreached = format!(
                 "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
-            )
+            );
+            (unreached.clone(), unreached)
         };
-        let mut diagnostics = vec![ExtractionDiagnostic::new(
+        let call_diagnostic = ExtractionDiagnostic::new(
             DiagnosticCode::IncompleteAnalysis,
             Some(SemanticDimension::Call),
-            scope,
-        )];
-        if unattached > 0 {
-            diagnostics.push(ExtractionDiagnostic::new(
+            call_scope,
+        );
+        let effect_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::IncompleteAnalysis,
+            Some(SemanticDimension::Effect),
+            effect_scope,
+        );
+        let mut call_obligation = ObligationResult::unknown_with_observations(
+            SemanticDimension::Call,
+            work.calls.iter().map(|o| o.record_id().clone()).collect(),
+            ids(&work.call_evidence),
+            call_diagnostic.id.clone(),
+        );
+        let effect_obligation = ObligationResult::unknown_with_observations(
+            SemanticDimension::Effect,
+            work.effects.iter().map(|o| o.record_id().clone()).collect(),
+            ids(&work.effect_evidence),
+            effect_diagnostic.id.clone(),
+        );
+        let mut diagnostics = vec![call_diagnostic, effect_diagnostic];
+        if work.unattached > 0 {
+            let disagreement = ExtractionDiagnostic::new(
                 DiagnosticCode::IncompleteAnalysis,
                 Some(SemanticDimension::Call),
                 format!(
-                    "{unattached} resolved path call(s) in {path} match no syntactic CALL claim or no FunctionIdentity (engine disagreement)"
+                    "{} resolved path call(s) in {path} match no syntactic CALL claim or no FunctionIdentity (engine disagreement)",
+                    work.unattached
                 ),
-            ));
+            );
+            call_obligation.diagnostics.push(disagreement.id.clone());
+            diagnostics.push(disagreement);
         }
-        let mut obligation = ObligationResult::unknown_with_observations(
-            SemanticDimension::Call,
-            observations
-                .iter()
-                .map(|o| o.record_id().clone())
-                .collect::<Vec<SemanticRecordId>>(),
-            evidence
-                .iter()
-                .map(|e| EvidenceId::new(e.id.clone()))
-                .collect(),
-            diagnostics[0].id.clone(),
-        );
-        obligation
-            .diagnostics
-            .extend(diagnostics[1..].iter().map(|d| d.id.clone()));
+        let mut observations = work.calls;
+        observations.extend(work.effects);
+        let mut evidence = work.call_evidence;
+        evidence.extend(work.effect_evidence);
         out.push(ExtractionBatch {
             extractor: extractor.clone(),
             repository: repository.clone(),
@@ -311,11 +398,18 @@ pub fn resolve_rust_path_calls(
             ),
             observations,
             evidence,
-            obligations: vec![obligation],
+            obligations: vec![call_obligation, effect_obligation],
             diagnostics,
         });
     }
     out
+}
+
+fn ids(evidence: &[Evidence]) -> Vec<EvidenceId> {
+    evidence
+        .iter()
+        .map(|e| EvidenceId::new(e.id.clone()))
+        .collect()
 }
 
 #[cfg(test)]

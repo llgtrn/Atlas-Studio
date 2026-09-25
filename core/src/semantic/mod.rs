@@ -28,7 +28,7 @@ pub use control_flow::{
 };
 pub use data_flow::{DataFlowResolution, ValueIdentity, ValueRole};
 pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic};
-pub use effect::{EffectCategory, EffectIdentity};
+pub use effect::{EffectCategory, EffectIdentity, std_path_effects};
 pub use function::{
     FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature,
 };

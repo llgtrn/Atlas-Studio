@@ -149,6 +149,7 @@ G73 = "P0 measured: Atlas resolves 0 of 12,671 call sites; the pinned toolchain 
 G74 = "P0 CALL identity: a chain's calls shared their first token and collapsed into one record (3,888 of 18,035 call sites silently erased); anchored at the callee name, CALL records 12,671 -> 16,072 = an independent syntax enumeration of the profile. Oracle-as-census-engine rejected for now: CI has no rust-analyzer, so it would make the census environment-dependent; it becomes the verification oracle of native path resolution (G75)"
 G75 = "P0 CALL resolution: hir-def name resolution absorbed natively (rust-analyzer #4) as a second CALL engine; 3,731 path calls resolved to their FunctionIdentity, all confirmed by the pinned SCIP oracle (95.1% recall); CALLS graph edges; the multi-engine blocker now names each single-engine dimension instead of clearing on any one"
 G76 = "P0 input from the miri cycle: EFFECT observes only panic candidates while 504 call sites reach effectful std modules (fs 352, process 63, env 50, io 20, time 17, thread 2); the mechanism is std-path resolution + a declared effect table on top of G75, not interpretation (0 unsafe constructs; Miri nightly-only)"
+G77 = "P0 EFFECT: filesystem effect sites derived from resolved std paths through a declared table -- 323 DERIVED FILESYSTEM_READ/WRITE sites (all confirmed by SCIP); EFFECT has two engines; env/time/process-spawn stay unobserved, never mislabeled"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
@@ -158,7 +159,7 @@ C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency archite
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 11 campaign terminals (miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; next G77 P0 EFFECT, then clef (#16)"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 11 campaign terminals (miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; next clef (#16)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -261,7 +262,7 @@ objective = "first-50 #15 miri: no unsafe code, nightly-only; EFFECT gap measure
 [[planned_generation]]
 id = "G77"
 priority = "P0"
-objective = "EFFECT from resolved std paths: name the external std path of each resolved path call (G75 resolver) and classify fs/process/env/io/net by a declared effect table"
+objective = "EFFECT from resolved std paths (done: 323 filesystem effect sites, SCIP-confirmed)"
 
 [[planned_generation]]
 id = "G78+"

@@ -92,7 +92,12 @@ fn workspace() -> (std::path::PathBuf, InventoryReport) {
     fs::write(dir.join("core/Cargo.toml"), "[package]\nname = \"core\"\n").unwrap();
     fs::write(
         dir.join("core/src/lib.rs"),
-        "pub mod a;\npub fn f() {\n    a::g();\n    helper();\n    x.method();\n}\nfn helper() {}\n",
+        "pub mod a;\npub mod io;\npub fn f() {\n    a::g();\n    helper();\n    x.method();\n}\nfn helper() {}\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("core/src/io.rs"),
+        "use std::fs;\nuse std::fs::File;\npub fn save() {\n    fs::write(\"a\", \"b\");\n    File::open(\"a\");\n    fs::copy(\"a\", \"b\");\n    std::env::var(\"X\");\n}\n",
     )
     .unwrap();
     fs::write(dir.join("core/src/a.rs"), "pub fn g() {}\n").unwrap();
@@ -102,6 +107,7 @@ fn workspace() -> (std::path::PathBuf, InventoryReport) {
             artifact("core/Cargo.toml", "toml"),
             artifact("core/src/lib.rs", "rust"),
             artifact("core/src/a.rs", "rust"),
+            artifact("core/src/io.rs", "rust"),
         ],
     );
     (dir, inventory)
@@ -119,7 +125,7 @@ fn resolutions_observe_the_syntactic_claims_and_name_their_callee_identity() {
     let (dir, inventory) = workspace();
     let batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
     let resolution = resolve_rust_path_calls(&inventory, &batches);
-    assert_eq!(resolution.len(), 2, "one batch per reached Rust artifact");
+    assert_eq!(resolution.len(), 3, "one batch per reached Rust artifact");
 
     let calls = |batch: &ExtractionBatch| -> Vec<atlas_core::SemanticRecordHeader<atlas_core::CallSiteIdentity>> {
         batch
@@ -170,9 +176,14 @@ fn resolutions_observe_the_syntactic_claims_and_name_their_callee_identity() {
     let callees: Vec<&SemanticRecordId> = resolved.iter().map(|c| &c.subject.callees[0]).collect();
     assert_eq!(callees, [&functions["g"], &functions["helper"]]);
 
-    // The engine accounts for CALL only, and closure holds per engine.
-    assert_eq!(lib.obligations.len(), 1);
-    assert_eq!(lib.obligations[0].status, EpistemicStatus::Unknown);
+    // The engine accounts for CALL and EFFECT only, and closure holds per engine.
+    let dimensions: Vec<SemanticDimension> = lib.obligations.iter().map(|o| o.dimension).collect();
+    assert_eq!(dimensions, RUST_PATH_RESOLUTION_DIMENSIONS);
+    assert!(
+        lib.obligations
+            .iter()
+            .all(|o| o.status == EpistemicStatus::Unknown)
+    );
     let mut accounting = CensusExtractionAccounting::new();
     for batch in batches.iter().chain(&resolution) {
         accounting.record_batch(batch);
@@ -197,12 +208,20 @@ fn resolutions_observe_the_syntactic_claims_and_name_their_callee_identity() {
 fn a_resolution_without_a_syntactic_claim_is_a_diagnosed_disagreement() {
     let (dir, inventory) = workspace();
     let mut batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
-    // Drop the syntactic claim for `a::g()` (anchored at `g`, line 3) and keep the others.
+    // Drop the syntactic claims for `a::g()` (lib.rs line 4) and for the effectful `fs::write`
+    // (io.rs line 4), and keep the others.
     let mut dropped = None;
     for batch in &mut batches {
         batch.observations.retain(|o| match o {
-            SemanticObservation::Call(h) if h.subject.span.line == 3 => {
+            SemanticObservation::Call(h)
+                if h.subject.span.path == "core/src/lib.rs" && h.subject.span.line == 4 =>
+            {
                 dropped = Some(h.record_id.clone());
+                false
+            }
+            SemanticObservation::Call(h)
+                if h.subject.span.path == "core/src/io.rs" && h.subject.span.line == 4 =>
+            {
                 false
             }
             _ => true,
@@ -229,5 +248,79 @@ fn a_resolution_without_a_syntactic_claim_is_a_diagnosed_disagreement() {
         lib.diagnostics
     );
     assert_eq!(lib.obligations[0].diagnostics.len(), 2);
+    // An effect needs the caller its claim names: none is derived for the unclaimed call.
+    let io = resolution
+        .iter()
+        .find(|b| b.artifact.as_str() == "artifact:core/src/io.rs")
+        .unwrap();
+    let effect_lines: Vec<usize> = io
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Effect(h) => Some(h.subject.span.line),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(effect_lines, [5, 6, 6]);
+    assert!(
+        io.diagnostics
+            .iter()
+            .any(|d| d.message.starts_with("1 resolved path call(s)"))
+    );
+    fs::remove_dir_all(&dir).unwrap();
+}
+
+#[test]
+fn resolved_standard_library_paths_are_effect_sites_of_the_caller() {
+    let (dir, inventory) = workspace();
+    let batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
+    let resolution = resolve_rust_path_calls(&inventory, &batches);
+    let io = resolution
+        .iter()
+        .find(|b| b.artifact.as_str() == "artifact:core/src/io.rs")
+        .unwrap();
+    let effects: Vec<(usize, &str)> = io
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Effect(h) => {
+                Some((h.subject.span.line, h.subject.category.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    // fs::write, File::open, fs::copy (read and write); never std::env::var (not declared).
+    assert_eq!(
+        effects,
+        [
+            (4, "FILESYSTEM_WRITE"),
+            (5, "FILESYSTEM_READ"),
+            (6, "FILESYSTEM_READ"),
+            (6, "FILESYSTEM_WRITE"),
+        ]
+    );
+    let save = batches
+        .iter()
+        .flat_map(|b| &b.observations)
+        .find_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == "save" => {
+                Some(h.record_id.clone())
+            }
+            _ => None,
+        })
+        .unwrap();
+    for observation in &io.observations {
+        if let SemanticObservation::Effect(h) = observation {
+            assert_eq!(h.subject.function, save, "the caller owns the effect");
+            assert_eq!(h.status, EpistemicStatus::Derived);
+            assert_eq!(h.extractor.id, RUST_PATH_RESOLUTION_ID);
+        }
+    }
+    let effect = io
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Effect)
+        .unwrap();
+    assert_eq!(effect.observation_ids.len(), 4);
     fs::remove_dir_all(&dir).unwrap();
 }

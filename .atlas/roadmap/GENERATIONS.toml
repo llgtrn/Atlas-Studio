@@ -1050,6 +1050,7 @@ objective = "falsify interpreter-backed UB/effect evidence against Atlas, decide
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/15-miri.json"
 self_recensus = ".atlas/evidence/census/G76/recensus.json"
+result_commits = ["2f41a48af7dde108bec42ff857e1386703ae25b5", "be5237641fd58ff356ae54fe4934980d28e9780e"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 27b88d7c03 = G75 post digest a53a8194... (fd1c91edf2 adds only out-of-scope evidence)"
@@ -1059,3 +1060,24 @@ proof = "PROVEN on the first run (post 2107f20d...)"
 
 [generation.next]
 objective = "G77 (P0): derive EFFECT for effectful std calls -- extend native path resolution to name external std paths and classify them by a declared std-path effect table; then clef (#16)"
+
+[[generation]]
+id = "G77"
+base_commit = "be5237641fd58ff356ae54fe4934980d28e9780e"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: EFFECT coverage (input from the miri cycle, G76)"
+objective = "derive filesystem EFFECT sites from path calls resolved to standard-library paths through a declared std-path effect table"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0032-effects-from-resolved-std-paths.md"
+self_recensus = ".atlas/evidence/census/G77/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 2f41a48af7 = G76 post digest 2107f20d... (be5237641f adds only out-of-scope evidence)"
+falsification = "cheapest first: of the 504 effectful std call sites, filesystem ones are path calls (314 of 352) while process spawning is method-level (.output()/.status(): 50 of 63) and env/time have no EffectCategory -- so only filesystem is derivable at path level without mislabeling. Result: 323 DERIVED effect sites (249 FILESYSTEM_WRITE, 74 FILESYSTEM_READ); each names the std path rust-analyzer 1.90.0 SCIP resolves at the same anchor (323/323), covering all 323 table-path calls in the profile"
+change = "resolver carries canonical external paths rooted at std/core/alloc (imports, renames, self imports, Type::assoc; registry and prelude names stay unknown; external globs stay open); atlas_core::std_path_effects declared table; the resolution engine is asked for CALL and EFFECT and derives caller-owned effect sites anchored at the call"
+certificate = "EFFECT now has two engines (dropped from MULTI_ENGINE_RECONCILIATION_ABSENT); UNKNOWN_FACTS +96 (the engine's UNKNOWN EFFECT obligation per Rust artifact, explained)"
+mutation_battery = "10/10 killed after closing one real test gap (an effect derived without a claim)"
+proof = "PROVEN (post 824c81d1...); a first PROVEN run (post 3a8366a3...) preceded hardening the certificate test to pin its probe dimension to SYMBOL (EFFECT became multi-engine), so the generation was re-proved with that test change declared"
+
+[generation.next]
+objective = "G78 (P3): first-50 #16 clef"

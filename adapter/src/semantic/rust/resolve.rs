@@ -52,6 +52,10 @@ pub struct FnTarget {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PathCallOutcome {
     Resolved(FnTarget),
+    /// A path outside the workspace. The canonical path is spelled through imports and renames
+    /// when it is rooted at `std`, `core` or `alloc` (`std::fs::write`), and empty otherwise (a
+    /// registry crate or a prelude name this pass does not follow).
+    External(String),
     Unresolved(&'static str),
 }
 
@@ -145,7 +149,8 @@ enum Def {
     Ctor,
     /// A const/static or other non-function value.
     Value,
-    External,
+    /// Outside the workspace, with its path when it is rooted at a standard crate (else empty).
+    External(Vec<String>),
     Ambiguous,
     /// A named import this pass could not resolve: it still binds its name, so a lookup must not
     /// fall through to an outer scope's definition of the same name.
@@ -604,7 +609,8 @@ impl DefMap {
                         .rename
                         .as_ref()
                         .map_or_else(|| item.ident.to_string(), |(_, rename)| rename.to_string());
-                    self.add_item(module, Ns::Types, &name, Def::External, &item.vis);
+                    let def = self.external_root(&item.ident.to_string());
+                    self.add_item(module, Ns::Types, &name, def, &item.vis);
                 }
                 syn::Item::Impl(item) => self.collect_impl(module, file, item),
                 // An item-position macro may define any name.
@@ -840,6 +846,17 @@ impl DefMap {
                 }
             }
             (None, _) => *opened = true,
+            (Some(name), Def::External(path)) if import.self_import => {
+                into.insert(
+                    Ns::Types,
+                    name,
+                    Entry {
+                        def: Def::External(path),
+                        vis: import.vis.clone(),
+                        origin: Origin::Named,
+                    },
+                );
+            }
             (Some(name), Def::Module(target)) if import.self_import => {
                 into.insert(
                     Ns::Types,
@@ -866,7 +883,7 @@ impl DefMap {
                             .filter(|entry| self.visible(&entry.vis, id))
                             .map(|entry| entry.def.clone()),
                         Def::Type(ty) if self.types[*ty].variants.contains(last) => Some(Def::Ctor),
-                        Def::External => Some(Def::External),
+                        Def::External(path) => Some(Def::External(extend(path, last))),
                         _ => None,
                     };
                     if let Some(def) = def {
@@ -928,7 +945,7 @@ impl DefMap {
                         _ => return None,
                     }
                 }
-                Def::External => Def::External,
+                Def::External(path) => Def::External(extend(&path, segment)),
                 // `Enum::Variant::..` and associated types are not modules.
                 _ => return None,
             };
@@ -965,7 +982,17 @@ impl DefMap {
     fn extern_crate(&self, crates: &[CrateInput], krate: usize, name: &str) -> Def {
         match crates[krate].externs.get(name) {
             Some(index) => Def::Module(self.crate_roots[index]),
-            None => Def::External,
+            None => self.external_root(name),
+        }
+    }
+
+    /// An external root: a standard crate keeps its name as the start of a canonical path; any
+    /// other (a registry crate, a prelude name) is external with an unknown path.
+    fn external_root(&self, name: &str) -> Def {
+        if matches!(name, "std" | "core" | "alloc") {
+            Def::External(vec![name.to_owned()])
+        } else {
+            Def::External(Vec::new())
         }
     }
 
@@ -1237,7 +1264,7 @@ impl CallWalker<'_> {
             return match self.map.lexical_lookup(scope, Ns::Values, &segments[0]) {
                 Lookup::Found(def) => outcome_of(def),
                 Lookup::Open => PathCallOutcome::Unresolved("open-scope"),
-                Lookup::Missing => PathCallOutcome::Unresolved("external"),
+                Lookup::Missing => PathCallOutcome::External(String::new()),
             };
         }
         let first = &segments[0];
@@ -1289,7 +1316,7 @@ impl CallWalker<'_> {
                     None => PathCallOutcome::Unresolved("unresolved-type"),
                 }
             }
-            Def::External => PathCallOutcome::Unresolved("external"),
+            Def::External(path) => external(&extend(&path, last)),
             Def::Ambiguous => PathCallOutcome::Unresolved("ambiguous"),
             Def::Unknown => PathCallOutcome::Unresolved("unresolved-import"),
             _ => PathCallOutcome::Unresolved("not-a-path-prefix"),
@@ -1297,12 +1324,27 @@ impl CallWalker<'_> {
     }
 }
 
+/// `path` followed by `segment`; an unknown (empty) path stays unknown.
+fn extend(path: &[String], segment: &str) -> Vec<String> {
+    if path.is_empty() {
+        Vec::new()
+    } else {
+        let mut path = path.to_vec();
+        path.push(segment.to_owned());
+        path
+    }
+}
+
+fn external(path: &[String]) -> PathCallOutcome {
+    PathCallOutcome::External(path.join("::"))
+}
+
 fn outcome_of(def: Def) -> PathCallOutcome {
     match def {
         Def::Fn(target) => PathCallOutcome::Resolved(target),
         Def::Ctor => PathCallOutcome::Unresolved("constructor"),
         Def::Ambiguous => PathCallOutcome::Unresolved("ambiguous"),
-        Def::External => PathCallOutcome::Unresolved("external"),
+        Def::External(path) => external(&path),
         Def::Value => PathCallOutcome::Unresolved("non-function-value"),
         Def::Unknown => PathCallOutcome::Unresolved("unresolved-import"),
         Def::Module(_) | Def::Type(_) => PathCallOutcome::Unresolved("not-a-value"),
