@@ -21,6 +21,13 @@
 //!   ambiguous, never a pick;
 //! - a path through a trait (`Trait::f(x)`, `Self::f()` inside a trait) is dynamic dispatch.
 //!
+//! G83: every type occurrence is canonicalized the same way, bottom-up -- a workspace type to its
+//! defining module path, a standard-library type to its std path, references, slices, arrays,
+//! tuples and generic arguments structurally -- so every spelling of one type shares one canonical
+//! identity, without an e-graph (all its equalities come from resolution). Generic parameters, a
+//! generic `Self`, aliases whose arguments a bare path cannot carry, qualified paths, trait objects
+//! and glob names of open modules have none.
+//!
 //! Method calls need the receiver's type, with one exception (G79): `self.m()` inside an impl
 //! method, whose receiver has the impl's self type. The method probe's first step tries that type
 //! by value, inherent methods before trait methods, so the unique inherent method whose receiver
@@ -85,12 +92,28 @@ pub fn resolve_path_calls(
     resolve_workspace(crates, sources).calls
 }
 
-/// Every path call of the workspace, and the files the crate roots reach (a file no root reaches
-/// was never evaluated).
+/// Every path call of the workspace, every type occurrence with its canonical identity, and the
+/// files the crate roots reach (a file no root reaches was never evaluated).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct WorkspaceResolution {
     pub reached: BTreeSet<String>,
     pub calls: Vec<PathCallResolution>,
+    pub types: Vec<TypeResolution>,
+}
+
+/// One type occurrence (G83): its spelling as the syntactic extractor spells it
+/// (`spelling::type_spelling`), and its canonical identity when every part of it resolves --
+/// workspace types as `<package> <module path>/<Name>#`, standard-library types by their std
+/// path, composed structurally (references, slices, arrays, tuples, generic arguments). `None`
+/// whenever any part does not resolve soundly (a generic parameter, a generic `Self`, a generic
+/// alias, a qualified path, `impl`/`dyn` traits, an open scope).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TypeResolution {
+    pub path: String,
+    pub line: usize,
+    pub column: usize,
+    pub spelling: String,
+    pub canonical: Option<String>,
 }
 
 pub fn resolve_workspace(
@@ -121,6 +144,7 @@ fn resolve_on_this_stack(
     map.resolve_imports(crates);
     map.resolve_impls(crates);
     let mut out = Vec::new();
+    let mut types = Vec::new();
     for (file, module) in map.file_modules.clone() {
         if let Some(ast) = parsed.get(&file) {
             let mut walker = CallWalker {
@@ -130,15 +154,19 @@ fn resolve_on_this_stack(
                 scopes: vec![module],
                 impl_self: Vec::new(),
                 fn_ctx: Vec::new(),
+                item_generics: Vec::new(),
                 out: &mut out,
+                types: &mut types,
             };
             walker.visit_file(ast);
         }
     }
     out.sort_by(|a, b| (&a.path, a.line, a.column).cmp(&(&b.path, b.line, b.column)));
+    types.sort_by(|a, b| (&a.path, a.line, a.column).cmp(&(&b.path, b.line, b.column)));
     WorkspaceResolution {
         reached: parsed.into_keys().collect(),
         calls: out,
+        types,
     }
 }
 
@@ -254,14 +282,20 @@ struct Module {
     /// Names may exist that this pass cannot see (item macros, an unresolvable glob, a missing
     /// or unparsable module file).
     open: bool,
+    /// The module's own name (empty for a crate root and a block).
+    name: String,
 }
 
 #[derive(Debug, Clone)]
 struct TypeDef {
     scope: ModId,
+    name: String,
     variants: BTreeSet<String>,
     is_trait: bool,
     alias_of: Option<(Vec<String>, bool)>,
+    /// A type alias whose meaning a bare path cannot carry (generic, or naming a type with
+    /// arguments or a non-path type): never canonicalized.
+    opaque_alias: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -330,6 +364,7 @@ struct DefMap {
     /// Block scopes by (file, line, column) of the block's opening brace.
     blocks: BTreeMap<(String, usize, usize), ModId>,
     crate_roots: BTreeMap<usize, ModId>,
+    crate_packages: BTreeMap<usize, String>,
 }
 
 fn dir_of(path: &str) -> &str {
@@ -389,6 +424,7 @@ impl DefMap {
             scope: Scope::default(),
             imports: Vec::new(),
             open: false,
+            name: String::new(),
         });
         self.modules.len() - 1
     }
@@ -454,6 +490,13 @@ impl DefMap {
     ) {
         let root = self.new_module(krate, None, None);
         self.crate_roots.insert(krate, root);
+        // The package a crate belongs to: the directory holding `src/` (or the build script).
+        let package = match input.root.split_once("/src/") {
+            Some((package, _)) => package.to_owned(),
+            None if input.root.starts_with("src/") => String::new(),
+            None => dir_of(&input.root).to_owned(),
+        };
+        self.crate_packages.insert(krate, package);
         // A crate root is a "mod-rs" file: its children live next to it.
         let dir = dir_of(&input.root).to_owned();
         self.collect_file(root, &input.root, &dir, sources, parsed);
@@ -513,8 +556,8 @@ impl DefMap {
                     self.collect_block(module, file, &item_fn.block);
                 }
                 syn::Item::Struct(item) => {
-                    let ty = self.new_type(module, BTreeSet::new(), false, None);
                     let name = item.ident.to_string();
+                    let ty = self.new_type(module, &name, BTreeSet::new(), false, None);
                     self.add_item(module, Ns::Types, &name, Def::Type(ty), &item.vis);
                     if !matches!(item.fields, syn::Fields::Named(_)) {
                         self.add_item(module, Ns::Values, &name, Def::Ctor, &item.vis);
@@ -522,7 +565,7 @@ impl DefMap {
                 }
                 syn::Item::Enum(item) => {
                     let variants = item.variants.iter().map(|v| v.ident.to_string()).collect();
-                    let ty = self.new_type(module, variants, false, None);
+                    let ty = self.new_type(module, &item.ident.to_string(), variants, false, None);
                     self.add_item(
                         module,
                         Ns::Types,
@@ -532,7 +575,13 @@ impl DefMap {
                     );
                 }
                 syn::Item::Union(item) => {
-                    let ty = self.new_type(module, BTreeSet::new(), false, None);
+                    let ty = self.new_type(
+                        module,
+                        &item.ident.to_string(),
+                        BTreeSet::new(),
+                        false,
+                        None,
+                    );
                     self.add_item(
                         module,
                         Ns::Types,
@@ -542,7 +591,8 @@ impl DefMap {
                     );
                 }
                 syn::Item::Trait(item) => {
-                    let ty = self.new_type(module, BTreeSet::new(), true, None);
+                    let ty =
+                        self.new_type(module, &item.ident.to_string(), BTreeSet::new(), true, None);
                     self.add_item(
                         module,
                         Ns::Types,
@@ -570,7 +620,21 @@ impl DefMap {
                         )),
                         _ => None,
                     };
-                    let ty = self.new_type(module, BTreeSet::new(), false, alias);
+                    let opaque = !item.generics.params.is_empty()
+                        || match item.ty.as_ref() {
+                            syn::Type::Path(path) => {
+                                path.path.segments.iter().any(|s| !s.arguments.is_empty())
+                            }
+                            _ => true,
+                        };
+                    let ty = self.new_type(
+                        module,
+                        &item.ident.to_string(),
+                        BTreeSet::new(),
+                        false,
+                        alias,
+                    );
+                    self.types[ty].opaque_alias = opaque;
                     self.add_item(
                         module,
                         Ns::Types,
@@ -601,6 +665,7 @@ impl DefMap {
                     let name = item.ident.to_string();
                     let krate = self.modules[module].krate;
                     let child = self.new_module(krate, Some(module), None);
+                    self.modules[child].name.clone_from(&name);
                     self.add_item(module, Ns::Types, &name, Def::Module(child), &item.vis);
                     let explicit = path_attr(&item.attrs);
                     // `#[path]` is relative to the declaring file's directory at file level, and
@@ -767,15 +832,18 @@ impl DefMap {
     fn new_type(
         &mut self,
         scope: ModId,
+        name: &str,
         variants: BTreeSet<String>,
         is_trait: bool,
         alias_of: Option<(Vec<String>, bool)>,
     ) -> TypeId {
         self.types.push(TypeDef {
             scope,
+            name: name.to_owned(),
             variants,
             is_trait,
             alias_of,
+            opaque_alias: false,
         });
         self.types.len() - 1
     }
@@ -1154,6 +1222,87 @@ impl DefMap {
 }
 
 impl DefMap {
+    /// A workspace type's canonical identity: `<package> <module path>/<Name>#` (the G66
+    /// descriptor shape, SCIP's type suffix). A type declared in a block has no stable path.
+    fn type_descriptor(&self, ty: TypeId) -> Option<String> {
+        let def = &self.types[ty];
+        let mut names = Vec::new();
+        let mut module = def.scope;
+        loop {
+            let m = &self.modules[module];
+            if m.is_block {
+                return None;
+            }
+            match m.parent {
+                Some(parent) => {
+                    names.push(m.name.clone());
+                    module = parent;
+                }
+                None => break,
+            }
+        }
+        names.reverse();
+        names.push(format!("{}#", def.name));
+        let package = match self.crate_packages[&self.modules[module].krate].as_str() {
+            "" => ".",
+            package => package,
+        };
+        Some(format!("{package} {}", names.join("/")))
+    }
+
+    /// The canonical identity of a resolved type definition, following transparent aliases.
+    fn canonical_of_type(&self, crates: &[CrateInput], ty: TypeId, depth: usize) -> Option<String> {
+        let def = &self.types[ty];
+        if def.is_trait || def.opaque_alias || depth > 8 {
+            return None;
+        }
+        match &def.alias_of {
+            Some((path, leading)) => {
+                let target = self.resolve_type_path(crates, def.scope, path, *leading, 0)?;
+                self.canonical_of_type(crates, target, depth + 1)
+            }
+            None if self.types[ty].name.is_empty() => None,
+            None => self.type_descriptor(ty),
+        }
+    }
+}
+
+/// The std path of a prelude type name (the types every Rust module sees unqualified).
+fn prelude_type(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "Vec" => "std::vec::Vec",
+        "String" => "std::string::String",
+        "Box" => "std::boxed::Box",
+        "Option" => "std::option::Option",
+        "Result" => "std::result::Result",
+        _ => return None,
+    })
+}
+
+fn is_primitive(name: &str) -> bool {
+    matches!(
+        name,
+        "bool"
+            | "char"
+            | "str"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "u128"
+            | "usize"
+            | "i8"
+            | "i16"
+            | "i32"
+            | "i64"
+            | "i128"
+            | "isize"
+            | "f32"
+            | "f64"
+    )
+}
+
+impl DefMap {
     /// `self.name(..)` in a method with receiver `form` of an impl of `ty` shaped `shape`. The
     /// method probe's first step tries the receiver's own type by value, inherent methods before
     /// trait methods; an inherent method whose receiver form equals the caller's is therefore
@@ -1284,7 +1433,10 @@ struct CallWalker<'a> {
     /// The enclosing impl's self type (`None` inside a trait or an impl of a non-path type).
     impl_self: Vec<Option<ImplCtx>>,
     fn_ctx: Vec<FnCtx>,
+    /// Generic parameters of enclosing structs, enums, unions, traits and type aliases.
+    item_generics: Vec<BTreeSet<String>>,
     out: &'a mut Vec<PathCallResolution>,
+    types: &'a mut Vec<TypeResolution>,
 }
 
 /// Every identifier a pattern binds.
@@ -1313,6 +1465,148 @@ fn generic_names(generics: &syn::Generics) -> BTreeSet<String> {
 impl CallWalker<'_> {
     fn scope(&self) -> ModId {
         *self.scopes.last().expect("a scope is always active")
+    }
+
+    fn is_generic(&self, name: &str) -> bool {
+        self.fn_ctx
+            .last()
+            .is_some_and(|f| f.generics.contains(name))
+            || matches!(self.impl_self.last(), Some(Some(ctx)) if ctx.generics.contains(name))
+            || self.item_generics.iter().any(|g| g.contains(name))
+    }
+
+    /// The canonical identity of `ty` in the current scope (G83), or `None` when any part of it
+    /// does not resolve soundly.
+    fn canonical_type(&self, ty: &syn::Type) -> Option<String> {
+        match ty {
+            syn::Type::Path(path) if path.qself.is_none() => self.canonical_path_type(&path.path),
+            syn::Type::Reference(reference) => {
+                let inner = self.canonical_type(&reference.elem)?;
+                let mutability = if reference.mutability.is_some() {
+                    "mut "
+                } else {
+                    ""
+                };
+                Some(format!("&{mutability}{inner}"))
+            }
+            syn::Type::Slice(slice) => Some(format!("[{}]", self.canonical_type(&slice.elem)?)),
+            syn::Type::Array(array) => {
+                use quote::ToTokens;
+                let len = array.len.to_token_stream().to_string();
+                Some(format!("[{}; {len}]", self.canonical_type(&array.elem)?))
+            }
+            syn::Type::Tuple(tuple) => {
+                let elems: Option<Vec<String>> =
+                    tuple.elems.iter().map(|t| self.canonical_type(t)).collect();
+                let elems = elems?;
+                Some(match elems.as_slice() {
+                    [one] => format!("({one},)"),
+                    _ => format!("({})", elems.join(", ")),
+                })
+            }
+            syn::Type::Paren(paren) => self.canonical_type(&paren.elem),
+            syn::Type::Group(group) => self.canonical_type(&group.elem),
+            syn::Type::Ptr(ptr) => {
+                let kind = match ptr.mutability {
+                    syn::PointerMutability::Mut(_) => "mut",
+                    syn::PointerMutability::Const(_) => "const",
+                };
+                Some(format!("*{kind} {}", self.canonical_type(&ptr.elem)?))
+            }
+            syn::Type::Never(_) => Some("!".into()),
+            _ => None,
+        }
+    }
+
+    fn canonical_path_type(&self, path: &syn::Path) -> Option<String> {
+        let segments: Vec<String> = path.segments.iter().map(|s| s.ident.to_string()).collect();
+        let leading = path.leading_colon.is_some();
+        let last = path.segments.last()?;
+        // Arguments anywhere but the last segment (`Vec::<T>::X`) are not modeled.
+        if path
+            .segments
+            .iter()
+            .rev()
+            .skip(1)
+            .any(|s| !s.arguments.is_empty())
+        {
+            return None;
+        }
+        let head = if segments.len() == 1 && !leading {
+            let name = &segments[0];
+            if self.is_generic(name) {
+                return None;
+            }
+            if name == "Self" {
+                return match self.impl_self.last() {
+                    Some(Some(ImplCtx {
+                        ty: Some(ty),
+                        generics,
+                        ..
+                    })) if generics.is_empty() && last.arguments.is_empty() => {
+                        self.map.canonical_of_type(self.crates, *ty, 0)
+                    }
+                    _ => None,
+                };
+            }
+            match self.map.lexical_lookup(self.scope(), Ns::Types, name) {
+                Lookup::Found(Def::Type(ty)) => self.map.canonical_of_type(self.crates, ty, 0)?,
+                Lookup::Found(Def::External(path)) if !path.is_empty() => path.join("::"),
+                Lookup::Found(_) | Lookup::Open => return None,
+                Lookup::Missing if is_primitive(name) => name.clone(),
+                Lookup::Missing => prelude_type(name)?.to_owned(),
+            }
+        } else {
+            match self
+                .map
+                .resolve_prefix(self.crates, self.scope(), &segments, leading, false)?
+            {
+                Def::Module(module) => {
+                    // In an open module only a glob-provided name is uncertain: an explicit item
+                    // or named import cannot be redefined by what this pass does not see.
+                    let open = self.map.modules[module].open;
+                    match self.map.modules[module]
+                        .scope
+                        .types
+                        .get(&last.ident.to_string())
+                    {
+                        Some(entry) if open && entry.origin == Origin::Glob => return None,
+                        Some(entry) if self.map.visible(&entry.vis, self.scope()) => {
+                            match &entry.def {
+                                Def::Type(ty) => self.map.canonical_of_type(self.crates, *ty, 0)?,
+                                Def::External(path) if !path.is_empty() => path.join("::"),
+                                _ => return None,
+                            }
+                        }
+                        _ => return None,
+                    }
+                }
+                Def::External(path) if !path.is_empty() => {
+                    extend(&path, &last.ident.to_string()).join("::")
+                }
+                _ => return None,
+            }
+        };
+        match &last.arguments {
+            syn::PathArguments::None => Some(head),
+            syn::PathArguments::AngleBracketed(arguments) => {
+                let mut parts = Vec::new();
+                for argument in &arguments.args {
+                    match argument {
+                        syn::GenericArgument::Type(ty) => parts.push(self.canonical_type(ty)?),
+                        // Lifetimes do not distinguish types for identity.
+                        syn::GenericArgument::Lifetime(_) => {}
+                        _ => return None,
+                    }
+                }
+                Some(if parts.is_empty() {
+                    head
+                } else {
+                    format!("{head}<{}>", parts.join(", "))
+                })
+            }
+            syn::PathArguments::Parenthesized(_) => None,
+        }
     }
 
     fn enter_fn(&mut self, sig: &syn::Signature, block: &syn::Block) {
@@ -1471,6 +1765,7 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
     fn visit_item_fn(&mut self, item: &'ast syn::ItemFn) {
         self.impl_self.push(None);
         self.enter_fn(&item.sig, &item.block);
+        self.visit_signature(&item.sig);
         self.visit_block(&item.block);
         self.fn_ctx.pop();
         self.impl_self.pop();
@@ -1500,11 +1795,18 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
             generics: generic_names(&item.generics),
             shape: impl_shape(item),
         }));
+        self.visit_type(&item.self_ty);
         for impl_item in &item.items {
-            if let syn::ImplItem::Fn(method) = impl_item {
-                self.enter_fn(&method.sig, &method.block);
-                self.visit_block(&method.block);
-                self.fn_ctx.pop();
+            match impl_item {
+                syn::ImplItem::Fn(method) => {
+                    self.enter_fn(&method.sig, &method.block);
+                    self.visit_signature(&method.sig);
+                    self.visit_block(&method.block);
+                    self.fn_ctx.pop();
+                }
+                syn::ImplItem::Const(constant) => self.visit_type(&constant.ty),
+                syn::ImplItem::Type(assoc) => self.visit_type(&assoc.ty),
+                _ => {}
             }
         }
         self.impl_self.pop();
@@ -1512,16 +1814,70 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
 
     fn visit_item_trait(&mut self, item: &'ast syn::ItemTrait) {
         self.impl_self.push(None);
+        self.item_generics.push(generic_names(&item.generics));
         for trait_item in &item.items {
-            if let syn::TraitItem::Fn(method) = trait_item
-                && let Some(block) = &method.default
-            {
-                self.enter_fn(&method.sig, block);
-                self.visit_block(block);
-                self.fn_ctx.pop();
+            match trait_item {
+                syn::TraitItem::Fn(method) => match &method.default {
+                    Some(block) => {
+                        self.enter_fn(&method.sig, block);
+                        self.visit_signature(&method.sig);
+                        self.visit_block(block);
+                        self.fn_ctx.pop();
+                    }
+                    None => {
+                        self.item_generics.push(generic_names(&method.sig.generics));
+                        self.visit_signature(&method.sig);
+                        self.item_generics.pop();
+                    }
+                },
+                syn::TraitItem::Const(constant) => self.visit_type(&constant.ty),
+                syn::TraitItem::Type(assoc) => {
+                    if let Some((_, default)) = &assoc.default {
+                        self.visit_type(default);
+                    }
+                }
+                _ => {}
             }
         }
+        self.item_generics.pop();
         self.impl_self.pop();
+    }
+
+    fn visit_item_struct(&mut self, item: &'ast syn::ItemStruct) {
+        self.item_generics.push(generic_names(&item.generics));
+        syn::visit::visit_item_struct(self, item);
+        self.item_generics.pop();
+    }
+
+    fn visit_item_enum(&mut self, item: &'ast syn::ItemEnum) {
+        self.item_generics.push(generic_names(&item.generics));
+        syn::visit::visit_item_enum(self, item);
+        self.item_generics.pop();
+    }
+
+    fn visit_item_union(&mut self, item: &'ast syn::ItemUnion) {
+        self.item_generics.push(generic_names(&item.generics));
+        syn::visit::visit_item_union(self, item);
+        self.item_generics.pop();
+    }
+
+    fn visit_item_type(&mut self, item: &'ast syn::ItemType) {
+        self.item_generics.push(generic_names(&item.generics));
+        syn::visit::visit_item_type(self, item);
+        self.item_generics.pop();
+    }
+
+    /// Every type occurrence (G83), outermost first; nested types are recorded too.
+    fn visit_type(&mut self, ty: &'ast syn::Type) {
+        let (line, column) = start(ty.span());
+        self.types.push(TypeResolution {
+            path: self.file.to_owned(),
+            line,
+            column,
+            spelling: super::spelling::type_spelling(ty),
+            canonical: self.canonical_type(ty),
+        });
+        syn::visit::visit_type(self, ty);
     }
 
     fn visit_block(&mut self, block: &'ast syn::Block) {
@@ -1594,8 +1950,12 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
     // The CALL profile's exclusions: deferred executable regions and initializers with no caller.
     fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
     fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
-    fn visit_item_const(&mut self, _: &'ast syn::ItemConst) {}
-    fn visit_item_static(&mut self, _: &'ast syn::ItemStatic) {}
+    fn visit_item_const(&mut self, item: &'ast syn::ItemConst) {
+        self.visit_type(&item.ty);
+    }
+    fn visit_item_static(&mut self, item: &'ast syn::ItemStatic) {
+        self.visit_type(&item.ty);
+    }
 }
 
 #[cfg(test)]

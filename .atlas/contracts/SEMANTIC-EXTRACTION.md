@@ -152,6 +152,13 @@ Independent extractors MAY analyze the same dimension. Their identities/evidence
 
 **Implementation note (G75, ADR 0031)**: CALL has two engines. `atlas.rust.source-semantic.v1` observes every call site (callee `UNRESOLVED`). `atlas.resolution.rust-paths` resolves path calls natively, crate-wide: module tree, items, `use` imports to a fixed point, block scopes, the extern prelude of workspace crates, and inherent/trait-impl associated functions. It observes the same claim (`record_id`) with `STATIC_RESOLVED` and the callee's FunctionIdentity record. It is asked for CALL only, so accounting closure holds each engine to the dimensions it was asked for. An UNRESOLVED observation makes no callee claim, so it is not a disagreement with a resolution; two different resolutions are. A resolution that matches no syntactic claim is a diagnosed engine disagreement, never a record. Unsound cases stay unresolved with a reason: locals, generic parameters, open scopes (item macros, external globs), ambiguity, trait dispatch, constructors. The pinned rust-analyzer SCIP output is the differential verification oracle, never a census input.
 
+**Implementation note (G83, ADR 0034)**: the engine also evaluates TYPE. It claims a type spelling as denoting a canonical type (`TypeIdentity.canonical`, file path excluded, so the claim is shared across files) when three things hold:
+- the syntactic extractor recorded that spelling in the artifact;
+- every occurrence of the spelling there resolves;
+- they all resolve to that one type.
+
+Workspace types are canonical as `<package> <module path>/<Name>#`, and standard-library types by their std path, composed structurally. A generic parameter, a generic `Self`, an opaque alias or a glob name in an open module never yields a claim.
+
 **Implementation note (G79, ADR 0033)**: the engine also resolves `self.m()` inside impl methods. The receiver has the impl's self type, and the method probe's first step picks the unique inherent method whose receiver form equals the caller's, provided its impl has the same generics and self-type arguments. Any other method call waits for type inference.
 
 **Implementation note (G77, ADR 0032)**: the same engine also evaluates EFFECT. A path call it resolves to a standard-library path named by the declared std-path effect table (`atlas_core::std_path_effects`: `std::fs` entry points) is a DERIVED FILESYSTEM_READ/WRITE effect site of the caller, anchored at the call. A path the table does not name declares nothing.

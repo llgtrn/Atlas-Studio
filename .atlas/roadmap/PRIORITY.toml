@@ -154,6 +154,7 @@ G78 = "P0 input from the clef cycle: the residual CALL gap is 10,776 method call
 G79 = "P0 CALL: self.m() resolved by the method probe's first step -- 496 more calls, all SCIP-confirmed (4,227 CALL claims resolved natively in total)"
 G80 = "P4 measured from the proof chain: edits touch a median 3 of ~117 artifacts, full self-recensus ~7.8 s (extraction ~3.8 s, memoizable), analyzer changes invalidate everything -- shallow invalidation plus recompute suffices (differential-dataflow REFERENCE_ONLY); self-recensus does not yet use the extraction cache"
 G82 = "P0 input from the egglog cycle: 49 TYPE classes carry one type under several spellings (598 occurrences; 13 need congruence over generic arguments); all are equal by name resolution, so canonical type identity is a bottom-up resolution over the G75 DefMap, not an e-graph (G83)"
+G83 = "P0 TYPE: canonical type identity through native name resolution -- 1,723 claims unite 176 spellings of 84 types, SCIP-confirmed (3,077 agree, 0 disagree); TYPE has two engines"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
@@ -163,7 +164,7 @@ C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency archite
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 15 campaign terminals (egglog #19 G82 REFERENCE_ONLY; buck2 #18 G81 DEFERRED to AIF1; differential-dataflow #17 G80 REFERENCE_ONLY; clef #16 G78 REFERENCE_ONLY; miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; clef #16 G78 REFERENCE_ONLY; G79 P0 self.m() done; differential-dataflow #17 G80 REFERENCE_ONLY; buck2 #18 G81 DEFERRED (AIF1); egglog #19 G82 REFERENCE_ONLY; next G83 P0 canonical types, then capnproto (#20)"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 15 campaign terminals (egglog #19 G82 REFERENCE_ONLY; buck2 #18 G81 DEFERRED to AIF1; differential-dataflow #17 G80 REFERENCE_ONLY; clef #16 G78 REFERENCE_ONLY; miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; clef #16 G78 REFERENCE_ONLY; G79 P0 self.m() done; differential-dataflow #17 G80 REFERENCE_ONLY; buck2 #18 G81 DEFERRED (AIF1); egglog #19 G82 REFERENCE_ONLY; G83 P0 canonical types done; next capnproto (#20)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -296,7 +297,7 @@ objective = "first-50 #19 egglog: no conflicts, type equivalence is resolution (
 [[planned_generation]]
 id = "G83"
 priority = "P0"
-objective = "canonical type identity: TYPE spellings resolved bottom-up through the G75 DefMap (TypeIdentity.canonical), verified against SCIP"
+objective = "canonical type identity through name resolution (done: 1,723 claims, SCIP-confirmed)"
 
 [[planned_generation]]
 id = "G84+"

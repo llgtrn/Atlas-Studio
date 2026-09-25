@@ -97,7 +97,7 @@ fn workspace() -> (std::path::PathBuf, InventoryReport) {
     .unwrap();
     fs::write(
         dir.join("core/src/io.rs"),
-        "use std::fs;\nuse std::fs::File;\npub fn save() {\n    fs::write(\"a\", \"b\");\n    File::open(\"a\");\n    fs::copy(\"a\", \"b\");\n    std::env::var(\"X\");\n}\n",
+        "use std::fs;\nuse std::fs::File;\npub fn save() {\n    fs::write(\"a\", \"b\");\n    File::open(\"a\");\n    fs::copy(\"a\", \"b\");\n    std::env::var(\"X\");\n    std::mem::size_of::<u128>();\n}\npub struct Status;\npub fn typed<T>(a: Status, b: crate::io::Status, c: Vec<Status>, d: File, e: T) {}\npub struct Other;\npub fn plain(o: Other) {}\npub fn shadow<Other>(o: Other) {}\n",
     )
     .unwrap();
     fs::write(dir.join("core/src/a.rs"), "pub fn g() {}\n").unwrap();
@@ -322,5 +322,74 @@ fn resolved_standard_library_paths_are_effect_sites_of_the_caller() {
         .find(|o| o.dimension == SemanticDimension::Effect)
         .unwrap();
     assert_eq!(effect.observation_ids.len(), 4);
+    fs::remove_dir_all(&dir).unwrap();
+}
+
+#[test]
+fn a_type_spelling_resolved_everywhere_in_its_artifact_is_a_canonical_type_claim() {
+    let (dir, inventory) = workspace();
+    let batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
+    let resolution = resolve_rust_path_calls(&inventory, &batches);
+    let io = resolution
+        .iter()
+        .find(|b| b.artifact.as_str() == "artifact:core/src/io.rs")
+        .unwrap();
+    let claims: BTreeMap<String, String> = io
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Type(h) => {
+                Some((h.subject.name.clone(), h.subject.canonical.clone().unwrap()))
+            }
+            _ => None,
+        })
+        .collect();
+    // Two spellings of one type share its canonical identity; a generic parameter has none.
+    assert_eq!(
+        claims.get("Status").map(String::as_str),
+        Some("core io/Status#")
+    );
+    assert_eq!(
+        claims.get("crate::io::Status").map(String::as_str),
+        Some("core io/Status#")
+    );
+    assert_eq!(
+        claims.get("Vec<Status>").map(String::as_str),
+        Some("std::vec::Vec<core io/Status#>")
+    );
+    assert_eq!(
+        claims.get("File").map(String::as_str),
+        Some("std::fs::File")
+    );
+    assert!(!claims.contains_key("T"));
+    // `Other` means the struct in one function and a generic parameter in another: no claim.
+    assert!(!claims.contains_key("Other"));
+    // Every claim names a spelling the syntactic extractor recorded in this artifact.
+    let recorded: std::collections::BTreeSet<String> = batches
+        .iter()
+        .flat_map(|b| &b.observations)
+        .filter_map(|o| match o {
+            SemanticObservation::Type(h) if h.subject.path == "core/src/io.rs" => {
+                Some(h.subject.name.clone())
+            }
+            _ => None,
+        })
+        .collect();
+    assert!(claims.keys().all(|spelling| recorded.contains(spelling)));
+    for observation in &io.observations {
+        if let SemanticObservation::Type(h) = observation {
+            assert_eq!(h.status, EpistemicStatus::Derived);
+            assert!(
+                h.subject.path.is_empty(),
+                "a canonical type is not file-scoped"
+            );
+        }
+    }
+    let types = io
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Type)
+        .unwrap();
+    assert_eq!(types.observation_ids.len(), claims.len());
     fs::remove_dir_all(&dir).unwrap();
 }

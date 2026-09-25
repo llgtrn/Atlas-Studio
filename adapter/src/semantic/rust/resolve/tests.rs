@@ -374,3 +374,89 @@ fn self_method_calls_resolve_only_at_the_method_probes_first_step() {
         ]
     );
 }
+
+/// `spelling -> canonical` for every type occurrence in `path` (first occurrence per spelling).
+fn canonical_types(files: &[(&str, &str)], root: &str, path: &str) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for t in resolve_workspace(&one_crate(root), &sources(files)).types {
+        if t.path == path {
+            out.entry(t.spelling)
+                .or_insert_with(|| t.canonical.unwrap_or_else(|| "-".into()));
+        }
+    }
+    out
+}
+
+#[test]
+fn types_canonicalize_bottom_up_through_resolution() {
+    // One type under several spellings shares one canonical identity; composition is
+    // structural; anything generic, opaque or unresolvable has none.
+    let lib = "mod model {\n    pub struct Status;\n    pub struct Wrap<T>(pub T);\n}\nmod other {\n    pub struct Status;\n}\nuse model::Status;\nuse std::fmt;\npub type Alias = model::Status;\npub type GenAlias<T> = Vec<T>;\npub fn f(\n    a: Status,\n    b: crate::model::Status,\n    c: &mut fmt::Formatter<'_>,\n    d: Vec<Status>,\n    e: Option<Alias>,\n    g: [u8; 4],\n    h: (Status,),\n    i: GenAlias<u8>,\n    j: other::Status,\n    k: &dyn fmt::Debug,\n) {\n}\npub fn g<T>(t: T, w: model::Wrap<T>, x: model::Wrap<u8>) {}\npub struct S;\nimpl S {\n    fn m(&self) -> Self {\n        S\n    }\n}\npub struct G<T>(T);\nimpl<T> G<T> {\n    fn n(&self) -> Self {\n        todo!()\n    }\n}\n";
+    let types = canonical_types(&[("src/lib.rs", lib)], "src/lib.rs", "src/lib.rs");
+    let expect = [
+        ("Status", ". model/Status#"),
+        ("crate::model::Status", ". model/Status#"),
+        ("&mut fmt::Formatter<'_>", "&mut std::fmt::Formatter"),
+        ("Vec<Status>", "std::vec::Vec<. model/Status#>"),
+        ("Option<Alias>", "std::option::Option<. model/Status#>"),
+        ("[u8; 4]", "[u8; 4]"),
+        ("(Status,)", "(. model/Status#,)"),
+        ("GenAlias<u8>", "-"),
+        ("other::Status", ". other/Status#"),
+        ("&dyn fmt :: Debug", "-"),
+        ("T", "-"),
+        ("model::Wrap<T>", "-"),
+        ("model::Wrap<u8>", ". model/Wrap#<u8>"),
+        ("S", ". S#"),
+    ];
+    for (spelling, canonical) in expect {
+        assert_eq!(
+            types.get(spelling).map(String::as_str),
+            Some(canonical),
+            "{spelling}: {types:#?}"
+        );
+    }
+    // `Self` in a generic impl is not one type.
+    let selves: Vec<Option<String>> =
+        resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]))
+            .types
+            .into_iter()
+            .filter(|t| t.spelling == "Self")
+            .map(|t| t.canonical)
+            .collect();
+    assert_eq!(selves, [Some(". S#".to_owned()), None]);
+}
+
+#[test]
+fn type_canonicalization_never_guesses() {
+    // A generic parameter shadowing a type, an alias whose arguments a bare path cannot carry,
+    // a glob-provided name in an open module, and (by contrast) an explicit item in an open
+    // module, which is certain.
+    let lib = "mod model {\n    pub struct Status;\n    pub struct Wrap<T>(pub T);\n}\nmod open {\n    make_items!();\n    pub struct Real;\n    pub use super::model::*;\n}\nuse model::Status;\npub type Pair<T> = model::Wrap<(T, T)>;\npub fn shadow<Status>(s: Status) {}\npub fn f(p: Pair<u8>, r: open::Real, w: open::Status, x: Status) {}\n";
+    let occurrences: Vec<(usize, String, Option<String>)> =
+        resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]))
+            .types
+            .into_iter()
+            .map(|t| (t.line, t.spelling, t.canonical))
+            .collect();
+    let at = |line: usize, spelling: &str| {
+        occurrences
+            .iter()
+            .find(|(l, s, _)| *l == line && s == spelling)
+            .map(|(_, _, c)| c.clone())
+            .unwrap_or_else(|| panic!("{line} {spelling}: {occurrences:#?}"))
+    };
+    assert_eq!(
+        at(12, "Status"),
+        None,
+        "a generic parameter, not model::Status"
+    );
+    assert_eq!(at(13, "Status"), Some(". model/Status#".into()));
+    assert_eq!(at(13, "Pair<u8>"), None, "Pair<u8> is Wrap<(u8, u8)>");
+    assert_eq!(at(13, "open::Real"), Some(". open/Real#".into()));
+    assert_eq!(
+        at(13, "open::Status"),
+        None,
+        "a glob name in an open module"
+    );
+}

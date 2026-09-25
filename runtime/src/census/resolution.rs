@@ -10,7 +10,9 @@
 //! the syntactic extractor's own FunctionIdentity record for the definition the resolver found,
 //! never a re-derived one.
 //!
-//! The engine evaluates CALL for path calls and (G79) `self.m()` method calls, and (G77) EFFECT for path calls it resolves to a
+//! The engine evaluates TYPE (G83: a spelling whose every occurrence in an artifact resolves to
+//! one canonical type is claimed as denoting it), CALL for path calls and (G79) `self.m()`
+//! method calls, and (G77) EFFECT for path calls it resolves to a
 //! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
 //! names -- an effect site of the calling function, anchored at the call. Both obligations are
 //! UNKNOWN (method calls, closure bodies, macro arguments and every other effect source are
@@ -28,7 +30,7 @@ use atlas_core::{
     ExtractorIdentity, InventoryReport, Provenance, SemanticDimension, SemanticObservation,
     SemanticRecordHeader, SemanticRecordId, stable_id,
 };
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::{fs, path::Path};
 
 pub const RUST_PATH_RESOLUTION_ID: &str = "atlas.resolution.rust-paths";
@@ -36,8 +38,11 @@ pub const RUST_PATH_RESOLUTION_VERSION: &str = "1";
 
 /// The dimensions the resolution engine is asked to evaluate (accounting closure is checked
 /// against these, not against every dimension).
-pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 2] =
-    [SemanticDimension::Call, SemanticDimension::Effect];
+pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 3] = [
+    SemanticDimension::Call,
+    SemanticDimension::Effect,
+    SemanticDimension::Type,
+];
 
 /// What the engine produced for one artifact.
 #[derive(Default)]
@@ -46,6 +51,8 @@ struct ArtifactWork {
     call_evidence: Vec<Evidence>,
     effects: Vec<SemanticObservation>,
     effect_evidence: Vec<Evidence>,
+    types: Vec<SemanticObservation>,
+    type_evidence: Vec<Evidence>,
     unattached: usize,
 }
 
@@ -169,6 +176,7 @@ pub fn resolve_rust_path_calls(
     // The syntactic extractor's claims: CALL sites by anchor, FunctionIdentity by item start.
     let mut claims = BTreeMap::new();
     let mut functions = BTreeMap::new();
+    let mut spellings: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let (mut repository, mut revision) = (None, None);
     for batch in batches {
         if batch.extractor.id != adapter::RUST_SEMANTIC_EXTRACTOR_ID {
@@ -181,6 +189,12 @@ pub fn resolve_rust_path_calls(
                 SemanticObservation::Call(header) => {
                     let span = &header.subject.span;
                     claims.insert((span.path.clone(), span.line, span.column), header);
+                }
+                SemanticObservation::Type(header) => {
+                    spellings
+                        .entry(header.subject.path.clone())
+                        .or_default()
+                        .insert(header.subject.name.clone());
                 }
                 SemanticObservation::FunctionIdentity(header) => {
                     let span = &header.subject.span;
@@ -327,13 +341,73 @@ pub fn resolve_rust_path_calls(
         }
     }
 
+    // G83: a spelling the syntactic extractor recorded in an artifact denotes one canonical type
+    // when every occurrence of it there resolves to that type.
+    let mut meanings: BTreeMap<(&str, &str), BTreeSet<Option<&str>>> = BTreeMap::new();
+    for occurrence in &workspace.types {
+        meanings
+            .entry((occurrence.path.as_str(), occurrence.spelling.as_str()))
+            .or_default()
+            .insert(occurrence.canonical.as_deref());
+    }
+    for ((path, spelling), canonicals) in meanings {
+        let canonicals: Vec<Option<&str>> = canonicals.into_iter().collect();
+        let ([Some(canonical)], Some(entry)) = (canonicals.as_slice(), per_artifact.get_mut(path))
+        else {
+            continue;
+        };
+        if !spellings.get(path).is_some_and(|s| s.contains(spelling)) {
+            continue;
+        }
+        let subject = atlas_core::TypeIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            scope: atlas_core::SemanticScope::new(Vec::<String>::new()),
+            name: spelling.to_owned(),
+            canonical: Some((*canonical).to_owned()),
+            path: String::new(),
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Type, &subject.identity_key());
+        let evidence_id = EvidenceId::new(stable_id(
+            "evidence",
+            &format!("{RUST_PATH_RESOLUTION_ID}:{path}:{}", record_id.as_str()),
+        ));
+        entry.type_evidence.push(Evidence {
+            id: evidence_id.as_str().to_owned(),
+            kind: "NAME_RESOLUTION".into(),
+            path: path.to_owned(),
+            summary: format!("type `{spelling}` in {path} denotes `{canonical}`"),
+            revision: Some(revision.clone()),
+        });
+        let observation = SemanticObservation::Type(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Type,
+            status: EpistemicStatus::Derived,
+            scope: atlas_core::SemanticScope::new(Vec::<String>::new()),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id],
+            provenance: Provenance {
+                source_path: path.to_owned(),
+                source_revision: Some(revision.clone()),
+                extractor: RUST_PATH_RESOLUTION_ID.into(),
+                content_hash: None,
+                span: None,
+            },
+            subject,
+        });
+        assert!(observation.is_dimension_consistent());
+        entry.types.push(observation);
+    }
+
     let mut out = Vec::new();
     for (path, work) in per_artifact {
         let Some(artifact) = artifacts.get(&path) else {
             continue;
         };
         let reached = workspace.reached.contains(&path);
-        let (call_scope, effect_scope) = if reached {
+        let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} resolves path calls and `self.m()` calls decided by the method probe's first step ({path}); other method calls, closure bodies and macro arguments are outside it"
@@ -341,12 +415,15 @@ pub fn resolve_rust_path_calls(
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"
                 ),
+                format!(
+                    "{RUST_PATH_RESOLUTION_ID} canonicalizes only type spellings every occurrence of which in {path} resolves to one type; generic, opaque and unresolvable spellings are outside it"
+                ),
             )
         } else {
             let unreached = format!(
                 "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
             );
-            (unreached.clone(), unreached)
+            (unreached.clone(), unreached.clone(), unreached)
         };
         let call_diagnostic = ExtractionDiagnostic::new(
             DiagnosticCode::IncompleteAnalysis,
@@ -370,7 +447,18 @@ pub fn resolve_rust_path_calls(
             ids(&work.effect_evidence),
             effect_diagnostic.id.clone(),
         );
-        let mut diagnostics = vec![call_diagnostic, effect_diagnostic];
+        let type_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::IncompleteAnalysis,
+            Some(SemanticDimension::Type),
+            type_scope,
+        );
+        let type_obligation = ObligationResult::unknown_with_observations(
+            SemanticDimension::Type,
+            work.types.iter().map(|o| o.record_id().clone()).collect(),
+            ids(&work.type_evidence),
+            type_diagnostic.id.clone(),
+        );
+        let mut diagnostics = vec![call_diagnostic, effect_diagnostic, type_diagnostic];
         if work.unattached > 0 {
             let disagreement = ExtractionDiagnostic::new(
                 DiagnosticCode::IncompleteAnalysis,
@@ -385,8 +473,10 @@ pub fn resolve_rust_path_calls(
         }
         let mut observations = work.calls;
         observations.extend(work.effects);
+        observations.extend(work.types);
         let mut evidence = work.call_evidence;
         evidence.extend(work.effect_evidence);
+        evidence.extend(work.type_evidence);
         out.push(ExtractionBatch {
             extractor: extractor.clone(),
             repository: repository.clone(),
@@ -398,7 +488,7 @@ pub fn resolve_rust_path_calls(
             ),
             observations,
             evidence,
-            obligations: vec![call_obligation, effect_obligation],
+            obligations: vec![call_obligation, effect_obligation, type_obligation],
             diagnostics,
         });
     }

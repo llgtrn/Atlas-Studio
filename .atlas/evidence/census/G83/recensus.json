@@ -1,0 +1,915 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G83",
+  "base_revision": "aceaf1f48fa6069c2c7d02db62d73f2053de264b",
+  "candidate_revision": "1f5fc69eb718513f821c58118f3a03a2346a84c6",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:d2dcfbac00c4112601e5aad70480a9fc7e01fd3b08d34bbb1bd43e55078f6e46",
+  "after_census_digest": "blake3-256:f6354d45596145547957ef1dded906f1ec3aa4ede4ed0b8571ca4ec60c66a166",
+  "replay_digest": "blake3-256:f6354d45596145547957ef1dded906f1ec3aa4ede4ed0b8571ca4ec60c66a166",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/semantic/types.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/build.rs",
+      "adapter/src/browser/mod.rs",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/cargo_oracle.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/batch.rs",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/vcs/mod.rs",
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/capability/mod.rs",
+      "core/src/census/delta.rs",
+      "core/src/census/dependency.rs",
+      "core/src/census/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/closure/mod.rs",
+      "core/src/constraint/mod.rs",
+      "core/src/donor/mod.rs",
+      "core/src/evidence/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/identity/mod.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/language/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/provenance/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/concurrency.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/obligation.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/ownership.rs",
+      "core/src/semantic/persistence.rs",
+      "core/src/semantic/place.rs",
+      "core/src/semantic/state.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "core/src/state/mod.rs",
+      "core/src/temporal/mod.rs",
+      "core/src/visual/compose.rs",
+      "core/src/visual/differential.rs",
+      "core/src/visual/genome.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/inventory/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/physical.rs",
+      "runtime/src/product.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/visual.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 16,
+      "fact:FunctionSignature|OBSERVED": 16,
+      "fact:SemanticObligation|UNKNOWN": 96,
+      "fact:Symbol|OBSERVED": 31,
+      "fact:Type|DERIVED": 1723,
+      "fact:Type|OBSERVED": 21,
+      "record:CALL|DERIVED": 45,
+      "record:CALL|OBSERVED": 241,
+      "record:CONTROL_FLOW|OBSERVED": 73,
+      "record:DATA_FLOW|OBSERVED": 460,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 1,
+      "record:FUNCTION_IDENTITY|OBSERVED": 16,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 16,
+      "record:OWNERSHIP|OBSERVED": 127,
+      "record:STATE|OBSERVED": 13,
+      "record:SYMBOL|OBSERVED": 31,
+      "record:TYPE|DERIVED": 1723,
+      "record:TYPE|OBSERVED": 21
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1565,
+    "graph_nodes": 2013
+  },
+  "obligation_delta": {
+    "obligation:TYPE|UNKNOWN": 96
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_type()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_type()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_const()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_const()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_fn()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_fn()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_static()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_static()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/tests/workspace()."
+      ],
+      "after": [
+        "runtime census/resolution/tests/workspace()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+      ],
+      "after": [
+        "runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/is_generic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/canonical_of_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/type_descriptor()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_enum()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_struct()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_union()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/is_primitive()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/prelude_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/canonical_types()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/type_canonicalization_never_guesses()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/types_canonicalize_bottom_up_through_resolution()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/a_type_spelling_resolved_everywhere_in_its_artifact_is_a_canonical_type_claim()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/build.rs: 10 -> 11",
+      "adapter/src/browser/mod.rs: 10 -> 11",
+      "adapter/src/dependency/cargo.rs: 10 -> 11",
+      "adapter/src/dependency/cargo_oracle.rs: 10 -> 11",
+      "adapter/src/dependency/mod.rs: 10 -> 11",
+      "adapter/src/lib.rs: 10 -> 11",
+      "adapter/src/semantic/batch.rs: 10 -> 11",
+      "adapter/src/semantic/boundary_tests.rs: 10 -> 11",
+      "adapter/src/semantic/extractor.rs: 10 -> 11",
+      "adapter/src/semantic/mod.rs: 10 -> 11",
+      "adapter/src/semantic/registry.rs: 10 -> 11",
+      "adapter/src/semantic/rust/cfg.rs: 10 -> 11",
+      "adapter/src/semantic/rust/concurrency.rs: 10 -> 11",
+      "adapter/src/semantic/rust/dataflow.rs: 10 -> 11",
+      "adapter/src/semantic/rust/effect.rs: 10 -> 11",
+      "adapter/src/semantic/rust/mod.rs: 10 -> 11",
+      "adapter/src/semantic/rust/ownership.rs: 10 -> 11",
+      "adapter/src/semantic/rust/persistence.rs: 10 -> 11",
+      "adapter/src/semantic/rust/resolve.rs: 10 -> 11",
+      "adapter/src/semantic/rust/resolve/tests.rs: 10 -> 11",
+      "adapter/src/semantic/rust/spelling.rs: 10 -> 11",
+      "adapter/src/semantic/rust/state.rs: 10 -> 11",
+      "adapter/src/semantic/rust/tests.rs: 10 -> 11",
+      "adapter/src/source/frontend.rs: 10 -> 11",
+      "adapter/src/source/mod.rs: 10 -> 11",
+      "adapter/src/vcs/mod.rs: 10 -> 11",
+      "apps/cli/src/main.rs: 10 -> 11",
+      "core/src/atlas/mod.rs: 10 -> 11",
+      "core/src/atlas/schema.rs: 10 -> 11",
+      "core/src/atlas/tests.rs: 10 -> 11",
+      "core/src/capability/mod.rs: 10 -> 11",
+      "core/src/census/delta.rs: 10 -> 11",
+      "core/src/census/dependency.rs: 10 -> 11",
+      "core/src/census/mod.rs: 10 -> 11",
+      "core/src/certificate/mod.rs: 10 -> 11",
+      "core/src/closure/mod.rs: 10 -> 11",
+      "core/src/constraint/mod.rs: 10 -> 11",
+      "core/src/donor/mod.rs: 10 -> 11",
+      "core/src/evidence/mod.rs: 10 -> 11",
+      "core/src/graph/engineering_graph.rs: 10 -> 11",
+      "core/src/graph/mod.rs: 10 -> 11",
+      "core/src/identity/blake3.rs: 10 -> 11",
+      "core/src/identity/mod.rs: 10 -> 11",
+      "core/src/language/adl/census.rs: 10 -> 11",
+      "core/src/language/adl/census/tests.rs: 10 -> 11",
+      "core/src/language/adl/mod.rs: 10 -> 11",
+      "core/src/language/mod.rs: 10 -> 11",
+      "core/src/lib.rs: 10 -> 11",
+      "core/src/physical/dynamics.rs: 10 -> 11",
+      "core/src/physical/mod.rs: 10 -> 11",
+      "core/src/product/mod.rs: 10 -> 11",
+      "core/src/product/tests.rs: 10 -> 11",
+      "core/src/provenance/mod.rs: 10 -> 11",
+      "core/src/quantity/mod.rs: 10 -> 11",
+      "core/src/recensus/entity.rs: 10 -> 11",
+      "core/src/recensus/entity/tests.rs: 10 -> 11",
+      "core/src/recensus/mod.rs: 10 -> 11",
+      "core/src/recensus/tests.rs: 10 -> 11",
+      "core/src/schema/mod.rs: 10 -> 11",
+      "core/src/semantic/call.rs: 10 -> 11",
+      "core/src/semantic/concurrency.rs: 10 -> 11",
+      "core/src/semantic/control_flow.rs: 10 -> 11",
+      "core/src/semantic/data_flow.rs: 10 -> 11",
+      "core/src/semantic/diagnostic.rs: 10 -> 11",
+      "core/src/semantic/effect.rs: 10 -> 11",
+      "core/src/semantic/function.rs: 10 -> 11",
+      "core/src/semantic/mod.rs: 10 -> 11",
+      "core/src/semantic/obligation.rs: 10 -> 11",
+      "core/src/semantic/observation.rs: 10 -> 11",
+      "core/src/semantic/ownership.rs: 10 -> 11",
+      "core/src/semantic/persistence.rs: 10 -> 11",
+      "core/src/semantic/place.rs: 10 -> 11",
+      "core/src/semantic/state.rs: 10 -> 11",
+      "core/src/semantic/symbol.rs: 10 -> 11",
+      "core/src/semantic/types.rs: 10 -> 11",
+      "core/src/state/mod.rs: 10 -> 11",
+      "core/src/temporal/mod.rs: 10 -> 11",
+      "core/src/visual/compose.rs: 10 -> 11",
+      "core/src/visual/differential.rs: 10 -> 11",
+      "core/src/visual/genome.rs: 10 -> 11",
+      "core/src/visual/mod.rs: 10 -> 11",
+      "core/src/visual/search.rs: 10 -> 11",
+      "runtime/src/atlas.rs: 10 -> 11",
+      "runtime/src/census/extraction.rs: 10 -> 11",
+      "runtime/src/census/mod.rs: 10 -> 11",
+      "runtime/src/census/resolution.rs: 10 -> 11",
+      "runtime/src/census/resolution/tests.rs: 10 -> 11",
+      "runtime/src/certificate.rs: 10 -> 11",
+      "runtime/src/donor_storage.rs: 10 -> 11",
+      "runtime/src/inventory/mod.rs: 10 -> 11",
+      "runtime/src/lib.rs: 10 -> 11",
+      "runtime/src/normalize/mod.rs: 10 -> 11",
+      "runtime/src/physical.rs: 10 -> 11",
+      "runtime/src/product.rs: 10 -> 11",
+      "runtime/src/recensus.rs: 10 -> 11",
+      "runtime/src/visual.rs: 10 -> 11"
+    ],
+    "decreased": [],
+    "total_before": 1188,
+    "total_after": 1284
+  },
+  "intent": {
+    "objective": "P0 TYPE identity (egglog-cycle input): type occurrences canonicalized bottom-up through native name resolution; 1,723 DERIVED canonical type claims unite 176 spellings of 84 types; 3,077 occurrences agree with the pinned SCIP oracle, 0 disagreements; the resolution engine is asked for CALL, EFFECT and TYPE",
+    "changed_paths": [
+      "adapter/build.rs",
+      "adapter/src/browser/mod.rs",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/cargo_oracle.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/batch.rs",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/vcs/mod.rs",
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/capability/mod.rs",
+      "core/src/census/delta.rs",
+      "core/src/census/dependency.rs",
+      "core/src/census/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/closure/mod.rs",
+      "core/src/constraint/mod.rs",
+      "core/src/donor/mod.rs",
+      "core/src/evidence/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/identity/mod.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/language/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/provenance/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/concurrency.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/obligation.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/ownership.rs",
+      "core/src/semantic/persistence.rs",
+      "core/src/semantic/place.rs",
+      "core/src/semantic/state.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "core/src/state/mod.rs",
+      "core/src/temporal/mod.rs",
+      "core/src/visual/compose.rs",
+      "core/src/visual/differential.rs",
+      "core/src/visual/genome.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/inventory/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/physical.rs",
+      "runtime/src/product.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/visual.rs"
+    ],
+    "total_changes": [
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/build.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/browser/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/dependency/cargo.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/dependency/cargo_oracle.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/dependency/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/lib.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/batch.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/boundary_tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/extractor.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/registry.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/cfg.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/concurrency.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/dataflow.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/effect.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/ownership.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/persistence.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/resolve.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/resolve/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/spelling.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/state.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/semantic/rust/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/source/frontend.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/source/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "adapter/src/vcs/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "apps/cli/src/main.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/atlas/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/atlas/schema.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/atlas/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/capability/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/census/delta.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/census/dependency.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/census/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/certificate/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/closure/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/constraint/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/donor/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/evidence/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/graph/engineering_graph.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/graph/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/identity/blake3.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/identity/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/language/adl/census.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/language/adl/census/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/language/adl/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/language/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/lib.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/physical/dynamics.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/physical/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/product/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/product/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/provenance/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/quantity/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/recensus/entity.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/recensus/entity/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/recensus/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/recensus/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/schema/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/call.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/concurrency.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/control_flow.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/data_flow.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/diagnostic.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/effect.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/function.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/obligation.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/observation.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/ownership.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/persistence.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/place.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/state.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/symbol.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/semantic/types.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/state/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/temporal/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/visual/compose.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/visual/differential.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/visual/genome.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/visual/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "core/src/visual/search.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/atlas.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/census/extraction.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/census/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/census/resolution.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/census/resolution/tests.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/certificate.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/donor_storage.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/inventory/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/lib.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/normalize/mod.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/physical.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/product.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/recensus.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it",
+      "runtime/src/visual.rs: the path-resolution engine now also accounts one TYPE obligation per Rust artifact (G83), UNKNOWN because generic, opaque and unresolvable type spellings are outside it"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_type().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_const().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_fn().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_static().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait().",
+      "CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CHANGED runtime census/resolution/tests/workspace().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/is_generic().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/canonical_of_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/type_descriptor().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_enum().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_struct().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_union().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_type().",
+      "CREATED adapter semantic/rust/resolve/is_primitive().",
+      "CREATED adapter semantic/rust/resolve/prelude_type().",
+      "CREATED adapter semantic/rust/resolve/tests/canonical_types().",
+      "CREATED adapter semantic/rust/resolve/tests/type_canonicalization_never_guesses().",
+      "CREATED adapter semantic/rust/resolve/tests/types_canonicalize_bottom_up_through_resolution().",
+      "CREATED runtime census/resolution/tests/a_type_spelling_resolved_everywhere_in_its_artifact_is_a_canonical_type_claim().",
+      "CHANGED runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/build.rs",
+    "path adapter/src/browser/mod.rs",
+    "path adapter/src/dependency/cargo.rs",
+    "path adapter/src/dependency/cargo_oracle.rs",
+    "path adapter/src/dependency/mod.rs",
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/batch.rs",
+    "path adapter/src/semantic/boundary_tests.rs",
+    "path adapter/src/semantic/extractor.rs",
+    "path adapter/src/semantic/mod.rs",
+    "path adapter/src/semantic/registry.rs",
+    "path adapter/src/semantic/rust/cfg.rs",
+    "path adapter/src/semantic/rust/concurrency.rs",
+    "path adapter/src/semantic/rust/dataflow.rs",
+    "path adapter/src/semantic/rust/effect.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/ownership.rs",
+    "path adapter/src/semantic/rust/persistence.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/semantic/rust/spelling.rs",
+    "path adapter/src/semantic/rust/state.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path adapter/src/source/frontend.rs",
+    "path adapter/src/source/mod.rs",
+    "path adapter/src/vcs/mod.rs",
+    "path apps/cli/src/main.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/capability/mod.rs",
+    "path core/src/census/delta.rs",
+    "path core/src/census/dependency.rs",
+    "path core/src/census/mod.rs",
+    "path core/src/certificate/mod.rs",
+    "path core/src/closure/mod.rs",
+    "path core/src/constraint/mod.rs",
+    "path core/src/donor/mod.rs",
+    "path core/src/evidence/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/graph/mod.rs",
+    "path core/src/identity/blake3.rs",
+    "path core/src/identity/mod.rs",
+    "path core/src/language/adl/census.rs",
+    "path core/src/language/adl/census/tests.rs",
+    "path core/src/language/adl/mod.rs",
+    "path core/src/language/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/physical/dynamics.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/product/mod.rs",
+    "path core/src/product/tests.rs",
+    "path core/src/provenance/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "path core/src/recensus/entity.rs",
+    "path core/src/recensus/entity/tests.rs",
+    "path core/src/recensus/mod.rs",
+    "path core/src/recensus/tests.rs",
+    "path core/src/schema/mod.rs",
+    "path core/src/semantic/call.rs",
+    "path core/src/semantic/concurrency.rs",
+    "path core/src/semantic/control_flow.rs",
+    "path core/src/semantic/data_flow.rs",
+    "path core/src/semantic/diagnostic.rs",
+    "path core/src/semantic/effect.rs",
+    "path core/src/semantic/function.rs",
+    "path core/src/semantic/mod.rs",
+    "path core/src/semantic/obligation.rs",
+    "path core/src/semantic/observation.rs",
+    "path core/src/semantic/ownership.rs",
+    "path core/src/semantic/persistence.rs",
+    "path core/src/semantic/place.rs",
+    "path core/src/semantic/state.rs",
+    "path core/src/semantic/symbol.rs",
+    "path core/src/semantic/types.rs",
+    "path core/src/state/mod.rs",
+    "path core/src/temporal/mod.rs",
+    "path core/src/visual/compose.rs",
+    "path core/src/visual/differential.rs",
+    "path core/src/visual/genome.rs",
+    "path core/src/visual/mod.rs",
+    "path core/src/visual/search.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/census/resolution/tests.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/inventory/mod.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/normalize/mod.rs",
+    "path runtime/src/physical.rs",
+    "path runtime/src/product.rs",
+    "path runtime/src/recensus.rs",
+    "path runtime/src/visual.rs",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_type().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_const().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_fn().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_static().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CHANGED runtime census/resolution/tests/workspace().",
+    "entity CHANGED runtime tests/systemize_reconciles_declared_dependencies_against_the_census().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/is_generic().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/canonical_of_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/type_descriptor().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_enum().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_struct().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_union().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_type().",
+    "entity CREATED adapter semantic/rust/resolve/is_primitive().",
+    "entity CREATED adapter semantic/rust/resolve/prelude_type().",
+    "entity CREATED adapter semantic/rust/resolve/tests/canonical_types().",
+    "entity CREATED adapter semantic/rust/resolve/tests/type_canonicalization_never_guesses().",
+    "entity CREATED adapter semantic/rust/resolve/tests/types_canonicalize_bottom_up_through_resolution().",
+    "entity CREATED runtime census/resolution/tests/a_type_spelling_resolved_everywhere_in_its_artifact_is_a_canonical_type_claim()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -2267,8 +2267,11 @@ mod tests {
                 .all(|e| e.body.starts_with("blake3-256:") || e.body == "-")
         );
 
-        // G67: no symbol or type identity spans two source artifacts (203 did at G66).
+        // G67: no symbol or file-scoped type identity spans two source artifacts (203 did at
+        // G66). A canonical type (G83) is one type everywhere, so its claim is shared by design.
         let mut spans: std::collections::BTreeMap<&str, std::collections::BTreeSet<&str>> =
+            Default::default();
+        let mut canonical: std::collections::BTreeMap<&str, std::collections::BTreeSet<&str>> =
             Default::default();
         for record in &report.census.typed_semantic_records {
             if let atlas_core::SemanticObservation::Symbol(h) = record {
@@ -2278,7 +2281,12 @@ mod tests {
                     .insert(&h.provenance.source_path);
             }
             if let atlas_core::SemanticObservation::Type(h) = record {
-                spans
+                let entry = if h.subject.canonical.is_some() {
+                    &mut canonical
+                } else {
+                    &mut spans
+                };
+                entry
                     .entry(h.record_id.as_str())
                     .or_default()
                     .insert(&h.provenance.source_path);
@@ -2289,6 +2297,10 @@ mod tests {
             shared.is_empty(),
             "{} ids span files: {shared:?}",
             shared.len()
+        );
+        assert!(
+            canonical.values().any(|files| files.len() > 1),
+            "canonical type claims are shared across files"
         );
     }
 

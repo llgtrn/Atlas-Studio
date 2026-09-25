@@ -27,7 +27,7 @@ deferred = 1
 extinct = 18
 remaining = 32
 next_donor = "capnproto"
-next_step = "G83 (P0): canonical type identity via name resolution (egglog-cycle input); then capnproto (#20)"
+next_step = "G84 (P3): capnproto (#20) -- canonical serialization + packed encoding for binary .atlas (P2)"
 
 [[donor]]
 ordinal = 1

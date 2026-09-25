@@ -5,8 +5,10 @@ use crate::identity::RepositoryId;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
 
-/// Canonical type identity. `canonical` carries compiler-provided identity as evidence; it never
-/// grants truth by itself (see `.atlas/contracts/SEMANTIC-FACTS.md#symbolfact`).
+/// Canonical type identity. `canonical` carries a resolved identity as evidence -- since G83 from
+/// native name resolution (`<package> <module path>/<Name>#` for workspace types, the std path for
+/// standard-library types, composed structurally) -- and never grants truth by itself (see
+/// `.atlas/contracts/SEMANTIC-FACTS.md#symbolfact`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TypeIdentity {
     pub repository: RepositoryId,

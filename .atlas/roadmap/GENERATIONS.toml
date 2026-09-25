@@ -1174,6 +1174,7 @@ objective = "falsify e-graph equivalence against the census's actual equivalence
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/19-egglog.json"
 self_recensus = ".atlas/evidence/census/G82/recensus.json"
+result_commits = ["592409a9d53dfe86b37e50bf0e24616260b34553", "1f5fc69eb718513f821c58118f3a03a2346a84c6"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 7c30a40848 = G81 post digest 205ff68f... (aceaf1f48f adds only out-of-scope evidence)"
@@ -1183,3 +1184,24 @@ proof = "PROVEN on the first run (post d2dcfbac...)"
 
 [generation.next]
 objective = "G83 (P0): canonical type identity -- resolve TYPE spellings bottom-up through the G75 DefMap and fill TypeIdentity.canonical; then capnproto (#20)"
+
+[[generation]]
+id = "G83"
+base_commit = "1f5fc69eb718513f821c58118f3a03a2346a84c6"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: TYPE identity precision (input from the egglog cycle, G82)"
+objective = "canonical type identity through native name resolution, bottom-up, never guessing"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0034-canonical-type-identity.md"
+self_recensus = ".atlas/evidence/census/G83/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 592409a9d5 = G82 post digest d2dcfbac... (1f5fc69eb7 adds only out-of-scope evidence)"
+falsification = "every one of the 49 measured multi-spelling classes is an equality from name resolution, so bottom-up canonicalization suffices; result: 1,723 DERIVED canonical claims (819 canonical types, 84 uniting 176 spellings, incl. lifetime-only and Self spellings); 3,077 named type occurrences agree with rust-analyzer 1.90.0 SCIP at the same anchor, 0 disagreements (3 std::io::Error spellings name the public re-export of the same type); &syn::Path is never conflated with &std::path::Path"
+change = "resolver: module/type names, transparent vs opaque aliases, bottom-up canonical_type over every visited type occurrence (signatures, fields, impl/trait items, consts, bodies); an explicit item in an open module resolves, a glob name there does not; runtime: per-artifact all-occurrences TYPE claims, the engine asked for CALL, EFFECT and TYPE"
+certificate = "TYPE now has two engines (dropped from MULTI_ENGINE_RECONCILIATION_ABSENT); UNKNOWN_FACTS +96 (the engine's UNKNOWN TYPE obligation per Rust artifact, explained)"
+mutation_battery = "11/11 killed after closing two real test gaps (shadowing of an in-scope type; a spelling the extractor never recorded)"
+proof = "PROVEN (post f6354d45...); a first PROVEN run (post c969e4d0...) preceded two gate fixes -- a clippy or_default lint and G67's cross-file identity test, which now exempts canonical type claims (shared across files by G67's own design) -- so the generation was re-proved with the test change declared"
+
+[generation.next]
+objective = "G84 (P3): first-50 #20 capnproto"
