@@ -1,0 +1,138 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G142",
+  "trigger": "review cadence: the G129 batch (21 debts) fell due at G142; the G130 batch, DEBT-UNCERTAINTY and DEBT-SIMULATION, falling due through G144, are reviewed in the same batch",
+  "method": "each debt re-read against G129-G142 (impact closure, census-quantified and observed-effect invariants, the integrity envelope, closure regions, typed receivers, trait dispatch); its next attack confirmed or corrected",
+  "reviews": [
+    {
+      "debt": "DEBT-CONCURRENCY",
+      "verdict": "CORRECTED",
+      "finding": "its unknowns still named closure bodies, which G133 made regions; the scoped spawns now fail on the scope handle, an untyped closure parameter, and std receivers the workspace-typed probe (G139-G142) does not decide"
+    },
+    {
+      "debt": "DEBT-TYPE",
+      "verdict": "CONFIRMED",
+      "finding": "G139-G142 read declared types to decide receivers but emit no TYPE record for an expression; the resolution engine's TYPE obligations stay UNKNOWN; NA-CALL-TYPE-RESIDUAL"
+    },
+    {
+      "debt": "DEBT-SYMBOL",
+      "verdict": "CONFIRMED",
+      "finding": "the G141 dispatch join reads scope spellings, not resolved trait paths; type use sites still unseen; NA-SECOND-ENGINE"
+    },
+    {
+      "debt": "DEBT-DEPENDENCY",
+      "verdict": "CONFIRMED",
+      "finding": "nine dynamic obligations unchanged; NA-SEAL-POLICY"
+    },
+    {
+      "debt": "DEBT-PROVENANCE",
+      "verdict": "CONFIRMED",
+      "finding": "no constructed product yet; NA-FIRST-ARTIFACT"
+    },
+    {
+      "debt": "DEBT-MULTILANGUAGE",
+      "verdict": "CONFIRMED",
+      "finding": "the G138 integrity envelope had to make WebUI's dependency SOFT for want of a TypeScript census: the debt's cost is now visible in the envelope; NA-MULTILANGUAGE"
+    },
+    {
+      "debt": "DEBT-CONSTRAINT_REASONING",
+      "verdict": "CORRECTED",
+      "finding": "its evidence omitted G137's decided observed-effect envelope form and G138's pinning of census-quantified invariants as HARD envelope invariants"
+    },
+    {
+      "debt": "DEBT-ATLAS_COMPLETENESS",
+      "verdict": "CONFIRMED",
+      "finding": "the container still omits typed records; NA-ATLAS-TYPED-SECTIONS"
+    },
+    {
+      "debt": "DEBT-SEAL_GATE",
+      "verdict": "CORRECTED",
+      "finding": "its unknowns omitted that the gate's two report inputs now exist (G127 verification report, G138 integrity report)"
+    },
+    {
+      "debt": "DEBT-SELECTED_DESIGN",
+      "verdict": "CORRECTED",
+      "finding": "the G138 integrity envelope records genome_ref UNPINNED and selected_design_ref null for want of this record: its absence is now visible in the envelope"
+    },
+    {
+      "debt": "DEBT-ATLASX",
+      "verdict": "CONFIRMED",
+      "finding": "still blocked by the seal gate, the selected design and the integrity envelope (M2 since G138)"
+    },
+    {
+      "debt": "DEBT-CONSTRUCTION_IR",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-ATLASX"
+    },
+    {
+      "debt": "DEBT-COMPILER_LOWERING",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-ATLASX"
+    },
+    {
+      "debt": "DEBT-BACKEND_ADAPTER",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-COMPILER_LOWERING"
+    },
+    {
+      "debt": "DEBT-ARTIFACT_IDENTITY",
+      "verdict": "CONFIRMED",
+      "finding": "no constructed artifact; NA-FIRST-ARTIFACT"
+    },
+    {
+      "debt": "DEBT-TRANSFORMATION",
+      "verdict": "CONFIRMED",
+      "finding": "still blocked by filesystem confinement (DEBT-SANDBOXED_EXECUTION)"
+    },
+    {
+      "debt": "DEBT-UNCERTAINTY",
+      "verdict": "CONFIRMED",
+      "finding": "G131's carrier unchanged; predictions from uncertain inputs stay UNKNOWN; NA-BOUNDED-SIMULATION"
+    },
+    {
+      "debt": "DEBT-DISTRIBUTED_SEMANTICS",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-CONCURRENCY and DEBT-PERSISTENCE"
+    },
+    {
+      "debt": "DEBT-IDENTITY_AUTHORITY",
+      "verdict": "CONFIRMED",
+      "finding": "with NA-SELECTED-DESIGN"
+    },
+    {
+      "debt": "DEBT-DESIGN_GENERATION",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-SELECTED_DESIGN"
+    },
+    {
+      "debt": "DEBT-REAL_WORLD_OBSERVATION",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-ARTIFACT_IDENTITY"
+    },
+    {
+      "debt": "DEBT-SIMULATION",
+      "verdict": "CONFIRMED",
+      "finding": "one nominal trajectory; NA-BOUNDED-SIMULATION queued, blocked by DEBT-QUANTITY_UNITS"
+    },
+    {
+      "debt": "DEBT-PHYSICAL_ONTOLOGY",
+      "verdict": "CONFIRMED",
+      "finding": "frozen until its unfreeze gate"
+    },
+    {
+      "debt": "DEBT-RESOURCE",
+      "verdict": "CONFIRMED",
+      "finding": "the G141 relations are not resource semantics; NA-RESOURCE-DIMENSION"
+    },
+    {
+      "debt": "DEBT-CONSTRUCTION_TRANSACTION",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-ATLASX"
+    }
+  ],
+  "summary": {
+    "reviewed": 25,
+    "confirmed": 21,
+    "corrected": 4
+  }
+}

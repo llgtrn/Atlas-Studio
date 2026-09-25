@@ -610,7 +610,7 @@ objective = "AGENT_MISSION: the fifth mission through the agent interface (caden
 [[planned_generation]]
 id = "G142"
 priority = "P0"
-objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL (step three done: signature-typed lets and the guarded autoref step; 174 new resolutions, all agreeing with SCIP; 6 mutants killed)"
 
 [[planned_generation]]
 id = "G143+"

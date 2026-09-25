@@ -457,6 +457,43 @@ fn bounded_receivers_call_the_trait_method_through_its_declaration() {
     );
 }
 
+#[test]
+fn signature_typed_lets_and_guarded_autoref_resolve_methods() {
+    // G142: a `let` bound once to a call whose callee declares a plain workspace output (`Self`
+    // of a plain impl included), a struct literal, a tuple-struct or variant constructor is a
+    // value of that type; the probe's autoref step (a value taking `&self`/`&mut self`, a
+    // `&mut T` taking `&self`) is claimed only when no by-value method of the name can come
+    // first: a by-value workspace trait method, `into`/`try_into`/`into_iter`, a non-std import
+    // in scope, or an Iterator-like impl on the type each withhold it.
+    let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn by_ref(&self) {}\n    fn by_mut(&mut self) {}\n    fn into(&self) {}\n    fn consume(&self) {}\n}\npub trait Eat {\n    fn consume(self);\n}\nfn make() -> S { S }\nfn any<T>() -> T { unimplemented!() }\npub struct P { x: u8 }\nimpl P {\n    fn look(&self) {}\n}\npub struct Tup(u8);\nimpl Tup {\n    fn look(&self) {}\n}\npub enum E { A(u8) }\nimpl E {\n    fn look(&self) {}\n}\npub struct It;\nimpl It {\n    fn peek_ref(&self) {}\n}\nimpl Iterator for It {\n    type Item = u8;\n    fn next(&mut self) -> Option<u8> { None }\n}\nfn values(m: &mut S) {\n    let a = S::new();\n    a.by_ref();\n    let mut b = make();\n    b.by_mut();\n    let p = P { x: 1 };\n    p.look();\n    let t = Tup(1);\n    t.look();\n    let e = E::A(1);\n    e.look();\n    m.by_ref();\n    a.into();\n    a.consume();\n    let it = It;\n    let i = make_it();\n    i.peek_ref();\n    let g: S = any();\n    let h = any::<S>();\n    h.by_ref();\n}\nfn make_it() -> It { It }\nfn rebound() {\n    let z = S::new();\n    {\n        let z = Tup(1);\n        z.by_ref();\n    }\n}\nmod ext {\n    use outside::Thing;\n    fn f() {\n        let s = super::S::new();\n        s.by_ref();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let got: Vec<(String, String)> = outcomes(&results, "src/lib.rs")
+        .into_iter()
+        .filter(|(callee, _)| callee.contains('.'))
+        .collect();
+    let expect: Vec<(String, String)> = [
+        ("a.by_ref", "src/lib.rs:4:by_ref"),
+        ("b.by_mut", "src/lib.rs:5:by_mut"),
+        ("p.look", "src/lib.rs:16:look"),
+        ("t.look", "src/lib.rs:20:look"),
+        ("e.look", "src/lib.rs:24:look"),
+        ("m.by_ref", "src/lib.rs:4:by_ref"),
+        // `into` could be `Into::into` by value; `consume` could be `Eat::consume`.
+        ("a.into", "unresolved:receiver-form-differs"),
+        ("a.consume", "unresolved:receiver-form-differs"),
+        // `It` implements Iterator: a by-value adaptor could come first.
+        ("i.peek_ref", "unresolved:receiver-form-differs"),
+        // `g: S` is typed by its declaration (G139); `h` from `any::<S>()` has generic arguments.
+        // `rebound`: `z` is bound twice, so neither binding types it (the inner one is a Tup).
+        // In `ext`, a non-std import could bring a trait: withheld.
+        ("s.by_ref", "unresolved:receiver-form-differs"),
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(got, expect);
+}
+
 /// `spelling -> canonical` for every type occurrence in `path` (first occurrence per spelling).
 fn canonical_types(files: &[(&str, &str)], root: &str, path: &str) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();

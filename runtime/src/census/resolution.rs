@@ -550,7 +550,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), decided by the method probe's first step ({path}); other method calls, `async` blocks and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), or bound once by a `let` to a call or literal whose callee declares a plain workspace type (G142), decided by the method probe's first step or, where no by-value method can come first, its autoref step (G142) ({path}); other method calls, `async` blocks and macro arguments are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"

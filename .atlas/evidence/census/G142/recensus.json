@@ -1,0 +1,352 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G142",
+  "base_revision": "9576a96a54b9d795cbb2df3ebbbd41f733031bb6",
+  "candidate_revision": "d44f11573c9578f1c308d5901d97cce73864b80b",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:b67f3730f3c509e2cb3fa0f40c6378fea611cc71f301807b2f1753e3a363a933",
+  "after_census_digest": "blake3-256:2524afbc25eda4cccbbbd083ea07fd765a434de2fa916b349343f91d431818f4",
+  "replay_digest": "blake3-256:2524afbc25eda4cccbbbd083ea07fd765a434de2fa916b349343f91d431818f4",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/resolution.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/build.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/product/mod.rs",
+      "core/src/quantity/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/recensus.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 22,
+      "fact:FunctionSignature|OBSERVED": 5,
+      "fact:Symbol|OBSERVED": 31,
+      "fact:Type|DERIVED": 5,
+      "fact:Type|OBSERVED": 11,
+      "record:CALL|DERIVED": 185,
+      "record:CALL|OBSERVED": 112,
+      "record:CONTROL_FLOW|INFERRED": 1,
+      "record:CONTROL_FLOW|OBSERVED": 73,
+      "record:DATA_FLOW|OBSERVED": 248,
+      "record:EFFECT|INFERRED": 1,
+      "record:FUNCTION_IDENTITY|OBSERVED": 22,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 5,
+      "record:OWNERSHIP|OBSERVED": 66,
+      "record:STATE|OBSERVED": 7,
+      "record:SYMBOL|OBSERVED": 31,
+      "record:TYPE|DERIVED": 5,
+      "record:TYPE|OBSERVED": 11
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1040,
+    "graph_nodes": 634
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_impl()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_impl()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/method_on_self()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/method_on_self()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/value_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/output_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/signature_typed_lets_and_guarded_autoref_resolve_methods()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "native attack NA-CALL-TYPE-RESIDUAL (step three): lets bound once to a call whose callee declares a plain workspace type (or a literal/constructor) are typed, and the probe's autoref step is claimed behind guards against every by-value method that could come first; 174 new resolutions, all agreeing with rust-analyzer SCIP",
+    "changed_paths": [
+      "adapter/build.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/product/mod.rs",
+      "core/src/quantity/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/recensus.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_impl().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/method_on_self().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/value_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/output_type().",
+      "CREATED adapter semantic/rust/resolve/tests/signature_typed_lets_and_guarded_autoref_resolve_methods()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/build.rs",
+    "path adapter/src/semantic/rust/cfg.rs",
+    "path adapter/src/semantic/rust/concurrency.rs",
+    "path adapter/src/semantic/rust/dataflow.rs",
+    "path adapter/src/semantic/rust/effect.rs",
+    "path adapter/src/semantic/rust/ownership.rs",
+    "path adapter/src/semantic/rust/persistence.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/semantic/rust/state.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path adapter/src/source/mod.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/identity/blake3.rs",
+    "path core/src/language/adl/census/tests.rs",
+    "path core/src/product/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/census/resolution/tests.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/normalize/mod.rs",
+    "path runtime/src/recensus.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_impl().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/method_on_self().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/value_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/output_type().",
+    "entity CREATED adapter semantic/rust/resolve/tests/signature_typed_lets_and_guarded_autoref_resolve_methods()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G141"
+current_generation = "G142"
 
 [[generation]]
 id = "G35"
@@ -2963,3 +2963,38 @@ after = 53
 [[generation.metric]]
 key = "composed:relation:ENCLOSES"
 after = 2701
+
+[[generation]]
+id = "G142"
+kind = "NATIVE_ATTACK"
+base_commit = "d44f11573c9578f1c308d5901d97cce73864b80b"
+priority = "P0"
+serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL), third step"
+objective = "let bindings typed by their callee's declared output, and the method probe's autoref step claimed where no by-value method can come first"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G142/method-call-scip-differential.json"
+self_recensus = ".atlas/evidence/census/G142/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of c1dbd87efd = G141 post digest (the evidence commit d44f11573c adds only out-of-scope evidence)"
+atlas_first = "the resolver's own outcomes sized the typed-receiver residual (333 method calls reached the probe: 218 method-not-inherent, 86 receiver-form-differs, 29 generic-impl) and showed the untyped receivers as the lever; the autoref step was reasoned against the probe's order before coding"
+change = "adapter resolve.rs: FnOutput and DefMap.fn_outputs (every workspace function's declared output with its scope, impl and generics); ImplDef.trait_name; DefMap::output_type and autoref_allowed; method_on_self's autoref parameter; CallWalker::type_lets and value_type (calls, struct literals, tuple-struct and variant constructors); resolution scope text; runtime fixture keeps its unresolved example behind a block initializer; ADR 0059"
+oracle = "the G141 and G142 engines on the same tree: 5,504 -> 5,678 resolved CALL records, 174 new, none lost or changed; all 174 agree with rust-analyzer SCIP"
+falsification = "6 mutants killed: autoref unguarded; the blanket names ignored; by-value trait methods ignored; Iterator-like impls ignored; non-std imports ignored; the let bound-once rule dropped"
+debts = "DEBT-CALL last advance G142; NA-CALL-TYPE-RESIDUAL stays queued (method-call results and chains, fields, for-loop bindings, Box/Rc, supertraits); revalidation milestone SIGNATURE_TYPED_LETS; review batch G142 (evidence/census/G142/debt-review.json): 25 reviewed, 21 confirmed, 4 corrected"
+proof = "PROVEN (post 2524afbc...): no new UNKNOWN obligation; 28 files gain resolved calls"
+
+[[generation.metric]]
+key = "typed_records"
+before = 145273
+after = 146040
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5493
+after = 5678
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 3908
+after = 4059

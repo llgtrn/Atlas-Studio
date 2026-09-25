@@ -309,8 +309,20 @@ struct TypeDef {
     opaque_alias: bool,
 }
 
+/// G142: a function's declared output as spelled, with what is needed to read it: the scope it
+/// is spelled in, the impl whose `Self` it may name, and the generic names in force.
+#[derive(Clone)]
+struct FnOutput {
+    scope: ModId,
+    impl_index: Option<usize>,
+    generics: BTreeSet<String>,
+    ty: syn::Type,
+}
+
 #[derive(Debug, Clone)]
 struct ImplDef {
+    /// G142: the implemented trait's name (its path's last segment), for a trait impl.
+    trait_name: Option<String>,
     scope: ModId,
     self_path: Vec<String>,
     self_leading_colon: bool,
@@ -372,6 +384,8 @@ struct DefMap {
     impls: Vec<ImplDef>,
     /// G140: each workspace trait's own methods (supertraits' are not followed).
     trait_fns: BTreeMap<TypeId, Vec<ImplFn>>,
+    /// G142: each workspace function's declared output, by its target's (path, line, column).
+    fn_outputs: BTreeMap<(String, usize, usize), FnOutput>,
     /// An inherent impl on a trait object (`impl dyn Tr {}`) exists somewhere: its methods would
     /// compete with the trait's, so no call through `dyn` is claimed.
     dyn_inherent_impl: bool,
@@ -568,6 +582,17 @@ impl DefMap {
                         column,
                         name: name.clone(),
                     };
+                    if let syn::ReturnType::Type(_, ty) = &item_fn.sig.output {
+                        self.fn_outputs.insert(
+                            (file.to_owned(), line, column),
+                            FnOutput {
+                                scope: module,
+                                impl_index: None,
+                                generics: generic_names(&item_fn.sig.generics),
+                                ty: ty.as_ref().clone(),
+                            },
+                        );
+                    }
                     self.add_item(module, Ns::Values, &name, Def::Fn(target), &item_fn.vis);
                     self.collect_block(module, file, &item_fn.block);
                 }
@@ -786,6 +811,19 @@ impl DefMap {
             if let syn::ImplItem::Fn(method) = impl_item {
                 let (line, column) = start(method.span());
                 let name = method.sig.ident.to_string();
+                if let syn::ReturnType::Type(_, ty) = &method.sig.output {
+                    let mut generics = generic_names(&item.generics);
+                    generics.extend(generic_names(&method.sig.generics));
+                    self.fn_outputs.insert(
+                        (file.to_owned(), line, column),
+                        FnOutput {
+                            scope,
+                            impl_index: Some(self.impls.len()),
+                            generics,
+                            ty: ty.as_ref().clone(),
+                        },
+                    );
+                }
                 fns.push(ImplFn {
                     name: name.clone(),
                     target: FnTarget {
@@ -800,6 +838,11 @@ impl DefMap {
             }
         }
         self.impls.push(ImplDef {
+            trait_name: item
+                .trait_
+                .as_ref()
+                .and_then(|(path, _)| path.segments.last())
+                .map(|segment| segment.ident.to_string()),
             scope,
             self_path,
             self_leading_colon,
@@ -1336,6 +1379,106 @@ fn is_primitive(name: &str) -> bool {
 }
 
 impl DefMap {
+    /// G142: the workspace type a function's declared output names, when it is a plain one: a
+    /// path without generic arguments to a non-trait workspace type that is not a generic name in
+    /// force, or `Self` of an impl of such a type without generics.
+    fn output_type(&self, crates: &[CrateInput], target: &FnTarget) -> Option<TypeId> {
+        let output = self
+            .fn_outputs
+            .get(&(target.path.clone(), target.line, target.column))?;
+        let syn::Type::Path(path) = &output.ty else {
+            return None;
+        };
+        if path.qself.is_some()
+            || path
+                .path
+                .segments
+                .iter()
+                .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+        {
+            return None;
+        }
+        let segments: Vec<String> = path
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect();
+        if let [only] = segments.as_slice() {
+            if output.generics.contains(only) {
+                return None;
+            }
+            if only == "Self" {
+                let imp = &self.impls[output.impl_index?];
+                return (imp.shape == PLAIN_IMPL_SHAPE).then_some(imp.self_type?);
+            }
+        }
+        let ty = self.resolve_type_path(
+            crates,
+            output.scope,
+            &segments,
+            path.path.leading_colon.is_some(),
+            0,
+        )?;
+        (!self.types[ty].is_trait).then_some(ty)
+    }
+
+    /// G142: whether the probe's autoref step can be claimed for `ty.name(..)` from `scope`: no
+    /// by-value method of that name can come first. A by-value workspace trait method, a std
+    /// blanket by-value method (`into`, `try_into`, `into_iter`), a non-std import or an unseen
+    /// name in the scope chain, or an explicit impl of a std trait with by-value methods on `ty`
+    /// could each supply one; any of them withholds the claim.
+    fn autoref_allowed(&self, scope: ModId, ty: TypeId, name: &str) -> bool {
+        const BLANKET: [&str; 3] = ["into", "try_into", "into_iter"];
+        const BY_VALUE_TRAITS: [&str; 8] = [
+            "Iterator",
+            "IntoIterator",
+            "DoubleEndedIterator",
+            "Read",
+            "BufRead",
+            "Write",
+            "Future",
+            "Stream",
+        ];
+        if BLANKET.contains(&name) {
+            return false;
+        }
+        let by_value_trait_method = self
+            .trait_fns
+            .values()
+            .flatten()
+            .any(|f| f.name == name && f.receiver == Some(Receiver::Value));
+        if by_value_trait_method {
+            return false;
+        }
+        if self.impls.iter().any(|imp| {
+            imp.self_type == Some(ty)
+                && imp
+                    .trait_name
+                    .as_deref()
+                    .is_some_and(|t| BY_VALUE_TRAITS.contains(&t))
+        }) {
+            return false;
+        }
+        let mut cursor = Some(scope);
+        while let Some(id) = cursor {
+            let module = &self.modules[id];
+            if module.open
+                || module
+                    .scope
+                    .types
+                    .values()
+                    .any(|entry| matches!(&entry.def, Def::External(path) if path.is_empty()))
+            {
+                return false;
+            }
+            cursor = module
+                .lexical_parent
+                .or(module.parent.filter(|_| module.is_block));
+        }
+        true
+    }
+
     /// `self.name(..)` in a method with receiver `form` of an impl of `ty` shaped `shape`. The
     /// method probe's first step tries the receiver's own type by value, inherent methods before
     /// trait methods; an inherent method whose receiver form equals the caller's is therefore
@@ -1346,6 +1489,7 @@ impl DefMap {
         shape: &str,
         name: &str,
         form: Receiver,
+        autoref: bool,
     ) -> PathCallOutcome {
         let candidates: Vec<(&ImplDef, &ImplFn)> = self
             .impls
@@ -1357,6 +1501,18 @@ impl DefMap {
         match candidates.as_slice() {
             [] => PathCallOutcome::Unresolved("method-not-inherent"),
             [(imp, _)] if imp.shape != shape => PathCallOutcome::Unresolved("generic-impl"),
+            // G142: the autoref step -- a value taking `&self` or `&mut self`, or `&mut T`
+            // taking `&self` -- when nothing by value can come first.
+            [(_, f)]
+                if autoref
+                    && matches!(
+                        (form, f.receiver),
+                        (Receiver::Value, Some(Receiver::Ref | Receiver::RefMut))
+                            | (Receiver::RefMut, Some(Receiver::Ref))
+                    ) =>
+            {
+                PathCallOutcome::Resolved(f.target.clone())
+            }
             [(_, f)] if f.receiver != Some(form) => {
                 PathCallOutcome::Unresolved("receiver-form-differs")
             }
@@ -1716,6 +1872,110 @@ impl CallWalker<'_> {
             receiver: receiver_of(sig),
             typed,
         });
+        self.type_lets(sig, block);
+    }
+
+    /// G142: a top-level `let x = ..` bound once whose value's type the resolved callee declares:
+    /// a function whose output is a plain workspace type (`Self` of a plain impl included), a
+    /// struct literal, a tuple-struct or enum-variant constructor of such a type. The local holds
+    /// the value (receiver form by value).
+    fn type_lets(&mut self, sig: &syn::Signature, block: &syn::Block) {
+        let mut counts = BindingCounts::default();
+        for input in &sig.inputs {
+            counts.visit_fn_arg(input);
+        }
+        counts.visit_block(block);
+        let mut found = Vec::new();
+        for stmt in &block.stmts {
+            let syn::Stmt::Local(local) = stmt else {
+                continue;
+            };
+            let syn::Pat::Ident(ident) = &local.pat else {
+                continue;
+            };
+            let name = ident.ident.to_string();
+            if ident.by_ref.is_some()
+                || ident.subpat.is_some()
+                || counts.0.get(&name) != Some(&1)
+                || self
+                    .fn_ctx
+                    .last()
+                    .is_some_and(|c| c.typed.contains_key(&name))
+            {
+                continue;
+            }
+            let Some(init) = &local.init else {
+                continue;
+            };
+            if let Some(ty) = self.value_type(&init.expr) {
+                found.push((name, ty, start(local.let_token.span)));
+            }
+        }
+        if let Some(ctx) = self.fn_ctx.last_mut() {
+            for (name, ty, from) in found {
+                ctx.typed.insert(
+                    name,
+                    TypedLocal {
+                        ty: LocalType::Concrete(ty),
+                        form: Receiver::Value,
+                        from,
+                    },
+                );
+            }
+        }
+    }
+
+    /// The plain workspace type of a call's or literal's value, when its callee declares it.
+    fn value_type(&self, expr: &syn::Expr) -> Option<TypeId> {
+        let plain = |path: &syn::Path| {
+            path.segments
+                .iter()
+                .all(|s| matches!(s.arguments, syn::PathArguments::None))
+        };
+        let segments = |path: &syn::Path| -> Vec<String> {
+            path.segments.iter().map(|s| s.ident.to_string()).collect()
+        };
+        let non_trait = |ty: TypeId| (!self.map.types[ty].is_trait).then_some(ty);
+        match expr {
+            syn::Expr::Call(call) => {
+                let syn::Expr::Path(path) = call.func.as_ref() else {
+                    return None;
+                };
+                if path.qself.is_some() || !plain(&path.path) {
+                    return None;
+                }
+                match self.resolve_call(path) {
+                    PathCallOutcome::Resolved(target) => self.map.output_type(self.crates, &target),
+                    PathCallOutcome::Unresolved("constructor") => {
+                        let all = segments(&path.path);
+                        // A tuple struct names its type; an enum variant, its enum.
+                        let type_path = if all.len() == 1 {
+                            &all[..]
+                        } else {
+                            &all[..all.len() - 1]
+                        };
+                        non_trait(self.map.resolve_type_path(
+                            self.crates,
+                            self.scope(),
+                            type_path,
+                            path.path.leading_colon.is_some(),
+                            0,
+                        )?)
+                    }
+                    _ => None,
+                }
+            }
+            syn::Expr::Struct(literal) if literal.qself.is_none() && plain(&literal.path) => {
+                non_trait(self.map.resolve_type_path(
+                    self.crates,
+                    self.scope(),
+                    &segments(&literal.path),
+                    literal.path.leading_colon.is_some(),
+                    0,
+                )?)
+            }
+            _ => None,
+        }
     }
 
     /// G139: the parameters and top-level `let` bindings of a function whose declared type
@@ -2253,7 +2513,13 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
                 line,
                 column,
                 callee: format!("self.{name}"),
-                outcome: self.map.method_on_self(*ty, shape, &name, *form),
+                outcome: self.map.method_on_self(
+                    *ty,
+                    shape,
+                    &name,
+                    *form,
+                    self.map.autoref_allowed(self.scope(), *ty, &name),
+                ),
             });
         } else if let syn::Expr::Path(receiver) = call.receiver.as_ref()
             && receiver.qself.is_none()
@@ -2268,10 +2534,13 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
             if (line, column) > typed.from {
                 let name = call.method.to_string();
                 let outcome = match &typed.ty {
-                    LocalType::Concrete(ty) => {
-                        self.map
-                            .method_on_self(*ty, PLAIN_IMPL_SHAPE, &name, typed.form)
-                    }
+                    LocalType::Concrete(ty) => self.map.method_on_self(
+                        *ty,
+                        PLAIN_IMPL_SHAPE,
+                        &name,
+                        typed.form,
+                        self.map.autoref_allowed(self.scope(), *ty, &name),
+                    ),
                     LocalType::Bounded(bounds) => {
                         self.map.method_on_bounds(bounds, &name, typed.form)
                     }

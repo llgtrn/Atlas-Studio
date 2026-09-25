@@ -409,8 +409,10 @@ impl Store {
     pub fn get(&self) -> u64 { self.count }
 }
 "#;
+    // The block initializer keeps `s` untyped (G142 types a `let` bound to a call directly), so
+    // `s.bump()` stays the fixture's unresolved call.
     const MAIN: &str = r#"fn main() {
-    let mut s = core::store::Store::new();
+    let mut s = { core::store::Store::new() };
     s.bump();
     run(&s);
 }

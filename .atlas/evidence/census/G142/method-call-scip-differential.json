@@ -1,0 +1,77 @@
+{
+  "schema": "atlas.evidence.method-call-scip-differential.v1",
+  "generation": "G142",
+  "oracle": "rust-analyzer SCIP (rust-analyzer scip, offline, the G142 working tree)",
+  "method": "the G141 engine and the G142 engine run on the same tree; every CALL record only the G142 engine derives (signature-typed lets and the guarded autoref step) compared at its anchor with the SCIP occurrence there: the referenced symbol's definition must fall inside the callee Atlas names",
+  "resolved_call_records": {
+    "g141_engine_on_g142_tree": 5504,
+    "g142_engine_on_g142_tree": 5678
+  },
+  "new_resolutions": 174,
+  "lost_resolutions": 0,
+  "changed_resolutions": 0,
+  "agree": 174,
+  "disagree": [],
+  "sample": [
+    {
+      "anchor": "core/src/graph/engineering_graph.rs:3926:38",
+      "callee": "core/src/semantic/observation.rs:57:record_id",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 semantic/observation/impl#[SemanticObservation]record_id()."
+    },
+    {
+      "anchor": "core/src/graph/engineering_graph.rs:3749:38",
+      "callee": "core/src/semantic/observation.rs:57:record_id",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 semantic/observation/impl#[SemanticObservation]record_id()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:112:19",
+      "callee": "core/src/identity/blake3.rs:260:update",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 identity/blake3/impl#[Hasher]update()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:1677:23",
+      "callee": "adapter/src/semantic/batch.rs:128:obligation_for",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/batch/impl#[ExtractionBatch]obligation_for()."
+    },
+    {
+      "anchor": "runtime/src/lib.rs:3403:31",
+      "callee": "runtime/src/lib.rs:2330:scale_ids",
+      "scip_symbol": "rust-analyzer cargo runtime 0.1.0 tests/essential_complexity/impl#[Ledger]scale_ids()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/tests.rs:5282:31",
+      "callee": "adapter/src/semantic/batch.rs:128:obligation_for",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/batch/impl#[ExtractionBatch]obligation_for()."
+    },
+    {
+      "anchor": "runtime/src/census/mod.rs:2484:13",
+      "callee": "runtime/src/census/extraction.rs:550:diagnostic",
+      "scip_symbol": "rust-analyzer cargo runtime 0.1.0 census/extraction/impl#[CensusExtractionAccounting]diagnostic()."
+    },
+    {
+      "anchor": "core/src/graph/engineering_graph.rs:3476:40",
+      "callee": "core/src/semantic/observation.rs:57:record_id",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 semantic/observation/impl#[SemanticObservation]record_id()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:1443:33",
+      "callee": "runtime/src/census/extraction.rs:573:sorted",
+      "scip_symbol": "rust-analyzer cargo runtime 0.1.0 census/extraction/impl#[CensusExtractionAccounting]sorted()."
+    },
+    {
+      "anchor": "adapter/build.rs:48:19",
+      "callee": "core/src/identity/blake3.rs:260:update",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 identity/blake3/impl#[Hasher]update()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:973:19",
+      "callee": "runtime/src/census/extraction.rs:532:record_batch",
+      "scip_symbol": "rust-analyzer cargo runtime 0.1.0 census/extraction/impl#[CensusExtractionAccounting]record_batch()."
+    },
+    {
+      "anchor": "runtime/src/lib.rs:2946:31",
+      "callee": "runtime/src/lib.rs:2322:debts",
+      "scip_symbol": "rust-analyzer cargo runtime 0.1.0 tests/essential_complexity/impl#[Ledger]debts()."
+    }
+  ]
+}
