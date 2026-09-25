@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G137"
+current_generation = "G138"
 
 [[generation]]
 id = "G35"
@@ -2801,3 +2801,38 @@ after = 23393
 key = "composed:function_behavior"
 before = 4912
 after = 4937
+
+[[generation]]
+id = "G138"
+kind = "NATIVE_ATTACK"
+base_commit = "d04e101f1731747eebfd3e1e18c112cec9e72b8e"
+priority = "P2"
+serves = "native attack queue head NA-INTEGRITY-ENVELOPE (DEBT-INTEGRITY_ENVELOPE, contract-only since G63; construction milestones M5/M6)"
+objective = "the architectural integrity envelope record and its evaluated report: a seeded HARD violation fails the gate; the clean tree passes"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0056-architectural-integrity-envelope-and-report.md"
+self_recensus = ".atlas/evidence/census/G138/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of f2108e03b4 = G137 post digest (the evidence commit d04e101f17 adds only out-of-scope evidence)"
+atlas_first = "systemize's decided constraint results named every census-falsifiable declaration and its verdict (6 layering, 4 effect envelopes, 4 Cargo dependencies SATISFIED; WebUI -> Runtime not censusable): the envelope's invariant set and its SOFT exception came from the census, not from reading the contract alone"
+change = "core::integrity (IntegrityEnvelope, IntegrityReport and their schema vocabularies; derive_envelope, envelope_identity, evaluate, check_report); runtime::integrity; atlas-systemizer integrity envelope [--check] and integrity report (INTEGRITY_NOT_ELIGIBLE); .atlas/declared/integrity-envelope.json pinned; three carriers in the vocabulary map; contract ARCHITECTURAL-INTEGRITY implementation status; ADR 0056"
+atlas_result = "15 invariants (14 HARD, 1 SOFT), 4 LOAD_BEARING elements; report ELIGIBLE, 0 hard violations, 0 required unknowns; both records conform to their JSON schemas"
+falsification = "7 mutants killed: a HARD failure without a violation; pinned and current not compared; a HARD unknown not required; every dependency HARD; an identity blind to statements; a verdict not re-derived; a renamed report field (schema conformance)"
+debts = "DEBT-INTEGRITY_ENVELOPE last advance G138 (M1 -> M2; stays OPEN: two invariant classes, full recompute, no seal; NA-INTEGRITY-CLASSES queued); DEBT-PERSISTENCE planned under NA-CALL-TYPE-RESIDUAL (method-level sites)"
+proof = "PROVEN (post 4930f8e3...): three new files' UNKNOWN obligations explained -- the per-file profile every Atlas Rust file carries, identical to quantified.rs"
+
+[[generation.metric]]
+key = "typed_records"
+before = 141909
+after = 143703
+
+[[generation.metric]]
+key = "facts"
+before = 23393
+after = 23716
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 4937
+after = 4993

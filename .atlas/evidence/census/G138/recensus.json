@@ -1,0 +1,452 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G138",
+  "base_revision": "051453b32615dd7bd317f2a3a888dc148963f709",
+  "candidate_revision": "d04e101f1731747eebfd3e1e18c112cec9e72b8e",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:34661d182c2b8cfa6a634567f8faa8d0f582c9b7332636c7930ccc61cad4d209",
+  "after_census_digest": "blake3-256:4930f8e3ad7640d57f9af54d851669092283ea6e7bd24ab1d0e505025991fd68",
+  "replay_digest": "blake3-256:4930f8e3ad7640d57f9af54d851669092283ea6e7bd24ab1d0e505025991fd68",
+  "inventory_delta": {
+    "created": [
+      "core/src/integrity/mod.rs",
+      "core/src/integrity/tests.rs",
+      "runtime/src/integrity.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 56,
+      "fact:FunctionSignature|OBSERVED": 19,
+      "fact:SemanticObligation|OBSERVED": 14,
+      "fact:SemanticObligation|UNKNOWN": 37,
+      "fact:SourceArtifact|OBSERVED": 6,
+      "fact:Symbol|OBSERVED": 120,
+      "fact:Type|DERIVED": 14,
+      "fact:Type|OBSERVED": 57,
+      "record:CALL|DERIVED": 44,
+      "record:CALL|OBSERVED": 366,
+      "record:CONTROL_FLOW|INFERRED": 33,
+      "record:CONTROL_FLOW|OBSERVED": 130,
+      "record:DATA_FLOW|OBSERVED": 737,
+      "record:EFFECT|DERIVED": 4,
+      "record:EFFECT|INFERRED": 37,
+      "record:FUNCTION_IDENTITY|OBSERVED": 56,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 19,
+      "record:OWNERSHIP|OBSERVED": 174,
+      "record:PERSISTENCE|DERIVED": 3,
+      "record:SYMBOL|OBSERVED": 120,
+      "record:TYPE|DERIVED": 14,
+      "record:TYPE|OBSERVED": 57
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 2479,
+    "graph_nodes": 1872
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 2,
+    "obligation:CALL|UNKNOWN": 4,
+    "obligation:CONCURRENCY|UNKNOWN": 6,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:EFFECT|UNKNOWN": 6,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:PERSISTENCE|UNKNOWN": 6,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:SYMBOL|OBSERVED": 3,
+    "obligation:TYPE|OBSERVED": 3,
+    "obligation:TYPE|UNKNOWN": 3
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/check_report()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/counts()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/derive_envelope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/envelope_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/evaluate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/rust_materialized()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/tests/all_satisfied()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/tests/declared()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/tests/result()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/tests/the_envelope_lowers_every_census_falsifiable_declaration()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/tests/the_report_rejects_hard_violations_and_silent_weakening_and_is_consistent()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core integrity/verdict()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/a_seeded_hard_violation_fails_the_integrity_gate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime integrity/envelope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime integrity/read_envelope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime integrity/report()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime integrity/subject()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/conformance()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/integrity/mod.rs: 0 -> 13",
+      "core/src/integrity/tests.rs: 0 -> 12",
+      "runtime/src/integrity.rs: 0 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 1560,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "native attack NA-INTEGRITY-ENVELOPE: the architectural integrity envelope (census-falsifiable declarations as typed HARD/SOFT invariants, pinned by identity) and its evaluated report (PASS/FAIL/UNKNOWN per pinned invariant, silent weakening rejected, counts and verdict re-derived); Atlas ELIGIBLE",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/integrity/tests.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/integrity.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/integrity/mod.rs: a new file; its UNKNOWN obligations are the per-file profile every Atlas Rust file carries by construction (CONCURRENCY, EFFECT, PERSISTENCE, CONTROL_FLOW, DATA_FLOW, OWNERSHIP, STATE and TYPE partial; CALL resolution partial on unresolved method calls), the same profile as core/src/composition/quantified.rs",
+      "core/src/integrity/tests.rs: a new file; its UNKNOWN obligations are the per-file profile every Atlas Rust file carries by construction (CONCURRENCY, EFFECT, PERSISTENCE, CONTROL_FLOW, DATA_FLOW, OWNERSHIP, STATE and TYPE partial; CALL resolution partial on unresolved method calls), the same profile as core/src/composition/quantified.rs",
+      "runtime/src/integrity.rs: a new file; its UNKNOWN obligations are the per-file profile every Atlas Rust file carries by construction (CONCURRENCY, EFFECT, PERSISTENCE, CONTROL_FLOW, DATA_FLOW, OWNERSHIP, STATE and TYPE partial; CALL resolution partial on unresolved method calls), the same profile as core/src/composition/quantified.rs"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CREATED core integrity/check_report().",
+      "CREATED core integrity/counts().",
+      "CREATED core integrity/derive_envelope().",
+      "CREATED core integrity/envelope_identity().",
+      "CREATED core integrity/evaluate().",
+      "CREATED core integrity/rust_materialized().",
+      "CREATED core integrity/tests/all_satisfied().",
+      "CREATED core integrity/tests/declared().",
+      "CREATED core integrity/tests/result().",
+      "CREATED core integrity/tests/the_envelope_lowers_every_census_falsifiable_declaration().",
+      "CREATED core integrity/tests/the_report_rejects_hard_violations_and_silent_weakening_and_is_consistent().",
+      "CREATED core integrity/verdict().",
+      "CREATED runtime agent/tests/a_seeded_hard_violation_fails_the_integrity_gate().",
+      "CREATED runtime integrity/envelope().",
+      "CREATED runtime integrity/read_envelope().",
+      "CREATED runtime integrity/report().",
+      "CREATED runtime integrity/subject().",
+      "CREATED runtime tests/conformance().",
+      "CREATED runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/integrity/mod.rs",
+    "path core/src/integrity/tests.rs",
+    "path core/src/lib.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/integrity.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CREATED core integrity/check_report().",
+    "entity CREATED core integrity/counts().",
+    "entity CREATED core integrity/derive_envelope().",
+    "entity CREATED core integrity/envelope_identity().",
+    "entity CREATED core integrity/evaluate().",
+    "entity CREATED core integrity/rust_materialized().",
+    "entity CREATED core integrity/tests/all_satisfied().",
+    "entity CREATED core integrity/tests/declared().",
+    "entity CREATED core integrity/tests/result().",
+    "entity CREATED core integrity/tests/the_envelope_lowers_every_census_falsifiable_declaration().",
+    "entity CREATED core integrity/tests/the_report_rejects_hard_violations_and_silent_weakening_and_is_consistent().",
+    "entity CREATED core integrity/verdict().",
+    "entity CREATED runtime agent/tests/a_seeded_hard_violation_fails_the_integrity_gate().",
+    "entity CREATED runtime integrity/envelope().",
+    "entity CREATED runtime integrity/read_envelope().",
+    "entity CREATED runtime integrity/report().",
+    "entity CREATED runtime integrity/subject().",
+    "entity CREATED runtime tests/conformance().",
+    "entity CREATED runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

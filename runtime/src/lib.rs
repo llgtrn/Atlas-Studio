@@ -5,6 +5,7 @@ pub mod atlas;
 pub mod census;
 pub mod certificate;
 pub mod donor_storage;
+pub mod integrity;
 pub mod inventory;
 pub mod normalize;
 pub mod physical;
@@ -4341,6 +4342,124 @@ mod tests {
     /// G63 (ADR 0026): the committed census-derived ADL equals what the current census derives
     /// -- a new or removed workspace dependency fails here until `adl derive` is re-run and the
     /// change is declared in the generation's self-recensus intent.
+    #[test]
+    fn integrity_envelope_is_pinned_and_atlas_is_eligible() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let pinned = integrity::read_envelope(root.join(integrity::PINNED_ENVELOPE_PATH)).unwrap();
+        assert_eq!(
+            pinned,
+            integrity::envelope(&root).unwrap(),
+            "re-pin with `atlas-systemizer integrity envelope --out {}`",
+            integrity::PINNED_ENVELOPE_PATH
+        );
+        let report = integrity::report(&root, &pinned).unwrap();
+        assert_eq!(
+            report.verdict,
+            integrity::IntegrityVerdict::Eligible,
+            "{report:#?}"
+        );
+        assert!(integrity::check_report(&report, &pinned).is_empty());
+        // Both records conform to their JSON schemas.
+        for (value, schema) in [
+            (
+                serde_json::to_value(&pinned).unwrap(),
+                "architectural-integrity-envelope",
+            ),
+            (
+                serde_json::to_value(&report).unwrap(),
+                "architectural-integrity-report",
+            ),
+        ] {
+            let schema: serde_json::Value = serde_json::from_str(
+                &std::fs::read_to_string(root.join(format!(".atlas/schemas/{schema}.schema.json")))
+                    .unwrap(),
+            )
+            .unwrap();
+            let problems = conformance(&schema, &schema, &value, "$");
+            assert!(problems.is_empty(), "{problems:#?}");
+        }
+    }
+
+    /// The JSON-schema subset the integrity schemas use: `$ref` into `$defs`, object `required`,
+    /// `properties` and `additionalProperties: false`, array `items` and `minItems`, `enum`,
+    /// string `minLength`, and `type` (a name or a list of names).
+    fn conformance(
+        root: &serde_json::Value,
+        schema: &serde_json::Value,
+        value: &serde_json::Value,
+        at: &str,
+    ) -> Vec<String> {
+        use serde_json::Value;
+        if let Some(reference) = schema["$ref"].as_str() {
+            let name = reference.trim_start_matches("#/$defs/");
+            return conformance(root, &root["$defs"][name], value, at);
+        }
+        let mut problems = Vec::new();
+        let type_of = |v: &Value| match v {
+            Value::Null => "null",
+            Value::Bool(_) => "boolean",
+            Value::Number(n) if n.is_u64() || n.is_i64() => "integer",
+            Value::Number(_) => "number",
+            Value::String(_) => "string",
+            Value::Array(_) => "array",
+            Value::Object(_) => "object",
+        };
+        let allowed: Vec<&str> = match &schema["type"] {
+            Value::String(t) => vec![t.as_str()],
+            Value::Array(ts) => ts.iter().filter_map(Value::as_str).collect(),
+            _ => Vec::new(),
+        };
+        if !allowed.is_empty() && !allowed.contains(&type_of(value)) {
+            problems.push(format!("{at}: {} is not {allowed:?}", type_of(value)));
+            return problems;
+        }
+        if let Some(options) = schema["enum"].as_array()
+            && !options.contains(value)
+        {
+            problems.push(format!("{at}: {value} is not one of {options:?}"));
+        }
+        if let (Some(min), Some(text)) = (schema["minLength"].as_u64(), value.as_str())
+            && (text.len() as u64) < min
+        {
+            problems.push(format!("{at}: shorter than {min}"));
+        }
+        if let Some(items) = value.as_array() {
+            if let Some(min) = schema["minItems"].as_u64()
+                && (items.len() as u64) < min
+            {
+                problems.push(format!("{at}: fewer than {min} items"));
+            }
+            for (i, item) in items.iter().enumerate() {
+                problems.extend(conformance(
+                    root,
+                    &schema["items"],
+                    item,
+                    &format!("{at}[{i}]"),
+                ));
+            }
+        }
+        if let Some(object) = value.as_object() {
+            for required in schema["required"].as_array().into_iter().flatten() {
+                let key = required.as_str().unwrap();
+                if !object.contains_key(key) {
+                    problems.push(format!("{at}: missing `{key}`"));
+                }
+            }
+            for (key, field) in object {
+                match schema["properties"].get(key) {
+                    Some(property) => {
+                        problems.extend(conformance(root, property, field, &format!("{at}.{key}")))
+                    }
+                    None if schema["additionalProperties"] == Value::Bool(false) => {
+                        problems.push(format!("{at}: `{key}` is not allowed"))
+                    }
+                    None => {}
+                }
+            }
+        }
+        problems
+    }
+
     #[test]
     fn census_adl_is_current() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");

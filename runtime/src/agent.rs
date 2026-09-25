@@ -1094,6 +1094,53 @@ fn run(s: &core::store::Store) { s.save(); }
         assert!(drift.contains("within ENVIRONMENT_READ, FILESYSTEM_WRITE"));
     }
 
+    /// G138 (NA-INTEGRITY-ENVELOPE): a seeded HARD violation fails the integrity gate end to end;
+    /// the clean tree passes; dropping a pinned invariant from the ADL is rejected, not a pass.
+    #[test]
+    fn a_seeded_hard_violation_fails_the_integrity_gate() {
+        use crate::integrity::{self, IntegrityVerdict};
+        let layered = format!(
+            "{ADL}\ninvariant CoreNeverCallsApp {{\n    forall f: function in Core forbid call to App\n}}\n"
+        );
+        let seeded = format!(
+            "{layered}invariant AppNeverCallsCore {{\n    forall f: function in App forbid call to Core\n}}\n"
+        );
+        let run = |name: &str, adl: &str, pinned: Option<&integrity::IntegrityEnvelope>| {
+            let dir = fixture_with(
+                name,
+                adl,
+                CORE_LIB,
+                STORE,
+                BASE_LIB,
+                BASE_MANIFEST,
+                BASE_LOCK,
+            );
+            let envelope = integrity::envelope(&dir).unwrap();
+            let report = integrity::report(&dir, pinned.unwrap_or(&envelope)).unwrap();
+            std::fs::remove_dir_all(&dir).unwrap();
+            (envelope, report)
+        };
+        let (clean_envelope, clean) = run("integrity-clean", &layered, None);
+        assert_eq!(clean.verdict, IntegrityVerdict::Eligible, "{clean:#?}");
+        let (seeded_envelope, violated) = run("integrity-seeded", &seeded, None);
+        assert_eq!(violated.verdict, IntegrityVerdict::Rejected);
+        assert_eq!(violated.hard_violation_count, 1);
+        let failing = violated
+            .evaluations
+            .iter()
+            .find(|e| e.invariant_ref == "AIE:AppNeverCallsCore")
+            .unwrap();
+        assert!(
+            failing.details.contains("main@app/src/main.rs"),
+            "{failing:?}"
+        );
+        assert!(integrity::check_report(&violated, &seeded_envelope).is_empty());
+        // Deleting the violated invariant from the ADL to pass is caught against the pin.
+        let (_, silent) = run("integrity-silent", &layered, Some(&seeded_envelope));
+        assert_eq!(silent.verdict, IntegrityVerdict::Rejected);
+        assert_ne!(clean_envelope.envelope_id, seeded_envelope.envelope_id);
+    }
+
     /// G130 (NA-CONSTRAINT-NONGROUND): invariants quantified over census truth are decided over
     /// the composed census with three values, identically by every entry point.
     #[test]

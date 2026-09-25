@@ -255,6 +255,61 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{derived}");
         }
+        [cmd, sub, rest @ ..] if cmd == "integrity" && sub == "envelope" => {
+            // G138 (ADR 0056): the architectural integrity envelope the ADL declares. `--check`
+            // exits INTEGRITY_ENVELOPE_DRIFT when the pinned envelope differs from it.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let envelope =
+                runtime::integrity::envelope(&root).map_err(|e| format!("{root}: {e}"))?;
+            let text = json(&envelope)? + "\n";
+            if rest.iter().any(|arg| arg == "--check") {
+                let path =
+                    std::path::Path::new(&root).join(runtime::integrity::PINNED_ENVELOPE_PATH);
+                let pinned = fs::read_to_string(&path).unwrap_or_default();
+                if pinned != text {
+                    return Err(format!(
+                        "INTEGRITY_ENVELOPE_DRIFT: {} differs from the declared envelope; re-pin \
+                         with `atlas-systemizer integrity envelope --out {}`",
+                        path.display(),
+                        runtime::integrity::PINNED_ENVELOPE_PATH
+                    ));
+                }
+            }
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "integrity" && sub == "report" => {
+            // G138 (ADR 0056): evaluate the pinned envelope against the repository's census;
+            // exits INTEGRITY_NOT_ELIGIBLE unless the verdict is ELIGIBLE.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let pinned_path = value(rest, "--envelope")?.unwrap_or_else(|| {
+                std::path::Path::new(&root)
+                    .join(runtime::integrity::PINNED_ENVELOPE_PATH)
+                    .display()
+                    .to_string()
+            });
+            let pinned = runtime::integrity::read_envelope(&pinned_path)
+                .map_err(|e| format!("{pinned_path}: {e}"))?;
+            let report =
+                runtime::integrity::report(&root, &pinned).map_err(|e| format!("{root}: {e}"))?;
+            let problems = runtime::integrity::check_report(&report, &pinned);
+            if !problems.is_empty() {
+                return Err(format!(
+                    "INTEGRITY_REPORT_INCONSISTENT: {}",
+                    problems.join("; ")
+                ));
+            }
+            let text = json(&report)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if report.verdict != runtime::integrity::IntegrityVerdict::Eligible {
+                return Err(format!("INTEGRITY_NOT_ELIGIBLE: {}", report.verdict));
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "recensus" && sub == "snapshot" => {
             // ADR 0024: the revision-independent semantic state of a full self-census.
             let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
@@ -695,7 +750,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }

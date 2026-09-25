@@ -149,6 +149,21 @@ pub const CARRIERS: &[Carrier] = &[
         "a donor's materialization state",
     ),
     carrier(
+        "IntegrityVerdict",
+        CarrierRole::Verdict,
+        "a candidate eligible, rejected or incomplete against the pinned integrity envelope",
+    ),
+    carrier(
+        "EvaluationStatus",
+        CarrierRole::Verdict,
+        "one pinned integrity invariant's evaluation against a candidate",
+    ),
+    carrier(
+        "EnvelopeStatus",
+        CarrierRole::Lifecycle,
+        "an integrity envelope active, superseded or draft",
+    ),
+    carrier(
         "Enforcement",
         CarrierRole::Enforcement,
         "an isolation property applied or not, with why",

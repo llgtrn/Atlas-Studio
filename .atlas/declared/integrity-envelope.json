@@ -1,0 +1,326 @@
+{
+  "schema_version": "atlas.architectural-integrity-envelope.v1",
+  "envelope_id": "envelope:blake3-256:59c928fb89a41c805f1e7c656a7b9f5e6858c584600864a5870d05acc49b7be5",
+  "subject_ref": "system:AtlasStudio",
+  "genome_ref": "UNPINNED (no Genome or SelectedDesign record exists yet)",
+  "selected_design_ref": null,
+  "blueprint_revision_ref": null,
+  "status": "ACTIVE",
+  "elements": [
+    {
+      "element_ref": "Adapter",
+      "classification": "LOAD_BEARING",
+      "rationale": "named by a HARD invariant",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:78"
+      ]
+    },
+    {
+      "element_ref": "AtlasCli",
+      "classification": "LOAD_BEARING",
+      "rationale": "named by a HARD invariant",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:14"
+      ]
+    },
+    {
+      "element_ref": "Core",
+      "classification": "LOAD_BEARING",
+      "rationale": "named by a HARD invariant",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:72"
+      ]
+    },
+    {
+      "element_ref": "Runtime",
+      "classification": "LOAD_BEARING",
+      "rationale": "named by a HARD invariant",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:84"
+      ]
+    },
+    {
+      "element_ref": "WebUI",
+      "classification": "STRUCTURAL",
+      "rationale": "materialized, named by no HARD invariant",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:90"
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "invariant_id": "AIE:AdapterCallsNoCli",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Adapter",
+        "AtlasCli"
+      ],
+      "statement": "no function of Adapter calls a function of AtlasCli",
+      "rule_ref": "adl:AdapterCallsNoCli",
+      "falsification_conditions": [
+        "a resolved call from a function of Adapter into a function of AtlasCli"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:131"
+      ]
+    },
+    {
+      "invariant_id": "AIE:AdapterCallsNoRuntime",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Adapter",
+        "Runtime"
+      ],
+      "statement": "no function of Adapter calls a function of Runtime",
+      "rule_ref": "adl:AdapterCallsNoRuntime",
+      "falsification_conditions": [
+        "a resolved call from a function of Adapter into a function of Runtime"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:127"
+      ]
+    },
+    {
+      "invariant_id": "AIE:AdapterEffectEnvelope",
+      "kind": "AUTHORITY_BOUNDARY",
+      "strength": "HARD",
+      "subject_refs": [
+        "Adapter"
+      ],
+      "statement": "every definite effect of Adapter's functions is within CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE",
+      "rule_ref": "adl:AdapterEffectEnvelope",
+      "falsification_conditions": [
+        "an OBSERVED or DERIVED effect site in a function of Adapter outside CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:30"
+      ]
+    },
+    {
+      "invariant_id": "AIE:AtlasCliEffectEnvelope",
+      "kind": "AUTHORITY_BOUNDARY",
+      "strength": "HARD",
+      "subject_refs": [
+        "AtlasCli"
+      ],
+      "statement": "every definite effect of AtlasCli's functions is within CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE",
+      "rule_ref": "adl:AtlasCliEffectEnvelope",
+      "falsification_conditions": [
+        "an OBSERVED or DERIVED effect site in a function of AtlasCli outside CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:36"
+      ]
+    },
+    {
+      "invariant_id": "AIE:CoreCallsNoAdapter",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Core",
+        "Adapter"
+      ],
+      "statement": "no function of Core calls a function of Adapter",
+      "rule_ref": "adl:CoreCallsNoAdapter",
+      "falsification_conditions": [
+        "a resolved call from a function of Core into a function of Adapter"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:115"
+      ]
+    },
+    {
+      "invariant_id": "AIE:CoreCallsNoCli",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Core",
+        "AtlasCli"
+      ],
+      "statement": "no function of Core calls a function of AtlasCli",
+      "rule_ref": "adl:CoreCallsNoCli",
+      "falsification_conditions": [
+        "a resolved call from a function of Core into a function of AtlasCli"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:123"
+      ]
+    },
+    {
+      "invariant_id": "AIE:CoreCallsNoRuntime",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Core",
+        "Runtime"
+      ],
+      "statement": "no function of Core calls a function of Runtime",
+      "rule_ref": "adl:CoreCallsNoRuntime",
+      "falsification_conditions": [
+        "a resolved call from a function of Core into a function of Runtime"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:119"
+      ]
+    },
+    {
+      "invariant_id": "AIE:CoreEffectEnvelope",
+      "kind": "AUTHORITY_BOUNDARY",
+      "strength": "HARD",
+      "subject_refs": [
+        "Core"
+      ],
+      "statement": "every definite effect of Core's functions is within CLOCK_READ",
+      "rule_ref": "adl:CoreEffectEnvelope",
+      "falsification_conditions": [
+        "an OBSERVED or DERIVED effect site in a function of Core outside CLOCK_READ"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:42"
+      ]
+    },
+    {
+      "invariant_id": "AIE:DeclaredDependency:Adapter->Core",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Adapter",
+        "Core"
+      ],
+      "statement": "Adapter depends on Core, and the dependency census observes it",
+      "rule_ref": "adl:DeclaredDependency:Adapter->Core",
+      "falsification_conditions": [
+        "no runtime or build dependency between the workspace members of Adapter and Core"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:24"
+      ]
+    },
+    {
+      "invariant_id": "AIE:DeclaredDependency:AtlasCli->Runtime",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "AtlasCli",
+        "Runtime"
+      ],
+      "statement": "AtlasCli depends on Runtime, and the dependency census observes it",
+      "rule_ref": "adl:DeclaredDependency:AtlasCli->Runtime",
+      "falsification_conditions": [
+        "no runtime or build dependency between the workspace members of AtlasCli and Runtime"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:26"
+      ]
+    },
+    {
+      "invariant_id": "AIE:DeclaredDependency:Runtime->Adapter",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Runtime",
+        "Adapter"
+      ],
+      "statement": "Runtime depends on Adapter, and the dependency census observes it",
+      "rule_ref": "adl:DeclaredDependency:Runtime->Adapter",
+      "falsification_conditions": [
+        "no runtime or build dependency between the workspace members of Runtime and Adapter"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:57"
+      ]
+    },
+    {
+      "invariant_id": "AIE:DeclaredDependency:Runtime->Core",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Runtime",
+        "Core"
+      ],
+      "statement": "Runtime depends on Core, and the dependency census observes it",
+      "rule_ref": "adl:DeclaredDependency:Runtime->Core",
+      "falsification_conditions": [
+        "no runtime or build dependency between the workspace members of Runtime and Core"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:56"
+      ]
+    },
+    {
+      "invariant_id": "AIE:DeclaredDependency:WebUI->Runtime",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "SOFT",
+      "subject_refs": [
+        "WebUI",
+        "Runtime"
+      ],
+      "statement": "WebUI depends on Runtime, and the dependency census observes it",
+      "rule_ref": "adl:DeclaredDependency:WebUI->Runtime",
+      "falsification_conditions": [
+        "no runtime or build dependency between the workspace members of WebUI and Runtime"
+      ],
+      "violation_action": "DIAGNOSTIC_ONLY",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:58"
+      ]
+    },
+    {
+      "invariant_id": "AIE:RuntimeCallsNoCli",
+      "kind": "DEPENDENCY_DIRECTION",
+      "strength": "HARD",
+      "subject_refs": [
+        "Runtime",
+        "AtlasCli"
+      ],
+      "statement": "no function of Runtime calls a function of AtlasCli",
+      "rule_ref": "adl:RuntimeCallsNoCli",
+      "falsification_conditions": [
+        "a resolved call from a function of Runtime into a function of AtlasCli"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/system.adl:135"
+      ]
+    },
+    {
+      "invariant_id": "AIE:RuntimeEffectEnvelope",
+      "kind": "AUTHORITY_BOUNDARY",
+      "strength": "HARD",
+      "subject_refs": [
+        "Runtime"
+      ],
+      "statement": "every definite effect of Runtime's functions is within CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE",
+      "rule_ref": "adl:RuntimeEffectEnvelope",
+      "falsification_conditions": [
+        "an OBSERVED or DERIVED effect site in a function of Runtime outside CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE"
+      ],
+      "violation_action": "REJECT",
+      "evidence_refs": [
+        ".atlas/declared/census.adl:48"
+      ]
+    }
+  ],
+  "provenance_refs": [
+    ".atlas/declared/census.adl",
+    ".atlas/declared/system.adl"
+  ],
+  "notes": [
+    "WebUI -> Runtime is declared between entities the dependency census cannot observe (not both Rust materializations): SOFT, evaluated as UNKNOWN"
+  ]
+}

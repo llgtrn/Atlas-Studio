@@ -358,6 +358,19 @@ The complete production implementation is TARGET and is sequenced across R4-R8:
 
 The contract MUST NOT be described as production-real until those capabilities exist and are falsification-tested.
 
+**G138 (ADR 0056)** implements the envelope record and the report evaluator (construction milestones M5/M6) over the declarations Atlas can falsify with its census. It is partial:
+
+- **Implemented.** `core::integrity` derives the envelope, and HARD invariants currently cover two classes:
+  - `DEPENDENCY_DIRECTION` from census-quantified layering and Cargo-observable `depends_on`;
+  - `AUTHORITY_BOUNDARY` from `forbid effect` and effect envelopes.
+- **Pinning.** The repository pins the envelope at `.atlas/declared/integrity-envelope.json`.
+- **Report.** `atlas-systemizer integrity report` evaluates the pin against the decided census. A pinned invariant the candidate no longer declares is `ARCHITECTURE_UNSELECTED_REVISION`. Counts and verdict are re-derived by `check_report`.
+- **Still TARGET.**
+  - The other invariant classes.
+  - Incremental impact closure in the report (it states `FULL_RECOMPUTE`).
+  - Load-bearing replacement equivalence.
+  - Seal binding.
+
 ## Final invariant
 
 Atlas does not require one human or one model to hold the entire system in its head.

@@ -15,6 +15,7 @@ pub mod donor;
 pub mod evidence;
 pub mod graph;
 pub mod identity;
+pub mod integrity;
 pub mod language;
 pub mod physical;
 pub mod product;
