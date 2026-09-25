@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G133"
+evaluated_at = "G134"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -111,6 +111,14 @@ observes = "each dimension's semantics inside standard macro arguments, implicit
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
 
 [[capability_milestone]]
+id = "ONE_EPISTEMIC_VOCABULARY"
+generation = "G134"
+debts = ["DEBT-EPISTEMIC_UNIFICATION"]
+languages = ["rust"]
+observes = "every status carrier mapped onto the one vocabulary and enforced over the workspace; futures states decided"
+evidence = ".atlas/decisions/0053-one-epistemic-vocabulary.md"
+
+[[capability_milestone]]
 id = "CLOSURE_REGIONS"
 generation = "G133"
 debts = ["DEBT-CALL", "DEBT-EFFECT", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-OWNERSHIP", "DEBT-CONTROL_FLOW"]
@@ -195,7 +203,7 @@ capabilities_available_then = []
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 98
+priority = 99
 rank = 3
 
 [[donor]]
@@ -227,7 +235,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 392
+priority = 396
 rank = 1
 
 [[donor]]
@@ -243,7 +251,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 98
+priority = 99
 rank = 7
 
 [[donor]]
@@ -387,7 +395,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 98
+priority = 99
 rank = 6
 
 [[donor]]
@@ -403,7 +411,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 294
+priority = 297
 rank = 2
 
 [[donor]]
@@ -435,7 +443,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 98
+priority = 99
 rank = 4
 
 [[donor]]
@@ -467,7 +475,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 98
+priority = 99
 rank = 5
 
 [[donor]]
@@ -819,7 +827,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 95
+priority = 96
 rank = 8
 
 [[donor]]

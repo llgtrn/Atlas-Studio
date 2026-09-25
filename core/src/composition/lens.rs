@@ -1003,9 +1003,36 @@ pub struct TraceStep {
     pub evidence: String,
 }
 
+crate::vocabulary_enum! {
+    /// Whether a resolved call path was observed between two targets (G134: typed).
+    pub enum TraceVerdict {
+        PathObserved => "PATH_OBSERVED",
+        NoPathObserved => "NO_PATH_OBSERVED",
+    }
+}
+
+crate::vocabulary_enum! {
+    /// Whether every invariant held from one world model to the next (G134: typed).
+    pub enum DeltaVerdict {
+        Held => "HELD",
+        Regressed => "REGRESSED",
+    }
+}
+
+crate::vocabulary_enum! {
+    /// The outcome of checking a hypothesis against the model; the hypothesis's own status stays
+    /// HYPOTHESIS (G134: VALIDATED and FALSIFIED are outcomes of a hypothesis record, not
+    /// epistemic statuses).
+    pub enum HypothesisOutcome {
+        Validated => "VALIDATED",
+        Falsified => "FALSIFIED",
+        StillHypothesized => "STILL_HYPOTHESIZED",
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Trace {
-    pub verdict: String,
+    pub verdict: TraceVerdict,
     pub status: EpistemicStatus,
     pub steps: Vec<TraceStep>,
     pub note: String,
@@ -1049,7 +1076,7 @@ pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trac
             .map(|f| f.unresolved_calls)
             .sum();
         return Ok(Trace {
-            verdict: "NO_PATH_OBSERVED".into(),
+            verdict: TraceVerdict::NoPathObserved,
             status: EpistemicStatus::Unknown,
             steps: Vec::new(),
             note: format!(
@@ -1071,7 +1098,7 @@ pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trac
     }
     steps.reverse();
     Ok(Trace {
-        verdict: "PATH_OBSERVED".into(),
+        verdict: TraceVerdict::PathObserved,
         status: EpistemicStatus::Derived,
         steps,
         note: "each step is a resolved relation; no step implies causation (GAP-CAUSALITY)".into(),
@@ -1300,7 +1327,7 @@ pub fn plan(model: &WorldModel, target: &str) -> Result<PlanChecklist, String> {
 /// `verify(candidate)`: invariant regressions between the model before a change and after it.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InvariantDelta {
-    pub verdict: String,
+    pub verdict: DeltaVerdict,
     pub broken: Vec<String>,
     pub dropped: Vec<String>,
     pub weakened: Vec<String>,
@@ -1322,7 +1349,7 @@ pub fn verify(before: &WorldModel, after: &WorldModel) -> InvariantDelta {
         .map(|i| (i.id.as_str(), i))
         .collect();
     let mut delta = InvariantDelta {
-        verdict: String::new(),
+        verdict: DeltaVerdict::Held,
         broken: Vec::new(),
         dropped: Vec::new(),
         weakened: Vec::new(),
@@ -1374,7 +1401,7 @@ pub fn verify(before: &WorldModel, after: &WorldModel) -> InvariantDelta {
         m.architecture
             .dependencies
             .iter()
-            .map(|d| ((d.from.clone(), d.to.clone()), d.verdict.clone()))
+            .map(|d| ((d.from.clone(), d.to.clone()), d.verdict.to_string()))
             .collect()
     };
     let (eb, ea) = (edges(before), edges(after));
@@ -1394,9 +1421,9 @@ pub fn verify(before: &WorldModel, after: &WorldModel) -> InvariantDelta {
             .push(format!("{}->{}: removed", k.0, k.1));
     }
     delta.verdict = if delta.broken.is_empty() && delta.dropped.is_empty() {
-        "HELD".into()
+        DeltaVerdict::Held
     } else {
-        "REGRESSED".into()
+        DeltaVerdict::Regressed
     };
     delta
 }
@@ -1406,7 +1433,7 @@ pub fn verify(before: &WorldModel, after: &WorldModel) -> InvariantDelta {
 pub struct HypothesisCheck {
     pub hypothesis: String,
     pub status: EpistemicStatus,
-    pub outcome: String,
+    pub outcome: HypothesisOutcome,
     pub evidence: Vec<String>,
     pub note: String,
 }
@@ -1419,10 +1446,10 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
     let mut parts = text.splitn(2, ':');
     let kind = parts.next().unwrap_or_default();
     let rest = parts.next().ok_or("expected `<kind>:<arguments>`")?;
-    let check = |outcome: &str, evidence: Vec<String>, note: String| HypothesisCheck {
+    let check = |outcome: HypothesisOutcome, evidence: Vec<String>, note: String| HypothesisCheck {
         hypothesis: text.to_owned(),
         status: EpistemicStatus::Hypothesis,
-        outcome: outcome.into(),
+        outcome,
         evidence,
         note,
     };
@@ -1448,7 +1475,7 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                 .collect();
             if !extra.is_empty() {
                 return Ok(check(
-                    "FALSIFIED",
+                    HypothesisOutcome::Falsified,
                     extra,
                     "observed writers outside the claim".into(),
                 ));
@@ -1459,12 +1486,12 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                 .find(|i| i.id == format!("INV-STATE:{state}"));
             match invariant {
                 Some(i) if i.status == EpistemicStatus::Derived => Ok(check(
-                    "VALIDATED",
+                    HypothesisOutcome::Validated,
                     var.writers.clone(),
                     "every observed writer is claimed and STATE is OBSERVED in scope".into(),
                 )),
                 Some(i) => Ok(check(
-                    "STILL_HYPOTHESIZED",
+                    HypothesisOutcome::StillHypothesized,
                     var.writers.clone(),
                     format!(
                         "consistent with every observed writer; residual: {}",
@@ -1472,7 +1499,7 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                     ),
                 )),
                 None => Ok(check(
-                    "STILL_HYPOTHESIZED",
+                    HypothesisOutcome::StillHypothesized,
                     Vec::new(),
                     "no writer observed".into(),
                 )),
@@ -1492,17 +1519,19 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                 .map_or(0, |d| d.resolved_calls);
             if calls > 0 {
                 return Ok(check(
-                    "FALSIFIED",
+                    HypothesisOutcome::Falsified,
                     vec![format!("{calls} resolved calls {a} -> {b}")],
                     String::new(),
                 ));
             }
             match invariant {
-                Some(i) if i.status == EpistemicStatus::Observed => {
-                    Ok(check("VALIDATED", i.evidence.clone(), i.statement.clone()))
-                }
+                Some(i) if i.status == EpistemicStatus::Observed => Ok(check(
+                    HypothesisOutcome::Validated,
+                    i.evidence.clone(),
+                    i.statement.clone(),
+                )),
                 _ => Ok(check(
-                    "STILL_HYPOTHESIZED",
+                    HypothesisOutcome::StillHypothesized,
                     Vec::new(),
                     "no resolved call observed, but a dependency path exists or is unknown".into(),
                 )),
@@ -1525,7 +1554,7 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                 .flat_map(|r| r.evidence.iter().cloned())
                 .collect();
             if !hits.is_empty() {
-                return Ok(check("VALIDATED", hits, String::new()));
+                return Ok(check(HypothesisOutcome::Validated, hits, String::new()));
             }
             // Only an unresolved site spelled with the callee's name, or one with a non-name
             // callee, can hide the call (G123).
@@ -1560,13 +1589,13 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
             });
             if unresolved == 0 && coverage_observed {
                 Ok(check(
-                    "FALSIFIED",
+                    HypothesisOutcome::Falsified,
                     Vec::new(),
                     "every call site of the caller is resolved and none reaches the callee".into(),
                 ))
             } else {
                 Ok(check(
-                    "STILL_HYPOTHESIZED",
+                    HypothesisOutcome::StillHypothesized,
                     Vec::new(),
                     format!(
                         "{unresolved} unresolved call sites in the caller are spelled with the callee's name or have a non-name callee"
@@ -1589,10 +1618,10 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                 })
                 .collect();
             if !hits.is_empty() {
-                return Ok(check("VALIDATED", hits, String::new()));
+                return Ok(check(HypothesisOutcome::Validated, hits, String::new()));
             }
             Ok(check(
-                "STILL_HYPOTHESIZED",
+                HypothesisOutcome::StillHypothesized,
                 Vec::new(),
                 "no such effect observed; EFFECT coverage and unresolved calls leave absence open"
                     .into(),

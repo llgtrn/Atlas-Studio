@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G133"
+current_generation = "G134"
 
 [[generation]]
 id = "G35"
@@ -2652,3 +2652,43 @@ after = 5321
 key = "records:EFFECT|atlas.rust.source-semantic.v1"
 before = 3585
 after = 3695
+
+[[generation]]
+id = "G134"
+kind = "NATIVE_ATTACK"
+base_commit = "7ceb73805ccc4d00de2b19653cd668bca8c3c30b"
+priority = "P0"
+serves = "P0 native attack queue head NA-EPISTEMIC-UNIFICATION (DEBT-EPISTEMIC_UNIFICATION)"
+objective = "one epistemic vocabulary: every status carrier mapped by role and a workspace-wide test rejecting any outside the map; the known bypasses removed; futures states decided"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0053-one-epistemic-vocabulary.md"
+self_recensus = ".atlas/evidence/census/G134/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of a3d52b0dc7 = G133 post digest 0779bd33... (7ceb73805c adds only out-of-scope evidence)"
+atlas_first = "the carriers were found by a syntactic sweep of struct fields (the census carries field symbols and types but not their pairing, a named gap of the TYPE records); the map's enforcement test then became that sweep, run over every workspace source"
+change = "core::vocabulary (CARRIERS by role, BOUNDARY_TEXT, NOT_A_STATUS, admits, vocabulary_enum!); graph Binding and Fact carry EpistemicStatus (float confidence removed); HypothesisRecord.status EpistemicStatus; PhysicalEvidenceLevel with epistemic(); ReportVerdict, TraceVerdict, DeltaVerdict, HypothesisOutcome, ClosureVerdict, DependencyVerdict typed and wire-compatible; EpistemicStatus::from_name; .atlas writer refuses and reader rejects a record status outside the vocabulary; SIMULATED and the futures decisions in SEMANTIC-FACTS"
+finding = "the enforcement test's first run found eleven unmapped fields beyond the known bypasses: seven program-state fields sharing the name and four boundary texts (a snapshot pair and the donor ledger's three statuses), each now listed with its reason"
+falsification = "6 mutants killed: the map admits everything; a float confidence reintroduced; the reader trusts record statuses; the writer trusts them; any name decodes as a status; a simulation rung mapped to OBSERVED"
+debts = "last advance G134 for DEBT-EPISTEMIC_UNIFICATION (M2 -> M3); DEBT-CAUSALITY unblocked (futures states decided; NA-TYPED-RELATIONS queued)"
+proof = "PROVEN (post 3ec82608...): one new source file explained as carrying the standing per-file UNKNOWN obligations"
+
+[[generation.metric]]
+key = "typed_records"
+before = 140475
+after = 140821
+
+[[generation.metric]]
+key = "facts"
+before = 23236
+after = 23269
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 4874
+after = 4893
+
+[[generation.metric]]
+key = "composed:component_behavior"
+before = 126
+after = 127

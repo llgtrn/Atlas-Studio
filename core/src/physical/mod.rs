@@ -98,10 +98,39 @@ pub struct RequirementCheck {
     pub detail: String,
 }
 
+/// The physical evidence ladder (`contracts/PHYSICAL-ENGINEERING.md`), typed (G134): each rung
+/// is a kind of evidence, and `epistemic` says what it makes a claim in the one vocabulary.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum PhysicalEvidenceLevel {
+    #[default]
+    SemanticModel,
+    Simulated,
+    SilVerified,
+    HilVerified,
+    BoundedPhysicalTested,
+    FieldValidated,
+}
+
+impl PhysicalEvidenceLevel {
+    /// A semantic model derives from declarations; a simulation is `SIMULATED`; software- and
+    /// hardware-in-the-loop, bounded physical tests and field validation observe the artifact.
+    pub fn epistemic(self) -> EpistemicStatus {
+        match self {
+            Self::SemanticModel => EpistemicStatus::Derived,
+            Self::Simulated => EpistemicStatus::Simulated,
+            Self::SilVerified
+            | Self::HilVerified
+            | Self::BoundedPhysicalTested
+            | Self::FieldValidated => EpistemicStatus::Observed,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct PhysicalReport {
     pub schema: String,
-    pub evidence_level: String,
+    pub evidence_level: PhysicalEvidenceLevel,
     pub arms: Vec<PlanarArm>,
     pub derived: Vec<DerivedQuantity>,
     pub requirements: Vec<RequirementCheck>,
@@ -1077,9 +1106,9 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
     PhysicalReport {
         schema: "atlas.physical-report.v1".into(),
         evidence_level: if simulations.is_empty() {
-            "SEMANTIC_MODEL".into()
+            PhysicalEvidenceLevel::SemanticModel
         } else {
-            "SIMULATED".into()
+            PhysicalEvidenceLevel::Simulated
         },
         arms,
         derived,
@@ -1493,7 +1522,24 @@ mod tests {
     fn a_slow_move_satisfies_its_dynamic_requirements_in_simulation() {
         let report = analyze_physical(&with_trajectory("0.8 s"));
         assert!(report.findings.is_empty(), "{:?}", report.findings);
-        assert_eq!(report.evidence_level, "SIMULATED");
+        assert_eq!(report.evidence_level, PhysicalEvidenceLevel::Simulated);
+        // G134: each rung says what it makes a claim in the one vocabulary.
+        assert_eq!(
+            report.evidence_level.epistemic(),
+            EpistemicStatus::Simulated
+        );
+        assert_eq!(
+            PhysicalEvidenceLevel::SemanticModel.epistemic(),
+            EpistemicStatus::Derived
+        );
+        assert_eq!(
+            PhysicalEvidenceLevel::HilVerified.epistemic(),
+            EpistemicStatus::Observed
+        );
+        assert_eq!(
+            analyze_physical(&arm(&[])).evidence_level,
+            PhysicalEvidenceLevel::SemanticModel
+        );
         assert_eq!(report.simulations.len(), 1);
         assert_eq!(report.simulations[0].run.status, EpistemicStatus::Simulated);
         for requirement in [

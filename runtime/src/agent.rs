@@ -188,7 +188,7 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
         }
         "hypothesis" => {
             let check = lens::hypothesis(model, arg(0)?)?;
-            (vec![check.outcome], check.evidence.len())
+            (vec![check.outcome.to_string()], check.evidence.len())
         }
         "dependency_verdict" => {
             let (from, to) = (arg(0)?, arg(1)?);
@@ -198,7 +198,7 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
                 "dependency edge",
             )?;
             (
-                vec![edge.verdict.clone(), edge.status.as_str().to_owned()],
+                vec![edge.verdict.to_string(), edge.status.as_str().to_owned()],
                 edge.resolved_calls,
             )
         }
@@ -220,7 +220,7 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
         }
         "trace" => {
             let trace = lens::trace(model, arg(0)?, arg(1)?)?;
-            (vec![trace.verdict], trace.steps.len())
+            (vec![trace.verdict.to_string()], trace.steps.len())
         }
         "impact_candidates" => {
             let frontier = lens::impact(model, &[arg(0)?])?.frontier;

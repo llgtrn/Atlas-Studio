@@ -7377,3 +7377,53 @@ fn a_closure_is_its_own_executable_region() {
         1
     );
 }
+
+/// G134 (NA-EPISTEMIC-UNIFICATION): no struct in the workspace carries a status, verdict,
+/// outcome, state or level outside the one vocabulary map (`atlas_core::vocabulary`). A float
+/// confidence or a free-string status is a second vocabulary; boundary text and fields that only
+/// share the name are listed in the map with their reason.
+#[test]
+fn every_status_carrier_in_the_workspace_is_in_the_vocabulary_map() {
+    struct Fields(Vec<(String, String, String)>);
+    impl<'ast> syn::visit::Visit<'ast> for Fields {
+        fn visit_item_struct(&mut self, item: &'ast syn::ItemStruct) {
+            for field in &item.fields {
+                if let Some(ident) = &field.ident {
+                    let ty = quote::ToTokens::to_token_stream(&field.ty).to_string();
+                    self.0.push((item.ident.to_string(), ident.to_string(), ty));
+                }
+            }
+            syn::visit::visit_item_struct(self, item);
+        }
+    }
+    let sources = workspace_rust_sources();
+    let mut fields = Fields(Vec::new());
+    for (path, source) in &sources {
+        let file = syn::parse_file(source).unwrap_or_else(|e| panic!("{path}: {e}"));
+        syn::visit::Visit::visit_file(&mut fields, &file);
+    }
+    assert!(fields.0.len() > 500, "{} fields", fields.0.len());
+    let outside: Vec<String> = fields
+        .0
+        .iter()
+        .filter(|(s, f, ty)| !atlas_core::vocabulary::admits(s, f, ty))
+        .map(|(s, f, ty)| format!("{s}.{f}: {ty}"))
+        .collect();
+    assert!(
+        outside.is_empty(),
+        "status carriers outside the vocabulary map: {outside:#?}"
+    );
+    // The map is not vacuous: the carriers it names exist in the workspace.
+    let types: std::collections::BTreeSet<&str> = fields
+        .0
+        .iter()
+        .map(|(_, _, ty)| ty.rsplit("::").next().unwrap_or(ty).trim())
+        .collect();
+    for name in [
+        "EpistemicStatus",
+        "ConstraintVerdict",
+        "PhysicalEvidenceLevel",
+    ] {
+        assert!(types.iter().any(|t| t.contains(name)), "{name}");
+    }
+}

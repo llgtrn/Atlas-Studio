@@ -357,12 +357,13 @@ fn market_demand_is_never_asserted_without_evidence() {
             .market_uncertainty
             .starts_with("UNKNOWN")
     );
-    assert_eq!(report.hypotheses[0].status, "HYPOTHESIZED");
+    assert_eq!(report.hypotheses[0].status, EpistemicStatus::Hypothesis);
     nodes.push(node("MarketEvidence", "Survey1", &[("kind", "survey")]));
     let cited = analyze_products(&nodes);
     assert_eq!(cited.hypotheses[0].evidence, ["Survey1"]);
     assert_eq!(
-        cited.hypotheses[0].status, "HYPOTHESIZED",
+        cited.hypotheses[0].status,
+        EpistemicStatus::Hypothesis,
         "citation alone never validates demand"
     );
 }

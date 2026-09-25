@@ -179,6 +179,14 @@ pub struct ClassCoverage {
     pub unresolved: usize,
 }
 
+crate::vocabulary_enum! {
+    /// Whether a verification report admits its candidate (G134: typed, was a string).
+    pub enum ReportVerdict {
+        Admissible => "ADMISSIBLE",
+        Blocked => "BLOCKED",
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct VerificationReport {
     pub schema: String,
@@ -190,7 +198,7 @@ pub struct VerificationReport {
     pub failures: Vec<VerificationFailure>,
     /// `ADMISSIBLE` only when every required class has an obligation and every required
     /// obligation is `SATISFIED`; otherwise `BLOCKED`.
-    pub verdict: String,
+    pub verdict: ReportVerdict,
     pub blockers: Vec<String>,
 }
 
@@ -295,9 +303,9 @@ pub fn evaluate(plan: &VerificationPlan, evidence: &[VerificationEvidence]) -> V
         coverage,
         failures,
         verdict: if blockers.is_empty() {
-            "ADMISSIBLE".into()
+            ReportVerdict::Admissible
         } else {
-            "BLOCKED".into()
+            ReportVerdict::Blocked
         },
         blockers,
     }

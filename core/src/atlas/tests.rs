@@ -112,6 +112,28 @@ fn the_writer_refuses_a_seal_it_cannot_prove_and_non_canonical_content() {
     assert!(matches!(write(&duplicated), Err(AtlasError::Refused(_))));
 }
 
+/// G134: a record status outside the epistemic vocabulary is refused by the writer and rejected
+/// by the reader of a container some other writer produced.
+#[test]
+fn a_record_status_outside_the_vocabulary_is_refused_and_rejected() {
+    let mut foreign = sample();
+    foreign.facts[1].status = "PROBABLY".into();
+    foreign.canonicalize();
+    assert!(matches!(
+        write(&foreign),
+        Err(AtlasError::Refused(why)) if why.contains("PROBABLY")
+    ));
+    let hostile = encode(&foreign, schema_id);
+    assert!(matches!(
+        read(&hostile),
+        Err(AtlasError::Rejected(why)) if why.contains("PROBABLY")
+    ));
+    let mut obligation = sample();
+    obligation.obligations[0].status = "MAYBE".into();
+    assert!(matches!(write(&obligation), Err(AtlasError::Refused(_))));
+    assert!(write(&sample()).is_ok());
+}
+
 #[test]
 fn every_single_byte_corruption_is_rejected() {
     let bytes = write(&sample()).unwrap();

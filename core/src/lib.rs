@@ -28,6 +28,7 @@ pub mod state;
 pub mod temporal;
 pub mod verification;
 pub mod visual;
+pub mod vocabulary;
 
 pub use capability::{WorkPrepareReport, WorkRequest};
 pub use census::{

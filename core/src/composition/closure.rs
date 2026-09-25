@@ -58,10 +58,18 @@ pub struct LevelCheck {
     pub missed: Vec<String>,
 }
 
+crate::vocabulary_enum! {
+    /// Whether a closure held every difference of the full recompute (G134: typed).
+    pub enum ClosureVerdict {
+        Sound => "SOUND",
+        Unsound => "UNSOUND",
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ClosureOracle {
     /// `SOUND` when no level missed a difference, else `UNSOUND`.
-    pub verdict: String,
+    pub verdict: ClosureVerdict,
     pub functions: LevelCheck,
     pub components: LevelCheck,
     pub subsystems: LevelCheck,
@@ -385,7 +393,7 @@ pub fn oracle(closure: &ImpactClosure, before: &WorldModel, after: &WorldModel) 
         .map(String::as_str)
         .collect();
     let result = ClosureOracle {
-        verdict: String::new(),
+        verdict: ClosureVerdict::Sound,
         functions: check(
             differing(&before.functions, &after.functions, |f| f.id.clone()),
             &functions_ref,
@@ -427,7 +435,11 @@ pub fn oracle(closure: &ImpactClosure, before: &WorldModel, after: &WorldModel) 
     .iter()
     .all(|l| l.missed.is_empty());
     ClosureOracle {
-        verdict: if sound { "SOUND" } else { "UNSOUND" }.into(),
+        verdict: if sound {
+            ClosureVerdict::Sound
+        } else {
+            ClosureVerdict::Unsound
+        },
         ..result
     }
 }

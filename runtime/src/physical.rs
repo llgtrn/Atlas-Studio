@@ -43,7 +43,10 @@ mod tests {
         assert!(report.findings.is_empty(), "{:?}", report.findings);
         assert_eq!(report.arms.len(), 1);
         // The fixture declares a trajectory, so its dynamic verdicts rest on simulation.
-        assert_eq!(report.evidence_level, "SIMULATED");
+        assert_eq!(
+            report.evidence_level,
+            atlas_core::physical::PhysicalEvidenceLevel::Simulated
+        );
         assert_eq!(report.simulations.len(), 1);
         let reach = report.derived.iter().find(|d| d.name == "reach").unwrap();
         let rail = report

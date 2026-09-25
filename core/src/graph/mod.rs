@@ -4,6 +4,7 @@
 
 pub mod engineering_graph;
 
+use crate::EpistemicStatus;
 use crate::{evidence::Evidence, provenance::Provenance, temporal::RevisionRef};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
@@ -41,7 +42,9 @@ pub struct Binding {
     pub source: String,
     pub target: String,
     pub binding_kind: String,
-    pub confidence: f32,
+    /// G134 (NA-EPISTEMIC-UNIFICATION): how the binding is known, in the one vocabulary; a
+    /// numeric confidence was a second vocabulary UNIVERSAL-GRAPH forbids.
+    pub status: EpistemicStatus,
     pub evidence: Vec<String>,
     pub revision: Option<RevisionRef>,
 }
@@ -53,7 +56,8 @@ pub struct Fact {
     pub predicate: String,
     pub object: String,
     pub provenance: Provenance,
-    pub confidence: Option<f32>,
+    /// G134: the fact's own epistemic status (was a numeric confidence derived from it).
+    pub status: EpistemicStatus,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

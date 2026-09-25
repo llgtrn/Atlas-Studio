@@ -79,7 +79,7 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
             predicate: "language".into(),
             object: file.language.clone(),
             provenance: provenance(&file.path, "atlas-core.graph-source-projection"),
-            confidence: Some(1.0),
+            status: EpistemicStatus::Observed,
         });
     }
 
@@ -182,7 +182,8 @@ pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> Engin
                     source: document_id.clone(),
                     target: target_id.clone(),
                     binding_kind: "DocumentationBinding".into(),
-                    confidence: 0.85,
+                    // A documentation reference matched to a target by its text.
+                    status: EpistemicStatus::Inferred,
                     evidence: vec![document.path.clone(), reference.clone()],
                     revision: None,
                 });
@@ -195,20 +196,6 @@ pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> Engin
 
 fn declared_node_id(name: &str) -> String {
     stable_id("node", &format!("declared:{name}"))
-}
-
-fn confidence(status: &EpistemicStatus) -> Option<f32> {
-    match status {
-        EpistemicStatus::Observed | EpistemicStatus::Declared => Some(1.0),
-        EpistemicStatus::Derived => Some(0.9),
-        EpistemicStatus::Inferred
-        | EpistemicStatus::Hypothesis
-        | EpistemicStatus::Conflict
-        | EpistemicStatus::Unsupported
-        | EpistemicStatus::Unknown
-        | EpistemicStatus::Ignored
-        | EpistemicStatus::Simulated => None,
-    }
 }
 
 fn ensure_node(
@@ -264,7 +251,7 @@ fn add_normalized_fact(graph: &mut EngineeringGraph, fact: &SemanticFact) {
         predicate: fact.predicate.clone(),
         object: fact.object.clone(),
         provenance: fact.provenance.clone(),
-        confidence: confidence(&fact.status),
+        status: fact.status,
     });
 }
 
@@ -401,7 +388,7 @@ pub fn build_system_graph(
                     source: from.clone(),
                     target: to.clone(),
                     binding_kind: "DeclaredCapabilityBinding".into(),
-                    confidence: confidence(&fact.status).unwrap_or(0.0),
+                    status: fact.status,
                     evidence: vec![fact.provenance.source_path.clone()],
                     revision: fact.provenance.source_revision.clone(),
                 });
@@ -519,7 +506,8 @@ pub fn build_system_graph(
                             source: materialization_id.clone(),
                             target: file_id.clone(),
                             binding_kind: "MaterializationBinding".into(),
-                            confidence: 1.0,
+                            // A declared materialization matched to an observed file by path.
+                            status: EpistemicStatus::Derived,
                             evidence: vec![fact.provenance.source_path.clone(), path.clone()],
                             revision: fact.provenance.source_revision.clone(),
                         });

@@ -1,0 +1,596 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G134",
+  "base_revision": "4d715ab5b19eabc36bd69798fc99400444129374",
+  "candidate_revision": "7ceb73805ccc4d00de2b19653cd668bca8c3c30b",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:0779bd33a9c1f51c8b6dc71349e076e381b05a018f6792744aacd8b98371d270",
+  "after_census_digest": "blake3-256:3ec82608a417ca49fd58b4924fdfc87cf1328cff87fd22405b852a0de2bd2ecf",
+  "replay_digest": "blake3-256:3ec82608a417ca49fd58b4924fdfc87cf1328cff87fd22405b852a0de2bd2ecf",
+  "inventory_delta": {
+    "created": [
+      "core/src/vocabulary/mod.rs"
+    ],
+    "modified": [
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/verification/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/physical.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/verification/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/physical.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 19,
+      "fact:FunctionSignature|OBSERVED": 8,
+      "fact:SemanticObligation|OBSERVED": 3,
+      "fact:SemanticObligation|UNKNOWN": 14,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 47,
+      "fact:Type|DERIVED": -87,
+      "fact:Type|OBSERVED": 27,
+      "record:CALL|DERIVED": 2,
+      "record:CALL|OBSERVED": 72,
+      "record:CONTROL_FLOW|INFERRED": 23,
+      "record:CONTROL_FLOW|OBSERVED": 33,
+      "record:DATA_FLOW|OBSERVED": 147,
+      "record:EFFECT|INFERRED": 23,
+      "record:FUNCTION_IDENTITY|OBSERVED": 19,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 8,
+      "record:OWNERSHIP|OBSERVED": 32,
+      "record:SYMBOL|OBSERVED": 47,
+      "record:TYPE|DERIVED": -87,
+      "record:TYPE|OBSERVED": 27
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 1,
+    "graph_edges": 535,
+    "graph_nodes": 419
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": -1,
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/read_with_history()."
+      ],
+      "after": [
+        "core atlas/read_with_history()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/write()."
+      ],
+      "after": [
+        "core atlas/write()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/closure/oracle()."
+      ],
+      "after": [
+        "core composition/closure/oracle()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/hypothesis()."
+      ],
+      "after": [
+        "core composition/lens/hypothesis()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/trace()."
+      ],
+      "after": [
+        "core composition/lens/trace()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/verify()."
+      ],
+      "after": [
+        "core composition/lens/verify()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/add_normalized_fact()."
+      ],
+      "after": [
+        "core graph/engineering_graph/add_normalized_fact()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/build_repository_graph()."
+      ],
+      "after": [
+        "core graph/engineering_graph/build_repository_graph()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/build_source_graph()."
+      ],
+      "after": [
+        "core graph/engineering_graph/build_source_graph()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/build_system_graph()."
+      ],
+      "after": [
+        "core graph/engineering_graph/build_system_graph()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/analyze_physical()."
+      ],
+      "after": [
+        "core physical/analyze_physical()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/tests/a_slow_move_satisfies_its_dynamic_requirements_in_simulation()."
+      ],
+      "after": [
+        "core physical/tests/a_slow_move_satisfies_its_dynamic_requirements_in_simulation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core product/analyze_products()."
+      ],
+      "after": [
+        "core product/analyze_products()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core product/tests/market_demand_is_never_asserted_without_evidence()."
+      ],
+      "after": [
+        "core product/tests/market_demand_is_never_asserted_without_evidence()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core verification/evaluate()."
+      ],
+      "after": [
+        "core verification/evaluate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/answer()."
+      ],
+      "after": [
+        "runtime agent/answer()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime physical/tests/the_declared_two_link_arm_is_modelled_and_its_requirements_decided()."
+      ],
+      "after": [
+        "runtime physical/tests/the_declared_two_link_arm_is_modelled_and_its_requirements_decided()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core graph/engineering_graph/confidence()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/`impl:syn::visit::Visit<'ast> for Fields`/visit_item_struct()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/every_status_carrier_in_the_workspace_is_in_the_vocabulary_map()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/outside_vocabulary()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_record_status_outside_the_vocabulary_is_refused_and_rejected()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core physical/`impl:PhysicalEvidenceLevel`/epistemic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core schema/`impl:EpistemicStatus`/from_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core vocabulary/admits()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core vocabulary/carrier()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core vocabulary/tests/the_map_admits_carriers_and_rejects_a_second_vocabulary()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/composition/closure.rs: 12 -> 13",
+      "core/src/verification/mod.rs: 12 -> 13",
+      "core/src/vocabulary/mod.rs: 0 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 1545,
+    "total_after": 1559
+  },
+  "intent": {
+    "objective": "NA-EPISTEMIC-UNIFICATION: one epistemic vocabulary map (core::vocabulary) enforced over every workspace struct; graph confidence becomes EpistemicStatus; domain verdicts and outcomes typed wire-compatibly; container statuses validated (ADR 0053)",
+    "changed_paths": [
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/verification/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/physical.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "-obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "-records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/composition/closure.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations",
+      "core/src/verification/mod.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations",
+      "core/src/vocabulary/mod.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core atlas/read_with_history().",
+      "CHANGED core atlas/write().",
+      "CHANGED core composition/closure/oracle().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core composition/lens/hypothesis().",
+      "CHANGED core composition/lens/trace().",
+      "CHANGED core composition/lens/verify().",
+      "CHANGED core graph/engineering_graph/add_normalized_fact().",
+      "CHANGED core graph/engineering_graph/build_repository_graph().",
+      "CHANGED core graph/engineering_graph/build_source_graph().",
+      "CHANGED core graph/engineering_graph/build_system_graph().",
+      "CHANGED core physical/analyze_physical().",
+      "CHANGED core physical/tests/a_slow_move_satisfies_its_dynamic_requirements_in_simulation().",
+      "CHANGED core product/analyze_products().",
+      "CHANGED core product/tests/market_demand_is_never_asserted_without_evidence().",
+      "CHANGED core verification/evaluate().",
+      "CHANGED runtime agent/answer().",
+      "CHANGED runtime physical/tests/the_declared_two_link_arm_is_modelled_and_its_requirements_decided().",
+      "DELETED core graph/engineering_graph/confidence().",
+      "CREATED adapter semantic/rust/tests/`impl:syn::visit::Visit<'ast> for Fields`/visit_item_struct().",
+      "CREATED adapter semantic/rust/tests/every_status_carrier_in_the_workspace_is_in_the_vocabulary_map().",
+      "CREATED core atlas/outside_vocabulary().",
+      "CREATED core atlas/tests/a_record_status_outside_the_vocabulary_is_refused_and_rejected().",
+      "CREATED core physical/`impl:PhysicalEvidenceLevel`/epistemic().",
+      "CREATED core schema/`impl:EpistemicStatus`/from_name().",
+      "CREATED core vocabulary/admits().",
+      "CREATED core vocabulary/carrier().",
+      "CREATED core vocabulary/tests/the_map_admits_carriers_and_rejects_a_second_vocabulary()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/tests.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/graph/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/product/mod.rs",
+    "path core/src/product/tests.rs",
+    "path core/src/schema/mod.rs",
+    "path core/src/verification/mod.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/physical.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total -obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total -records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED core atlas/read_with_history().",
+    "entity CHANGED core atlas/write().",
+    "entity CHANGED core composition/closure/oracle().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core composition/lens/hypothesis().",
+    "entity CHANGED core composition/lens/trace().",
+    "entity CHANGED core composition/lens/verify().",
+    "entity CHANGED core graph/engineering_graph/add_normalized_fact().",
+    "entity CHANGED core graph/engineering_graph/build_repository_graph().",
+    "entity CHANGED core graph/engineering_graph/build_source_graph().",
+    "entity CHANGED core graph/engineering_graph/build_system_graph().",
+    "entity CHANGED core physical/analyze_physical().",
+    "entity CHANGED core physical/tests/a_slow_move_satisfies_its_dynamic_requirements_in_simulation().",
+    "entity CHANGED core product/analyze_products().",
+    "entity CHANGED core product/tests/market_demand_is_never_asserted_without_evidence().",
+    "entity CHANGED core verification/evaluate().",
+    "entity CHANGED runtime agent/answer().",
+    "entity CHANGED runtime physical/tests/the_declared_two_link_arm_is_modelled_and_its_requirements_decided().",
+    "entity DELETED core graph/engineering_graph/confidence().",
+    "entity CREATED adapter semantic/rust/tests/`impl:syn::visit::Visit<'ast> for Fields`/visit_item_struct().",
+    "entity CREATED adapter semantic/rust/tests/every_status_carrier_in_the_workspace_is_in_the_vocabulary_map().",
+    "entity CREATED core atlas/outside_vocabulary().",
+    "entity CREATED core atlas/tests/a_record_status_outside_the_vocabulary_is_refused_and_rejected().",
+    "entity CREATED core physical/`impl:PhysicalEvidenceLevel`/epistemic().",
+    "entity CREATED core schema/`impl:EpistemicStatus`/from_name().",
+    "entity CREATED core vocabulary/admits().",
+    "entity CREATED core vocabulary/carrier().",
+    "entity CREATED core vocabulary/tests/the_map_admits_carriers_and_rejects_a_second_vocabulary()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

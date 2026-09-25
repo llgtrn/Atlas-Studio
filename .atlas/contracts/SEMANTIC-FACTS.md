@@ -44,6 +44,7 @@ CONFLICT
 UNKNOWN
 UNSUPPORTED
 IGNORED
+SIMULATED
 ~~~
 
 | Status | Meaning |
@@ -57,6 +58,29 @@ IGNORED
 | **UNKNOWN** | The obligation exists but available evidence is insufficient. |
 | **UNSUPPORTED** | The current extractor/runtime cannot evaluate the obligation. |
 | **IGNORED** | Explicitly excluded by policy for this scope, with the policy decision evidenced. |
+| **SIMULATED** | The result of executing a model, carrying the run identity of its exact configuration (ADR 0002 amendment, ADR 0019). A simulation is not reality. |
+
+### One vocabulary (G134, ADR 0053)
+
+**Every other status-bearing type is mapped** in `core::vocabulary`, by its role:
+
+- a verdict (a decision over claims, such as `ConstraintVerdict` or `DependencyVerdict`);
+- a lifecycle (`ObligationState`, `CertificateState`);
+- an enforcement;
+- an evidence ladder with a declared mapping (`PhysicalEvidenceLevel`, `EvidenceBasis`);
+- a record outcome (`HypothesisOutcome`, `RunOutcome`).
+
+**Text at a boundary is listed with where it is decoded.** A `.atlas` record's status is decoded as an `EpistemicStatus` name; the writer refuses anything else and the reader rejects it.
+
+**A test enforces the map.** It walks every workspace struct and rejects any field with a status-like name whose type is not in the map. A float confidence or a free-string status is a second vocabulary.
+
+**Futures states are decided:**
+
+- `PREDICTED` is a `SIMULATED` record (a simulation run), not a status.
+- `VALIDATED`, `FALSIFIED` and `STILL_HYPOTHESIZED` are the outcomes of a hypothesis record, whose own status stays `HYPOTHESIS`.
+- `COUNTERFACTUAL` is a record kind with no consumer yet.
+- `MEASURED` and `CALIBRATED` wait for telemetry.
+- `VALIDATED` names only a hypothesis outcome, a commercial evidence basis or a physical evidence rung, never a status.
 
 UNSUPPORTED and IGNORED here describe the state of a semantic obligation. They are not aliases for **ArtifactDisposition**.
 

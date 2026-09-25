@@ -391,7 +391,24 @@ pub fn write(atlas: &CensusAtlas) -> Result<Vec<u8>, AtlasError> {
             "records are not in canonical order (call canonicalize)".into(),
         ));
     }
+    if let Some(status) = outside_vocabulary(&atlas.facts, &atlas.obligations) {
+        return Err(AtlasError::Refused(format!(
+            "record status `{status}` is not in the epistemic vocabulary"
+        )));
+    }
     Ok(encode(atlas, schema_id))
+}
+
+/// G134: the first fact or obligation status that is not an `EpistemicStatus` name.
+fn outside_vocabulary<'a>(
+    facts: &'a [CensusFact],
+    obligations: &'a [CensusObligation],
+) -> Option<&'a str> {
+    facts
+        .iter()
+        .map(|f| f.status.as_str())
+        .chain(obligations.iter().map(|o| o.status.as_str()))
+        .find(|status| crate::EpistemicStatus::from_name(status).is_none())
 }
 
 /// The encoding itself, without `write`'s refusals (tests use it to build hostile containers).
@@ -1022,6 +1039,11 @@ fn read_with_history(
             extractor_version: f.string("extractor_version", &strings)?,
             status: f.string("status", &strings)?,
         });
+    }
+    if let Some(status) = outside_vocabulary(&facts, &obligations) {
+        return reject(format!(
+            "record status `{status}` is not in the epistemic vocabulary"
+        ));
     }
     let certificate_records = records_of(CENSUS_CERTIFICATE)?;
     let Some((cert_head, blocker_records)) = certificate_records.split_first() else {

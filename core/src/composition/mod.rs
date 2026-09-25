@@ -295,6 +295,19 @@ pub struct StateVariable {
     pub records: usize,
 }
 
+crate::vocabulary_enum! {
+    /// A declared or observed subsystem dependency against the resolved calls (G134: typed).
+    pub enum DependencyVerdict {
+        Confirmed => "CONFIRMED",
+        DeclaredAndBuiltNoResolvedCall => "DECLARED_AND_BUILT_NO_RESOLVED_CALL",
+        DeclaredNotCensusable => "DECLARED_NOT_CENSUSABLE",
+        DeclaredNotBuilt => "DECLARED_NOT_BUILT",
+        Undeclared => "UNDECLARED",
+        TransitiveViaReexport => "TRANSITIVE_VIA_REEXPORT",
+        CallWithoutDependency => "CALL_WITHOUT_DEPENDENCY",
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DependencyEdge {
     pub from: String,
@@ -302,7 +315,7 @@ pub struct DependencyEdge {
     pub declared: Option<String>,
     pub cargo: bool,
     pub resolved_calls: usize,
-    pub verdict: String,
+    pub verdict: DependencyVerdict,
     pub status: EpistemicStatus,
 }
 
@@ -1275,22 +1288,30 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
             let buildable = cargo_members.contains(&from) && cargo_members.contains(&to);
             let transitive = reach(&from).contains(&to);
             let (verdict, status) = match (declared.is_some(), cargo, resolved_calls > 0) {
-                (true, true, true) => ("CONFIRMED", EpistemicStatus::Observed),
+                (true, true, true) => (DependencyVerdict::Confirmed, EpistemicStatus::Observed),
                 (true, true, false) => (
-                    "DECLARED_AND_BUILT_NO_RESOLVED_CALL",
+                    DependencyVerdict::DeclaredAndBuiltNoResolvedCall,
                     EpistemicStatus::Observed,
                 ),
-                (true, false, _) if !buildable => {
-                    ("DECLARED_NOT_CENSUSABLE", EpistemicStatus::Unknown)
-                }
-                (true, false, _) => ("DECLARED_NOT_BUILT", EpistemicStatus::Conflict),
-                (false, true, _) => ("UNDECLARED", EpistemicStatus::Conflict),
+                (true, false, _) if !buildable => (
+                    DependencyVerdict::DeclaredNotCensusable,
+                    EpistemicStatus::Unknown,
+                ),
+                (true, false, _) => (
+                    DependencyVerdict::DeclaredNotBuilt,
+                    EpistemicStatus::Conflict,
+                ),
+                (false, true, _) => (DependencyVerdict::Undeclared, EpistemicStatus::Conflict),
                 // Calls reaching a crate the consumer only depends on transitively: through a
                 // re-export of a declared, built dependency.
-                (false, false, true) if transitive => {
-                    ("TRANSITIVE_VIA_REEXPORT", EpistemicStatus::Derived)
-                }
-                (false, false, _) => ("CALL_WITHOUT_DEPENDENCY", EpistemicStatus::Conflict),
+                (false, false, true) if transitive => (
+                    DependencyVerdict::TransitiveViaReexport,
+                    EpistemicStatus::Derived,
+                ),
+                (false, false, _) => (
+                    DependencyVerdict::CallWithoutDependency,
+                    EpistemicStatus::Conflict,
+                ),
             };
             DependencyEdge {
                 from,
@@ -1298,7 +1319,7 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                 declared,
                 cargo,
                 resolved_calls,
-                verdict: verdict.into(),
+                verdict,
                 status,
             }
         })

@@ -7,6 +7,7 @@
 //! QUOTED value must cite a declared `Quote`; a derived value carries the weakest basis of its
 //! inputs; anything missing is UNKNOWN and propagates as UNKNOWN, never as zero.
 
+use crate::EpistemicStatus;
 use crate::{
     ConstraintVerdict, DeclaredNode,
     quantity::{Quantity, Rational, parse_unit_expression},
@@ -194,8 +195,9 @@ pub struct HypothesisRecord {
     pub target_customer: String,
     /// Cited `MarketEvidence` entities that exist.
     pub evidence: Vec<String>,
-    /// `HYPOTHESIZED` until evidence is cited; market demand is never asserted.
-    pub status: String,
+    /// A hypothesis stays `HYPOTHESIS` however much evidence it cites: market demand is never
+    /// asserted (G134: the one vocabulary, was a free string).
+    pub status: EpistemicStatus,
     pub market_uncertainty: String,
 }
 
@@ -610,7 +612,7 @@ pub fn analyze_products(nodes: &[DeclaredNode]) -> ProductReport {
                 )
             },
             evidence: found,
-            status: "HYPOTHESIZED".into(),
+            status: EpistemicStatus::Hypothesis,
         });
     }
 

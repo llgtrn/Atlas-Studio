@@ -132,6 +132,25 @@ pub enum EpistemicStatus {
 }
 
 impl EpistemicStatus {
+    /// Every status, in declaration order.
+    pub const ALL: [Self; 10] = [
+        Self::Observed,
+        Self::Declared,
+        Self::Derived,
+        Self::Inferred,
+        Self::Hypothesis,
+        Self::Conflict,
+        Self::Unknown,
+        Self::Unsupported,
+        Self::Ignored,
+        Self::Simulated,
+    ];
+
+    /// The status named `name` (G134: text at a boundary is decoded, never trusted).
+    pub fn from_name(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|status| status.as_str() == name)
+    }
+
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Observed => "OBSERVED",
