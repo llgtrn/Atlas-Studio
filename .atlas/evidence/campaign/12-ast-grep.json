@@ -1,0 +1,35 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 12,
+ "donor": "ast-grep",
+ "commit_sha": "6175e07b668b388a1a326d8fc543c4856eb5f54b",
+ "generation": "G71",
+ "base_commit": "442734422e",
+ "census": "SKELETON before G71; deep-censused the hypothesis slice crates/core (match_tree, meta_var, replacer)",
+ "mechanisms_censused": {
+  "structural_match": "crates/core/src/match_tree: pattern vs tree-sitter node matching with meta variables (meta_var.rs)",
+  "strictness": "match_tree/strictness.rs MatchStrictness {Cst, Smart, Ast, Relaxed, Signature, Template}: which trivia/comments/text a match ignores",
+  "rewrite": "crates/core/src/replacer: template rewrite with meta-variable substitution"
+ },
+ "consumer_search": {
+  "pipeline": "Atlas's canonical pipeline has no source-rewriting stage: construction/materialization (P6) is blocked behind .atlasx (exit criterion E BLOCKED_ON_PREREQUISITES); no runtime/refactor exists",
+  "self_build_tooling": "the only source edits in the loop are the coordinator's scratch mutation batteries and scripted edits (outside Atlas); measured G63-G70: about 8 textual-pattern misses after rustfmt reflow (PATTERN COUNT 0, reflowed assertions) and 1 file truncation by a scripted replacement -- every one detected by count assertions or compile/test failure, none a silent mis-edit"
+ },
+ "falsification": "no Atlas capability consumes structural search or rewrite; the measured friction is in external scratch tooling, detected every time, so it is not a correctness gap in Atlas. Formatting-insensitive comparison already exists natively where Atlas needs it (G66 body token fingerprints ~ ast-grep 'Relaxed' strictness)",
+ "decision": {
+  "REFERENCE_ONLY": [
+   "tree-sitter-backed structural patterns with meta variables",
+   "MatchStrictness levels (token-stream comparison already native via G66)",
+   "template rewrite / codemods"
+  ],
+  "trigger": "re-evaluate when Atlas gains a native source-editing capability: an Atlas mutation/falsification command (P1) or the construction substrate (P6)",
+  "ABSORBED": []
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "action": "git rm -r .atlas/temporary/donors/ast-grep (318 tracked files, 3.9 MB)"
+ }
+}

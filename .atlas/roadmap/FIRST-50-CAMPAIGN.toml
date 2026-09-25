@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 6
+campaign_terminal = 7
 historically_proven = 5
 currently_censusing = 0
 deep_censused = 7
 absorbed = 6
-reference_only = 3
+reference_only = 4
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 9
-remaining = 41
-next_donor = "ast-grep"
-next_step = "ast-grep (#12): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
+extinct = 10
+remaining = 40
+next_donor = "sourcetrail"
+next_step = "sourcetrail (#13): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -215,11 +215,13 @@ target_capability = "structural search/rewrite"
 mechanism_hypothesis = "tree-sitter-backed structural patterns in Rust"
 materialization_mode = "SHALLOW_CHECKOUT (crates/core)"
 dependency_expectation = "tree-sitter (#06)"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census SKELETON, decision PENDING"
+completed_in = "G71"
+evidence = ".atlas/evidence/campaign/12-ast-grep.json"
+note = "no Atlas stage rewrites source; token-level comparison already native (G66); REFERENCE_ONLY until a native mutation/construction capability; source physically deleted"
 
 [[donor]]
 ordinal = 13

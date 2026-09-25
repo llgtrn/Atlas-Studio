@@ -924,6 +924,7 @@ objective = "deep-census semgrep's matching slice, falsify the pattern-matching 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/11-semgrep.json"
 self_recensus = ".atlas/evidence/census/G70/recensus.json"
+result_commits = ["68ab0c0d2c7801033ff0942611c631e34cf172a2", "442734422ea81e2742de0e564f2cc248026d1661"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of a3f1ea4553 = G69 post digest 689ebecb... (2cc753f354 adds only out-of-scope evidence)"
@@ -933,3 +934,22 @@ storage = "589 MB donor source reclaimed; scratch reports reclaimed (6 GB) after
 
 [generation.next]
 objective = "G71 (P3): first-50 #12 ast-grep -- structural search/rewrite measured against Atlas's needs"
+
+[[generation]]
+id = "G71"
+base_commit = "442734422ea81e2742de0e564f2cc248026d1661"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #12 ast-grep to a terminal state"
+objective = "deep-census ast-grep's core slice, search for an Atlas structural search/rewrite consumer, decide REFERENCE_ONLY, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/12-ast-grep.json"
+self_recensus = ".atlas/evidence/census/G71/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 68ab0c0d2c = G70 post digest d578ef65... (442734422e adds only out-of-scope evidence)"
+falsification = "no Atlas stage rewrites source (construction P6 blocked behind .atlasx); the measured textual-edit friction (~8 reflow misses G63-G70, 1 truncation) is in external scratch tooling and was always detected; token-level comparison is already native (G66) -- the MatchStrictness 'Relaxed' idea"
+no_code_change = "no Atlas mechanism justified; the only in-scope change is the pinned deleted-donor list"
+proof = "PROVEN on the first run (post f472b3dd...)"
+
+[generation.next]
+objective = "G72 (P3): first-50 #13 sourcetrail"

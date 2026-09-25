@@ -447,6 +447,7 @@ mod tests {
         assert_eq!(
             deleted,
             [
+                "ast-grep",
                 "blake3",
                 "datafrog",
                 "glean",

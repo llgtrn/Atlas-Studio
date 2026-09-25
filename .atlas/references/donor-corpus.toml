@@ -14,14 +14,16 @@ default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/ast-grep/LICENSE"]
 technology_domains = ["structural_search", "structural_rewrite"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "REFERENCE_ONLY"
 native_replacement = "runtime/refactor structural rewrite primitives"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/ast-grep.json", ".atlas/census/ast-grep.md"]
+blocking_question = "resolved G71: no Atlas stage rewrites source (construction P6 is blocked behind .atlasx); textual-edit friction in the external self-build tooling was always detected; re-evaluate with a native mutation or construction capability"
+implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
+evidence = [".atlas/evidence/campaign/12-ast-grep.json", ".atlas/provenance/donors/ast-grep.json", ".atlas/census/ast-grep.md"]
 
 [[donor]]
 id = "buck2"

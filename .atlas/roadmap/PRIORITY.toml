@@ -154,7 +154,7 @@ C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency archite
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 6 campaign terminals (tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY), all extinct; next ast-grep (#12)"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 7 campaign terminals (tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY), all extinct; next sourcetrail (#13)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -225,6 +225,11 @@ priority = "P3"
 objective = "first-50 #11 semgrep: import-aware pattern matching measured to change nothing in Atlas (done: REFERENCE_ONLY, extinct)"
 
 [[planned_generation]]
-id = "G71+"
+id = "G71"
 priority = "P3"
-objective = "first-50 campaign continues sequentially from #12 ast-grep, interleaving only census improvements exposed by real donors; P2 resumes with a seal gate + SelectedDesign design when a donor or the census exposes the path"
+objective = "first-50 #12 ast-grep: no Atlas source-rewriting consumer (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G72+"
+priority = "P3"
+objective = "first-50 campaign continues sequentially from #13 sourcetrail, interleaving only census improvements exposed by real donors; P2 resumes with a seal gate + SelectedDesign design when a donor or the census exposes the path"
