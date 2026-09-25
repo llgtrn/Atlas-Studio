@@ -7185,3 +7185,60 @@ fn g120_opaque_macros_stay_opaque_with_an_explicit_residual_in_every_dimension()
         assert!(named, "{dimension:?}: the opaque residual is named");
     }
 }
+
+/// G128 (mission M2): a file's `//!` text is DECLARED on a `self` definition at its root scope as
+/// rustdoc's summary (the first paragraph); `///` text on a `mod` item rides that item's symbol;
+/// an undocumented file has no `self` symbol and `include_str!` docs are text never read.
+#[test]
+fn module_documentation_is_declared_on_the_module_symbol() {
+    let source = "#![allow(dead_code)]\n//!\n//! Holds the counter\n//!   and persists it.\n//!\n\
+                  //! Second paragraph.\n\n/// The store.\n/// More.\nmod store;\n\
+                  #[doc = include_str!(\"x.md\")]\nmod hidden;\nmod plain;\n\
+                  /// Inline.\nmod inline {\n    //! Inner words.\n}\n";
+    let batch = extract_all("core/src/lib.rs", source);
+    let module = find_symbol(&batch, &[], "self").expect("the module's own documentation");
+    assert_eq!(module.role, SymbolRole::Definition);
+    let documentation = module.documentation.as_ref().unwrap();
+    assert_eq!(documentation.summary, "Holds the counter and persists it.");
+    assert_eq!(documentation.lines, 5);
+    let store = find_symbol(&batch, &[], "store").unwrap();
+    assert_eq!(store.role, SymbolRole::Declaration);
+    assert_eq!(
+        store.documentation.as_ref().unwrap().summary,
+        "The store. More."
+    );
+    assert!(
+        find_symbol(&batch, &[], "hidden")
+            .unwrap()
+            .documentation
+            .is_none()
+    );
+    assert!(
+        find_symbol(&batch, &[], "plain")
+            .unwrap()
+            .documentation
+            .is_none()
+    );
+    assert_eq!(
+        find_symbol(&batch, &[], "inline")
+            .unwrap()
+            .documentation
+            .as_ref()
+            .unwrap()
+            .summary,
+        "Inline. Inner words.",
+        "outer then inner, joined as rustdoc joins them"
+    );
+    // Documentation is not identity: the record id of a symbol does not move with its text.
+    let undocumented = extract_all("core/src/lib.rs", "mod store;\n");
+    let id = |batch: &ExtractionBatch| {
+        batch.observations.iter().find_map(|o| match o {
+            SemanticObservation::Symbol(h) if h.subject.name == "store" => {
+                Some(h.record_id.clone())
+            }
+            _ => None,
+        })
+    };
+    assert_eq!(id(&batch), id(&undocumented));
+    assert!(find_symbol(&undocumented, &[], "self").is_none());
+}

@@ -540,7 +540,7 @@ objective = "native attack queue head (pressure map, primary-debt dependency ord
 [[planned_generation]]
 id = "G128"
 priority = "P0"
-objective = "AGENT_MISSION: the second mission through the agent interface (cadence: within five generations of G123)"
+objective = "AGENT_MISSION: the second mission through the agent interface (cadence: within five generations of G123) (done: mission M2, module documentation as DECLARED component purpose; GAP-ITEM-DOCUMENTATION opened; 7 mutants killed)"
 
 [[planned_generation]]
 id = "G129+"

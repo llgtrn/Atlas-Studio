@@ -831,6 +831,7 @@ mod tests {
             scope: SemanticScope::new(Vec::<String>::new()),
             name: "known".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         let evidence_id = EvidenceId::new("evidence:known-symbol".to_owned());
@@ -1090,6 +1091,7 @@ mod tests {
             scope: SemanticScope::new(Vec::<String>::new()),
             name: "known".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());
@@ -1170,6 +1172,7 @@ mod tests {
                 scope: scope.clone(),
                 name: "get".into(),
                 role: SymbolRole::Definition,
+                documentation: None,
             },
             span: atlas_core::SourceSpan {
                 path: artifact_path.into(),

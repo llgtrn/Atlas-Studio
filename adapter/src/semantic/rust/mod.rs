@@ -60,11 +60,11 @@ mod state;
 use std::collections::{BTreeMap, BTreeSet};
 
 use atlas_core::{
-    CallDispatchKind, CallSiteIdentity, DataFlowResolution, EpistemicStatus, Evidence, EvidenceId,
-    FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature,
-    PlaceRef, Provenance, SemanticDimension, SemanticObservation, SemanticRecordHeader,
-    SemanticRecordId, SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
-    ValueRole, stable_id,
+    CallDispatchKind, CallSiteIdentity, DataFlowResolution, Documentation, EpistemicStatus,
+    Evidence, EvidenceId, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+    FunctionParameter, FunctionSignature, PlaceRef, Provenance, SemanticDimension,
+    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope, SymbolIdentity,
+    SymbolRole, TypeIdentity, ValueIdentity, ValueRole, stable_id,
 };
 use syn::spanned::Spanned;
 
@@ -220,6 +220,20 @@ impl SemanticExtractor for RustSemanticExtractor {
                             ctx.opaque_macro_sites =
                                 Some(macros::opaque_sites(&file, &ctx.shadowed_macros));
                             let root_scope = SemanticScope::new(Vec::<String>::new());
+                            // G128 (mission M2): the file's own module documentation (`//!`),
+                            // DECLARED on a `self` definition at the root scope.
+                            if let Some(documentation) = spelling::documentation(&file.attrs) {
+                                let first = file.attrs.iter().find(|a| a.path().is_ident("doc"));
+                                let span =
+                                    ctx.span_of(first.expect("documentation has a doc attribute"));
+                                ctx.emit_documented_symbol(
+                                    &root_scope,
+                                    "self",
+                                    SymbolRole::Definition,
+                                    span,
+                                    Some(documentation),
+                                );
+                            }
                             for item in &file.items {
                                 ctx.walk_item(item, &root_scope);
                             }
@@ -678,6 +692,18 @@ impl<'a> ExtractionContext<'a> {
         role: SymbolRole,
         span: atlas_core::SourceSpan,
     ) {
+        self.emit_documented_symbol(scope, name, role, span, None);
+    }
+
+    /// `emit_symbol` with the documentation its author wrote on it (G128, mission M2).
+    fn emit_documented_symbol(
+        &mut self,
+        scope: &SemanticScope,
+        name: &str,
+        role: SymbolRole,
+        span: atlas_core::SourceSpan,
+        documentation: Option<Documentation>,
+    ) {
         let dimension = SemanticDimension::Symbol;
         if !self.wants(dimension) {
             return;
@@ -689,6 +715,7 @@ impl<'a> ExtractionContext<'a> {
             name: name.to_owned(),
             role,
             path: self.input.artifact_path.clone(),
+            documentation,
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
@@ -804,6 +831,7 @@ impl<'a> ExtractionContext<'a> {
                 name: name.to_owned(),
                 role,
                 path: self.input.artifact_path.clone(),
+                documentation: None,
             },
             span,
             generated: false,
@@ -1709,9 +1737,17 @@ impl<'a> ExtractionContext<'a> {
     fn handle_mod(&mut self, item: &syn::ItemMod, scope: &SemanticScope) {
         let span = self.span_of(item);
         let name = item.ident.to_string();
+        // Outer (`///`) then inner (`//!`) documentation, the order rustdoc joins them in.
+        let documentation = spelling::documentation(&item.attrs);
         match &item.content {
             Some((_, items)) => {
-                self.emit_symbol(scope, &name, SymbolRole::Definition, span);
+                self.emit_documented_symbol(
+                    scope,
+                    &name,
+                    SymbolRole::Definition,
+                    span,
+                    documentation,
+                );
                 let nested = nested_scope(scope, &name);
                 for nested_item in items {
                     self.walk_item(nested_item, &nested);
@@ -1720,7 +1756,13 @@ impl<'a> ExtractionContext<'a> {
             None => {
                 // `mod foo;` -- declared here, defined in another file this extractor does not
                 // (yet) follow. Declaration, not Definition: the body was never observed.
-                self.emit_symbol(scope, &name, SymbolRole::Declaration, span);
+                self.emit_documented_symbol(
+                    scope,
+                    &name,
+                    SymbolRole::Declaration,
+                    span,
+                    documentation,
+                );
             }
         }
     }

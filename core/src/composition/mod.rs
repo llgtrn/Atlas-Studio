@@ -832,7 +832,8 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
             unresolved_calls: 0,
             coverage: BTreeMap::new(),
             purpose: Claim::unknown(
-                "module documentation is not censused; purpose is never named from identifiers",
+                "no module documentation (//! in the file, /// on its mod item); purpose is never \
+                 named from identifiers",
             ),
         }
     };
@@ -909,6 +910,63 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     for c in components.values_mut() {
         c.state_read.sort();
         c.state_written.sort();
+    }
+
+    // G128 (mission M2): a component's purpose is the documentation its author wrote -- the
+    // file's own `//!` text (a `self` definition at its root scope) or, failing that, the `///`
+    // text on the `mod` item that declares it. DECLARED: the author's statement, never checked
+    // against the behavior; never named from identifiers.
+    let module_component: BTreeMap<String, String> = components
+        .values()
+        .filter_map(|c| Some((c.module.clone()?, c.path.clone())))
+        .collect();
+    let mut declared_by_parent: Vec<(String, String, String)> = Vec::new();
+    for record in &census.typed_semantic_records {
+        let SemanticObservation::Symbol(header) = record else {
+            continue;
+        };
+        let symbol = &header.subject;
+        let Some(documentation) = &symbol.documentation else {
+            continue;
+        };
+        let evidence = header.record_id.as_str().to_owned();
+        if symbol.name == "self" && symbol.scope.segments.is_empty() {
+            if let Some(c) = components.get_mut(&symbol.path) {
+                c.purpose = Claim {
+                    value: Some(documentation.summary.clone()),
+                    status: EpistemicStatus::Declared,
+                    evidence: vec![evidence],
+                    basis: "the module's own documentation (//!): its author's statement, not \
+                            checked against behavior"
+                        .into(),
+                };
+            }
+            continue;
+        }
+        let Some(parent) = components.get(&symbol.path).and_then(|c| c.module.clone()) else {
+            continue;
+        };
+        let mut module = parent;
+        for segment in symbol.scope.segments.iter().chain([&symbol.name]) {
+            module.push_str("::");
+            module.push_str(segment);
+        }
+        if let Some(path) = module_component.get(&module) {
+            declared_by_parent.push((path.clone(), documentation.summary.clone(), evidence));
+        }
+    }
+    for (path, summary, evidence) in declared_by_parent {
+        let c = components.get_mut(&path).expect("mapped from a component");
+        if c.purpose.status == EpistemicStatus::Unknown {
+            c.purpose = Claim {
+                value: Some(summary),
+                status: EpistemicStatus::Declared,
+                evidence: vec![evidence],
+                basis: "the documentation (///) on the mod item declaring this module file: its \
+                        author's statement, not checked against behavior"
+                    .into(),
+            };
+        }
     }
 
     // Level 3: subsystems.
@@ -1381,10 +1439,22 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
         UnderstandingGap {
             id: "GAP-COMPONENT-PURPOSE".into(),
             question_class: "what is this component for?".into(),
-            missing: "module documentation is not censused; only ADL-declared subsystems carry a \
-                      responsibility"
+            missing: "components with no module documentation (//! in the file, /// on its mod \
+                      item): their purpose is UNKNOWN (G128)"
                 .into(),
-            magnitude: components.len(),
+            magnitude: components
+                .values()
+                .filter(|c| c.purpose.status == EpistemicStatus::Unknown)
+                .count(),
+            debt: "DEBT-SEMANTIC-COMPOSITION".into(),
+        },
+        UnderstandingGap {
+            id: "GAP-ITEM-DOCUMENTATION".into(),
+            question_class: "what is this function for?".into(),
+            missing: "item documentation (/// on functions and types) is not carried: a \
+                      function's purpose is UNKNOWN even where its author wrote one (G128)"
+                .into(),
+            magnitude: functions.len(),
             debt: "DEBT-SEMANTIC-COMPOSITION".into(),
         },
         UnderstandingGap {

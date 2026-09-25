@@ -1,0 +1,142 @@
+{
+ "schema": "atlas.agent.mission.v1",
+ "id": "M2",
+ "generation": "G128",
+ "mission": "census module documentation as DECLARED purpose with spans so 'what is this component for?' is answered from the author's words or honestly UNKNOWN (GAP-COMPONENT-PURPOSE, NA-COMPONENT-PURPOSE, DEBT-SEMANTIC-COMPOSITION)",
+ "pilot": "coding agent (the AI); Atlas as the worn semantic body",
+ "base_commit": "dda507e66024e8dc0333d05aa4ef86d228d32836",
+ "atlas_first_sequence": [
+  {
+   "op": "understand",
+   "target": "subsystem:Core",
+   "answered": "64 of 64 Core components without purpose; the question routed to GAP-COMPONENT-PURPOSE; compression 42,324 raw records to 114 composed objects (ratio 378)"
+  },
+  {
+   "op": "understand",
+   "target": "path:adapter/src/semantic/rust",
+   "answered": "13 components; public surface is the spelling helpers and resolve_workspace; no documentation emitter anywhere in scope"
+  },
+  {
+   "op": "explain",
+   "target": "fn:emit_symbol",
+   "answered": "ExtractionContext::emit_symbol(scope, name, role, span): the one SYMBOL emitter, the edit point for a DECLARED text field"
+  },
+  {
+   "op": "impact",
+   "target": "fn:ExtractionContext::emit_symbol,fn:ExtractionContext::handle_mod",
+   "answered": "12 resolved callers, all in Adapter (walk_item, handle_impl, ...); no state readers; invariants at risk: the dependency invariants of Adapter only"
+  },
+  {
+   "op": "explain",
+   "target": "path:core/src/semantic/symbol.rs",
+   "answered": "SymbolIdentity's fields read by identity_key (name, path, revision): a field outside identity_key leaves record ids unchanged; construction sites of the type are not censused"
+  },
+  {
+   "op": "verify",
+   "target": "world model before vs after",
+   "answered": "HELD: no invariant broken, dropped, weakened or added; no dependency or authority change"
+  },
+  {
+   "op": "benchmark",
+   "target": ".atlas/evidence/agent/benchmark.json",
+   "answered": "16 of 16 correct: B12 (what is core/src/composition/mod.rs for?) now DECLARED with its SYMBOL evidence; new B15 (core/src/census/mod.rs, undocumented) stays UNKNOWN; new B16 routes a function-purpose question to GAP-ITEM-DOCUMENTATION"
+  },
+  {
+   "op": "explain",
+   "target": "path:core/src/quantity/mod.rs",
+   "answered": "purpose DECLARED 'Physical quantities with dimensional correctness (ADR 0010).' citing semantic:SYMBOL:1cf4a075bff0cb4b"
+  }
+ ],
+ "atlas_knew": [
+  "that every Core component lacked a purpose and which gap and debt own that question",
+  "the single SYMBOL emitter and its Adapter-only impact frontier",
+  "which SymbolIdentity fields form its identity, so a text field can stay outside it",
+  "that the change moved no invariant, dependency or authority (verify)"
+ ],
+ "unknown": [
+  "every construction site of SymbolIdentity (26) and every match on the Symbol variant: type use sites are not censused (GAP-TYPE-USE-SITES, DEBT-SYMBOL) -- the second mission to hit this gap",
+  "whether a module's documentation is true: purpose is DECLARED (the author's statement), never checked against behavior",
+  "item-level purpose: function and type documentation is not yet carried (FunctionIdentity embeds its symbol with no documentation), so 'what is this function for?' stays UNKNOWN (GAP-ITEM-DOCUMENTATION)"
+ ],
+ "manual_source_reads": [
+  {
+   "what": "core/src/schema/mod.rs SemanticFactKind and core/src/semantic/observation.rs SemanticObservation (about 55 lines)",
+   "reason": "DESIGN_ALTERNATIVE: a new fact kind or dimension versus a field on the SYMBOL record; Atlas composes records, it does not weigh vocabulary designs"
+  },
+  {
+   "what": "adapter/src/semantic/rust/mod.rs extract() body (about 35 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: where the parsed file's inner attributes are in hand"
+  },
+  {
+   "what": "adapter/src/semantic/rust/mod.rs emit_symbol and handle_mod bodies (about 70 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the edit targets"
+  },
+  {
+   "what": "grep `SymbolIdentity {` and `SemanticObservation::Symbol` across the workspace",
+   "reason": "UNKNOWN: construction and match sites are not censused (GAP-TYPE-USE-SITES)"
+  },
+  {
+   "what": "grep `\"self\"` in adapter/src/semantic/rust",
+   "reason": "FALSIFICATION: no SYMBOL named self is emitted already, so the module carrier collides with nothing"
+  },
+  {
+   "what": "core/src/composition/mod.rs Claim and the component constructor (about 70 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the edit target in composition"
+  },
+  {
+   "what": "runtime/src/agent.rs fixture and composition tests (about 120 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the tests that asserted purpose was always UNKNOWN"
+  },
+  {
+   "what": "first lines of core/src/census/mod.rs, core/src/identity/mod.rs, apps/cli/src/main.rs, adapter/src/vcs/mod.rs",
+   "reason": "FALSIFICATION: Atlas's UNKNOWN purpose checked against the files -- none has module documentation"
+  }
+ ],
+ "manual_reads_summary": {
+  "reads": 8,
+  "implementation_detail": 4,
+  "design_alternative": 1,
+  "unknown": 1,
+  "falsification": 2,
+  "lines_read": "about 360 lines in 7 files plus 3 greps"
+ },
+ "gaps": [
+  {
+   "id": "GAP-COMPONENT-PURPOSE",
+   "status": "NARROWED",
+   "fix": "module documentation censused as DECLARED text (a self SYMBOL definition for //!, the mod item's SYMBOL for ///) and composed into component purpose; UNKNOWN only where no documentation exists"
+  },
+  {
+   "id": "GAP-ITEM-DOCUMENTATION",
+   "status": "OPEN (found in this mission; now a composed understanding gap)",
+   "debt": "DEBT-SEMANTIC-COMPOSITION"
+  },
+  {
+   "id": "GAP-TYPE-USE-SITES",
+   "status": "OPEN (hit again)",
+   "debt": "DEBT-SYMBOL"
+  }
+ ],
+ "measured": {
+  "components_with_declared_purpose": "0 of 124 before; 89 of 124 after (35 UNKNOWN: undocumented Rust files, manifests, scripts, fixtures)",
+  "core_subsystem": "64 of 64 Core components without purpose before; 14 after",
+  "declared_from_mod_items": "0 in the self census: every documented Atlas module documents itself with //!; the mod-item path is exercised by the fixture"
+ },
+ "challenge": "what is core/src/census/mod.rs for? Atlas answers UNKNOWN with the basis 'no module documentation', never a guess from the path census; confirmed by reading the file",
+ "deferred": [
+  "found while verifying G127: command evidence whose filter matches zero tests would be SATISFIED (the COMPATIBILITY run matched 17 tests, so the recorded report stands); a non-vacuity check belongs to DEBT-VERIFICATION_EVIDENCE"
+ ],
+ "falsification": [
+  "MP1 composition ignores documentation: killed",
+  "MP2 summary keeps every paragraph: killed",
+  "MP3 documentation enters symbol identity: killed",
+  "MP4 the mod item's documentation outranks the file's own: killed",
+  "MP5 purpose named from the module path: killed",
+  "MP6 the purpose gap counts every component: killed",
+  "MP7 an empty doc line dropped (no paragraph break): killed"
+ ],
+ "benchmark": {
+  "cases": 16,
+  "correct": 16
+ }
+}

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G127"
+current_generation = "G128"
 
 [[generation]]
 id = "G35"
@@ -2410,3 +2410,52 @@ after = 2246
 key = "composed:component_behavior"
 before = 122
 after = 124
+
+[[generation]]
+id = "G128"
+kind = "AGENT_MISSION"
+base_commit = "dda507e66024e8dc0333d05aa4ef86d228d32836"
+priority = "P0"
+serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the second agent mission worked through Atlas (cadence: within five generations of G123), closing the gap the composition routed as GAP-COMPONENT-PURPOSE (NA-COMPONENT-PURPOSE)"
+objective = "mission M2: census module documentation as DECLARED purpose; understand -> explain -> impact -> change -> verify -> benchmark -> recensus"
+writer = "coordinator (sole writer)"
+mission = ".atlas/evidence/agent/M2-component-purpose.json"
+evidence = ".atlas/evidence/agent/benchmark.json"
+self_recensus = ".atlas/evidence/census/G128/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 52aaa0fcaf = G127 post digest 4c711fd9... (dda507e660 adds only out-of-scope evidence)"
+atlas_first = "understand(subsystem:Core) measured the question (64 of 64 components without purpose, GAP-COMPONENT-PURPOSE); understand(path:adapter/src/semantic/rust) and explain(fn:emit_symbol) found the one SYMBOL emitter; impact bounded the change to 12 Adapter callers with no state readers"
+change = "SymbolIdentity.documentation (rustdoc summary and doc line count; DECLARED; outside identity_key): the file's //! text on a self definition at its root scope, /// text on the mod item's symbol; composition sets component purpose from the file's own text, else the declaring mod item's, else UNKNOWN; composed:purpose:* recensus totals; GAP-ITEM-DOCUMENTATION opened"
+manual_reads = "8 (4 implementation detail, 1 design alternative, 1 UNKNOWN: type use sites, 2 falsification: no existing self symbol, undocumented files confirmed)"
+gaps = "narrowed: GAP-COMPONENT-PURPOSE (0 to 89 of 124 components DECLARED; Core 64 to 14 without purpose); opened: GAP-ITEM-DOCUMENTATION (function purpose); hit again: GAP-TYPE-USE-SITES"
+challenge = "what is core/src/census/mod.rs for: Atlas answers UNKNOWN (no module documentation), never a guess from the path; confirmed by reading the file"
+verify = "HELD: no invariant broken, dropped, weakened or added; no dependency or authority change"
+benchmark = "16 of 16: B12 now DECLARED with SYMBOL evidence; B15 (undocumented component) UNKNOWN; B16 routes function purpose to GAP-ITEM-DOCUMENTATION"
+falsification = "7 mutants killed: composition ignores documentation; summary keeps every paragraph; documentation enters identity; mod-item text outranks the file's own; purpose named from the module path; gap counts every component; empty doc line dropped"
+deferred = "command evidence whose filter matches zero tests would be SATISFIED (G127 COMPATIBILITY matched 17): non-vacuity belongs to DEBT-VERIFICATION_EVIDENCE"
+debts = "DEBT-SEMANTIC-COMPOSITION last advance G128 (NA-COMPONENT-PURPOSE done; NA-ITEM-DOCUMENTATION queued)"
+proof = "PROVEN (post 5a3eba1a...): no new UNKNOWN obligation; SYMBOL records grow by the documented modules"
+
+[[generation.metric]]
+key = "typed_records"
+before = 114677
+after = 115248
+
+[[generation.metric]]
+key = "records:SYMBOL|atlas.rust.source-semantic.v1"
+before = 5352
+after = 5449
+
+[[generation.metric]]
+key = "composed:purpose:DECLARED"
+after = 89
+
+[[generation.metric]]
+key = "composed:purpose:UNKNOWN"
+after = 35
+
+[[generation.metric]]
+key = "composed:understanding_gap"
+before = 7
+after = 8

@@ -251,6 +251,7 @@ mod signature {
                     scope,
                     name: name.into(),
                     role: SymbolRole::Definition,
+                    documentation: None,
                 },
                 span: SourceSpan {
                     path: path.into(),

@@ -41,6 +41,21 @@ pub struct SymbolIdentity {
     /// one identity and one of them vanished from the graph.
     #[serde(default)]
     pub path: String,
+    /// G128 (mission M2): the documentation its author wrote on this symbol, DECLARED by the
+    /// author and never part of its identity. A file's own module documentation (`//!`) is
+    /// carried by a `self` definition at the file's root scope -- the spelling Rust gives the
+    /// current module from inside its file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub documentation: Option<Documentation>,
+}
+
+/// Rustdoc's summary of a doc comment (its first paragraph, lines joined by one space) and how
+/// many doc lines the comment has. Only literal doc text counts: `#[doc = include_str!(..)]` is
+/// not text this extractor read.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Documentation {
+    pub summary: String,
+    pub lines: usize,
 }
 
 impl SymbolIdentity {
@@ -86,6 +101,7 @@ mod tests {
             scope: SemanticScope::new(["tests"]),
             name: "report".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         assert_ne!(
             symbol("core/src/visual/mod.rs").identity_key(),
@@ -108,6 +124,7 @@ mod tests {
             scope: SemanticScope::new(["core", "widgets"]),
             name: "run".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let b = SymbolIdentity {
             scope: SemanticScope::new(["core", "engine"]),
@@ -125,6 +142,7 @@ mod tests {
             scope: SemanticScope::new(["core"]),
             name: "run".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let b = SymbolIdentity {
             role: SymbolRole::Reference,
@@ -142,6 +160,7 @@ mod tests {
             scope: SemanticScope::new(["core"]),
             name: "run".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let b = a.clone();
         assert_eq!(a.identity_key(), b.identity_key());

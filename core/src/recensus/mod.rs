@@ -363,6 +363,13 @@ impl CensusSnapshot {
         for edge in &model.architecture.dependencies {
             bump(&mut totals, format!("composed:dependency:{}", edge.verdict));
         }
+        // G128 (mission M2): how many components have a DECLARED purpose, how many UNKNOWN.
+        for component in &model.components {
+            bump(
+                &mut totals,
+                format!("composed:purpose:{}", component.purpose.status.as_str()),
+            );
+        }
 
         let closure = &report.dependency_closure;
         let mut edges: Vec<String> = closure

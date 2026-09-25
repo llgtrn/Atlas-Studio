@@ -264,6 +264,7 @@ mod tests {
                 scope,
                 name: "run".into(),
                 role: SymbolRole::Definition,
+                documentation: None,
             },
             span: SourceSpan {
                 path: "core/src/lib.rs".into(),

@@ -537,6 +537,7 @@ mod tests {
             scope: SemanticScope::new(Vec::<String>::new()),
             name: "known".into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         SemanticObservation::Symbol(SemanticRecordHeader {

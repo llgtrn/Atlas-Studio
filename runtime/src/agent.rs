@@ -270,7 +270,8 @@ materialize App {
 }
 "#;
 
-    const CORE_LIB: &str = "pub mod store;\npub fn helper(x: u64) -> u64 { x + 1 }\n";
+    const CORE_LIB: &str = "//! The shared core.\n/// Holds one count and persists it.\npub mod store;\n\
+                            pub fn helper(x: u64) -> u64 { x + 1 }\n";
     const STORE: &str = r#"pub struct Store { count: u64 }
 impl Store {
     pub fn new() -> Self { Store { count: 0 } }
@@ -289,7 +290,15 @@ fn run(s: &core::store::Store) { s.save(); }
 
     /// A two-crate git repository: `app` depends on `core`.
     fn fixture(name: &str, adl: &str, core_lib: &str) -> PathBuf {
-        fixture_with(name, adl, core_lib, BASE_LIB, BASE_MANIFEST, BASE_LOCK)
+        fixture_with(
+            name,
+            adl,
+            core_lib,
+            STORE,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        )
     }
 
     const BASE_LIB: &str = "pub fn zero() -> u64 { 0 }\n";
@@ -301,6 +310,7 @@ fn run(s: &core::store::Store) { s.save(); }
         name: &str,
         adl: &str,
         core_lib: &str,
+        store: &str,
         base_lib: &str,
         base_manifest: &str,
         base_lock: &str,
@@ -331,7 +341,7 @@ fn run(s: &core::store::Store) { s.save(); }
             ),
             ("Cargo.lock", lock.as_str()),
             ("core/src/lib.rs", core_lib),
-            ("core/src/store.rs", STORE),
+            ("core/src/store.rs", store),
             ("app/src/main.rs", MAIN),
             (".atlas/declared/system.adl", adl),
         ];
@@ -423,10 +433,51 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(store.module.as_deref(), Some("core::store"));
         assert_eq!(store.subsystem.as_deref(), Some("Core"));
         assert_eq!(store.depends_on.get("core/src/lib.rs"), Some(&1));
+        // G128: purpose is the author's documentation -- the file's own `//!` text, else the
+        // `///` text on the `mod` item declaring it -- and UNKNOWN without one, never a name.
+        let purpose = |path: &str| {
+            let c = model.components.iter().find(|c| c.path == path).unwrap();
+            (
+                c.purpose.status,
+                c.purpose.value.clone(),
+                c.purpose.evidence.len(),
+            )
+        };
         assert_eq!(
-            store.purpose.status,
-            EpistemicStatus::Unknown,
+            purpose("core/src/lib.rs"),
+            (
+                EpistemicStatus::Declared,
+                Some("The shared core.".into()),
+                1
+            )
+        );
+        assert_eq!(
+            purpose("core/src/store.rs"),
+            (
+                EpistemicStatus::Declared,
+                Some("Holds one count and persists it.".into()),
+                1
+            )
+        );
+        assert!(store.purpose.basis.contains("mod item"));
+        assert_eq!(
+            purpose("app/src/main.rs"),
+            (EpistemicStatus::Unknown, None, 0),
             "purpose is never named from identifiers"
+        );
+        let gap = model
+            .gaps
+            .iter()
+            .find(|g| g.id == "GAP-COMPONENT-PURPOSE")
+            .unwrap();
+        assert_eq!(
+            gap.magnitude,
+            model
+                .components
+                .iter()
+                .filter(|c| c.purpose.status == EpistemicStatus::Unknown)
+                .count(),
+            "the gap counts the components still without a purpose"
         );
         // Level 3: declared subsystems with declared responsibility and observed interface.
         let core = model.subsystems.iter().find(|s| s.name == "Core").unwrap();
@@ -653,6 +704,30 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(lens::verify(&before, &before).verdict, "HELD");
     }
 
+    /// G128: a module file's own `//!` documentation outranks the `///` on its `mod` item.
+    #[test]
+    fn a_module_file_s_own_documentation_outranks_its_declaration() {
+        let store = format!("//! Its own words.\n{STORE}");
+        let dir = fixture_with(
+            "ownwords",
+            ADL,
+            CORE_LIB,
+            &store,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        let model = world_model(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let store = model
+            .components
+            .iter()
+            .find(|c| c.path == "core/src/store.rs")
+            .unwrap();
+        assert_eq!(store.purpose.value.as_deref(), Some("Its own words."));
+        assert!(store.purpose.basis.contains("own documentation"));
+    }
+
     /// A crate that calls into a crate it has no Cargo path to: the call is a CONFLICT and the
     /// dependency invariant it contradicts is CONFLICT too, never OBSERVED.
     #[test]
@@ -665,6 +740,7 @@ fn run(s: &core::store::Store) { s.save(); }
             "nodep",
             &adl,
             CORE_LIB,
+            STORE,
             "pub fn zero() -> u64 { app_util::one() }\npub mod app_util { pub fn one() -> u64 { crate::zero() } }\n\
              pub fn reach() -> u64 { core::helper(1) }\n",
             "[package]\nname = \"base\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n\
@@ -856,13 +932,37 @@ fn run(s: &core::store::Store) { s.save(); }
                 .filter(|i| i.kind == InvariantKind::Authority)
                 .all(|i| i.status == EpistemicStatus::Inferred)
         );
-        // Purpose is declared or UNKNOWN, never named from an identifier.
-        assert!(
-            model
-                .components
-                .iter()
-                .all(|c| c.purpose.status == EpistemicStatus::Unknown)
-        );
+        // Purpose is declared or UNKNOWN, never named from an identifier: every DECLARED purpose
+        // is the summary of the documented SYMBOL record it cites (G128).
+        let documented: std::collections::BTreeMap<&str, &str> = report
+            .census
+            .typed_semantic_records
+            .iter()
+            .filter_map(|r| match r {
+                atlas_core::SemanticObservation::Symbol(h) => Some((
+                    h.record_id.as_str(),
+                    h.subject.documentation.as_ref()?.summary.as_str(),
+                )),
+                _ => None,
+            })
+            .collect();
+        let mut declared = 0;
+        for c in &model.components {
+            match c.purpose.status {
+                EpistemicStatus::Unknown => assert!(c.purpose.value.is_none()),
+                EpistemicStatus::Declared => {
+                    declared += 1;
+                    assert_eq!(
+                        c.purpose.value.as_deref(),
+                        documented.get(c.purpose.evidence[0].as_str()).copied(),
+                        "{}",
+                        c.path
+                    );
+                }
+                other => panic!("{}: purpose {other:?}", c.path),
+            }
+        }
+        assert!(declared > 0, "the workspace documents its modules");
         assert!(model.subsystems.iter().all(|s| matches!(
             s.responsibility.status,
             EpistemicStatus::Declared | EpistemicStatus::Unknown

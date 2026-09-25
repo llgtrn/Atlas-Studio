@@ -710,7 +710,7 @@ pub fn understand(
     }
     if unknowns.components_without_purpose > 0 {
         next_questions.push(format!(
-            "what are the {} components in scope for? (purpose not censused: GAP-COMPONENT-PURPOSE)",
+            "what are the {} undocumented components in scope for? (no module documentation: GAP-COMPONENT-PURPOSE)",
             unknowns.components_without_purpose
         ));
     }

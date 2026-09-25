@@ -367,3 +367,39 @@ pub fn is_panic_like_macro(mac: &syn::Macro) -> bool {
         )
     })
 }
+
+/// G128 (mission M2): the literal documentation in `attrs` (`///`, `//!` and `#[doc = "..."]`, in
+/// source order) as rustdoc's summary -- the first paragraph, its lines trimmed and joined by one
+/// space -- and the number of doc lines. `None` when no literal doc text is present: a
+/// `#[doc = include_str!(..)]` names text this extractor did not read.
+pub fn documentation(attrs: &[syn::Attribute]) -> Option<atlas_core::Documentation> {
+    let mut lines: Vec<String> = Vec::new();
+    for attr in attrs {
+        if !attr.path().is_ident("doc") {
+            continue;
+        }
+        let syn::Meta::NameValue(meta) = &attr.meta else {
+            continue;
+        };
+        let syn::Expr::Lit(syn::ExprLit {
+            lit: syn::Lit::Str(text),
+            ..
+        }) = &meta.value
+        else {
+            continue;
+        };
+        // `split`, not `lines`: an empty `//!` line is one empty doc line, a paragraph break.
+        lines.extend(text.value().split('\n').map(|line| line.trim().to_owned()));
+    }
+    let summary = lines
+        .iter()
+        .skip_while(|line| line.is_empty())
+        .take_while(|line| !line.is_empty())
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+        .join(" ");
+    (!summary.is_empty()).then_some(atlas_core::Documentation {
+        summary,
+        lines: lines.len(),
+    })
+}

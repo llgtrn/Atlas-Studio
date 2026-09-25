@@ -312,6 +312,7 @@ mod tests {
             scope: scope.clone(),
             name: name.into(),
             role: SymbolRole::Definition,
+            documentation: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &subject.identity_key());
         SemanticObservation::Symbol(SemanticRecordHeader {

@@ -38,7 +38,7 @@ Around these levels sit:
 ### Epistemic rules
 
 1. **Status and evidence on every claim.** Every composed claim carries an `EpistemicStatus` and the record ids, spans or manifests it rests on.
-2. **Purpose.** Purpose comes only from a declaration (an ADL `responsibility`); otherwise it is `UNKNOWN`. It is never named from an identifier, a path or a file name.
+2. **Purpose.** Purpose comes only from a declaration: an ADL `responsibility` for a subsystem, or, for a component, the documentation its author wrote (G128: the file's own `//!` text, else the `///` text on the `mod` item declaring it, censused as DECLARED text on SYMBOL records outside their identity). A declared purpose is the author's statement, never checked against behavior. Otherwise it is `UNKNOWN`. It is never named from an identifier, a path or a file name.
 3. **Universal claims.** A claim such as "written only by" or "originates only in" is `DERIVED` only when the dimension it ranges over is `OBSERVED` on every artifact in scope. Otherwise it is `INFERRED`, and its residual names the files with unproven coverage and the unresolved call sites.
 4. **Dependency invariants.** "A cannot invoke B" is `OBSERVED` from the Cargo closure only when no dependency path exists. Any resolved call from A to B turns it into `CONFLICT`, with that call as evidence.
 5. **Absence.** "No path observed" or "no effect observed" is `UNKNOWN` while unresolved call sites exist. It is never reported as absence.

@@ -101,6 +101,7 @@ impl SemanticExtractor for FixtureSymbolExtractor {
                     scope: SemanticScope::new(["fixture"]),
                     name: "known".into(),
                     role: SymbolRole::Definition,
+                    documentation: None,
                 };
                 let record_id =
                     SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());

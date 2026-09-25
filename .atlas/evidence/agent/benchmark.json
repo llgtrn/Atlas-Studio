@@ -161,10 +161,10 @@
       "core/src/composition/mod.rs"
     ],
     "expect": [
-      "UNKNOWN"
+      "DECLARED"
     ],
-    "manual_alternative": "read the module documentation (not censused)",
-    "class": "UNKNOWN_HONESTY"
+    "manual_alternative": "read the module documentation by hand (censused as DECLARED text since G128)",
+    "class": "PURPOSE"
   },
   {
     "id": "B13",
@@ -193,5 +193,32 @@
     ],
     "manual_alternative": "read both Cargo manifests and search for cross-crate paths",
     "class": "INVARIANT"
+  },
+  {
+    "id": "B15",
+    "question": "What is core/src/census/mod.rs for?",
+    "op": "component_purpose",
+    "args": [
+      "core/src/census/mod.rs"
+    ],
+    "expect": [
+      "UNKNOWN"
+    ],
+    "manual_alternative": "guess from the file name (forbidden: purpose is never named from identifiers; the file has no module documentation)",
+    "class": "UNKNOWN_HONESTY"
+  },
+  {
+    "id": "B16",
+    "question": "What is ExtractionContext::emit_symbol for?",
+    "op": "gap",
+    "args": [
+      "GAP-ITEM-DOCUMENTATION"
+    ],
+    "expect": [
+      "GAP-ITEM-DOCUMENTATION",
+      "DEBT-SEMANTIC-COMPOSITION"
+    ],
+    "manual_alternative": "read the function's doc comment by hand (item documentation is not carried yet)",
+    "class": "UNKNOWN_HONESTY"
   }
 ]
