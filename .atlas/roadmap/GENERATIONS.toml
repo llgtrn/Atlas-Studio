@@ -1070,6 +1070,7 @@ objective = "derive filesystem EFFECT sites from path calls resolved to standard
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0032-effects-from-resolved-std-paths.md"
 self_recensus = ".atlas/evidence/census/G77/recensus.json"
+result_commits = ["0bf29e010eab4aaa43e5c416c125aaec5fc9dd68", "b2f5175fc2d3e1148459c0b5c52e646c3c5ff0f9"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 2f41a48af7 = G76 post digest 2107f20d... (be5237641f adds only out-of-scope evidence)"
@@ -1081,3 +1082,23 @@ proof = "PROVEN (post 824c81d1...); a first PROVEN run (post 3a8366a3...) preced
 
 [generation.next]
 objective = "G78 (P3): first-50 #16 clef"
+
+[[generation]]
+id = "G78"
+base_commit = "b2f5175fc2d3e1148459c0b5c52e646c3c5ff0f9"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #16 clef to a terminal state"
+objective = "falsify language-service type resolution against Atlas's residual CALL gap (method calls), decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/16-clef.json"
+self_recensus = ".atlas/evidence/census/G78/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 0bf29e010e = G77 post digest 824c81d1... (b2f5175fc2 adds only out-of-scope evidence)"
+falsification = "0 F# sources in the census scope; CCS is not standalone (sibling Composer/BAREWire/Fidelity.Data absent); F# member lookup is not Rust's method probe. Residual gap measured: 10,776 method calls (8,586 std, 1,937 workspace); 595 `self.m()` calls reach a workspace inherent method -- decidable natively when receiver forms match (the probe's first step)"
+no_code_change = "no clef mechanism justified; the only in-scope change is the pinned deleted-donor list; the self.m() slice becomes G79 (P0)"
+extinction_note = "git rm removed 403 tracked files; 3 untracked donor files the donor's own .gitignore had hidden (.serena config, FSStrings.resx) were deleted too, so no donor bytes remain"
+proof = "PROVEN on the first run (post add04efc...)"
+
+[generation.next]
+objective = "G79 (P0): resolve self.m() method calls to the unique inherent method of the impl's self type when receiver forms match exactly, verified against SCIP; then differential-dataflow (#17)"

@@ -451,3 +451,14 @@ plus a targeted deep read of the five requested mechanisms; it is not a full lin
 `Baker/`, `Nanopass/`, or the ~25 `PSGSaturation/SemanticGraph/*` saturation-pass modules, which
 remain uncensused at the mechanism level beyond the summary given in "Major Subsystem Roots" and the
 PSG-boundary mechanism section above.
+
+## G78 — terminal REFERENCE_ONLY; source extinct
+
+After G75, the residual CALL gap is method calls, which need the receiver's type. The hypothesis was language-service type resolution. Three findings rule it out:
+- **No workload:** Atlas's census scope has no F#.
+- **Not buildable:** CCS builds only inside the sibling Composer solution, against absent BAREWire and Fidelity.Data checkouts.
+- **Wrong algorithm:** F#'s .NET member lookup is not Rust's method probe (autoderef steps, by-value then autoref, inherent before trait).
+
+Measured instead: 10,776 method calls in Atlas. Of these, 595 are `self.m()` calls to a workspace inherent method. When the caller's receiver form equals the inherent method's, the probe selects that method at its first step, which is decidable natively. That is planned as G79 (P0).
+
+The checkout (403 files) was physically deleted. Evidence: `../../evidence/campaign/16-clef.json`.

@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 11
+campaign_terminal = 12
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 7
 absorbed = 7
-reference_only = 6
+reference_only = 7
 external_boundary = 1
 rejected = 0
 deferred = 0
-extinct = 14
-remaining = 36
-next_donor = "clef"
-next_step = "G78 (P3): clef (#16)"
+extinct = 15
+remaining = 35
+next_donor = "differential-dataflow"
+next_step = "G79 (P0): resolve self.m() method calls by the method probe's first step (clef-cycle input); then differential-dataflow (#17)"
 
 [[donor]]
 ordinal = 1
@@ -283,13 +283,15 @@ canonical_url = "https://github.com/FidelityFramework/clef.git"
 serves = "P0"
 target_capability = "compiler frontend type resolution"
 mechanism_hypothesis = "language-service style resolution for semantic depth"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "dotnet: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+completed_in = "G78"
+evidence = ".atlas/evidence/campaign/16-clef.json"
+note = "no F# workload, not standalone, F# member lookup is not Rust's method probe; the residual method-call gap has a bounded native slice (self.m(), 595 calls) planned as G79; source physically deleted"
 
 [[donor]]
 ordinal = 17

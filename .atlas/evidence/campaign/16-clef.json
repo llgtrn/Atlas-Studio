@@ -1,0 +1,28 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 16,
+ "donor": "clef",
+ "commit_sha": "e94fa905f7f13c2b8216b355e9d84b17dceef5c8",
+ "generation": "G78",
+ "base_commit": "b2f5175fc2",
+ "hypothesis": "language-service style (compiler-frontend) type resolution for semantic depth -- after G75, the residual CALL gap is method calls, which need the receiver's type",
+ "measurement": {
+  "workload": "0 F# sources (.fs/.fsi/.fsx) in Atlas's census scope; an F# frontend would have nothing to census",
+  "buildability": "CCS is not standalone: it builds only inside the sibling Composer solution, with ProjectReferences to sibling BAREWire and Fidelity.Data checkouts that are absent (.atlas/census/donors/clef.md)",
+  "mechanism_fit": "F# member resolution is .NET nominal lookup after Hindley-Milner inference; Rust method resolution is the method probe (autoderef steps, by-value then autoref, inherent before trait at each step) over trait impls -- a different algorithm, and the full probe is hir-ty's (REFERENCE_ONLY since G75)",
+  "residual_gap": "10,776 method calls (rust-analyzer SCIP at exact anchors): 8,586 to std, 1,937 to workspace functions; 595 are `self.m()` calls to a workspace inherent method (121 more to trait-impl methods), 74 `self.field.m()`",
+  "bounded_native_opportunity": "a `self.m()` receiver has the enclosing impl's self type without inference; when the caller's receiver form (self / &self / &mut self) equals the unique inherent method's receiver form, the method probe selects that inherent method at its first step, ahead of every trait method -- decidable natively on top of G75's DefMap and impl index",
+  "method": "syn enumeration of F# files and of method-call receivers; SCIP join at the method-name anchor"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["CCS type checker and language service (F#/.NET, no workload, not standalone)"],
+  "p0_input": "G79 candidate (P0): resolve `self.m()` method calls to the unique inherent method of the impl's self type when receiver forms match exactly (the method probe's first step), verified against SCIP"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/clef (403 tracked files, 7.6 MB)"
+ }
+}

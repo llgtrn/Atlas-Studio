@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #16 clef: no F# workload, not standalone, F# member lookup is not Rust's method probe; REFERENCE_ONLY; the residual method-call gap's bounded native slice (self.m(), 595 calls) becomes G79; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

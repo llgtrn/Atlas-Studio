@@ -449,6 +449,7 @@ mod tests {
             [
                 "ast-grep",
                 "blake3",
+                "clef",
                 "datafrog",
                 "glean",
                 "joern",
