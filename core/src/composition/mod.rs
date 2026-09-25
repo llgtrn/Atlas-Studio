@@ -206,6 +206,42 @@ pub struct FunctionBehavior {
     /// its FUNCTION_IDENTITY record; UNKNOWN without one.
     #[serde(default = "Claim::undocumented_function")]
     pub purpose: Claim,
+    /// G141 (mission M5): for a trait method declaration, the methods implementing it; for an
+    /// implementing method, the declaration it implements. INFERRED name joins (`DISPATCHES_TO`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dispatches_to: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dispatched_from: Vec<String>,
+}
+
+/// G141: the trait a method belongs to and its name, from its scope: `trait:<Trait>` for a
+/// declaration or default body, `impl:<path::Trait<..>> for <Type>` for an implementation (any
+/// module prefix before either is ignored). `None` for every other function.
+pub fn trait_method_key(f: &FunctionBehavior) -> Option<(String, String, bool)> {
+    trait_method_key_of(&f.kind, &f.scope, &f.name)
+}
+
+fn trait_method_key_of(kind: &str, scope: &str, name: &str) -> Option<(String, String, bool)> {
+    let declaration = match kind {
+        "TRAIT_METHOD_DECLARATION" | "TRAIT_DEFAULT_METHOD" => true,
+        "TRAIT_IMPLEMENTATION_METHOD" => false,
+        _ => return None,
+    };
+    let marker = if declaration { "trait:" } else { "impl:" };
+    let starts: Vec<usize> = scope.match_indices(marker).map(|(i, _)| i).collect();
+    let start = *starts
+        .iter()
+        .rev()
+        .find(|&&i| i == 0 || scope[..i].ends_with("::"))?;
+    let rest = &scope[start + marker.len()..];
+    let spelling = if declaration {
+        rest
+    } else {
+        rest.split_once(" for ")?.0
+    };
+    let spelling = spelling.split('<').next()?.trim();
+    let trait_name = spelling.rsplit("::").next()?.trim();
+    (!trait_name.is_empty()).then(|| (trait_name.to_owned(), name.to_owned(), declaration))
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -340,6 +376,14 @@ pub enum RelationKind {
     SuppliesData,
     /// `from` writes state that `to` reads (no ordering between them is claimed).
     StateFlow,
+    /// G141 (mission M5): `from`, a trait method declaration, dispatches to `to`, a method that
+    /// implements it. INFERRED: the impl names its trait by spelling and exactly one workspace
+    /// declaration has that trait name and method name.
+    DispatchesTo,
+    /// G141 (mission M5): `from` defines the closure region `to` (DERIVED from the closure's
+    /// scope, G133). Not an invocation: a trace through it is INFERRED, since a defined closure
+    /// may or may not run.
+    Encloses,
 }
 
 impl RelationKind {
@@ -348,6 +392,8 @@ impl RelationKind {
             Self::Invokes => "INVOKES",
             Self::SuppliesData => "SUPPLIES_DATA",
             Self::StateFlow => "STATE_FLOW",
+            Self::DispatchesTo => "DISPATCHES_TO",
+            Self::Encloses => "ENCLOSES",
         }
     }
 }
@@ -567,6 +613,8 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     control: ControlSummary::default(),
                     records: 0,
                     enclosing: None,
+                    dispatches_to: Vec::new(),
+                    dispatched_from: Vec::new(),
                     purpose: match &f.symbol.documentation {
                         Some(documentation) => Claim {
                             value: Some(documentation.summary.clone()),
@@ -852,6 +900,71 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
             }
         }
     }
+    // G141 (mission M5): a trait method declaration dispatches to the methods implementing it.
+    let mut declarations: BTreeMap<(String, String), Vec<&str>> = BTreeMap::new();
+    let mut implementations: Vec<(&str, (String, String), &str)> = Vec::new();
+    for f in functions.values() {
+        if let Some((name, method, declaration)) = trait_method_key(f) {
+            if declaration {
+                declarations
+                    .entry((name, method))
+                    .or_default()
+                    .push(f.id.as_str());
+            } else {
+                implementations.push((f.id.as_str(), (name, method), f.scope.as_str()));
+            }
+        }
+    }
+    let mut dispatch: Vec<(String, String, String)> = Vec::new();
+    for (implementation, key, scope) in implementations {
+        if let Some([declaration]) = declarations.get(&key).map(Vec::as_slice) {
+            dispatch.push((
+                (*declaration).to_owned(),
+                implementation.to_owned(),
+                format!(
+                    "`{scope}` names trait `{}`, and exactly one workspace declaration of `{}` \
+                     belongs to a trait of that name (name join, INFERRED)",
+                    key.0, key.1
+                ),
+            ));
+        }
+    }
+    for f in functions.values() {
+        if let Some(enclosing) = &f.enclosing {
+            relations
+                .entry((RelationKind::Encloses, enclosing.clone(), f.id.clone()))
+                .or_insert_with(|| Relation {
+                    kind: RelationKind::Encloses,
+                    from: enclosing.clone(),
+                    to: f.id.clone(),
+                    status: EpistemicStatus::Derived,
+                    weight: 1,
+                    evidence: vec![format!("closure region scoped `{}`", f.scope)],
+                });
+        }
+    }
+    for (declaration, implementation, evidence) in &dispatch {
+        relations
+            .entry((
+                RelationKind::DispatchesTo,
+                declaration.clone(),
+                implementation.clone(),
+            ))
+            .or_insert_with(|| Relation {
+                kind: RelationKind::DispatchesTo,
+                from: declaration.clone(),
+                to: implementation.clone(),
+                status: EpistemicStatus::Inferred,
+                weight: 1,
+                evidence: vec![evidence.clone()],
+            });
+        if let Some(f) = functions.get_mut(declaration) {
+            push_unique(&mut f.dispatches_to, implementation);
+        }
+        if let Some(f) = functions.get_mut(implementation) {
+            push_unique(&mut f.dispatched_from, declaration);
+        }
+    }
     let relations: Vec<Relation> = relations.into_values().collect();
     for relation in &relations {
         if relation.kind != RelationKind::Invokes {
@@ -867,6 +980,7 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
     for f in functions.values_mut() {
         f.calls.sort();
         f.callers.sort();
+        f.dispatches_to.sort();
         f.effects
             .sort_by(|a, b| (a.line, &a.kind).cmp(&(b.line, &b.kind)));
         f.state
@@ -1661,6 +1775,52 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn trait_method_keys_read_the_scope() {
+        let key = |kind: &str, scope: &str| trait_method_key_of(kind, scope, "m");
+        let t =
+            |name: &str, declaration: bool| Some((name.to_owned(), "m".to_owned(), declaration));
+        assert_eq!(
+            key("TRAIT_METHOD_DECLARATION", "trait:Extractor"),
+            t("Extractor", true)
+        );
+        assert_eq!(
+            key("TRAIT_DEFAULT_METHOD", "outer::trait:Extractor"),
+            t("Extractor", true)
+        );
+        assert_eq!(
+            key("TRAIT_IMPLEMENTATION_METHOD", "impl:Extractor for Rust"),
+            t("Extractor", false)
+        );
+        // A module prefix, a pathed trait and generic arguments all reduce to the trait's name.
+        assert_eq!(
+            key(
+                "TRAIT_IMPLEMENTATION_METHOD",
+                "production_wiring_tests::impl:adapter::Extractor for Fixture"
+            ),
+            t("Extractor", false)
+        );
+        assert_eq!(
+            key(
+                "TRAIT_IMPLEMENTATION_METHOD",
+                "extend::impl:Leaper<'leap, Tuple, Val> for ExtendWith<'leap, Key>"
+            ),
+            t("Leaper", false)
+        );
+        // A trait impl nested in a method body: the innermost impl is the one that counts.
+        assert_eq!(
+            key(
+                "TRAIT_IMPLEMENTATION_METHOD",
+                "impl:Outer::fn build::impl:Tr for Inner"
+            ),
+            t("Tr", false)
+        );
+        // An inherent method, a free function or an impl without ` for ` has no trait.
+        assert_eq!(key("INHERENT_METHOD", "impl:Store"), None);
+        assert_eq!(key("FREE_FUNCTION", ""), None);
+        assert_eq!(key("TRAIT_IMPLEMENTATION_METHOD", "impl:Store"), None);
+    }
 
     #[test]
     fn module_paths_follow_the_rust_module_file_convention() {

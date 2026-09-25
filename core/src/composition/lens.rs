@@ -605,13 +605,17 @@ pub fn understand(
             ("IN", component_of(&index, &r.from))
         };
         let bucket = match r.kind {
-            RelationKind::Invokes => &mut calls,
+            RelationKind::Invokes | RelationKind::DispatchesTo | RelationKind::Encloses => {
+                &mut calls
+            }
             RelationKind::SuppliesData | RelationKind::StateFlow => &mut data,
         };
-        let label = if r.kind == RelationKind::StateFlow {
-            format!("{direction}:STATE_FLOW")
-        } else {
-            direction.to_owned()
+        let label = match r.kind {
+            RelationKind::StateFlow => format!("{direction}:STATE_FLOW"),
+            // G141: an interface's dispatch to an implementation, kept apart from resolved calls.
+            RelationKind::DispatchesTo => format!("{direction}:DISPATCHES_TO"),
+            RelationKind::Encloses => format!("{direction}:ENCLOSES"),
+            _ => direction.to_owned(),
         };
         *bucket.entry((label, other)).or_default() += r.weight;
     }
@@ -1087,7 +1091,12 @@ pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trac
     };
     let mut steps = Vec::new();
     let mut cursor = end;
+    // G141: a path is as strong as its weakest relation (a DISPATCHES_TO step is INFERRED).
+    let mut status = EpistemicStatus::Derived;
     while let Some(r) = previous.get(&cursor) {
+        if r.status != EpistemicStatus::Derived || r.kind == RelationKind::Encloses {
+            status = EpistemicStatus::Inferred;
+        }
         steps.push(TraceStep {
             from: index.label(&r.from),
             relation: r.kind.as_str().into(),
@@ -1099,9 +1108,16 @@ pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trac
     steps.reverse();
     Ok(Trace {
         verdict: TraceVerdict::PathObserved,
-        status: EpistemicStatus::Derived,
+        status,
         steps,
-        note: "each step is a resolved relation; no step implies causation (GAP-CAUSALITY)".into(),
+        note: if status == EpistemicStatus::Derived {
+            "each step is a resolved relation; no step implies causation (GAP-CAUSALITY)".into()
+        } else {
+            "at least one step is inferred (a name-joined trait dispatch, or a closure the \
+             function defines, which may or may not run); no step implies causation \
+             (GAP-CAUSALITY)"
+                .into()
+        },
     })
 }
 

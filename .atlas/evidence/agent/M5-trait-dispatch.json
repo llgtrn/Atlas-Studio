@@ -1,0 +1,112 @@
+{
+  "schema": "atlas.agent.mission.v1",
+  "id": "M5",
+  "generation": "G141",
+  "mission": "make the understanding of G140's dynamic calls usable: 'can the census pipeline reach the Rust extractor, and who calls RustSemanticExtractor::extract?' must be answerable through the agent interface, with the certainty stated",
+  "pilot": "coding agent (the AI); Atlas as the worn semantic body",
+  "base_commit": "9576a96a54b9d795cbb2df3ebbbd41f733031bb6",
+  "atlas_first_sequence": [
+    {
+      "op": "explain",
+      "target": "fn:extract",
+      "answered": "six implementations of SemanticExtractor::extract, every one with 0 callers; the trait declaration with 1 caller (G140's DYNAMIC_PARTIAL call): the declaration-to-implementation link is missing (GAP-TRAIT-IMPLEMENTATIONS)"
+    },
+    {
+      "op": "trace",
+      "target": "fn:extract_semantics_cached -> fn:RustSemanticExtractor::extract",
+      "answered": "NO_PATH_OBSERVED, UNKNOWN (44 unresolved call sites at the origin)"
+    },
+    {
+      "op": "trace",
+      "target": "fn:extract_with_panic_isolation -> fn:RustSemanticExtractor::extract",
+      "answered": "still no path after the dispatch link: the dynamic call lives in a closure handed to catch_unwind, and nothing connects a function to the closures it defines (GAP-CLOSURE-ENCLOSURE)"
+    },
+    {
+      "op": "explain",
+      "target": "fn:extract_with_panic_isolation",
+      "answered": "its calls and its 7 unresolved callee names (catch_unwind, AssertUnwindSafe, ...): the closure's invocation is external"
+    },
+    {
+      "op": "trace (after)",
+      "target": "fn:extract_with_panic_isolation -> fn:RustSemanticExtractor::extract",
+      "answered": "PATH_OBSERVED, INFERRED: ENCLOSES -> INVOKES (DYNAMIC_PARTIAL) -> DISPATCHES_TO"
+    }
+  ],
+  "atlas_knew": [
+    "that the six extract implementations had no caller and the declaration had one",
+    "the dynamic call's site and its enclosing closure region",
+    "the closure's enclosing function (G133), unused by any relation",
+    "the scope spelling of every implementation and declaration, from which the join is made"
+  ],
+  "unknown": [
+    "which implementation actually runs (DISPATCHES_TO names every candidate the name join finds; the runtime choice is not observed)",
+    "implementations of foreign traits (Display, Visit, Serialize: 68 of 121 implementation methods) have no workspace declaration and stay unlinked",
+    "whether a defined closure runs (ENCLOSES is not an invocation)",
+    "the datafrog M4 path (Iteration::changed through `for variable in self.variables.iter_mut()`): the receiver is a for-loop binding, whose type needs inference; G140's rule does not reach it"
+  ],
+  "manual_source_reads": [
+    {
+      "what": "core/src/composition/mod.rs relation construction and closure enclosing derivation (about 90 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the edit targets"
+    },
+    {
+      "what": "core/src/composition/lens.rs trace and MissionContext flow bucketing (about 70 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the edit targets"
+    },
+    {
+      "what": "core/src/composition/closure.rs oracle relation rule (about 30 lines)",
+      "reason": "FALSIFICATION: a name-joined relation can change without a changed endpoint, so the closure needed a rule"
+    },
+    {
+      "what": "runtime/src/agent.rs benchmark ops and fixtures (about 60 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the benchmark op and the test fixture"
+    }
+  ],
+  "manual_reads_summary": {
+    "reads": 4,
+    "implementation_detail": 3,
+    "unknown": 0,
+    "falsification": 1,
+    "lines_read": "about 250 lines in 4 files; no read driven by an UNKNOWN"
+  },
+  "gaps": [
+    {
+      "id": "GAP-TRAIT-IMPLEMENTATIONS",
+      "status": "NARROWED",
+      "fix": "DISPATCHES_TO (INFERRED name join, unique key only): 53 implementation methods linked to 17 declarations on the self census; FunctionBehavior.dispatches_to / dispatched_from",
+      "remains": "a DERIVED link needs the resolver to resolve an impl's trait path; foreign traits stay unlinked",
+      "debt": "DEBT-SEMANTIC-COMPOSITION"
+    },
+    {
+      "id": "GAP-CLOSURE-ENCLOSURE",
+      "status": "CLOSED",
+      "fix": "ENCLOSES from each function to its closure regions (DERIVED from the G133 scope), INFERRED in a trace",
+      "debt": "DEBT-SEMANTIC-COMPOSITION"
+    },
+    {
+      "id": "GAP-LOOP-BINDING-RECEIVERS",
+      "status": "OPENED",
+      "note": "datafrog's Iteration::changed dispatch goes through a for-loop binding; receiver types from iteration need inference",
+      "debt": "DEBT-CALL (NA-CALL-TYPE-RESIDUAL)"
+    }
+  ],
+  "measured": {
+    "dispatch_links": "53 DISPATCHES_TO relations (17 declarations, 53 of 121 implementation methods; the other 68 implement foreign traits)",
+    "trace": "extract_with_panic_isolation -> RustSemanticExtractor::extract: NO_PATH_OBSERVED/UNKNOWN before, PATH_OBSERVED/INFERRED (3 steps) after",
+    "benchmark": "19 of 19 (B19 new)",
+    "manual_reads": "M1 7, M2 8, M3 4, M4 4, M5 4 (none UNKNOWN-driven)"
+  },
+  "challenge": "who calls RustSemanticExtractor::extract? Atlas answers: no resolved caller; the declaration SemanticExtractor::extract dispatches to it (INFERRED), and that declaration is called (DYNAMIC_PARTIAL) from a closure extract_with_panic_isolation defines -- never 'nobody', never a guess about which extractor runs",
+  "falsification": [
+    "MF1 the name join not required to be unique: killed",
+    "MF2 dispatch recorded DERIVED: killed",
+    "MF3 an enclosure counted as an invocation in a trace: killed",
+    "MF4 no closure rule R5 (a same-named trait dissolving links elsewhere): killed",
+    "MF5 the first scope marker read instead of the last: killed",
+    "MF6 generic arguments kept in the trait name: killed"
+  ],
+  "benchmark": {
+    "cases": 19,
+    "correct": 19
+  }
+}

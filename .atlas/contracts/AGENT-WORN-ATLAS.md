@@ -31,7 +31,11 @@ MISSION ─▶ understand(target, mission) ─▶ MissionContext ─▶ AI decid
 
 Around these levels sit:
 
-- **Typed relations.** `INVOKES`, `SUPPLIES_DATA` and `STATE_FLOW`. None of them implies cause, ordering or authority.
+- **Typed relations.** `INVOKES`, `SUPPLIES_DATA`, `STATE_FLOW`, and (G141, mission M5) two more:
+  - `DISPATCHES_TO`, from a trait method declaration to each implementing method. It is INFERRED: the impl's spelled trait name joins the one workspace declaration of that trait name and method, and there is no link when the join is ambiguous.
+  - `ENCLOSES`, from a function to the closure regions it defines. It is DERIVED from the closure's scope, but it is not an invocation.
+
+  A trace through either is INFERRED. None of these relations implies cause, ordering or authority.
 - **Typed invariants.** The kinds are `STATE`, `ORDERING`, `DEPENDENCY`, `AUTHORITY`, `RESOURCE`, `SAFETY` and `CONSTRUCTION`, each with a status, evidence and a residual.
 - **`UnderstandingGap` records.** Each names a question class Atlas cannot answer yet and the debt that owns it.
 

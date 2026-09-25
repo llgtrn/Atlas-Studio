@@ -192,6 +192,22 @@ pub fn impact_closure(
             }
         }
     }
+    // R5 (G141): a trait method declaration dispatches to the implementations its trait name and
+    // method name join with; a seed declaration or implementation can add, remove or (by making
+    // the join ambiguous) dissolve such links anywhere, so every method sharing its key is
+    // affected.
+    let keys: BTreeSet<(String, String)> = before_seed
+        .iter()
+        .chain(&after_seed)
+        .filter_map(|f| super::trait_method_key(f).map(|(t, m, _)| (t, m)))
+        .collect();
+    if !keys.is_empty() {
+        for f in &before.functions {
+            if super::trait_method_key(f).is_some_and(|(t, m, _)| keys.contains(&(t, m))) {
+                add(&f.id, "R5_TRAIT_DISPATCH", &mut affected);
+            }
+        }
+    }
     if global {
         for f in &before.functions {
             add(&f.id, "GLOBAL", &mut affected);

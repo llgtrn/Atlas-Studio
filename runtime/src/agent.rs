@@ -223,6 +223,13 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
             let trace = lens::trace(model, arg(0)?, arg(1)?)?;
             (vec![trace.verdict.to_string()], trace.steps.len())
         }
+        // G141 (mission M5): the verdict, the path's status and its relation kinds.
+        "trace_status" => {
+            let trace = lens::trace(model, arg(0)?, arg(1)?)?;
+            let mut answer = vec![trace.verdict.to_string(), trace.status.as_str().to_owned()];
+            answer.extend(trace.steps.iter().map(|s| s.relation.clone()));
+            (answer, trace.steps.len())
+        }
         "impact_candidates" => {
             let frontier = lens::impact(model, &[arg(0)?])?.frontier;
             let mut answer = vec![format!("candidates:{}", frontier.candidate_sites > 0)];
@@ -1144,6 +1151,87 @@ fn run(s: &core::store::Store) { s.save(); }
         let (_, silent) = run("integrity-silent", &layered, Some(&seeded_envelope));
         assert_eq!(silent.verdict, IntegrityVerdict::Rejected);
         assert_ne!(clean_envelope.envelope_id, seeded_envelope.envelope_id);
+    }
+
+    /// G141 (mission M5): a trait method declaration dispatches (INFERRED) to the methods that
+    /// implement it, a function encloses its closures, and `trace` follows both to an
+    /// implementation with an INFERRED path; a second trait of the same name dissolves the join,
+    /// and the impact closure of that change still holds the full recompute (rule R5).
+    #[test]
+    fn dispatch_and_enclosure_carry_a_trace_to_the_implementation() {
+        let traited = format!(
+            "{STORE}pub trait Saver {{\n    fn persist(&self);\n}}\n\
+             impl Saver for Store {{\n    fn persist(&self) {{}}\n}}\n\
+             pub fn go(s: &dyn Saver) {{\n    let run = || s.persist();\n    run();\n}}\n"
+        );
+        let model = |name: &str, base_lib: &str| {
+            let dir = fixture_with(
+                name,
+                ADL,
+                CORE_LIB,
+                &traited,
+                base_lib,
+                BASE_MANIFEST,
+                BASE_LOCK,
+            );
+            let model = world_model(&dir).unwrap();
+            std::fs::remove_dir_all(&dir).unwrap();
+            model
+        };
+        let before = model("dispatch-before", BASE_LIB);
+        let find = |m: &WorldModel, kind: &str, name: &str| {
+            m.functions
+                .iter()
+                .find(|f| f.kind == kind && f.name == name)
+                .unwrap()
+                .id
+                .clone()
+        };
+        let declaration = find(&before, "TRAIT_METHOD_DECLARATION", "persist");
+        let implementation = find(&before, "TRAIT_IMPLEMENTATION_METHOD", "persist");
+        let dispatch = before
+            .relations
+            .iter()
+            .find(|r| r.kind == atlas_core::composition::RelationKind::DispatchesTo)
+            .unwrap();
+        assert_eq!(
+            (&dispatch.from, &dispatch.to),
+            (&declaration, &implementation)
+        );
+        assert_eq!(dispatch.status, EpistemicStatus::Inferred);
+        assert!(before.relations.iter().any(|r| r.kind
+            == atlas_core::composition::RelationKind::Encloses
+            && r.from == function(&before, "go").id));
+        let trace = lens::trace(&before, "fn:go", "fn:Store::persist").unwrap();
+        assert_eq!(trace.verdict, "PATH_OBSERVED", "{trace:?}");
+        assert_eq!(trace.status, EpistemicStatus::Inferred);
+        let relations: Vec<&str> = trace.steps.iter().map(|s| s.relation.as_str()).collect();
+        assert_eq!(relations, ["ENCLOSES", "INVOKES", "DISPATCHES_TO"]);
+        // Through the closure alone, to the declaration: still INFERRED (it may never run).
+        let to_declaration = lens::trace(&before, "fn:go", "fn:persist").unwrap();
+        let relations: Vec<&str> = to_declaration
+            .steps
+            .iter()
+            .map(|s| s.relation.as_str())
+            .collect();
+        assert_eq!(relations, ["ENCLOSES", "INVOKES"]);
+        assert_eq!(to_declaration.status, EpistemicStatus::Inferred);
+        // Another crate declares a trait of the same name and method: the join is ambiguous.
+        let after = model(
+            "dispatch-after",
+            &format!("{BASE_LIB}pub trait Saver {{\n    fn persist(&self);\n}}\n"),
+        );
+        assert!(
+            !after
+                .relations
+                .iter()
+                .any(|r| r.kind == atlas_core::composition::RelationKind::DispatchesTo)
+        );
+        let (before, after) = (normalize(&before), normalize(&after));
+        let result = closure::impact_closure(&before, &after, &["base/src/lib.rs".to_owned()]);
+        let oracle = closure::oracle(&result, &before, &after);
+        assert_eq!(oracle.verdict, "SOUND", "{oracle:#?}");
+        assert!(result.rules.contains_key("R5_TRAIT_DISPATCH"));
     }
 
     /// G130 (NA-CONSTRAINT-NONGROUND): invariants quantified over census truth are decided over

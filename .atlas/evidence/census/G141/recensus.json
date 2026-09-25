@@ -1,0 +1,268 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G141",
+  "base_revision": "f397b6400fc95bd3fb2fe6ecdcaaf44b61873b1b",
+  "candidate_revision": "9576a96a54b9d795cbb2df3ebbbd41f733031bb6",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:ed46f126c96bbfcb252d30445aaf02619492ac6597e142dec7ab0e87eb9f5e60",
+  "after_census_digest": "blake3-256:b67f3730f3c509e2cb3fa0f40c6378fea611cc71f301807b2f1753e3a363a933",
+  "replay_digest": "blake3-256:b67f3730f3c509e2cb3fa0f40c6378fea611cc71f301807b2f1753e3a363a933",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 23,
+      "fact:FunctionSignature|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 27,
+      "fact:Type|DERIVED": 1,
+      "fact:Type|OBSERVED": 2,
+      "record:CALL|DERIVED": 15,
+      "record:CALL|OBSERVED": 139,
+      "record:CONTROL_FLOW|INFERRED": 20,
+      "record:CONTROL_FLOW|OBSERVED": 47,
+      "record:DATA_FLOW|OBSERVED": 271,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 21,
+      "record:FUNCTION_IDENTITY|OBSERVED": 23,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 4,
+      "record:OWNERSHIP|OBSERVED": 70,
+      "record:SYMBOL|OBSERVED": 27,
+      "record:TYPE|DERIVED": 1,
+      "record:TYPE|OBSERVED": 2
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 929,
+    "graph_nodes": 677
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/`impl:RelationKind`/as_str()."
+      ],
+      "after": [
+        "core composition/`impl:RelationKind`/as_str()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/closure/impact_closure()."
+      ],
+      "after": [
+        "core composition/closure/impact_closure()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/trace()."
+      ],
+      "after": [
+        "core composition/lens/trace()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/understand()."
+      ],
+      "after": [
+        "core composition/lens/understand()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/answer()."
+      ],
+      "after": [
+        "runtime agent/answer()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/tests/trait_method_keys_read_the_scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/trait_method_key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/trait_method_key_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/dispatch_and_enclosure_carry_a_trace_to_the_implementation()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "agent mission M5: trait method declarations dispatch (INFERRED name join) to their implementations and functions enclose their closure regions, so a trace from the census pipeline reaches RustSemanticExtractor::extract (PATH_OBSERVED, INFERRED); impact closure rule R5",
+    "changed_paths": [
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:DISPATCHES_TO",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core composition/`impl:RelationKind`/as_str().",
+      "CHANGED core composition/closure/impact_closure().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core composition/lens/trace().",
+      "CHANGED core composition/lens/understand().",
+      "CHANGED runtime agent/answer().",
+      "CREATED core composition/tests/trait_method_keys_read_the_scope().",
+      "CREATED core composition/trait_method_key().",
+      "CREATED core composition/trait_method_key_of().",
+      "CREATED runtime agent/tests/dispatch_and_enclosure_carry_a_trace_to_the_implementation()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path runtime/src/agent.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:DISPATCHES_TO",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED core composition/`impl:RelationKind`/as_str().",
+    "entity CHANGED core composition/closure/impact_closure().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core composition/lens/trace().",
+    "entity CHANGED core composition/lens/understand().",
+    "entity CHANGED runtime agent/answer().",
+    "entity CREATED core composition/tests/trait_method_keys_read_the_scope().",
+    "entity CREATED core composition/trait_method_key().",
+    "entity CREATED core composition/trait_method_key_of().",
+    "entity CREATED runtime agent/tests/dispatch_and_enclosure_carry_a_trace_to_the_implementation()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

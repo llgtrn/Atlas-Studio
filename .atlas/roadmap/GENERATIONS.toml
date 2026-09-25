@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G140"
+current_generation = "G141"
 
 [[generation]]
 id = "G35"
@@ -2921,3 +2921,45 @@ after = 5478
 key = "composed:relation:INVOKES"
 before = 3874
 after = 3898
+
+[[generation]]
+id = "G141"
+kind = "AGENT_MISSION"
+base_commit = "9576a96a54b9d795cbb2df3ebbbd41f733031bb6"
+priority = "P0"
+serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the fifth agent mission (cadence: within five generations of G136), making G140's dynamic calls usable for understanding"
+objective = "mission M5: 'can the census pipeline reach the Rust extractor, and who calls RustSemanticExtractor::extract?' answered through the agent interface with its certainty"
+writer = "coordinator (sole writer)"
+mission = ".atlas/evidence/agent/M5-trait-dispatch.json"
+evidence = ".atlas/evidence/agent/benchmark.json"
+self_recensus = ".atlas/evidence/census/G141/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 81054fb991 = G140 post digest (the evidence commit 9576a96a54 adds only out-of-scope evidence)"
+atlas_first = "explain(extract) showed six implementations with 0 callers and a declaration with 1 (G140's dynamic call); trace from the pipeline answered UNKNOWN; after the dispatch link, trace still stopped at the closure handed to catch_unwind -- a second gap found by the interface, not by reading"
+change = "core::composition: RelationKind::DispatchesTo (declaration -> implementation, INFERRED name join on a unique (trait, method) key) and RelationKind::Encloses (function -> closure region, DERIVED from the G133 scope); FunctionBehavior.dispatches_to / dispatched_from; trait_method_key; lens trace status is the weakest step (ENCLOSES counts as INFERRED) with a truthful note; MissionContext flows label both; impact closure rule R5_TRAIT_DISPATCH; benchmark op trace_status and case B19; contract AGENT-WORN-ATLAS"
+manual_reads = "4 (3 implementation detail, 1 falsification: the oracle's relation rule showed a name-joined relation can change without a changed endpoint); none driven by an UNKNOWN"
+gaps = "narrowed: GAP-TRAIT-IMPLEMENTATIONS (53 links, INFERRED; a DERIVED link needs the resolver); closed: GAP-CLOSURE-ENCLOSURE; opened: GAP-LOOP-BINDING-RECEIVERS (datafrog's dispatch goes through a for-loop binding)"
+challenge = "who calls RustSemanticExtractor::extract: no resolved caller; SemanticExtractor::extract dispatches to it (INFERRED), called DYNAMIC_PARTIAL from a closure extract_with_panic_isolation defines"
+falsification = "6 mutants killed: the name join not unique; dispatch recorded DERIVED; an enclosure counted as an invocation; no closure rule R5; the first scope marker read; generic arguments kept in the trait name"
+benchmark = "19 of 19 (B19: PATH_OBSERVED, INFERRED, ENCLOSES -> INVOKES -> DISPATCHES_TO)"
+debts = "DEBT-SEMANTIC-COMPOSITION last advance G141"
+proof = "PROVEN (post b67f3730...): no new UNKNOWN obligation; composed:relation:DISPATCHES_TO and ENCLOSES appear"
+
+[[generation.metric]]
+key = "typed_records"
+before = 144632
+after = 145273
+
+[[generation.metric]]
+key = "composed:relation"
+before = 7736
+after = 10512
+
+[[generation.metric]]
+key = "composed:relation:DISPATCHES_TO"
+after = 53
+
+[[generation.metric]]
+key = "composed:relation:ENCLOSES"
+after = 2701

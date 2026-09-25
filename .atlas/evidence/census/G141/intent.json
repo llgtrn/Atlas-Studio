@@ -1,0 +1,51 @@
+{
+  "objective": "agent mission M5: trait method declarations dispatch (INFERRED name join) to their implementations and functions enclose their closure regions, so a trace from the census pipeline reaches RustSemanticExtractor::extract (PATH_OBSERVED, INFERRED); impact closure rule R5",
+  "changed_paths": [
+    "core/src/composition/closure.rs",
+    "core/src/composition/lens.rs",
+    "core/src/composition/mod.rs",
+    "runtime/src/agent.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:DISPATCHES_TO",
+    "+composed:relation:ENCLOSES",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.resolution.rust-paths",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+records:TYPE|atlas.resolution.rust-paths",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED core composition/`impl:RelationKind`/as_str().",
+    "CHANGED core composition/closure/impact_closure().",
+    "CHANGED core composition/compose_input().",
+    "CHANGED core composition/lens/trace().",
+    "CHANGED core composition/lens/understand().",
+    "CHANGED runtime agent/answer().",
+    "CREATED core composition/tests/trait_method_keys_read_the_scope().",
+    "CREATED core composition/trait_method_key().",
+    "CREATED core composition/trait_method_key_of().",
+    "CREATED runtime agent/tests/dispatch_and_enclosure_carry_a_trace_to_the_implementation()."
+  ],
+  "adl_changes": []
+}

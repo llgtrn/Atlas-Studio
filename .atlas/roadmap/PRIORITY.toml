@@ -605,9 +605,14 @@ objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL second step (done, 
 [[planned_generation]]
 id = "G141"
 priority = "P0"
-objective = "AGENT_MISSION: the fifth mission through the agent interface (cadence: within five generations of G136)"
+objective = "AGENT_MISSION: the fifth mission through the agent interface (cadence: within five generations of G136) (done: mission M5, trait dispatch and closure enclosure relations; the census pipeline traces to the Rust extractor, INFERRED; 4 manual reads, none UNKNOWN-driven; 6 mutants killed; benchmark 19 of 19)"
 
 [[planned_generation]]
-id = "G142+"
+id = "G142"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL"
+
+[[planned_generation]]
+id = "G143+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

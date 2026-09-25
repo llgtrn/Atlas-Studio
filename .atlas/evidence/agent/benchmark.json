@@ -1,249 +1,267 @@
 [
-  {
-    "id": "B01",
-    "question": "Which subsystem owns the function `compose`?",
-    "op": "fn_subsystem",
-    "args": [
-      "fn:compose"
-    ],
-    "expect": [
-      "Core"
-    ],
-    "manual_alternative": "locate the definition by search and map its path to a crate and an ADL entity",
-    "class": "OWNERSHIP"
-  },
-  {
-    "id": "B02",
-    "question": "Can Core ever invoke Runtime?",
-    "op": "hypothesis",
-    "args": [
-      "never-invokes:Core:Runtime"
-    ],
-    "expect": [
-      "VALIDATED"
-    ],
-    "manual_alternative": "read core/Cargo.toml and its transitive manifests; grep for runtime paths in core",
-    "class": "DEPENDENCY"
-  },
-  {
-    "id": "B03",
-    "question": "Why can the CLI call Core functions without depending on Core?",
-    "op": "dependency_verdict",
-    "args": [
-      "AtlasCli",
-      "Core"
-    ],
-    "expect": [
-      "TRANSITIVE_VIA_REEXPORT",
-      "DERIVED"
-    ],
-    "manual_alternative": "read apps/cli/Cargo.toml, runtime's pub use re-exports and the CLI call sites",
-    "class": "DEPENDENCY"
-  },
-  {
-    "id": "B04",
-    "question": "Which functions can mutate Hasher.cv_stack_len, and is the list proven complete?",
-    "op": "state_writers",
-    "args": [
-      "Hasher.cv_stack_len"
-    ],
-    "expect": [
-      "push_stack",
-      "pop_stack",
-      "INFERRED"
-    ],
-    "manual_alternative": "read every impl block of Hasher in core/src/identity/blake3.rs",
-    "class": "STATE"
-  },
-  {
-    "id": "B05",
-    "question": "Does read_snapshot read the filesystem?",
-    "op": "hypothesis",
-    "args": [
-      "effect:read_snapshot:FILESYSTEM_READ"
-    ],
-    "expect": [
-      "VALIDATED"
-    ],
-    "manual_alternative": "read runtime/src/recensus.rs and follow its std calls",
-    "class": "EFFECT"
-  },
-  {
-    "id": "B06",
-    "question": "Does the CALL walker's call-site walk lead to the CALL record emitter?",
-    "op": "trace",
-    "args": [
-      "fn:ExtractionContext::walk_call_like",
-      "fn:ExtractionContext::emit_call"
-    ],
-    "expect": [
-      "PATH_OBSERVED"
-    ],
-    "manual_alternative": "read adapter/src/semantic/rust/mod.rs around both functions",
-    "class": "DATA_INFLUENCE"
-  },
-  {
-    "id": "B07",
-    "question": "What else may call Index::label, and what can Atlas not see?",
-    "op": "impact_candidates",
-    "args": [
-      "fn:Index::label"
-    ],
-    "expect": [
-      "candidates:true",
-      "GAP-UNRESOLVED-CALLEE"
-    ],
-    "manual_alternative": "grep every `.label(` call in the workspace and inspect each receiver (closure bodies are censused since G133)",
-    "class": "IMPACT"
-  },
-  {
-    "id": "B08",
-    "question": "What is the minimal source set and entry surface for changing how self-recensus snapshots are taken?",
-    "op": "understand_scope",
-    "args": [
-      "path:runtime/src/recensus.rs"
-    ],
-    "expect": [
-      "components:1",
-      "snapshot",
-      "read_snapshot"
-    ],
-    "manual_alternative": "read runtime/src/recensus.rs, then grep its callers across the workspace",
-    "class": "MINIMAL_SOURCE_SET"
-  },
-  {
-    "id": "B09",
-    "question": "Which functions realize the declared capability ObserveRepository?",
-    "op": "capability_realization",
-    "args": [
-      "ObserveRepository"
-    ],
-    "expect": [
-      "UNKNOWN"
-    ],
-    "manual_alternative": "guess from module names (forbidden: purpose is never named from identifiers)",
-    "class": "UNKNOWN_HONESTY"
-  },
-  {
-    "id": "B10",
-    "question": "What resource lifetimes cross the Adapter/Runtime boundary?",
-    "op": "gap",
-    "args": [
-      "GAP-RESOURCE"
-    ],
-    "expect": [
-      "GAP-RESOURCE",
-      "DEBT-RESOURCE"
-    ],
-    "manual_alternative": "read ownership and Drop implementations by hand",
-    "class": "UNKNOWN_HONESTY"
-  },
-  {
-    "id": "B11",
-    "question": "What causes a CALL record to be emitted?",
-    "op": "gap",
-    "args": [
-      "GAP-CAUSALITY"
-    ],
-    "expect": [
-      "GAP-CAUSALITY",
-      "DEBT-CAUSALITY"
-    ],
-    "manual_alternative": "argue causation from call order by reading source",
-    "class": "UNKNOWN_HONESTY"
-  },
-  {
-    "id": "B12",
-    "question": "What is core/src/composition/mod.rs for?",
-    "op": "component_purpose",
-    "args": [
-      "core/src/composition/mod.rs"
-    ],
-    "expect": [
-      "DECLARED"
-    ],
-    "manual_alternative": "read the module documentation by hand (censused as DECLARED text since G128)",
-    "class": "PURPOSE"
-  },
-  {
-    "id": "B13",
-    "question": "Why does the Adapter subsystem exist?",
-    "op": "subsystem_responsibility",
-    "args": [
-      "Adapter"
-    ],
-    "expect": [
-      "repository_observation",
-      "DECLARED"
-    ],
-    "manual_alternative": "read .atlas/declared/system.adl",
-    "class": "PURPOSE"
-  },
-  {
-    "id": "B14",
-    "question": "Which invariant separates Core from Adapter?",
-    "op": "why",
-    "args": [
-      "subsystem:Core",
-      "subsystem:Adapter"
-    ],
-    "expect": [
-      "INV-DEPENDENCY:Core->Adapter|OBSERVED"
-    ],
-    "manual_alternative": "read both Cargo manifests and search for cross-crate paths",
-    "class": "INVARIANT"
-  },
-  {
-    "id": "B15",
-    "question": "What is core/src/census/mod.rs for?",
-    "op": "component_purpose",
-    "args": [
-      "core/src/census/mod.rs"
-    ],
-    "expect": [
-      "UNKNOWN"
-    ],
-    "manual_alternative": "guess from the file name (forbidden: purpose is never named from identifiers; the file has no module documentation)",
-    "class": "UNKNOWN_HONESTY"
-  },
-  {
-    "id": "B16",
-    "question": "What is ExtractionContext::emit_symbol for?",
-    "op": "gap",
-    "args": [
-      "GAP-ITEM-DOCUMENTATION"
-    ],
-    "expect": [
-      "GAP-ITEM-DOCUMENTATION",
-      "DEBT-SEMANTIC-COMPOSITION"
-    ],
-    "manual_alternative": "read the function's doc comment by hand (item documentation is not carried yet)",
-    "class": "UNKNOWN_HONESTY"
-  },
-  {
-    "id": "B17",
-    "question": "What is ExtractionContext::emit_documented_symbol for?",
-    "op": "function_purpose",
-    "args": [
-      "fn:ExtractionContext::emit_documented_symbol"
-    ],
-    "expect": [
-      "DECLARED"
-    ],
-    "manual_alternative": "read the function's doc comment by hand (carried as DECLARED text since G132)",
-    "class": "PURPOSE"
-  },
-  {
-    "id": "B18",
-    "question": "What is ExtractionContext::emit_symbol for?",
-    "op": "function_purpose",
-    "args": [
-      "fn:ExtractionContext::emit_symbol"
-    ],
-    "expect": [
-      "UNKNOWN"
-    ],
-    "manual_alternative": "guess from the function name (forbidden: purpose is never named from identifiers; the function has no documentation)",
-    "class": "UNKNOWN_HONESTY"
-  }
+ {
+  "id": "B01",
+  "question": "Which subsystem owns the function `compose`?",
+  "op": "fn_subsystem",
+  "args": [
+   "fn:compose"
+  ],
+  "expect": [
+   "Core"
+  ],
+  "manual_alternative": "locate the definition by search and map its path to a crate and an ADL entity",
+  "class": "OWNERSHIP"
+ },
+ {
+  "id": "B02",
+  "question": "Can Core ever invoke Runtime?",
+  "op": "hypothesis",
+  "args": [
+   "never-invokes:Core:Runtime"
+  ],
+  "expect": [
+   "VALIDATED"
+  ],
+  "manual_alternative": "read core/Cargo.toml and its transitive manifests; grep for runtime paths in core",
+  "class": "DEPENDENCY"
+ },
+ {
+  "id": "B03",
+  "question": "Why can the CLI call Core functions without depending on Core?",
+  "op": "dependency_verdict",
+  "args": [
+   "AtlasCli",
+   "Core"
+  ],
+  "expect": [
+   "TRANSITIVE_VIA_REEXPORT",
+   "DERIVED"
+  ],
+  "manual_alternative": "read apps/cli/Cargo.toml, runtime's pub use re-exports and the CLI call sites",
+  "class": "DEPENDENCY"
+ },
+ {
+  "id": "B04",
+  "question": "Which functions can mutate Hasher.cv_stack_len, and is the list proven complete?",
+  "op": "state_writers",
+  "args": [
+   "Hasher.cv_stack_len"
+  ],
+  "expect": [
+   "push_stack",
+   "pop_stack",
+   "INFERRED"
+  ],
+  "manual_alternative": "read every impl block of Hasher in core/src/identity/blake3.rs",
+  "class": "STATE"
+ },
+ {
+  "id": "B05",
+  "question": "Does read_snapshot read the filesystem?",
+  "op": "hypothesis",
+  "args": [
+   "effect:read_snapshot:FILESYSTEM_READ"
+  ],
+  "expect": [
+   "VALIDATED"
+  ],
+  "manual_alternative": "read runtime/src/recensus.rs and follow its std calls",
+  "class": "EFFECT"
+ },
+ {
+  "id": "B06",
+  "question": "Does the CALL walker's call-site walk lead to the CALL record emitter?",
+  "op": "trace",
+  "args": [
+   "fn:ExtractionContext::walk_call_like",
+   "fn:ExtractionContext::emit_call"
+  ],
+  "expect": [
+   "PATH_OBSERVED"
+  ],
+  "manual_alternative": "read adapter/src/semantic/rust/mod.rs around both functions",
+  "class": "DATA_INFLUENCE"
+ },
+ {
+  "id": "B07",
+  "question": "What else may call Index::label, and what can Atlas not see?",
+  "op": "impact_candidates",
+  "args": [
+   "fn:Index::label"
+  ],
+  "expect": [
+   "candidates:true",
+   "GAP-UNRESOLVED-CALLEE"
+  ],
+  "manual_alternative": "grep every `.label(` call in the workspace and inspect each receiver (closure bodies are censused since G133)",
+  "class": "IMPACT"
+ },
+ {
+  "id": "B08",
+  "question": "What is the minimal source set and entry surface for changing how self-recensus snapshots are taken?",
+  "op": "understand_scope",
+  "args": [
+   "path:runtime/src/recensus.rs"
+  ],
+  "expect": [
+   "components:1",
+   "snapshot",
+   "read_snapshot"
+  ],
+  "manual_alternative": "read runtime/src/recensus.rs, then grep its callers across the workspace",
+  "class": "MINIMAL_SOURCE_SET"
+ },
+ {
+  "id": "B09",
+  "question": "Which functions realize the declared capability ObserveRepository?",
+  "op": "capability_realization",
+  "args": [
+   "ObserveRepository"
+  ],
+  "expect": [
+   "UNKNOWN"
+  ],
+  "manual_alternative": "guess from module names (forbidden: purpose is never named from identifiers)",
+  "class": "UNKNOWN_HONESTY"
+ },
+ {
+  "id": "B10",
+  "question": "What resource lifetimes cross the Adapter/Runtime boundary?",
+  "op": "gap",
+  "args": [
+   "GAP-RESOURCE"
+  ],
+  "expect": [
+   "GAP-RESOURCE",
+   "DEBT-RESOURCE"
+  ],
+  "manual_alternative": "read ownership and Drop implementations by hand",
+  "class": "UNKNOWN_HONESTY"
+ },
+ {
+  "id": "B11",
+  "question": "What causes a CALL record to be emitted?",
+  "op": "gap",
+  "args": [
+   "GAP-CAUSALITY"
+  ],
+  "expect": [
+   "GAP-CAUSALITY",
+   "DEBT-CAUSALITY"
+  ],
+  "manual_alternative": "argue causation from call order by reading source",
+  "class": "UNKNOWN_HONESTY"
+ },
+ {
+  "id": "B12",
+  "question": "What is core/src/composition/mod.rs for?",
+  "op": "component_purpose",
+  "args": [
+   "core/src/composition/mod.rs"
+  ],
+  "expect": [
+   "DECLARED"
+  ],
+  "manual_alternative": "read the module documentation by hand (censused as DECLARED text since G128)",
+  "class": "PURPOSE"
+ },
+ {
+  "id": "B13",
+  "question": "Why does the Adapter subsystem exist?",
+  "op": "subsystem_responsibility",
+  "args": [
+   "Adapter"
+  ],
+  "expect": [
+   "repository_observation",
+   "DECLARED"
+  ],
+  "manual_alternative": "read .atlas/declared/system.adl",
+  "class": "PURPOSE"
+ },
+ {
+  "id": "B14",
+  "question": "Which invariant separates Core from Adapter?",
+  "op": "why",
+  "args": [
+   "subsystem:Core",
+   "subsystem:Adapter"
+  ],
+  "expect": [
+   "INV-DEPENDENCY:Core->Adapter|OBSERVED"
+  ],
+  "manual_alternative": "read both Cargo manifests and search for cross-crate paths",
+  "class": "INVARIANT"
+ },
+ {
+  "id": "B15",
+  "question": "What is core/src/census/mod.rs for?",
+  "op": "component_purpose",
+  "args": [
+   "core/src/census/mod.rs"
+  ],
+  "expect": [
+   "UNKNOWN"
+  ],
+  "manual_alternative": "guess from the file name (forbidden: purpose is never named from identifiers; the file has no module documentation)",
+  "class": "UNKNOWN_HONESTY"
+ },
+ {
+  "id": "B16",
+  "question": "What is ExtractionContext::emit_symbol for?",
+  "op": "gap",
+  "args": [
+   "GAP-ITEM-DOCUMENTATION"
+  ],
+  "expect": [
+   "GAP-ITEM-DOCUMENTATION",
+   "DEBT-SEMANTIC-COMPOSITION"
+  ],
+  "manual_alternative": "read the function's doc comment by hand (item documentation is not carried yet)",
+  "class": "UNKNOWN_HONESTY"
+ },
+ {
+  "id": "B17",
+  "question": "What is ExtractionContext::emit_documented_symbol for?",
+  "op": "function_purpose",
+  "args": [
+   "fn:ExtractionContext::emit_documented_symbol"
+  ],
+  "expect": [
+   "DECLARED"
+  ],
+  "manual_alternative": "read the function's doc comment by hand (carried as DECLARED text since G132)",
+  "class": "PURPOSE"
+ },
+ {
+  "id": "B18",
+  "question": "What is ExtractionContext::emit_symbol for?",
+  "op": "function_purpose",
+  "args": [
+   "fn:ExtractionContext::emit_symbol"
+  ],
+  "expect": [
+   "UNKNOWN"
+  ],
+  "manual_alternative": "guess from the function name (forbidden: purpose is never named from identifiers; the function has no documentation)",
+  "class": "UNKNOWN_HONESTY"
+ },
+ {
+  "id": "B19",
+  "question": "Can the census pipeline's panic-isolated extraction reach RustSemanticExtractor::extract, and how sure is Atlas?",
+  "op": "trace_status",
+  "args": [
+   "fn:extract_with_panic_isolation",
+   "fn:RustSemanticExtractor::extract"
+  ],
+  "expect": [
+   "PATH_OBSERVED",
+   "INFERRED",
+   "ENCLOSES",
+   "INVOKES",
+   "DISPATCHES_TO"
+  ],
+  "manual_alternative": "read extract_with_panic_isolation, see the closure handed to catch_unwind, see the dyn SemanticExtractor call inside it, and search the workspace for impls of SemanticExtractor (before G140 and G141 Atlas answered UNKNOWN: no path among resolved relations)",
+  "class": "TRACE"
+ }
 ]
