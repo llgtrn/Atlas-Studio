@@ -1,3 +1,0 @@
-load(":defs.bzl", "has_default")
-
-has_default(name = "target")

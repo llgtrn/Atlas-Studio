@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #18 buck2: DICE keyed invalidation REFERENCE_ONLY (not needed at G80's measured scale); DICE branching DEFERRED to AIF1 (frozen), re-admitted from the pinned commit; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

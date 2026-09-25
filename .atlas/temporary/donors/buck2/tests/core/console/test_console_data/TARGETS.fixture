@@ -1,3 +1,0 @@
-load(":defs.bzl", "slow_genrule")
-
-slow_genrule(name = "slow")

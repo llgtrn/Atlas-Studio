@@ -47,3 +47,11 @@ named W3-lane donors (Salsa, datafrog, differential-dataflow, souffle, buck2/Dic
 coarse-censused with at least one real mechanism record each, an actual R5 design synthesis is a
 well-evidenced, plausible next step for this lane.
 
+
+## G81 — terminal DEFERRED; source extinct
+
+DICE has two mechanisms, decided separately:
+- **Keyed computations with version-based invalidation** (the salsa shape): REFERENCE_ONLY. G80 measured that Atlas's workload does not need them. A median 3 of about 117 artifacts change per generation, a full recensus takes about 7.8 s, and extraction is already memoizable (ADR 0008).
+- **Branching** (fork / lazy parent-delegated resolution): DEFERRED. It maps to AIF1, which is frozen, and will be re-admitted from the pinned commit `78ec517305d8214d6160f6c99b1d0a3554879878` when AIF1 design needs it.
+
+The checkout (10,216 files, 97 MB) was physically deleted, and the DC1 real-donor test keeps 9 of 15 Cargo donors. Evidence: `../evidence/campaign/18-buck2.json`.

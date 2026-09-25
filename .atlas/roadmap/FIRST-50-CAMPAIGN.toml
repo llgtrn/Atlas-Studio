@@ -15,7 +15,7 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 13
+campaign_terminal = 14
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 7
@@ -23,11 +23,11 @@ absorbed = 7
 reference_only = 8
 external_boundary = 1
 rejected = 0
-deferred = 0
-extinct = 16
-remaining = 34
-next_donor = "buck2"
-next_step = "G81 (P3): buck2 (#18) -- DICE keyed computation graph and invalidation (P4)"
+deferred = 1
+extinct = 17
+remaining = 33
+next_donor = "egglog"
+next_step = "G82 (P3): egglog (#19) -- e-graph equivalence for normalization conflicts (P0)"
 
 [[donor]]
 ordinal = 1
@@ -317,13 +317,15 @@ canonical_url = "https://github.com/facebook/buck2.git"
 serves = "P4"
 target_capability = "build-graph incrementality"
 mechanism_hypothesis = "DICE keyed computation graph and invalidation"
-materialization_mode = "SPARSE_CHECKOUT (dice/)"
+materialization_mode = "n/a (source deleted; re-fetch pinned commit on AIF1 re-admission)"
 dependency_expectation = "none beyond workspace"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "DEFERRED"
 terminal_goal = "DEFERRED_WITH_CONCRETE_BLOCKER (AIF1)"
-note = "census COARSE_CENSUSED, decision ABSORB_LATER"
+completed_in = "G81"
+evidence = ".atlas/evidence/campaign/18-buck2.json"
+note = "DICE keyed invalidation REFERENCE_ONLY (not needed at G80's measured scale); DICE branching DEFERRED to AIF1 (frozen), re-admitted from the pinned commit; source physically deleted"
 
 [[donor]]
 ordinal = 19

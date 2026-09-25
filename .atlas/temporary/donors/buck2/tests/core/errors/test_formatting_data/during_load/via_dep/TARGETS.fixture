@@ -1,4 +1,0 @@
-stub(
-    name = "via_dep",
-    deps = ["//during_load:get"],
-)

@@ -1,5 +1,0 @@
-load(":defs.bzl", "builds")
-
-oncall("build_infra")
-
-builds(name = "tests")

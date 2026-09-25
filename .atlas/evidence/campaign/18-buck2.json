@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 18,
+ "donor": "buck2",
+ "commit_sha": "78ec517305d8214d6160f6c99b1d0a3554879878",
+ "generation": "G81",
+ "base_commit": "1c4c3f2f4c",
+ "hypothesis": "DICE keyed computation graph and invalidation for build-graph incrementality (P4)",
+ "measurement": {
+  "keyed_invalidation": "DICE's core (keyed computations, recorded dependencies, version-based invalidation with early cutoff) is the salsa shape; G80 measured that Atlas's edit-to-recensus workload does not need it -- a median 3 of ~117 artifacts change per generation, a full self-recensus takes ~7.8 s, extraction (~3.8 s) is already memoizable per artifact (ADR 0008), and the large invalidations are analyzer changes no dependency tracker avoids",
+  "branching": "DICE's branch-tree / fork / lazy parent-delegated resolution maps to AIF1 (multi-AI concurrent speculative CandidateAtlas branches, cross-cutting R6->R8), re-confirmed in GENERATIONS.toml; Atlas has no native branching concept to attach it to, and AIF1 is a frozen secondary workload",
+  "method": "G80's workload measurement; the recorded AIF1 mapping; extinction trial with the checkout moved away"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["DICE keyed computations and invalidation (not needed at measured scale; salsa's memoization already absorbed as ADR 0008)"],
+  "DEFERRED": "DICE branching, until AIF1 design work needs a concurrent-branch state mechanism; re-admission re-fetches the pinned commit 78ec517305d8214d6160f6c99b1d0a3554879878"
+ },
+ "terminal_state": "DEFERRED",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "one of the DC1 real-donor Cargo workspaces; with it absent 9 of 15 known Cargo donors remain (threshold 7); adapter dependency tests pass with the checkout moved away (69/69)",
+  "why_not_kept": "a 97 MB checkout held for a frozen workload violates the bounded working set; the pinned commit makes re-materialization exact",
+  "action": "git rm -r .atlas/temporary/donors/buck2 (10,216 tracked files, 97 MB)"
+ }
+}

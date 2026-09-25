@@ -1,4 +1,0 @@
-trivial_build(name = "build_success")
-
-fail_build(name = "fail1")
-fail_build(name = "fail2")

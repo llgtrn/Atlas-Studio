@@ -1,4 +1,0 @@
-stub(
-    name = "b",
-    visibility = ["PUBLIC"],
-)

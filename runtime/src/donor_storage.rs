@@ -449,6 +449,7 @@ mod tests {
             [
                 "ast-grep",
                 "blake3",
+                "buck2",
                 "clef",
                 "datafrog",
                 "differential-dataflow",

@@ -1,1 +1,0 @@
-config_setting(name = "setting", visibility = ["PUBLIC"])
