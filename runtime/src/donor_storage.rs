@@ -477,6 +477,7 @@ mod tests {
                 "souffle",
                 "sourcetrail",
                 "tree-sitter",
+                "wasm-spec",
                 "xdsl",
                 "zstd"
             ]

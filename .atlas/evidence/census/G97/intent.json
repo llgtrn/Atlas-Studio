@@ -1,0 +1,17 @@
+{
+  "objective": "P3 first-50 #33 wasm-spec: type canonicalization native since G83; the wire contract pins section_flags = 0 (every section required) and the reader-steps test now asserts the flagged-section and unknown-section-type refusals; REFERENCE_ONLY; checkout physically extinct",
+  "changed_paths": [
+    "core/src/atlas/tests.rs",
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED core atlas/tests/reader_steps_reject_with_their_reason().",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

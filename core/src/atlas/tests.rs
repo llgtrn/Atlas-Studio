@@ -172,8 +172,19 @@ fn reader_steps_reject_with_their_reason() {
         rejected(&with(20, &[0u8; 32])),
         "header genome hash differs from the root manifest"
     );
-    // Swapping two directory entries breaks the canonical directory order.
+    // Every section is required (G97): a flagged section or an unknown section type is refused,
+    // never skipped.
     let dir = u64_at(&bytes, 52) as usize;
+    let last = dir + (u64_at(&bytes, 60) as usize / DIRECTORY_ENTRY_LEN - 1) * DIRECTORY_ENTRY_LEN;
+    assert_eq!(
+        rejected(&with(dir + 2, &1u16.to_le_bytes())),
+        "non-zero section flags or reserved field"
+    );
+    assert_eq!(
+        rejected(&with(last, &18u16.to_le_bytes())),
+        "unknown section type 18"
+    );
+    // Swapping two directory entries breaks the canonical directory order.
     let mut swapped = bytes.clone();
     let (a, b) = (dir, dir + DIRECTORY_ENTRY_LEN);
     let first = swapped[a..a + DIRECTORY_ENTRY_LEN].to_vec();

@@ -1,0 +1,112 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G97",
+  "base_revision": "c85ea766f84c5f25c98c2c4101b110885c1c30ef",
+  "candidate_revision": "80c74308b8adc407b6ae85adf805e8f1c92621db",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:a14c705d136a6c1138974fa0bd94cb674841d670870db242e14faf0d6eab1156",
+  "after_census_digest": "blake3-256:9a314e77b423b5c09f39642329ebaa72188bab0dcba08b84ed172538baa8cd08",
+  "replay_digest": "blake3-256:9a314e77b423b5c09f39642329ebaa72188bab0dcba08b84ed172538baa8cd08",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "counts": {
+      "record:CALL|DERIVED": 1,
+      "record:CALL|OBSERVED": 1,
+      "record:DATA_FLOW|OBSERVED": 6,
+      "record:OWNERSHIP|OBSERVED": 1
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 14,
+    "graph_nodes": 9
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/reader_steps_reject_with_their_reason()."
+      ],
+      "after": [
+        "core atlas/tests/reader_steps_reject_with_their_reason()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1295,
+    "total_after": 1295
+  },
+  "intent": {
+    "objective": "P3 first-50 #33 wasm-spec: type canonicalization native since G83; the wire contract pins section_flags = 0 (every section required) and the reader-steps test now asserts the flagged-section and unknown-section-type refusals; REFERENCE_ONLY; checkout physically extinct",
+    "changed_paths": [
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "total_changes": [
+      "+evidence",
+      "+graph_edges",
+      "+graph_nodes",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core atlas/tests/reader_steps_reject_with_their_reason().",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/atlas/tests.rs",
+    "path runtime/src/donor_storage.rs",
+    "total +evidence",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +typed_records",
+    "entity CHANGED core atlas/tests/reader_steps_reject_with_their_reason().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

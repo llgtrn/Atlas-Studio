@@ -226,3 +226,12 @@ pseudocode single-pass stack-machine type-checker), the sectioned binary format,
 declarative-rules/algorithm/binary-encoding separation, all read from real source under `document/core/valid/`,
 `document/core/binary/`, and `document/core/appendix/algorithm.rst`, explicitly scoped to Atlas's
 verify-then-encode pipeline donor gap and explicitly declining to recommend Wasm's instruction-set semantics.
+
+## G97 — terminal REFERENCE_ONLY; source extinct
+
+Both ADAPT items are settled.
+
+- **Type canonicalization.** Canonicalizing types once for cheap equality has been native since G83.
+- **Skippable sections.** The wire contract allowed "explicitly skippable" sections but defined no flag, while the reader refused non-zero section flags and unknown section types. With no cross-version reader, the contract now pins `section_flags = 0` (every section required), and the reader-steps test asserts both refusals.
+
+Wasm's skippable custom sections stay a reference until a cross-version reader exists. The checkout was physically deleted. Evidence: `../../evidence/campaign/33-wasm-spec.json`.

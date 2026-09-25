@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 28
+campaign_terminal = 29
 historically_proven = 4
 currently_censusing = 0
-deep_censused = 2
+deep_censused = 1
 absorbed = 9
-reference_only = 19
+reference_only = 20
 external_boundary = 2
 rejected = 0
 deferred = 1
-extinct = 31
-remaining = 19
-next_donor = "wasm-spec"
-next_step = "G97 (P3): wasm-spec (#33) -- instruction validation algorithm, verify-then-encode (P6)"
+extinct = 32
+remaining = 18
+next_donor = "wasm-component-model"
+next_step = "G98 (P3): wasm-component-model (#34) -- WIT interface definitions / canonical ABI (P6)"
 
 [[donor]]
 ordinal = 1
@@ -572,13 +572,15 @@ canonical_url = "https://github.com/WebAssembly/spec.git"
 serves = "P6"
 target_capability = "verify-then-encode"
 mechanism_hypothesis = "instruction validation algorithm"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census CENSUSED, decision STUDY_FOR_VERIFY_THEN_ENCODE_LANE"
+completed_in = "G97"
+evidence = ".atlas/evidence/campaign/33-wasm-spec.json"
+note = "type canonicalization is native since G83; the wire contract now pins section_flags = 0 (every section required; no skippable sections without a cross-version reader), enforced by the reader-steps test; source physically deleted"
 
 [[donor]]
 ordinal = 34

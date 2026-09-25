@@ -1242,14 +1242,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T15:51:45Z"
 license = [".atlas/licenses/donors/wasm-spec/LICENSE", ".atlas/licenses/donors/wasm-spec/LICENSE-document", ".atlas/licenses/donors/wasm-spec/LICENSE-interpreter", ".atlas/licenses/donors/wasm-spec/LICENSE-papers", ".atlas/licenses/donors/wasm-spec/LICENSE-test"]
 technology_domains = ["instruction_validation_algorithm", "stack_machine_type_checking", "sectioned_binary_format", "semantic_binary_separation"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "CENSUSED"
-decision_status = "STUDY_FOR_VERIFY_THEN_ENCODE_LANE"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G97: both ADAPT items are settled in Atlas. (1) Canonicalize types once for cheap equality is native since G83 (bottom-up canonical type identity through name resolution). (2) The sectioned envelope with skippable unknown sections: the wire contract allowed 'explicitly skippable' sections but defined no section flag. The reader already refused non-zero section flags and unknown section types, and no cross-version reader exists (the container is a regenerated local cache, G87). The contract now pins section_flags = 0 (every section required), and the reader-steps test enforces both refusals. Everything else stays STUDY/REFERENCE_ONLY (three-document split, single-pass validation, bottom type) or REJECTED (opcodes and their numbering)"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/33-wasm-spec.json)"
+cheapest_falsification = "performed G97: the two ADAPT dispositions checked against the resolver (G83) and the .atlas reader; two mutants (accept section flags; skip unknown sections) killed by the new assertions"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
-evidence = [".atlas/provenance/donors/wasm-spec.json", ".atlas/census/donors/wasm-spec.md"]
+evidence = [".atlas/evidence/campaign/33-wasm-spec.json", ".atlas/provenance/donors/wasm-spec.json", ".atlas/census/donors/wasm-spec.md"]
 
 [[donor]]
 id = "capnproto"

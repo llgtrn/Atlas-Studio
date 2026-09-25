@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 33,
+ "donor": "wasm-spec",
+ "commit_sha": "ba9fd9f5c23e569201265d5bda6fb8dde18ad8c0",
+ "generation": "G97",
+ "base_commit": "80c74308b8",
+ "hypothesis": "instruction validation algorithm, verify-then-encode (P6)",
+ "blocking_question": "none recorded; the census's disposition table leaves two ADAPT items: canonicalize types once for cheap equality, and a sectioned binary envelope with skippable unknown sections ('if not already settled by the wire format, not read in this census')",
+ "measurement": {
+  "type_canonicalization": "already native: G83 canonicalizes type occurrences bottom-up through name resolution (1,723 DERIVED canonical claims, SCIP-confirmed), so equal types compare by identity",
+  "section_envelope": "ATLAS-BINARY-WIRE-FORMAT.md lets a reader accept a newer minor version only when unknown sections are 'explicitly skippable', yet defines no section flag; the reader refuses non-zero section_flags and unknown section types (core/src/atlas/mod.rs), and no cross-version reader exists (the container is a regenerated gitignored cache, G87). Neither refusal was pinned or asserted by name",
+  "change": "the contract's ADR 0027 pins gain 'section_flags = 0: every section is required'; reader_steps_reject_with_their_reason asserts both refusals",
+  "mutants": "accept section flags: killed; skip an unknown section type: killed"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["three-document split (declarative rules / algorithmic validator / binary chapter)", "single-pass decoder-foldable validation", "value- vs stack-polymorphic bottom type", "skippable custom sections (until a cross-version reader exists)", "cross-section structural invariants", "OCaml reference interpreter", "post-MVP proposals"],
+  "REJECTED": ["Wasm instruction set and opcode semantics", "opcode numbering scheme as a pattern"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/wasm-spec"
+ }
+}

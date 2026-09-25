@@ -1477,6 +1477,7 @@ objective = "decide the recorded backend/oracle roles against the pipeline contr
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/32-llvm-project.json"
 self_recensus = ".atlas/evidence/census/G96/recensus.json"
+result_commits = ["1ec85570b7c844fa2a4d9d5840644c2bd9e27f8a", "80c74308b8adc407b6ae85adf805e8f1c92621db"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of a698017df8 = G95 post digest d4a28808... (c85ea766f8 adds only out-of-scope evidence)"
@@ -1487,3 +1488,25 @@ proof = "PROVEN on the first run (post a14c705d...)"
 
 [generation.next]
 objective = "G97 (P3): first-50 #33 wasm-spec (instruction validation algorithm, verify-then-encode, P6)"
+
+[[generation]]
+id = "G97"
+base_commit = "80c74308b8adc407b6ae85adf805e8f1c92621db"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #33 wasm-spec to a terminal state (P6 verify-then-encode; P2 wire)"
+objective = "check the census's ADAPT dispositions against Atlas, pin what the wire contract left undefined, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/33-wasm-spec.json"
+self_recensus = ".atlas/evidence/census/G97/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 1ec85570b7 = G96 post digest a14c705d... (80c74308b8 adds only out-of-scope evidence)"
+falsification = "type canonicalization is native since G83; the wire contract allowed 'explicitly skippable' sections without defining a section flag, while the reader refused non-zero section flags and unknown section types, unasserted by name; no cross-version reader exists to consume a skippable section"
+change = "ATLAS-BINARY-WIRE-FORMAT.md pins section_flags = 0 (every section required; a new section type needs a new format_minor); reader_steps_reject_with_their_reason asserts both refusals"
+mutation_battery = "2/2 killed (accept section flags; skip an unknown section type)"
+decision = "REFERENCE_ONLY; Wasm opcodes and their numbering REJECTED as patterns"
+extinction = "git rm -r .atlas/temporary/donors/wasm-spec (51 MB) plus untracked spectec prose output; no build, runtime or test reference"
+proof = "PROVEN on the first run (post 9a314e77...)"
+
+[generation.next]
+objective = "G98 (P3): first-50 #34 wasm-component-model (WIT interface definitions / canonical ABI, P6)"
