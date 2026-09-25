@@ -1,3 +1,0 @@
-@echo off
-echo Cleaning runtime...
-if exist "%~dp0build" rmdir /s /q "%~dp0build"

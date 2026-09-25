@@ -469,6 +469,7 @@ mod tests {
                 "rust-analyzer",
                 "scip",
                 "semgrep",
+                "sigil-lang",
                 "souffle",
                 "sourcetrail",
                 "tree-sitter",

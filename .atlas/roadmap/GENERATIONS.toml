@@ -1368,6 +1368,7 @@ objective = "execute the census's fired recensus requirement (IRIS's effect taxo
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0036-ambient-input-effects.md"
 self_recensus = ".atlas/evidence/census/G91/recensus.json"
+result_commits = ["93f2527fb070ce9b4dc5bbac49b9a839379e071c", "91c7032f74657436a0be7866262aaf8af072fbea"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 03910f4e3d = G90 post digest 2a26f726... (c42a68376f adds only out-of-scope evidence)"
@@ -1381,3 +1382,23 @@ proof = "PROVEN on the first run (post 1a41235c...)"
 
 [generation.next]
 objective = "G92 (P3): first-50 #28 sigil-lang (content-addressed contract-verified graph, P6)"
+
+[[generation]]
+id = "G92"
+base_commit = "91c7032f74657436a0be7866262aaf8af072fbea"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #28 sigil-lang to a terminal state (P6 graph-language lane)"
+objective = "check the census's open items and recensus triggers, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/28-sigil-lang.json"
+self_recensus = ".atlas/evidence/census/G92/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 93f2527fb0 = G91 post digest 1a41235c... (91c7032f74 adds only out-of-scope evidence)"
+falsification = "no blueprint revision candidate was recorded; neither recensus trigger fired (no Sigil V2 at the pin; no AtlasX/HIR module in core/src); per-behavior guarantee checks (pure/no_alloc/writes_output) belong to the unimplemented MIR barrier contract; not a DC1 real-donor Cargo test input"
+no_code_change = "no Sigil mechanism absorbed; the 32-bit truncated SHA-256 contract hash REJECTED as a pattern; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/sigil-lang (4.7 MB); no build, runtime or test reference"
+proof = "PROVEN on the first run (post 96829620...)"
+
+[generation.next]
+objective = "G93 (P3): first-50 #29 duumbi (AI-mutable JSON-LD graph lowered to Cranelift, P6)"

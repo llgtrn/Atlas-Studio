@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #28 sigil-lang: no open census item and no fired recensus trigger (no Sigil V2, no AtlasX/HIR stage); per-behavior guarantee checks belong to the unimplemented MIR contract; REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 28,
+ "donor": "sigil-lang",
+ "commit_sha": "9c7de956d926fba2f9d5c0598b35c57fb6399f7f",
+ "generation": "G92",
+ "base_commit": "91c7032f74",
+ "hypothesis": "content-addressed contract-verified graph (P6)",
+ "blocking_question": "none recorded: the deep census found no blueprint revision candidate; its recensus requirements trigger on Sigil V2 landing or on Atlas materializing an AtlasX/HIR stage",
+ "measurement": {
+  "trigger_v2": "not fired: the pin is fixed, and the Edge/gap-detector graph machinery is #[allow(dead_code)] at that pin",
+  "trigger_hir": "not fired: core/src has no AtlasX/HIR/MIR module (COMPILER-IR-PIPELINE.md is contract text only)",
+  "guarantee_checks": "Sigil's per-behavior structural checks (pure, no_alloc, writes_output; transitive purity) are the one capability Atlas lacks, and they belong to the MIR barrier contract, whose scope (effect/authority/ownership/concurrency/persistence/transaction) is wider; nothing consumes them before MIR exists",
+  "identity": "the contract hash is SHA-256 truncated to 32 bits (birthday bound ~2^16) -- REJECTED as a pattern; Atlas's .atlas identities are full BLAKE3-256",
+  "dc1": "sigil-lang is not one of the 15 real-donor Cargo test inputs (adapter/src/dependency/cargo.rs); 8 of them remain materialized, above the half threshold"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["REQUIRES name@hash dependency pinning with stale-hash/cycle/transitive-purity validation", "structural guarantee checking", "ProjectGraph behavior/port model", "inkwell/LLVM lowering and external linking"],
+  "REJECTED": ["32-bit truncated SHA-256 contract hash as an identity pattern"],
+  "EXTERNAL_BOUNDARY": ["the unexercised V1 Edge/gap-detector machinery (dead code at the pin)"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/sigil-lang"
+ }
+}

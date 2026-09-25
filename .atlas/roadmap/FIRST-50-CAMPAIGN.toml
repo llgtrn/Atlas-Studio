@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 23
+campaign_terminal = 24
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 3
 absorbed = 9
-reference_only = 15
+reference_only = 16
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 26
-remaining = 24
-next_donor = "sigil-lang"
-next_step = "G92 (P3): sigil-lang (#28) -- content-addressed contract-verified graph (P6)"
+extinct = 27
+remaining = 23
+next_donor = "duumbi"
+next_step = "G93 (P3): duumbi (#29) -- AI-mutable JSON-LD graph lowered to Cranelift (P6)"
 
 [[donor]]
 ordinal = 1
@@ -487,13 +487,15 @@ canonical_url = "https://github.com/pzalutski-pixel/sigil-lang.git"
 serves = "P6"
 target_capability = "graph-native language"
 mechanism_hypothesis = "content-addressed contract-verified graph"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUS_ACTIVE, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+completed_in = "G92"
+evidence = ".atlas/evidence/campaign/28-sigil-lang.json"
+note = "no open census item and no fired recensus trigger (no Sigil V2, no AtlasX/HIR stage); per-behavior guarantee checks belong to the unimplemented MIR contract; 32-bit truncated contract hash REJECTED as a pattern; source physically deleted"
 
 [[donor]]
 ordinal = 29

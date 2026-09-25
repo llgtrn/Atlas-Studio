@@ -1043,14 +1043,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T14:02:00Z"
 license = [".atlas/licenses/donors/sigil-lang/LICENSE"]
 technology_domains = ["graph_native_language", "content_addressing", "compiler", "contract_verification"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
-decision_status = "STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G92: the census left no open item (blueprint revision candidates: none) and neither recensus trigger has fired -- Sigil V2 has not landed at the pin, and Atlas has no materialized AtlasX/HIR stage to compare against. The one capability Atlas lacks (per-behavior structural guarantee checks: pure/no_alloc/writes_output) belongs to the unimplemented MIR contract, whose barrier set is wider than Sigil's three guarantees; the 32-bit truncated SHA-256 contract hash is REJECTED as a pattern"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/28-sigil-lang.json)"
+cheapest_falsification = "performed G92: both recorded recensus triggers checked (no AtlasX/HIR module in core/src; the donor pin is fixed); the DC1 real-donor Cargo test does not use this checkout"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "none selected -- REFERENCE_ONLY across every censused mechanism, see lane synthesis"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/sigil-lang.json", ".atlas/census/donors/sigil-lang.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = [".atlas/evidence/campaign/28-sigil-lang.json", ".atlas/provenance/donors/sigil-lang.json", ".atlas/census/donors/sigil-lang.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "duumbi"

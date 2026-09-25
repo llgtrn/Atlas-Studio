@@ -1,3 +1,0 @@
-@echo off
-echo Cleaning compiler...
-if exist "%~dp0target" rmdir /s /q "%~dp0target"

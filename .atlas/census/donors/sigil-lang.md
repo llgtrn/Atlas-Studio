@@ -169,3 +169,7 @@ None. No mechanism in this donor is falsifiably superior, for a load-bearing Atl
 ## Census State
 
 Status: **DEEP_CENSUS_ACTIVE**. Coarse inventory, direct/transitive dependency resolution (complete for the Rust/Cargo graph; the C runtime has no package graph to resolve, only a system/toolchain boundary), and a targeted deep census of the six requested mechanisms (behavior contract identity, dependency hashing, graph validation, contract-vs-implementation checking, primitive/SSA graph, LLVM lowering, and semantic-survival-through-compilation) are complete and source-verified. Not yet done: execution-based verification (donor code was not run, per instructions), and a full read of the 48 non-Sigil transitive crate sources.
+
+## G92 — terminal REFERENCE_ONLY; source extinct
+
+The census left no open item, and neither recensus trigger has fired: Sigil V2 has not landed at the pin, and Atlas has no materialized AtlasX/HIR stage. The one capability Atlas lacks, per-behavior structural guarantee checks, belongs to the unimplemented MIR barrier contract, whose scope is wider. The 32-bit truncated contract hash stays REJECTED as a pattern. The checkout was physically deleted, and it was not a DC1 Cargo test input. Evidence: `../../evidence/campaign/28-sigil-lang.json`.

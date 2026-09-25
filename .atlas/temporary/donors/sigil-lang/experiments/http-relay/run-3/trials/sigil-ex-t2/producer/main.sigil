@@ -1,8 +1,0 @@
-EXECUTABLE producer
-
-DESCRIPTION
-  HTTP file-relay producer; POSTs input.txt to localhost:9815.
-
-ENTRY
-  CALL main -> status
-END_EXECUTABLE
