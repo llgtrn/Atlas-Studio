@@ -533,6 +533,41 @@ fn field_and_call_result_receivers_are_typed_forward() {
     assert_eq!(got, expect);
 }
 
+#[test]
+fn std_receivers_reach_the_declared_std_method_paths() {
+    // G144: a receiver whose std type is declared (a parameter, a `let` in any block) or comes
+    // from a declared std constructor (`?` unwrapping a fallible one) calls a declared inherent
+    // std method as its std path; an undeclared method, a `Result` never unwrapped, and a guarded
+    // autoref (a non-std import in scope) are never claimed.
+    let lib = "use std::fs::File;\nuse std::sync::Mutex;\nuse std::sync::mpsc::{Receiver, Sender};\nfn write(path: &str) -> std::io::Result<()> {\n    {\n        let mut file = File::create(path)?;\n        file.sync_all()?;\n    }\n    File::open(path)?.sync_all()?;\n    let m = Mutex::new(0);\n    m.lock();\n    let bare = File::open(path);\n    bare.sync_all();\n    Ok(())\n}\nfn channels(tx: &Sender<u8>, rx: Receiver<u8>, f: &File) {\n    tx.send(1);\n    rx.recv();\n    f.metadata();\n}\npub struct Gate;\nimpl Gate {\n    fn lock(&self) {}\n}\nstatic GATE: Gate = Gate;\n#[allow(non_snake_case)]\nfn scoped() {\n    {\n        let GATE = Mutex::new(1);\n    }\n    GATE.lock();\n}\nmod ext {\n    use outside::Thing;\n    fn by_ref(m: &std::sync::Mutex<u8>) {\n        m.lock();\n    }\n    fn by_value(m: std::sync::Mutex<u8>) {\n        m.lock();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let got: Vec<(String, String)> = outcomes(&results, "src/lib.rs")
+        .into_iter()
+        .filter(|(callee, _)| callee.contains('.'))
+        .collect();
+    let expect: Vec<(String, String)> = [
+        ("file.sync_all", "external:std::fs::File::sync_all"),
+        (
+            "std::fs::File::open()?.sync_all",
+            "external:std::fs::File::sync_all",
+        ),
+        ("m.lock", "external:std::sync::Mutex::lock"),
+        // `bare` holds a `Result`: never typed.
+        ("tx.send", "external:std::sync::mpsc::Sender::send"),
+        ("rx.recv", "external:std::sync::mpsc::Receiver::recv"),
+        ("f.metadata", "unresolved:std-method-undeclared"),
+        // `GATE.lock()` after the block is the static `Gate`, not the block's `Mutex`: unclaimed.
+        // `&Mutex` takes `&self` lock at the first step: no guard needed.
+        ("m.lock", "external:std::sync::Mutex::lock"),
+        // By value, the autoref step is withheld beside a non-std import.
+        ("m.lock", "unresolved:receiver-form-differs"),
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(got, expect);
+}
+
 /// `spelling -> canonical` for every type occurrence in `path` (first occurrence per spelling).
 fn canonical_types(files: &[(&str, &str)], root: &str, path: &str) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();

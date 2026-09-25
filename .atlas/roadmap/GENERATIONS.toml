@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G143"
+current_generation = "G144"
 
 [[generation]]
 id = "G35"
@@ -3033,3 +3033,38 @@ after = 5763
 key = "composed:relation:INVOKES"
 before = 4059
 after = 4120
+
+[[generation]]
+id = "G144"
+kind = "NATIVE_ATTACK"
+base_commit = "e71cb0394bba9b388135eb30389ea478644a6af6"
+priority = "P0"
+serves = "DEBT-PERSISTENCE and DEBT-CONCURRENCY method-level residual (planned under NA-CALL-TYPE-RESIDUAL since G138): std receivers"
+objective = "declared inherent std methods on receivers whose std type is known reach the declared persistence and concurrency tables"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G144/std-receiver-scip-differential.json"
+self_recensus = ".atlas/evidence/census/G144/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 99b8c38aad = G143 post digest (the evidence commit e71cb0394b adds only out-of-scope evidence)"
+atlas_first = "the persistence table already declared File::sync_all since G125 but no method call reached it; the census showed zero method-level SYNC sites while the .atlas container writer fsyncs twice -- the receivers come from File::create(..)? in a nested block and File::open(..)?"
+change = "adapter resolve.rs: LocalType::Std; STD_RETURNS (File::create, File::open, Mutex::new; fallible or not) and STD_INHERENT (File::sync_all, sync_data, Mutex::lock, Receiver::recv, Sender::send with receiver forms); std types in declared parameters and lets (generic arguments allowed); receiver_type through ? and declared std calls; std_method (declared inherent only, autoref via the name guards); TypedLocal.until and type_lets over every block of the body; autoref_name_allowed split; core concurrency table gains Mutex::lock, Sender::send, Receiver::recv (Lock, ChannelSend, ChannelReceive no longer reserved); persistence and concurrency docs; resolution scope text; ADR 0061"
+oracle = "both container-writer fsync sites DERIVED SYNC, SCIP naming fs/impl#[File]sync_all(); nested-block lets add 10 workspace resolutions on the same tree (5,773 -> 5,783), all agreeing with SCIP"
+falsification = "5 mutants killed: a std method's form ignored; fallibility ignored; undeclared std methods claimed; the block end ignored; std generic arguments rejected; the self-census test asserts the container writer's SYNC site"
+debts = "DEBT-PERSISTENCE and DEBT-CONCURRENCY last advance G144; DEBT-CALL G144; revalidation milestone STD_RECEIVERS"
+proof = "PROVEN (post 6ca764cd...): no new UNKNOWN obligation; records:PERSISTENCE|atlas.resolution.rust-paths grows"
+
+[[generation.metric]]
+key = "typed_records"
+before = 146434
+after = 146800
+
+[[generation.metric]]
+key = "records:PERSISTENCE|atlas.resolution.rust-paths"
+before = 147
+after = 149
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5763
+after = 5783

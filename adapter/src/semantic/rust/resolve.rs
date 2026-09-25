@@ -1491,7 +1491,6 @@ impl DefMap {
     /// name in the scope chain, or an explicit impl of a std trait with by-value methods on `ty`
     /// could each supply one; any of them withholds the claim.
     fn autoref_allowed(&self, scope: ModId, ty: TypeId, name: &str) -> bool {
-        const BLANKET: [&str; 3] = ["into", "try_into", "into_iter"];
         const BY_VALUE_TRAITS: [&str; 8] = [
             "Iterator",
             "IntoIterator",
@@ -1502,6 +1501,20 @@ impl DefMap {
             "Future",
             "Stream",
         ];
+        self.autoref_name_allowed(scope, name)
+            && !self.impls.iter().any(|imp| {
+                imp.self_type == Some(ty)
+                    && imp
+                        .trait_name
+                        .as_deref()
+                        .is_some_and(|t| BY_VALUE_TRAITS.contains(&t))
+            })
+    }
+
+    /// The part of [`Self::autoref_allowed`] that does not depend on a workspace type (G144: a
+    /// std receiver has no workspace impl).
+    fn autoref_name_allowed(&self, scope: ModId, name: &str) -> bool {
+        const BLANKET: [&str; 3] = ["into", "try_into", "into_iter"];
         if BLANKET.contains(&name) {
             return false;
         }
@@ -1511,15 +1524,6 @@ impl DefMap {
             .flatten()
             .any(|f| f.name == name && f.receiver == Some(Receiver::Value));
         if by_value_trait_method {
-            return false;
-        }
-        if self.impls.iter().any(|imp| {
-            imp.self_type == Some(ty)
-                && imp
-                    .trait_name
-                    .as_deref()
-                    .is_some_and(|t| BY_VALUE_TRAITS.contains(&t))
-        }) {
             return false;
         }
         let mut cursor = Some(scope);
@@ -1699,7 +1703,42 @@ struct TypedLocal {
     ty: LocalType,
     form: Receiver,
     from: (usize, usize),
+    /// G144: the end of the block the binding lives in (`MAX` for a parameter).
+    until: (usize, usize),
 }
+
+/// The end of the whole function (a parameter's or top-level binding's scope).
+const FN_END: (usize, usize) = (usize::MAX, usize::MAX);
+
+/// G144: standard-library functions whose documented output a receiver may take, by the canonical
+/// path the resolver spells (`std::fs::File::create`): the std type returned and whether it comes
+/// in a `Result` (`?` unwraps it). Declared knowledge, like the std-path effect tables; a path
+/// absent here types nothing.
+const STD_RETURNS: &[(&str, &str, bool)] = &[
+    ("std::fs::File::create", "std::fs::File", true),
+    ("std::fs::File::open", "std::fs::File", true),
+    ("std::sync::Mutex::new", "std::sync::Mutex", false),
+];
+
+/// The std type a declared std function returns (`fallible`: inside a `Result`).
+fn std_return(path: &str, fallible: bool) -> Option<&'static str> {
+    STD_RETURNS
+        .iter()
+        .find(|(function, _, wrapped)| *function == path && *wrapped == fallible)
+        .map(|(_, ty, _)| *ty)
+}
+
+/// G144: inherent methods of std types, with their documented receiver form. An inherent method
+/// wins the probe step its form matches, ahead of every trait; only these are claimed on a std
+/// receiver, as the std path `<type>::<method>` the declared effect, persistence and concurrency
+/// tables read.
+const STD_INHERENT: &[(&str, &str, Receiver)] = &[
+    ("std::fs::File", "sync_all", Receiver::Ref),
+    ("std::fs::File", "sync_data", Receiver::Ref),
+    ("std::sync::Mutex", "lock", Receiver::Ref),
+    ("std::sync::mpsc::Receiver", "recv", Receiver::Ref),
+    ("std::sync::mpsc::Sender", "send", Receiver::Ref),
+];
 
 /// A receiver expression's type as the method probe first sees it (G143).
 struct ReceiverType {
@@ -1717,6 +1756,8 @@ enum LocalType {
     Concrete(TypeId),
     /// A type known only through workspace traits (G140).
     Bounded(Vec<TypeId>),
+    /// A standard-library type, by its canonical path (G144).
+    Std(String),
 }
 
 /// `impl_shape` of an impl without generics or a where clause, of a type without arguments.
@@ -1975,7 +2016,7 @@ impl CallWalker<'_> {
                     });
                 }
                 let typed = self.fn_ctx.last()?.typed.get(&local)?;
-                (at > typed.from).then(|| ReceiverType {
+                (at > typed.from && at < typed.until).then(|| ReceiverType {
                     ty: typed.ty.clone(),
                     form: typed.form,
                     shape: PLAIN_IMPL_SHAPE.into(),
@@ -2013,14 +2054,41 @@ impl CallWalker<'_> {
                 let syn::Expr::Path(path) = call.func.as_ref() else {
                     return None;
                 };
-                let PathCallOutcome::Resolved(target) = self.resolve_call(path) else {
+                match self.resolve_call(path) {
+                    PathCallOutcome::Resolved(target) => Some(ReceiverType {
+                        ty: LocalType::Concrete(self.map.output_type(self.crates, &target)?),
+                        form: Receiver::Value,
+                        shape: PLAIN_IMPL_SHAPE.into(),
+                        label: format!("{}()", target.name),
+                    }),
+                    // G144: a std function whose declared output is a std type, not in a Result.
+                    PathCallOutcome::External(std) => {
+                        std_return(&std, false).map(|ty| ReceiverType {
+                            ty: LocalType::Std(ty.into()),
+                            form: Receiver::Value,
+                            shape: PLAIN_IMPL_SHAPE.into(),
+                            label: format!("{std}()"),
+                        })
+                    }
+                    _ => None,
+                }
+            }
+            // G144: `?` on a std function whose declared output comes in a `Result`.
+            syn::Expr::Try(fallible) => {
+                let syn::Expr::Call(call) = fallible.expr.as_ref() else {
                     return None;
                 };
-                Some(ReceiverType {
-                    ty: LocalType::Concrete(self.map.output_type(self.crates, &target)?),
+                let syn::Expr::Path(path) = call.func.as_ref() else {
+                    return None;
+                };
+                let PathCallOutcome::External(std) = self.resolve_call(path) else {
+                    return None;
+                };
+                std_return(&std, true).map(|ty| ReceiverType {
+                    ty: LocalType::Std(ty.into()),
                     form: Receiver::Value,
                     shape: PLAIN_IMPL_SHAPE.into(),
-                    label: format!("{}()", target.name),
+                    label: format!("{std}()?"),
                 })
             }
             syn::Expr::Paren(inner) => self.receiver_type(&inner.expr, at),
@@ -2042,8 +2110,29 @@ impl CallWalker<'_> {
                 self.map.autoref_allowed(self.scope(), *ty, &name),
             ),
             LocalType::Bounded(bounds) => self.map.method_on_bounds(bounds, &name, receiver.form),
+            LocalType::Std(ty) => self.std_method(ty, &name, receiver.form),
         };
         Some((format!("{}.{name}", receiver.label), outcome))
+    }
+
+    /// G144: a declared inherent method of a std type is the std path `<type>::<method>` when the
+    /// receiver's form matches, or when the autoref step can be claimed; nothing else is claimed.
+    fn std_method(&self, ty: &str, name: &str, form: Receiver) -> PathCallOutcome {
+        let Some((_, _, declared)) = STD_INHERENT
+            .iter()
+            .find(|(t, method, _)| *t == ty && *method == name)
+        else {
+            return PathCallOutcome::Unresolved("std-method-undeclared");
+        };
+        let autoref = matches!(
+            (form, *declared),
+            (Receiver::Value, Receiver::Ref | Receiver::RefMut) | (Receiver::RefMut, Receiver::Ref)
+        );
+        if form == *declared || (autoref && self.map.autoref_name_allowed(self.scope(), name)) {
+            PathCallOutcome::External(format!("{ty}::{name}"))
+        } else {
+            PathCallOutcome::Unresolved("receiver-form-differs")
+        }
     }
 
     /// G142: a top-level `let x = ..` bound once whose value's type the resolved callee declares:
@@ -2056,12 +2145,43 @@ impl CallWalker<'_> {
             counts.visit_fn_arg(input);
         }
         counts.visit_block(block);
-        for stmt in &block.stmts {
-            let syn::Stmt::Local(local) = stmt else {
-                continue;
-            };
-            let syn::Pat::Ident(ident) = &local.pat else {
-                continue;
+        // G144: every `let` of the body in source order, with the end of the block it lives in
+        // (closure bodies included, nested items not).
+        struct Lets<'b> {
+            ends: Vec<(usize, usize)>,
+            found: Vec<(&'b syn::Local, (usize, usize))>,
+        }
+        impl<'b> Visit<'b> for Lets<'b> {
+            fn visit_block(&mut self, block: &'b syn::Block) {
+                self.ends.push(start(block.brace_token.span.close()));
+                syn::visit::visit_block(self, block);
+                self.ends.pop();
+            }
+            fn visit_local(&mut self, local: &'b syn::Local) {
+                self.found
+                    .push((local, self.ends.last().copied().unwrap_or(FN_END)));
+                syn::visit::visit_local(self, local);
+            }
+            fn visit_item(&mut self, _: &'b syn::Item) {}
+        }
+        let mut lets = Lets {
+            ends: Vec::new(),
+            found: Vec::new(),
+        };
+        lets.visit_block(block);
+        let generics = self
+            .fn_ctx
+            .last()
+            .map(|c| c.generics.clone())
+            .unwrap_or_default();
+        for (local, until) in lets.found {
+            let (ident, declared) = match &local.pat {
+                syn::Pat::Ident(ident) => (ident, None),
+                syn::Pat::Type(typed) => match typed.pat.as_ref() {
+                    syn::Pat::Ident(ident) => (ident, Some(typed.ty.as_ref())),
+                    _ => continue,
+                },
+                _ => continue,
             };
             let name = ident.ident.to_string();
             if ident.by_ref.is_some()
@@ -2074,30 +2194,32 @@ impl CallWalker<'_> {
             {
                 continue;
             }
-            let Some(init) = &local.init else {
-                continue;
-            };
             let from = start(local.let_token.span);
-            let typed = match self.value_type(&init.expr) {
-                Some(ty) => Some((ty, Receiver::Value)),
-                // G143: a field of a typed receiver, or a resolved method call's result.
-                None => match self.receiver_type(&init.expr, from) {
-                    Some(ReceiverType {
-                        ty: LocalType::Concrete(ty),
-                        form,
-                        ..
-                    }) => Some((ty, form)),
-                    _ => None,
-                },
+            let typed = match declared {
+                // A declared type in a nested block (top-level ones are G139's).
+                Some(ty) => self.declared_receiver_type(ty, &generics, &sig.generics),
+                None => {
+                    let Some(init) = &local.init else {
+                        continue;
+                    };
+                    match self.value_type(&init.expr) {
+                        Some(ty) => Some((LocalType::Concrete(ty), Receiver::Value)),
+                        // G143: a field or a call result; G144: a declared std output.
+                        None => self
+                            .receiver_type(&init.expr, from)
+                            .map(|receiver| (receiver.ty, receiver.form)),
+                    }
+                }
             };
             // Each binding is typed in order, so a later `let` may use an earlier one.
             if let (Some((ty, form)), Some(ctx)) = (typed, self.fn_ctx.last_mut()) {
                 ctx.typed.insert(
                     name,
                     TypedLocal {
-                        ty: LocalType::Concrete(ty),
+                        ty,
                         form,
                         from,
+                        until,
                     },
                 );
             }
@@ -2202,7 +2324,15 @@ impl CallWalker<'_> {
                 continue;
             }
             if let Some((ty, form)) = self.declared_receiver_type(ty, generics, &sig.generics) {
-                typed.insert(name, TypedLocal { ty, form, from });
+                typed.insert(
+                    name,
+                    TypedLocal {
+                        ty,
+                        form,
+                        from,
+                        until: FN_END,
+                    },
+                );
             }
         }
         typed
@@ -2269,6 +2399,26 @@ impl CallWalker<'_> {
                 return None;
             }
             return Some((LocalType::Bounded(self.trait_bounds(&bounds)?), form));
+        }
+        // G144: a std type (its arguments do not change which inherent method a name denotes).
+        if path.qself.is_none()
+            && path
+                .path
+                .segments
+                .iter()
+                .rev()
+                .skip(1)
+                .all(|s| s.arguments.is_empty())
+        {
+            let mut bare = path.path.clone();
+            if let Some(last) = bare.segments.last_mut() {
+                last.arguments = syn::PathArguments::None;
+            }
+            if let Some(canonical) = self.canonical_path_type(&bare)
+                && STD_INHERENT.iter().any(|(t, _, _)| *t == canonical)
+            {
+                return Some((LocalType::Std(canonical), form));
+            }
         }
         if path.qself.is_some()
             || path
@@ -2568,6 +2718,7 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
                                     ty: LocalType::Bounded(vec![ty]),
                                     form,
                                     from: (0, 0),
+                                    until: FN_END,
                                 },
                             );
                         }

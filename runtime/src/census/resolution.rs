@@ -540,7 +540,7 @@ pub fn resolve_rust_path_calls(
         };
         let persistence_scope = if reached {
             format!(
-                "{RUST_PATH_RESOLUTION_ID} derives persistence only for path calls resolved to a standard-library path the declared std-path persistence table names ({path}); method calls (sync_all, flush, commit), non-std storage and macro arguments are outside it"
+                "{RUST_PATH_RESOLUTION_ID} derives persistence for path calls resolved to a standard-library path the declared std-path persistence table names, and (G144) for declared inherent std methods on receivers whose std type is known ({path}); trait methods (flush), non-std storage, untyped receivers and macro arguments are outside it"
             )
         } else {
             format!(
@@ -550,7 +550,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), or bound once by a `let` to a call or literal whose callee declares a plain workspace type (G142), or a field or call result such types declare (G143), decided by the method probe's first step or, where no by-value method can come first, its autoref step (G142) ({path}); other method calls, `async` blocks and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), or bound once by a `let` to a call or literal whose callee declares a plain workspace type (G142), or a field or call result such types declare (G143), or a std receiver calling a declared inherent std method (G144, the std path the effect, persistence and concurrency tables read), decided by the method probe's first step or, where no by-value method can come first, its autoref step (G142) ({path}); other method calls, `async` blocks and macro arguments are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"

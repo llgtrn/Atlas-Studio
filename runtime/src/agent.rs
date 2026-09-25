@@ -1549,6 +1549,22 @@ fn run(s: &core::store::Store) { s.save(); }
             })
             .collect();
         assert!(!dynamic.is_empty(), "Atlas calls through its own traits");
+        // G144: the `.atlas` container writer forces its file to stable storage; with the file's
+        // std type known, `file.sync_all()` is a DERIVED SYNC site.
+        assert!(
+            report
+                .census
+                .typed_semantic_records
+                .iter()
+                .any(|r| matches!(
+                    r,
+                    atlas_core::SemanticObservation::Persistence(p)
+                        if p.status == EpistemicStatus::Derived
+                            && p.subject.kind == atlas_core::PersistenceKind::Sync
+                            && p.subject.span.path == "runtime/src/atlas.rs"
+                )),
+            "the container writer's sync_all"
+        );
         for call in &dynamic {
             assert_eq!(call.status, EpistemicStatus::Derived);
             assert_eq!(call.subject.callees.len(), 1);

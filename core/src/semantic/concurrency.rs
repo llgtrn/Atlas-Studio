@@ -22,8 +22,9 @@
 //!   justify `Observed`. Recording it as `Inferred` rather than dropping it preserves real evidence
 //!   without overclaiming certainty.
 //!
-//! `Lock`/`Unlock`/`ChannelSend`/`ChannelReceive`/`ChannelCreate`/`AtomicOp` are declared for a
-//! future wave but never emitted this wave: unlike `spawn`, method names like `.lock()`/`.send()`/
+//! `Unlock`/`AtomicOp` are declared for a future wave and never emitted; `ChannelCreate` is derived
+//! from resolved path calls (G117) and `Lock`/`ChannelSend`/`ChannelReceive` from method calls whose
+//! receiver's std type is known (G144). None is ever claimed from a spelling: method names like `.lock()`/`.send()`/
 //! `.recv()` collide constantly with unrelated user-defined methods of the same name (a `Config`
 //! struct's own `.lock()`, a game's own `.send()`), and claiming them from a bare method name alone
 //! -- without resolving the receiver's type -- would fabricate compiler-resolved semantics exactly
@@ -51,15 +52,15 @@ pub enum ConcurrencyKind {
     /// A call whose callee spelling ends in the segment `spawn` (e.g. `thread::spawn`,
     /// `tokio::spawn`). Spelling-based, not type/import resolved.
     Spawn,
-    /// Reserved; never emitted this wave.
+    /// `Mutex::lock` on a receiver whose std type is known (G144, [`std_path_concurrency`]).
     Lock,
     /// Reserved; never emitted this wave.
     Unlock,
-    /// Reserved; never emitted this wave.
+    /// `std::sync::mpsc::channel` / `sync_channel` resolved as a path call (G117).
     ChannelCreate,
-    /// Reserved; never emitted this wave.
+    /// `Sender::send` on a receiver whose std type is known (G144).
     ChannelSend,
-    /// Reserved; never emitted this wave.
+    /// `Receiver::recv` on a receiver whose std type is known (G144).
     ChannelReceive,
     /// Reserved; never emitted this wave.
     AtomicOp,
@@ -87,10 +88,19 @@ impl ConcurrencyKind {
 
 /// The declared std-path concurrency table (G117), sorted by path: the standard-library functions
 /// whose call is a concurrency operation by their documented contract. A path is the canonical
-/// spelling through imports (`std::thread::spawn`); method calls (`Builder::spawn_scoped`,
-/// `Mutex::lock`, `Sender::send`) need receiver types and are not covered, and a path absent here
-/// declares nothing (never "no concurrency").
+/// spelling through imports (`std::thread::spawn`); a method (`Mutex::lock`, `Sender::send`,
+/// `Receiver::recv`) is its `<std type>::<method>` path, derived only where the receiver's std
+/// type is known (G144); a path absent here declares nothing (never "no concurrency").
 const STD_PATH_CONCURRENCY: &[(&str, ConcurrencyKind)] = &[
+    ("std::sync::Mutex::lock", ConcurrencyKind::Lock),
+    (
+        "std::sync::mpsc::Receiver::recv",
+        ConcurrencyKind::ChannelReceive,
+    ),
+    (
+        "std::sync::mpsc::Sender::send",
+        ConcurrencyKind::ChannelSend,
+    ),
     ("std::sync::mpsc::channel", ConcurrencyKind::ChannelCreate),
     (
         "std::sync::mpsc::sync_channel",

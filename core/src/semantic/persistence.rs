@@ -122,8 +122,9 @@ pub enum PersistenceResolution {
 /// The declared std-path persistence table (G125, NA-PERSISTENCE-RESOLVED), sorted by path: the
 /// standard-library functions whose call reads or writes durable file content, or forces it to
 /// stable storage, by their documented contract. A path is the canonical spelling through imports
-/// (`std::fs::write`). Method calls (`file.sync_all()`, `writer.flush()`) need receiver types and
-/// are not covered; durable-state mutations without a fitting kind (`rename`, `remove_file`,
+/// (`std::fs::write`); a method is its `<std type>::<method>` path, derived only where the
+/// receiver's std type is known (`file.sync_all()`, G144; `writer.flush()` is a trait method and
+/// is not covered); durable-state mutations without a fitting kind (`rename`, `remove_file`,
 /// `create_dir`) are not declared; a path absent here declares nothing (never "not persistent").
 const STD_PATH_PERSISTENCE: &[(&str, PersistenceKind)] = &[
     ("std::fs::File::sync_all", PersistenceKind::Sync),

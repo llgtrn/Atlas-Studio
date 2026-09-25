@@ -1,0 +1,31 @@
+{
+  "schema": "atlas.evidence.std-receiver-scip-differential.v1",
+  "generation": "G144",
+  "oracle": "rust-analyzer SCIP (rust-analyzer scip, offline, the G144 working tree)",
+  "std_method_sites": [
+    {
+      "anchor": "runtime/src/atlas.rs:225:13",
+      "std_path": "std::fs::File::sync_all",
+      "record": "PERSISTENCE SYNC, DERIVED",
+      "scip_symbol": "rust-analyzer cargo std https://github.com/rust-lang/rust/library/std fs/impl#[File]sync_all()."
+    },
+    {
+      "anchor": "runtime/src/atlas.rs:229:28",
+      "std_path": "std::fs::File::sync_all",
+      "record": "PERSISTENCE SYNC, DERIVED",
+      "scip_symbol": "rust-analyzer cargo std https://github.com/rust-lang/rust/library/std fs/impl#[File]sync_all()."
+    }
+  ],
+  "std_method_note": "the Atlas container writer's two fsync sites (the partial file, then its directory) were invisible to PERSISTENCE: method calls needed receiver types; SCIP names the inherent impl (fs/impl#[File]), as the declared STD_INHERENT table claims",
+  "concurrency": "no Mutex::lock, Sender::send or Receiver::recv site in Atlas has a receiver whose std type is declared or constructed (they sit on closure parameters, fields of generic types or untyped lets); the table entries are exercised by the resolver test",
+  "call_resolutions": {
+    "g143_engine_on_g144_tree": 5773,
+    "g144_engine_on_g144_tree": 5783,
+    "new": 10,
+    "lost": 0,
+    "changed": 0,
+    "agree": 10,
+    "disagree": [],
+    "cause": "lets in nested blocks are typed now (bounded by their block)"
+  }
+}
