@@ -944,6 +944,7 @@ objective = "deep-census ast-grep's core slice, search for an Atlas structural s
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/12-ast-grep.json"
 self_recensus = ".atlas/evidence/census/G71/recensus.json"
+result_commits = ["964526c060049001c1a1e6cb17a3d7e22d2683a0", "a4c31293adfc93444fb99768405f2d79e4d53cdd"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 68ab0c0d2c = G70 post digest d578ef65... (442734422e adds only out-of-scope evidence)"
@@ -953,3 +954,22 @@ proof = "PROVEN on the first run (post f472b3dd...)"
 
 [generation.next]
 objective = "G72 (P3): first-50 #13 sourcetrail"
+
+[[generation]]
+id = "G72"
+base_commit = "a4c31293adfc93444fb99768405f2d79e4d53cdd"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #13 sourcetrail to a terminal state"
+objective = "deep-census sourcetrail's storage slice, test the element/occurrence model against Atlas, decide REFERENCE_ONLY, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/13-sourcetrail.json"
+self_recensus = ".atlas/evidence/census/G72/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 964526c060 = G71 post digest f472b3dd... (a4c31293ad adds only out-of-scope evidence)"
+falsification = "Atlas Symbol records are definitions only; uses are per-site CALL/DATA_FLOW records with spans; G66 descriptors are position-free element identity -- the element/occurrence split already exists; the only dropped occurrence (a same-scope cfg alternate definition) is already AMBIGUOUS; no navigation consumer"
+no_code_change = "no Atlas mechanism justified; the only in-scope change is the pinned deleted-donor list"
+proof = "PROVEN on the first run (post a00c50bb...)"
+
+[generation.next]
+objective = "G73 (P3): first-50 #14 rust -- the compiler as the resolution mechanism behind CALL/DATA_FLOW coverage (the P0 input from G69/G70)"

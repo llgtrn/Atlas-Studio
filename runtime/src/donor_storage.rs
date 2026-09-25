@@ -457,6 +457,7 @@ mod tests {
                 "scip",
                 "semgrep",
                 "souffle",
+                "sourcetrail",
                 "tree-sitter"
             ]
         );

@@ -1,0 +1,87 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G72",
+  "base_revision": "442734422ea81e2742de0e564f2cc248026d1661",
+  "candidate_revision": "a4c31293adfc93444fb99768405f2d79e4d53cdd",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:f472b3dd7c022c1fddc64645d4205a1175b44ff1092f288d81861b671da845b1",
+  "after_census_digest": "blake3-256:a00c50bb847990d12c279b347562225efb06e5906120eb2f0aad0d670bf60a9d",
+  "replay_digest": "blake3-256:a00c50bb847990d12c279b347562225efb06e5906120eb2f0aad0d670bf60a9d",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "runtime/src/donor_storage.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "runtime/src/donor_storage.rs"
+    ],
+    "counts": {}
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1,
+    "graph_nodes": 1
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 964,
+    "total_after": 964
+  },
+  "intent": {
+    "objective": "P3 first-50 #13 sourcetrail: element/occurrence storage model already native (G66 descriptors + per-site records); no navigation consumer; REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+    "changed_paths": [
+      "runtime/src/donor_storage.rs"
+    ],
+    "total_changes": [
+      "+graph_edges",
+      "+graph_nodes"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+    ]
+  },
+  "intended_changes": [
+    "path runtime/src/donor_storage.rs",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

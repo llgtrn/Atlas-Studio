@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 7
+campaign_terminal = 8
 historically_proven = 5
 currently_censusing = 0
 deep_censused = 7
 absorbed = 6
-reference_only = 4
+reference_only = 5
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 10
-remaining = 40
-next_donor = "sourcetrail"
-next_step = "sourcetrail (#13): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
+extinct = 11
+remaining = 39
+next_donor = "rust"
+next_step = "rust (#14): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -232,11 +232,13 @@ target_capability = "symbol navigation index"
 mechanism_hypothesis = "indexer storage model for symbols/references"
 materialization_mode = "SPARSE_CHECKOUT (src/lib/data)"
 dependency_expectation = "clang/java indexers: EXTERNAL_BOUNDARY"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "REFERENCE_ONLY expected"
-note = "census SKELETON, decision PENDING"
+completed_in = "G72"
+evidence = ".atlas/evidence/campaign/13-sourcetrail.json"
+note = "element/occurrence model already native (G66 descriptors + per-site records); no navigation consumer; REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 14

@@ -1,0 +1,32 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 13,
+ "donor": "sourcetrail",
+ "commit_sha": "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3",
+ "generation": "G72",
+ "base_commit": "a4c31293ad",
+ "census": "SKELETON before G72; deep-censused the storage slice src/lib/data/storage/sqlite (SqliteIndexStorage.cpp)",
+ "mechanism": "SqliteIndexStorage.cpp L1242-1338: element, element_component, edge, node, symbol, file, filecontent, local_symbol, source_location, occurrence, component_access, error -- an element/occurrence model: one element, many source-location occurrences, produced by external clang/java indexers",
+ "falsification": {
+  "atlas_model": "Symbol records are emitted only for definitions (the Rust extractor emits no REFERENCE-role symbols); uses are per-site CALL and DATA_FLOW records, each with its own span -- the occurrence model already exists where the census consumes it; G66 descriptors give each function one position-free element identity",
+  "occurrence_loss_measured": "the extractor's seen-record dedup drops a second same-scope definition in one file (cfg alternates such as same_inode): 1 descriptor in the self-scope, already surfaced as AMBIGUOUS by the G66 entity layer",
+  "consumer": "no symbol-navigation consumer exists (apps/studio has no TypeScript source; WebUI is not censusable)",
+  "verdict": "FALSIFIED as a current need"
+ },
+ "decision": {
+  "REFERENCE_ONLY": [
+   "element/occurrence/source_location storage schema",
+   "local_symbol scoping",
+   "SQLite index storage"
+  ],
+  "trigger": "re-evaluate with a navigation/find-references consumer (apps/studio) or when reference-role symbol records are introduced",
+  "ABSORBED": []
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "action": "git rm -r .atlas/temporary/donors/sourcetrail (2,408 tracked files, 74 MB)"
+ }
+}
