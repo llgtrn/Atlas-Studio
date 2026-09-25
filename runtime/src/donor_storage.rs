@@ -447,6 +447,7 @@ mod tests {
         assert_eq!(
             deleted,
             [
+                "arrow",
                 "ast-grep",
                 "blake3",
                 "buck2",

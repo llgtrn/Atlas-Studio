@@ -1,0 +1,35 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 24,
+ "donor": "arrow",
+ "commit_sha": "70f5c269ae8d154f57f7a7ec6babe6e0685ed6ec",
+ "generation": "G88",
+ "base_commit": "dc53c36f4c",
+ "hypothesis": "IPC columnar layout for large fact tables (P2)",
+ "blocking_question": "Does any Atlas record family reach a volume where a columnar section beats row records, and is any Arrow mechanism needed beyond the generic columnar idea? (recorded as sequencing-blocked until a section writer existed -- it has since G64)",
+ "measurement": {
+  "container": "the real census container of cf706daea4: 3,444,275 bytes; STRING_TABLE 1,715,575 bytes / 37,769 strings; SEMANTIC_RECORDS (census facts) 1,628,507 bytes / 15,155 records; OBLIGATIONS 97,614 bytes / 1,683 records",
+  "family_volumes": "census totals: 15,155 facts, 1,683 obligations, 81,080 typed records (the largest family is not stored in the container at all), 113,088 graph edges",
+  "row_layout": "a fact is 107.5 bytes: an 8-byte record header plus 10 fields, each an 8-byte header (u16 tag, u8 wire, u8 flags, u32 length) around a 2-3 byte string-index varint; payload is 20% of the section (324,163 bytes), framing 80%",
+  "columnar_layout": "one column per tag (a presence bitmap for optional tags, then the concatenated varints): facts 326,058 bytes (5.0x smaller raw), obligations 16,830 (5.8x)",
+  "after_compression": "facts: row zlib-9 211,757 / xz 156,276 vs columnar zlib-9 150,525 / xz 107,828 -- 1.4x; obligations: row 4,820 / 1,352 vs columnar 505 / 508",
+  "consumer": "none: the container is a gitignored local cache, never committed or transmitted"
+ },
+ "arrow_mechanisms": {
+  "dictionary_encoding": "already present: the sorted, deduplicated string table is the dictionary every string field indexes",
+  "validity_bitmaps": "2 of 10 fact fields are optional; a bitmap is the generic columnar idea, not Arrow-specific",
+  "ipc_framing_and_flatbuffers_metadata": "duplicates the wire contract's own header, directory and schema identity (flatbuffers #22 G86 covered schema evolution)",
+  "record_batches_and_alignment": "serve zero-copy vectorized compute, which no Atlas reader performs (rkyv #21 G85: the cache loads in ~0.35 s)"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["columnar format, dictionary/validity/offset buffers, IPC stream and file formats, record batches, compute kernels"],
+  "contract_change": "ATLAS-SEMANTIC-COMPACTION.md Columnar organization: the G88 measurement recorded; shard-level codec compression is the first size lever, and columnar grouping is justified only by a family the codec cannot already compact"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/arrow"
+ }
+}

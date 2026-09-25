@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 19
+campaign_terminal = 20
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 3
 absorbed = 8
-reference_only = 12
+reference_only = 13
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 22
-remaining = 28
-next_donor = "arrow"
-next_step = "G88 (P3): arrow (#24) -- IPC columnar layout for large fact tables (P2)"
+extinct = 23
+remaining = 27
+next_donor = "mlir"
+next_step = "G89 (P3): mlir (#25) -- dialects, regions, progressive lowering, verification (P6; shares the llvm-project tree with #32)"
 
 [[donor]]
 ordinal = 1
@@ -419,13 +419,15 @@ canonical_url = "https://github.com/apache/arrow.git"
 serves = "P2"
 target_capability = "columnar fact storage"
 mechanism_hypothesis = "IPC columnar layout for large fact tables"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "flatbuffers (#22)"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G88"
+evidence = ".atlas/evidence/campaign/24-arrow.json"
+note = "census facts are 80% TLV framing; columnar grouping saves 5.0x raw but only 1.4x after generic compression and leaves the string table untouched; the container has no consumer; the dictionary is the string table; source physically deleted"
 
 [[donor]]
 ordinal = 25

@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #24 arrow: census facts are 80% TLV framing; columnar grouping saves 5.0x raw but only 1.4x after generic compression, leaves the string table untouched, and the container has no consumer; Arrow's dictionary is the existing string table; REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

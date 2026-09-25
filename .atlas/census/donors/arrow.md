@@ -109,3 +109,14 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 atlas columnar evidence storage and high-performance data layout reference
+
+## G88 — terminal REFERENCE_ONLY; source extinct
+
+The recorded question was measured on the real census container. It holds 15,155 census facts at 107.5 bytes each, and 80% of those bytes are TLV framing: every 2–3 byte string-index varint carries an 8-byte field header. Columnar grouping shrinks the section 5.0x raw, but only 1.4x once zlib or xz is applied. It does not touch the string table, which is half the container, and nothing reads the container (a gitignored local cache). The largest census family, 81,080 typed records, is not stored in the container at all.
+
+Arrow adds nothing beyond the generic columnar idea:
+- its dictionary encoding is the existing string table;
+- its IPC and flatbuffers framing duplicate the wire contract;
+- record batches serve vectorized compute, which Atlas does not perform.
+
+ATLAS-SEMANTIC-COMPACTION.md now records the measurement: codec compression comes first. The checkout was physically deleted. Evidence: `../../evidence/campaign/24-arrow.json`.

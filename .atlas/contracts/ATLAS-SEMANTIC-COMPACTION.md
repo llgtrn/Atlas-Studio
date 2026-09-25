@@ -265,6 +265,8 @@ Columnar encoding is allowed only when the logical typed record can be reconstru
 
 The logical semantic schema remains authoritative over the column layout.
 
+Measured on the census container (G88): columnar grouping shrinks the census-facts section 5.0x raw, but only about 1.4x once generic codec compression is applied, and it leaves the string table, half the container, untouched. When container size becomes a measured cost, shard-level codec compression (stage 15) is the cheaper first lever. Columnar grouping is justified only by a family the codec cannot already compact.
+
 ## Delta/varint/bit packing
 
 Sorted/local numeric references SHOULD use delta/varint/bit packing where beneficial.

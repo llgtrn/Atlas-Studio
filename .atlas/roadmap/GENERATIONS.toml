@@ -1280,6 +1280,7 @@ objective = "answer the recorded native-vs-external codec question now that a se
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/23-zstd.json"
 self_recensus = ".atlas/evidence/census/G87/recensus.json"
+result_commits = ["cf706daea4cdef6e6b629a72560688c20de06e57", "dc53c36f4c72bfc508a75ae2e047694a3005f2c2"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 38a3147040 = G86 post digest cd1a4d86... (726fe496c1 adds only out-of-scope evidence)"
@@ -1291,3 +1292,24 @@ proof = "PROVEN on the first run (post b0b781e5...)"
 
 [generation.next]
 objective = "G88 (P3): first-50 #24 arrow (IPC columnar layout for large fact tables, P2)"
+
+[[generation]]
+id = "G88"
+base_commit = "dc53c36f4c72bfc508a75ae2e047694a3005f2c2"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #24 arrow to a terminal state (P2 columnar question)"
+objective = "answer the recorded columnar-volume question by measuring the real census container, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/24-arrow.json"
+self_recensus = ".atlas/evidence/census/G88/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of cf706daea4 = G87 post digest b0b781e5... (dc53c36f4c adds only out-of-scope evidence)"
+falsification = "15,155 census facts at 107.5 bytes each, 80% TLV framing; columnar grouping: 5.0x smaller raw, 1.4x after zlib-9 or xz; the 1.7 MB string table (half the container) is untouched; the 81,080 typed records are not in the container; no consumer (gitignored cache). Arrow's dictionary encoding is the existing string table; IPC and flatbuffers framing duplicate the wire contract"
+change = "ATLAS-SEMANTIC-COMPACTION.md Columnar organization: the measurement recorded; codec compression is the first size lever, and columnar grouping is justified only by a family the codec cannot compact"
+no_code_change = "no Arrow mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/arrow (76 MB); no build, runtime or test reference"
+proof = "PROVEN on the first run (post 8a35d361...)"
+
+[generation.next]
+objective = "G89 (P3): first-50 #25 mlir (dialects, regions, progressive lowering, verification; P6, shares the llvm-project tree with #32)"
