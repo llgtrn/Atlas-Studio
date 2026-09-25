@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 38
+campaign_terminal = 39
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
-reference_only = 24
+reference_only = 25
 external_boundary = 7
 rejected = 0
 deferred = 1
-extinct = 41
-remaining = 9
-next_donor = "containers-image"
-next_step = "G107 (P3): containers-image (#43) -- sigstore signature/rekor verification (P5)"
+extinct = 42
+remaining = 8
+next_donor = "z3"
+next_step = "G108 (P3): z3 (#44) -- incremental SMT (push/pop) for non-ground constraints (P0)"
 
 [[donor]]
 ordinal = 1
@@ -742,13 +742,15 @@ canonical_url = "https://github.com/containers/image.git"
 serves = "P5"
 target_capability = "signed provenance"
 mechanism_hypothesis = "sigstore signature/rekor verification"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "sigstore services: SERVICE"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census PENDING_DEEP_CENSUS, decision APPROVED_SECURITY_LANE"
+completed_in = "G107"
+evidence = ".atlas/evidence/campaign/43-containers-image.json"
+note = "no signature consumer: seal-time attestation roots are content hashes at an unimplemented seal gate, donors are pinned by git hashes, nothing is published to third parties; the default-deny per-scope admission policy is the design reference for seal/publication policy; source physically deleted"
 
 [[donor]]
 ordinal = 44

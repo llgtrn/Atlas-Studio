@@ -455,6 +455,7 @@ mod tests {
                 "capnproto",
                 "clef",
                 "composer",
+                "containers-image",
                 "datafrog",
                 "differential-dataflow",
                 "duumbi",

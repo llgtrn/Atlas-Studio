@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 43,
+ "donor": "containers-image",
+ "commit_sha": "df7e80d2d19872b61f352a8a182ec934dc0c2346",
+ "generation": "G107",
+ "base_commit": "7cb4d30128",
+ "hypothesis": "sigstore signature / rekor verification (P5 signed provenance)",
+ "blocking_question": "none recorded (census PENDING_DEEP_CENSUS, decision APPROVED_SECURITY_LANE); corpus role 'core/security policy and runtime/security admission'",
+ "measurement": {
+  "contracts": "the only signing-adjacent requirement is 'evidence/attestation root identities' carried by a seal (ATLAS-BINARY-WIRE-FORMAT.md, ATLAS-CREATION-PIPELINE.md, ATLAS-TO-ATLASX.md) -- content-hash identities, at a seal gate that is unimplemented (exit criterion E); no contract names sigstore, Rekor, cosign or signature verification",
+  "code": "no Atlas code signs or verifies signatures; donors are pinned by git commit and tree hashes",
+  "donor_surfaces": "signature/: GPG (gpgme, openpgp, sequoia) and sigstore mechanisms, Fulcio certificate checks (fulcio_cert.go), PKI certificates, and a declarative policy (policy_config.go, policy_config_sigstore.go) evaluated default-deny per transport and scope (policy_eval.go: insecureAcceptAnything, reject, signedBy, signedBaseLayer, sigstoreSigned)",
+  "verdict": "keyless signing and transparency-log inclusion serve publication to third parties, which Atlas does not do; nothing consumes them"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["declarative default-deny admission policy per scope (design reference for a seal/publication policy)", "sigstore/Fulcio/Rekor verification", "GPG signature mechanisms", "image transports and manifest handling"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "reopen_trigger": "sealing or publication of .atlas artifacts to third parties (exit criterion E)",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/security/containers-image (726 files)"
+ }
+}

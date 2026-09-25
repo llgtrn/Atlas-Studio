@@ -1,0 +1,10 @@
+{
+  "objective": "P3 first-50 #43 containers-image: no signature consumer (seal-time attestation roots are content hashes at an unimplemented seal gate; donors pinned by git hashes; nothing published); REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

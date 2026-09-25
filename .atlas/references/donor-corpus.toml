@@ -592,14 +592,19 @@ default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
 license = [".atlas/licenses/donors/containers-image/LICENSE"]
 technology_domains = ["security", "trust", "supply_chain", "admission_policy"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "PENDING_DEEP_CENSUS"
-decision_status = "APPROVED_SECURITY_LANE"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G107: no consumer for signature verification. Atlas's contracts require content-hash evidence/attestation root identities at seal time (ATLAS-BINARY-WIRE-FORMAT.md, ATLAS-CREATION-PIPELINE.md), and the seal gate itself is unimplemented (exit criterion E). Donors are pinned by git commit and tree hash, and no Atlas code signs or verifies signatures. Sigstore's keyless signing (Fulcio certificates) and Rekor transparency-log inclusion serve publishing artifacts to third parties, which Atlas does not do. The declarative admission policy (signature/policy_config.go: per-transport and per-scope requirements such as reject, signedBy and sigstoreSigned, evaluated default-deny in policy_eval.go) is the design reference for a future seal/publication policy"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/43-containers-image.json)"
+cheapest_falsification = "performed G107: contracts searched for signing/sigstore/attestation requirements (content-hash attestation roots only, at an unimplemented seal gate); code searched for signature handling (none)"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted; revisit with sealing/publication (exit criterion E)"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "core/security policy and runtime/security admission"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/containers-image.json"]
+evidence = [".atlas/evidence/campaign/43-containers-image.json", ".atlas/provenance/donors/containers-image.json"]
 
 [[donor]]
 id = "podman"
