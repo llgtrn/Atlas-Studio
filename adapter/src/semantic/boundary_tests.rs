@@ -95,6 +95,7 @@ impl SemanticExtractor for FixtureSymbolExtractor {
                     revision: Some(input.revision.clone()),
                 });
                 let symbol = SymbolIdentity {
+                    path: String::new(),
                     repository: input.repository.clone(),
                     revision: input.revision.clone(),
                     scope: SemanticScope::new(["fixture"]),

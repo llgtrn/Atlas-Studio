@@ -258,6 +258,7 @@ mod tests {
             language: "rust".into(),
             scope: scope.clone(),
             symbol: SymbolIdentity {
+                path: String::new(),
                 repository,
                 revision,
                 scope,
@@ -393,6 +394,7 @@ mod tests {
 
     fn type_identity(name: &str) -> TypeIdentity {
         TypeIdentity {
+            path: String::new(),
             repository: RepositoryId::new("atlas-studio"),
             revision: RevisionRef {
                 kind: "git".into(),

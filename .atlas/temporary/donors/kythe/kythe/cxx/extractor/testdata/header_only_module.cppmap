@@ -1,3 +1,0 @@
-module "//kythe/cxx/extractor/testdata:header_only_module" {
-  header "kythe/cxx/extractor/testdata/header_only_module.h"
-}

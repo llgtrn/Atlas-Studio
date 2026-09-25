@@ -1,0 +1,564 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G67",
+  "base_revision": "65bacafbd8997e07e8fcbe776115cc5730073655",
+  "candidate_revision": "a23ae6607feb08663c3e852b96e701b14a06380f",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:3ce4fb6ac29a1f6baddf5386f6d3a5e4ac88106440f07bed0362a4a57897d60b",
+  "after_census_digest": "blake3-256:97978cfce72da0f0f5931dfe44d52d71f6f49f109dd70f04abae11793c373c0f",
+  "replay_digest": "blake3-256:97978cfce72da0f0f5931dfe44d52d71f6f49f109dd70f04abae11793c373c0f",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 3,
+      "fact:FunctionSignature|OBSERVED": 3,
+      "fact:Symbol|OBSERVED": 5,
+      "record:CALL|OBSERVED": 40,
+      "record:CONTROL_FLOW|OBSERVED": 8,
+      "record:DATA_FLOW|OBSERVED": 31,
+      "record:FUNCTION_IDENTITY|OBSERVED": 3,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 3,
+      "record:OWNERSHIP|OBSERVED": 4,
+      "record:SYMBOL|OBSERVED": 5
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 124,
+    "graph_nodes": 624
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/boundary_tests/`impl:SemanticExtractor for FixtureSymbolExtractor`/extract()."
+      ],
+      "after": [
+        "adapter semantic/boundary_tests/`impl:SemanticExtractor for FixtureSymbolExtractor`/extract()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_symbol()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_symbol()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_type_identity()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_type_identity()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/function_identity()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/function_identity()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/a_free_function_never_produces_an_implemented_on_edge()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/a_free_function_never_produces_an_implemented_on_edge()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/a_function_signature_projects_its_scalar_attributes_and_parameter_return_type_edges()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/a_function_signature_projects_its_scalar_attributes_and_parameter_return_type_edges()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/a_method_projects_its_declaration_kind_and_an_implemented_on_edge_to_the_owner_type()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/a_method_projects_its_declaration_kind_and_an_implemented_on_edge_to_the_owner_type()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/function_identity_observation()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/function_identity_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/function_signature_observation()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/function_signature_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/symbol_observation()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/symbol_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core recensus/entity/tests/signature/sig()."
+      ],
+      "after": [
+        "core recensus/entity/tests/signature/sig()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core recensus/entity/tests/signature/ty()."
+      ],
+      "after": [
+        "core recensus/entity/tests/signature/ty()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core schema/tests/symbol_observation()."
+      ],
+      "after": [
+        "core schema/tests/symbol_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/function/tests/identity()."
+      ],
+      "after": [
+        "core semantic/function/tests/identity()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/function/tests/type_identity()."
+      ],
+      "after": [
+        "core semantic/function/tests/type_identity()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/tests/dimension_and_record_id_match_the_wrapped_header()."
+      ],
+      "after": [
+        "core semantic/observation/tests/dimension_and_record_id_match_the_wrapped_header()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/tests/symbol_header()."
+      ],
+      "after": [
+        "core semantic/observation/tests/symbol_header()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/tests/type_header()."
+      ],
+      "after": [
+        "core semantic/observation/tests/type_header()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/symbol/`impl:SymbolIdentity`/identity_key()."
+      ],
+      "after": [
+        "core semantic/symbol/`impl:SymbolIdentity`/identity_key()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/symbol/tests/identity_key_distinguishes_role()."
+      ],
+      "after": [
+        "core semantic/symbol/tests/identity_key_distinguishes_role()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/symbol/tests/identity_key_distinguishes_scope()."
+      ],
+      "after": [
+        "core semantic/symbol/tests/identity_key_distinguishes_scope()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/symbol/tests/identity_key_is_stable_for_equal_values()."
+      ],
+      "after": [
+        "core semantic/symbol/tests/identity_key_is_stable_for_equal_values()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/tests/header_carries_canonical_epistemic_status_and_typed_subject()."
+      ],
+      "after": [
+        "core semantic/tests/header_carries_canonical_epistemic_status_and_typed_subject()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/types/`impl:TypeIdentity`/identity_key()."
+      ],
+      "after": [
+        "core semantic/types/`impl:TypeIdentity`/identity_key()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/types/tests/base()."
+      ],
+      "after": [
+        "core semantic/types/tests/base()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/extraction/multi_extractor_tests/observed_symbol_batch()."
+      ],
+      "after": [
+        "runtime census/extraction/multi_extractor_tests/observed_symbol_batch()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/extraction/multi_extractor_tests/observed_type_batch()."
+      ],
+      "after": [
+        "runtime census/extraction/multi_extractor_tests/observed_type_batch()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/tests/extraction_batch_with_function_identity_from()."
+      ],
+      "after": [
+        "runtime census/tests/extraction_batch_with_function_identity_from()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/tests/extraction_batch_with_one_symbol()."
+      ],
+      "after": [
+        "runtime census/tests/extraction_batch_with_one_symbol()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/tests/extraction_batch_with_symbol_from()."
+      ],
+      "after": [
+        "runtime census/tests/extraction_batch_with_symbol_from()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime normalize/tests/symbol_observation()."
+      ],
+      "after": [
+        "runtime normalize/tests/symbol_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+      ],
+      "after": [
+        "runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/identities_are_scoped_to_their_source_artifact()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/symbol/tests/identity_key_distinguishes_the_source_artifact()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/types/tests/unresolved_spellings_are_file_scoped_and_canonical_types_are_not()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 956,
+    "total_after": 956
+  },
+  "intent": {
+    "objective": "P3 first-50 #8 kythe + P0 census correctness: symbol and type identities carry their source artifact (Kythe VName path), ending cross-file identity conflation (203 ids) and the graph's silent loss of 609 nodes; kythe checkout physically extinct",
+    "changed_paths": [
+      "adapter/src/semantic/",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/",
+      "runtime/src/census/",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs"
+    ],
+    "total_changes": [
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_symbol().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_type_identity().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/function_identity().",
+      "CHANGED core semantic/symbol/`impl:SymbolIdentity`/identity_key().",
+      "CHANGED core semantic/types/`impl:TypeIdentity`/identity_key().",
+      "* adapter semantic/boundary_tests/*",
+      "* adapter semantic/rust/tests/*",
+      "* core graph/engineering_graph/tests/*",
+      "* core recensus/entity/tests/*",
+      "* core schema/tests/*",
+      "* core semantic/function/tests/*",
+      "* core semantic/observation/tests/*",
+      "* core semantic/symbol/tests/*",
+      "* core semantic/tests/*",
+      "* core semantic/types/tests/*",
+      "* runtime census/extraction/multi_extractor_tests/*",
+      "* runtime census/tests/*",
+      "* runtime donor_storage/tests/*",
+      "* runtime normalize/tests/*",
+      "* runtime tests/*"
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/boundary_tests.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/recensus/entity/tests.rs",
+    "path core/src/schema/mod.rs",
+    "path core/src/semantic/function.rs",
+    "path core/src/semantic/mod.rs",
+    "path core/src/semantic/observation.rs",
+    "path core/src/semantic/symbol.rs",
+    "path core/src/semantic/types.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/normalize/mod.rs",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/boundary_tests/`impl:SemanticExtractor for FixtureSymbolExtractor`/extract().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_symbol().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_type_identity().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/function_identity().",
+    "entity CHANGED core graph/engineering_graph/tests/a_free_function_never_produces_an_implemented_on_edge().",
+    "entity CHANGED core graph/engineering_graph/tests/a_function_signature_projects_its_scalar_attributes_and_parameter_return_type_edges().",
+    "entity CHANGED core graph/engineering_graph/tests/a_method_projects_its_declaration_kind_and_an_implemented_on_edge_to_the_owner_type().",
+    "entity CHANGED core graph/engineering_graph/tests/function_identity_observation().",
+    "entity CHANGED core graph/engineering_graph/tests/function_signature_observation().",
+    "entity CHANGED core graph/engineering_graph/tests/symbol_observation().",
+    "entity CHANGED core recensus/entity/tests/signature/sig().",
+    "entity CHANGED core recensus/entity/tests/signature/ty().",
+    "entity CHANGED core schema/tests/symbol_observation().",
+    "entity CHANGED core semantic/function/tests/identity().",
+    "entity CHANGED core semantic/function/tests/type_identity().",
+    "entity CHANGED core semantic/observation/tests/dimension_and_record_id_match_the_wrapped_header().",
+    "entity CHANGED core semantic/observation/tests/symbol_header().",
+    "entity CHANGED core semantic/observation/tests/type_header().",
+    "entity CHANGED core semantic/symbol/`impl:SymbolIdentity`/identity_key().",
+    "entity CHANGED core semantic/symbol/tests/identity_key_distinguishes_role().",
+    "entity CHANGED core semantic/symbol/tests/identity_key_distinguishes_scope().",
+    "entity CHANGED core semantic/symbol/tests/identity_key_is_stable_for_equal_values().",
+    "entity CHANGED core semantic/tests/header_carries_canonical_epistemic_status_and_typed_subject().",
+    "entity CHANGED core semantic/types/`impl:TypeIdentity`/identity_key().",
+    "entity CHANGED core semantic/types/tests/base().",
+    "entity CHANGED runtime census/extraction/multi_extractor_tests/observed_symbol_batch().",
+    "entity CHANGED runtime census/extraction/multi_extractor_tests/observed_type_batch().",
+    "entity CHANGED runtime census/tests/extraction_batch_with_function_identity_from().",
+    "entity CHANGED runtime census/tests/extraction_batch_with_one_symbol().",
+    "entity CHANGED runtime census/tests/extraction_batch_with_symbol_from().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "entity CHANGED runtime normalize/tests/symbol_observation().",
+    "entity CHANGED runtime tests/systemize_reconciles_declared_dependencies_against_the_census().",
+    "entity CREATED adapter semantic/rust/tests/identities_are_scoped_to_their_source_artifact().",
+    "entity CREATED core semantic/symbol/tests/identity_key_distinguishes_the_source_artifact().",
+    "entity CREATED core semantic/types/tests/unresolved_spellings_are_file_scoped_and_canonical_types_are_not()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

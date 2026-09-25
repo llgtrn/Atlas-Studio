@@ -1,7 +1,0 @@
-syntax = "proto2";
-
-package deps_test;
-
-message SubMessage {
-    optional string field1 = 1;
-}

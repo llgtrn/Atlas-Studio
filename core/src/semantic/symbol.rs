@@ -36,6 +36,11 @@ pub struct SymbolIdentity {
     pub scope: SemanticScope,
     pub name: String,
     pub role: SymbolRole,
+    /// The source artifact that spells this symbol (G67, Kythe's VName `path`). The lexical scope
+    /// carries no module, so without it two `tests::report` definitions in different files had
+    /// one identity and one of them vanished from the graph.
+    #[serde(default)]
+    pub path: String,
 }
 
 impl SymbolIdentity {
@@ -43,13 +48,14 @@ impl SymbolIdentity {
     /// escaped before joining -- see `SemanticScope::identity_key()`'s doc comment.
     pub fn identity_key(&self) -> String {
         format!(
-            "{}|{}:{}|{}|{}|{}",
+            "{}|{}:{}|{}|{}|{}|{}",
             self.repository.as_str(),
             self.revision.kind,
             self.revision.value,
             self.scope.identity_key(),
             self.name,
             self.role.as_str(),
+            crate::identity::escape_identity_field(&self.path, '|'),
         )
     }
 }
@@ -69,9 +75,34 @@ mod tests {
         }
     }
 
+    /// G67: the same scope, name and role spelled in two files are two symbols (Kythe's VName
+    /// path). Before, both `tests::report` definitions shared one identity.
+    #[test]
+    fn identity_key_distinguishes_the_source_artifact() {
+        let symbol = |path: &str| SymbolIdentity {
+            path: path.into(),
+            repository: repo(),
+            revision: revision(),
+            scope: SemanticScope::new(["tests"]),
+            name: "report".into(),
+            role: SymbolRole::Definition,
+        };
+        assert_ne!(
+            symbol("core/src/visual/mod.rs").identity_key(),
+            symbol("core/src/census/delta.rs").identity_key()
+        );
+        assert_eq!(
+            symbol("core/src/a.rs").identity_key(),
+            symbol("core/src/a.rs").identity_key()
+        );
+        // The path is escaped like every other field: a `|` in it cannot forge another key.
+        assert_ne!(symbol("a|b").identity_key(), symbol("a").identity_key());
+    }
+
     #[test]
     fn identity_key_distinguishes_scope() {
         let a = SymbolIdentity {
+            path: String::new(),
             repository: repo(),
             revision: revision(),
             scope: SemanticScope::new(["core", "widgets"]),
@@ -88,6 +119,7 @@ mod tests {
     #[test]
     fn identity_key_distinguishes_role() {
         let a = SymbolIdentity {
+            path: String::new(),
             repository: repo(),
             revision: revision(),
             scope: SemanticScope::new(["core"]),
@@ -104,6 +136,7 @@ mod tests {
     #[test]
     fn identity_key_is_stable_for_equal_values() {
         let a = SymbolIdentity {
+            path: String::new(),
             repository: repo(),
             revision: revision(),
             scope: SemanticScope::new(["core"]),

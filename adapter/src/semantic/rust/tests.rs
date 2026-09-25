@@ -6555,3 +6555,47 @@ fn body_fingerprints_ignore_position_and_formatting_but_not_tokens() {
         None
     );
 }
+
+/// G67: the same symbol and type spellings in two files are distinct records; before, every
+/// `tests::report` definition (and every spelled type) across files shared one record id.
+#[test]
+fn identities_are_scoped_to_their_source_artifact() {
+    let source = "mod tests {\n    fn report(x: Widget) -> u8 { 0 }\n}\n";
+    let ids = |path: &str| -> std::collections::BTreeSet<String> {
+        extract_all(path, source)
+            .observations
+            .iter()
+            .filter_map(|o| match o {
+                SemanticObservation::Symbol(h) => Some(h.record_id.as_str().to_owned()),
+                SemanticObservation::Type(h) => Some(h.record_id.as_str().to_owned()),
+                _ => None,
+            })
+            .collect()
+    };
+    let (a, b) = (
+        ids("core/src/visual/mod.rs"),
+        ids("core/src/census/delta.rs"),
+    );
+    assert!(!a.is_empty());
+    assert!(
+        a.is_disjoint(&b),
+        "{:?}",
+        a.intersection(&b).collect::<Vec<_>>()
+    );
+    assert_eq!(
+        a,
+        ids("core/src/visual/mod.rs"),
+        "deterministic per artifact"
+    );
+    // The symbol embedded in a function identity names its artifact too.
+    let batch = extract_all("core/src/visual/mod.rs", source);
+    let embedded: Vec<&str> = batch
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h) => Some(h.subject.symbol.path.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(embedded, ["core/src/visual/mod.rs"]);
+}

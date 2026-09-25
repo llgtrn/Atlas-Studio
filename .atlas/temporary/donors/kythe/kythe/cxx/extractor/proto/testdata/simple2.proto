@@ -1,7 +1,0 @@
-syntax = "proto2";
-
-package proto_extractor_test;
-
-message Simple2 {
-    optional string field1 = 1;
-}

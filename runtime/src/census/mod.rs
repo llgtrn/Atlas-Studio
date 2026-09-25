@@ -773,6 +773,7 @@ mod tests {
             version: "0.1.0".into(),
         };
         let symbol = SymbolIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: SemanticScope::new(Vec::<String>::new()),
@@ -844,6 +845,7 @@ mod tests {
             version: "0.1.0".into(),
         };
         let symbol = SymbolIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: SemanticScope::new(Vec::<String>::new()),
@@ -923,6 +925,7 @@ mod tests {
             language: "rust".into(),
             scope: scope.clone(),
             symbol: SymbolIdentity {
+                path: String::new(),
                 repository: repository.clone(),
                 revision: revision.clone(),
                 scope: scope.clone(),
@@ -938,6 +941,7 @@ mod tests {
             declaration_kind: FunctionDeclarationKind::InherentMethod,
             owner: FunctionOwner {
                 target: Some(TypeIdentity {
+                    path: String::new(),
                     repository: repository.clone(),
                     revision: revision.clone(),
                     scope: SemanticScope::new(Vec::<String>::new()),

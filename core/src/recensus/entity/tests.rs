@@ -220,6 +220,7 @@ mod signature {
 
     fn ty(name: &str, revision: &str) -> TypeIdentity {
         TypeIdentity {
+            path: String::new(),
             repository: RepositoryId::new("r"),
             revision: RevisionRef {
                 kind: "git".into(),
@@ -244,6 +245,7 @@ mod signature {
                 language: "rust".into(),
                 scope: scope.clone(),
                 symbol: SymbolIdentity {
+                    path: String::new(),
                     repository: RepositoryId::new("r"),
                     revision: rev,
                     scope,

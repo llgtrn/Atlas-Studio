@@ -526,6 +526,7 @@ mod tests {
 
     fn symbol_observation(evidence_id: &str) -> SemanticObservation {
         let symbol = SymbolIdentity {
+            path: String::new(),
             repository: repository(),
             revision: revision(),
             scope: SemanticScope::new(Vec::<String>::new()),

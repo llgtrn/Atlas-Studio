@@ -1,8 +1,0 @@
-syntax = "proto2";
-
-package pkg.proto4c;
-
-option java_package = "pkg.proto4c";
-
-message Thing3 {
-}

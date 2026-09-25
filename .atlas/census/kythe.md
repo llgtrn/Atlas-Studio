@@ -27,3 +27,11 @@ Decision: TARGET_MAPPED. Kythe principles feed `core/identity`, `core/model`, `r
 
 source graph symbol identity
 
+## Campaign decision (G67, first-50 #8)
+
+The recorded absorption condition occurred. Symbol and type identity keys lacked a location, so 203 ids were shared by definitions and spellings in different files. The engineering graph kept only the first of each (609 nodes lost), and normalization merged them as one claim.
+
+Kythe's VName `path` was absorbed as an identity field: `SymbolIdentity.path` and `TypeIdentity.path`, where unresolved spellings are file-scoped and resolved canonical types are shared. REFERENCE_ONLY: corpus, root, language, opaque signatures and the Entry store.
+
+Terminal: ABSORBED. The checkout (2,396 files, 22 MB) was physically deleted. Evidence: `../evidence/campaign/08-kythe.json`.
+

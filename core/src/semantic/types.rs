@@ -14,6 +14,11 @@ pub struct TypeIdentity {
     pub scope: SemanticScope,
     pub name: String,
     pub canonical: Option<String>,
+    /// The source artifact that spells this type (G67, Kythe's VName `path`). An unresolved
+    /// spelling means what its file's imports make it mean, so it is file-scoped; a resolved
+    /// `canonical` type is shared across files and its identity ignores the path.
+    #[serde(default)]
+    pub path: String,
 }
 
 impl TypeIdentity {
@@ -26,13 +31,18 @@ impl TypeIdentity {
     /// `SemanticScope::identity_key()`'s doc comment for the matching `scope` reasoning.
     pub fn identity_key(&self) -> String {
         format!(
-            "{}|{}:{}|{}|{}|{}",
+            "{}|{}:{}|{}|{}|{}|{}",
             self.repository.as_str(),
             self.revision.kind,
             self.revision.value,
             self.scope.identity_key(),
             crate::identity::escape_identity_field(&self.name, '|'),
             self.canonical.as_deref().unwrap_or(""),
+            if self.canonical.is_some() {
+                String::new()
+            } else {
+                crate::identity::escape_identity_field(&self.path, '|')
+            },
         )
     }
 }
@@ -43,6 +53,7 @@ mod tests {
 
     fn base() -> TypeIdentity {
         TypeIdentity {
+            path: String::new(),
             repository: RepositoryId::new("atlas-studio"),
             revision: RevisionRef {
                 kind: "git".into(),
@@ -52,6 +63,29 @@ mod tests {
             name: "Result".into(),
             canonical: None,
         }
+    }
+
+    /// G67: an unresolved spelling is file-scoped (its meaning depends on the file's imports); a
+    /// resolved canonical type is one type everywhere, so its identity ignores the path.
+    #[test]
+    fn unresolved_spellings_are_file_scoped_and_canonical_types_are_not() {
+        let at = |path: &str, canonical: Option<&str>| TypeIdentity {
+            path: path.into(),
+            canonical: canonical.map(Into::into),
+            ..base()
+        };
+        assert_ne!(
+            at("core/src/a.rs", None).identity_key(),
+            at("core/src/b.rs", None).identity_key()
+        );
+        assert_eq!(
+            at("core/src/a.rs", Some("std::result::Result")).identity_key(),
+            at("core/src/b.rs", Some("std::result::Result")).identity_key()
+        );
+        assert_ne!(
+            at("core/src/a.rs", Some("std::result::Result")).identity_key(),
+            at("core/src/a.rs", None).identity_key()
+        );
     }
 
     #[test]

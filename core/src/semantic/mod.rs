@@ -263,6 +263,7 @@ mod tests {
             dimension: SemanticDimension::Symbol,
             status: EpistemicStatus::Observed,
             subject: SymbolIdentity {
+                path: String::new(),
                 repository: RepositoryId::new("atlas-studio"),
                 revision: revision("abc123"),
                 scope: SemanticScope::new(["core", "lib"]),

@@ -1,3 +1,0 @@
-module "//modfoo" {
-  header "modfoo.h"
-}

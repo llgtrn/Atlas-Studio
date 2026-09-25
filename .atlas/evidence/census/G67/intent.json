@@ -1,0 +1,47 @@
+{
+  "objective": "P3 first-50 #8 kythe + P0 census correctness: symbol and type identities carry their source artifact (Kythe VName path), ending cross-file identity conflation (203 ids) and the graph's silent loss of 609 nodes; kythe checkout physically extinct",
+  "changed_paths": [
+    "adapter/src/semantic/",
+    "core/src/graph/engineering_graph.rs",
+    "core/src/recensus/entity/tests.rs",
+    "core/src/schema/mod.rs",
+    "core/src/semantic/",
+    "runtime/src/census/",
+    "runtime/src/donor_storage.rs",
+    "runtime/src/lib.rs",
+    "runtime/src/normalize/mod.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_symbol().",
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/emit_type_identity().",
+    "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/function_identity().",
+    "CHANGED core semantic/symbol/`impl:SymbolIdentity`/identity_key().",
+    "CHANGED core semantic/types/`impl:TypeIdentity`/identity_key().",
+    "* adapter semantic/boundary_tests/*",
+    "* adapter semantic/rust/tests/*",
+    "* core graph/engineering_graph/tests/*",
+    "* core recensus/entity/tests/*",
+    "* core schema/tests/*",
+    "* core semantic/function/tests/*",
+    "* core semantic/observation/tests/*",
+    "* core semantic/symbol/tests/*",
+    "* core semantic/tests/*",
+    "* core semantic/types/tests/*",
+    "* runtime census/extraction/multi_extractor_tests/*",
+    "* runtime census/tests/*",
+    "* runtime donor_storage/tests/*",
+    "* runtime normalize/tests/*",
+    "* runtime tests/*"
+  ]
+}

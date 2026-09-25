@@ -1,0 +1,45 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 8,
+ "donor": "kythe",
+ "commit_sha": "69141f022689a611e8a4a1d9b08a3783a2e8a9ed",
+ "generation": "G67",
+ "base_commit": "a23ae6607f",
+ "blocking_question_recorded": "no SourceIdentity redesign underway; absorb structured multi-field identity only on 'a concrete defect traced to string-joined identity keys that escape_identity_field does not already prevent'",
+ "falsification": {
+  "step_1": "escaping soundness: on the self-census at a23ae6607f, 64,407 typed records / 63,887 ids and 1,320 obligations have zero ids shared by distinct subjects -- the string-joined keys never collide lexically",
+  "step_2": "semantic conflation: 203 ids (64 Symbol, 139 Type) are shared by records from DIFFERENT source files with identical subjects -- e.g. `tests::report` DEFINITION in core/src/visual/mod.rs and core/src/census/delta.rs -- because SymbolIdentity/TypeIdentity carry a lexical scope but no location; 4,142 symbol records collapsed to 3,999 ids and 2,675 type records to 2,298",
+  "damage": "engineering_graph::ensure_node keeps the first node per id: the other definitions/spellings never became graph nodes and their provenance was lost; normalization treats a shared record_id as one semantic claim (the multi-engine agreement contract), so different claims were merged as agreement",
+  "verdict": "CONFIRMED defect: exactly the recorded evidence condition (a concrete defect of string-joined identity keys that escaping does not prevent -- the key lacks a field, not an escape)"
+ },
+ "kythe_mechanisms_censused": {
+  "vname": "kythe/proto/storage.proto: VName{signature, corpus, root, path, language}; 'path ... will generally be the relative path to the file containing the code'; minimal basis ('as few fields as possible'); all strings",
+  "no_time_in_names": "storage.proto: 'We have intentionally NOT included a revision or timestamp here ... a name should say what something is, not when' -- the principle G66 applied to recensus descriptors",
+  "entries": "facts and edges share one Entry store keyed by source VName, edge kind, target VName, fact name"
+ },
+ "decision": {
+  "ABSORBED": "location as a first-class identity field (VName path): SymbolIdentity.path and TypeIdentity.path in identity_key; an unresolved type spelling is file-scoped, a resolved canonical type is shared across files (path excluded) -- native in core::semantic, emitted by the Rust extractor",
+  "REFERENCE_ONLY": [
+   "corpus/root fields (Atlas identities already carry RepositoryId; multi-root corpora have no consumer)",
+   "language field (FunctionIdentity already carries language)",
+   "opaque analyzer signatures",
+   "the unified fact/edge Entry store (no consumer; typed records + graph edges serve)",
+   "removing revision from record identity (NORMALIZATION.md deliberately revision-scopes records; G66 descriptors give revision-free identity where it is consumed)"
+  ]
+ },
+ "after": {
+  "symbol_records_to_ids": "4,147 -> 4,147",
+  "type_records_to_ids": "2,675 -> 2,675",
+  "ids_spanning_files": "203 -> 0",
+  "graph_nodes": "72,836 -> 73,445 (+609, the previously dropped definitions/spellings)"
+ },
+ "falsification_of_fix": "7/7 mutants killed (symbol key without path, type key always/never with path, adapter symbol/type/embedded-function paths empty) after one real test gap closed (the symbol embedded in FunctionIdentity had no assertion; its path is identity-redundant because FunctionIdentity's key has span.path, but the data is now asserted)",
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "references": "documentation/provenance only",
+  "action": "git rm -r .atlas/temporary/donors/kythe (2,396 tracked files, 22 MB)"
+ }
+}

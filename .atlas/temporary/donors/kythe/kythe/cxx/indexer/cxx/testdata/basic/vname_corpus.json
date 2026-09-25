@@ -1,9 +1,0 @@
-[
-        {
-                "pattern": "(.*)",
-                "vname": {
-                        "corpus": "file",
-                        "path": "@1@"
-                }
-        }
-]

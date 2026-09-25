@@ -2014,6 +2014,7 @@ mod tests {
         };
         let scope = SemanticScope::new(Vec::<String>::new());
         let symbol = SymbolIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: scope.clone(),
@@ -2064,6 +2065,7 @@ mod tests {
             language: "rust".into(),
             scope: scope.clone(),
             symbol: SymbolIdentity {
+                path: String::new(),
                 repository: repository.clone(),
                 revision: revision.clone(),
                 scope: scope.clone(),
@@ -2079,6 +2081,7 @@ mod tests {
             declaration_kind: FunctionDeclarationKind::InherentMethod,
             owner: FunctionOwner {
                 target: Some(TypeIdentity {
+                    path: String::new(),
                     repository: repository.clone(),
                     revision: revision.clone(),
                     scope: SemanticScope::new(Vec::<String>::new()),
@@ -2763,6 +2766,7 @@ mod tests {
             value: "abc123".into(),
         };
         let type_subject = TypeIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: SemanticScope::new(Vec::<String>::new()),
@@ -2836,6 +2840,7 @@ mod tests {
             language: "rust".into(),
             scope: scope.clone(),
             symbol: SymbolIdentity {
+                path: String::new(),
                 repository: repository.clone(),
                 revision: revision.clone(),
                 scope: scope.clone(),
@@ -2916,6 +2921,7 @@ mod tests {
         };
         let scope = SemanticScope::new(Vec::<String>::new());
         let type_identity = |name: &str| TypeIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: scope.clone(),
@@ -2928,6 +2934,7 @@ mod tests {
             language: "rust".into(),
             scope: scope.clone(),
             symbol: SymbolIdentity {
+                path: String::new(),
                 repository: repository.clone(),
                 revision: revision.clone(),
                 scope: scope.clone(),
@@ -3036,6 +3043,7 @@ mod tests {
                 value: "abc123".into(),
             };
             let type_identity = TypeIdentity {
+                path: String::new(),
                 repository,
                 revision,
                 scope: crate::semantic::SemanticScope::new(Vec::<String>::new()),

@@ -1,4 +1,0 @@
-ignore:
-  - ".github/in-solidarity.yml" # default
-  - "tools/build_rules/llvm/generated_cmake_targets.bzl"
-  - "tools/platforms/configs/**"

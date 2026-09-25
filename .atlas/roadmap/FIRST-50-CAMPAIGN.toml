@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 2
+campaign_terminal = 3
 historically_proven = 5
 currently_censusing = 0
-deep_censused = 10
-absorbed = 4
+deep_censused = 9
+absorbed = 5
 reference_only = 1
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 5
-remaining = 45
-next_donor = "kythe"
-next_step = "kythe (#8): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
+extinct = 6
+remaining = 44
+next_donor = "glean"
+next_step = "glean (#9): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -147,11 +147,13 @@ target_capability = "semantic cross-reference graph"
 mechanism_hypothesis = "VName identity + fact/edge schema for cross-file semantic identity"
 materialization_mode = "SPARSE_CHECKOUT (kythe/data, schema docs)"
 dependency_expectation = "bazel: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
 terminal_goal = "REFERENCE_ONLY expected (schema ideas)"
-note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+completed_in = "G67"
+evidence = ".atlas/evidence/campaign/08-kythe.json"
+note = "expected REFERENCE_ONLY, falsified: 203 symbol/type ids conflated definitions across files (graph dropped them); absorbed VName path as identity field; corpus/root/language/Entry store REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 9

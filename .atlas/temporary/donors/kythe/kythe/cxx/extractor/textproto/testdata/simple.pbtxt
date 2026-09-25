@@ -1,4 +1,0 @@
-# proto-file: example.proto
-# proto-message: textproto_test.MyMessage
-
-str_field: "testing, testing..."

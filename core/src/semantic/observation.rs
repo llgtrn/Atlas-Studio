@@ -282,6 +282,7 @@ mod tests {
             dimension: SemanticDimension::Symbol,
             status: EpistemicStatus::Observed,
             subject: SymbolIdentity {
+                path: String::new(),
                 repository: RepositoryId::new("atlas-studio"),
                 revision: RevisionRef {
                     kind: "git".into(),
@@ -316,6 +317,7 @@ mod tests {
             dimension,
             status: EpistemicStatus::Observed,
             subject: SymbolIdentity {
+                path: String::new(),
                 repository: RepositoryId::new("atlas-studio"),
                 revision: RevisionRef {
                     kind: "git".into(),
@@ -346,6 +348,7 @@ mod tests {
             dimension,
             status: EpistemicStatus::Observed,
             subject: crate::TypeIdentity {
+                path: String::new(),
                 repository: RepositoryId::new("atlas-studio"),
                 revision: RevisionRef {
                     kind: "git".into(),

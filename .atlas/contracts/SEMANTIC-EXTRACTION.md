@@ -12,6 +12,8 @@ canonical: true
 
 Registered frontends (`adapter/src/source/frontend.rs`) recognize rust, typescript, javascript, markdown, toml, json, yaml, html and css by extension. A tenth, `rust-include-fragment` (G61), is never recognized by path. A file gets that language only when a `.rs` file in the same directory calls `include!("<its name>")`, observed at token level. `include_str!` and `include_bytes!` targets are data, not Rust tokens.
 
+Symbol and type identities carry the source artifact that spells them (G67, ADR 0029). A lexical scope names no module, so without the path, equal spellings in different files were one identity. A resolved `canonical` type ignores the path.
+
 Recognition is not analysis. A recognized language with no registered SemanticExtractor gets an explicit UNSUPPORTED batch for every dimension. The batch is attributed to the dispatch identity `atlas.extraction.unsupported-language` (G62). That identity is not an extractor and evaluates nothing. An unrecognized file stays UNKNOWN; it is never guessed.
 
 R4 extraction converts a pinned admitted artifact into typed raw observations and explicit unresolved obligations. It does not normalize identities globally, reconcile conflicts, invent facts, or write the engineering graph directly.

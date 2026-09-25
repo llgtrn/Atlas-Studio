@@ -1,6 +1,0 @@
-{
-    // This tsconfig is just to exercise the loadTsConfig() function.
-    "files": [
-        "alt.ts"
-    ]
-}

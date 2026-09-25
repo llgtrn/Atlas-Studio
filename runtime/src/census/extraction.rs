@@ -697,6 +697,7 @@ mod multi_extractor_tests {
             &format!("{extractor_id}:{symbol_name}"),
         ));
         let symbol = SymbolIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: SemanticScope::new(["fixture"]),
@@ -769,6 +770,7 @@ mod multi_extractor_tests {
             &format!("{extractor_id}:{type_name}"),
         ));
         let type_identity = TypeIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: SemanticScope::new(["fixture"]),

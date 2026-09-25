@@ -2262,6 +2262,30 @@ mod tests {
                 .iter()
                 .all(|e| e.body.starts_with("blake3-256:") || e.body == "-")
         );
+
+        // G67: no symbol or type identity spans two source artifacts (203 did at G66).
+        let mut spans: std::collections::BTreeMap<&str, std::collections::BTreeSet<&str>> =
+            Default::default();
+        for record in &report.census.typed_semantic_records {
+            if let atlas_core::SemanticObservation::Symbol(h) = record {
+                spans
+                    .entry(h.record_id.as_str())
+                    .or_default()
+                    .insert(&h.provenance.source_path);
+            }
+            if let atlas_core::SemanticObservation::Type(h) = record {
+                spans
+                    .entry(h.record_id.as_str())
+                    .or_default()
+                    .insert(&h.provenance.source_path);
+            }
+        }
+        let shared: Vec<_> = spans.iter().filter(|(_, files)| files.len() > 1).collect();
+        assert!(
+            shared.is_empty(),
+            "{} ids span files: {shared:?}",
+            shared.len()
+        );
     }
 
     /// Only a CLOSED dependency census is authoritative for reconciliation.

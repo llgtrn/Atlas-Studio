@@ -611,6 +611,7 @@ impl<'a> ExtractionContext<'a> {
             scope: scope.clone(),
             name: name.to_owned(),
             role,
+            path: self.input.artifact_path.clone(),
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
@@ -665,6 +666,7 @@ impl<'a> ExtractionContext<'a> {
             scope: scope.clone(),
             name: name.to_owned(),
             canonical: None,
+            path: self.input.artifact_path.clone(),
         };
         let dimension = SemanticDimension::Type;
         if self.wants(dimension) {
@@ -724,6 +726,7 @@ impl<'a> ExtractionContext<'a> {
                 scope: scope.clone(),
                 name: name.to_owned(),
                 role,
+                path: self.input.artifact_path.clone(),
             },
             span,
             generated: false,

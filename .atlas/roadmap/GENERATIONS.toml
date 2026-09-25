@@ -841,6 +841,7 @@ objective = "measure revision identity loss, absorb SCIP's position-free descrip
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/07-scip.json"
 self_recensus = ".atlas/evidence/census/G66/recensus.json"
+result_commits = ["d28f18f6917d7aef9069ed33eb10ec8b85f97aba", "a23ae6607feb08663c3e852b96e701b14a06380f"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 65bacafbd8 = G65 post digest abe4d0d5... (chain holds)"
@@ -851,3 +852,23 @@ certificate_note = "recomputed after commit (evidence/census/G66/certificate.jso
 
 [generation.next]
 objective = "G67 (P3): first-50 #8 kythe -- VName identity and fact/edge schema, measured against the G66 entity layer"
+
+[[generation]]
+id = "G67"
+base_commit = "a23ae6607feb08663c3e852b96e701b14a06380f"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #8 kythe to a terminal state; P0 census correctness (cross-file identity conflation)"
+objective = "test Kythe's recorded absorption condition on the real census, absorb VName path into symbol/type identity, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/08-kythe.json"
+self_recensus = ".atlas/evidence/census/G67/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of d28f18f691 = G66 post digest 3ce4fb6a... (a23ae6607f adds only out-of-scope evidence)"
+falsification_first = "expected REFERENCE_ONLY; the recorded condition was tested: zero lexical key collisions over 64,407 records, but 203 ids shared by DIFFERENT files' definitions/spellings with identical subjects (identity lacked a location) -- the graph kept only the first node of each"
+after = "symbol records 4,147 -> 4,147 ids, type records 2,675 -> 2,675 ids, ids spanning files 203 -> 0, graph nodes 72,836 -> 73,445 (+609 recovered)"
+first_v3_to_v3_proof = "the first generation proven with the G66 entity layer on both sides: 5 production functions changed (declared exactly), all other entity changes are test code (declared by module prefix), no collateral change"
+falsification = "7/7 mutants killed after closing one real test gap (the symbol embedded in FunctionIdentity lacked a data assertion; identity-redundant because the function key has span.path)"
+
+[generation.next]
+objective = "G68 (P3): first-50 #9 glean -- typed fact schemas + derived predicates, measured against Atlas's census"

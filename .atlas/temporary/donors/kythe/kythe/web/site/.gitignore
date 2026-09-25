@@ -1,7 +1,0 @@
-asciidoc-pygments.css
-_docs/
-_site/
-_vendor/
-.bundle/
-.jekyll-cache/
-.sass-cache/

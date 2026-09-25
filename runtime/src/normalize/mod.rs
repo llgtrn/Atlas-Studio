@@ -284,6 +284,7 @@ mod tests {
         };
         let scope = SemanticScope::new(["core"]);
         let subject = SymbolIdentity {
+            path: String::new(),
             repository: repository.clone(),
             revision: revision.clone(),
             scope: scope.clone(),
