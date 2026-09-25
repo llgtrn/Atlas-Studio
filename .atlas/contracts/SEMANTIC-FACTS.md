@@ -163,6 +163,11 @@ UNRESOLVED
 
 A call record contains caller, callsite, candidate/resolved callee identities, dispatch kind and argument/result bindings when known. Dynamic calls are explicit; failure to resolve never erases the call.
 
+G140 (ADR 0058) uses `DYNAMIC_PARTIAL` for a call through a trait bound: a receiver known only as `&dyn Tr`, `impl Tr`, a generic `T: Tr`, or `self` in a trait default body.
+
+- **Callee.** The call's one callee is the trait's method declaration (or default body): the interface is resolved, and the implementation that runs is not.
+- **What the record never claims.** It never names an implementation, so it never claims a set it cannot close.
+
 A callsite is identified by its caller and its anchor token: the callee's name (method identifier or last path segment), or the argument list's opening parenthesis when the callee is not a path. The anchor belongs to exactly one call expression, so no two calls (in particular the calls of a chain, which share their first token) can share an identity; an expression's start position is not a callsite identity (G74).
 
 ### ControlFlowFact

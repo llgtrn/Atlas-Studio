@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G139"
+current_generation = "G140"
 
 [[generation]]
 id = "G35"
@@ -2881,3 +2881,43 @@ after = 5448
 key = "composed:relation:INVOKES"
 before = 3825
 after = 3874
+
+[[generation]]
+id = "G140"
+kind = "NATIVE_ATTACK"
+base_commit = "f397b6400fc95bd3fb2fe6ecdcaaf44b61873b1b"
+priority = "P0"
+serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL), second step; the gap mission M4 found on datafrog (dispatch through dyn VariableTrait)"
+objective = "method calls through workspace-trait bounds recorded as dynamic dispatch to the trait method declaration"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G140/dynamic-call-scip-differential.json"
+self_recensus = ".atlas/evidence/census/G140/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of c674ea79ff = G139 post digest (the evidence commit f397b6400f adds only out-of-scope evidence)"
+atlas_first = "the planned step (constructor-inferred lets) was checked against the method probe before coding and rejected as unsound without enumerating every trait in scope (autoref); M4's recorded gap (Iteration::changed through dyn VariableTrait) and the CALL contract's DYNAMIC_PARTIAL kind chose the sound step instead"
+change = "adapter resolve.rs: PathCallOutcome::Dynamic and is_dynamic; DefMap.trait_fns (each workspace trait's own methods) and dyn_inherent_impl; LocalType (Concrete | Bounded); declared_receiver_type for dyn, impl Trait and function generics (inline and where-clause bounds) with trait_bounds (workspace traits plus method-less markers); method_on_bounds; self typed in trait default bodies; runtime resolution.rs records DYNAMIC_PARTIAL; SEMANTIC-FACTS CallFact note; ADR 0058"
+oracle = "21 DYNAMIC_PARTIAL calls on the self census (SemanticExtractor, SourceFrontend, StatementWalker, BrowserInstrument), all agreeing with rust-analyzer SCIP"
+falsification = "6 mutants killed: a bound method's form ignored; foreign bounds ignored; an inherent dyn impl ignored; where-clause bounds ignored; a default body's self untyped; a dynamic call recorded as static"
+debts = "DEBT-CALL last advance G140; NA-CALL-TYPE-RESIDUAL stays queued (inferred lets via autoref over traits in scope, fields, chains, Box/Rc, supertraits); revalidation milestone TRAIT_BOUND_DISPATCH; DEBT-VERIFICATION_EVIDENCE planned under NA-SEAL-GATE (its first consumer)"
+proof = "PROVEN (post ed46f126...): no new UNKNOWN obligation (a matches! first added to resolution.rs made its CALL coverage partial; moved into PathCallOutcome::is_dynamic in resolve.rs)"
+
+[[generation.metric]]
+key = "typed_records"
+before = 144119
+after = 144632
+
+[[generation.metric]]
+key = "facts"
+before = 23760
+after = 23812
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5448
+after = 5478
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 3874
+after = 3898

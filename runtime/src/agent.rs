@@ -1441,6 +1441,30 @@ fn run(s: &core::store::Store) { s.save(); }
             model.accounting.obligations,
             report.census.typed_obligations.len()
         );
+        // G140: a call through a trait bound is DYNAMIC_PARTIAL, and its one callee is the
+        // trait's method declaration (a declaration or a default body), never an implementation.
+        let by_id: std::collections::BTreeMap<&str, &atlas_core::composition::FunctionBehavior> =
+            model.functions.iter().map(|f| (f.id.as_str(), f)).collect();
+        let dynamic: Vec<_> = report
+            .census
+            .typed_semantic_records
+            .iter()
+            .filter_map(|r| match r {
+                atlas_core::SemanticObservation::Call(c)
+                    if c.subject.dispatch == atlas_core::CallDispatchKind::DynamicPartial =>
+                {
+                    Some(c)
+                }
+                _ => None,
+            })
+            .collect();
+        assert!(!dynamic.is_empty(), "Atlas calls through its own traits");
+        for call in &dynamic {
+            assert_eq!(call.status, EpistemicStatus::Derived);
+            assert_eq!(call.subject.callees.len(), 1);
+            let callee = by_id[call.subject.callees[0].as_str()];
+            assert!(callee.kind.starts_with("TRAIT_"), "{}", callee.kind);
+        }
         // G133: a closure region has no declared signature; every other function's joins.
         assert!(
             model

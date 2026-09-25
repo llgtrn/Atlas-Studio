@@ -23,6 +23,7 @@ fn outcomes(results: &[PathCallResolution], path: &str) -> Vec<(String, String)>
         .map(|r| {
             let outcome = match &r.outcome {
                 PathCallOutcome::Resolved(t) => format!("{}:{}:{}", t.path, t.line, t.name),
+                PathCallOutcome::Dynamic(t) => format!("dynamic:{}:{}:{}", t.path, t.line, t.name),
                 PathCallOutcome::External(path) if path.is_empty() => "unresolved:external".into(),
                 PathCallOutcome::External(path) => format!("external:{path}"),
                 PathCallOutcome::Unresolved(reason) => format!("unresolved:{reason}"),
@@ -350,8 +351,8 @@ fn standard_library_paths_are_spelled_canonically_through_imports() {
 fn self_method_calls_resolve_only_at_the_method_probes_first_step() {
     // `self.m()` in an impl method: the inherent method of the impl's self type with the SAME
     // receiver form wins the probe's first step. A different receiver form, a differently shaped
-    // generic impl, a trait-only method, a typed receiver, two candidates, or a trait default
-    // body are never claimed.
+    // generic impl, a trait-only method, a typed receiver or two candidates are never claimed
+    // (a trait default body's `self` is G140's, below).
     let lib = "pub struct S;\nimpl S {\n    fn by_ref(&self) {}\n    fn by_mut(&mut self) {}\n    fn by_value(self) {}\n    fn caller(&self) {\n        self.by_ref();\n        self.by_mut();\n        self.by_value();\n        self.from_trait();\n        self.twice();\n        let other = S;\n        other.by_ref();\n    }\n    fn caller_mut(&mut self) {\n        self.by_mut();\n    }\n    fn caller_boxed(self: Box<Self>) {\n        self.by_ref();\n    }\n    fn twice(&self) {}\n}\nimpl S {\n    #[cfg(unix)]\n    fn twice(&self) {}\n}\npub trait Tr {\n    fn from_trait(&self) {}\n    fn default_body(&self) {\n        self.from_trait();\n    }\n}\nimpl Tr for S {\n    fn from_trait(&self) {\n        self.by_ref();\n    }\n}\npub struct G<T>(T);\nimpl G<u8> {\n    fn only_u8(&self) {}\n}\nimpl G<u16> {\n    fn caller(&self) {\n        self.only_u8();\n    }\n}\n";
     let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
     assert_eq!(
@@ -375,6 +376,11 @@ fn self_method_calls_resolve_only_at_the_method_probes_first_step() {
                 "unresolved:ambiguous-associated".into()
             ),
             ("self.by_mut".into(), "src/lib.rs:4:by_mut".into()),
+            // G140: `self` in a trait default body is `Self: Tr`: the trait's own method.
+            (
+                "self.from_trait".into(),
+                "dynamic:src/lib.rs:28:from_trait".into()
+            ),
             ("self.by_ref".into(), "src/lib.rs:3:by_ref".into()),
             ("self.only_u8".into(), "unresolved:generic-impl".into()),
             // `other.by_ref()`: a receiver other than `self` needs its type inferred.
@@ -405,9 +411,49 @@ fn typed_local_method_calls_resolve_at_the_method_probes_first_step() {
             ("r.by_ref".into(), "src/lib.rs:3:by_ref".into()),
             ("v.by_value".into(), "src/lib.rs:5:by_value".into()),
             // `shadowed`, `closure_shadow`: `r` is bound twice; `early` before its `let`;
-            // `untyped` has no declared type; `t: &T` is generic -- none claimed.
+            // `untyped` has no declared type -- none claimed.
             ("early.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            // G140: `t: &T` with `T: Tr` calls the trait's method through its declaration.
+            (
+                "t.from_trait".into(),
+                "dynamic:src/lib.rs:11:from_trait".into()
+            ),
         ]
+    );
+}
+
+#[test]
+fn bounded_receivers_call_the_trait_method_through_its_declaration() {
+    // G140: a receiver known only by workspace-trait bounds -- `&dyn Tr`, `impl Tr`, a function
+    // generic bounded inline or in a where clause, method-less markers allowed -- calls the one
+    // bound method of that name with the same receiver form, dynamically. A foreign bound, a
+    // supertrait's method, a form mismatch, a missing method, an impl-level generic and a
+    // `Box<dyn Tr>` are never claimed.
+    let lib = "pub trait Tr {\n    fn look(&self);\n    fn poke(&mut self);\n}\npub trait Sub: Tr {\n    fn own(&self);\n}\npub trait Other {\n    fn look(&self);\n}\nfn object(d: &dyn Tr, m: &mut dyn Tr, b: Box<dyn Tr>) {\n    d.look();\n    m.poke();\n    d.poke();\n    d.absent();\n    b.look();\n}\nfn opaque(o: &impl Tr) {\n    o.look();\n}\nfn inline<T: Tr + Send>(t: &T) {\n    t.look();\n}\nfn clause<T>(t: &T)\nwhere\n    T: Tr + ?Sized,\n{\n    t.look();\n}\nfn foreign<T: Tr + std::fmt::Debug>(t: &T) {\n    t.look();\n}\nfn supertrait<T: Sub>(s: &T) {\n    s.own();\n    s.look();\n}\nfn two<T: Tr + Other>(t: &T) {\n    t.look();\n}\npub struct W<U>(U);\nimpl<U: Tr> W<U> {\n    fn field(&self, u: &U) {\n        u.look();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("d.look".into(), "dynamic:src/lib.rs:2:look".into()),
+            ("m.poke".into(), "dynamic:src/lib.rs:3:poke".into()),
+            ("d.poke".into(), "unresolved:receiver-form-differs".into()),
+            ("d.absent".into(), "unresolved:method-not-in-bounds".into()),
+            ("o.look".into(), "dynamic:src/lib.rs:2:look".into()),
+            ("t.look".into(), "dynamic:src/lib.rs:2:look".into()),
+            ("t.look".into(), "dynamic:src/lib.rs:2:look".into()),
+            ("s.own".into(), "dynamic:src/lib.rs:6:own".into()),
+            ("s.look".into(), "unresolved:method-not-in-bounds".into()),
+            ("t.look".into(), "unresolved:ambiguous-associated".into()),
+        ]
+    );
+    // An inherent impl on a trait object competes with the trait's methods: nothing through
+    // `dyn` is claimed then.
+    let with_inherent = format!("{lib}impl dyn Tr {{\n    fn extra(&self) {{}}\n}}\n");
+    let results = resolve(&[("src/lib.rs", &with_inherent)], "src/lib.rs");
+    assert!(
+        !outcomes(&results, "src/lib.rs")
+            .iter()
+            .any(|(callee, _)| callee.starts_with("d.") || callee.starts_with("m.")),
     );
 }
 

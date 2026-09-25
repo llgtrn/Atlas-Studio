@@ -1,0 +1,142 @@
+{
+  "schema": "atlas.evidence.dynamic-call-scip-differential.v1",
+  "generation": "G140",
+  "oracle": "rust-analyzer SCIP (rust-analyzer scip, offline, the G140 working tree)",
+  "method": "every CALL record the resolution engine derives with DYNAMIC_PARTIAL dispatch (a method call through workspace-trait bounds) compared at its anchor with the SCIP occurrence there: the referenced symbol's definition must fall inside the trait method Atlas names as the one callee",
+  "dynamic_calls": 21,
+  "agree": 21,
+  "disagree": [],
+  "callee_kinds": [
+    "TRAIT_DEFAULT_METHOD",
+    "TRAIT_METHOD_DECLARATION"
+  ],
+  "static_resolved_calls": 5457,
+  "rows": [
+    {
+      "anchor": "adapter/src/source/frontend.rs:35:30",
+      "callee": "adapter/src/source/frontend.rs:20:trait:SourceFrontend::id",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 source/frontend/SourceFrontend#id()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:268:77",
+      "callee": "adapter/src/semantic/extractor.rs:109:trait:SemanticExtractor::extract",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#extract()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:109:22",
+      "callee": "adapter/src/semantic/extractor.rs:91:trait:SemanticExtractor::version",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#version()."
+    },
+    {
+      "anchor": "adapter/src/source/frontend.rs:34:13",
+      "callee": "adapter/src/source/frontend.rs:24:trait:SourceFrontend::supports",
+      "kind": "TRAIT_DEFAULT_METHOD",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 source/frontend/SourceFrontend#supports()."
+    },
+    {
+      "anchor": "adapter/src/semantic/extractor.rs:98:21",
+      "callee": "adapter/src/semantic/extractor.rs:89:trait:SemanticExtractor::id",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#id()."
+    },
+    {
+      "anchor": "adapter/src/source/frontend.rs:36:27",
+      "callee": "adapter/src/source/frontend.rs:21:trait:SourceFrontend::language",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 source/frontend/SourceFrontend#language()."
+    },
+    {
+      "anchor": "adapter/src/semantic/extractor.rs:140:20",
+      "callee": "adapter/src/semantic/extractor.rs:94:trait:SemanticExtractor::supported_dimensions",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#supported_dimensions()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/mod.rs:575:25",
+      "callee": "adapter/src/semantic/rust/mod.rs:554:trait:StatementWalker::walk_expr",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/rust/StatementWalker#walk_expr()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/mod.rs:582:49",
+      "callee": "adapter/src/semantic/rust/mod.rs:559:trait:StatementWalker::walk_macro",
+      "kind": "TRAIT_DEFAULT_METHOD",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/rust/StatementWalker#walk_macro()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/mod.rs:577:29",
+      "callee": "adapter/src/semantic/rust/mod.rs:554:trait:StatementWalker::walk_expr",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/rust/StatementWalker#walk_expr()."
+    },
+    {
+      "anchor": "adapter/src/semantic/extractor.rs:104:13",
+      "callee": "adapter/src/semantic/extractor.rs:93:trait:SemanticExtractor::supported_languages",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#supported_languages()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:285:22",
+      "callee": "adapter/src/semantic/extractor.rs:115:trait:SemanticExtractor::unavailable",
+      "kind": "TRAIT_DEFAULT_METHOD",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#unavailable()."
+    },
+    {
+      "anchor": "adapter/src/source/frontend.rs:28:13",
+      "callee": "adapter/src/source/frontend.rs:22:trait:SourceFrontend::extensions",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 source/frontend/SourceFrontend#extensions()."
+    },
+    {
+      "anchor": "runtime/src/census/extraction.rs:108:22",
+      "callee": "adapter/src/semantic/extractor.rs:89:trait:SemanticExtractor::id",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#id()."
+    },
+    {
+      "anchor": "adapter/src/browser/mod.rs:54:29",
+      "callee": "adapter/src/browser/mod.rs:46:trait:BrowserInstrument::id",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 browser/BrowserInstrument#id()."
+    },
+    {
+      "anchor": "adapter/src/semantic/extractor.rs:134:29",
+      "callee": "adapter/src/semantic/extractor.rs:96:trait:SemanticExtractor::identity",
+      "kind": "TRAIT_DEFAULT_METHOD",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#identity()."
+    },
+    {
+      "anchor": "adapter/src/browser/mod.rs:58:29",
+      "callee": "adapter/src/browser/mod.rs:46:trait:BrowserInstrument::id",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 browser/BrowserInstrument#id()."
+    },
+    {
+      "anchor": "adapter/src/semantic/extractor.rs:99:26",
+      "callee": "adapter/src/semantic/extractor.rs:91:trait:SemanticExtractor::version",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/SemanticExtractor#version()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/mod.rs:567:17",
+      "callee": "adapter/src/semantic/rust/mod.rs:554:trait:StatementWalker::walk_expr",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/rust/StatementWalker#walk_expr()."
+    },
+    {
+      "anchor": "runtime/src/visual.rs:153:25",
+      "callee": "adapter/src/browser/mod.rs:51:trait:BrowserInstrument::observe_layout",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 browser/BrowserInstrument#observe_layout()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/mod.rs:581:45",
+      "callee": "adapter/src/semantic/rust/mod.rs:554:trait:StatementWalker::walk_expr",
+      "kind": "TRAIT_METHOD_DECLARATION",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/rust/StatementWalker#walk_expr()."
+    }
+  ]
+}

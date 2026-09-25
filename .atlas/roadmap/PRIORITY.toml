@@ -600,7 +600,7 @@ objective = "native attack queue head (pressure map, primary-debt dependency ord
 [[planned_generation]]
 id = "G140"
 priority = "P0"
-objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL second step (receiver types of untyped lets bound by a constructor of a plain workspace type)"
+objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL second step (done, redirected: constructor-inferred lets need the autoref argument over every trait in scope, so the sound step was receivers known by workspace-trait bounds -- 21 DYNAMIC_PARTIAL calls to trait declarations, all agreeing with SCIP; 6 mutants killed)"
 
 [[planned_generation]]
 id = "G141"

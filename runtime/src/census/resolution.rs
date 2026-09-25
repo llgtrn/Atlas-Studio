@@ -12,7 +12,8 @@
 //!
 //! The engine evaluates TYPE (G83: a spelling whose every occurrence in an artifact resolves to
 //! one canonical type is claimed as denoting it), CALL for path calls, (G79) `self.m()` and
-//! (G139) typed-local `x.m()` method calls, and (G77) EFFECT for path calls it resolves to a
+//! (G139) typed-local `x.m()` method calls ((G140) dynamically, through a trait's declaration, when
+//! the local is known only by trait bounds), and (G77) EFFECT for path calls it resolves to a
 //! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
 //! names -- an effect site of the calling function, anchored at the call -- and (G117)
 //! CONCURRENCY for path calls resolved to a std path the declared std-path concurrency table
@@ -242,7 +243,10 @@ pub fn resolve_rust_path_calls(
         let entry = per_artifact.entry(resolution.path.clone()).or_default();
         let claim = claims.get(&(resolution.path.clone(), resolution.line, resolution.column));
         match &resolution.outcome {
-            PathCallOutcome::Resolved(target) => {
+            PathCallOutcome::Resolved(target) | PathCallOutcome::Dynamic(target) => {
+                // G140: a call through a trait bound names the trait's declaration; which
+                // implementation runs is decided at run time or instantiation (DYNAMIC_PARTIAL).
+                let dynamic = resolution.outcome.is_dynamic();
                 let callee = functions.get(&(
                     target.path.clone(),
                     target.line,
@@ -262,7 +266,12 @@ pub fn resolve_rust_path_calls(
                     kind: "NAME_RESOLUTION".into(),
                     path: resolution.path.clone(),
                     summary: format!(
-                        "resolved `{}` at {}:{}:{} to `{}` at {}:{}:{}",
+                        "{} `{}` at {}:{}:{} to `{}` at {}:{}:{}",
+                        if dynamic {
+                            "dispatched through the trait method declaration"
+                        } else {
+                            "resolved"
+                        },
                         resolution.callee,
                         resolution.path,
                         resolution.line,
@@ -275,7 +284,11 @@ pub fn resolve_rust_path_calls(
                     revision: Some(revision.clone()),
                 });
                 let mut subject = claim.subject.clone();
-                subject.dispatch = CallDispatchKind::StaticResolved;
+                subject.dispatch = if dynamic {
+                    CallDispatchKind::DynamicPartial
+                } else {
+                    CallDispatchKind::StaticResolved
+                };
                 subject.callees = vec![callee.clone()];
                 let observation = SemanticObservation::Call(SemanticRecordHeader {
                     record_id: claim.record_id.clone(),
@@ -537,7 +550,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139), decided by the method probe's first step ({path}); other method calls, `async` blocks and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), decided by the method probe's first step ({path}); other method calls, `async` blocks and macro arguments are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"

@@ -64,11 +64,22 @@ pub struct FnTarget {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PathCallOutcome {
     Resolved(FnTarget),
+    /// G140: a method of a workspace trait, called through a receiver whose type is only known
+    /// by its bounds (`&dyn Tr`, `T: Tr`, `impl Tr`, `self` in a default body). The trait's
+    /// declaration is the callee; the implementation is chosen at run time or instantiation.
+    Dynamic(FnTarget),
     /// A path outside the workspace. The canonical path is spelled through imports and renames
     /// when it is rooted at `std`, `core` or `alloc` (`std::fs::write`), and empty otherwise (a
     /// registry crate or a prelude name this pass does not follow).
     External(String),
     Unresolved(&'static str),
+}
+
+impl PathCallOutcome {
+    /// Whether the call goes through a trait bound (G140).
+    pub fn is_dynamic(&self) -> bool {
+        matches!(self, Self::Dynamic(_))
+    }
 }
 
 /// One path call site (`f()`, `a::f()`, `Type::f()`), anchored exactly like the CALL claim the
@@ -359,6 +370,11 @@ struct DefMap {
     modules: Vec<Module>,
     types: Vec<TypeDef>,
     impls: Vec<ImplDef>,
+    /// G140: each workspace trait's own methods (supertraits' are not followed).
+    trait_fns: BTreeMap<TypeId, Vec<ImplFn>>,
+    /// An inherent impl on a trait object (`impl dyn Tr {}`) exists somewhere: its methods would
+    /// compete with the trait's, so no call through `dyn` is claimed.
+    dyn_inherent_impl: bool,
     /// Each parsed file's top module.
     file_modules: BTreeMap<String, ModId>,
     /// Block scopes by (file, line, column) of the block's opening brace.
@@ -600,13 +616,27 @@ impl DefMap {
                         Def::Type(ty),
                         &item.vis,
                     );
+                    let mut fns = Vec::new();
                     for trait_item in &item.items {
-                        if let syn::TraitItem::Fn(method) = trait_item
-                            && let Some(block) = &method.default
-                        {
-                            self.collect_block(module, file, block);
+                        if let syn::TraitItem::Fn(method) = trait_item {
+                            let (line, column) = start(method.span());
+                            let name = method.sig.ident.to_string();
+                            fns.push(ImplFn {
+                                name: name.clone(),
+                                target: FnTarget {
+                                    path: file.to_owned(),
+                                    line,
+                                    column,
+                                    name,
+                                },
+                                receiver: receiver_of(&method.sig),
+                            });
+                            if let Some(block) = &method.default {
+                                self.collect_block(module, file, block);
+                            }
                         }
                     }
+                    self.trait_fns.insert(ty, fns);
                 }
                 syn::Item::Type(item) => {
                     let alias = match item.ty.as_ref() {
@@ -748,6 +778,9 @@ impl DefMap {
             ),
             _ => (Vec::new(), false),
         };
+        if item.trait_.is_none() && matches!(item.self_ty.as_ref(), syn::Type::TraitObject(_)) {
+            self.dyn_inherent_impl = true;
+        }
         let mut fns = Vec::new();
         for impl_item in &item.items {
             if let syn::ImplItem::Fn(method) = impl_item {
@@ -1333,6 +1366,26 @@ impl DefMap {
     }
 }
 
+impl DefMap {
+    /// G140: `x.name(..)` where `x`'s type is known only through the workspace traits `bounds`.
+    /// Their methods are the probe's inherent-like candidates (object and parameter candidates),
+    /// ahead of every other trait: the one bound method of that name with the caller's receiver
+    /// form is called through its declaration. Two bound methods of one name would not compile.
+    fn method_on_bounds(&self, bounds: &[TypeId], name: &str, form: Receiver) -> PathCallOutcome {
+        let candidates: Vec<&ImplFn> = bounds
+            .iter()
+            .flat_map(|t| self.trait_fns.get(t).into_iter().flatten())
+            .filter(|f| f.name == name)
+            .collect();
+        match candidates.as_slice() {
+            [] => PathCallOutcome::Unresolved("method-not-in-bounds"),
+            [f] if f.receiver != Some(form) => PathCallOutcome::Unresolved("receiver-form-differs"),
+            [f] => PathCallOutcome::Dynamic(f.target.clone()),
+            _ => PathCallOutcome::Unresolved("ambiguous-associated"),
+        }
+    }
+}
+
 enum Lookup {
     Found(Def),
     Missing,
@@ -1423,11 +1476,20 @@ struct FnCtx {
 }
 
 /// A local whose declared type decides a method call on it (G139).
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct TypedLocal {
-    ty: TypeId,
+    ty: LocalType,
     form: Receiver,
     from: (usize, usize),
+}
+
+/// What a declared type says about a receiver.
+#[derive(Clone)]
+enum LocalType {
+    /// A plain workspace type (G139).
+    Concrete(TypeId),
+    /// A type known only through workspace traits (G140).
+    Bounded(Vec<TypeId>),
 }
 
 /// `impl_shape` of an impl without generics or a where clause, of a type without arguments.
@@ -1700,7 +1762,7 @@ impl CallWalker<'_> {
             if counts.0.get(&name) != Some(&1) {
                 continue;
             }
-            if let Some((ty, form)) = self.declared_receiver_type(ty, generics) {
+            if let Some((ty, form)) = self.declared_receiver_type(ty, generics, &sig.generics) {
                 typed.insert(name, TypedLocal { ty, form, from });
             }
         }
@@ -1708,12 +1770,14 @@ impl CallWalker<'_> {
     }
 
     /// `T`, `&T` or `&mut T` for a workspace type `T` spelled without generic arguments (or
-    /// `Self` in an impl of such a type), with the receiver form the spelling gives.
+    /// `Self` in an impl of such a type), with the receiver form the spelling gives; (G140) the
+    /// same forms of `dyn Tr`, `impl Tr` or a function generic `T: Tr`, known by their bounds.
     fn declared_receiver_type(
         &self,
         ty: &syn::Type,
         generics: &BTreeSet<String>,
-    ) -> Option<(TypeId, Receiver)> {
+        fn_generics: &syn::Generics,
+    ) -> Option<(LocalType, Receiver)> {
         let (form, inner) = match ty {
             syn::Type::Reference(reference) => (
                 if reference.mutability.is_some() {
@@ -1725,9 +1789,48 @@ impl CallWalker<'_> {
             ),
             other => (Receiver::Value, other),
         };
-        let syn::Type::Path(path) = inner else {
-            return None;
+        let path = match inner {
+            syn::Type::TraitObject(object) if form != Receiver::Value => {
+                if self.map.dyn_inherent_impl {
+                    return None;
+                }
+                return Some((LocalType::Bounded(self.trait_bounds(&object.bounds)?), form));
+            }
+            syn::Type::ImplTrait(opaque) => {
+                return Some((LocalType::Bounded(self.trait_bounds(&opaque.bounds)?), form));
+            }
+            syn::Type::Path(path) => path,
+            _ => return None,
         };
+        if path.qself.is_none()
+            && let Some(param) = path.path.get_ident()
+            && generics.contains(&param.to_string())
+        {
+            // Only the function's own generics carry their bounds here.
+            let mut bounds =
+                syn::punctuated::Punctuated::<syn::TypeParamBound, syn::Token![+]>::new();
+            let mut own = false;
+            for generic in &fn_generics.params {
+                if let syn::GenericParam::Type(tp) = generic
+                    && tp.ident == *param
+                {
+                    own = true;
+                    bounds.extend(tp.bounds.iter().cloned());
+                }
+            }
+            for predicate in fn_generics.where_clause.iter().flat_map(|w| &w.predicates) {
+                if let syn::WherePredicate::Type(pt) = predicate
+                    && let syn::Type::Path(bounded) = &pt.bounded_ty
+                    && bounded.path.is_ident(param)
+                {
+                    bounds.extend(pt.bounds.iter().cloned());
+                }
+            }
+            if !own {
+                return None;
+            }
+            return Some((LocalType::Bounded(self.trait_bounds(&bounds)?), form));
+        }
         if path.qself.is_some()
             || path
                 .path
@@ -1753,7 +1856,7 @@ impl CallWalker<'_> {
                         ty: Some(ty),
                         shape,
                         ..
-                    })) if shape == PLAIN_IMPL_SHAPE => Some((*ty, form)),
+                    })) if shape == PLAIN_IMPL_SHAPE => Some((LocalType::Concrete(*ty), form)),
                     _ => None,
                 };
             }
@@ -1765,7 +1868,51 @@ impl CallWalker<'_> {
             path.path.leading_colon.is_some(),
             0,
         )?;
-        Some((ty, form))
+        if self.map.types[ty].is_trait {
+            return None;
+        }
+        Some((LocalType::Concrete(ty), form))
+    }
+
+    /// The workspace traits of a bound list, when every bound is one or a method-less marker
+    /// (`Send`, `Sync`, `Unpin`, `Sized`, `Copy`, `?Sized`, a lifetime). Any other bound could
+    /// supply a method of the same name, so nothing is claimed.
+    fn trait_bounds(
+        &self,
+        bounds: &syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]>,
+    ) -> Option<Vec<TypeId>> {
+        const MARKERS: [&str; 5] = ["Send", "Sync", "Unpin", "Sized", "Copy"];
+        let mut traits = Vec::new();
+        for bound in bounds {
+            match bound {
+                syn::TypeParamBound::Lifetime(_) => {}
+                syn::TypeParamBound::Trait(tb) => {
+                    if tb.maybe.is_some() {
+                        continue;
+                    }
+                    let segments: Vec<String> = tb
+                        .path
+                        .segments
+                        .iter()
+                        .map(|s| s.ident.to_string())
+                        .collect();
+                    match self.map.resolve_type_path(
+                        self.crates,
+                        self.scope(),
+                        &segments,
+                        tb.path.leading_colon.is_some(),
+                        0,
+                    ) {
+                        Some(ty) if self.map.types[ty].is_trait => traits.push(ty),
+                        Some(_) => return None,
+                        None if MARKERS.contains(&segments.last()?.as_str()) => {}
+                        None => return None,
+                    }
+                }
+                _ => return None,
+            }
+        }
+        (!traits.is_empty()).then_some(traits)
     }
 
     fn resolve_call(&self, path: &syn::ExprPath) -> PathCallOutcome {
@@ -1955,6 +2102,16 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
     }
 
     fn visit_item_trait(&mut self, item: &'ast syn::ItemTrait) {
+        let this_trait = self
+            .map
+            .resolve_type_path(
+                self.crates,
+                self.scope(),
+                &[item.ident.to_string()],
+                false,
+                0,
+            )
+            .filter(|ty| self.map.types[*ty].is_trait);
         self.impl_self.push(None);
         self.item_generics.push(generic_names(&item.generics));
         for trait_item in &item.items {
@@ -1962,6 +2119,19 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
                 syn::TraitItem::Fn(method) => match &method.default {
                     Some(block) => {
                         self.enter_fn(&method.sig, block);
+                        // G140: `self` in a default body is known only as `Self: ThisTrait`.
+                        if let (Some(ty), Some(form), Some(ctx)) =
+                            (this_trait, receiver_of(&method.sig), self.fn_ctx.last_mut())
+                        {
+                            ctx.typed.insert(
+                                "self".into(),
+                                TypedLocal {
+                                    ty: LocalType::Bounded(vec![ty]),
+                                    form,
+                                    from: (0, 0),
+                                },
+                            );
+                        }
                         self.visit_signature(&method.sig);
                         self.visit_block(block);
                         self.fn_ctx.pop();
@@ -2097,14 +2267,21 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
             let (line, column) = start(call.method.span());
             if (line, column) > typed.from {
                 let name = call.method.to_string();
+                let outcome = match &typed.ty {
+                    LocalType::Concrete(ty) => {
+                        self.map
+                            .method_on_self(*ty, PLAIN_IMPL_SHAPE, &name, typed.form)
+                    }
+                    LocalType::Bounded(bounds) => {
+                        self.map.method_on_bounds(bounds, &name, typed.form)
+                    }
+                };
                 self.out.push(PathCallResolution {
                     path: self.file.to_owned(),
                     line,
                     column,
                     callee: format!("{local}.{name}"),
-                    outcome: self
-                        .map
-                        .method_on_self(typed.ty, PLAIN_IMPL_SHAPE, &name, typed.form),
+                    outcome,
                 });
             }
         }

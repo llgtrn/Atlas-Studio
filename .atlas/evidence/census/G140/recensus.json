@@ -1,0 +1,350 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G140",
+  "base_revision": "61d2bfae5998f55ec0055fc9037e90d45f3ab458",
+  "candidate_revision": "f397b6400fc95bd3fb2fe6ecdcaaf44b61873b1b",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:2ffa8d85dbb03b7a243e8a6f62488585d551caaf6c9b0b8e665d055d472730e4",
+  "after_census_digest": "blake3-256:ed46f126c96bbfcb252d30445aaf02619492ac6597e142dec7ab0e87eb9f5e60",
+  "replay_digest": "blake3-256:ed46f126c96bbfcb252d30445aaf02619492ac6597e142dec7ab0e87eb9f5e60",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/resolution.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/browser/mod.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/visual.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 12,
+      "fact:FunctionSignature|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 22,
+      "fact:Type|DERIVED": 3,
+      "fact:Type|OBSERVED": 11,
+      "record:CALL|DERIVED": 30,
+      "record:CALL|OBSERVED": 119,
+      "record:CONTROL_FLOW|INFERRED": 6,
+      "record:CONTROL_FLOW|OBSERVED": 45,
+      "record:DATA_FLOW|OBSERVED": 199,
+      "record:EFFECT|INFERRED": 6,
+      "record:FUNCTION_IDENTITY|OBSERVED": 12,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 4,
+      "record:OWNERSHIP|OBSERVED": 49,
+      "record:STATE|OBSERVED": 7,
+      "record:SYMBOL|OBSERVED": 22,
+      "record:TYPE|DERIVED": 3,
+      "record:TYPE|OBSERVED": 11
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 724,
+    "graph_nodes": 527
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/declared_receiver_type()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/declared_receiver_type()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/typed_locals()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/typed_locals()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_impl()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_impl()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/outcomes()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/outcomes()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/self_method_calls_resolve_only_at_the_method_probes_first_step()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/self_method_calls_resolve_only_at_the_method_probes_first_step()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/typed_local_method_calls_resolve_at_the_method_probes_first_step()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/typed_local_method_calls_resolve_at_the_method_probes_first_step()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "after": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/trait_bounds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/method_on_bounds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:PathCallOutcome`/is_dynamic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/bounded_receivers_call_the_trait_method_through_its_declaration()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "native attack NA-CALL-TYPE-RESIDUAL (step two): method calls through workspace-trait bounds (dyn, impl Trait, bounded generics, trait default self) recorded DYNAMIC_PARTIAL to the trait method declaration; 21 on the self census, all agreeing with rust-analyzer SCIP",
+    "changed_paths": [
+      "adapter/src/browser/mod.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/visual.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/declared_receiver_type().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/typed_locals().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_impl().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait().",
+      "CHANGED adapter semantic/rust/resolve/tests/outcomes().",
+      "CHANGED adapter semantic/rust/resolve/tests/self_method_calls_resolve_only_at_the_method_probes_first_step().",
+      "CHANGED adapter semantic/rust/resolve/tests/typed_local_method_calls_resolve_at_the_method_probes_first_step().",
+      "CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/trait_bounds().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/method_on_bounds().",
+      "CREATED adapter semantic/rust/resolve/`impl:PathCallOutcome`/is_dynamic().",
+      "CREATED adapter semantic/rust/resolve/tests/bounded_receivers_call_the_trait_method_through_its_declaration()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/browser/mod.rs",
+    "path adapter/src/semantic/extractor.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/source/frontend.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/visual.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/declared_receiver_type().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/typed_locals().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_impl().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/outcomes().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/self_method_calls_resolve_only_at_the_method_probes_first_step().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/typed_local_method_calls_resolve_at_the_method_probes_first_step().",
+    "entity CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/trait_bounds().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/method_on_bounds().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:PathCallOutcome`/is_dynamic().",
+    "entity CREATED adapter semantic/rust/resolve/tests/bounded_receivers_call_the_trait_method_through_its_declaration()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
