@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #10 joern: coverage (CPG) and layout (flatgraph) hypotheses falsified by source reading and measurement; REFERENCE_ONLY; checkout physically extinct; the census must be unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

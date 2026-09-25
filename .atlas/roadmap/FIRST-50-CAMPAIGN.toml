@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 4
+campaign_terminal = 5
 historically_proven = 5
 currently_censusing = 0
-deep_censused = 8
+deep_censused = 7
 absorbed = 6
-reference_only = 1
+reference_only = 2
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 7
-remaining = 43
-next_donor = "joern"
-next_step = "joern (#10): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
+extinct = 8
+remaining = 42
+next_donor = "semgrep"
+next_step = "semgrep (#11): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -181,11 +181,13 @@ target_capability = "call / data-flow / control-flow semantics"
 mechanism_hypothesis = "code property graph layers to close CALL/CONTROL_FLOW/DATA_FLOW coverage UNKNOWN"
 materialization_mode = "SPARSE_CHECKOUT (semanticcpg, dataflowengineoss)"
 dependency_expectation = "scala/jvm: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+completed_in = "G69"
+evidence = ".atlas/evidence/campaign/10-joern.json"
+note = "coverage hypothesis falsified (rust2cpg resolves through external rust_ast_gen, falls back to Any); graph 650-4,500x below the columnar trigger; REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 11

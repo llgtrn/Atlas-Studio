@@ -1,0 +1,46 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 10,
+ "donor": "joern",
+ "commit_sha": "b381922638ae436fcb6862a90241c8f7ce508894",
+ "generation": "G69",
+ "base_commit": "d131527e3e",
+ "hypotheses": {
+  "campaign": "code property graph layers close CALL/CONTROL_FLOW/DATA_FLOW coverage UNKNOWN",
+  "corpus": "columnar (flatgraph) layout for graph memory/traversal cost"
+ },
+ "falsification": {
+  "why_unknown_in_atlas": "all 92 Rust artifacts carry INCOMPLETE_ANALYSIS for CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE: 'emitted observations are valid, but absence of unmodeled forms is not proven' -- an honesty statement about completeness and unresolved targets, not a missing graph layer",
+  "joern_rust_frontend": "joern-cli/frontends/rust2cpg exists but obtains every Rust semantic fact from an external native binary rust_ast_gen (astgen/RustAstGenRunner.scala: ExternalCommand.run with --resolve-cfg / --no-sysroot) and falls back to Defines.Any where that binary gives no type (astcreation/RustFullNames.scala, RustVisitor.scala) -- the unresolved state Atlas records as UNKNOWN; the CPG layers add structure, not resolution",
+  "coverage_verdict": "FALSIFIED: the CPG cannot close Atlas's Rust coverage; the prerequisite is compiler-grade name/type resolution (rust-analyzer's mechanism, first-50 #4, DECIDED partial)",
+  "graph_scale": {
+   "atlas_nodes": 73848,
+   "atlas_edges": 94446,
+   "attribute_bytes": 9885599,
+   "graph_json_mb": 142.9,
+   "full_census_plus_graph_seconds": 7.47,
+   "python_bfs_seconds": 0.096,
+   "donor_reference": "~48M nodes / 431M edges, 630M properties (genome/technology/joern-columnar-property-graph-layout.md)",
+   "ratio": "~650x fewer nodes, ~4,500x fewer edges"
+  },
+  "layout_verdict": "FALSIFIED as a current need: the columnar-redesign trigger has not fired"
+ },
+ "decision": {
+  "REFERENCE_ONLY": [
+   "code property graph layering (AST/CFG/PDG overlays)",
+   "reachingDefs data-flow engine (Atlas has intraprocedural def-use with RESOLVED/UNRESOLVED already; the gap is target resolution)",
+   "flatgraph columnar storage (re-evaluate at 10^6+ nodes)",
+   "external rust_ast_gen resolution (a runtime dependency, never absorption)"
+  ],
+  "ABSORBED": []
+ },
+ "p0_input": "CALL/DATA_FLOW/... coverage UNKNOWN needs semantic resolution; the next donors that can supply a mechanism are rust (#15, compiler) and miri (#16); rust-analyzer (#4) remains DECIDED partial",
+ "side_observation": "the full engineering-graph JSON is 143 MB for 74k nodes (~1.9 KB/node, attributes only 9.9 MB): serialization overhead, a P4/P6 input, not a layout problem",
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "action": "git rm -r .atlas/temporary/donors/joern (2,200 tracked files, 83 MB)"
+ }
+}

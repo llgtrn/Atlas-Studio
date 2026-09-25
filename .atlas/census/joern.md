@@ -27,3 +27,12 @@ Decision: TARGET_MAPPED. Joern principles feed future `runtime/link` and `runtim
 
 core graph projections
 
+## Campaign decision (G69, first-50 #10)
+
+Both hypotheses were falsified (`../evidence/campaign/10-joern.json`):
+
+- **Coverage.** Atlas's CALL/DATA_FLOW/… UNKNOWN is a completeness statement ("absence of unmodeled forms is not proven"). Joern's `rust2cpg` obtains every Rust semantic fact from an external `rust_ast_gen` binary and falls back to `Defines.Any` where that binary gives no type. So the CPG adds structure, not resolution.
+- **Scale.** Atlas's graph is 73,848 nodes and 94,446 edges against the donor reference of about 48M nodes and 431M edges, and a full traversal takes about 0.1 s.
+
+REFERENCE_ONLY; re-evaluate columnar layout at 10^6+ nodes. The checkout (2,200 files, 83 MB) was physically deleted.
+

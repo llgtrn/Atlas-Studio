@@ -883,6 +883,7 @@ objective = "run Glean's recorded falsification against the G64 codec, absorb de
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/09-glean.json"
 self_recensus = ".atlas/evidence/census/G68/recensus.json"
+result_commits = ["87162e0f9ea53c02d47c44f674186c1c04e9ffd0", "d131527e3e1680397ea54296caeaceee9b894c88"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of ecf74a3a6c = G67 post digest 97978cfc... (dd703cd509 adds only out-of-scope evidence)"
@@ -893,3 +894,22 @@ falsification = "12 mutants: 11 killed, 1 equivalent (expect_kind guards every r
 
 [generation.next]
 objective = "G69 (P3): first-50 #10 joern -- code property graph, measured against Atlas's census"
+
+[[generation]]
+id = "G69"
+base_commit = "d131527e3e1680397ea54296caeaceee9b894c88"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #10 joern to a terminal state (P0 input: what closes coverage UNKNOWN)"
+objective = "falsify joern's coverage and layout hypotheses, decide REFERENCE_ONLY, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/10-joern.json"
+self_recensus = ".atlas/evidence/census/G69/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 87162e0f9e = G68 post digest 748b64e4... (d131527e3e adds only out-of-scope evidence)"
+falsification = "coverage: Atlas UNKNOWN is 'absence of unmodeled forms not proven'; rust2cpg resolves Rust only through the external rust_ast_gen binary and falls back to Defines.Any -- a CPG adds structure, not resolution. Layout: 73,848 nodes / 94,446 edges vs ~48M / 431M donor reference; full-graph BFS 0.1 s"
+no_code_change = "no Atlas mechanism justified; the only in-scope change is the pinned deleted-donor list"
+proof = "PROVEN on the second run: the first run was GENERATION_NOT_PROVEN because the intent over-declared +docs/+evidence/+typed_records, which did not change (intended-but-unobserved); corrected to the observed +graph_nodes/+graph_edges"
+
+[generation.next]
+objective = "G70 (P3): first-50 #11 semgrep -- pattern/rule mechanisms measured against Atlas's constraint and query needs"
