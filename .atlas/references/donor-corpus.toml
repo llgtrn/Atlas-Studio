@@ -240,14 +240,19 @@ default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/kani/LICENSE-APACHE", ".atlas/licenses/kani/LICENSE-MIT"]
 technology_domains = ["model_checking", "proof_constraints"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
-decision_status = "PENDING"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "resolved G104 (bounded census over a SKELETON record): Kani is an external verifier (CBMC backend) whose per-harness results it already emits as SARIF 2.1.0 (kani-driver/src/sarif.rs), with counterexamples replayable as unit tests (concrete_playback). Its P0 role, proofs as constraint evidence, needs a consumer Atlas does not have: VERIFICATION-METRICS-PERFORMANCE.md's VerificationEvidence/VerificationObligation model exists only as contract text (core/src/evidence holds a generic Evidence record), and that contract's named class vocabulary has no proof/model-checking class although it lists proof/model checking as an evidence source. Neither Kani nor CBMC is installed here. When VerificationEvidence is implemented, a SARIF adapter consumes Kani (and other analyzers) at the boundary; no Kani source is needed"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/40-kani.json)"
+cheapest_falsification = "performed G104: VerificationEvidence / verification-class code searched (none); Kani's output surfaces read (SARIF, CBMC output parser, concrete playback, autoharness, function contracts)"
+next_action = "none: TERMINAL EXTERNAL_BOUNDARY (Kani/CBMC as external verifiers via SARIF) + REFERENCE_ONLY (harness, contract, stubbing and playback designs); source physically deleted"
+implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "runtime verification/proof engine"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/kani.json", ".atlas/census/kani.md"]
+evidence = [".atlas/evidence/campaign/40-kani.json", ".atlas/provenance/donors/kani.json", ".atlas/census/kani.md"]
 
 [[donor]]
 id = "kythe"

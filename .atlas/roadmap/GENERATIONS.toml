@@ -1631,6 +1631,7 @@ objective = "decide the recorded own-vs-integrate linker question against the pi
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/39-mold.json"
 self_recensus = ".atlas/evidence/census/G103/recensus.json"
+result_commits = ["36594a9d3771e131b54dcceb01bc40dfc7979c40", "87aa8f1d67105edaf750f83b0a34d448fe672d35"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 80ca0fc624 = G102 post digest 6d24bac4... (71561f2d9a adds only out-of-scope evidence)"
@@ -1641,3 +1642,23 @@ proof = "PROVEN on the first run (post d9386c3e...)"
 
 [generation.next]
 objective = "G104 (P3): first-50 #40 kani (harness-driven proofs as constraint evidence, P0)"
+
+[[generation]]
+id = "G104"
+base_commit = "87aa8f1d67105edaf750f83b0a34d448fe672d35"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #40 kani to a terminal state (P0 proof evidence)"
+objective = "run a bounded census over the SKELETON record, test the P0 'proofs as constraint evidence' role against Atlas's evidence model, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/40-kani.json"
+self_recensus = ".atlas/evidence/census/G104/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 36594a9d37 = G103 post digest d9386c3e... (87aa8f1d67 adds only out-of-scope evidence)"
+falsification = "Kani (on CBMC) already emits per-harness SARIF 2.1.0 and replays counterexamples as unit tests; Atlas has no VerificationEvidence/obligation code (contract text only) and the contract's class vocabulary lacks a proof class, so no consumer exists; neither Kani nor CBMC is installed, and no proof result is claimed"
+no_code_change = "no Kani mechanism absorbed (EXTERNAL_BOUNDARY via SARIF; harness/contract designs REFERENCE_ONLY); the missing proof class is recorded for the first VerificationEvidence implementation; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/kani (3,403 files, 23 MB)"
+proof = "PROVEN on the first run (post 81e1ee33...)"
+
+[generation.next]
+objective = "G105 (P3): first-50 #41 verus (specification + proof obligations over Rust, P0)"

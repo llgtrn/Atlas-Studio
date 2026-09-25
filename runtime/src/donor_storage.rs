@@ -463,6 +463,7 @@ mod tests {
                 "glean",
                 "iris",
                 "joern",
+                "kani",
                 "kythe",
                 "ladybird",
                 "llvm-project",

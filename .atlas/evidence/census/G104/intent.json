@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #40 kani: bounded census; an external verifier (CBMC) already emitting SARIF, with no VerificationEvidence consumer in code; EXTERNAL_BOUNDARY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

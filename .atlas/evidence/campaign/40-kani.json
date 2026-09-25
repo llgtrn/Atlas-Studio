@@ -1,0 +1,28 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 40,
+ "donor": "kani",
+ "commit_sha": "80f3cc98af976a54b9dd0614e877e4d2f1f5a58d",
+ "generation": "G104",
+ "base_commit": "87aa8f1d67",
+ "hypothesis": "harness-driven proofs as constraint evidence (P0)",
+ "blocking_question": "none recorded; census SKELETON, decision PENDING -- this generation performed a bounded census of the evidence-producing surfaces",
+ "measurement": {
+  "kani_surfaces": "#[kani::proof] harnesses over kani::any()/kani::assume; function contracts (#[kani::requires]/#[kani::ensures] with #[kani::proof_for_contract] and stub_verified); autoharness; per-property CBMC results parsed by kani-driver/src/cbmc_output_parser.rs; SARIF 2.1.0 output of harness results (kani-driver/src/sarif.rs); concrete playback turning counterexamples into unit tests",
+  "atlas_consumer": "none: VERIFICATION-METRICS-PERFORMANCE.md defines VerificationEvidence/VerificationObligation/VerificationReport, but no code implements them (core/src/evidence holds a generic Evidence {id, kind, path, summary, revision}); the contract's named verification classes (SEMANTIC ... BENCHMARK) have no proof/model-checking class although the same section lists proof/model checking as an evidence source",
+  "environment": "neither cargo-kani nor cbmc is installed here; nothing was executed and no proof result is claimed",
+  "boundary": "Kani runs on CBMC (C bounded model checker) as its own external boundary; a future VerificationEvidence adapter reads SARIF, a standard format other analyzers emit too, so Atlas needs no Kani source"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["Kani + CBMC as an external verifier producing SARIF evidence"],
+  "REFERENCE_ONLY": ["harness model (any/assume)", "function contracts and verified stubbing", "autoharness", "concrete playback of counterexamples"]
+ },
+ "recorded_gap": "the verification-class vocabulary needs a proof/model-checking class before proof evidence can be admitted; add it with the first VerificationEvidence implementation",
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/kani (3,403 files)"
+ }
+}

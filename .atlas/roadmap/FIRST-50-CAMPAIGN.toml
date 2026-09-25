@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 35
+campaign_terminal = 36
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
 reference_only = 24
-external_boundary = 4
+external_boundary = 5
 rejected = 0
 deferred = 1
-extinct = 38
-remaining = 12
-next_donor = "kani"
-next_step = "G104 (P3): kani (#40) -- harness-driven proofs as constraint evidence (P0)"
+extinct = 39
+remaining = 11
+next_donor = "verus"
+next_step = "G105 (P3): verus (#41) -- specification + proof obligations over Rust (P0)"
 
 [[donor]]
 ordinal = 1
@@ -691,13 +691,15 @@ canonical_url = "https://github.com/model-checking/kani.git"
 serves = "P0"
 target_capability = "bounded model checking"
 mechanism_hypothesis = "harness-driven proofs as constraint evidence"
-materialization_mode = "SPARSE_CHECKOUT (kani-compiler)"
+materialization_mode = "n/a (source deleted; the checkout was the full tree)"
 dependency_expectation = "cbmc: EXTERNAL_BOUNDARY"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
-note = "census SKELETON, decision PENDING"
+completed_in = "G104"
+evidence = ".atlas/evidence/campaign/40-kani.json"
+note = "external verifier (CBMC) already emitting SARIF 2.1.0; no VerificationEvidence consumer exists in code and the contract's class vocabulary lacks a proof class; harness/contract designs REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 41

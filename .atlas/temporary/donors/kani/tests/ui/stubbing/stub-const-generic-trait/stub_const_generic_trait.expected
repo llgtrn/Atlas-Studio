@@ -1,1 +1,0 @@
-error: failed to resolve `<MyBuf as Buf < 16 >>::write`: Kani currently cannot resolve const generic arguments in trait stubs
