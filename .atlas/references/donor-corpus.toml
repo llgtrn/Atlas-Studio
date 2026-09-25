@@ -281,14 +281,19 @@ default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/miri/LICENSE-APACHE", ".atlas/licenses/miri/LICENSE-MIT"]
 technology_domains = ["undefined_behavior_detection", "rust_execution_semantics"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "REFERENCE_ONLY"
 native_replacement = "runtime verification evidence adapters"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/miri.json", ".atlas/census/miri.md"]
+blocking_question = "resolved G76 by measurement: Atlas has 0 unsafe constructs, so the UB interpreter has no target, and Miri is nightly-only (absent from the pinned 1.90.0 toolchain); its shims model effects at the libc boundary while Atlas's EFFECT gap is at the std API (504 effectful std calls unobserved)"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/15-miri.json)"
+cheapest_falsification = "performed G76: syn enumeration of unsafe constructs (0), toolchain component availability, SCIP join of CALL anchors to effectful std modules"
+next_action = "none: TERMINAL REFERENCE_ONLY; the P0 EFFECT input (std-path effect derivation on top of G75 resolution) is planned natively; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
+evidence = [".atlas/evidence/campaign/15-miri.json", ".atlas/provenance/donors/miri.json", ".atlas/census/miri.md"]
 
 [[donor]]
 id = "openrewrite"

@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 10
+campaign_terminal = 11
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 7
 absorbed = 7
-reference_only = 5
+reference_only = 6
 external_boundary = 1
 rejected = 0
 deferred = 0
-extinct = 13
-remaining = 37
-next_donor = "miri"
-next_step = "G76 (P3): miri (#15)"
+extinct = 14
+remaining = 36
+next_donor = "clef"
+next_step = "G77 (P0): derive EFFECT for effectful std calls from resolved external paths (miri-cycle input); then clef (#16)"
 
 [[donor]]
 ordinal = 1
@@ -266,13 +266,15 @@ canonical_url = "https://github.com/rust-lang/miri.git"
 serves = "P0"
 target_capability = "execution semantics evidence"
 mechanism_hypothesis = "interpreter-backed UB/effect evidence for EFFECT/STATE semantics"
-materialization_mode = "SPARSE_CHECKOUT (src/shims, src/machine.rs)"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "rustc: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census SKELETON, decision PENDING"
+completed_in = "G76"
+evidence = ".atlas/evidence/campaign/15-miri.json"
+note = "0 unsafe constructs in Atlas (the UB interpreter has no target) and nightly-only; shims model effects at libc level while Atlas's EFFECT gap is 504 effectful std calls -- P0 input for std-path effect derivation (G77); source physically deleted"
 
 [[donor]]
 ordinal = 16

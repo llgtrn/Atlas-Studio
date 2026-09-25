@@ -1027,6 +1027,7 @@ objective = "absorb hir-def name resolution natively as a second CALL engine tha
 writer = "coordinator (sole writer); one read-only research agent summarized hir-def nameres with citations"
 evidence = ".atlas/evidence/campaign/04-rust-analyzer.json"
 self_recensus = ".atlas/evidence/census/G75/recensus.json"
+result_commits = ["27b88d7c03b5353400035107e274099935de16cf", "fd1c91edf2e3dd40f7c2b6e79bec951269eb958c"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 71e1713635 = G74 post digest e25aea9a... (f307807755 adds only out-of-scope evidence)"
@@ -1039,3 +1040,22 @@ proof = "PROVEN on the first run (post a53a8194...)"
 
 [generation.next]
 objective = "G76 (P3): first-50 #15 miri"
+
+[[generation]]
+id = "G76"
+base_commit = "fd1c91edf2e3dd40f7c2b6e79bec951269eb958c"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #15 miri to a terminal state"
+objective = "falsify interpreter-backed UB/effect evidence against Atlas, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/15-miri.json"
+self_recensus = ".atlas/evidence/census/G76/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 27b88d7c03 = G75 post digest a53a8194... (fd1c91edf2 adds only out-of-scope evidence)"
+falsification = "0 unsafe blocks/fns/impls/extern blocks in the workspace (syn enumeration) -- the UB interpreter has no target; Miri is nightly-only, absent from the pinned 1.90.0 toolchain; its shims model effects at the libc boundary while the measured EFFECT gap is 504 call sites into effectful std modules (fs 352, process 63, env 50, io 20, time 17, thread 2)"
+no_code_change = "no Miri mechanism justified; the only in-scope change is the pinned deleted-donor list; the EFFECT gap becomes the native G77 (P0) objective"
+proof = "PROVEN on the first run (post 2107f20d...)"
+
+[generation.next]
+objective = "G77 (P0): derive EFFECT for effectful std calls -- extend native path resolution to name external std paths and classify them by a declared std-path effect table; then clef (#16)"

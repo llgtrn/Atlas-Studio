@@ -1,0 +1,30 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 15,
+ "donor": "miri",
+ "commit_sha": "c63eee41f54d6a4b414af7b22ab717063da0c50a",
+ "generation": "G76",
+ "base_commit": "fd1c91edf2",
+ "hypothesis": "interpreter-backed UB/effect evidence for EFFECT/STATE semantics",
+ "measurement": {
+  "ub_surface": "0 unsafe blocks, 0 unsafe fns, 0 unsafe impls, 0 extern blocks in the 96 workspace Rust files (syn enumeration; the only textual hits are test-fixture string literals) -- safe Rust has no UB up to compiler/std soundness bugs, so Miri's core mechanism (Stacked/Tree Borrows, alignment, uninit, data-race detection on unsafe code) has no target here",
+  "availability": "Miri is a nightly-only rustup component; the pinned toolchain (rust-toolchain.toml: 1.90.0, components rustfmt+clippy) cannot run it, so it is not even usable as an execution oracle without changing the pin",
+  "effect_surface": "Miri's shims model OS effects at the foreign-function boundary (src/shims/unix/foreign_items.rs: open/read/write/stat/mkdir/rename/getenv/setenv/socket/bind/poll/clock_gettime/pthread_*, grouped fs, env, time, sync, socket, tls, alloc). Atlas's EFFECT dimension works at source level, where the boundary is the std API: 504 Atlas call sites reach effectful std modules (fs 352, process 63, env 50, io 20, time 17, thread 2; rust-analyzer SCIP at exact anchors) while EFFECT observes only INFERRED panic candidates",
+  "method": "syn visitor over every workspace .rs file for unsafe constructs; rustup component availability for the pinned toolchain; SCIP join of CALL anchors to std descriptors"
+ },
+ "finding": "the P0 EFFECT gap is real (504 effectful std calls unobserved) but its mechanism is resolving external std paths at the call site plus a std-path effect table -- an extension of G75's native resolver, not an interpreter and not a libc shim table",
+ "decision": {
+  "REFERENCE_ONLY": [
+   "the MIR interpreter and its UB checkers (no unsafe code in Atlas; nightly-only)",
+   "the foreign-function shim table (OS-level effect taxonomy; a cross-check for a future std-path effect table, not its source)"
+  ],
+  "p0_input": "G77 candidate (P0): extend path resolution to name external std paths and derive EFFECT (FILESYSTEM_READ/WRITE, PROCESS_SPAWN, EXTERNAL_IO, ...) for the 504 effectful std calls from a declared std-path effect table"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "one of the DC1 real-donor Cargo workspaces; with it absent 10 of 15 known Cargo donors remain (threshold 7); adapter dependency tests pass with the checkout moved away (69/69)",
+  "action": "git rm -r .atlas/temporary/donors/miri (2593 tracked files, 16 MB)"
+ }
+}

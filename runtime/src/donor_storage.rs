@@ -454,6 +454,7 @@ mod tests {
                 "joern",
                 "kythe",
                 "ladybird",
+                "miri",
                 "rust",
                 "rust-analyzer",
                 "scip",
