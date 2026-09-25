@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 14
+campaign_terminal = 15
 historically_proven = 4
 currently_censusing = 0
-deep_censused = 7
+deep_censused = 6
 absorbed = 7
-reference_only = 8
+reference_only = 9
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 17
-remaining = 33
-next_donor = "egglog"
-next_step = "G82 (P3): egglog (#19) -- e-graph equivalence for normalization conflicts (P0)"
+extinct = 18
+remaining = 32
+next_donor = "capnproto"
+next_step = "G83 (P0): canonical type identity via name resolution (egglog-cycle input); then capnproto (#20)"
 
 [[donor]]
 ordinal = 1
@@ -334,13 +334,15 @@ canonical_url = "https://github.com/egraphs-good/egglog.git"
 serves = "P0"
 target_capability = "equivalence of derived facts"
 mechanism_hypothesis = "e-graph equivalence for normalization conflicts"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census CENSUSED, decision STUDY_FOR_DECISION_LAYER_LANE"
+completed_in = "G82"
+evidence = ".atlas/evidence/campaign/19-egglog.json"
+note = "0 normalization conflicts; the 49 multi-spelling type classes are equal by name resolution (bottom-up canonicalization gives congruence without an e-graph; string stripping would conflate &std::path::Path with &syn::Path); no decision-layer workload; P0 input: canonical type identity (G83); source physically deleted"
 
 [[donor]]
 ordinal = 20

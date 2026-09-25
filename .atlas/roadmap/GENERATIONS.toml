@@ -1154,6 +1154,7 @@ objective = "decide DICE's two mechanisms separately (keyed invalidation against
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/18-buck2.json"
 self_recensus = ".atlas/evidence/census/G81/recensus.json"
+result_commits = ["7c30a408480208cf62f3415f2b5e9d367b986209", "aceaf1f48fa6069c2c7d02db62d73f2053de264b"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 61af90583a = G80 post digest 466a6145... (1c4c3f2f4c adds only out-of-scope evidence)"
@@ -1163,3 +1164,22 @@ proof = "PROVEN on the first run (post 205ff68f...)"
 
 [generation.next]
 objective = "G82 (P3): first-50 #19 egglog (e-graph equivalence for normalization conflicts, P0)"
+
+[[generation]]
+id = "G82"
+base_commit = "aceaf1f48fa6069c2c7d02db62d73f2053de264b"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #19 egglog to a terminal state"
+objective = "falsify e-graph equivalence against the census's actual equivalence problems, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/19-egglog.json"
+self_recensus = ".atlas/evidence/census/G82/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 7c30a40848 = G81 post digest 205ff68f... (aceaf1f48f adds only out-of-scope evidence)"
+falsification = "0 normalization conflicts (two CALL and two EFFECT engines); 1,017 TYPE spellings form 49 multi-spelling classes (598 occurrences, 13 needing congruence over generic arguments), all equal by name resolution -- bottom-up canonicalization gives congruence without equality saturation; string stripping is unsound (&std::path::Path vs &syn::Path); no DecisionProposal workload"
+no_code_change = "no egglog mechanism absorbed; the only in-scope change is the pinned deleted-donor list; canonical type identity becomes G83 (P0)"
+proof = "PROVEN on the first run (post d2dcfbac...)"
+
+[generation.next]
+objective = "G83 (P0): canonical type identity -- resolve TYPE spellings bottom-up through the G75 DefMap and fill TypeIdentity.canonical; then capnproto (#20)"

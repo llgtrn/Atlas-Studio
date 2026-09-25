@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 19,
+ "donor": "egglog",
+ "commit_sha": "90635860397ce710f8c0a4eeb04154a8ebc3ac05",
+ "generation": "G82",
+ "base_commit": "aceaf1f48f",
+ "hypothesis": "e-graph equivalence (union-find + congruence, equality saturation) for normalization conflicts / equivalence of derived facts; corpus question: e-class alternatives for a decision layer",
+ "measurement": {
+  "normalization_conflicts": "0 conflict candidates in the self-scope certificate (G81), with two CALL engines and two EFFECT engines -- nothing to reconcile by equivalence",
+  "type_equivalence": "1,017 distinct TYPE spellings over 5,830 occurrences; 49 classes where one type appears under several spellings (101 spellings, 598 occurrences), 13 of them differing only inside generic arguments (congruence). Plain string normalization is unsound here: `&std::path::Path` and `&syn::Path` share a stripped form yet are different types",
+  "mechanism_fit": "every equality in these classes comes from name resolution (imports, re-exports, crate paths), so canonical identities can be built bottom-up -- canonical(Vec<X>) = Vec + canonical(X) -- which gives congruence by construction; an e-graph earns its keep only when equalities are asserted non-structurally and must be propagated (rewrite rules, saturation), and none are",
+  "decision_layer": "no DecisionProposal / Jev-class records exist (the corpus prerequisite), so the e-class alternative-ranking use has no workload",
+  "method": "certificate conflict counts; TYPE evidence spellings from `code analyze`, grouped by qualification-stripped form and inspected"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["equality saturation, e-class analysis, cost-based extraction and the egglog language (no non-structural equalities, no conflicts, no decision workload); re-admission from the pinned commit if a decision layer ever needs alternative ranking"],
+  "p0_input": "G83 candidate (P0): canonical type identity -- resolve TYPE spellings through the G75 DefMap bottom-up (workspace types to their definition, std paths canonically) and fill TypeIdentity.canonical, uniting the 49 multi-spelling classes without conflating distinct types"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "one of the DC1 real-donor Cargo workspaces; with it absent 8 of 15 known Cargo donors remain (threshold 7); adapter dependency tests pass with the checkout moved away (69/69). The next Cargo-donor extinction reaches the threshold: it will need a replacement fixture or a re-justified threshold",
+  "action": "git rm -r .atlas/temporary/donors/egglog (569 tracked files, 11 MB)"
+ }
+}

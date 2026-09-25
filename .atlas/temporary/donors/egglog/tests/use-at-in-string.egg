@@ -1,7 +1,0 @@
-
-
-(relation myrel (String))
-
-(myrel "@hey")
-
-(extract "@hello")

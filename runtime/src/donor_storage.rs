@@ -453,6 +453,7 @@ mod tests {
                 "clef",
                 "datafrog",
                 "differential-dataflow",
+                "egglog",
                 "glean",
                 "joern",
                 "kythe",

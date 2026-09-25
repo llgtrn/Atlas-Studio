@@ -236,3 +236,12 @@ scheduling, Datalog integration (the Free Join relational engine and Query/CoreR
 extraction mechanisms, and the cost-model API, all read from real source under `src/`, `core-relations/src/`, and
 `union-find/src/`, explicitly scoped to Atlas's decision-layer donor gap and explicitly not extended to core-IR
 comparisons.
+
+## G82 — terminal REFERENCE_ONLY; source extinct
+
+Measured against the self-census:
+- **No conflicts to reconcile:** there are 0 normalization conflicts, with two CALL engines and two EFFECT engines.
+- **Type equivalence needs resolution, not an e-graph:** 1,017 TYPE spellings form 49 classes where one type has several spellings (598 occurrences; 13 classes differ only inside generic arguments). Every such equality comes from name resolution, so bottom-up canonicalization over the G75 DefMap gives congruence by construction. String stripping would be unsound: it conflates `&std::path::Path` with `&syn::Path`.
+- **No decision-layer workload:** no DecisionProposal records exist.
+
+Equality saturation, e-class analysis and extraction stay REFERENCE_ONLY. The P0 input is canonical type identity (G83). The checkout (569 files) was physically deleted. Evidence: `../../evidence/campaign/19-egglog.json`.

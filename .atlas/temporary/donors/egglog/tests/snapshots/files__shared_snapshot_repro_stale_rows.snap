@@ -1,9 +1,0 @@
----
-source: tests/files.rs
-expression: snapshot_content_across_treatments
----
-((ADD64 12)
- (Add 12)
- (K 3)
- (LEA 12)
- (Shl 3))

@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #19 egglog: 0 normalization conflicts; the 49 multi-spelling type classes are equal by name resolution (bottom-up canonicalization, no e-graph); no decision-layer workload; REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

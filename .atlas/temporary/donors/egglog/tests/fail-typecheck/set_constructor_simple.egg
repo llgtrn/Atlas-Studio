@@ -1,5 +1,0 @@
-(sort Math)
-(constructor Num (i64) Math)
-
-; This should fail - cannot set a constructor
-(set (Num 1) (Num 2))

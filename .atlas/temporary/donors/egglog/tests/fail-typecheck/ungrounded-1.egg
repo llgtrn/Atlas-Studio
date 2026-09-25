@@ -1,3 +1,0 @@
-(relation R (i64))
-(rule ((= x y)) ((R x)))
-(run 1)

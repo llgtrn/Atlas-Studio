@@ -1,7 +1,0 @@
-
-
-(relation R (i64))
-
-(R 2)
-
-(prove (R x))
