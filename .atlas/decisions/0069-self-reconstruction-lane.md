@@ -85,7 +85,15 @@ The backend emitted nothing rather than guess.
 
 They also carry their documentation. None of this is part of their identity, so record ids are unchanged. The container schema declares the new record kind as schema generation G153.
 
-**Attempt 2**, over the G153 container: recorded in `evidence/self-reconstruction/SR1/attempt2` and in the lane ledger.
+**Attempt 2**, over the G153 container (its self-scope verification ADMISSIBLE), used the same target, design coordinate and comparison. The result is `CONSTRUCTION_GAP` with one gap: `BODY_UNOBSERVED` on `is_local`.
+
+The type was reconstructed from census records alone:
+- **Behavioral checks, all EQUIVALENT** against the compiled original: clone, Debug, equality, order, serde in both directions, and an exhaustive match. That is 7 checks.
+- **Semantic checks, all EQUIVALENT:** definition, documentation, declaration, and members in order. That is 4 checks.
+- **Toolchain:** rustc 1.90.0.
+- **Not reconstructed:** the doc comment's line wrapping. The census keeps rustdoc's summary and a line count, not the text's wrapping.
+
+SH1 stays attempted, not reached: it is reached when `is_local` is reconstructed and verified. The pilot read the declaration once, after attempt 1, to confirm the gaps. That read is recorded in `pilot-reads.json`; construction never read source.
 
 ## Falsification
 

@@ -1,0 +1,147 @@
+{
+  "schema": "atlas.construction-ir.v0",
+  "module_id": "construction-module:blake3-256:704416c727da3ad2af445cd3b41db0272da0e8648d1f2f83443f9151b8bf6969",
+  "target": "core/src/donor/mod.rs::MaterializationMode",
+  "construction_target": "RUST",
+  "container_root": "blake3-256:7968545efcbb0fdd4f55fce3cf84045ea459df566da3829a0b47ecc063627b5e",
+  "inputs": [
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_IDENTITY:b68abb697e48027d"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_SIGNATURE:e39cd8298493b70f"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:32c23d09fc9b8eca"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:3842f2ff869843d5"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:620c30d143ed076e"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:9f117f3fc5e48e92"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:a654c89faed436ab"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:e260829600844281"
+    },
+    {
+      "kind": "DESIGN",
+      "reference": "blake3-256:98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818"
+    },
+    {
+      "kind": "COMPARISON",
+      "reference": "blake3-256:b79accda1598ad0883cb5c968ce2d0d231a60f8dc5ef5e015ed47c57e630682a"
+    }
+  ],
+  "types": [
+    {
+      "id": "type:core/src/donor/mod.rs::MaterializationMode",
+      "name": "MaterializationMode",
+      "kind": "ENUM",
+      "visibility": "pub",
+      "documentation": "Materialization strategies, cheapest first. The cheapest one that can produce the required evidence is chosen (`cheapest_sufficient_mode`).",
+      "derives": [
+        "Debug",
+        "Clone",
+        "Copy",
+        "Serialize",
+        "Deserialize",
+        "PartialEq",
+        "Eq",
+        "PartialOrd",
+        "Ord"
+      ],
+      "attributes": [
+        "serde(rename_all = \"SCREAMING_SNAKE_CASE\")"
+      ],
+      "variants": [
+        {
+          "name": "RemoteMetadata",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:a654c89faed436ab"
+          ]
+        },
+        {
+          "name": "FetchedFileSet",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:3842f2ff869843d5"
+          ]
+        },
+        {
+          "name": "SparseCheckout",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:620c30d143ed076e"
+          ]
+        },
+        {
+          "name": "ShallowCheckout",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:32c23d09fc9b8eca"
+          ]
+        },
+        {
+          "name": "FullCheckout",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:e260829600844281"
+          ]
+        }
+      ],
+      "lineage": [
+        "semantic:SYMBOL:9f117f3fc5e48e92"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "id": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+      "name": "is_local",
+      "owner": "MaterializationMode",
+      "dispatch": "INHERENT_METHOD",
+      "visibility": "pub",
+      "documentation": null,
+      "params": [
+        {
+          "name": "self",
+          "type_spelling": "Self"
+        }
+      ],
+      "result": "bool",
+      "body_fingerprint": "blake3-256:37306332b6453e3566f711b7b4e83ae0456608689d830963378ff0f22d008639",
+      "lineage": [
+        "semantic:FUNCTION_IDENTITY:b68abb697e48027d",
+        "semantic:FUNCTION_SIGNATURE:e39cd8298493b70f"
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "BODY_UNOBSERVED",
+      "subject": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+      "missing": "lowerable body semantics (the census holds relational identities and a fingerprint)",
+      "debt": "DEBT-CONSTRUCTION_IR"
+    }
+  ]
+}

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G152"
+current_generation = "G153"
 
 [[generation]]
 id = "G35"
@@ -3341,3 +3341,34 @@ after = 5624
 key = "facts"
 before = 25902
 after = 26578
+
+[[generation]]
+id = "G153"
+kind = "SELF_RECONSTRUCTION"
+base_commit = "b54574a62e2d5bd2c48115291e5c5569f67cbdd3"
+priority = "P0"
+serves = "SELF_RECONSTRUCTION lane (owner directive): DEBT-CONSTRUCTION_IR, DEBT-TYPE, DEBT-BACKEND_ADAPTER"
+objective = "canonicalize SELF_RECONSTRUCTION (SH0-SH6, Rust bootstrap target, construction input boundary, typed construction gaps, shadow artifacts, computed verdicts) and attempt SH1 on a target Atlas chooses; feed the first gap back natively"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/self-reconstruction/SR1"
+self_recensus = ".atlas/evidence/census/G153/recensus.json"
+
+[generation.verification]
+pre_census = "G152 post digest"
+atlas_first = "self-reconstruct candidates over the composed self world model: 118 core types, 38 constructible (pure and call-closed by what Atlas knows); core::donor::MaterializationMode first (two external callers); ConstraintVerdict excluded by two unresolved std calls in all"
+change = "core::construction (IR v0, ConstructionInput without a source variant, ConstructionGap, validate_module, SelfReconstructionReport, decide, validate_report) and its Rust backend; runtime::self_reconstruction (candidates, target_roots, lift from records, shadow workspace, generated differential, semantic round-trip, attempt, validate); CLI self-reconstruct candidates|roots|attempt; SymbolIdentity.declaration (Declaration, DeclaredItem, FieldShape) emitted for structs, enums, variants and fields with their documentation, outside identity; container schema generation G153 declares it; ReconstructionVerdict in the vocabulary map; lane tests; ADR 0069, contracts/SELF-RECONSTRUCTION.md, roadmap/SELF-RECONSTRUCTION.toml"
+oracle = "attempt 1 over the G152 container: CONSTRUCTION_GAP, 10 gaps, nothing emitted -- the census did not know an enum from a struct, its derives, attributes, visibility or documentation; attempt 2 over the G153 container (verification ADMISSIBLE): CONSTRUCTION_GAP with one gap (BODY_UNOBSERVED on is_local) -- the type reconstructed from census records alone, 7 behavioral checks against the compiled original (clone, debug, equality, exhaustive, order, wire both ways) and 4 semantic checks (definition, documentation, declaration, members in order) EQUIVALENT; doc line wrapping not reconstructed; the declaration gaps CLOSED in G153"
+falsification = "10 mutants killed (lineage outside inputs, guessed kind, guessed derives, gaps ignored by the verdict, oracle as input, derives among attributes, declaration in the identity key, members ordered by name, wildcard in the differential, silent gap); the guessed-kind mutant first survived and exposed that the backend's refusal read an unobserved kind as no objection"
+boundary = "bodies stay a BODY_UNOBSERVED gap (no census record carries lowerable body semantics; NA-SELF-RECONSTRUCTION-BODIES); the design stays VALIDATED -- no principal selected and nothing fabricates a selection; G150 comparison measures are undefined over type roots, so SR1 compares by reconstruction scope only"
+debts = "DEBT-CONSTRUCTION_IR M1 -> M2_PARTIAL (last advance G153, next NA-SELF-RECONSTRUCTION-BODIES); DEBT-TYPE and DEBT-BACKEND_ADAPTER last advance G153; replay cadence kept: G154 FULL_OSS_REPLAY R3 tree-sitter, G155 native head NA-RESOURCE-DIMENSION"
+proof = "PROVEN (post c2189168...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5624
+after = 5807
+
+[[generation.metric]]
+key = "facts"
+before = 26578
+after = 27420

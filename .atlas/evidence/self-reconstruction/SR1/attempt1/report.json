@@ -1,0 +1,120 @@
+{
+  "schema": "atlas.self-reconstruction-report.v1",
+  "report_id": "self-reconstruction:blake3-256:b398bc6b1046b78c536214241a6fcd01c52ac392368940869f3645ded6bbfd8a",
+  "level": "SH1",
+  "target": "core/src/donor/mod.rs::MaterializationMode",
+  "construction_target": "RUST",
+  "module_id": "construction-module:blake3-256:98f1fb2f750174d70389b0bd4d7835431cfa33b89d7e089b695fb4788b4b1fe9",
+  "design_ref": "blake3-256:7bddfb0f64e0ed02681f3f4872521f0cf99be153ca8a31831085d42b1dc8fe53",
+  "design_state": "VALIDATED",
+  "comparison_ref": "blake3-256:56ccd8036a689c3592a8a6cf23bc7e0ef16009bf14a78d4fd33b8b8fb57e0ec3",
+  "construction_inputs": [
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_IDENTITY:9c183a857ad8576c"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_SIGNATURE:aaaa7adb884e6c24"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:42256c3e5c6775ef"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:42a4a95aff2e5588"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:4adc7cccf77db232"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:cfb4f34c5a939f21"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:d34b0bcb3c78af4e"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:f0e99a4460f48b21"
+    },
+    {
+      "kind": "DESIGN",
+      "reference": "blake3-256:7bddfb0f64e0ed02681f3f4872521f0cf99be153ca8a31831085d42b1dc8fe53"
+    },
+    {
+      "kind": "COMPARISON",
+      "reference": "blake3-256:56ccd8036a689c3592a8a6cf23bc7e0ef16009bf14a78d4fd33b8b8fb57e0ec3"
+    }
+  ],
+  "oracle_uses": [],
+  "shadow": null,
+  "checks": [],
+  "gaps": [
+    {
+      "kind": "ITEM_KIND_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "missing": "whether the definition is an enum or a struct",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "DERIVES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "missing": "the derived capabilities",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "ATTRIBUTES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "missing": "the representation and wire attributes",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "ATTRIBUTES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode::FetchedFileSet",
+      "missing": "the member's attributes are not in its SYMBOL record",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "ATTRIBUTES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode::FullCheckout",
+      "missing": "the member's attributes are not in its SYMBOL record",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "ATTRIBUTES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode::RemoteMetadata",
+      "missing": "the member's attributes are not in its SYMBOL record",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "ATTRIBUTES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode::ShallowCheckout",
+      "missing": "the member's attributes are not in its SYMBOL record",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "ATTRIBUTES_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode::SparseCheckout",
+      "missing": "the member's attributes are not in its SYMBOL record",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "VISIBILITY_UNOBSERVED",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "missing": "the type's visibility",
+      "debt": "DEBT-TYPE"
+    },
+    {
+      "kind": "BODY_UNOBSERVED",
+      "subject": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+      "missing": "lowerable body semantics (the census holds relational identities and a fingerprint)",
+      "debt": "DEBT-CONSTRUCTION_IR"
+    }
+  ],
+  "declared_variations": [],
+  "verdict": "CONSTRUCTION_GAP"
+}

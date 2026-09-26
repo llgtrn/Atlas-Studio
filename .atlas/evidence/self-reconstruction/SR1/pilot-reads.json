@@ -1,0 +1,10 @@
+{
+  "schema": "atlas.self-reconstruction-pilot-reads.v1",
+  "attempt": "SR1",
+  "reads": [
+    {"when": "after attempt 1 (CONSTRUCTION_GAP)", "what": "core/src/donor/mod.rs lines 95-112 (the MaterializationMode declaration)", "kind": "ORACLE_READ", "purpose": "confirm that the gaps attempt 1 reported were real (derives, serde attribute, visibility, documentation)", "entered_construction": false, "why_not": "the census extension is general (every struct, enum, variant and field of every file); the lifter reads records only; the module lists its inputs and its lineage is validated against them"}
+  ],
+  "construction_inputs_attempt2": "census records of the G153 container, the VALIDATED design on the front of comparison2.json, that comparison",
+  "variation_not_reconstructed": "documentation line wrapping: the census records rustdoc's summary (one line) and a line count; the shadow's doc comment is the summary on one line where the original wraps it over two -- the summary is equivalent, the wrapping is not reconstructed",
+  "note": "the G153 verification report cited by the attempt-2 designs admits candidate c2189168 (the proven G153 census); roadmap and evidence files are outside the census"
+}

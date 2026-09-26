@@ -1,0 +1,45 @@
+{
+  "schema": "atlas.design-comparison.v1",
+  "comparison_id": "blake3-256:b79accda1598ad0883cb5c968ce2d0d231a60f8dc5ef5e015ed47c57e630682a",
+  "parent_root": "blake3-256:7968545efcbb0fdd4f55fce3cf84045ea459df566da3829a0b47ecc063627b5e",
+  "candidate": "blake3-256:c2189168d5ddcb04946ea21ef69c1a585bda69d983432e5c09dd4b39431fdcac",
+  "scope": "atlas-self",
+  "target_kind": "SHADOW_RECONSTRUCTION",
+  "variant": "sh1",
+  "criteria": [
+    {
+      "name": "reconstruction scope",
+      "measure": "ROOTS",
+      "direction": "MAXIMIZE",
+      "meaning": "how many census roots (the type and its methods) the reconstruction covers; not how many of them will be constructible"
+    }
+  ],
+  "measurements": [
+    {
+      "design_id": "blake3-256:98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818",
+      "values": [
+        2
+      ],
+      "unmeasured": null
+    },
+    {
+      "design_id": "blake3-256:e0a7e2fd69d9b50d0897c093fcd8ced9e58a497c7b1284636ad2f67bc4ef9d79",
+      "values": [
+        1
+      ],
+      "unmeasured": null
+    }
+  ],
+  "front": [
+    "blake3-256:98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818"
+  ],
+  "dominated": [
+    {
+      "design_id": "blake3-256:e0a7e2fd69d9b50d0897c093fcd8ced9e58a497c7b1284636ad2f67bc4ef9d79",
+      "dominated_by": [
+        "blake3-256:98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818"
+      ]
+    }
+  ],
+  "unmeasured": []
+}

@@ -1,0 +1,127 @@
+# SELF_RECONSTRUCTION (G153, ADR 0069, contracts/SELF-RECONSTRUCTION.md): Atlas rebuilds bounded
+# parts of itself from its census alone and verifies them against the original. Attempts append;
+# a verdict is never rewritten. Reports and modules are typed (atlas.self-reconstruction-report.v1,
+# atlas.construction-ir.v0) and machine-checked.
+
+schema = "atlas.self-reconstruction-ledger.v1"
+lane = "SELF_RECONSTRUCTION"
+alias = "ATLAS_SELF_HOSTING"
+distinct_from = ["FULL_OSS_REPLAY", "NEW_DONOR_PROGRESSION", "FRONTIER_EXPANSION", "HISTORICAL_DONOR_REVALIDATION", "NATIVE_ATTACK"]
+authorization = "owner directive: SELF_RECONSTRUCTION / ATLAS_SELF_HOSTING lane (G153)"
+contract = ".atlas/contracts/SELF-RECONSTRUCTION.md"
+bootstrap_construction_target = "RUST"
+construction_inputs = ["CENSUS_RECORD", "DESIGN", "COMPARISON"]
+oracle_uses = ["ORACLE_READ", "ORACLE_EXECUTION"]
+shadow_root = ".atlas/.cache/shadow"
+cadence = "a SELF_RECONSTRUCTION generation is a non-replay generation: at most one between FULL_OSS_REPLAY generations"
+level_reached = "SH0"
+level_attempted = "SH1"
+next = "NA-SELF-RECONSTRUCTION-BODIES: lowerable bodies for pure call-closed functions, then SR1-3 on the same target; SH1 is reached only when is_local is reconstructed and verified"
+
+[[level]]
+id = "SH0"
+meaning = "Atlas censuses itself (self-recensus since G57)"
+status = "REACHED"
+
+[[level]]
+id = "SH1"
+meaning = "a bounded shadow reconstruction of one self target verified equivalent to the original"
+status = "ATTEMPTED"
+
+[[level]]
+id = "SH2"
+meaning = "a module reconstructed and verified"
+status = "NOT_ATTEMPTED"
+
+[[level]]
+id = "SH3"
+meaning = "a crate reconstructed and verified"
+status = "NOT_ATTEMPTED"
+
+[[level]]
+id = "SH4"
+meaning = "a reconstructed part replaces its original under a SELECTED design"
+status = "NOT_ATTEMPTED"
+
+[[level]]
+id = "SH5"
+meaning = "Atlas rebuilds its own construction path from its own knowledge"
+status = "NOT_ATTEMPTED"
+
+[[level]]
+id = "SH6"
+meaning = "Atlas reconstructs all of itself (fixed point)"
+status = "NOT_ATTEMPTED"
+
+[[attempt]]
+id = "SR1-1"
+generation = "G153"
+level = "SH1"
+target = "core/src/donor/mod.rs::MaterializationMode"
+selected_by = ".atlas/evidence/self-reconstruction/SR1/candidates.json"
+container = "G152 clean-HEAD census container (evidence/census/G152/atlas.json)"
+design = ".atlas/evidence/self-reconstruction/SR1/designs/7bddfb0f64e0ed02681f3f4872521f0cf99be153ca8a31831085d42b1dc8fe53.json"
+comparison = ".atlas/evidence/self-reconstruction/SR1/comparison.json"
+module = ".atlas/evidence/self-reconstruction/SR1/attempt1/module.json"
+report = ".atlas/evidence/self-reconstruction/SR1/attempt1/report.json"
+verdict = "CONSTRUCTION_GAP"
+design_state = "VALIDATED"
+gaps = ["ATTRIBUTES_UNOBSERVED", "BODY_UNOBSERVED", "DERIVES_UNOBSERVED", "ITEM_KIND_UNOBSERVED", "VISIBILITY_UNOBSERVED"]
+gap_count = 10
+emitted = []
+checks = 0
+checks_equivalent = 0
+
+[[attempt]]
+id = "SR1-2"
+generation = "G153"
+level = "SH1"
+target = "core/src/donor/mod.rs::MaterializationMode"
+selected_by = ".atlas/evidence/self-reconstruction/SR1/candidates.json"
+container = "G153 census container (root 7968545e..., census c2189168...), its self-scope verification ADMISSIBLE"
+design = ".atlas/evidence/self-reconstruction/SR1/designs2/98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818.json"
+comparison = ".atlas/evidence/self-reconstruction/SR1/comparison2.json"
+module = ".atlas/evidence/self-reconstruction/SR1/attempt2/module.json"
+report = ".atlas/evidence/self-reconstruction/SR1/attempt2/report.json"
+verdict = "CONSTRUCTION_GAP"
+design_state = "VALIDATED"
+gaps = ["BODY_UNOBSERVED"]
+gap_count = 1
+emitted = ["type:core/src/donor/mod.rs::MaterializationMode"]
+checks = 11
+checks_equivalent = 11
+note = "the type reconstructed from census records alone: 7 behavioral checks (clone, debug, equality, exhaustive, order, wire both ways) and 4 semantic checks (definition, documentation, declaration, members in order) EQUIVALENT against the compiled original; is_local omitted (BODY_UNOBSERVED); doc line wrapping not reconstructed"
+
+[[gap_feedback]]
+gap = "ITEM_KIND_UNOBSERVED"
+debt = "DEBT-TYPE"
+attack = "NA-SELF-RECONSTRUCTION-DECLARATIONS"
+status = "CLOSED"
+closed_in = "G153"
+
+[[gap_feedback]]
+gap = "DERIVES_UNOBSERVED"
+debt = "DEBT-TYPE"
+attack = "NA-SELF-RECONSTRUCTION-DECLARATIONS"
+status = "CLOSED"
+closed_in = "G153"
+
+[[gap_feedback]]
+gap = "ATTRIBUTES_UNOBSERVED"
+debt = "DEBT-TYPE"
+attack = "NA-SELF-RECONSTRUCTION-DECLARATIONS"
+status = "CLOSED"
+closed_in = "G153"
+
+[[gap_feedback]]
+gap = "VISIBILITY_UNOBSERVED"
+debt = "DEBT-TYPE"
+attack = "NA-SELF-RECONSTRUCTION-DECLARATIONS"
+status = "CLOSED"
+closed_in = "G153"
+
+[[gap_feedback]]
+gap = "BODY_UNOBSERVED"
+debt = "DEBT-CONSTRUCTION_IR"
+attack = "NA-SELF-RECONSTRUCTION-BODIES"
+status = "OPEN"

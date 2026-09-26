@@ -1,0 +1,4 @@
+[
+ {"name": "reconstruction scope", "measure": "ROOTS", "direction": "MAXIMIZE", "meaning": "how many census roots (the type and its methods) the reconstruction covers; not how many of them will be constructible"},
+ {"name": "unresolved calls", "measure": "UNRESOLVED_CALLS", "direction": "MINIMIZE", "meaning": "call sites in the target's methods no engine resolved: each is behavior construction could not know"}
+]

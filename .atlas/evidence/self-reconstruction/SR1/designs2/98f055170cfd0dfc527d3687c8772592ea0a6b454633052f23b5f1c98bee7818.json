@@ -1,0 +1,32 @@
+{
+  "schema": "atlas.selected-design.v1",
+  "design_id": "blake3-256:98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818",
+  "parent_root": "blake3-256:7968545efcbb0fdd4f55fce3cf84045ea459df566da3829a0b47ecc063627b5e",
+  "candidate": "blake3-256:c2189168d5ddcb04946ea21ef69c1a585bda69d983432e5c09dd4b39431fdcac",
+  "scope": "atlas-self",
+  "target_kind": "SHADOW_RECONSTRUCTION",
+  "variant": "sh1",
+  "state": "VALIDATED",
+  "roots": [
+    {
+      "dimension": "SYMBOL",
+      "record_id": "semantic:SYMBOL:9f117f3fc5e48e92"
+    },
+    {
+      "dimension": "FUNCTION_IDENTITY",
+      "record_id": "semantic:FUNCTION_IDENTITY:b68abb697e48027d"
+    }
+  ],
+  "bindings": [],
+  "candidate_set": [
+    "blake3-256:98f055170cfd0dfc527d3687c8772592ea0a6b454633052f23b5f1c98bee7818",
+    "blake3-256:e0a7e2fd69d9b50d0897c093fcd8ced9e58a497c7b1284636ad2f67bc4ef9d79"
+  ],
+  "evidence_refs": [
+    "/tmp/claude-0/-home-user-Atlas-Studio/28dd513f-e23d-5be4-99f7-a44e2b6ecf3b/scratchpad/sr1/verification153.json"
+  ],
+  "authority_mode": "HUMAN_REQUIRED",
+  "authority_event": null,
+  "rationale": "SH1 target chosen by self-reconstruct candidates (Atlas world model): type with its methods vs type alone",
+  "supersedes": null
+}

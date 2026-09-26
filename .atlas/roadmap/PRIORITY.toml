@@ -108,10 +108,14 @@ next_native_attack = "NA-RESOURCE-DIMENSION"
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
 interface_generation = "G122"
-generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY"]
+generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY", "SELF_RECONSTRUCTION"]
 # G151 (ADR 0067): REPLAY is the FULL_OSS_REPLAY lane (roadmap/FULL-OSS-REPLAY.toml); every replay is an
 # Agent-Worn mission, and no more than one non-replay generation passes between replays.
 full_oss_replay = ".atlas/roadmap/FULL-OSS-REPLAY.toml"
+# G153 (ADR 0069): SELF_RECONSTRUCTION is the permanent lane in which Atlas rebuilds bounded parts of
+# itself from its census alone and verifies them against the original; a non-replay generation that
+# interleaves with FULL_OSS_REPLAY under its cadence (contracts/SELF-RECONSTRUCTION.md).
+self_reconstruction = ".atlas/roadmap/SELF-RECONSTRUCTION.toml"
 native_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AUDIT"]
 interleaving_classes = ["REVALIDATION", "AGENT_MISSION", "DEBT_TRIGGERED_DONOR_ATTACK"]
 max_consecutive_interleaving = 2
@@ -668,14 +672,19 @@ objective = "NA-TS-JS-PROFILE with the GitNexus pin as falsification target (don
 [[planned_generation]]
 id = "G153"
 priority = "P0"
-objective = "FULL_OSS_REPLAY swarm batch B1 (owner directive): the swarm and capability-epoch architecture canonicalized -- typed scout missions and reports, an epoch-bound blackboard, root-gap aggregation, replay requirements and write leases -- and a bounded parallel scout proof of two to four donors on one Atlas epoch"
+objective = "SELF_RECONSTRUCTION SR1 (owner directive; done: the lane canonicalized -- SH0-SH6, Rust bootstrap target, construction input boundary, typed construction gaps, shadow artifacts, verdicts computed from evidence; Atlas chose core::donor::MaterializationMode from its world model; attempt 1 CONSTRUCTION_GAP with 10 gaps and nothing emitted; SYMBOL definitions now carry their declared shape; attempt 2 CONSTRUCTION_GAP with one gap -- the type reconstructed from census records alone, 7 behavioral and 4 semantic checks EQUIVALENT, is_local's body the open gap (NA-SELF-RECONSTRUCTION-BODIES))"
 
 [[planned_generation]]
 id = "G154"
 priority = "P0"
+objective = "FULL_OSS_REPLAY R3 tree-sitter/tree-sitter at v0.25.10 (da6fe9beb4f7), the syntax substrate Atlas links since E2 -- dependency recursion; a mixed Rust, C and JavaScript repository facing both semantic profiles; the swarm scouts of batch B1 beside it on the same epoch"
+
+[[planned_generation]]
+id = "G155"
+priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
 
 [[planned_generation]]
-id = "G155+"
+id = "G156+"
 priority = "P0"
-objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
+objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

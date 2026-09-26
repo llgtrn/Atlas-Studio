@@ -1,0 +1,8 @@
+[
+ {
+  "name": "reconstruction scope",
+  "measure": "ROOTS",
+  "direction": "MAXIMIZE",
+  "meaning": "how many census roots (the type and its methods) the reconstruction covers; not how many of them will be constructible"
+ }
+]

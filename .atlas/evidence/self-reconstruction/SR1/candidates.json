@@ -1,0 +1,68 @@
+{
+  "candidates": [
+    {
+      "constructible": true,
+      "control_blocks": 1,
+      "excluded_by": [],
+      "external_callers": 2,
+      "functions": [
+        "semantic:FUNCTION_IDENTITY:b68abb697e48027d"
+      ],
+      "owner_type": "MaterializationMode",
+      "path": "core/src/donor/mod.rs",
+      "target": "core/src/donor/mod.rs::MaterializationMode"
+    },
+    {
+      "constructible": true,
+      "control_blocks": 5,
+      "excluded_by": [],
+      "external_callers": 1,
+      "functions": [
+        "semantic:FUNCTION_IDENTITY:58966d9a7011a516"
+      ],
+      "owner_type": "ReachOrigin",
+      "path": "core/src/census/dependency.rs",
+      "target": "core/src/census/dependency.rs::ReachOrigin"
+    },
+    {
+      "constructible": true,
+      "control_blocks": 13,
+      "excluded_by": [],
+      "external_callers": 1,
+      "functions": [
+        "semantic:FUNCTION_IDENTITY:337d2c765ecda60c"
+      ],
+      "owner_type": "SemanticDimension",
+      "path": "core/src/semantic/mod.rs",
+      "target": "core/src/semantic/mod.rs::SemanticDimension"
+    },
+    {
+      "constructible": true,
+      "control_blocks": 1,
+      "excluded_by": [],
+      "external_callers": 0,
+      "functions": [
+        "semantic:FUNCTION_IDENTITY:f4b41a58660226cd"
+      ],
+      "owner_type": "DependencyTerminal",
+      "path": "core/src/donor/mod.rs",
+      "target": "core/src/donor/mod.rs::DependencyTerminal"
+    },
+    {
+      "constructible": true,
+      "control_blocks": 1,
+      "excluded_by": [],
+      "external_callers": 0,
+      "functions": [
+        "semantic:FUNCTION_IDENTITY:942d40db964ac57d"
+      ],
+      "owner_type": "String",
+      "path": "core/src/identity/mod.rs",
+      "target": "core/src/identity/mod.rs::String"
+    }
+  ],
+  "constructible": 38,
+  "revision": "b54574a62e2d5bd2c48115291e5c5569f67cbdd3",
+  "schema": "atlas.self-reconstruction-candidates.v1",
+  "types": 118
+}
