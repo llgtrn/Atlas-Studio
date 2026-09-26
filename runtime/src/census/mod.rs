@@ -13,6 +13,7 @@
 
 pub mod extraction;
 pub mod resolution;
+pub mod typescript_modules;
 
 pub use extraction::{
     ALL_SEMANTIC_DIMENSIONS, CensusExtractionAccounting, ExtractorObligationRecord,
@@ -3757,7 +3758,16 @@ pub fn commits_a_store(store: &mut Store) {
 
         let census = build_census(&inventory, &source, &adl, &[batch], &test_revision());
         assert!(census.is_closed());
-        for &dimension in &ALL_SEMANTIC_DIMENSIONS {
+        // G157: RESOURCE is canonical but evaluated by the path-resolution engine, not by the
+        // syntactic extractor alone: the R4 reference profile is the other twelve.
+        assert_eq!(
+            census.coverage.get(SemanticDimension::Resource.as_str()),
+            Some(&EpistemicStatus::Unsupported)
+        );
+        for &dimension in ALL_SEMANTIC_DIMENSIONS
+            .iter()
+            .filter(|d| **d != SemanticDimension::Resource)
+        {
             assert_ne!(
                 census.coverage.get(dimension.as_str()),
                 Some(&EpistemicStatus::Unsupported),

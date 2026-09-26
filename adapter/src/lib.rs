@@ -11,11 +11,13 @@ pub mod vcs;
 
 pub use dependency::{ManifestTargets, census_cargo_workspace, manifest_targets};
 pub use semantic::rust::RUST_SEMANTIC_EXTRACTOR_ID;
+pub use semantic::typescript::TYPESCRIPT_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::{
     CrateInput, DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, FnTarget,
-    ObligationResult, PathCallOutcome, PathCallResolution, ReleaseResolution, SemanticExtractor,
-    StaticUnsupportedExtractor, WorkspaceResolution, extractors_for_language, join_path,
-    resolve_path_calls, resolve_workspace, semantic_extractors,
+    ImportBinding, ModuleFacts, ObligationResult, PathCallOutcome, PathCallResolution,
+    ReleaseResolution, SemanticExtractor, StaticUnsupportedExtractor, WorkspaceResolution,
+    extractors_for_language, join_path, module_facts, resolve_imports, resolve_path_calls,
+    resolve_specifier, resolve_workspace, semantic_extractors, workspace_packages,
 };
 pub use source::{
     IncludedFragment, SourceFrontend, SourceFrontendMatch, inventory_declared_source,

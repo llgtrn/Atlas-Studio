@@ -220,6 +220,10 @@ fn gather_census_inputs(
     // syntactic extractor's CALL claims it resolves.
     let resolution = census::resolution::resolve_rust_path_calls(&inventory, &extraction_batches);
     extraction_batches.extend(resolution);
+    // G158: the second CALL engine for TypeScript/JavaScript, linking modules.
+    let linked =
+        census::typescript_modules::resolve_typescript_modules(&inventory, &extraction_batches);
+    extraction_batches.extend(linked);
     Ok(CensusInputs {
         snapshot,
         repository,

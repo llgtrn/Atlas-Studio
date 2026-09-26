@@ -72,7 +72,7 @@ Every language and every artifact class of a revision is placed on one ladder, f
 
 - **Rust: L6.** Thirteen dimensions (RESOURCE since G157, ADR 0072), a path resolver, and composition.
 - **JavaScript: L6 on Atlas Studio's own three browser scripts.** This comes from the bounded G152 profile: functions, signatures, symbols, and CALL with same-file lexical resolution. Every other dimension is UNSUPPORTED.
-- **TypeScript: not measurable on Atlas Studio**, which has no TypeScript artifact. On the GitNexus pin at E2 (replay R2, before this measurement existed), FUNCTION_IDENTITY, FUNCTION_SIGNATURE and SYMBOL were evaluated and CALL was bounded. The next TypeScript donor replay measures it with this ladder.
+- **TypeScript: not measurable on Atlas Studio**, which has no TypeScript artifact. Measured on the xyflow pin (replay R5, G158): **L6**, with 451 artifacts and 2,249 composed functions. FUNCTION_IDENTITY, FUNCTION_SIGNATURE and SYMBOL are OBSERVED. CALL is UNKNOWN: same-file resolution plus module linking across imports and workspace packages (ADR 0073). Every other dimension is UNSUPPORTED. Svelte components are L0.
 - **CSS, HTML, JSON, Markdown, TOML: L2.** Syntax only.
 - **C, C++, Python, Go, Swift, Zig: L0.** No frontend. Since G154, calls into C through Rust `extern` declarations resolve to FOREIGN_FUNCTION records.
 - **Image, video, audio, document, UI design, CAD/3D, electronics: L0** (DEBT-ARTIFACT_SEMANTICS).

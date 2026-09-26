@@ -27,3 +27,7 @@ pub use rust::resolve::{
     WorkspaceResolution, join as join_path, resolve_path_calls, resolve_workspace,
 };
 pub use typescript::TypeScriptSemanticExtractor;
+pub use typescript::modules::{
+    ImportBinding, ModuleFacts, module_facts, resolve_imports, resolve_specifier,
+    workspace_packages,
+};

@@ -18,8 +18,9 @@
 //!   function declared at module level in the same file whose name is bound exactly once in the
 //!   file and never assigned: JavaScript's lexical scoping then fixes the callee (DERIVED).
 //!   Everything else -- member calls, imported callees, callbacks, `this`, dynamic property
-//!   access, JSX elements, getters and setters, decorators, tagged templates -- stays unresolved,
-//!   so CALL is always UNKNOWN with its observations.
+//!   access, JSX elements, getters and setters, decorators, tagged templates -- stays unresolved
+//!   here, so CALL is always UNKNOWN with its observations. Since G158 (ADR 0073) a second
+//!   engine resolves imported callees by linking modules ([`modules`]).
 //! - Every other dimension is UNSUPPORTED, never guessed.
 //!
 //! A file with syntax errors keeps its observations, but no dimension of it is exhaustive.
@@ -34,6 +35,8 @@ use atlas_core::{
     stable_id,
 };
 use tree_sitter::{Node, Parser};
+
+pub mod modules;
 
 use super::batch::{ExtractionBatch, ObligationResult};
 use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, SemanticExtractor};

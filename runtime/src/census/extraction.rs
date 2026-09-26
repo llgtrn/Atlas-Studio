@@ -295,12 +295,14 @@ fn extract_with_panic_isolation(
 pub fn requested_dimensions(extractor: &ExtractorIdentity) -> &'static [SemanticDimension] {
     if extractor.id == super::resolution::RUST_PATH_RESOLUTION_ID {
         &super::resolution::RUST_PATH_RESOLUTION_DIMENSIONS
+    } else if extractor.id == super::typescript_modules::TYPESCRIPT_MODULE_RESOLUTION_ID {
+        &super::typescript_modules::TYPESCRIPT_MODULE_RESOLUTION_DIMENSIONS
     } else {
         &ALL_SEMANTIC_DIMENSIONS
     }
 }
 
-pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
+pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 13] = [
     SemanticDimension::Symbol,
     SemanticDimension::Type,
     SemanticDimension::FunctionIdentity,
@@ -313,6 +315,8 @@ pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Ownership,
     SemanticDimension::Concurrency,
     SemanticDimension::Persistence,
+    // G158: RESOURCE (G157) is canonical too; an extractor outside it accounts for it.
+    SemanticDimension::Resource,
 ];
 
 /// Runs every registered `SemanticExtractor` against every admitted, successfully-parsed
