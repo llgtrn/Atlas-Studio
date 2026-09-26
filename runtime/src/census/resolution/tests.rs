@@ -65,6 +65,80 @@ fn crate_targets_follow_manifests_renames_roles_and_own_library() {
     );
 }
 
+/// G168 (replay R10, rust-analyzer): its workspace keeps `lib/lsp-server` (0.10.0) as a member
+/// while every crate takes `lsp-server = { version = "0.7.9" }` from the registry; Atlas bound the
+/// member. A dependency binds the package directory its declaration resolves to, through its own
+/// path, an inherited `[workspace.dependencies]` entry (renames included) or a `[patch]`, never a
+/// same-named member of the workspace otherwise.
+#[test]
+fn crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_name() {
+    let manifests = map(&[
+        (
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"lib/*\"]\n\n[workspace.dependencies]\nide = { path = \"./crates/ide\", version = \"0.0.0\" }\nlsp-server = { version = \"0.7.9\" }\nrenamed = { package = \"text-size\", path = \"lib/text-size\" }\n\n[patch.crates-io]\nla-arena = { path = \"lib/la-arena\" }\n",
+        ),
+        ("crates/ide/Cargo.toml", "[package]\nname = \"ide\"\n"),
+        (
+            "lib/lsp-server/Cargo.toml",
+            "[package]\nname = \"lsp-server\"\n",
+        ),
+        (
+            "lib/text-size/Cargo.toml",
+            "[package]\nname = \"text-size\"\n",
+        ),
+        (
+            "lib/la-arena/Cargo.toml",
+            "[package]\nname = \"la-arena\"\n",
+        ),
+        (
+            "lib/line-index/Cargo.toml",
+            "[package]\nname = \"line-index\"\n",
+        ),
+        (
+            "crates/app/Cargo.toml",
+            "[package]\nname = \"app\"\n\n[dependencies]\nide.workspace = true\nlsp-server.workspace = true\nrenamed = { workspace = true }\nla-arena = \"0.3\"\nline-index = \"0.1\"\nlocal = { path = \"../../lib/line-index\" }\n",
+        ),
+    ]);
+    let sources = map(&[
+        ("crates/ide/src/lib.rs", ""),
+        ("lib/lsp-server/src/lib.rs", ""),
+        ("lib/text-size/src/lib.rs", ""),
+        ("lib/la-arena/src/lib.rs", ""),
+        ("lib/line-index/src/lib.rs", ""),
+        ("crates/app/src/lib.rs", ""),
+    ]);
+    let crates = crate_targets(&manifests, &sources);
+    let app = crates
+        .iter()
+        .find(|c| c.root == "crates/app/src/lib.rs")
+        .unwrap();
+    let externs: Vec<(&str, &str)> = app
+        .externs
+        .iter()
+        .map(|(name, index)| (name.as_str(), crates[*index].root.as_str()))
+        .collect();
+    assert_eq!(
+        externs,
+        [
+            ("ide", "crates/ide/src/lib.rs"),
+            ("la_arena", "lib/la-arena/src/lib.rs"),
+            ("local", "lib/line-index/src/lib.rs"),
+            ("renamed", "lib/text-size/src/lib.rs"),
+        ]
+    );
+    // With no workspace root manifest in view, an inherited entry still binds by package name.
+    let orphan = map(&[
+        (
+            "a/Cargo.toml",
+            "[package]\nname = \"a\"\n\n[dependencies]\nb.workspace = true\n",
+        ),
+        ("b/Cargo.toml", "[package]\nname = \"b\"\n"),
+    ]);
+    let crates = crate_targets(&orphan, &map(&[("a/src/lib.rs", ""), ("b/src/lib.rs", "")]));
+    let a = crates.iter().find(|c| c.root == "a/src/lib.rs").unwrap();
+    assert_eq!(a.externs.keys().collect::<Vec<_>>(), ["b"]);
+}
+
 /// G164 (replay R8, crubit): a manifest may keep its targets outside its own directory
 /// (`cargo/x/Cargo.toml` with `[lib] path = "../../x.rs"`); the crate root is the normalized
 /// inventory path, its dependencies bind through it, and a target climbing above the repository

@@ -324,6 +324,35 @@ struct ManifestDependencyEntry {
     key: String,
     resolved_name: String,
     optional: bool,
+    source: DeclaredSource,
+}
+
+/// G168 (FULL_OSS_REPLAY R10, ADR 0082): where a dependency entry says its package comes from.
+/// Cargo takes a package from a directory only when the entry names one (`path = ".."`), or
+/// inherits it (`workspace = true`) from a `[workspace.dependencies]` entry that does; a version,
+/// git or registry requirement is never a workspace member of the same name, unless a `[patch]`
+/// table redirects it. rust-analyzer declares `lsp-server = { version = "0.7.9" }` beside its own
+/// `lib/lsp-server` (0.10.0), and Atlas bound the one to the other.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DeclaredSource {
+    /// `path = ".."`, relative to the declaring manifest's directory.
+    Path(String),
+    /// `workspace = true`: the workspace root's `[workspace.dependencies]` entry decides.
+    Workspace,
+    /// A version, git or registry requirement.
+    Elsewhere,
+}
+
+/// The source an entry's value (an inline table, a bare version string, or a dotted table's body)
+/// declares; `inherited` when the key itself was spelled `name.workspace`.
+fn declared_source(value: &str, inherited: bool) -> DeclaredSource {
+    if inherited || bool_field_anywhere(value, "workspace") == Some(true) {
+        DeclaredSource::Workspace
+    } else if let Some(path) = quoted_field_anywhere(value, "path") {
+        DeclaredSource::Path(path)
+    } else {
+        DeclaredSource::Elsewhere
+    }
 }
 
 /// Net count of `{`/`}` in `text` -- used to detect and join an inline table value that spans
@@ -355,12 +384,12 @@ fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
             index += 1;
             continue;
         };
-        let key = trimmed[..eq_pos]
-            .trim()
+        let full_key = trimmed[..eq_pos].trim();
+        let key = full_key.split('.').next().unwrap_or_default().trim();
+        let inherited = full_key
             .split('.')
-            .next()
-            .unwrap_or_default()
-            .trim();
+            .nth(1)
+            .is_some_and(|field| field.trim() == "workspace");
         if key.is_empty() {
             index += 1;
             continue;
@@ -383,10 +412,20 @@ fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
         let resolved_name =
             quoted_field_anywhere(&value, "package").unwrap_or_else(|| key.to_owned());
         let optional = bool_field_anywhere(&value, "optional").unwrap_or(false);
+        let dotted_path = full_key
+            .split('.')
+            .nth(1)
+            .is_some_and(|field| field.trim() == "path");
+        let source = if dotted_path {
+            DeclaredSource::Path(value.trim().trim_matches('"').to_owned())
+        } else {
+            declared_source(&value, inherited && value.trim() == "true")
+        };
         entries.push(ManifestDependencyEntry {
             key: key.to_owned(),
             resolved_name,
             optional,
+            source,
         });
         index += 1;
     }
@@ -533,14 +572,14 @@ fn manifest_dependency_roles(
 /// name resolution sees them (G75): the library, binaries and build script with their root files
 /// (`[lib] path`/`[[bin]] path`/`build = ".."`, else Cargo's defaults when `exists` confirms the
 /// file), and every dependency's extern name (the table key, `atlas_core`) with the crate it
-/// names (`core`) and its role.
+/// names (`core`), its role and the source it declares (G168).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ManifestTargets {
     pub package: String,
     pub lib: Option<String>,
     pub bins: Vec<String>,
     pub build: Option<String>,
-    pub dependencies: Vec<(String, String, DependencyRole)>,
+    pub dependencies: Vec<(String, String, DependencyRole, DeclaredSource)>,
 }
 
 /// Reads [`ManifestTargets`] from a package manifest; target paths are relative to its directory.
@@ -569,12 +608,15 @@ pub fn manifest_targets(manifest: &str, exists: impl Fn(&str) -> bool) -> Option
             for entry in manifest_dependency_entries(&body) {
                 targets
                     .dependencies
-                    .push((entry.key, entry.resolved_name, role));
+                    .push((entry.key, entry.resolved_name, role, entry.source));
             }
         } else if let Some((key, role)) = dotted_dependency_header(header) {
             let resolved =
                 quoted_field_anywhere(&body, "package").unwrap_or_else(|| key.to_owned());
-            targets.dependencies.push((key.to_owned(), resolved, role));
+            let source = declared_source(&body, false);
+            targets
+                .dependencies
+                .push((key.to_owned(), resolved, role, source));
         }
     }
     if !has_package {
@@ -590,6 +632,45 @@ pub fn manifest_targets(manifest: &str, exists: impl Fn(&str) -> bool) -> Option
         targets.build = Some("build.rs".into());
     }
     Some(targets)
+}
+
+/// G168: what a workspace root manifest decides for its members' dependencies: each
+/// `[workspace.dependencies]` entry's package name and directory (`None` for a version, git or
+/// registry entry), and each `[patch.<source>]` entry redirecting a package name to a directory.
+/// Paths are relative to the root manifest's directory.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct WorkspaceDependencies {
+    pub dependencies: BTreeMap<String, (String, Option<String>)>,
+    pub patches: BTreeMap<String, String>,
+}
+
+/// Reads [`WorkspaceDependencies`]; `None` for a manifest without a `[workspace]` table.
+pub fn workspace_dependencies(manifest: &str) -> Option<WorkspaceDependencies> {
+    let sections = manifest_sections(manifest);
+    if !sections.iter().any(|(header, _)| *header == "[workspace]") {
+        return None;
+    }
+    let mut workspace = WorkspaceDependencies::default();
+    for (header, body) in &sections {
+        if *header == "[workspace.dependencies]" {
+            for entry in manifest_dependency_entries(body) {
+                let path = match entry.source {
+                    DeclaredSource::Path(path) => Some(path),
+                    _ => None,
+                };
+                workspace
+                    .dependencies
+                    .insert(entry.key, (entry.resolved_name, path));
+            }
+        } else if header.starts_with("[patch.") {
+            for entry in manifest_dependency_entries(body) {
+                if let DeclaredSource::Path(path) = entry.source {
+                    workspace.patches.insert(entry.resolved_name, path);
+                }
+            }
+        }
+    }
+    Some(workspace)
 }
 
 fn read_to_string(path: &Path) -> io::Result<Option<String>> {

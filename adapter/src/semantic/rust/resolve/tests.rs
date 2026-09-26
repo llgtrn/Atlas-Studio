@@ -184,6 +184,25 @@ fn associated_functions_resolve_through_inherent_then_trait_impls() {
     );
 }
 
+/// G168 (FULL_OSS_REPLAY R10, ADR 0082): rust-analyzer's `DefWithBodyId::from(function)` calls an
+/// `impl From<FunctionId>` that `impl_from!` expands; the one visible `impl From<VariantId>` was
+/// picked. A trait with generic arguments may be implemented many times for one type, so one
+/// visible impl of it is not the impl; a trait without them is implemented at most once.
+#[test]
+fn a_generic_trait_impl_is_not_picked_by_its_method_name() {
+    let lib = "pub struct Id;\npub struct VariantId;\npub struct FunctionId;\npub enum Def {\n    Variant(VariantId),\n    Function(FunctionId),\n}\nmacro_rules! impl_from {\n    ($t:ident, $v:ident) => {\n        impl From<$t> for Def {\n            fn from(id: $t) -> Def {\n                Def::$v(id)\n            }\n        }\n    };\n}\nimpl_from!(FunctionId, Function);\nimpl From<VariantId> for Def {\n    fn from(id: VariantId) -> Def {\n        Def::Variant(id)\n    }\n}\nimpl Default for Id {\n    fn default() -> Id {\n        Id\n    }\n}\nfn t() {\n    Def::from(FunctionId);\n    Id::default();\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let outcomes = outcomes(&results, "src/lib.rs");
+    assert!(
+        outcomes.contains(&("Def::from".into(), "unresolved:generic-trait-impl".into())),
+        "{outcomes:?}"
+    );
+    assert!(
+        outcomes.contains(&("Id::default".into(), "src/lib.rs:24:default".into())),
+        "{outcomes:?}"
+    );
+}
+
 #[test]
 fn constructors_traits_and_cfg_alternates_are_never_claimed_as_functions() {
     let lib = "pub struct Wrap(u8);\npub enum E {\n    V(u8),\n}\npub trait Tr {\n    fn call();\n    fn provided() {\n        Self::call();\n    }\n}\n#[cfg(unix)]\nfn alt() {}\n#[cfg(not(unix))]\nfn alt() {}\nfn t() {\n    Wrap(1);\n    E::V(1);\n    Tr::call();\n    alt();\n    Some(1);\n}\n";

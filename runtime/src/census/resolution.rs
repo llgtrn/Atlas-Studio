@@ -98,6 +98,12 @@ fn target_path(dir: &str, relative: &str) -> Option<String> {
 
 /// Every workspace crate target (library, binaries, build script) with the extern-prelude names
 /// of the workspace libraries it may use, from the package manifests in `sources`' inventory.
+///
+/// G168 (FULL_OSS_REPLAY R10, ADR 0082): a dependency binds the library whose package directory
+/// its declaration names, as Cargo resolves it: its own `path`, or the `[workspace.dependencies]`
+/// entry it inherits, or a `[patch]` redirecting its package; a version, git or registry
+/// requirement binds no workspace library, whatever its name. Only an inherited entry whose
+/// workspace root manifest is not in view still binds by package name.
 pub fn crate_targets(
     manifests: &BTreeMap<String, String>,
     sources: &BTreeMap<String, String>,
@@ -120,14 +126,34 @@ pub fn crate_targets(
         })
         .collect();
 
+    // Workspace roots by directory, deepest first: a package belongs to the nearest one above it.
+    let mut workspaces: Vec<(String, adapter::WorkspaceDependencies)> = manifests
+        .iter()
+        .filter_map(|(path, text)| {
+            let dir = path
+                .strip_suffix("Cargo.toml")?
+                .trim_end_matches('/')
+                .to_owned();
+            Some((dir, adapter::workspace_dependencies(text)?))
+        })
+        .collect();
+    workspaces.sort_by_key(|(dir, _)| std::cmp::Reverse(dir.len()));
+    let workspace_of = |dir: &str| {
+        workspaces.iter().find(|(root, _)| {
+            root.is_empty() || dir == root || dir.starts_with(&format!("{root}/"))
+        })
+    };
+
     let mut crates: Vec<CrateInput> = Vec::new();
     let mut libs: BTreeMap<String, usize> = BTreeMap::new();
+    let mut libs_by_dir: BTreeMap<String, usize> = BTreeMap::new();
     let mut kinds: Vec<(usize, bool)> = Vec::new(); // (package index, is build script)
     for (index, package) in packages.iter().enumerate() {
         if let Some(root) =
             (package.targets.lib.as_deref()).and_then(|l| target_path(&package.dir, l))
         {
             libs.insert(package.targets.package.clone(), crates.len());
+            libs_by_dir.insert(package.dir.clone(), crates.len());
             crates.push(CrateInput {
                 root,
                 externs: BTreeMap::new(),
@@ -154,15 +180,33 @@ pub fn crate_targets(
         }
     }
     for (krate, (package_index, is_build)) in kinds.into_iter().enumerate() {
+        let dir = &packages[package_index].dir;
         let package = &packages[package_index].targets;
+        let workspace = workspace_of(dir);
+        let at = |base: &str, relative: &str| {
+            target_path(base, relative).and_then(|d| libs_by_dir.get(&d).copied())
+        };
+        let patched = |name: &str| workspace.and_then(|(root, w)| at(root, w.patches.get(name)?));
         let mut externs = BTreeMap::new();
-        for (key, crate_name, role) in &package.dependencies {
+        for (key, crate_name, role, source) in &package.dependencies {
             let wanted = if is_build {
                 *role == atlas_core::DependencyRole::Build
             } else {
                 *role != atlas_core::DependencyRole::Build
             };
-            if let (true, Some(&lib)) = (wanted, libs.get(crate_name)) {
+            let bound = match source {
+                adapter::DeclaredSource::Path(path) => at(dir, path),
+                adapter::DeclaredSource::Workspace => match workspace {
+                    Some((root, w)) => match w.dependencies.get(key) {
+                        Some((_, Some(path))) => at(root, path),
+                        Some((name, None)) => patched(name),
+                        None => None,
+                    },
+                    None => libs.get(crate_name).copied(),
+                },
+                adapter::DeclaredSource::Elsewhere => patched(crate_name),
+            };
+            if let (true, Some(lib)) = (wanted, bound) {
                 externs.insert(key.replace('-', "_"), lib);
             }
         }

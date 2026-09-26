@@ -64,7 +64,7 @@ Around these levels sit:
 | `understand --target T --mission M` | the bounded `MissionContext` for one mission |
 | `explain --target T` | the composed object(s) a selector denotes |
 | `impact --target T[,T…]` | resolved transitive callers (a lower bound), components, state readers, invariants at risk |
-| `trace --from A --to B` | shortest typed path, or `NO_PATH_OBSERVED` with status `UNKNOWN` |
+| `trace --from A --to B` | shortest realizable typed path (G168, ADR 0082: a returned value goes back only toward callers the path did not descend from; a state flow reopens returns), or `NO_PATH_OBSERVED` with status `UNKNOWN` |
 | `why --from A --to B` | direct relations, dependency edges and invariants between two targets |
 | `invariants`, `unknowns`, `effects`, `state`, `dependencies`, `capabilities --target T` | projections of the model; `unknowns` also lists `withheld`, why path calls in the target are withheld -- each open scope's cause (G162) |
 | `resources`, `causal` | the gap that owns the question (`GAP-RESOURCE`, `GAP-CAUSALITY`), never an answer |

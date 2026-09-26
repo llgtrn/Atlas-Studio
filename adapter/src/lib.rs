@@ -10,7 +10,10 @@ pub mod source;
 pub mod vcs;
 pub mod weights;
 
-pub use dependency::{ManifestTargets, census_cargo_workspace, manifest_targets};
+pub use dependency::{
+    DeclaredSource, ManifestTargets, WorkspaceDependencies, census_cargo_workspace,
+    manifest_targets, workspace_dependencies,
+};
 pub use semantic::rust::RUST_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::typescript::TYPESCRIPT_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::{

@@ -363,6 +363,18 @@ const EXTRACTION_STACK_SIZE: usize = 256 * 1024 * 1024;
 /// occur in genuine code structure, never inside a comment or string.
 const MAX_STRUCTURAL_RECURSION_RISK: usize = 64;
 
+/// G168 (FULL_OSS_REPLAY R10, ADR 0082): how many links of an operator or `as` chain cost one
+/// level of `MAX_STRUCTURAL_RECURSION_RISK`, which is measured in bracket levels. The documented
+/// crash depths above, all on the same reduced (~2 MiB) stack, are 300 bracket levels (100
+/// survive) against 2,000 chain links (1,000 survive): a link costs at most a sixth of a bracket
+/// level at the crash depth (2,000 / 6 >= 300) and a tenth at the surviving depth, so counting six
+/// links as one level never admits a chain deeper, in stack, than the bracket nesting already
+/// admitted. Counted one-for-one, a chain was charged six times its measured cost: rust-analyzer's
+/// generated AST (`matches!(kind, A | B | ...)` with 73 alternatives, three brackets deep) scored 76
+/// and its 11,047-line file was refused whole, 2,565 functions with it. Bracket nesting and
+/// `else` runs keep their one-for-one cost.
+const CHAIN_LINKS_PER_LEVEL: usize = 6;
+
 /// If `bytes[start..]` begins a plain `"..."` (with `\"`/`\\` escape handling) or raw
 /// `r#"..."#`-style string literal, returns the index just past its closing delimiter. Returns
 /// `None` when `bytes[start]` does not open a recognized string literal, in which case the caller
@@ -445,7 +457,7 @@ fn max_structural_recursion_risk(source: &str) -> usize {
             b'+' | b'-' | b'*' | b'/' | b'%' | b'&' | b'|' | b'^' | b'<' | b'>' | b'=' | b'!'
             | b'.' | b'?' => {
                 chain_run += 1;
-                max_risk = max_risk.max(bracket_depth + chain_run);
+                max_risk = max_risk.max(bracket_depth + chain_run.div_ceil(CHAIN_LINKS_PER_LEVEL));
             }
             // `,` always separates SIBLING list items (function-call/struct-literal/tuple/generic
             // arguments) -- `syn` parses a `Punctuated<T, Comma>` list with a loop, not recursion,
@@ -485,7 +497,7 @@ fn max_structural_recursion_risk(source: &str) -> usize {
                 && !bytes.get(index + 2).is_some_and(|b| is_identifier_byte(*b)) =>
             {
                 chain_run += 1;
-                max_risk = max_risk.max(bracket_depth + chain_run);
+                max_risk = max_risk.max(bracket_depth + chain_run.div_ceil(CHAIN_LINKS_PER_LEVEL));
             }
             _ => {}
         }

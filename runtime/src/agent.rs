@@ -995,6 +995,40 @@ fn run(s: &core::store::Store) { s.save(); }
         assert!(!a.next_questions.is_empty());
     }
 
+    /// G168 (FULL_OSS_REPLAY R10, ADR 0082): on rust-analyzer the trace from its request
+    /// handlers to `goto_definition` walked into shared callees and out through their return
+    /// values to other callers, a chain of true steps that no execution realizes.
+    #[test]
+    fn trace_follows_a_returned_value_only_back_toward_callers_it_did_not_descend_from() {
+        let lib = "//! The shared core.\npub mod store;\n\
+                   pub fn shared() -> u64 { 1 }\n\
+                   pub fn first() -> u64 { shared() }\n\
+                   pub fn second() -> u64 { let v = shared(); sink(v) }\n\
+                   pub fn sink(v: u64) -> u64 { v }\n\
+                   pub fn touch(s: &mut store::Store) { s.bump() }\n\
+                   pub fn report(s: &store::Store) -> u64 { let n = s.get(); n }\n";
+        let model = model_of("realizable", ADL, lib);
+        let kinds = |t: &lens::Trace| -> Vec<String> {
+            t.steps.iter().map(|s| s.relation.clone()).collect()
+        };
+        // `shared` returns to `first` and to `second`; `first` never reaches `sink` through it.
+        let unrealizable = lens::trace(&model, "fn:first", "fn:sink").unwrap();
+        assert_eq!(unrealizable.verdict, "NO_PATH_OBSERVED", "{unrealizable:?}");
+        assert_eq!(unrealizable.status, EpistemicStatus::Unknown);
+        // From `shared` itself the return is unmatched, so it may reach any caller.
+        let returned = lens::trace(&model, "fn:shared", "fn:sink").unwrap();
+        assert_eq!(returned.verdict, "PATH_OBSERVED", "{returned:?}");
+        assert_eq!(kinds(&returned), ["SUPPLIES_DATA", "INVOKES"]);
+        assert_eq!(returned.status, EpistemicStatus::Derived);
+        // Shared state carries no call context: after a state flow a value may be returned again.
+        let through_state = lens::trace(&model, "fn:touch", "fn:report").unwrap();
+        assert_eq!(through_state.verdict, "PATH_OBSERVED", "{through_state:?}");
+        assert_eq!(
+            kinds(&through_state),
+            ["INVOKES", "STATE_FLOW", "SUPPLIES_DATA"]
+        );
+    }
+
     #[test]
     fn impact_trace_and_hypotheses_never_turn_unresolved_into_absent() {
         let model = model_of("lens", ADL, CORE_LIB);

@@ -558,6 +558,9 @@ struct FnOutput {
 struct ImplDef {
     /// G142: the implemented trait's name (its path's last segment), for a trait impl.
     trait_name: Option<String>,
+    /// G168: the implemented trait is spelled with generic arguments (`From<X>`), so one type may
+    /// implement it many times over.
+    trait_generic: bool,
     scope: ModId,
     self_path: Vec<String>,
     self_leading_colon: bool,
@@ -1617,6 +1620,11 @@ impl DefMap {
                 .as_ref()
                 .and_then(|(path, _)| path.segments.last())
                 .map(|segment| segment.ident.to_string()),
+            trait_generic: item
+                .trait_
+                .as_ref()
+                .and_then(|(path, _)| path.segments.last())
+                .is_some_and(|segment| !segment.arguments.is_none()),
             scope,
             self_path,
             self_leading_colon,
@@ -2181,6 +2189,13 @@ impl DefMap {
     /// `Type::name`: an enum variant, else the one inherent associated function of that name,
     /// else the one trait-impl function of that name (a concrete type's trait method is statically
     /// dispatched). Several candidates are ambiguous.
+    ///
+    /// G168 (FULL_OSS_REPLAY R10, ADR 0082): a trait spelled with generic arguments (`From<X>`)
+    /// may be implemented for one type many times, by impls an item macro expands (rust-analyzer's
+    /// `impl_from!`) or that another crate declares (`impl From<Local> for Foreign`); which one a
+    /// call selects depends on its argument types. One visible impl of it is therefore not the
+    /// impl: the call is left `generic-trait-impl`. On rust-analyzer the pick was wrong for 29 of
+    /// the 109 call edges it produced, against its own SCIP index.
     fn associated(&self, ty: TypeId, name: &str) -> Result<FnTarget, &'static str> {
         if self.types[ty].is_trait {
             return Err("trait-method");
@@ -2188,22 +2203,23 @@ impl DefMap {
         if self.types[ty].variants.contains(name) {
             return Err("constructor");
         }
-        let candidates = |trait_impl: bool| -> Vec<&FnTarget> {
+        let candidates = |trait_impl: bool| -> Vec<(&ImplDef, &FnTarget)> {
             self.impls
                 .iter()
                 .filter(|imp| imp.self_type == Some(ty) && imp.is_trait_impl == trait_impl)
-                .flat_map(|imp| imp.fns.iter())
-                .filter(|f| f.name == name)
-                .map(|f| &f.target)
+                .flat_map(|imp| imp.fns.iter().map(move |f| (imp, f)))
+                .filter(|(_, f)| f.name == name)
+                .map(|(imp, f)| (imp, &f.target))
                 .collect()
         };
         match candidates(false).as_slice() {
-            [one] => return Ok((*one).clone()),
+            [(_, one)] => return Ok((*one).clone()),
             [] => {}
             _ => return Err("ambiguous-associated"),
         }
         match candidates(true).as_slice() {
-            [one] => Ok((*one).clone()),
+            [(imp, _)] if imp.trait_generic => Err("generic-trait-impl"),
+            [(_, one)] => Ok((*one).clone()),
             [] => Err("associated-not-found"),
             _ => Err("ambiguous-associated"),
         }

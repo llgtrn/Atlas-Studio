@@ -5567,6 +5567,51 @@ fn a_short_real_as_cast_chain_still_extracts_normally() {
     assert_eq!(identity.symbol.name, "f");
 }
 
+/// G168 (FULL_OSS_REPLAY R10, ADR 0082): rust-analyzer's generated AST tests each node kind with
+/// `matches!(kind, A | B | ...)` and its whole 11,047-line file was refused at 73 alternatives. A
+/// chain link now costs a sixth of a bracket level (`CHAIN_LINKS_PER_LEVEL`); these pin the bound
+/// exactly for the operator arm and the `as` arm of the scan.
+#[test]
+fn a_chain_link_costs_a_sixth_of_a_bracket_level() {
+    let refused = |source: &str| {
+        extract_all("src/probe.rs", source)
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit)
+    };
+    // `{` and `matches!(` hold the alternatives two brackets deep: 2 + ceil(links / 6) <= 64.
+    let or_pattern = |links: usize| {
+        let alternatives = (0..=links)
+            .map(|i| format!("K{i}"))
+            .collect::<Vec<_>>()
+            .join(" | ");
+        format!("pub fn can_cast(kind: u8) -> bool {{ matches!(kind, {alternatives}) }}\n")
+    };
+    let batch = extract_all("src/probe.rs", &or_pattern(73));
+    assert!(find_function_identity(&batch, &[], "can_cast").is_some());
+    assert!(!refused(&or_pattern(372)));
+    assert!(refused(&or_pattern(373)));
+    // One bracket deep: 1 + ceil(links / 6) <= 64.
+    let casts = |links: usize| {
+        let chain = std::iter::repeat_n("u8", links)
+            .collect::<Vec<_>>()
+            .join(" as ");
+        format!("pub fn f(x: u8) -> u8 {{ x as {chain} }}\n")
+    };
+    assert!(!refused(&casts(378)));
+    assert!(refused(&casts(379)));
+    // Bracket nesting keeps its one-for-one cost.
+    let nested = |depth: usize| {
+        format!(
+            "pub fn f() -> i32 {{ {}1{} }}\n",
+            "(".repeat(depth),
+            ")".repeat(depth)
+        )
+    };
+    assert!(!refused(&nested(63)));
+    assert!(refused(&nested(64)));
+}
+
 #[test]
 fn identifiers_merely_containing_the_letters_as_do_not_trigger_the_guard() {
     // The word-boundary check on the `as`-keyword scan must not fire on ordinary identifiers that

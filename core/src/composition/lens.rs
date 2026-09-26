@@ -1170,33 +1170,98 @@ pub struct Trace {
     pub note: String,
 }
 
-/// `trace(origin, destination)`: the shortest typed path through INVOKES, SUPPLIES_DATA and
-/// STATE_FLOW. No path found is UNKNOWN, never a proof of absence.
+/// One way a relation may be taken by `trace`: descending into a call (a call, an argument, a
+/// closure the function defines, a dispatch), returning a value to a caller, or passing through
+/// shared state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum TraceMove {
+    Descend,
+    Return,
+    State,
+}
+
+/// `trace(origin, destination)`: the shortest realizable typed path through INVOKES,
+/// SUPPLIES_DATA, STATE_FLOW, ENCLOSES and DISPATCHES_TO. No path found is UNKNOWN, never a
+/// proof of absence.
+///
+/// G168 (FULL_OSS_REPLAY R10, ADR 0082): a path is realizable only when every value it returns
+/// goes back to a caller it has not descended from. A returned value (SUPPLIES_DATA from callee to
+/// caller, told from an argument by the call site it cites) is followed only before the path's
+/// first descent; once the path has entered a callee, a return could reach only the caller it
+/// came from, which the search has already reached. STATE_FLOW passes through shared state, which
+/// carries no call context, so after it returns are open again.
 pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trace, String> {
     let index = Index::new(model);
     let from = index.resolve(origin)?;
     let to = index.resolve(destination)?;
-    let mut adjacency: BTreeMap<&str, Vec<&super::Relation>> = BTreeMap::new();
+    let mut invocations: BTreeSet<(&str, &str, &str)> = BTreeSet::new();
     for r in &model.relations {
-        adjacency.entry(r.from.as_str()).or_default().push(r);
+        if r.kind == RelationKind::Invokes {
+            for site in &r.evidence {
+                invocations.insert((r.from.as_str(), r.to.as_str(), site.as_str()));
+            }
+        }
     }
-    let mut previous: BTreeMap<String, &super::Relation> = BTreeMap::new();
-    let mut queue: VecDeque<String> = from.functions.iter().cloned().collect();
-    let mut seen: BTreeSet<String> = from.functions.clone();
+    // Each relation with the moves it allows and, per move, the call site it cites.
+    let mut adjacency: BTreeMap<&str, Vec<(&super::Relation, TraceMove, &str)>> = BTreeMap::new();
+    for r in &model.relations {
+        let first = r.evidence.first().map(String::as_str).unwrap_or_default();
+        let mut moves: Vec<(TraceMove, &str)> = Vec::new();
+        match r.kind {
+            RelationKind::SuppliesData => {
+                let site = |a: &str, b: &str| {
+                    r.evidence
+                        .iter()
+                        .find(|e| invocations.contains(&(a, b, e.as_str())))
+                        .map(String::as_str)
+                };
+                if let Some(e) = site(&r.from, &r.to) {
+                    moves.push((TraceMove::Descend, e));
+                }
+                if let Some(e) = site(&r.to, &r.from) {
+                    moves.push((TraceMove::Return, e));
+                }
+            }
+            RelationKind::StateFlow => moves.push((TraceMove::State, first)),
+            RelationKind::Invokes | RelationKind::Encloses | RelationKind::DispatchesTo => {
+                moves.push((TraceMove::Descend, first))
+            }
+        }
+        for (m, e) in moves {
+            adjacency
+                .entry(r.from.as_str())
+                .or_default()
+                .push((r, m, e));
+        }
+    }
+    // A search state is a function and whether the path may still return (it has not descended
+    // since its origin or its last state flow).
+    type State = (String, bool);
+    let mut previous: BTreeMap<State, (State, &super::Relation, &str)> = BTreeMap::new();
+    let mut queue: VecDeque<State> = from.functions.iter().map(|f| (f.clone(), true)).collect();
+    let mut seen: BTreeSet<State> = queue.iter().cloned().collect();
     let mut reached = None;
     if let Some(hit) = from.functions.iter().find(|f| to.functions.contains(*f)) {
-        reached = Some(hit.clone());
+        reached = Some((hit.clone(), true));
     }
     while reached.is_none() {
-        let Some(node) = queue.pop_front() else { break };
-        for r in adjacency.get(node.as_str()).into_iter().flatten() {
-            if seen.insert(r.to.clone()) {
-                previous.insert(r.to.clone(), r);
+        let Some(state) = queue.pop_front() else {
+            break;
+        };
+        for &(r, m, e) in adjacency.get(state.0.as_str()).into_iter().flatten() {
+            let may_return = match m {
+                TraceMove::Descend => false,
+                TraceMove::Return if !state.1 => continue,
+                TraceMove::Return | TraceMove::State => true,
+            };
+            let next = (r.to.clone(), may_return);
+            if seen.insert(next.clone()) {
+                previous.insert(next.clone(), (state.clone(), r, e));
                 if to.functions.contains(&r.to) {
-                    reached = Some(r.to.clone());
+                    reached = Some(next);
                     break;
                 }
-                queue.push_back(r.to.clone());
+                queue.push_back(next);
             }
         }
     }
@@ -1221,7 +1286,7 @@ pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trac
     let mut cursor = end;
     // G141: a path is as strong as its weakest relation (a DISPATCHES_TO step is INFERRED).
     let mut status = EpistemicStatus::Derived;
-    while let Some(r) = previous.get(&cursor) {
+    while let Some((before, r, evidence)) = previous.get(&cursor) {
         if r.status != EpistemicStatus::Derived || r.kind == RelationKind::Encloses {
             status = EpistemicStatus::Inferred;
         }
@@ -1229,9 +1294,9 @@ pub fn trace(model: &WorldModel, origin: &str, destination: &str) -> Result<Trac
             from: index.label(&r.from),
             relation: r.kind.as_str().into(),
             to: index.label(&r.to),
-            evidence: r.evidence.first().cloned().unwrap_or_default(),
+            evidence: (*evidence).to_owned(),
         });
-        cursor = r.from.clone();
+        cursor = before.clone();
     }
     steps.reverse();
     Ok(Trace {

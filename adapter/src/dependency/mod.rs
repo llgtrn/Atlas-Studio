@@ -8,4 +8,7 @@ pub mod cargo;
 #[cfg(test)]
 mod cargo_oracle;
 
-pub use cargo::{ManifestTargets, census_cargo_workspace, manifest_targets};
+pub use cargo::{
+    DeclaredSource, ManifestTargets, WorkspaceDependencies, census_cargo_workspace,
+    manifest_targets, workspace_dependencies,
+};
