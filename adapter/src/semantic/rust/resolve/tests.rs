@@ -816,3 +816,23 @@ fn transcriber_names_skip_lifetimes_and_metavariables() {
     assert!(!names.literal.contains("str"), "{names:?}");
     assert!(!names.literal.contains("u8"), "{names:?}");
 }
+
+#[test]
+fn lifetime_parameters_never_change_which_method_a_receiver_reaches() {
+    // G151 (replay of GitNexus): lifetimes are erased from impl shapes and declared types, so a
+    // `Self`-returning constructor of `impl<'a> Walker<'a>` types its `let`, and a parameter of
+    // type `&Walker<'_>` is a typed receiver; a type parameter still leaves the impl generic.
+    let lib = "pub struct Walker<'a> {\n    s: &'a str,\n}\nimpl<'a> Walker<'a> {\n    pub fn new(s: &'a str) -> Self {\n        Walker { s }\n    }\n    fn step(&mut self) {}\n    fn look(&self) {}\n}\npub struct Gen<'a, T> {\n    s: &'a T,\n}\nimpl<'a, T> Gen<'a, T> {\n    fn peek(&self) {}\n}\nfn run(text: &str, w: &Walker<'_>, g: &Gen<'_, u8>) {\n    let mut walker = Walker::new(text);\n    walker.step();\n    walker.look();\n    w.look();\n    g.peek();\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let expect: Vec<(String, String)> = [
+        ("Walker::new", "src/lib.rs:5:new"),
+        ("walker.step", "src/lib.rs:8:step"),
+        ("walker.look", "src/lib.rs:9:look"),
+        ("w.look", "src/lib.rs:9:look"),
+        // `g: &Gen<'_, u8>` keeps a type argument: never typed, so no outcome.
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(outcomes(&results, "src/lib.rs"), expect);
+}

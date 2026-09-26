@@ -365,6 +365,9 @@ fn receiver_of(sig: &syn::Signature) -> Option<Receiver> {
     }
 }
 
+/// G151: lifetimes are erased. Which method a call dispatches to never depends on a lifetime,
+/// so `impl<'a> Walker<'a>` is shaped like `impl Walker` (and is plain when nothing else is
+/// generic); a lifetime predicate in a where clause is dropped with it.
 fn impl_shape(item: &syn::ItemImpl) -> String {
     use quote::ToTokens;
     let arguments = match item.self_ty.as_ref() {
@@ -372,15 +375,59 @@ fn impl_shape(item: &syn::ItemImpl) -> String {
             .path
             .segments
             .last()
-            .map(|segment| segment.arguments.to_token_stream().to_string())
+            .map(|segment| {
+                without_lifetimes(&segment.arguments)
+                    .to_token_stream()
+                    .to_string()
+            })
             .unwrap_or_default(),
         other => other.to_token_stream().to_string(),
     };
+    let mut generics = item.generics.clone();
+    generics.params = generics
+        .params
+        .into_iter()
+        .filter(|p| !matches!(p, syn::GenericParam::Lifetime(_)))
+        .collect();
+    if let Some(clause) = generics.where_clause.as_mut() {
+        clause.predicates = std::mem::take(&mut clause.predicates)
+            .into_iter()
+            .filter(|p| !matches!(p, syn::WherePredicate::Lifetime(_)))
+            .collect();
+        if clause.predicates.is_empty() {
+            generics.where_clause = None;
+        }
+    }
+    if generics.params.is_empty() {
+        generics.lt_token = None;
+        generics.gt_token = None;
+    }
     format!(
         "{} {} | {arguments}",
-        item.generics.to_token_stream(),
-        item.generics.where_clause.to_token_stream()
+        generics.to_token_stream(),
+        generics.where_clause.to_token_stream()
     )
+}
+
+/// Path arguments with every lifetime argument removed; `None` when only lifetimes were given.
+fn without_lifetimes(arguments: &syn::PathArguments) -> syn::PathArguments {
+    match arguments {
+        syn::PathArguments::AngleBracketed(angle) => {
+            let mut kept = angle.clone();
+            kept.args = angle
+                .args
+                .iter()
+                .filter(|a| !matches!(a, syn::GenericArgument::Lifetime(_)))
+                .cloned()
+                .collect();
+            if kept.args.is_empty() {
+                syn::PathArguments::None
+            } else {
+                syn::PathArguments::AngleBracketed(kept)
+            }
+        }
+        other => other.clone(),
+    }
 }
 
 #[derive(Default)]
@@ -1762,7 +1809,7 @@ fn is_primitive(name: &str) -> bool {
 
 impl DefMap {
     /// G142: the workspace type a function's declared output names, when it is a plain one: a
-    /// path without generic arguments to a non-trait workspace type that is not a generic name in
+    /// path without generic arguments (lifetimes erased, G151) to a non-trait workspace type that is not a generic name in
     /// force, or `Self` of an impl of such a type without generics.
     fn output_type(&self, crates: &[CrateInput], target: &FnTarget) -> Option<TypeId> {
         let output = self
@@ -1776,7 +1823,7 @@ impl DefMap {
                 .path
                 .segments
                 .iter()
-                .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+                .any(|s| !matches!(without_lifetimes(&s.arguments), syn::PathArguments::None))
         {
             return None;
         }
@@ -1833,7 +1880,7 @@ impl DefMap {
                 .path
                 .segments
                 .iter()
-                .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+                .any(|s| !matches!(without_lifetimes(&s.arguments), syn::PathArguments::None))
         {
             return None;
         }
@@ -2794,7 +2841,7 @@ impl CallWalker<'_> {
                 .path
                 .segments
                 .iter()
-                .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+                .any(|s| !matches!(without_lifetimes(&s.arguments), syn::PathArguments::None))
         {
             return None;
         }

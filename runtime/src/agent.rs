@@ -1190,6 +1190,91 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_ne!(clean_envelope.envelope_id, seeded_envelope.envelope_id);
     }
 
+    /// G151 (replay of GitNexus): the impact frontier crosses what resolved callers cannot --
+    /// a closure's enclosing function (ENCLOSES), a trait declaration an implementation is
+    /// dispatched from (DISPATCHES_TO), and a call site spelled with a name exactly one workspace
+    /// function carries (UNIQUE_NAME) -- each INFERRED and counted by why; a name two functions
+    /// share is refused.
+    #[test]
+    fn impact_crosses_closures_dispatch_and_unique_names_as_inferred() {
+        let source = format!(
+            "{STORE}pub trait Saver {{\n    fn persist(&self);\n}}\n\
+             impl Saver for Store {{\n    fn persist(&self) {{\n        deep();\n    }}\n}}\n\
+             pub fn deep() {{}}\n\
+             pub fn go(s: &dyn Saver) {{\n    let run = || s.persist();\n    run();\n}}\n\
+             pub fn only_here() {{\n    deep();\n}}\n\
+             pub fn blind(x: u8) {{\n    x.only_here();\n}}\n\
+             pub fn twice() {{\n    deep();\n}}\n\
+             pub mod other {{\n    pub fn twice() {{\n        super::deep();\n    }}\n}}\n\
+             pub fn vague(x: u8) {{\n    x.twice();\n}}\n"
+        );
+        let dir = fixture_with(
+            "impact-inferred",
+            ADL,
+            CORE_LIB,
+            &source,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        let model = world_model(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let index = lens::Index::new(&model);
+        let seed: std::collections::BTreeSet<String> = [function(&model, "deep").id.clone()].into();
+        let upstream = index.upstream(&seed);
+        let why = |name: &str| {
+            upstream
+                .iter()
+                .find(|(id, _)| {
+                    index
+                        .function(id)
+                        .is_some_and(|f| f.name == name && f.kind != "TRAIT_METHOD_DECLARATION")
+                })
+                .map(|(_, (_, why))| *why)
+        };
+        // Resolved callers carry no inferred step.
+        assert_eq!(why("persist"), Some(None));
+        assert_eq!(why("only_here"), Some(None));
+        assert_eq!(why("twice"), Some(None));
+        // The closure calls the declaration persist dispatches from; `go` encloses the closure.
+        assert_eq!(why("go"), Some(Some("DISPATCHES_TO")));
+        // `x.only_here()` is unresolved but spelled with a name one function carries.
+        assert_eq!(why("blind"), Some(Some("UNIQUE_NAME")));
+        // `x.twice()` names two functions (both reach `deep`): refused, never guessed.
+        assert_eq!(why("vague"), None);
+        let impact = lens::impact(&model, &["fn:deep"]).unwrap();
+        let inferred: usize = impact.frontier.inferred.values().sum();
+        assert_eq!(impact.frontier.callers + inferred, upstream.len());
+        // Resolved and INFERRED dependents are never mixed in one list.
+        let blind = function(&model, "blind").id.clone();
+        assert!(!impact.frontier.nearest.items.iter().any(|f| f.id == blind));
+        assert!(
+            impact
+                .frontier
+                .inferred_nearest
+                .items
+                .iter()
+                .any(|f| f.id == blind)
+        );
+        assert!(
+            impact
+                .frontier
+                .inferred
+                .get("DISPATCHES_TO")
+                .is_some_and(|n| *n >= 2)
+        );
+        assert_eq!(impact.frontier.inferred.get("UNIQUE_NAME"), Some(&1));
+        assert!(impact.frontier.residual.contains("INFERRED"));
+        // Resolved callers alone stay the resolved closure.
+        let resolved = index.callers_closure(&seed);
+        assert!(
+            resolved
+                .keys()
+                .all(|id| upstream[id].1.is_none() || upstream[id].0 > 0)
+        );
+        assert!(!resolved.contains_key(&function(&model, "blind").id));
+    }
+
     /// G141 (mission M5): a trait method declaration dispatches (INFERRED) to the methods that
     /// implement it, a function encloses its closures, and `trace` follows both to an
     /// implementation with an INFERRED path; a second trait of the same name dissolves the join,

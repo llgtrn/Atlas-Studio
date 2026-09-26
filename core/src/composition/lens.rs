@@ -27,6 +27,15 @@ pub struct Bounded<T> {
     pub omitted: usize,
 }
 
+impl<T> Default for Bounded<T> {
+    fn default() -> Self {
+        Self {
+            items: Vec::new(),
+            omitted: 0,
+        }
+    }
+}
+
 fn bounded<T>(mut items: Vec<T>) -> Bounded<T> {
     let omitted = items.len().saturating_sub(LIST_LIMIT);
     items.truncate(LIST_LIMIT);
@@ -232,7 +241,7 @@ impl<'m> Index<'m> {
             .join(", ")
     }
 
-    /// Transitive callers of `seed` (excluding `seed`), with their distance.
+    /// Transitive resolved callers of `seed` (excluding `seed`), with their distance.
     pub fn callers_closure(&self, seed: &BTreeSet<String>) -> BTreeMap<String, usize> {
         let mut depth: BTreeMap<String, usize> = BTreeMap::new();
         let mut queue: VecDeque<(String, usize)> = seed.iter().map(|s| (s.clone(), 0)).collect();
@@ -249,6 +258,85 @@ impl<'m> Index<'m> {
             }
         }
         depth
+    }
+
+    /// Transitive dependents of `seed` with their depth, and the first INFERRED step on the path
+    /// to them (none when every step is a resolved caller). G151 (replay of GitNexus): besides
+    /// resolved callers, upstream crosses
+    /// - ENCLOSES: a closure has no caller of its own -- it is a value its enclosing function
+    ///   creates -- so its upstream is that function (it may run outside it);
+    /// - DISPATCHES_TO: an implementation of a workspace trait method is reached by the callers
+    ///   of the declaration it may be dispatched from;
+    /// - UNIQUE_NAME: an unresolved call site spelled with a name exactly one workspace function
+    ///   carries may reach it (a std or external method of the same name may be the real callee).
+    ///   A name two functions share is refused, never guessed.
+    pub fn upstream(
+        &self,
+        seed: &BTreeSet<String>,
+    ) -> BTreeMap<String, (usize, Option<&'static str>)> {
+        let mut dispatched_from: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+        for r in &self.model.relations {
+            if r.kind == super::RelationKind::DispatchesTo {
+                dispatched_from
+                    .entry(r.to.as_str())
+                    .or_default()
+                    .push(r.from.as_str());
+            }
+        }
+        let mut carriers: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+        for f in &self.model.functions {
+            carriers
+                .entry(f.name.as_str())
+                .or_default()
+                .push(f.id.as_str());
+        }
+        let mut spelled: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+        for f in &self.model.functions {
+            for name in f.unresolved_callee_names.keys() {
+                if let Some([only]) = carriers.get(name.as_str()).map(Vec::as_slice) {
+                    spelled.entry(only).or_default().push(f.id.as_str());
+                }
+            }
+        }
+        let mut reached: BTreeMap<String, (usize, Option<&'static str>)> = BTreeMap::new();
+        let mut queue: VecDeque<(String, usize, Option<&'static str>)> =
+            seed.iter().map(|s| (s.clone(), 0, None)).collect();
+        while let Some((id, d, why)) = queue.pop_front() {
+            let Some(f) = self.function(&id) else {
+                continue;
+            };
+            let steps = f
+                .callers
+                .iter()
+                .map(|c| (c.as_str(), why))
+                .chain(
+                    f.enclosing
+                        .iter()
+                        .map(|e| (e.as_str(), why.or(Some("ENCLOSES")))),
+                )
+                .chain(
+                    dispatched_from
+                        .get(id.as_str())
+                        .into_iter()
+                        .flatten()
+                        .map(|decl| (*decl, why.or(Some("DISPATCHES_TO")))),
+                )
+                .chain(
+                    spelled
+                        .get(id.as_str())
+                        .into_iter()
+                        .flatten()
+                        .map(|site| (*site, why.or(Some("UNIQUE_NAME")))),
+                );
+            for (up, because) in steps {
+                if seed.contains(up) || reached.contains_key(up) {
+                    continue;
+                }
+                reached.insert(up.to_owned(), (d + 1, because));
+                queue.push_back((up.to_owned(), d + 1, because));
+            }
+        }
+        reached
     }
 }
 
@@ -341,6 +429,13 @@ pub struct Unknowns {
 pub struct ImpactFrontier {
     /// Resolved callers outside the scope: a LOWER BOUND while unresolved call sites exist.
     pub callers: usize,
+    /// G151: dependents beyond the resolved callers, INFERRED, counted by the first inferred
+    /// step on their path (ENCLOSES, DISPATCHES_TO, UNIQUE_NAME); never counted in `callers`.
+    #[serde(default)]
+    pub inferred: BTreeMap<String, usize>,
+    /// The INFERRED dependents by depth, kept apart from `nearest`.
+    #[serde(default)]
+    pub inferred_nearest: Bounded<FunctionRef>,
     pub by_subsystem: BTreeMap<String, usize>,
     pub nearest: Bounded<FunctionRef>,
     pub tests_reached_inferred: usize,
@@ -491,7 +586,26 @@ pub fn unattributed_calls(f: &FunctionBehavior) -> usize {
 
 /// Impact frontier of a function set: resolved transitive callers outside it.
 pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
-    let closure = index.callers_closure(seed);
+    let upstream = index.upstream(seed);
+    let mut inferred: BTreeMap<String, usize> = BTreeMap::new();
+    for (_, why) in upstream.values() {
+        if let Some(why) = why {
+            *inferred.entry((*why).to_owned()).or_default() += 1;
+        }
+    }
+    let through_inference: usize = inferred.values().sum();
+    // Resolved dependents and INFERRED ones are never mixed in one list.
+    let mut inferred_nearest: Vec<(usize, String)> = upstream
+        .iter()
+        .filter(|(_, (_, why))| why.is_some())
+        .map(|(id, (d, _))| (*d, id.clone()))
+        .collect();
+    inferred_nearest.sort();
+    let closure: BTreeMap<String, usize> = upstream
+        .into_iter()
+        .filter(|(_, (_, why))| why.is_none())
+        .map(|(id, (d, _))| (id, d))
+        .collect();
     let mut by_subsystem: BTreeMap<String, usize> = BTreeMap::new();
     let mut tests = 0;
     let mut nearest: Vec<(usize, String)> = Vec::new();
@@ -528,6 +642,13 @@ pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
     let unnamed: usize = index.model.functions.iter().map(unattributed_calls).sum();
     ImpactFrontier {
         callers: closure.len(),
+        inferred,
+        inferred_nearest: bounded(
+            inferred_nearest
+                .into_iter()
+                .map(|(d, id)| function_ref(index, &id, d))
+                .collect(),
+        ),
         by_subsystem,
         nearest: bounded(
             nearest
@@ -548,8 +669,10 @@ pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
         residual: format!(
             "LOWER BOUND: resolved callers only; {candidate_sites} unresolved call sites spelled \
              with a scope function's name are INFERRED candidates; {unnamed} unresolved call sites \
-             with a non-name callee may reach anything (GAP-UNRESOLVED-CALLEE); a closure's \
-             calls are its own region's (G133), and calls inside `async` blocks are not censused"
+             with a non-name callee may reach anything (GAP-UNRESOLVED-CALLEE); \
+             {through_inference} dependents are INFERRED (through a closure's enclosing \
+             function, a trait declaration's dispatch, or a call site spelled with a name one \
+             function carries), and calls inside `async` blocks are not censused"
         ),
     }
 }
