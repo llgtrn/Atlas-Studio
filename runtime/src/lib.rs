@@ -3998,7 +3998,15 @@ mod tests {
                 .iter()
                 .find(|r| text(r, "key") == key)
                 .unwrap_or_else(|| panic!("{id}: {key} is not in the replay ledger"));
-            assert_eq!(text(record, "replay_generation"), id, "{id}");
+            // The latest replay of the repository, or (G160) an earlier one its history names: a
+            // revalidation replays a repository again.
+            assert!(
+                text(record, "replay_generation") == id
+                    || list(record, "replays")
+                        .iter()
+                        .any(|r| r.split(' ').nth(1) == Some(id)),
+                "{id}"
+            );
             let pin = text(block, "pinned_commit");
             assert!(is_pin(&pin), "{id}: exact pin");
             assert_eq!(text(record, "pinned_commit"), pin, "{id}");

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G159"
+current_generation = "G160"
 
 [[generation]]
 id = "G35"
@@ -3602,3 +3602,41 @@ after = 4894
 key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
 before = 5915
 after = 5918
+
+[[generation]]
+id = "G160"
+kind = "REPLAY"
+base_commit = "701ae2db8ffc33dba3ae6cb0a8c5aa26f88b4674"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R6: the first revalidation the lane fired itself -- GitNexus re-opened at E7 by module linking, re-censused at its pin by Atlas E8, DEBT-MULTILANGUAGE advanced"
+objective = "revalidate GitNexus's E2 verdict at the exact pin it was decided on: Atlas_N first, GitNexus's own impact question asked again, one bounded Atlas-native improvement, the same pin at N+1, the source extinct"
+writer = "coordinator (sole writer)"
+replay = "abhigyanpatwari/gitnexus"
+pinned_commit = "06ce60beb67494cac7801c0bdf97a4e9a4b65862"
+source_path = ".atlas/.cache/donors/gitnexus"
+epoch_before = "E8"
+epoch_after = "E9"
+mission = ".atlas/evidence/replay/R6-gitnexus.json"
+evidence = ".atlas/evidence/replay/R6-gitnexus.json"
+self_recensus = ".atlas/evidence/census/G160/recensus.json"
+
+[generation.verification]
+pre_census = "G159 post digest"
+atlas_first = "coverage levels and agent model on the pin before any source reading: TypeScript L6 (2,724 artifacts, 65,522 composed functions), 45,345 resolved call edges (E2 recorded 21,045); the challenge (who is affected by a change to scoreImpactRisk?) answered nobody -- the 495 imports from gitnexus-shared, a package declaring only compiled entries, stayed unresolved"
+change = "adapter typescript::modules: PackageDeclaration and package_entry -- a declared source, or the one existing source every compiled entry under the declared outDir is emitted from under the declared rootDir; runtime census::typescript_modules: types, typings, module, main and the '.' export read from package.json, the sibling tsconfig.json read as JSON with comments; ADR 0075"
+oracle = "the same pin at E8 vs E9: 45,345 -> 45,746 resolved call edges, 207,456 -> 207,005 unresolved sites; scoreImpactRisk 0 -> 10 callers, exactly LocalBackend::_runImpactBFS, the web impact tool and 8 test cases; makeScopeId 0 -> 26; 20 of 20 sampled new edges correct"
+falsification = "7 mutants killed (disagreeing entries accepted, a missing source tolerated, outDir not required, tsconfig comments kept, .js not emitted from .tsx, export subpaths read, rootDir not required)"
+boundary = "the E2 function count (65,414) and the E8 one (69,173) on the same pin differ without an attributed cause (no TypeScript extractor change between them, E2 engine not rebuilt); member and this calls keep the R2 challenge's _impactImpl callerless; GitNexus re-decided REFERENCE_ONLY_UNTIL_TRIGGER at E9 with a narrower trigger; nothing copied (PolyForm Noncommercial); source extinct"
+debts = "DEBT-MULTILANGUAGE last advance G160; capability epoch E9; tree-sitter, salsa and xyflow re-checked CURRENT at E9; next replay zed-industries/zed (QUEUED); native head NA-SEAL-GATE planned G161"
+review = "2 debts reviewed at their cadence: DEBT-ATLAS_COMPLETENESS corrected (its next attack was done at G148; NA-ATLAS-DESIGN-SECTION queued), DEBT-EPISTEMIC_UNIFICATION confirmed (evidence/census/G160/debt-review.json)"
+proof = "PROVEN (post 6fe0b1ca...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 4894
+after = 4906
+
+[[generation.metric]]
+key = "facts"
+before = 28416
+after = 28507

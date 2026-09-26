@@ -1,0 +1,160 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R6",
+ "generation": "G160",
+ "lane": "FULL_OSS_REPLAY",
+ "kind": "REVALIDATION (the E2 verdict re-opened at E7: cross-file TypeScript module resolution is the first condition of its revalidation_trigger)",
+ "donor": {
+  "key": "abhigyanpatwari/gitnexus",
+  "remote": "https://github.com/abhigyanpatwari/GitNexus",
+  "pin": "06ce60beb67494cac7801c0bdf97a4e9a4b65862",
+  "pin_choice": "the R1/R2 pin, so the revalidation re-censuses the exact bytes the E2 verdict was decided on",
+  "license": "PolyForm-Noncommercial-1.0.0 (LICENSE at the pin, verified): studied and tested only; nothing copied",
+  "code_reuse": "NONE",
+  "materialization": "blobless clone fetched at the pin into .atlas/.cache/donors/gitnexus (312 MB); the donor's own agent-instruction files were not read (inert data)"
+ },
+ "epochs": {
+  "decided": "E2 (G152)",
+  "reopened": "E7 (G158)",
+  "before": "E8",
+  "after": "E9 (G160: workspace packages entered through their declared compiler directories)"
+ },
+ "support_levels": {
+  "E8": {
+   "javascript": "L6_AGENT_USABLE",
+   "rust": "L6_AGENT_USABLE",
+   "typescript": "L6_AGENT_USABLE",
+   "css": "L2_SYNTAX",
+   "html": "L2_SYNTAX",
+   "json": "L2_SYNTAX",
+   "markdown": "L2_SYNTAX",
+   "toml": "L2_SYNTAX",
+   "yaml": "L2_SYNTAX"
+  },
+  "E9": {
+   "javascript": "L6_AGENT_USABLE",
+   "rust": "L6_AGENT_USABLE",
+   "typescript": "L6_AGENT_USABLE",
+   "css": "L2_SYNTAX",
+   "html": "L2_SYNTAX",
+   "json": "L2_SYNTAX",
+   "markdown": "L2_SYNTAX",
+   "toml": "L2_SYNTAX",
+   "yaml": "L2_SYNTAX"
+  },
+  "note": "TypeScript L6 on the pin: 2,724 artifacts, 65,522 composed functions, 62,686 with a derived relation (E2 recorded L4 FUNCTION_IDENTITY, FUNCTION_SIGNATURE, SYMBOL and L3 bounded CALL before the ladder existed)"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "coverage levels --root .atlas/.cache/donors/gitnexus",
+   "agent model --root .atlas/.cache/donors/gitnexus",
+   "callers of scoreImpactRisk, makeScopeId and _impactImpl in the composed model"
+  ],
+  "atlas_knew": {
+   "functions": 69173,
+   "components": 3554,
+   "relations": 98249,
+   "resolved_call_edges": 45345,
+   "unresolved_call_sites": 207456,
+   "scoreImpactRisk_callers": 0,
+   "makeScopeId_callers": 0,
+   "at_E2_recorded": {
+    "functions": 65414,
+    "resolved_call_edges": 21045,
+    "unresolved_call_sites": 221635
+   },
+   "unattributed": "E2 recorded 65,414 functions and the E8 engine composes 69,173 on the same pin (TypeScript 65,522, JavaScript 3,288, Rust 363); the TypeScript extractor did not change between E2 and E8 and the E2 engine was not rebuilt, so the difference is recorded, not explained"
+  },
+  "challenge": "GitNexus's own question, asked again: which code realizes impact analysis, and who is affected by a change to its risk scoring (scoreImpactRisk in the workspace package gitnexus-shared)?",
+  "answer": "E8: nobody -- 495 imports from gitnexus-shared unresolved, because the package declares only compiled entries (dist/) and no source; the E7 module linking (relative specifiers, star exports) did resolve 45,345 edges elsewhere"
+ },
+ "differential": {
+  "oracle": "the source at the pin (ORACLE_READ of call sites, recorded); GitNexus's own graph was studied at R1 and not re-run",
+  "findings": [
+   {
+    "question": "who calls scoreImpactRisk?",
+    "ground_truth": "LocalBackend::_runImpactBFS (gitnexus/src/mcp/local/local-backend.ts:8782), the web impact tool's async closure (gitnexus-web/src/core/llm/tools.ts:1405), and 8 test cases (gitnexus/test/unit/impact-risk.test.ts, 12 call sites)",
+    "atlas_n": "0 callers",
+    "atlas_n_plus_1": "exactly those 10 callers",
+    "classification_n": "ATLAS_UNKNOWN (no false claim)",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   },
+   {
+    "question": "are the new cross-package edges right?",
+    "ground_truth": "20 of the 401 new edges sampled at random (seed 160) and checked against the imports and definitions",
+    "atlas_n_plus_1": "20 of 20 correct",
+    "classification": "ATLAS_CORRECT"
+   },
+   {
+    "question": "what does _impactImpl reach (the R2 question)?",
+    "ground_truth": "member calls on this (this._runImpactBFS and others)",
+    "atlas_n_plus_1": "callers 0 and member callees unresolved",
+    "classification": "ATLAS_UNKNOWN (member and this calls outside the profile, DEBT-MULTILANGUAGE)"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "GitNexus's implementation (tree-sitter queries, a graph database, MCP tools) is not absorbed; the blindness this revalidation exposed is Atlas's own: a workspace package entered only through a declared source field. Absorbed capability: the TypeScript compiler's own emit mapping (outDir -> rootDir) read from the package's declarations (ADR 0075)",
+  "change": "adapter typescript::modules: PackageDeclaration, package_entry (source, or compiled entries under the declared outDir mapped to one existing source under rootDir), workspace_packages over declarations; runtime census::typescript_modules: package.json types/typings/module/main and the '.' export read, the sibling tsconfig.json read as JSON with comments",
+  "falsification": "7 mutants killed (disagreeing entries accepted, a missing source tolerated, outDir not required, tsconfig comments kept, .js not emitted from .tsx, export subpaths read, rootDir not required)"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "06ce60beb674",
+  "N": {
+   "epoch": "E8",
+   "functions": 69173,
+   "resolved": 45345,
+   "unresolved": 207456,
+   "relations": 98249
+  },
+  "N_plus_1": {
+   "epoch": "E9",
+   "functions": 69173,
+   "resolved": 45746,
+   "unresolved": 207005,
+   "relations": 98650
+  },
+  "what_atlas_n_saw": "every TypeScript function and every call across relative imports and star exports (E7)",
+  "what_atlas_n_missed": "every call into gitnexus-shared, the package both applications import 495 names from",
+  "what_atlas_n_plus_1_sees": "45,345 -> 45,746 resolved edges; scoreImpactRisk 0 -> 10 callers, makeScopeId 0 -> 26",
+  "still_unknown": "member and this calls (the R2 challenge's _impactImpl stays callerless), namespace imports, JSX; execution flows and hunk seeds remain absent from Atlas",
+  "magnitude": "modest in edges (+0.9%), decisive for cross-package impact"
+ },
+ "manual_reads": [
+  {
+   "what": "grep of scoreImpactRisk and makeScopeId call sites; the enclosing function of two call sites",
+   "why": "ground truth for the challenge",
+   "gap": "compiled-only workspace package entry"
+  },
+  {
+   "what": "package.json of the monorepo, gitnexus, gitnexus-shared, gitnexus-web; tsconfig.json compilerOptions (rootDir, outDir, module)",
+   "why": "find how the shared package's entry is declared, without guessing",
+   "gap": "compiled-only workspace package entry"
+  },
+  {
+   "what": "imports of 20 sampled caller files",
+   "why": "falsify the new edges",
+   "gap": "none (verification)"
+  },
+  {
+   "what": "LICENSE",
+   "why": "license verification (PolyForm Noncommercial)"
+  }
+ ],
+ "revalidation": {
+  "record": "this file: the E2 verdict REFERENCE_ONLY_UNTIL_TRIGGER re-opened at E7 and re-decided at E9",
+  "outcome": "REVALIDATED (verdict holds at E9 with a narrower trigger)"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY_UNTIL_TRIGGER at E9: GitNexus remains the multilanguage falsification target; module linking and compiled package entries absorbed as Atlas-native capability; execution flows, hunk seeds and member-call resolution are still Atlas gaps; nothing copied (PolyForm Noncommercial)",
+  "capability_delta": "CAPABILITY_ADVANCED (E8 -> E9)",
+  "trigger": "CURRENT at E9; re-opened by an epoch adding member/this call resolution for TypeScript, execution flows (NA-EXECUTION-FLOWS) or hunk seeds (NA-HUNK-SEEDS)"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/gitnexus",
+  "runtime_dependency": "none: Atlas does not depend on GitNexus; the resolution code is Atlas's own",
+  "evidence_retained": "this record, R1 and R2; no GitNexus text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

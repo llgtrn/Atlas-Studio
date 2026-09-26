@@ -707,7 +707,7 @@ objective = "NA-ASYNC-REGIONS (DEBT-CALL, DEBT-EFFECT, DEBT-CONCURRENCY; done: a
 [[planned_generation]]
 id = "G160"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R6 GitNexus revalidation (REVALIDATION_REQUIRED since E7): the same pin 06ce60beb674 re-censused by the strongest Atlas (E8) -- cross-file TypeScript module linking against GitNexus's own graph, studied and never copied (PolyForm Noncommercial)"
+objective = "FULL_OSS_REPLAY R6 GitNexus revalidation at 06ce60beb674 (done: the first revalidation the lane fired itself -- re-opened at E7 by module linking; Atlas E8 resolved 45,345 edges on the pin (E2: 21,045) but not one caller of scoreImpactRisk in the compiled-only package gitnexus-shared; capability epoch E9 -- workspace packages entered through their declared outDir -> rootDir; scoreImpactRisk 0 -> 10 callers, all correct; 7 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER re-decided at E9; source extinct)"
 
 [[planned_generation]]
 id = "G161"
@@ -715,6 +715,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-SEAL-GATE (DEBT-SEAL_GATE, DEBT-VERIFICATION_EVIDENCE) -- M8/M9: seal eligibility gate and SEALED encoder/reader, the first consumer of the verification and integrity reports"
 
 [[planned_generation]]
-id = "G162+"
+id = "G162"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R7 zed-industries/zed (QUEUED): an async-heavy Rust editor facing the strongest Atlas (E9 or later) -- async-block regions and the RESOURCE dimension on a real executor-driven codebase; GPL/Apache, studied only; the admitted legacy checkout extinguished with it"
+
+[[planned_generation]]
+id = "G163+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

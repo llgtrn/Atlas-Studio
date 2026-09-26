@@ -1,0 +1,22 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G160",
+  "trigger": "review cadence: DEBT-ATLAS_COMPLETENESS (last reviewed G142, stale 13) and DEBT-EPISTEMIC_UNIFICATION (last reviewed G147) fell due at G160",
+  "method": "re-read against G147-G160 (typed sections, selected design, RESOURCE, module linking, async-block regions, compiled package entries, the vocabulary enums added since G147)",
+  "reviews": [
+    {
+      "debt": "DEBT-EPISTEMIC_UNIFICATION",
+      "verdict": "CONFIRMED",
+      "finding": "the vocabulary map test still covers struct fields only; G155 (SupportLevel, SubjectKind), G157 (ResourceKind, ResourceOperation, ResourceRelease) and G159 (the ASYNC_BLOCK kind) added vocabulary enums through vocabulary_enum, none a status carrier outside the map; enum payloads, function returns and the donor ledger's boundary statuses remain unchecked; NA-VOCABULARY-COMPLETION",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-ATLAS_COMPLETENESS",
+      "verdict": "CORRECTED",
+      "finding": "its recorded next attack (NA-SELECTED-DESIGN) was done at G148: a SelectedDesign record exists but the census container has no DESIGN section carrying it, and no compression; the typed sections gained RESOURCE (G157) and the ASYNC_BLOCK function kind (G159) through the schema history; NA-ATLAS-DESIGN-SECTION queued",
+      "correction": {
+        "nxt": "NA-ATLAS-DESIGN-SECTION"
+      }
+    }
+  ]
+}
