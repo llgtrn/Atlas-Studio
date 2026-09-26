@@ -1,0 +1,111 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R4",
+ "generation": "G168",
+ "donor": "rust-analyzer",
+ "historical_decision": {
+  "generation": "G75",
+  "terminal_state": "ABSORBED",
+  "detail": "hir-def path resolution absorbed as a second CALL engine (ADR 0031), measured on Atlas's own workspace against the pinned rust-analyzer SCIP index (3,731 of 3,731 resolutions agree, 95.1% recall of oracle-resolvable path calls); hir-ty type inference and method resolution REFERENCE_ONLY (EXTERNAL_BOUNDARY via rust #14)"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED (since G150), rank 1",
+  "reason": "its decision depended on DEBT-CALL and DEBT-TYPE, advanced since by 16 Rust milestones (self receivers, macro arguments, closure and async regions, trait-bound dispatch, typed lets, fields, import-cycle convergence, normalized manifest targets, ...)"
+ },
+ "question": "with every Rust capability gained since G75, what does Atlas now see of the donor's name resolution (the mechanism absorbed) and of its method resolution (REFERENCE_ONLY) on the exact source that decided it -- and does the verdict hold?",
+ "materialization": {
+  "pinned_commit": "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/rust-analyzer",
+  "note": "the exact G75 pin (2026-09-20), re-materialized after replay R10's fresh pin was deleted; 2,345 tracked files, 1,485 rs; MIT OR Apache-2.0 at the pin"
+ },
+ "engines": {
+  "historical": "Atlas E15, the tree at 9a34d43e4046 before this generation's change (the G75 engine itself predates the agent world model, and its census document of this workspace does not fit the scratch disk; the G75 decision's own measurement is recorded above)",
+  "current": "Atlas E16, the G168 tree (ad96f3cf4e17)",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole workspace at the pin",
+  "historical_records": {
+   "CALL": 165370,
+   "CONCURRENCY": 65,
+   "CONTROL_FLOW": 64194,
+   "DATA_FLOW": 264404,
+   "EFFECT": 2180,
+   "FUNCTION_IDENTITY": 31219,
+   "FUNCTION_SIGNATURE": 22084,
+   "OWNERSHIP": 69922,
+   "PERSISTENCE": 53,
+   "RESOURCE": 16,
+   "STATE": 4902,
+   "SYMBOL": 46248,
+   "TYPE": 38908
+  },
+  "current_records": {
+   "CALL": 168768,
+   "CONCURRENCY": 65,
+   "CONTROL_FLOW": 67436,
+   "DATA_FLOW": 272694,
+   "EFFECT": 2190,
+   "FUNCTION_IDENTITY": 33785,
+   "FUNCTION_SIGNATURE": 24648,
+   "OWNERSHIP": 72320,
+   "PERSISTENCE": 53,
+   "RESOURCE": 16,
+   "STATE": 6017,
+   "SYMBOL": 49799,
+   "TYPE": 44139
+  },
+  "historical_total": 709565,
+  "current_total": 741930,
+  "mechanism_slices": {
+   "crates/hir-def/src/nameres (name resolution, ABSORBED)": {
+    "functions": 372,
+    "E15_resolved_call_sites": 406,
+    "E15_unresolved": 1163,
+    "E16_resolved_call_sites": 405,
+    "E16_unresolved": 1164
+   },
+   "crates/hir-ty/src/method_resolution* (method resolution, REFERENCE_ONLY)": {
+    "functions": 217,
+    "E15_resolved_call_sites": 158,
+    "E15_unresolved": 800,
+    "E16_resolved_call_sites": 152,
+    "E16_unresolved": 807
+   }
+  },
+  "workspace": {
+   "E15": {
+    "functions": 31219,
+    "invokes": 25335,
+    "refused_files": 3
+   },
+   "E16": {
+    "functions": 33785,
+    "invokes": 26029,
+    "refused_files": 1
+   }
+  }
+ },
+ "mechanism_through_atlas": "at the G75 pin Atlas E16 resolves 405 call sites inside hir-def's name resolution against 1,164 it leaves unresolved, and 152 inside hir-ty's method resolution against 807 -- the donor's own mechanisms, written dense with method calls on inferred types, are the residual Atlas does not type; precision on this workspace is measured by replay R10 at the fresh pin against the donor's own SCIP index (99.82% at E16)",
+ "semantic_delta": [
+  "REALIZABLE_TRACE",
+  "CHAIN_LINK_RECURSION_CHARGE",
+  "GENERIC_TRAIT_IMPL_REFUSAL",
+  "DECLARED_DEPENDENCY_SOURCE"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: name resolution stays ABSORBED (its precision on the donor's own code measured by R10 at 99.82% once two binding defects were fixed); method resolution stays REFERENCE_ONLY -- on the exact G75 source 807 of 959 call sites in hir-ty's method resolution stay unresolved at E16",
+ "follow_up": "NA-CALL-TYPE-RESIDUAL",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G168 REVALIDATED at E16"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/rust-analyzer (from the repository root)",
+  "runtime_dependency": "none: Atlas does not depend on rust-analyzer; the toolchain binary is a test-time oracle only",
+  "evidence_retained": "R10 replay and R4 revalidation records; license copies at .atlas/licenses/rust-analyzer/; no rust-analyzer text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

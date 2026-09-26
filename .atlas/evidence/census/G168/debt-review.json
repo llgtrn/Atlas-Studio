@@ -1,0 +1,92 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G168",
+  "trigger": "review cadence: 14 debts last reviewed at G155 and stale for more than 12 generations fell due at G168",
+  "method": "re-read against the code at 9a34d43e plus the G168 change: the generations G156-G167 that touched each debt's capability (resources, async regions, seal gate, weights, derived quantities), core::construction, core::composition::quantified, runtime::weights, the construction frontier and the blocked map",
+  "reviews": [
+    {
+      "debt": "DEBT-SYMBOL",
+      "verdict": "CONFIRMED",
+      "finding": "SYMBOL still has one engine: the syntactic declaration walker (declared shapes since G153, foreign declarations since G154); the pinned rust-analyzer index was read at G168 for calls only, never reconciled per symbol, and definitions stay without REFERENCE roles (GAP-TYPE-USE-SITES); NA-SECOND-ENGINE unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-PROVENANCE",
+      "verdict": "CONFIRMED",
+      "finding": "census products keep revision and extractor provenance; the weight construction (G163) reports the source and output digests of what it builds, but only in its transient outcome, never as a persisted provenance record of a constructed artifact; NA-FIRST-ARTIFACT unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-CONSTRAINT_REASONING",
+      "verdict": "CONFIRMED",
+      "finding": "census-quantified invariants still take the one universal forbid form over functions (G130), decided by core::composition::quantified with no independent engine; G161 added a seal gate that joins verdicts, not a new quantifier; NA-QUANTIFIED-STATE unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-ATLASX",
+      "verdict": "CONFIRMED",
+      "finding": "no .atlasx codec or materializer exists; its three prerequisites advanced (SEALED census containers and the seal gate at G161, SelectedDesign at G148, the integrity envelope at G138), yet no census has been SEALED, since no design is SELECTED and the certificate is not closed; NA-ATLASX-CODEC unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-COMPILER_LOWERING",
+      "verdict": "CONFIRMED",
+      "finding": "nothing lowers: the construction IR lifts declarations only and every generation since G155 worked on census, replay and weights; no donor offered a bounded lowering; NA-DELEGATED-BACKEND unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-ARTIFACT_IDENTITY",
+      "verdict": "CONFIRMED",
+      "finding": "identity still belongs to census products; the weight construction digests its output and verifies content preservation by re-census, which is identity of a transient output, not a registered constructed artifact; NA-FIRST-ARTIFACT stays behind the construction frontier",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-TARGET_PROFILE",
+      "verdict": "CONFIRMED",
+      "finding": "no target profile exists; nothing since G155 needed one (the self-reconstruction shadow and the weight construction run on the host); NA-TARGET-PROFILE unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-TRANSFORMATION",
+      "verdict": "CONFIRMED",
+      "finding": "no transformation class exists; filesystem confinement is still UNENFORCED (G126), so the block stands; the G168 replay changed resolution and lens rules, not source transformation; NA-TRANSFORMATION unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-UNCERTAINTY",
+      "verdict": "CONFIRMED",
+      "finding": "quantity::Interval stays the one exact carrier; G165 made derived quantities census facts with their status and lineage but did not propagate intervals through them, and predictions from uncertain inputs stay UNKNOWN; NA-BOUNDED-SIMULATION unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-DISTRIBUTED_SEMANTICS",
+      "verdict": "CONFIRMED",
+      "finding": "still blocked: CONCURRENCY and PERSISTENCE stay partial (resources, async regions and std-path persistence advanced them at G157, G159 and G144, none closed); no consistency vocabulary exists",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-REAL_WORLD_OBSERVATION",
+      "verdict": "CONFIRMED",
+      "finding": "still blocked by DEBT-ARTIFACT_IDENTITY: no constructed artifact is registered to observe; the weight construction output is verified by re-census, not observed in the world",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-SIMULATION",
+      "verdict": "CONFIRMED",
+      "finding": "the simulation still runs one nominal trajectory for one 2R arm; G165 moved its blocker DEBT-QUANTITY_UNITS to M3 (derived quantities in the census) but the kinds are not closed, so the block stands",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-PHYSICAL_ONTOLOGY",
+      "verdict": "CONFIRMED",
+      "finding": "PHYSICAL stays frozen at its unfreeze gate; G165 carried the physical model's derived quantities into the census without adding a primitive; no physical scope has been admitted",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-CONSTRUCTION_TRANSACTION",
+      "verdict": "CONFIRMED",
+      "finding": "still blocked by DEBT-ATLASX: no operation decoder, since there is no MIN_ATLASX; the seal gate (G161) decides eligibility and no census is SEALED yet",
+      "correction": {}
+    }
+  ]
+}

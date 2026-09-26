@@ -1,0 +1,255 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R10",
+ "generation": "G168",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "rust-lang/rust-analyzer",
+  "remote": "https://github.com/rust-lang/rust-analyzer.git",
+  "pin": "86493cee4d8902389c3217d8e95a3aae9368fd98",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-26, 'Merge pull request #23423'); the G75 pins (230fe0a6d7b4, aaddfb73fd95) are history, the replay faces current source",
+  "license": "MIT OR Apache-2.0 (workspace license field; LICENSE-MIT and LICENSE-APACHE at the pin, byte-identical to the copies kept since G75 at .atlas/licenses/rust-analyzer/)",
+  "code_reuse": "NONE (the donor's own binary, rust-analyzer 1.90.0 from the toolchain, ran as the SCIP oracle; nothing of its source is in Atlas)",
+  "selection": "rank 1 of RECURSIVE-DONOR-REVALIDATION (REVALIDATION_REQUIRED since G150: its G75 ABSORBED verdict rested on DEBT-CALL and DEBT-TYPE, and 16 Rust capability milestones landed since); the compiler front end whose SCIP output has been Atlas's differential oracle faces the strongest Atlas (E15)",
+  "dependency_class": "MECHANISM_INTERNAL (a Cargo workspace: crates/*, lib/*, xtask; dependency sources not materialized -- the oracle ran with the registry cache the toolchain fetched into the scratch environment, outside the repository)",
+  "materialization": "blobless depth-1 fetch of the pin (29 MB: 2,345 tracked files, 1,485 rs) at .atlas/.cache/donors/rust-analyzer; the whole workspace censused"
+ },
+ "epochs": {
+  "before": "E15",
+  "after": "E16 (G168: realizable traces; a chain link costs a sixth of a bracket level in the stack-safety pre-scan; a generic trait's impl is not picked by method name; a dependency binds the package directory its declaration names)"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence at both epochs; what E16 changes is below the ladder: which files are extracted, which bindings are drawn, which paths the trace lens reports"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (31,250 functions, 73 s)",
+   "agent understand --target crates/ide/src/goto_definition.rs",
+   "agent explain / impact / unknowns --target crates/ide/src/goto_definition.rs",
+   "agent trace --from crates/rust-analyzer/src/handlers/request.rs --to crates/ide/src/goto_definition.rs",
+   "agent unknowns --target crates/syntax/src/ast/generated/nodes.rs"
+  ],
+  "atlas_knew": {
+   "functions": 31250,
+   "call_records": 165570,
+   "invokes": 25359,
+   "supplies_data": 16385,
+   "dispatches_to": 696,
+   "unresolved_call_sites": 103522,
+   "resources": 16,
+   "unrecognized_source_files": 657
+  },
+  "challenge": "how does an LSP textDocument/definition request reach ide::goto_definition -- which path does Atlas observe from the request handlers?",
+  "answer": "E15: PATH_OBSERVED, DERIVED, 8 steps -- diff -> TextEdit::builder -SUPPLIES_DATA-> resolve_completion_edits -> Semantics::new -SUPPLIES_DATA-> discover_tests_in_module -> ... -> expr_to_nav: every step a true relation, the chain unrealizable (it leaves each shared callee through its return to a different caller); the true path runs handle_goto_definition -> Analysis::goto_definition -> closure@lib.rs:563 -> goto_definition, and handle_goto_definition's snap.analysis.goto_definition call is unresolved"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 (1159e78 2025-09-14) scip over the pin: 923 documents, 814 s, 65.9 MB index; compared at function level -- a SCIP reference to a workspace function spelled as a call, owned by the innermost fn item containing it (item extents from a syn 2.0.117 parse of the donor in a scratch tool: 23,984 fn items; 247 files unparsed, 246 of them parser test data), against Atlas INVOKES with closures and async blocks rolled up to their fn item",
+  "summary": {
+   "N": {
+    "atlas_edges": 24167,
+    "oracle_edges": 54597,
+    "agree": 24075,
+    "atlas_only": 92,
+    "oracle_only": 30522,
+    "precision": 0.9962,
+    "recall": 0.441,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 28397,
+     "ATLAS_SILENT": 2090,
+     "ATLAS_UNKNOWN_UNNAMED": 35
+    }
+   },
+   "N_plus_1": {
+    "atlas_edges": 24934,
+    "oracle_edges": 54597,
+    "agree": 24888,
+    "atlas_only": 46,
+    "oracle_only": 29709,
+    "precision": 0.9982,
+    "recall": 0.4558,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 28573,
+     "ATLAS_SILENT": 1101,
+     "ATLAS_UNKNOWN_UNNAMED": 35
+    }
+   }
+  },
+  "classifications": [
+   {
+    "class": "DONOR_CORRECT",
+    "n": 44,
+    "what": "27 Type::from calls bound to the one visible impl of From when the called impl is expanded by impl_from! (hir, hir-def, vfs); 15 calls into lib/lsp-server (0.10.0) where Cargo builds against the registry lsp-server 0.7.9; 2 text-size from calls (both causes)",
+    "fixed_in": "E16 (all 44 gone)"
+   },
+   {
+    "class": "BOTH_CORRECT_DIFFERENT_ABSTRACTION",
+    "n": 27,
+    "what": "25 calls to fn items declared inside function bodies, which SCIP names only as local symbols; 2 Ty::new_bound / Ty::new_error calls Atlas bound to the implementing method of rustc_type_ir::inherent::Ty for Ty where SCIP names the external trait declaration (E16 leaves these UNKNOWN: a generic trait)"
+   },
+   {
+    "class": "ATLAS_CORRECT",
+    "n": 19,
+    "what": "calls on lines where the oracle names no function: crates compiled only under a feature (proc-macro-srv: #![cfg(feature = \"in-rust-tree\")]), bodies under debug_assertions (tt storage, a trait-bound write), lib/smol_str under feature arbitrary, inherent Const::error / Region::error, cfg(target_arch) neon code in line-index; checked against the source"
+   },
+   {
+    "class": "UNDECIDABLE",
+    "n": 111,
+    "what": "E15 edges into lib/text-size 1.1.1, lib/smol_str 0.3.6, lib/la-arena 0.3.1 and lib/line-index 0.1.2 that the oracle confirms by symbol: Cargo.lock holds each member and a registry package of the same name and version, the workspace declares the registry version, and the SCIP symbol (package, version) cannot tell them apart; E16 follows Cargo and leaves them unresolved"
+   },
+   {
+    "class": "ATLAS_CORRECT (differential mapping)",
+    "n": 2,
+    "what": "unicode_fn_name -> fuzzy, on_char_boundary -> remove_markdown: the oracle names the callee at the site; the function-level attribution missed it"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n": 28573,
+    "what": "oracle call edges Atlas reports unresolved by callee name at E16, most of them method calls on receivers Atlas does not type"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n_N": 2090,
+    "n_N_plus_1": 1101,
+    "what": "oracle call edges with no Atlas record: at E15 953 of them had an end in a refused generated file; the rest are calls inside macro invocations (matches!, format!, tracing), closures on the line, and same-name calls bound elsewhere"
+   }
+  ],
+  "cases": [
+   {
+    "question": "does the trace lens report only realizable paths?",
+    "atlas_n": "no: an 8-step DERIVED path through returned values to other callers",
+    "atlas_n_plus_1": "NO_PATH_OBSERVED, UNKNOWN from the handlers (1,130 unresolved call sites at the origin); from crates/ide/src/lib.rs the DERIVED step closure@563 -> goto_definition",
+    "classification_n": "ATLAS defect (fixed in E16)",
+    "classification_n_plus_1": "ATLAS_CORRECT (sound; the unresolved link is NA-CALL-TYPE-RESIDUAL's)"
+   },
+   {
+    "question": "is the generated AST extracted?",
+    "ground_truth": "crates/syntax/src/ast/generated/nodes.rs (11,047 lines) and crates/parser/src/syntax_kind/generated.rs are ordinary Rust; their longest structure is a 73-alternative (and a 190-alternative) or-pattern in matches!",
+    "atlas_n": "refused by the pre-scan (risk 76 and 197 > 64): 2,565 fn items invisible, the lenses saying UNKNOWN without the reason",
+    "atlas_n_plus_1": "extracted (risk 16 and 36): 31,250 -> 33,816 functions",
+    "classification_n": "ATLAS defect (over-conservative guard; fixed in E16)",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   },
+   {
+    "question": "which impl does DefWithBodyId::from(function) call?",
+    "ground_truth": "impl From<FunctionId> for DefWithBodyId, expanded by impl_from!(FunctionId, ConstId, StaticId for DefWithBodyId)",
+    "atlas_n": "impl From<EnumVariantId> for DefWithBodyId (hir-def lib.rs:880), the only one written out",
+    "atlas_n_plus_1": "unresolved: generic-trait-impl",
+    "classification_n": "DONOR_CORRECT",
+    "classification_n_plus_1": "ATLAS_CORRECT (sound)"
+   },
+   {
+    "question": "which lsp-server does crates/rust-analyzer call?",
+    "ground_truth": "the registry lsp-server 0.7.9 (workspace dependency lsp-server = { version = \"0.7.9\" }; the path override commented out; Cargo.lock has both 0.7.9 and the member 0.10.0)",
+    "atlas_n": "the workspace member lib/lsp-server (15 edges)",
+    "atlas_n_plus_1": "no workspace binding (external)",
+    "classification_n": "DONOR_CORRECT",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of rust-analyzer is absorbed at E16: its SCIP output falsified four Atlas behaviors, each fixed with an Atlas-native rule -- matched call/return reachability (standard program analysis), a stack-safety charge derived from Atlas's own crash measurements, coherence (one impl per non-generic trait and type) and Cargo's dependency-source rules",
+  "change": "core composition::lens::trace searches (function, may-return) states and classifies each SUPPLIES_DATA step as an argument or a return by the call site it cites; adapter semantic::rust CHAIN_LINKS_PER_LEVEL = 6; adapter semantic::rust::resolve ImplDef.trait_generic and the generic-trait-impl refusal in associated(); adapter dependency::cargo DeclaredSource per dependency entry and workspace_dependencies (workspace.dependencies, patch.*); runtime census::resolution crate_targets binds by the package directory a declaration resolves to (ADR 0082)",
+  "falsification": "16 mutants killed: trace 4 (returns after a descent, a state flow keeping the descent, returns as descents, the phase dropped), guard 5 (divisor 5, divisor 7, operator arm unweighted, as arm unweighted, floor for ceil), generic trait 2 (guard dropped, guard inverted), binding 5 (registry by name, inherited registry by name, patch ignored, no-root fallback dropped, inherited path by key); out of process on a 2 MiB thread with syn 3.0.6, every newly admitted maximum (378-link as, +, | and or-pattern chains) parsed, walked and dropped, while 300 nested brackets still aborted"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "86493cee4d89 (the whole workspace)",
+  "N": {
+   "functions": 31250,
+   "invokes": 25359,
+   "supplies_data": 16385,
+   "dispatches_to": 696,
+   "encloses": 9442,
+   "unresolved": 103522,
+   "call_records": 165570,
+   "type_records": 38909,
+   "symbol_records": 46281,
+   "refused_files": 3,
+   "oracle_agree": 24075,
+   "precision": 0.9962,
+   "recall": 0.441
+  },
+  "N_plus_1": {
+   "functions": 33816,
+   "invokes": 26055,
+   "supplies_data": 16092,
+   "dispatches_to": 1462,
+   "encloses": 9444,
+   "unresolved": 105642,
+   "call_records": 168970,
+   "type_records": 44140,
+   "symbol_records": 49832,
+   "refused_files": 1,
+   "oracle_agree": 24888,
+   "precision": 0.9982,
+   "recall": 0.4558
+  },
+  "edge_delta": {
+   "gained_confirmed": 1215,
+   "gained_unconfirmed": 0,
+   "lost_wrong": 46,
+   "lost_confirmed": 402,
+   "lost_confirmed_by_cause": {
+    "registry package shadowed by a same-version member (oracle UNDECIDABLE)": 111,
+    "generic-trait impl picks that happened to be right": 239,
+    "receivers typed through a refused call": 52
+   },
+   "lost_confirmed_now_reported_unresolved_by_name": 402
+  },
+  "what_atlas_n_saw": "99.62% of its call edges confirmed by the donor's own index; 44.1% of the index's call edges",
+  "what_atlas_n_missed": "the generated AST (2,565 functions) and why; that a trace through returned values is unrealizable; that a generic trait's visible impl is not the impl; that a registry dependency is not a same-named member",
+  "what_atlas_n_plus_1_sees": "the generated AST and 1,215 more confirmed edges; no unconfirmed edge added and all 46 wrong edges gone (precision 99.82%); the challenge answered soundly (NO_PATH_OBSERVED with its reason instead of a false path)",
+  "still_unknown": "28,573 oracle call edges reported unresolved by name (method calls on untyped receivers, among them snap.analysis.goto_definition, the link the challenge needs); macro-expanded items and impls; generic-trait impl selection by argument types; feature- and cfg-gated compilation; 657 files without a frontend",
+  "magnitude": "moderate on the donor (+813 confirmed edges net, precision +0.2 points, silent misses 2,090 -> 1,101); decisive for the agent interface (a false DERIVED path is no longer produced); Atlas's own model unchanged (6,250 functions, 5,132 INVOKES under both binaries)"
+ },
+ "manual_reads": [
+  {
+   "what": "crates/rust-analyzer/src/handlers/request.rs 838-853; crates/rust-analyzer/src/global_state.rs 214-226",
+   "why": "ground truth for the challenge: the handler's call and the snapshot's field type",
+   "gap": "a parameter's field receiver of a type in another workspace crate is not typed (NA-CALL-TYPE-RESIDUAL)"
+  },
+  {
+   "what": "Cargo.toml (workspace dependencies, patch section), crates/rust-analyzer/Cargo.toml, lib/*/Cargo.toml versions, Cargo.lock entries for lsp-server, text-size, smol_str, la-arena, line-index",
+   "why": "falsify the lsp-server edges the oracle disputed and the lib/ edges it confirmed by symbol",
+   "gap": "dependency source not recorded (fixed in E16)"
+  },
+  {
+   "what": "crates/hir-def/src/lib.rs 850-885 (impl_from!, From impls), crates/hir-def/src/expr_store/scope.rs 450",
+   "why": "falsify the From edges",
+   "gap": "generic-trait impl picked by name (fixed in E16)"
+  },
+  {
+   "what": "crates/syntax/src/ast/generated/nodes.rs 9220-9240",
+   "why": "find the construct the pre-scan scored 76",
+   "gap": "chain links charged like brackets (fixed in E16)"
+  },
+  {
+   "what": "crates/hir-ty/src/next_solver/{ty,consts,region}.rs impl headers; crates/tt/src/storage.rs 40-46 and 170-178; crates/proc-macro-srv/src/lib.rs 11-16",
+   "why": "classify the Atlas-only edges the oracle does not see",
+   "gap": "none (verification)"
+  },
+  {
+   "what": "LICENSE-MIT, LICENSE-APACHE and the workspace license field at the pin",
+   "why": "license verification"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R4 (evidence/revalidation/R4-rust-analyzer.json): rank 1, REVALIDATION_REQUIRED since G150; carried out at the exact G75 pin aaddfb73fd95, re-materialized after this replay's pin was deleted, censused by E15 and E16 and deleted again",
+  "historical_decision": "G75 ABSORBED (hir-def path resolution, ADR 0031) with hir-ty type inference and method resolution REFERENCE_ONLY",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds with its evidence strengthened and two defects corrected: path resolution, measured now on the donor's own code against its own index, is 99.82% precise at E16; method resolution stays REFERENCE_ONLY -- 28,573 call edges remain unresolved by name, the dominant residual"
+ },
+ "decision": {
+  "donor": "ABSORBED at E16 (hir-def path resolution, re-verified on the donor itself) with hir-ty inference and method resolution REFERENCE_ONLY_UNTIL_TRIGGER",
+  "capability_delta": "CAPABILITY_ADVANCED (E15 -> E16)",
+  "trigger": "CURRENT; re-opened by receiver typing of fields of parameters and of values of types from other workspace crates (NA-CALL-TYPE-RESIDUAL), by macro-expanded items or impls entering the census, or by argument-typed selection among generic-trait impls: re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/rust-analyzer (the replay pin), then again after the revalidation R4 checkout of the G75 pin; the scratch SCIP index, syn extent tool and stack check deleted",
+  "runtime_dependency": "none: Atlas does not depend on rust-analyzer (no package, no path); the rust-analyzer binary is a test-time oracle from the toolchain, never a census input",
+  "evidence_retained": "this record with every count and case; the revalidation record; the license copies at .atlas/licenses/rust-analyzer/ (unchanged since G75); no rust-analyzer text in Atlas",
+  "path_absent_after": true,
+  "legacy_checkout_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

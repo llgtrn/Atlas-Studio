@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G167"
+current_generation = "G168"
 
 [[generation]]
 id = "G35"
@@ -3902,3 +3902,41 @@ after = 7134
 key = "composed:relation:INVOKES"
 before = 5117
 after = 5117
+
+[[generation]]
+id = "G168"
+kind = "REPLAY"
+base_commit = "9a34d43e40464e5553515f91fccc483d6d6d731e"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R10 and recursive revalidation R4: the first absorbed donor replayed against its own oracle, facing the strongest Atlas (E15); DEBT-CALL and DEBT-SEMANTIC-COMPOSITION advanced"
+objective = "replay rust-analyzer at a fresh exact pin: Atlas_N first on the whole workspace, a falsifiable question about how a definition request reaches goto_definition, the donor's own SCIP index as the oracle at function level, bounded Atlas-native fixes for what it falsifies, the same pin at N+1, the G75 verdict revalidated, the source extinct"
+writer = "coordinator (sole writer)"
+replay = "rust-lang/rust-analyzer"
+pinned_commit = "86493cee4d8902389c3217d8e95a3aae9368fd98"
+source_path = ".atlas/.cache/donors/rust-analyzer"
+epoch_before = "E15"
+epoch_after = "E16"
+mission = ".atlas/evidence/replay/R10-rust-analyzer.json"
+evidence = ".atlas/evidence/replay/R10-rust-analyzer.json"
+self_recensus = ".atlas/evidence/census/G168/recensus.json"
+
+[generation.verification]
+pre_census = "G167 post digest"
+atlas_first = "the whole workspace censused (31,250 functions, 25,359 INVOKES, 103,522 unresolved call sites); understand, explain, impact, trace and unknowns on crates/ide/src/goto_definition.rs; the trace answered the challenge with an 8-step DERIVED path that no execution realizes; unknowns on the generated syntax tree said UNKNOWN in every dimension without the reason, which only the census diagnostic held (RESOURCE_LIMIT)"
+change = "core lens trace searches (function, may-return) states, a SUPPLIES_DATA step a return when its call site is the reverse INVOKES; adapter semantic rust CHAIN_LINKS_PER_LEVEL = 6 in the stack-safety pre-scan; the resolver leaves Type::name through the one visible impl of a generic trait generic-trait-impl; adapter cargo DeclaredSource per dependency and workspace_dependencies; runtime crate_targets binds the package directory a path, inherited workspace entry or patch names (ADR 0082)"
+oracle = "rust-analyzer 1.90.0 SCIP over the pin, compared at function level (syn extents from a scratch tool): 24,075 of 24,167 Atlas edges confirmed at E15 (99.62%), 24,888 of 24,934 at E16 (99.82%), none found wrong; 1,215 edges gained, all confirmed; the 46 wrong edges gone (27 generic-trait From picks, 15 into a registry-shadowed member, 2 both, 2 of a different abstraction); 402 confirmed edges now unresolved by name, 111 of them into registry packages the index conflates with same-version members"
+falsification = "16 mutants killed across the four rules; out of process on a 2 MiB thread with syn 3.0.6 every newly admitted chain maximum parsed, walked and dropped while 300 nested brackets still aborted"
+boundary = "method calls on receivers Atlas does not type (28,573 index edges unresolved by name, among them the handler's snap.analysis.goto_definition), macro-expanded impls and items, generic-trait impl selection by argument types, feature- and cfg-gated compilation, 657 files without a frontend; Atlas's own model unchanged (6,250 functions, 5,132 INVOKES)"
+debts = "DEBT-CALL and DEBT-SEMANTIC-COMPOSITION last advance G168; capability epoch E16; revalidation R4 REVALIDATED (the G75 ABSORBED verdict holds, hir-ty stays REFERENCE_ONLY); the earlier processed replays re-checked CURRENT at E16; next replay rust-lang/rust G170; native head NA-RESOURCE-RESIDUAL planned G169 (the pressure map moved off DEBT-CALL once it advanced)"
+review = "14 debts reviewed at their cadence (last reviewed G155), all CONFIRMED (evidence/census/G168/debt-review.json)"
+proof = "PROVEN (post 5f2203b4...): the new test fixtures of the four rules explained as unresolved by design; the pinned clone, its SCIP index and the scratch oracle tools deleted before the recensus"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6168
+after = 6202
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5117
+after = 5132
