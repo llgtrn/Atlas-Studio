@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-ASYNC-REGIONS"
+next_native_attack = "NA-SEAL-GATE"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -702,14 +702,19 @@ objective = "FULL_OSS_REPLAY R5 xyflow/xyflow at 0a1f9575b256 (done: TypeScript 
 [[planned_generation]]
 id = "G159"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-ASYNC-REGIONS (DEBT-CALL, DEBT-EFFECT, DEBT-CONCURRENCY) -- async blocks as their own executable regions, like closures"
+objective = "NA-ASYNC-REGIONS (DEBT-CALL, DEBT-EFFECT, DEBT-CONCURRENCY; done: an async block is its own executable region like a closure -- an ASYNC_BLOCK function under its enclosing region, every dimension attributed to it, calls resolved, enclosed in composition; 5 mutants killed; capability epoch E8)"
 
 [[planned_generation]]
 id = "G160"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R6 GitNexus revalidation (REVALIDATION_REQUIRED since E7): the same pin 06ce60beb674 re-censused by the strongest Atlas -- cross-file TypeScript module linking against GitNexus's own graph, studied and never copied (PolyForm Noncommercial)"
+objective = "FULL_OSS_REPLAY R6 GitNexus revalidation (REVALIDATION_REQUIRED since E7): the same pin 06ce60beb674 re-censused by the strongest Atlas (E8) -- cross-file TypeScript module linking against GitNexus's own graph, studied and never copied (PolyForm Noncommercial)"
 
 [[planned_generation]]
-id = "G161+"
+id = "G161"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-SEAL-GATE (DEBT-SEAL_GATE, DEBT-VERIFICATION_EVIDENCE) -- M8/M9: seal eligibility gate and SEALED encoder/reader, the first consumer of the verification and integrity reports"
+
+[[planned_generation]]
+id = "G162+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

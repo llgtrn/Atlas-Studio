@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G158"
+current_generation = "G159"
 
 [[generation]]
 id = "G35"
@@ -3565,3 +3565,40 @@ after = 28408
 key = "obligations"
 before = 2508
 after = 2733
+
+[[generation]]
+id = "G159"
+kind = "NATIVE_ATTACK"
+base_commit = "e3dafa5556bc65a9d09df83b4793f2bc71772322"
+priority = "P0"
+serves = "DEBT-CALL, DEBT-EFFECT and DEBT-CONCURRENCY: the native queue head, between replays R5 and R6"
+objective = "NA-ASYNC-REGIONS: an async block is its own executable region like a closure -- ASYNC_BLOCK functions under their enclosing region, every dimension of the body attributed to them, calls resolved with the enclosing locals, enclosed in composition"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0074-async-block-regions.md"
+self_recensus = ".atlas/evidence/census/G159/recensus.json"
+
+[generation.verification]
+pre_census = "G158 post digest"
+atlas_first = "every walker skipped async blocks: their calls were attributed nowhere and the resolver and the macro-opacity count left them outside the CALL profile (G133 had made closures regions and named async blocks as the remaining deferred form)"
+change = "core: FunctionDeclarationKind::AsyncBlock and is_deferred_region; adapter extractor: handle_async_block (region named by position under fn <enclosing>, every dimension walked, data flow without parameters); resolver: async bodies resolved with enclosing plus own locals; macro-opacity count includes async bodies; core composition: ASYNC_BLOCK regions enclosed by their defining function; tests: the extractor fixture, the resolver fixture, the agent fixture (a resolved call inside an async block belongs to the region, not its creator); ADR 0074"
+oracle = "the fixtures: the async block's call to helper is the region's, and later (its creator) calls nothing; Atlas Studio: 3 async regions, +3 ENCLOSES, +7 INVOKES, +10 resolved CALL records"
+falsification = "5 mutants killed (async blocks excluded, the resolver skipping them, the region not enclosed, the region kind a closure, the region scope not nested)"
+boundary = "what .await suspends on and which executor polls a future stay outside every engine (DEBT-CONCURRENCY); async fn were already functions"
+debts = "DEBT-CALL, DEBT-EFFECT and DEBT-CONCURRENCY last advance G159; capability epoch E8; replay triggers re-checked at E8 (GitNexus stays REVALIDATION_REQUIRED, next replay G160); native head NA-SEAL-GATE planned G161"
+review = "4 debts reviewed at their cadence: DEBT-CONTROL_FLOW, DEBT-DATA_FLOW, DEBT-STATE and DEBT-OWNERSHIP confirmed (evidence/census/G159/debt-review.json)"
+proof = "PROVEN (post 64dc0acd...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "composed:relation:ENCLOSES"
+before = 3278
+after = 3281
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 4887
+after = 4894
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 5915
+after = 5918

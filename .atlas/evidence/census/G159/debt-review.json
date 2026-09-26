@@ -1,0 +1,32 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G159",
+  "trigger": "review cadence: DEBT-CONTROL_FLOW, DEBT-STATE and DEBT-OWNERSHIP (last reviewed G146) and DEBT-DATA_FLOW (last reviewed G130) fell due at G159",
+  "method": "re-read against G146-G159 (typed sections, selected design, seal policy, candidate comparison, replays R1-R5, SELF_RECONSTRUCTION, support levels, RESOURCE, module linking, async-block regions)",
+  "reviews": [
+    {
+      "debt": "DEBT-CONTROL_FLOW",
+      "verdict": "CONFIRMED",
+      "finding": "G159 runs the statement-level control-flow builder on async-block bodies as their own regions (ADR 0074), as G133 did for closures; still one engine, no split below statement level and no MIR oracle; NA-SECOND-ENGINE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-DATA_FLOW",
+      "verdict": "CONFIRMED",
+      "finding": "G146 field projections and G159 async-block regions (captures as uses of the enclosing bindings) extend the syntactic def-use walker; no reconciled second engine, aliasing and field-sensitive flow absent; NA-SECOND-ENGINE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-STATE",
+      "verdict": "CONFIRMED",
+      "finding": "G159 attributes state accesses inside async blocks to their region; interior mutability behind methods and write! targets still unclaimed, one engine; NA-SECOND-ENGINE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-OWNERSHIP",
+      "verdict": "CONFIRMED",
+      "finding": "G157's RESOURCE dimension relies on a syntactic move check of its own rather than OWNERSHIP records, and G159 attributes moves inside async blocks to their region; implicit borrows and reborrows unclaimed, no borrowck oracle; NA-SECOND-ENGINE, then NA-RESOURCE-RESIDUAL reconciles releases with moves",
+      "correction": {}
+    }
+  ]
+}
