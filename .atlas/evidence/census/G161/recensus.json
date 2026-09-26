@@ -1,0 +1,680 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G161",
+  "base_revision": "701ae2db8ffc33dba3ae6cb0a8c5aa26f88b4674",
+  "candidate_revision": "6e99a2b93c87c828b6cb2c28f92932b105482523",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:6fe0b1ca7bd14dc7c8f6bb492bbe075dd50548f535227ac83128c95873b8dee4",
+  "after_census_digest": "blake3-256:54162c26574239c9cb2a6956b470588ce548f30adc3defcbf3783f17b59ea21d",
+  "replay_digest": "blake3-256:54162c26574239c9cb2a6956b470588ce548f30adc3defcbf3783f17b59ea21d",
+  "inventory_delta": {
+    "created": [
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/design/tests.rs",
+      "core/src/seal/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/design.rs",
+      "runtime/src/seal.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/design/tests.rs",
+      "core/src/seal/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/design.rs",
+      "runtime/src/seal.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 72,
+      "fact:FunctionSignature|OBSERVED": 27,
+      "fact:SemanticObligation|OBSERVED": 8,
+      "fact:SemanticObligation|UNKNOWN": 28,
+      "fact:SemanticObligation|UNSUPPORTED": 2,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 121,
+      "fact:Type|DERIVED": 41,
+      "fact:Type|OBSERVED": 53,
+      "record:CALL|DERIVED": 136,
+      "record:CALL|OBSERVED": 661,
+      "record:CONTROL_FLOW|INFERRED": 67,
+      "record:CONTROL_FLOW|OBSERVED": 130,
+      "record:DATA_FLOW|OBSERVED": 1050,
+      "record:EFFECT|DERIVED": 10,
+      "record:EFFECT|INFERRED": 76,
+      "record:FUNCTION_IDENTITY|OBSERVED": 72,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 27,
+      "record:OWNERSHIP|OBSERVED": 325,
+      "record:PERSISTENCE|DERIVED": 7,
+      "record:SYMBOL|OBSERVED": 121,
+      "record:TYPE|DERIVED": 41,
+      "record:TYPE|OBSERVED": 53
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 3723,
+    "graph_nodes": 2851
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 4,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:RESOURCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNSUPPORTED": 2,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/encode_content()."
+      ],
+      "after": [
+        "core atlas/encode_content()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/read_with_history()."
+      ],
+      "after": [
+        "core atlas/read_with_history()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/reader_steps_reject_with_their_reason()."
+      ],
+      "after": [
+        "core atlas/tests/reader_steps_reject_with_their_reason()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/sample()."
+      ],
+      "after": [
+        "core atlas/tests/sample()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/the_writer_refuses_a_seal_it_cannot_prove_and_non_canonical_content()."
+      ],
+      "after": [
+        "core atlas/tests/the_writer_refuses_a_seal_it_cannot_prove_and_non_canonical_content()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/typed_forgeries_are_rejected_by_the_reader()."
+      ],
+      "after": [
+        "core atlas/tests/typed_forgeries_are_rejected_by_the_reader()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/write()."
+      ],
+      "after": [
+        "core atlas/write()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/tests/container()."
+      ],
+      "after": [
+        "core design/tests/container()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlas/atlas_of()."
+      ],
+      "after": [
+        "runtime atlas/atlas_of()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime design/tests/published()."
+      ],
+      "after": [
+        "runtime design/tests/published()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/seal_binding()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/seal_problems()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_sealed_container_round_trips_with_its_seal_record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/an_undeclared_optional_field_is_skipped_unsealed_and_rejected_sealed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/seal_for()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/seal_status_flag_and_section_must_agree()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/sealed_sample()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/the_writer_refuses_and_the_reader_rejects_a_seal_that_does_not_bind_its_container()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/check_record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/gate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/integrity_candidate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/seal_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/a_candidate_every_input_admits_is_eligible_and_its_record_verifies()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/a_record_that_does_not_bind_the_container_or_leaves_a_blocker_unpermitted_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/certificate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/container()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/decide()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/design()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/integrity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/policy()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/reasons()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/verification()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/verification_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime seal/gate_container()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime seal/seal_container()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "runtime/src/seal.rs: 14 -> 15",
+      "core/src/seal/gate.rs: 0 -> 15",
+      "core/src/seal/gate/tests.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2123,
+    "total_after": 2153
+  },
+  "intent": {
+    "objective": "NA-SEAL-GATE (DEBT-SEAL_GATE M8/M9, DEBT-VERIFICATION_EVIDENCE): one seal gate joins the seal policy, the container's own certificate (verdict recomputed), the verification and integrity reports and a SELECTED design on one candidate; the SEALED census container (header flag SEALED, format minor 2, seal-record section) is written and read only with a record binding its certificate, census and revision, and a sealed root is exactly its own canonical encoding",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/design/tests.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "core/src/seal/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/design.rs",
+      "runtime/src/seal.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "runtime/src/seal.rs: the seal gate and SEALED codec are new code whose syntactic resolution obligations start UNKNOWN like every Rust artifact",
+      "core/src/seal/gate.rs: the seal gate and SEALED codec are new code whose syntactic resolution obligations start UNKNOWN like every Rust artifact",
+      "core/src/seal/gate/tests.rs: the seal gate and SEALED codec are new code whose syntactic resolution obligations start UNKNOWN like every Rust artifact"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CHANGED core atlas/encode_content().",
+      "CHANGED core atlas/read_with_history().",
+      "CHANGED core atlas/tests/reader_steps_reject_with_their_reason().",
+      "CHANGED core atlas/tests/sample().",
+      "CHANGED core atlas/tests/the_writer_refuses_a_seal_it_cannot_prove_and_non_canonical_content().",
+      "CHANGED core atlas/tests/typed_forgeries_are_rejected_by_the_reader().",
+      "CHANGED core atlas/write().",
+      "CHANGED core design/tests/container().",
+      "CHANGED runtime atlas/atlas_of().",
+      "CHANGED runtime design/tests/published().",
+      "CREATED core atlas/seal_binding().",
+      "CREATED core atlas/seal_problems().",
+      "CREATED core atlas/tests/a_sealed_container_round_trips_with_its_seal_record().",
+      "CREATED core atlas/tests/an_undeclared_optional_field_is_skipped_unsealed_and_rejected_sealed().",
+      "CREATED core atlas/tests/seal_for().",
+      "CREATED core atlas/tests/seal_status_flag_and_section_must_agree().",
+      "CREATED core atlas/tests/sealed_sample().",
+      "CREATED core atlas/tests/the_writer_refuses_and_the_reader_rejects_a_seal_that_does_not_bind_its_container().",
+      "CREATED core seal/gate/check_record().",
+      "CREATED core seal/gate/gate().",
+      "CREATED core seal/gate/integrity_candidate().",
+      "CREATED core seal/gate/seal_identity().",
+      "CREATED core seal/gate/tests/a_candidate_every_input_admits_is_eligible_and_its_record_verifies().",
+      "CREATED core seal/gate/tests/a_record_that_does_not_bind_the_container_or_leaves_a_blocker_unpermitted_is_refused().",
+      "CREATED core seal/gate/tests/certificate().",
+      "CREATED core seal/gate/tests/container().",
+      "CREATED core seal/gate/tests/decide().",
+      "CREATED core seal/gate/tests/design().",
+      "CREATED core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal().",
+      "CREATED core seal/gate/tests/integrity().",
+      "CREATED core seal/gate/tests/policy().",
+      "CREATED core seal/gate/tests/reasons().",
+      "CREATED core seal/gate/tests/verification().",
+      "CREATED core seal/gate/verification_identity().",
+      "CREATED runtime seal/gate_container().",
+      "CREATED runtime seal/seal_container().",
+      "CREATED runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/schema_history.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/design/tests.rs",
+    "path core/src/seal/gate.rs",
+    "path core/src/seal/gate/tests.rs",
+    "path core/src/seal/mod.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/design.rs",
+    "path runtime/src/seal.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CHANGED core atlas/encode_content().",
+    "entity CHANGED core atlas/read_with_history().",
+    "entity CHANGED core atlas/tests/reader_steps_reject_with_their_reason().",
+    "entity CHANGED core atlas/tests/sample().",
+    "entity CHANGED core atlas/tests/the_writer_refuses_a_seal_it_cannot_prove_and_non_canonical_content().",
+    "entity CHANGED core atlas/tests/typed_forgeries_are_rejected_by_the_reader().",
+    "entity CHANGED core atlas/write().",
+    "entity CHANGED core design/tests/container().",
+    "entity CHANGED runtime atlas/atlas_of().",
+    "entity CHANGED runtime design/tests/published().",
+    "entity CREATED core atlas/seal_binding().",
+    "entity CREATED core atlas/seal_problems().",
+    "entity CREATED core atlas/tests/a_sealed_container_round_trips_with_its_seal_record().",
+    "entity CREATED core atlas/tests/an_undeclared_optional_field_is_skipped_unsealed_and_rejected_sealed().",
+    "entity CREATED core atlas/tests/seal_for().",
+    "entity CREATED core atlas/tests/seal_status_flag_and_section_must_agree().",
+    "entity CREATED core atlas/tests/sealed_sample().",
+    "entity CREATED core atlas/tests/the_writer_refuses_and_the_reader_rejects_a_seal_that_does_not_bind_its_container().",
+    "entity CREATED core seal/gate/check_record().",
+    "entity CREATED core seal/gate/gate().",
+    "entity CREATED core seal/gate/integrity_candidate().",
+    "entity CREATED core seal/gate/seal_identity().",
+    "entity CREATED core seal/gate/tests/a_candidate_every_input_admits_is_eligible_and_its_record_verifies().",
+    "entity CREATED core seal/gate/tests/a_record_that_does_not_bind_the_container_or_leaves_a_blocker_unpermitted_is_refused().",
+    "entity CREATED core seal/gate/tests/certificate().",
+    "entity CREATED core seal/gate/tests/container().",
+    "entity CREATED core seal/gate/tests/decide().",
+    "entity CREATED core seal/gate/tests/design().",
+    "entity CREATED core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal().",
+    "entity CREATED core seal/gate/tests/integrity().",
+    "entity CREATED core seal/gate/tests/policy().",
+    "entity CREATED core seal/gate/tests/reasons().",
+    "entity CREATED core seal/gate/tests/verification().",
+    "entity CREATED core seal/gate/verification_identity().",
+    "entity CREATED runtime seal/gate_container().",
+    "entity CREATED runtime seal/seal_container().",
+    "entity CREATED runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

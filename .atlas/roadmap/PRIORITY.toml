@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-SEAL-GATE"
+next_native_attack = "NA-QUANTITY-SIDE-REPORTS"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -712,14 +712,19 @@ objective = "FULL_OSS_REPLAY R6 GitNexus revalidation at 06ce60beb674 (done: the
 [[planned_generation]]
 id = "G161"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-SEAL-GATE (DEBT-SEAL_GATE, DEBT-VERIFICATION_EVIDENCE) -- M8/M9: seal eligibility gate and SEALED encoder/reader, the first consumer of the verification and integrity reports"
+objective = "NA-SEAL-GATE (DEBT-SEAL_GATE, DEBT-VERIFICATION_EVIDENCE; done: one seal gate (M8) joins the seal policy, the container own certificate with its verdict recomputed, an admissible verification report and the required integrity verdict for the container census digest and clean revision, and a SELECTED design; the SEALED container (M9: flag SEALED, format minor 2, section 18) is written and read only with a record binding its certificate, census and revision and permitting every blocker, and a sealed root is exactly its own canonical encoding; the first wiring joined git:<sha> to revision:<sha> and would have refused every real container; 8 mutants killed; the self scope NOT_ELIGIBLE (RECONCILED certificate, no SELECTED design); capability epoch E10)"
 
 [[planned_generation]]
 id = "G162"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R7 zed-industries/zed (QUEUED): an async-heavy Rust editor facing the strongest Atlas (E9 or later) -- async-block regions and the RESOURCE dimension on a real executor-driven codebase; GPL/Apache, studied only; the admitted legacy checkout extinguished with it"
+objective = "FULL_OSS_REPLAY R7 zed-industries/zed (QUEUED): an async-heavy Rust editor facing the strongest Atlas (E10) -- async-block regions and the RESOURCE dimension on a real executor-driven codebase; GPL/Apache, studied only; the admitted legacy checkout extinguished with it"
 
 [[planned_generation]]
-id = "G163+"
+id = "G163"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-QUANTITY-SIDE-REPORTS (DEBT-QUANTITY_UNITS) -- physical and product reports enter the census: derived quantities as typed facts with kind and status, not side JSON"
+
+[[planned_generation]]
+id = "G164+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

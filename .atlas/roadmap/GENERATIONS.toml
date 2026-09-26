@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G160"
+current_generation = "G161"
 
 [[generation]]
 id = "G35"
@@ -3640,3 +3640,40 @@ after = 4906
 key = "facts"
 before = 28416
 after = 28507
+
+[[generation]]
+id = "G161"
+kind = "NATIVE_ATTACK"
+base_commit = "6e99a2b93c87c828b6cb2c28f92932b105482523"
+priority = "P2"
+serves = "DEBT-SEAL_GATE and DEBT-VERIFICATION_EVIDENCE: the native queue head, between replays R6 and R7"
+objective = "NA-SEAL-GATE: one seal gate (M8) joins the seal policy, the container's own certificate (verdict recomputed), the verification and integrity reports and a SELECTED design on one candidate; the SEALED census container (M9) is written and read only with a record binding its certificate, census and revision, and a sealed root is exactly its own canonical encoding"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0076-seal-gate-and-sealed-container.md"
+self_recensus = ".atlas/evidence/census/G161/recensus.json"
+
+[generation.verification]
+pre_census = "G160 post digest"
+atlas_first = "the seal policy (G149) produced a scoped verdict nothing consumed: the .atlas writer refused every seal status but UNSEALED and the reader rejected every other container; the verification (G127) and integrity (G138) reports had no consumer, and no seal required a SelectedDesign"
+change = "core: seal::gate (IneligibleReason, ContainerBinding, CertificateBinding, GateInputs, SealRecord, SealEligibility, gate, check_record, integrity_candidate); atlas codec: FLAG_SEALED, SEALED_CENSUS_CONTAINER, format minor 2, section 18 seal-record (schema generation G161), writer refusal and reader rejection through check_record, flag/status/section/minor agreement, a sealed root re-encoded to its own bytes; runtime::seal gate_container and seal_container; CLI seal gate and atlas seal; vocabulary map: CertificateBinding.state; ADR 0076; contracts ATLAS-BINARY-WIRE-FORMAT and CENSUS-CERTIFICATE"
+oracle = "gate fixtures: an eligible candidate yields a record whose identity and binding verify, and every one of 18 single-input refusals names its typed reason; codec fixtures: a sealed container round-trips byte-identically with a root distinct from the unsealed one, every byte of it is load-bearing, and forged identity, schema, revision, a dropped permitted blocker, a blocker added after the seal and an undeclared field are each refused by the writer and rejected by the reader; runtime: a fixture container every input admits is gated, sealed and read back sealed; on the real G160 self container the verification and integrity reports join and the gate refuses on the certificate (RECONCILED, 12 refused blockers) and the absent design"
+falsification = "8 mutants killed (dirty revisions joined, the canonical re-encoding skipped, the reader's record check dropped, the minor check dropped, the seal section check dropped, a stray seal record written, an already-sealed container re-gated, unpermitted blockers ignored); the first runtime wiring compared git:<sha> with revision:<sha> and would have refused every real container -- the fixture exposed it and the gate now joins a clean git revision by name"
+boundary = "the reader cannot re-run the gate (the reports and the design are named by identity, not carried); no principal is declared, so no design is SELECTED and the self scope is not sealed"
+debts = "DEBT-SEAL_GATE (M3_SINGLE_ENGINE_BOUNDED) and DEBT-VERIFICATION_EVIDENCE last advance G161; capability epoch E10; replay triggers re-checked at E10 (none fires); next replay zed-industries/zed G162; native head NA-QUANTITY-SIDE-REPORTS planned G163"
+review = "3 debts reviewed at their cadence: DEBT-SELECTED_DESIGN corrected (its next attack named the done NA-SEAL-POLICY and NA-SEAL-GATE; NA-PRINCIPAL-AUTHENTICATION queued for it), DEBT-IDENTITY_AUTHORITY corrected (its blind spots denied the principals and authority events typed since G148), DEBT-CAUSALITY confirmed (evidence/census/G161/debt-review.json)"
+proof = "PROVEN (post 54162c26...): no unexplained UNKNOWN (new files explained)"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 5947
+after = 6019
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 6849
+after = 6985
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 4906
+after = 5004

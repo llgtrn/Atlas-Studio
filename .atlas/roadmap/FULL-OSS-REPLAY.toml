@@ -13,9 +13,9 @@ campaign_start = "G151"
 materialization_root = ".atlas/.cache/donors"
 max_materialized = 1
 max_non_replay_between = 1
-current_epoch = "E9"
+current_epoch = "E10"
 next_replay = "zed-industries/zed"
-next_replay_reason = "priority after R6: the strongest Atlas (E9) carries async-block regions (E8) and the RESOURCE dimension (E6), and no replay has yet faced an async-heavy Rust codebase; zed is one (GPUI executors, tasks, futures, locks and file handles everywhere), and its admitted legacy checkout is still materialized under .atlas/temporary/donors; mixed GPL/Apache licenses -- studied only, nothing copied; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
+next_replay_reason = "priority after R6: the strongest Atlas (E10, the seal gate) carries async-block regions (E8) and the RESOURCE dimension (E6), and no replay has yet faced an async-heavy Rust codebase; zed is one (GPUI executors, tasks, futures, locks and file handles everywhere), and its admitted legacy checkout is still materialized under .atlas/temporary/donors; mixed GPL/Apache licenses -- studied only, nothing copied; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
 
 [counts]
 total = 160
@@ -91,6 +91,12 @@ generation = "G160"
 commit = "7f3935cfbd55dc63de91267afc9405cd426caba7"
 capability = "a workspace package declaring only compiled entries is entered at the one source its own tsconfig maps them back to through the declared outDir -> rootDir, so imports across such package boundaries resolve"
 
+[[epoch]]
+id = "E10"
+generation = "G161"
+commit = "85690579a7f388f0efb6ff9f1f486cbcd0be446e"
+capability = "a seal is decided: one gate joins the seal policy, the container own certificate (verdict recomputed), an admissible verification report and the required integrity verdict for the container census digest and clean revision, and a SELECTED design, and a SEALED census container carries the record binding it, re-checked by its reader"
+
 [[repository]]
 key = "666ghj/bettafish"
 remote = "https://github.com/666ghj/BettaFish.git"
@@ -144,6 +150,7 @@ replays = ["R1 G151 E0->E1 .atlas/evidence/replay/R1-gitnexus.json", "R2 G152 E1
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E9"
 trigger_status = "CURRENT"
+trigger_checked_at_epoch = "E10"
 revalidation_trigger = "an epoch that adds member/this call resolution for TypeScript (NA-MULTILANGUAGE), execution flows (NA-EXECUTION-FLOWS) or hunk seeds (NA-HUNK-SEEDS) re-opens this verdict: re-census the same pin"
 source_path = ".atlas/.cache/donors/gitnexus"
 source_extinct = true
@@ -1732,7 +1739,7 @@ replays = ["R4 G156 E4->E5 .atlas/evidence/replay/R4-salsa.json"]
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E5"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E9"
+trigger_checked_at_epoch = "E10"
 revalidation_trigger = "NA-CLOSURE-CONSUMER starts: a consumer recomputing inside the impact closure should cut off propagation when a recomputed function keeps its records (salsa backdating); re-census the same pin"
 source_path = ".atlas/.cache/donors/salsa"
 source_extinct = true
@@ -1932,7 +1939,7 @@ gaps = ["DEBT-MULTILANGUAGE: C source (28 .c, 35 .h) has no frontend; the implem
 terminal_state = "EXTERNAL_BOUNDARY"
 decided_at_epoch = "E4"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E9"
+trigger_checked_at_epoch = "E10"
 revalidation_trigger = "a C frontend (DEBT-MULTILANGUAGE) or a native TypeScript/JavaScript parser replacing the syntax substrate re-opens this verdict: re-census the same pin"
 verdict_history = ["G65: REFERENCE_ONLY (historical, terminal_state; DEBT-MULTILANGUAGE rejected)", "E4 (G154, R3): EXTERNAL_BOUNDARY -- Atlas links it as the syntax substrate of its TypeScript/JavaScript profile (a parse is never semantic support); mechanism studied: the Rust-to-C boundary, absorbed as FOREIGN_FUNCTION records and include splicing"]
 replays = ["R3 G154 E3->E4 .atlas/evidence/replay/R3-tree-sitter.json"]
@@ -2064,7 +2071,7 @@ replays = ["R5 G158 E6->E7 .atlas/evidence/replay/R5-xyflow.json"]
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E7"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E9"
+trigger_checked_at_epoch = "E10"
 revalidation_trigger = "member/this call or JSX resolution for TypeScript, a Svelte frontend, or studio graph interaction becoming a planned capability re-opens this verdict: re-census the same pin"
 source_path = ".atlas/.cache/donors/xyflow"
 source_extinct = true

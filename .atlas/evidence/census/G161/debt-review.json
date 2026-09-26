@@ -1,0 +1,30 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G161",
+  "trigger": "review cadence: DEBT-SELECTED_DESIGN and DEBT-IDENTITY_AUTHORITY (last reviewed G142, stale 13) and DEBT-CAUSALITY (last reviewed G148, stale 26) fell due at G161",
+  "method": "re-read against G148-G161 (selected design and authority events, the seal gate's design requirement, the RESOURCE relations added to EdgeKind, the empty principal registry)",
+  "reviews": [
+    {
+      "debt": "DEBT-SELECTED_DESIGN",
+      "verdict": "CORRECTED",
+      "finding": "its next attack still named NA-SEAL-POLICY and NA-SEAL-GATE, both done (G149, G161); the seal gate now consumes a SELECTED design, and none exists: the principal registry is empty and a provider never selects; NA-PRINCIPAL-AUTHENTICATION queued for it",
+      "correction": {
+        "nxt": "NA-PRINCIPAL-AUTHENTICATION (authority events on authenticated principals); a SELECTED design when the owner declares a principal"
+      }
+    },
+    {
+      "debt": "DEBT-CAUSALITY",
+      "verdict": "CONFIRMED",
+      "finding": "EdgeKind has 37 relations since G157 (PRODUCES_RESOURCE_OP and RELEASES added for RESOURCE), none causal: a release is a lifetime relation, not a cause; cardinality is declared per kind and unit-tested but still not checked against the graph; no counterfactual record; NA-COUNTERFACTUAL-RECORD",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-IDENTITY_AUTHORITY",
+      "verdict": "CORRECTED",
+      "finding": "its blind spots still said no principal or authority event exists, but both are typed since G148 and the seal gate (G161) requires an authority event for a SELECTED design; what is missing is a declared principal (the registry is empty), actor and tenant identity, authentication, and admission authority; NA-PRINCIPAL-AUTHENTICATION",
+      "correction": {
+        "known_blind_spots": "no declared principal (the registry is empty), no actor or tenant identity, no authenticated principal, no authority bound to admissions"
+      }
+    }
+  ]
+}
