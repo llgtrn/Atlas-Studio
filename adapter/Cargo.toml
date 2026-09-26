@@ -21,6 +21,12 @@ serde = { workspace = true }
 syn = { version = "3.0.6", features = ["full", "visit"] }
 quote = "1.0.47"
 proc-macro2 = { version = "1.0.107", features = ["span-locations"] }
+# G152 (ADR 0068): syntax substrate for the TypeScript/JavaScript extractor
+# (`adapter/src/semantic/typescript/`). tree-sitter and both grammars are MIT-licensed; they only
+# parse -- every semantic record and obligation is Atlas's own. A parse is never semantic support.
+tree-sitter = "0.25"
+tree-sitter-typescript = "0.23"
+tree-sitter-javascript = "0.23"
 
 [build-dependencies]
 # build.rs digests the extractor sources with Atlas's own BLAKE3 (ADR 0008).

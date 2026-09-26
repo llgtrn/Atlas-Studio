@@ -1520,8 +1520,17 @@ mod tests {
                 // ADR 0044/0067: a donor's `source_path` names what was deleted; it must be absent.
                 if let Some(rest) = line.trim_start().strip_prefix("source_path = ") {
                     let path = rest.trim_matches('"');
+                    // Unless a later replay recorded it MATERIALIZED again (FULL-OSS-REPLAY.toml).
+                    let rematerialized =
+                        std::fs::read_to_string(root.join(".atlas/roadmap/FULL-OSS-REPLAY.toml"))
+                            .unwrap_or_default()
+                            .split("\n[[repository]]\n")
+                            .any(|r| {
+                                r.contains(&format!("source_path = \"{path}\""))
+                                    && r.contains("replay_status = \"MATERIALIZED\"")
+                            });
                     assert!(
-                        !root.join(path).exists(),
+                        !root.join(path).exists() || rematerialized,
                         "donor source `{path}` still exists"
                     );
                     continue;
@@ -3794,8 +3803,10 @@ mod tests {
             let pin = text(block, "pinned_commit");
             assert!(is_pin(&pin), "{id}: exact pin");
             assert_eq!(text(record, "pinned_commit"), pin, "{id}");
+            // Deleted by this replay; a later replay may have materialized it again.
             assert!(
-                !root().join(text(block, "source_path")).exists(),
+                !root().join(text(block, "source_path")).exists()
+                    || text(record, "replay_status") == "MATERIALIZED",
                 "{id}: the donor source must be deleted"
             );
             let epochs = replay_epochs(&ledger);

@@ -10,6 +10,7 @@ use atlas_core::SemanticDimension;
 use super::batch::{ExtractionBatch, ObligationResult};
 use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, SemanticExtractor};
 use super::rust::RustSemanticExtractor;
+use super::typescript::TypeScriptSemanticExtractor;
 
 /// Placeholder extractor for a language with no deep semantic analyzer implemented yet. Declares
 /// zero supported dimensions and answers every requested dimension with an explicit `UNSUPPORTED`
@@ -96,8 +97,11 @@ impl SemanticExtractor for StaticUnsupportedExtractor {
 // `StaticUnsupportedExtractor` remains available above as the fallback shape for a language with
 // no deep analyzer implemented yet -- it is simply not the one registered for "rust" anymore.
 static RUST_SEMANTIC: RustSemanticExtractor = RustSemanticExtractor;
+// G152 (ADR 0068): the bounded first TypeScript/JavaScript profile.
+static TYPESCRIPT_SEMANTIC: TypeScriptSemanticExtractor = TypeScriptSemanticExtractor;
 
-static BUILTIN_EXTRACTORS: [&'static dyn SemanticExtractor; 1] = [&RUST_SEMANTIC];
+static BUILTIN_EXTRACTORS: [&'static dyn SemanticExtractor; 2] =
+    [&RUST_SEMANTIC, &TYPESCRIPT_SEMANTIC];
 
 pub fn semantic_extractors() -> &'static [&'static dyn SemanticExtractor] {
     &BUILTIN_EXTRACTORS
@@ -153,6 +157,25 @@ mod tests {
                 "TYPE"
             ]
         );
+    }
+
+    #[test]
+    fn typescript_and_javascript_resolve_to_the_bounded_profile() {
+        for language in ["typescript", "javascript"] {
+            let matches = extractors_for_language(language);
+            assert_eq!(matches.len(), 1, "{language}");
+            assert_eq!(matches[0].id(), "atlas.typescript.source-semantic.v1");
+            let mut supported: Vec<&str> = matches[0]
+                .supported_dimensions()
+                .iter()
+                .map(SemanticDimension::as_str)
+                .collect();
+            supported.sort_unstable();
+            assert_eq!(
+                supported,
+                ["CALL", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "SYMBOL"]
+            );
+        }
     }
 
     #[test]

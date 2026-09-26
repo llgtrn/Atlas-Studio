@@ -504,7 +504,12 @@ fn visit_docs(
         };
         if file_type.is_dir() {
             let name = entry.file_name().to_string_lossy().into_owned();
-            if matches!(name.as_str(), "temporary" | "provenance" | "licenses") {
+            // G152: `.cache` is gitignored scratch (packed containers, a materialized donor), never
+            // canonical documentation.
+            if matches!(
+                name.as_str(),
+                "temporary" | "provenance" | "licenses" | ".cache"
+            ) {
                 continue;
             }
             // Same empirically-justified guard as `adapter::source::visit_inventory`'s own

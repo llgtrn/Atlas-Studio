@@ -13,6 +13,7 @@ pub mod batch;
 pub mod extractor;
 pub mod registry;
 pub mod rust;
+pub mod typescript;
 
 #[cfg(test)]
 mod boundary_tests;
@@ -25,3 +26,4 @@ pub use rust::resolve::{
     CrateInput, FnTarget, PathCallOutcome, PathCallResolution, WorkspaceResolution,
     join as join_path, resolve_path_calls, resolve_workspace,
 };
+pub use typescript::TypeScriptSemanticExtractor;

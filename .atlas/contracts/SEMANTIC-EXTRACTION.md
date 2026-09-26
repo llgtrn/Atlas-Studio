@@ -216,3 +216,18 @@ R4 closes only when:
 9. SemanticFact remains a compatibility envelope, not the only semantic type system.
 
 Any project-wide claim that R4 is complete MUST name the language/profile/reference corpus against which these gates were proven.
+
+## Second language (G152, ADR 0068)
+
+`atlas.typescript.source-semantic.v1` extracts TypeScript and JavaScript under the same `ExtractionBatch` and obligation contract. tree-sitter only parses. A parse is never a semantic support claim.
+
+- **Profile:**
+  - FUNCTION_IDENTITY, FUNCTION_SIGNATURE and SYMBOL are exhaustive on an error-free parse.
+  - CALL is always UNKNOWN with its observations. Same-file lexical resolution is DERIVED.
+  - Every other dimension is UNSUPPORTED.
+- **Support levels on the replay target (GitNexus at 06ce60beb674):**
+  - At E1, TypeScript was L1 (identified, UNSUPPORTED in every dimension).
+  - At E2:
+    - FUNCTION_IDENTITY, FUNCTION_SIGNATURE and SYMBOL are L3 with obligations evaluated (L4);
+    - CALL is L3 with a bounded, same-file profile;
+    - TYPE, DATA_FLOW and the rest stay UNSUPPORTED.

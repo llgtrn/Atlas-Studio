@@ -256,6 +256,24 @@ fn local_directories(root: &Path) -> io::Result<Vec<String>> {
     Ok(directories)
 }
 
+/// G152 (ADR 0067): the source paths the FULL_OSS_REPLAY ledger records MATERIALIZED -- a
+/// checkout there is the replay lane's, held under its one-donor window, not an orphan.
+fn replay_materialized_paths(root: &Path) -> Vec<String> {
+    let text =
+        fs::read_to_string(root.join(".atlas/roadmap/FULL-OSS-REPLAY.toml")).unwrap_or_default();
+    text.split("\n[[repository]]\n")
+        .filter(|block| block.contains("\nreplay_status = \"MATERIALIZED\""))
+        .filter_map(|block| {
+            let line = block.lines().find(|l| l.starts_with("source_path = "))?;
+            Some(
+                line.trim_start_matches("source_path = ")
+                    .trim_matches('"')
+                    .to_owned(),
+            )
+        })
+        .collect()
+}
+
 /// Measures the disk and the working set, checks integrity, and (given a request) decides its
 /// admission. `measure_sizes = false` skips the directory walks (sizes read as 0).
 pub fn working_set_report(
@@ -324,6 +342,7 @@ pub fn working_set_report(
             .or_else(|| owner_of(directory))
     };
     let violations = check_integrity(&records, &directories, owner_holding);
+    let replay_materialized = replay_materialized_paths(root);
     let mut unowned_bytes = 0u64;
     let (mut recorded_violations, mut unrecorded_violations) = (Vec::new(), Vec::new());
     for violation in violations {
@@ -334,6 +353,7 @@ pub fn working_set_report(
                     .blockers
                     .iter()
                     .any(|b| format!("{LEGACY_DONOR_ROOT}/{}", b.directory) == *directory)
+                    || replay_materialized.contains(directory)
             }
             _ => false,
         };
