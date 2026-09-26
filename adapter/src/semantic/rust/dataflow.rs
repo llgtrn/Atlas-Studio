@@ -563,9 +563,11 @@ impl<'a> ExtractionContext<'a> {
     }
 
     /// G133: a closure region's data flow -- its parameters are bindings like a function's.
+    /// A closure's region, or (G159, `closure` absent) an async block's: its parameters, if any,
+    /// are definitions; captures are uses of the enclosing region's bindings.
     pub(super) fn build_closure_data_flow(
         &mut self,
-        closure: &syn::ExprClosure,
+        closure: Option<&syn::ExprClosure>,
         body: &syn::Block,
         scope: &SemanticScope,
         function: &SemanticRecordId,
@@ -580,7 +582,7 @@ impl<'a> ExtractionContext<'a> {
             scope_stack: Vec::new(),
         };
         walker.push_scope();
-        for input in &closure.inputs {
+        for input in closure.iter().flat_map(|c| &c.inputs) {
             walker.walk_binding_pat(input, true);
         }
         walker.walk_block(body, true);

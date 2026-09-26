@@ -502,6 +502,8 @@ fn max_structural_recursion_risk(source: &str) -> usize {
 enum RegionInputs<'a> {
     Signature(&'a syn::Signature),
     Closure(&'a syn::ExprClosure),
+    /// G159: an async block has no parameters.
+    AsyncBlock,
 }
 
 fn nested_scope(scope: &SemanticScope, segment: &str) -> SemanticScope {
@@ -1369,9 +1371,9 @@ impl<'a> ExtractionContext<'a> {
             }
             syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, scope, caller),
             // `async { .. }`/`async move { .. }` is a separate deferred executable region (a
-            // Future body polled later, possibly never, exactly like a Closure) -- excluded for
-            // the same misattribution reason as `Expr::Closure` above, not merely unhandled.
-            syn::Expr::Async(_) => {}
+            // Future body polled later, possibly never, exactly like a Closure): G159 gives it a
+            // region of its own, never the enclosing function's.
+            syn::Expr::Async(async_block) => self.handle_async_block(async_block, scope),
             // `yield value` (unstable generator/coroutine syntax) evaluates `value` immediately as
             // part of the SAME executable region -- syn parses it wherever it lexically appears,
             // not only inside a generator body, so a bare fn/method containing `yield f()` is real,
@@ -1411,8 +1413,9 @@ impl<'a> ExtractionContext<'a> {
         match inputs {
             RegionInputs::Signature(sig) => self.build_data_flow(sig, body, scope, region),
             RegionInputs::Closure(closure) => {
-                self.build_closure_data_flow(closure, body, scope, region)
+                self.build_closure_data_flow(Some(closure), body, scope, region)
             }
+            RegionInputs::AsyncBlock => self.build_closure_data_flow(None, body, scope, region),
         }
         self.build_state(body, scope, region);
         self.build_effects(body, scope, region);
@@ -1458,6 +1461,42 @@ impl<'a> ExtractionContext<'a> {
         self.walk_region(
             RegionInputs::Closure(closure),
             &body,
+            &region_scope,
+            &region,
+        );
+        self.regions.pop();
+    }
+
+    /// G159 (NA-ASYNC-REGIONS): an `async` block is its own executable region, exactly like a
+    /// closure (G133): a future polled later -- possibly never, possibly from another task --
+    /// than the region that defines it. Its calls and the rest are attributed to an ASYNC_BLOCK
+    /// FunctionIdentity named `{async@line:column}` in a scope under `fn <enclosing region>`.
+    fn handle_async_block(&mut self, async_block: &syn::ExprAsync, scope: &SemanticScope) {
+        let Some(enclosing) = self.regions.last().cloned() else {
+            return;
+        };
+        let span = self.span_of(async_block);
+        let name = format!("{{async@{}:{}}}", span.line, span.column);
+        let region_scope = nested_scope(scope, &format!("fn {enclosing}"));
+        self.emit_symbol(&region_scope, &name, SymbolRole::Definition, span.clone());
+        let identity = self.function_identity(
+            &region_scope,
+            &name,
+            span,
+            SymbolRole::Definition,
+            FunctionDeclarationKind::AsyncBlock,
+            FunctionOwner::none(),
+            Vec::new(),
+        );
+        let region = SemanticRecordId::new(
+            SemanticDimension::FunctionIdentity,
+            &identity.identity_key(),
+        );
+        self.emit_function_identity(identity);
+        self.regions.push(name);
+        self.walk_region(
+            RegionInputs::AsyncBlock,
+            &async_block.block,
             &region_scope,
             &region,
         );

@@ -451,8 +451,7 @@ pub(super) fn opaque_sites(file: &syn::File, shadowed: &BTreeSet<String>) -> usi
         // The CALL profile's exclusions (G74): deferred executable regions and initializers with
         // no calling function. What is opaque there cannot hide an in-profile call site.
         // G133: closure bodies are walked as their own regions, so their opaque sites count;
-        // `async` blocks stay outside the profile.
-        fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
+        // since G159 `async` blocks are regions too.
         fn visit_item_const(&mut self, _: &'ast syn::ItemConst) {}
         fn visit_item_static(&mut self, _: &'ast syn::ItemStatic) {}
         fn visit_impl_item_const(&mut self, _: &'ast syn::ImplItemConst) {}

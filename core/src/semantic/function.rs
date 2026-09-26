@@ -55,9 +55,19 @@ pub enum FunctionDeclarationKind {
     /// block's ABI) is observed; it has no body here, and a call to it crosses a language
     /// boundary.
     ForeignFunction,
+    /// G159 (NA-ASYNC-REGIONS): an `async { .. }` block -- its own executable region, a future
+    /// polled later (possibly never, possibly from another task) than the function that defines
+    /// it. Named `{async@line:column}` and scoped under `fn <enclosing region>`, like a closure.
+    AsyncBlock,
 }
 
 impl FunctionDeclarationKind {
+    /// Whether this is a region deferred from the function that defines it (a closure or an
+    /// async block): it has no declared signature and is enclosed by that function.
+    pub const fn is_deferred_region(&self) -> bool {
+        matches!(self, Self::Closure | Self::AsyncBlock)
+    }
+
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::FreeFunction => "FREE_FUNCTION",
@@ -68,6 +78,7 @@ impl FunctionDeclarationKind {
             Self::TraitImplementationMethod => "TRAIT_IMPLEMENTATION_METHOD",
             Self::Closure => "CLOSURE",
             Self::ForeignFunction => "FOREIGN_FUNCTION",
+            Self::AsyncBlock => "ASYNC_BLOCK",
         }
     }
 }

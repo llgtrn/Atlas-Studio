@@ -3747,8 +3747,25 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
         self.visit_expr(&closure.body);
         self.fn_ctx.pop();
     }
-    // The CALL profile's exclusions: `async` blocks and initializers with no caller.
-    fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
+    // G159 (NA-ASYNC-REGIONS): an `async` block is its own executable region, like a closure:
+    // its locals are the enclosing region's (captures) plus its own bindings.
+    fn visit_expr_async(&mut self, async_block: &'ast syn::ExprAsync) {
+        let Some(enclosing) = self.fn_ctx.last() else {
+            return;
+        };
+        let mut bindings = Bindings(enclosing.locals.clone());
+        bindings.visit_block(&async_block.block);
+        let ctx = FnCtx {
+            locals: bindings.0,
+            generics: enclosing.generics.clone(),
+            receiver: enclosing.receiver,
+            typed: enclosing.typed.clone(),
+        };
+        self.fn_ctx.push(ctx);
+        self.visit_block(&async_block.block);
+        self.fn_ctx.pop();
+    }
+    // The CALL profile's exclusions: initializers with no caller.
     fn visit_item_const(&mut self, item: &'ast syn::ItemConst) {
         self.visit_type(&item.ty);
     }

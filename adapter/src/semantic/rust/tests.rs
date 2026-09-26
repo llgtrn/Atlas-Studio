@@ -6809,8 +6809,7 @@ impl<'ast> syn::visit::Visit<'ast> for IndependentCallSites {
         syn::visit::visit_item_mod(self, item);
     }
     // G133: a closure body is its own executable region, inside the profile (its calls are the
-    // closure region's); `async` blocks stay outside it.
-    fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
+    // closure region's); since G159 so is an `async` block.
     fn visit_item_const(&mut self, _: &'ast syn::ItemConst) {}
     fn visit_item_static(&mut self, _: &'ast syn::ItemStatic) {}
     fn visit_impl_item_const(&mut self, _: &'ast syn::ImplItemConst) {}
@@ -7368,13 +7367,31 @@ fn a_closure_is_its_own_executable_region() {
                 && h.subject.name == "x"
                 && h.subject.role == ValueRole::Definition
     )));
-    // `async { helper(3) }` stays outside: no call of helper with argument 3 anywhere.
+    // G159: `async { helper(3) }` is its own ASYNC_BLOCK region under `fn outer`, holding its
+    // call; the const initializer's closure stays outside (no enclosing region).
+    let async_block = batch
+        .observations
+        .iter()
+        .find_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h)
+                if h.subject.declaration_kind == FunctionDeclarationKind::AsyncBlock =>
+            {
+                Some(&h.subject)
+            }
+            _ => None,
+        })
+        .expect("the async block is a region");
+    assert_eq!(async_block.symbol.name, "{async@8:12}");
+    assert_eq!(async_block.scope.segments, ["fn outer"]);
+    let deferred = calls_by_caller(&batch, async_block);
+    assert_eq!(deferred.len(), 1);
+    assert_eq!(deferred[0].callee_spelling.as_deref(), Some("helper"));
     assert_eq!(
         all_calls(&batch)
             .iter()
             .filter(|c| c.callee_spelling.as_deref() == Some("helper"))
             .count(),
-        1
+        2
     );
 }
 

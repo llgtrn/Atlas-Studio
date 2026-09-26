@@ -447,7 +447,8 @@ materialize App {
 
     const CORE_LIB: &str = "//! The shared core.\n/// Holds one count and persists it.\npub mod store;\n\
                             /// Adds one.\npub fn helper(x: u64) -> u64 { x + 1 }\n\
-                            pub fn apply(v: Vec<u64>) -> Vec<u64> { v.into_iter().map(|x| helper(x)).collect() }\n";
+                            pub fn apply(v: Vec<u64>) -> Vec<u64> { v.into_iter().map(|x| helper(x)).collect() }\n\
+                            pub fn later() -> impl std::future::Future<Output = u64> { async { helper(2) } }\n";
     const STORE: &str = r#"pub struct Store { count: u64 }
 impl Store {
     pub fn new() -> Self { Store { count: 0 } }
@@ -777,6 +778,17 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(closure.enclosing.as_deref(), Some(apply.id.as_str()));
         assert!(closure.calls.contains(&helper.id), "{closure:?}");
         assert!(!apply.calls.contains(&helper.id));
+        // G159: the async block in `later` is its own region, linked to `later`, holding the
+        // resolved call to `helper`.
+        let deferred = model
+            .functions
+            .iter()
+            .find(|f| f.kind == "ASYNC_BLOCK" && f.path == "core/src/lib.rs")
+            .unwrap();
+        let later = function(&model, "later");
+        assert_eq!(deferred.enclosing.as_deref(), Some(later.id.as_str()));
+        assert!(deferred.calls.contains(&helper.id), "{deferred:?}");
+        assert!(!later.calls.contains(&helper.id));
         let items = model
             .gaps
             .iter()
@@ -1818,7 +1830,7 @@ fn run(s: &core::store::Store) { s.save(); }
             model
                 .functions
                 .iter()
-                .filter(|f| f.kind != "CLOSURE")
+                .filter(|f| f.kind != "CLOSURE" && f.kind != "ASYNC_BLOCK")
                 .all(|f| f.visibility.is_some()),
             "every signature joins"
         );

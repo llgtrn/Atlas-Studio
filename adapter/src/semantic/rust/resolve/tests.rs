@@ -253,9 +253,10 @@ fn workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items() 
 }
 
 #[test]
-fn method_calls_async_blocks_and_initializers_are_outside_the_pass() {
+fn method_calls_and_initializers_are_outside_the_pass() {
     // G133: a closure body is inside the pass (its own executable region); a closure parameter
-    // shadowing a function name stays a local; `async` blocks and initializers stay outside.
+    // shadowing a function name stays a local; G159: an `async` block is inside too; method
+    // calls on untyped receivers and initializers stay outside.
     let lib = "fn f() {}\nconst C: () = f();\nfn t(x: X) {\n    x.method();\n    let c = || f();\n    let d = |f: fn()| f();\n    let e = async { f() };\n    f();\n}\n";
     let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
     assert_eq!(
@@ -264,10 +265,11 @@ fn method_calls_async_blocks_and_initializers_are_outside_the_pass() {
             ("f".into(), "src/lib.rs:1:f".into()),
             ("f".into(), "unresolved:local-binding".into()),
             ("f".into(), "src/lib.rs:1:f".into()),
+            ("f".into(), "src/lib.rs:1:f".into()),
         ]
     );
     let positions: Vec<(usize, usize)> = results.iter().map(|r| (r.line, r.column)).collect();
-    assert_eq!(positions, [(5, 15), (6, 22), (8, 4)]);
+    assert_eq!(positions, [(5, 15), (6, 22), (7, 20), (8, 4)]);
 }
 
 #[test]

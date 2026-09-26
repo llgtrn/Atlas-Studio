@@ -660,7 +660,8 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
         })
         .collect();
     for f in functions.values_mut() {
-        if f.kind != "CLOSURE" {
+        // G159: an async block is a deferred region like a closure.
+        if f.kind != "CLOSURE" && f.kind != "ASYNC_BLOCK" {
             continue;
         }
         let (parent, segment) = match f.scope.rsplit_once("::") {
