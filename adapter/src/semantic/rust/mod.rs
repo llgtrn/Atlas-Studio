@@ -1627,10 +1627,53 @@ impl<'a> ExtractionContext<'a> {
                 self.emit_type_identity(scope, &type_name, Some(type_span));
             }
             syn::Item::Mod(item_mod) => self.handle_mod(item_mod, scope),
-            // Everything else (`use`, `extern crate`, macro invocations at item position, foreign
-            // modules, trait aliases, ...) is out of scope for R4.3's minimum symbol/type/function
-            // set; it is neither claimed nor fabricated.
+            syn::Item::ForeignMod(foreign) => self.handle_foreign_mod(foreign, scope),
+            // Everything else (`use`, `extern crate`, macro invocations at item position, trait
+            // aliases, ...) is out of scope for R4.3's minimum symbol/type/function set; it is
+            // neither claimed nor fabricated.
             _ => {}
+        }
+    }
+
+    /// G154 (replay R3): the functions and statics an `extern "ABI" { ... }` block declares.
+    /// They are DECLARATIONS -- implemented outside the census -- with the block's ABI on each
+    /// signature and no body; a call to one crosses a language boundary.
+    fn handle_foreign_mod(&mut self, foreign: &syn::ItemForeignMod, scope: &SemanticScope) {
+        for item in &foreign.items {
+            match item {
+                syn::ForeignItem::Fn(item_fn) => {
+                    let mut sig = item_fn.sig.clone();
+                    sig.abi = Some(foreign.abi.clone());
+                    let span = self.span_of(item_fn);
+                    self.handle_function(
+                        &item_fn.sig.ident.to_string(),
+                        spelling::visibility_spelling(&item_fn.vis),
+                        &sig,
+                        None,
+                        scope,
+                        span,
+                        SymbolRole::Declaration,
+                        FunctionDeclarationKind::ForeignFunction,
+                        FunctionOwner::none(),
+                        spelling::documentation(&item_fn.attrs),
+                    );
+                }
+                syn::ForeignItem::Static(item_static) => {
+                    let span = self.span_of(item_static);
+                    self.emit_documented_symbol(
+                        scope,
+                        &item_static.ident.to_string(),
+                        SymbolRole::Declaration,
+                        span,
+                        spelling::documentation(&item_static.attrs),
+                    );
+                    let type_name = spelling::type_spelling(&item_static.ty);
+                    let type_span = self.span_of(item_static.ty.as_ref());
+                    self.emit_type_identity(scope, &type_name, Some(type_span));
+                }
+                // Foreign types and macros declare no function and no value.
+                _ => {}
+            }
         }
     }
 

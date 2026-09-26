@@ -748,6 +748,13 @@ fn path_attr(attrs: &[syn::Attribute]) -> Option<String> {
     })
 }
 
+/// G154: the file an item-position `include!("path")` names, relative to the including file's
+/// directory, when its argument is one string literal; `None` for a computed path.
+fn included_path(file: &str, mac: &syn::Macro) -> Option<String> {
+    let literal: syn::LitStr = syn::parse2(mac.tokens.clone()).ok()?;
+    Some(normalize(&join(dir_of(file), &literal.value())))
+}
+
 fn start(span: proc_macro2::Span) -> (usize, usize) {
     let start = span.start();
     (start.line, start.column)
@@ -1111,6 +1118,54 @@ impl DefMap {
                 // G145: an item-position macro defines what its expansion names; a workspace
                 // `macro_rules!` bounds that (`resolve_macro_calls`), anything else may define any
                 // name.
+                // G154 (replay R3): `include!("file.rs")` at item position splices that file's
+                // items into this module, as rustc does. Only a literal path relative to this
+                // file is followed; a computed one (`concat!`, `env!`) stays a macro call.
+                syn::Item::Macro(item)
+                    if item.ident.is_none()
+                        && item.mac.path.is_ident("include")
+                        && included_path(file, &item.mac)
+                            .is_some_and(|path| sources.contains_key(&path)) =>
+                {
+                    if let Some(path) = included_path(file, &item.mac) {
+                        self.collect_file(module, &path, child_dir, sources, parsed);
+                    }
+                }
+                // G154 (replay R3): functions and statics declared by `extern "ABI" { ... }`.
+                syn::Item::ForeignMod(foreign) => {
+                    for foreign_item in &foreign.items {
+                        match foreign_item {
+                            syn::ForeignItem::Fn(item_fn) => {
+                                let (line, column) = start(item_fn.span());
+                                let name = item_fn.sig.ident.to_string();
+                                let target = FnTarget {
+                                    path: file.to_owned(),
+                                    line,
+                                    column,
+                                    name: name.clone(),
+                                };
+                                self.add_item(
+                                    module,
+                                    Ns::Values,
+                                    &name,
+                                    Def::Fn(target),
+                                    &item_fn.vis,
+                                );
+                            }
+                            syn::ForeignItem::Static(item_static) => {
+                                let name = item_static.ident.to_string();
+                                self.add_item(
+                                    module,
+                                    Ns::Values,
+                                    &name,
+                                    Def::Value,
+                                    &item_static.vis,
+                                );
+                            }
+                            _ => {}
+                        }
+                    }
+                }
                 syn::Item::Macro(item) if item.ident.is_none() => {
                     let mut idents = BTreeSet::new();
                     stream_idents(item.mac.tokens.clone(), &mut idents);

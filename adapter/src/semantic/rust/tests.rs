@@ -7537,3 +7537,50 @@ fn a_declaration_is_recorded_on_definitions_and_never_changes_their_identity() {
     bare.documentation = None;
     assert_eq!(bare.identity_key(), e.identity_key());
 }
+
+/// G154 (replay R3, tree-sitter): the functions an `extern "C"` block declares are FUNCTION
+/// records of kind FOREIGN_FUNCTION -- DECLARATIONS with the block's ABI and no body -- and its
+/// statics are declared symbols; before, foreign modules were skipped and every call into them
+/// had no target.
+#[test]
+fn an_extern_block_declares_foreign_functions_with_their_abi_and_no_body() {
+    let batch = extract_all(
+        "src/ffi.rs",
+        "extern \"C\" {\n    /// Parses.\n    pub fn ts_parse(input: *const u8, len: usize) -> i32;\n    pub static VERSION: u32;\n}\n",
+    );
+    let signature = batch
+        .observations
+        .iter()
+        .find_map(|o| match o {
+            SemanticObservation::FunctionSignature(h)
+                if h.subject.function.symbol.name == "ts_parse" =>
+            {
+                Some(h.subject.clone())
+            }
+            _ => None,
+        })
+        .expect("the foreign function has a signature");
+    assert_eq!(
+        signature.function.declaration_kind,
+        FunctionDeclarationKind::ForeignFunction
+    );
+    assert_eq!(signature.function.symbol.role, SymbolRole::Declaration);
+    assert_eq!(signature.abi.as_deref(), Some("C"));
+    assert!(signature.is_extern);
+    assert_eq!(signature.body_fingerprint, None);
+    assert_eq!(signature.visibility, "pub");
+    assert_eq!(signature.parameters.len(), 2);
+    assert_eq!(signature.return_type.as_ref().unwrap().name, "i32");
+    assert_eq!(
+        signature
+            .function
+            .symbol
+            .documentation
+            .as_ref()
+            .unwrap()
+            .summary,
+        "Parses."
+    );
+    let version = find_symbol(&batch, &[], "VERSION").expect("the foreign static is declared");
+    assert_eq!(version.role, SymbolRole::Declaration);
+}

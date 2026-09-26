@@ -1696,7 +1696,41 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
     let unnamed_total: usize = functions.values().map(|f| f.unnamed_unresolved_calls).sum();
     let tests_inferred = functions.values().filter(|f| f.test_scope).count();
     let symbol_definitions = accounting.records.get("SYMBOL").copied().unwrap_or(0);
+    // G154 (replay R3): source files in a language no frontend recognizes are in the inventory
+    // (UNKNOWN) but in no component; the pilot is told they exist, by extension.
+    let mut unrecognized: BTreeMap<String, usize> = BTreeMap::new();
+    for artifact in &input.inventory.artifacts {
+        if artifact.disposition == crate::census::ArtifactDisposition::Unknown
+            && artifact.language.is_none()
+        {
+            let extension = artifact
+                .path
+                .rsplit_once('/')
+                .map_or(artifact.path.as_str(), |(_, name)| name)
+                .rsplit_once('.')
+                .map_or("(none)", |(_, extension)| extension);
+            *unrecognized
+                .entry(extension.to_ascii_lowercase())
+                .or_default() += 1;
+        }
+    }
+    let unrecognized_summary = unrecognized
+        .iter()
+        .map(|(extension, count)| format!("{extension} {count}"))
+        .collect::<Vec<_>>()
+        .join(", ");
     let gaps = vec![
+        UnderstandingGap {
+            id: "GAP-UNRECOGNIZED-SOURCE".into(),
+            question_class: "what do the files Atlas has no frontend for do?".into(),
+            missing: format!(
+                "artifacts in the inventory with no registered source frontend, in no component \
+                 (by extension: {unrecognized_summary}); a FOREIGN_FUNCTION's implementation may be \
+                 among them (G154)"
+            ),
+            magnitude: unrecognized.values().sum(),
+            debt: "DEBT-MULTILANGUAGE".into(),
+        },
         UnderstandingGap {
             id: "GAP-COMPONENT-PURPOSE".into(),
             question_class: "what is this component for?".into(),

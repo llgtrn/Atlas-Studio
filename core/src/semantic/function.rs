@@ -50,6 +50,11 @@ pub enum FunctionDeclarationKind {
     /// (possibly never, possibly by another caller) than the function that defines it. Named
     /// `{closure@line:column}` and scoped under `fn <enclosing region>`.
     Closure,
+    /// G154 (replay R3, tree-sitter): a function declared in an `extern "ABI" { ... }` block --
+    /// implemented outside the census, in another language or object. Its signature (with the
+    /// block's ABI) is observed; it has no body here, and a call to it crosses a language
+    /// boundary.
+    ForeignFunction,
 }
 
 impl FunctionDeclarationKind {
@@ -62,6 +67,7 @@ impl FunctionDeclarationKind {
             Self::TraitDefaultMethod => "TRAIT_DEFAULT_METHOD",
             Self::TraitImplementationMethod => "TRAIT_IMPLEMENTATION_METHOD",
             Self::Closure => "CLOSURE",
+            Self::ForeignFunction => "FOREIGN_FUNCTION",
         }
     }
 }

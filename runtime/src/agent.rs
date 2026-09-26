@@ -556,6 +556,52 @@ fn run(s: &core::store::Store) { s.save(); }
         model.functions.iter().find(|f| f.name == name).unwrap()
     }
 
+    /// G154 (replay R3, tree-sitter): source files in a language no frontend recognizes are in
+    /// no component, and the world model says so by extension instead of leaving the pilot to
+    /// believe the repository is only what it censused.
+    #[test]
+    fn unrecognized_source_is_an_understanding_gap_by_extension() {
+        let dir = fixture("unrecognized", ADL, CORE_LIB);
+        std::fs::create_dir_all(dir.join("native")).unwrap();
+        std::fs::write(
+            dir.join("native/parser.c"),
+            "int parse(void) { return 0; }\n",
+        )
+        .unwrap();
+        std::fs::write(dir.join("native/parser.h"), "int parse(void);\n").unwrap();
+        let model = world_model(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let gap = model
+            .gaps
+            .iter()
+            .find(|g| g.id == "GAP-UNRECOGNIZED-SOURCE")
+            .unwrap();
+        let listed = gap.missing.split("by extension: ").nth(1).unwrap();
+        let extensions: Vec<&str> = listed
+            .split(')')
+            .next()
+            .unwrap()
+            .split(", ")
+            .filter_map(|e| e.split(' ').next())
+            .collect();
+        assert!(
+            extensions.contains(&"c") && extensions.contains(&"h"),
+            "{gap:?}"
+        );
+        assert!(
+            !extensions.contains(&"rs") && !extensions.contains(&"toml"),
+            "a recognized file is never counted: {gap:?}"
+        );
+        assert_eq!(gap.debt, "DEBT-MULTILANGUAGE");
+        assert!(
+            !model
+                .components
+                .iter()
+                .any(|c| c.path.starts_with("native/")),
+            "no component is invented for an unrecognized file"
+        );
+    }
+
     #[test]
     fn composition_joins_every_dimension_into_function_component_subsystem_and_architecture() {
         let model = model_of("compose", ADL, CORE_LIB);

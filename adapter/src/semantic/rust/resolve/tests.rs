@@ -836,3 +836,35 @@ fn lifetime_parameters_never_change_which_method_a_receiver_reaches() {
     .collect();
     assert_eq!(outcomes(&results, "src/lib.rs"), expect);
 }
+
+/// G154 (replay R3, tree-sitter): a function declared in an `extern "C"` block is a call target,
+/// and an item-position `include!("bindings.rs")` splices that file's items into the including
+/// module -- as the tree-sitter Rust binding reaches `ffi::ts_parser_parse_with_options`. A
+/// computed `include!(concat!(..))` is not followed.
+#[test]
+fn foreign_functions_resolve_through_a_literal_include() {
+    let lib = "pub mod ffi;\npub fn parse() {\n    unsafe { ffi::ts_parse(); }\n    ffi::local();\n    unsafe { ffi::hidden(); }\n}\n";
+    let ffi = "include!(\"./bindings.rs\");\ninclude!(concat!(env!(\"OUT_DIR\"), \"/generated.rs\"));\nextern \"C\" {\n    pub fn local();\n}\n";
+    let bindings = "extern \"C\" {\n    /// Parses.\n    pub fn ts_parse();\n    pub static VERSION: u32;\n}\n";
+    let generated = "extern \"C\" {\n    pub fn hidden();\n}\n";
+    let results = resolve(
+        &[
+            ("src/lib.rs", lib),
+            ("src/ffi.rs", ffi),
+            ("src/bindings.rs", bindings),
+            ("src/generated.rs", generated),
+        ],
+        "src/lib.rs",
+    );
+    let found = outcomes(&results, "src/lib.rs");
+    assert_eq!(
+        found[0],
+        ("ffi::ts_parse".into(), "src/bindings.rs:2:ts_parse".into())
+    );
+    assert_eq!(found[1], ("ffi::local".into(), "src/ffi.rs:4:local".into()));
+    assert_eq!(found[2].0, "ffi::hidden");
+    assert!(
+        found[2].1.starts_with("unresolved"),
+        "a computed include is never followed: {found:?}"
+    );
+}
