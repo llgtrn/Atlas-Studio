@@ -3164,7 +3164,7 @@ intended_change = "benchmark B20 (G146) asserted atlas_of reads no typed_semanti
 debts = "DEBT-ATLAS_COMPLETENESS last advance G147, M3_SINGLE_ENGINE_BOUNDED (interning tables, DESIGN and compression remain); construction node M1 EXISTS; DEBT-SELECTED_DESIGN and DEBT-SEAL_GATE no longer blocked by it; revalidation milestone TYPED_ATLAS_SECTIONS; next native head NA-SELECTED-DESIGN (M7)"
 correction = "G145 recorded construction nodes M5 and M6 as EXISTS, but the edit went to a generated copy of the construction graph and never reached the ledger; G147 applies it at the graph's source (M5, M6 and M1 EXISTS) and amends ADR 0062"
 review = "DEBT-EPISTEMIC_UNIFICATION confirmed (evidence/census/G147/debt-review.json)"
-proof = "PROVEN (post 39457dac...): the dependency core -> serde_json declared in the intent; no unexplained UNKNOWN"
+proof = "PROVEN (post f2c02fb1..., re-proved after the ADR 0062 amendment added a censused document heading; the first proof, 39457dac..., preceded it): the dependency core -> serde_json declared in the intent; no unexplained UNKNOWN"
 
 [[generation.metric]]
 key = "typed_records"

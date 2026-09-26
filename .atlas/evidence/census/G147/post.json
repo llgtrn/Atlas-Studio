@@ -1,8 +1,8 @@
 {
   "schema": "atlas.census-snapshot.v3",
-  "revision": "fa8bf573c67792167342e5ea479fa78bb70150e4",
-  "dirty": true,
-  "census_digest": "blake3-256:39457dac8887823e831314eb0f5d0fd02dec703fda57049041cb7f8dd2d26022",
+  "revision": "a1d12a30b41539ba2564c321b33a4f963c5ab00a",
+  "dirty": false,
+  "census_digest": "blake3-256:f2c02fb129a51a2ab7d29296cb3a0aee9702c8f45f6982458ceb0a097fdd0433",
   "artifacts": [
     {
       "path": "adapter/Cargo.toml",
@@ -5921,8 +5921,8 @@
     "evidence": 151198,
     "facts": 24767,
     "graph_bindings": 196,
-    "graph_edges": 205632,
-    "graph_nodes": 158405,
+    "graph_edges": 205633,
+    "graph_nodes": 158406,
     "normalization_conflicts": 0,
     "normalized_facts": 24767,
     "obligations": 2144,
