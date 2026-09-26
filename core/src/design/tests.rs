@@ -40,6 +40,7 @@ fn container() -> CensusAtlas {
         typed_records: fixture.typed_records,
         evidence: fixture.evidence,
         diagnostics: fixture.diagnostics,
+        seal: None,
     };
     atlas.canonicalize();
     atlas

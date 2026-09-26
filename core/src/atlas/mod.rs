@@ -1,16 +1,20 @@
 //! Minimum `.atlas` container: ATLAS binary wire v1 writer, reader and validator (G64, ADR 0027).
 //!
-//! Implements `.atlas/contracts/ATLAS-BINARY-WIRE-FORMAT.md` for one shape: an **unsealed census
-//! container** that packages a census's validated semantic state -- its facts, typed obligations,
-//! the declared ADL graph and its CensusCertificate. No seal gate exists yet, so the writer refuses
-//! to produce anything else: the header carries `FLAG_UNSEALED` and the root manifest says
-//! `UNSEALED_CENSUS_CONTAINER` (contract: a candidate/unsealed root "MUST NOT be advertised as
-//! canonical sealed `*.atlas`").
+//! Implements `.atlas/contracts/ATLAS-BINARY-WIRE-FORMAT.md` for a **census container** that
+//! packages a census's validated semantic state -- its facts, typed obligations, the declared ADL
+//! graph and its CensusCertificate. Until G161 only the unsealed shape existed: the header carries
+//! `FLAG_UNSEALED` and the root manifest says `UNSEALED_CENSUS_CONTAINER` (contract: a
+//! candidate/unsealed root "MUST NOT be advertised as canonical sealed `*.atlas`"). G161 (M9, ADR
+//! 0076) adds the sealed shape: `FLAG_SEALED`, `SEALED_CENSUS_CONTAINER`, and a SEAL section
+//! carrying the `SealRecord` only the seal gate (`crate::seal::gate`) produces. The writer refuses
+//! a seal record that does not bind this container's certificate, census and revision or leaves a
+//! certificate blocker unpermitted; the reader rejects the same.
 //!
 //! The wire contract leaves several encodings undefined; this module pins them (ADR 0027):
 //! - varints are unsigned LEB128, at most 10 bytes, minimally encoded;
 //! - field wire types reuse the AtlasX wire table (1 UVARINT, 6 UTF8, 7 HASH32, 9 LOCAL_INDEX);
-//! - `field_flags` bit 0 is REQUIRED; header `flags` bit 0 is UNSEALED;
+//! - `field_flags` bit 0 is REQUIRED; header `flags` is exactly UNSEALED (bit 0) or, from G161,
+//!   exactly SEALED (bit 1);
 //! - `schema_id` = the first 8 bytes (little-endian) of BLAKE3 over the section's declared
 //!   definition (`schema::definition_text`, G68); a reader also accepts every recorded earlier
 //!   definition that conforms to the current one (`schema::accepted_schema_ids`, G86);
@@ -34,14 +38,22 @@ pub const MAGIC: [u8; 8] = *b"ATLAS\0\x01\0";
 pub const HEADER_LEN: usize = 72;
 pub const FORMAT_MAJOR: u16 = 1;
 /// G147: minor 1 adds the EVIDENCE and DIAGNOSTICS sections and the typed record kinds; a
-/// minor-0 container (no typed content) still reads.
-pub const FORMAT_MINOR: u16 = 1;
+/// minor-0 container (no typed content) still reads. G161: minor 2 adds the SEAL section; only a
+/// sealed container is written as minor 2, so an unsealed container keeps the bytes a minor-1
+/// reader reads.
+pub const FORMAT_MINOR: u16 = 2;
+/// G161: the minor of an unsealed container.
+pub const FORMAT_MINOR_UNSEALED: u16 = 1;
 pub const FLAG_UNSEALED: u16 = 1;
+/// G161 (M9): the container carries a seal the seal gate decided.
+pub const FLAG_SEALED: u16 = 2;
 pub const DIGEST_BLAKE3_256: u16 = 1;
 pub const COMPRESSION_NONE: u16 = 0;
 pub const DIRECTORY_ENTRY_LEN: usize = 80;
-/// The only seal status this writer may produce.
+/// The seal status of a container without a seal.
 pub const UNSEALED: &str = "UNSEALED_CENSUS_CONTAINER";
+/// G161 (M9): the seal status of a container carrying a gate-produced `SealRecord`.
+pub const SEALED: &str = "SEALED_CENSUS_CONTAINER";
 const RECORD_SCHEMA_VERSION: u16 = 1;
 const REQUIRED: u8 = 1;
 
@@ -54,6 +66,8 @@ pub const EVIDENCE: u16 = 10;
 pub const DIAGNOSTICS: u16 = 11;
 pub const OBLIGATIONS: u16 = 12;
 pub const CENSUS_CERTIFICATE: u16 = 17;
+/// G161 (M9): the seal record of a SEALED container; present exactly when the container is sealed.
+pub const SEAL: u16 = 18;
 
 const WIRE_UVARINT: u8 = 1;
 const WIRE_UTF8: u8 = 6;
@@ -152,6 +166,8 @@ pub struct CensusAtlas {
     pub evidence: Vec<Evidence>,
     /// G147: the census's extraction diagnostics, by id.
     pub diagnostics: Vec<ExtractionDiagnostic>,
+    /// G161 (M9): the seal record, exactly when `manifest.seal` is `SEALED`.
+    pub seal: Option<crate::seal::SealRecord>,
 }
 
 /// G147: a typed record's canonical order key: its serde value as compact JSON text (object keys
@@ -483,12 +499,45 @@ fn section(kind: u16, records: Vec<Record>) -> Section {
     }
 }
 
-/// Encodes a canonical, unsealed census container. The output is a pure function of `atlas`.
+/// The container a seal record must bind, as the root manifest states it. `check_record` never
+/// reads `root_id` (a seal changes the root manifest, so the sealed root differs from the unsealed
+/// one the design selected), so it is left empty here.
+pub fn seal_binding(manifest: &RootManifest) -> crate::seal::ContainerBinding {
+    crate::seal::ContainerBinding {
+        root_id: String::new(),
+        census_digest: IntegrityDigest::blake3_256(&manifest.census_digest)
+            .as_str()
+            .to_owned(),
+        revision: manifest.revision.clone(),
+        certificate_id: manifest.certificate_id.clone(),
+    }
+}
+
+/// G161: every reason the seal status, header flag and seal record of `atlas` disagree.
+fn seal_problems(atlas: &CensusAtlas) -> Vec<String> {
+    match (atlas.manifest.seal.as_str(), &atlas.seal) {
+        (UNSEALED, None) => Vec::new(),
+        (UNSEALED, Some(_)) => vec![format!("an {UNSEALED} container carries a seal record")],
+        (SEALED, None) => vec![format!("a {SEALED} container carries no seal record")],
+        (SEALED, Some(record)) => crate::seal::check_record(
+            record,
+            &seal_binding(&atlas.manifest),
+            &atlas.certificate.blockers,
+        ),
+        (other, _) => vec![format!(
+            "seal status `{other}` is not {UNSEALED} or {SEALED}"
+        )],
+    }
+}
+
+/// Encodes a canonical census container: unsealed, or sealed by a record the seal gate produced
+/// for exactly this container. The output is a pure function of `atlas`.
 pub fn write(atlas: &CensusAtlas) -> Result<Vec<u8>, AtlasError> {
-    if atlas.manifest.seal != UNSEALED {
+    let problems = seal_problems(atlas);
+    if !problems.is_empty() {
         return Err(AtlasError::Refused(format!(
-            "seal status `{}`: no seal gate exists, only {UNSEALED} may be written",
-            atlas.manifest.seal
+            "seal: {}",
+            problems.join("; ")
         )));
     }
     let content = atlas
@@ -655,6 +704,31 @@ fn encode_content(atlas: &CensusAtlas, content: &TypedContent, id: impl Fn(u16) 
             .collect(),
         ),
     ];
+    if let Some(seal) = &atlas.seal {
+        body.push(section(
+            SEAL,
+            std::iter::once(
+                Record::of(SEAL, 1)
+                    .text("schema", &seal.schema)
+                    .text("seal_id", &seal.seal_id)
+                    .text("scope", &seal.scope)
+                    .text("policy_id", &seal.policy_id)
+                    .text("certificate_id", &seal.certificate_id)
+                    .text("census_digest", &seal.census_digest)
+                    .text("revision", &seal.revision)
+                    .text("verification_report", &seal.verification_report)
+                    .text("integrity_report", &seal.integrity_report)
+                    .text("integrity_envelope", &seal.integrity_envelope)
+                    .text("design_id", &seal.design_id),
+            )
+            .chain(
+                seal.permitted
+                    .iter()
+                    .map(|p| Record::of(SEAL, 2).text("text", p)),
+            )
+            .collect(),
+        ));
+    }
     let m = &atlas.manifest;
     let mut manifest = vec![
         Record::of(ROOT_MANIFEST, 1)
@@ -703,8 +777,18 @@ fn encode_content(atlas: &CensusAtlas, content: &TypedContent, id: impl Fn(u16) 
     header[0..8].copy_from_slice(&MAGIC);
     header[8..10].copy_from_slice(&(HEADER_LEN as u16).to_le_bytes());
     header[10..12].copy_from_slice(&FORMAT_MAJOR.to_le_bytes());
-    header[12..14].copy_from_slice(&FORMAT_MINOR.to_le_bytes());
-    header[14..16].copy_from_slice(&FLAG_UNSEALED.to_le_bytes());
+    let minor = if atlas.seal.is_some() {
+        FORMAT_MINOR
+    } else {
+        FORMAT_MINOR_UNSEALED
+    };
+    header[12..14].copy_from_slice(&minor.to_le_bytes());
+    let flags = if atlas.seal.is_some() {
+        FLAG_SEALED
+    } else {
+        FLAG_UNSEALED
+    };
+    header[14..16].copy_from_slice(&flags.to_le_bytes());
     header[16..18].copy_from_slice(&DIGEST_BLAKE3_256.to_le_bytes());
     header[18..20].copy_from_slice(&COMPRESSION_NONE.to_le_bytes());
     header[20..52].copy_from_slice(&m.genome_hash);
@@ -977,7 +1061,7 @@ fn read_with_history(
         return reject(format!("unknown format minor version {minor}"));
     }
     let flags = u16_at(bytes, 14);
-    if flags & !FLAG_UNSEALED != 0 {
+    if flags != FLAG_UNSEALED && flags != FLAG_SEALED {
         return reject(format!("unknown header flags {flags:#06x}"));
     }
     // 4. algorithm support.
@@ -1104,8 +1188,29 @@ fn read_with_history(
     if manifest.genome_hash != genome_hash {
         return reject("header genome hash differs from the root manifest");
     }
-    if manifest.seal != UNSEALED || flags & FLAG_UNSEALED == 0 {
-        return reject("only unsealed census containers are defined; a seal needs a seal gate");
+    let sealed = match (manifest.seal.as_str(), flags) {
+        (UNSEALED, FLAG_UNSEALED) => false,
+        (SEALED, FLAG_SEALED) => true,
+        (seal, _) => {
+            return reject(format!(
+                "seal status `{seal}` and header flags {flags:#06x} do not agree"
+            ));
+        }
+    };
+    // A new section type needs a new minor (G97): the SEAL section is minor 2, and minor 2 is
+    // only ever a sealed container.
+    if sealed != (minor == FORMAT_MINOR) {
+        return reject(format!(
+            "format minor {minor} with seal status `{}`",
+            manifest.seal
+        ));
+    }
+    if entries.iter().any(|e| e.kind == SEAL) != sealed {
+        return reject(if sealed {
+            "a sealed container carries no seal section"
+        } else {
+            "an unsealed container carries a seal section"
+        });
     }
     // The manifest commits to exactly the other sections.
     let mut committed = Vec::new();
@@ -1275,6 +1380,41 @@ fn read_with_history(
     if certificate.certificate_id != manifest.certificate_id {
         return reject("certificate section differs from the root manifest's certificate id");
     }
+    // G161 (M9): the seal record, re-checked against this container -- never trusted.
+    let seal = if sealed {
+        let seal_records = records_of(SEAL)?;
+        let Some((seal_head, permitted_records)) = seal_records.split_first() else {
+            return reject("empty seal section");
+        };
+        expect_kind(seal_head, 1, SEAL)?;
+        let s = Fields::new(seal_head, SEAL)?;
+        let mut record = crate::seal::SealRecord {
+            schema: s.utf8("schema")?,
+            seal_id: s.utf8("seal_id")?,
+            scope: s.utf8("scope")?,
+            policy_id: s.utf8("policy_id")?,
+            certificate_id: s.utf8("certificate_id")?,
+            census_digest: s.utf8("census_digest")?,
+            revision: s.utf8("revision")?,
+            verification_report: s.utf8("verification_report")?,
+            integrity_report: s.utf8("integrity_report")?,
+            integrity_envelope: s.utf8("integrity_envelope")?,
+            design_id: s.utf8("design_id")?,
+            permitted: Vec::new(),
+        };
+        for r in permitted_records {
+            expect_kind(r, 2, SEAL)?;
+            record.permitted.push(Fields::new(r, SEAL)?.utf8("text")?);
+        }
+        let problems =
+            crate::seal::check_record(&record, &seal_binding(&manifest), &certificate.blockers);
+        if !problems.is_empty() {
+            return reject(format!("seal: {}", problems.join("; ")));
+        }
+        Some(record)
+    } else {
+        None
+    };
     let atlas = CensusAtlas {
         manifest,
         facts,
@@ -1285,9 +1425,25 @@ fn read_with_history(
         typed_records,
         evidence,
         diagnostics,
+        seal,
     };
     if !atlas.is_canonical_except_typed() || !strictly_sorted(&typed_keys) {
         return reject("records are not in canonical order");
+    }
+    // G161: a reader verifying a SEALED root rejects fields its schema does not declare
+    // (contract: "Readers skip them for forward compatibility ... a reader verifying a SEALED
+    // root MUST reject them"). A sealed container must be exactly its own canonical encoding
+    // under the schema identities it carries -- every byte accounted for by declared content.
+    if sealed {
+        let recorded: BTreeMap<u16, u64> = entries.iter().map(|e| (e.kind, e.schema)).collect();
+        let canonical = atlas
+            .typed_content()
+            .map(|typed| encode_content(&atlas, &typed, |kind| recorded[&kind]));
+        if canonical.as_deref() != Ok(bytes) {
+            return reject(
+                "a sealed container is not its own canonical encoding (undeclared fields)",
+            );
+        }
     }
     Ok((atlas, root_identity(content(manifest_entry))))
 }

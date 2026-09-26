@@ -61,6 +61,7 @@ fn sample() -> CensusAtlas {
         typed_records: fixture().typed_records,
         evidence: fixture().evidence,
         diagnostics: fixture().diagnostics,
+        seal: None,
     };
     atlas.canonicalize();
     atlas
@@ -151,6 +152,13 @@ fn the_writer_refuses_a_seal_it_cannot_prove_and_non_canonical_content() {
     let mut sealed = sample();
     sealed.manifest.seal = "SEALED".into();
     assert!(matches!(write(&sealed), Err(AtlasError::Refused(_))));
+    // G161: a SEALED status without the gate's record is refused too.
+    let mut unrecorded = sample();
+    unrecorded.manifest.seal = SEALED.into();
+    assert!(matches!(
+        write(&unrecorded),
+        Err(AtlasError::Refused(why)) if why.contains("carries no seal record")
+    ));
     let mut unordered = sample();
     unordered.facts.reverse();
     assert!(matches!(write(&unordered), Err(AtlasError::Refused(_))));
@@ -234,7 +242,16 @@ fn reader_steps_reject_with_their_reason() {
     );
     assert_eq!(
         rejected(&with(14, &0u16.to_le_bytes())),
-        "only unsealed census containers are defined; a seal needs a seal gate"
+        "unknown header flags 0x0000"
+    );
+    assert_eq!(
+        rejected(&with(14, &3u16.to_le_bytes())),
+        "unknown header flags 0x0003"
+    );
+    // G161: a sealed flag on an unsealed root manifest.
+    assert_eq!(
+        rejected(&with(14, &FLAG_SEALED.to_le_bytes())),
+        "seal status `UNSEALED_CENSUS_CONTAINER` and header flags 0x0002 do not agree"
     );
     assert_eq!(
         rejected(&with(20, &[0u8; 32])),
@@ -249,8 +266,8 @@ fn reader_steps_reject_with_their_reason() {
         "non-zero section flags or reserved field"
     );
     assert_eq!(
-        rejected(&with(last, &18u16.to_le_bytes())),
-        "unknown section type 18"
+        rejected(&with(last, &19u16.to_le_bytes())),
+        "unknown section type 19"
     );
     // Swapping two directory entries breaks the canonical directory order.
     let mut swapped = bytes.clone();
@@ -874,8 +891,15 @@ fn typed_forgeries_are_rejected_by_the_reader() {
     assert!(rejected(&encode(&dangling, schema_id)).contains("resolves to no evidence record"));
     // A minor this reader does not know, and typed content under minor 0.
     let mut minor = bytes.clone();
-    minor[12..14].copy_from_slice(&2u16.to_le_bytes());
-    assert_eq!(rejected(&minor), "unknown format minor version 2");
+    minor[12..14].copy_from_slice(&3u16.to_le_bytes());
+    assert_eq!(rejected(&minor), "unknown format minor version 3");
+    // G161: minor 2 is the sealed container's.
+    let mut minor2 = bytes.clone();
+    minor2[12..14].copy_from_slice(&2u16.to_le_bytes());
+    assert_eq!(
+        rejected(&minor2),
+        "format minor 2 with seal status `UNSEALED_CENSUS_CONTAINER`"
+    );
     let mut minor0 = bytes.clone();
     minor0[12..14].copy_from_slice(&0u16.to_le_bytes());
     assert!(rejected(&minor0).contains("outside a typed record"));
@@ -977,4 +1001,221 @@ fn a_changed_field_shape_does_not_conform() {
             "{to}"
         );
     }
+}
+
+// --- G161 (M9): SEALED containers carry the seal gate's record, re-checked on read ------------
+
+/// A seal record for `sample()`, as the seal gate would stamp it (its identity verifies, it binds
+/// the sample's certificate, census and revision, and it permits every certificate blocker).
+fn seal_for(atlas: &CensusAtlas) -> crate::seal::SealRecord {
+    let binding = seal_binding(&atlas.manifest);
+    let mut record = crate::seal::SealRecord {
+        schema: crate::seal::gate::SEAL_RECORD_SCHEMA_VERSION.into(),
+        seal_id: String::new(),
+        scope: "fixture".into(),
+        policy_id: "seal-policy:fixture".into(),
+        certificate_id: binding.certificate_id,
+        census_digest: binding.census_digest,
+        revision: binding.revision,
+        verification_report: "blake3-256:verification".into(),
+        integrity_report: "integrity:fixture".into(),
+        integrity_envelope: "envelope:fixture".into(),
+        design_id: "design:fixture".into(),
+        permitted: atlas
+            .certificate
+            .blockers
+            .iter()
+            .map(|b| format!("{b}: permitted by the fixture policy"))
+            .collect(),
+    };
+    record.seal_id = crate::seal::seal_identity(&record);
+    record
+}
+
+fn sealed_sample() -> CensusAtlas {
+    let mut atlas = sample();
+    atlas.manifest.seal = SEALED.into();
+    atlas.seal = Some(seal_for(&atlas));
+    atlas
+}
+
+#[test]
+fn a_sealed_container_round_trips_with_its_seal_record() {
+    let atlas = sealed_sample();
+    let bytes = write(&atlas).unwrap();
+    assert_eq!(u16_at(&bytes, 14), FLAG_SEALED);
+    assert_eq!(
+        u16_at(&bytes, 12),
+        FORMAT_MINOR,
+        "the SEAL section is minor 2"
+    );
+    assert_eq!(
+        u16_at(&write(&sample()).unwrap(), 12),
+        FORMAT_MINOR_UNSEALED,
+        "an unsealed container keeps minor 1"
+    );
+    let mut minor1 = bytes.clone();
+    minor1[12..14].copy_from_slice(&FORMAT_MINOR_UNSEALED.to_le_bytes());
+    assert_eq!(
+        rejected(&minor1),
+        "format minor 1 with seal status `SEALED_CENSUS_CONTAINER`"
+    );
+    let (decoded, root) = read(&bytes).unwrap();
+    assert_eq!(decoded, atlas);
+    assert_eq!(
+        write(&decoded).unwrap(),
+        bytes,
+        "re-encoding is byte-identical"
+    );
+    // The seal is part of the root identity: the sealed root is not the unsealed one.
+    let (_, unsealed_root) = read(&write(&sample()).unwrap()).unwrap();
+    assert_ne!(root, unsealed_root);
+    // Every byte of a sealed container is load-bearing too.
+    let mut compact = compact_sample();
+    compact.manifest.seal = SEALED.into();
+    compact.seal = Some(seal_for(&compact));
+    let bytes = write(&compact).unwrap();
+    for at in 0..bytes.len() {
+        let mut corrupt = bytes.clone();
+        corrupt[at] ^= 0x01;
+        assert!(read(&corrupt).is_err(), "flipping byte {at} was accepted");
+    }
+}
+
+type Edit = dyn Fn(&mut CensusAtlas);
+
+#[test]
+fn the_writer_refuses_and_the_reader_rejects_a_seal_that_does_not_bind_its_container() {
+    let cases: Vec<(&str, Box<Edit>)> = vec![
+        (
+            "the seal identity does not verify",
+            Box::new(|a| a.seal.as_mut().unwrap().seal_id = "blake3-256:forged".into()),
+        ),
+        (
+            "unknown seal record schema",
+            Box::new(|a| {
+                let seal = a.seal.as_mut().unwrap();
+                seal.schema = "atlas.seal-record.v0".into();
+                seal.seal_id = crate::seal::seal_identity(seal);
+            }),
+        ),
+        (
+            "the seal binds another certificate, census or revision",
+            Box::new(|a| {
+                let seal = a.seal.as_mut().unwrap();
+                seal.revision = "git:other".into();
+                seal.seal_id = crate::seal::seal_identity(seal);
+            }),
+        ),
+        (
+            "is open and the seal did not permit it",
+            Box::new(|a| {
+                let seal = a.seal.as_mut().unwrap();
+                seal.permitted.pop();
+                seal.seal_id = crate::seal::seal_identity(seal);
+            }),
+        ),
+        (
+            // A blocker added after the seal was decided is not covered by it.
+            "is open and the seal did not permit it",
+            Box::new(|a| {
+                a.certificate
+                    .blockers
+                    .push("ZZZ_NEW: after the seal".into());
+                a.canonicalize();
+            }),
+        ),
+    ];
+    for (reason, edit) in cases {
+        let mut atlas = sealed_sample();
+        edit(&mut atlas);
+        assert!(
+            matches!(write(&atlas), Err(AtlasError::Refused(why)) if why.contains(reason)),
+            "writer accepted: {reason}"
+        );
+        let hostile = encode(&atlas, schema_id);
+        assert!(
+            rejected(&hostile).contains(reason),
+            "reader accepted: {reason}"
+        );
+    }
+}
+
+#[test]
+fn seal_status_flag_and_section_must_agree() {
+    // An unsealed manifest with a seal record: refused, and the encoding flags it SEALED, which
+    // the manifest contradicts.
+    let mut stray = sample();
+    stray.seal = Some(seal_for(&stray));
+    assert!(matches!(
+        write(&stray),
+        Err(AtlasError::Refused(why)) if why.contains("carries a seal record")
+    ));
+    let bytes = encode(&stray, schema_id);
+    assert_eq!(
+        rejected(&bytes),
+        "seal status `UNSEALED_CENSUS_CONTAINER` and header flags 0x0002 do not agree"
+    );
+    // The header flag is not hashed; forcing it to UNSEALED leaves the seal section stray.
+    let mut forced = bytes.clone();
+    forced[14..16].copy_from_slice(&FLAG_UNSEALED.to_le_bytes());
+    forced[12..14].copy_from_slice(&FORMAT_MINOR_UNSEALED.to_le_bytes());
+    assert_eq!(
+        rejected(&forced),
+        "an unsealed container carries a seal section"
+    );
+    // A sealed manifest without its section.
+    let mut bare = sample();
+    bare.manifest.seal = SEALED.into();
+    let mut bytes = encode(&bare, schema_id);
+    assert_eq!(
+        rejected(&bytes),
+        "seal status `SEALED_CENSUS_CONTAINER` and header flags 0x0001 do not agree"
+    );
+    bytes[14..16].copy_from_slice(&FLAG_SEALED.to_le_bytes());
+    bytes[12..14].copy_from_slice(&FORMAT_MINOR.to_le_bytes());
+    assert_eq!(
+        rejected(&bytes),
+        "a sealed container carries no seal section"
+    );
+    // Any other status is refused.
+    let mut other = sealed_sample();
+    other.manifest.seal = "SEALED".into();
+    assert!(matches!(
+        write(&other),
+        Err(AtlasError::Refused(why)) if why.contains("is not UNSEALED_CENSUS_CONTAINER or")
+    ));
+}
+
+#[test]
+fn an_undeclared_optional_field_is_skipped_unsealed_and_rejected_sealed() {
+    // Contract: readers skip unknown optional fields for forward compatibility, but "a reader
+    // verifying a SEALED root MUST reject them".
+    let undeclared = |content: &mut Vec<u8>| {
+        let len = u32_at(content, 4);
+        // tag 99, wire UVARINT, optional, 1 byte: 5.
+        let field = [99, 0, WIRE_UVARINT, 0, 1, 0, 0, 0, 5];
+        let end = 8 + len as usize;
+        content.splice(end..end, field);
+        content[4..8].copy_from_slice(&(len + field.len() as u32).to_le_bytes());
+    };
+    let unsealed = write(&compact_sample()).unwrap();
+    let (decoded, _) = read(&resealed(&unsealed, GRAPH_NODES, true, undeclared)).unwrap();
+    assert_eq!(decoded, compact_sample(), "skipped, content unchanged");
+    let mut sealed = compact_sample();
+    sealed.manifest.seal = SEALED.into();
+    sealed.seal = Some(seal_for(&sealed));
+    let bytes = write(&sealed).unwrap();
+    assert!(
+        read(&resealed(&bytes, GRAPH_NODES, true, |_| {})).is_ok(),
+        "the reseal helper preserves a valid sealed container"
+    );
+    assert_eq!(
+        rejected(&resealed(&bytes, GRAPH_NODES, true, undeclared)),
+        "a sealed container is not its own canonical encoding (undeclared fields)"
+    );
+    assert_eq!(
+        rejected(&resealed(&bytes, SEAL, true, undeclared)),
+        "a sealed container is not its own canonical encoding (undeclared fields)"
+    );
 }

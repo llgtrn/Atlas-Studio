@@ -234,6 +234,11 @@ pub const BOUNDARY_TEXT: &[(&str, &str, &str)] = &[
         "an .atlas container record; a CertificateState name",
     ),
     (
+        "CertificateBinding",
+        "state",
+        "the seal gate's view of a container's certificate (G161); a CertificateState name, checked CLOSED or SEALED",
+    ),
+    (
         "PackOutcome",
         "certificate_state",
         "the packed container's certificate state, as recorded",

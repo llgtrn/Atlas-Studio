@@ -131,6 +131,7 @@ pub fn atlas_of(
         typed_records: census.typed_semantic_records.clone(),
         evidence: census.evidence.clone(),
         diagnostics: census.diagnostics.clone(),
+        seal: None,
     };
     atlas.canonicalize();
     // Canonicalization deduplicates; a census whose records collapse is not packaged silently.

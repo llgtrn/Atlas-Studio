@@ -333,7 +333,11 @@ ADR 0027 pins what this contract leaves undefined:
 - root identity = BLAKE3 over the ROOT_MANIFEST content, which commits to every other section's type, schema id, content hash and record count;
 - canonical record order and exact file tiling, both enforced by the reader.
 
-Deferred: sealing, compression, sharding and FAT mode.
+Deferred: compression, sharding and FAT mode.
+
+### Sealed census container (G161, ADR 0076)
+
+A sealed container sets header flag bit 1 `SEALED` (flags are exactly UNSEALED or exactly SEALED), the manifest seal `SEALED_CENSUS_CONTAINER`, and format minor 2; it carries section 18 `seal-record`: the `SealRecord` the seal gate (`atlas_core::seal::gate`) produced for exactly this container, then one `permitted` record per certificate blocker the policy permitted. An unsealed container stays minor 1 and carries no seal section. The writer refuses, and the reader rejects, a seal record whose identity does not verify, that binds another certificate, census digest or revision, or that leaves a certificate blocker unpermitted. A reader verifying a sealed root requires it to be exactly its own canonical encoding under the schema identities it carries, so an undeclared field is rejected there while unsealed readers still skip unknown optional fields.
 
 ### Typed records (G147, ADR 0063)
 

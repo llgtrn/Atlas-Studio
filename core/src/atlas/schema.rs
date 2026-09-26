@@ -16,7 +16,7 @@
 
 use super::{
     CENSUS_CERTIFICATE, DIAGNOSTICS, EVIDENCE, GRAPH_EDGES, GRAPH_NODES, OBLIGATIONS,
-    ROOT_MANIFEST, SEMANTIC_RECORDS, STRING_TABLE, WIRE_BOOL, WIRE_HASH32, WIRE_LOCAL_INDEX,
+    ROOT_MANIFEST, SEAL, SEMANTIC_RECORDS, STRING_TABLE, WIRE_BOOL, WIRE_HASH32, WIRE_LOCAL_INDEX,
     WIRE_PACKED, WIRE_RECORD, WIRE_UTF8, WIRE_UVARINT,
 };
 use crate::identity::blake3;
@@ -641,6 +641,37 @@ pub const SECTIONS: &[SectionDef] = &[
             },
         ],
         depends_on: &[STRING_TABLE],
+    },
+    // G161 (M9, ADR 0076): the seal record of a SEALED container, inline text (no string table:
+    // the seal names identities, not census content).
+    SectionDef {
+        section: SEAL,
+        name: "seal-record",
+        records: &[
+            RecordDef {
+                kind: 1,
+                name: "seal",
+                fields: &[
+                    req("schema", 1, WIRE_UTF8),
+                    req("seal_id", 2, WIRE_UTF8),
+                    req("scope", 3, WIRE_UTF8),
+                    req("policy_id", 4, WIRE_UTF8),
+                    req("certificate_id", 5, WIRE_UTF8),
+                    req("census_digest", 6, WIRE_UTF8),
+                    req("revision", 7, WIRE_UTF8),
+                    req("verification_report", 8, WIRE_UTF8),
+                    req("integrity_report", 9, WIRE_UTF8),
+                    req("integrity_envelope", 10, WIRE_UTF8),
+                    req("design_id", 11, WIRE_UTF8),
+                ],
+            },
+            RecordDef {
+                kind: 2,
+                name: "permitted",
+                fields: &[req("text", 1, WIRE_UTF8)],
+            },
+        ],
+        depends_on: &[],
     },
 ];
 

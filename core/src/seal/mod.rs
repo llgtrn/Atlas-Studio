@@ -16,6 +16,13 @@
 //! coverage can never be accepted as unknown: `validate_policy` refuses such a policy, so no
 //! provider can weaken it to make its own candidate pass.
 
+pub mod gate;
+
+pub use gate::{
+    CertificateBinding, ContainerBinding, GateInputs, IneligibleReason, SealEligibility,
+    SealRecord, check_record, gate, integrity_candidate, seal_identity, verification_identity,
+};
+
 use crate::identity::IntegrityDigest;
 use crate::verification::VerificationPolicy;
 use serde::{Deserialize, Serialize};

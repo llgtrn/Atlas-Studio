@@ -304,6 +304,61 @@ fn run(args: &[String]) -> Result<(), String> {
                 ));
             }
         }
+        [cmd, sub, rest @ ..] if cmd == "seal" && sub == "gate" => {
+            // G161 (M8, ADR 0076): whether the verified container `--atlas` can be sealed under
+            // the declared policy, joined with the verification report, the integrity report and
+            // an optional SelectedDesign; exits SEAL_NOT_ELIGIBLE with every typed reason.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let atlas = value(rest, "--atlas")?.ok_or("seal gate requires --atlas")?;
+            let verification =
+                value(rest, "--verification")?.ok_or("seal gate requires --verification")?;
+            let integrity = value(rest, "--integrity")?.ok_or("seal gate requires --integrity")?;
+            let design = value(rest, "--design")?;
+            let policy = match value(rest, "--policy")? {
+                Some(path) => {
+                    runtime::seal::read_policy(&path).map_err(|e| format!("{path}: {e}"))?
+                }
+                None => {
+                    runtime::seal::declared_policy(&root).map_err(|e| format!("{root}: {e}"))?
+                }
+            };
+            let eligibility = runtime::seal::gate_container(
+                &atlas,
+                &verification,
+                &integrity,
+                design.as_deref().map(std::path::Path::new),
+                &policy,
+            )
+            .map_err(|e| format!("{atlas}: {e}"))?;
+            let text = json(&eligibility)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if eligibility.verdict != runtime::seal::ScopeVerdict::Eligible {
+                return Err(format!(
+                    "SEAL_NOT_ELIGIBLE: {} reasons",
+                    eligibility.reasons.len()
+                ));
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "atlas" && sub == "seal" => {
+            // G161 (M9): writes `--atlas` sealed by the ELIGIBLE decision `--eligibility` (as
+            // `seal gate` wrote it) to `--out`; the writer re-checks the record binds it.
+            let atlas = value(rest, "--atlas")?.ok_or("atlas seal requires --atlas")?;
+            let path = value(rest, "--eligibility")?.ok_or("atlas seal requires --eligibility")?;
+            let out = value(rest, "--out")?.ok_or("atlas seal requires --out")?;
+            let eligibility: runtime::seal::SealEligibility = serde_json::from_str(
+                &fs::read_to_string(&path).map_err(|e| format!("{path}: {e}"))?,
+            )
+            .map_err(|e| format!("{path}: {e}"))?;
+            let root = runtime::seal::seal_container(&atlas, &eligibility, &out)
+                .map_err(|e| format!("{atlas}: {e}"))?;
+            println!(
+                "{}",
+                json(&serde_json::json!({ "path": out, "root_id": root }))?
+            );
+        }
         [cmd, sub, rest @ ..] if cmd == "design" && sub == "roots" => {
             // G148: the FUNCTION_IDENTITY roots of a verified container named `--function`.
             let atlas = value(rest, "--atlas")?.ok_or("design roots requires --atlas")?;
@@ -1087,7 +1142,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }

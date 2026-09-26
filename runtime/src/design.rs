@@ -296,6 +296,7 @@ mod tests {
             typed_records: fixture.typed_records,
             evidence: fixture.evidence,
             diagnostics: fixture.diagnostics,
+            seal: None,
         };
         atlas.canonicalize();
         fs::create_dir_all(dir).unwrap();
