@@ -10,6 +10,11 @@ use super::SemanticDimension;
 use crate::identity::stable_id;
 use serde::{Deserialize, Serialize};
 
+/// G162: the message prefix of an `INCOMPLETE_ANALYSIS` diagnostic naming the path calls of an
+/// artifact the path-resolution engine withholds because a scope they are looked up in is open,
+/// and why. The composed world model reads it back (`GAP-OPEN-SCOPE`, a component's `withheld`).
+pub const OPEN_SCOPE_DIAGNOSTIC: &str = "open scope: ";
+
 /// Minimum diagnostic causes an extractor may report; see
 /// `.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`. A diagnostic never removes the
 /// artifact or the dimension from accounting — it always pairs with an explicit

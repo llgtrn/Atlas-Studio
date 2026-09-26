@@ -283,6 +283,10 @@ pub struct ComponentBehavior {
     /// Per dimension, the best engine's obligation status on this artifact.
     pub coverage: BTreeMap<String, EpistemicStatus>,
     pub purpose: Claim,
+    /// G162: why path calls in this artifact are withheld -- the open-scope diagnostics of its
+    /// obligations (`OPEN_SCOPE_DIAGNOSTIC`), each naming the open scope's cause.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub withheld: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -1106,8 +1110,19 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                 "no module documentation (//! in the file, /// on its mod item); purpose is never \
                  named from identifiers",
             ),
+            withheld: Vec::new(),
         }
     };
+    // G162: the open-scope diagnostics, by id, read back onto their artifacts' components.
+    let open_scope: BTreeMap<&str, &str> = census
+        .diagnostics
+        .iter()
+        .filter_map(|d| {
+            d.message
+                .starts_with(crate::OPEN_SCOPE_DIAGNOSTIC)
+                .then_some((d.id.as_str(), d.message.as_str()))
+        })
+        .collect();
     for obligation in &census.typed_obligations {
         accounting.obligations += 1;
         let Some(artifact) = artifact_paths.get(obligation.artifact.as_str()) else {
@@ -1122,6 +1137,13 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
             .get(&dimension)
             .map_or(obligation.status, |s| stronger(*s, obligation.status));
         component.coverage.insert(dimension, status);
+        for id in &obligation.diagnostic_ids {
+            if let Some(message) = open_scope.get(id.as_str())
+                && !component.withheld.iter().any(|w| w == message)
+            {
+                component.withheld.push((*message).to_owned());
+            }
+        }
     }
     for f in functions.values() {
         let component = components
@@ -1721,6 +1743,23 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
     invariants.sort_by(|a, b| a.id.cmp(&b.id));
 
     // Understanding gaps: what an agent will ask that this model cannot answer.
+    // G162: acquisitions beyond the releases their function records.
+    let unreleased_acquisitions: usize = functions
+        .values()
+        .map(|f| {
+            let released = f
+                .resources
+                .iter()
+                .filter(|r| r.kind.starts_with("RELEASE "))
+                .count();
+            let acquired = f
+                .resources
+                .iter()
+                .filter(|r| r.kind.starts_with("ACQUIRE "))
+                .count();
+            acquired.saturating_sub(released)
+        })
+        .sum();
     let unnamed_total: usize = functions.values().map(|f| f.unnamed_unresolved_calls).sum();
     let tests_inferred = functions.values().filter(|f| f.test_scope).count();
     let symbol_definitions = accounting.records.get("SYMBOL").copied().unwrap_or(0);
@@ -1806,10 +1845,30 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
         UnderstandingGap {
             id: "GAP-RESOURCE".into(),
             question_class: "what resource lifetime crosses this boundary?".into(),
-            missing: "no RESOURCE dimension: acquisition/release and lifetimes are not censused"
+            missing: "acquisitions are censused only at calls resolved to the declared std-path \
+                      resource table, and releases only for a let-bound holder never moved \
+                      (G157): temporaries, moved holders, fields and statics, non-std resources \
+                      (tempfile, async runtimes' files), FFI pairs and calls withheld in open \
+                      scopes keep an unknown lifetime; magnitude counts acquisitions with no \
+                      recorded release in their function"
                 .into(),
-            magnitude: functions.len(),
+            magnitude: unreleased_acquisitions,
             debt: "DEBT-RESOURCE".into(),
+        },
+        UnderstandingGap {
+            id: "GAP-OPEN-SCOPE".into(),
+            question_class: "why does Atlas withhold a path in this module?".into(),
+            missing: "a module is open when an item macro whose expansion this pass cannot bound, \
+                      an unresolvable glob or a missing module file may add names to it; a path \
+                      looked up there through a glob import or the extern prelude (std included) \
+                      is withheld, soundly (rustc lets a macro-expanded item shadow both); \
+                      magnitude counts components whose `withheld` names the cause (G162)"
+                .into(),
+            magnitude: components
+                .values()
+                .filter(|c| !c.withheld.is_empty())
+                .count(),
+            debt: "DEBT-CALL".into(),
         },
         UnderstandingGap {
             id: "GAP-CAPABILITY-REALIZATION".into(),

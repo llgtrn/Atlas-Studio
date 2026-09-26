@@ -16,8 +16,8 @@ pub use semantic::{
     CrateInput, DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, FnTarget,
     ImportBinding, ModuleFacts, ObligationResult, PackageDeclaration, PathCallOutcome,
     PathCallResolution, ReleaseResolution, SemanticExtractor, StaticUnsupportedExtractor,
-    WorkspaceResolution, extractors_for_language, join_path, module_facts, resolve_imports,
-    resolve_path_calls, resolve_specifier, resolve_workspace, semantic_extractors,
+    WithheldPath, WorkspaceResolution, extractors_for_language, join_path, module_facts,
+    resolve_imports, resolve_path_calls, resolve_specifier, resolve_workspace, semantic_extractors,
     workspace_packages,
 };
 pub use source::{

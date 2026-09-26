@@ -112,6 +112,21 @@ pub struct WorkspaceResolution {
     pub types: Vec<TypeResolution>,
     /// G157: where let-bound resources are given back.
     pub releases: Vec<ReleaseResolution>,
+    /// G162: every path call withheld because a scope it is looked up in is open, with why.
+    pub withheld: Vec<WithheldPath>,
+}
+
+/// G162: a path call this pass withholds because a name on its path is looked up in an open
+/// scope -- one whose names an item macro, a glob import or a module file this pass cannot see
+/// may extend. Rust lets a macro-expanded item shadow a glob import or the extern prelude
+/// (`std`) without an error, so the refusal is sound; `cause` says which scope and why.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WithheldPath {
+    pub path: String,
+    pub line: usize,
+    pub column: usize,
+    pub callee: String,
+    pub cause: String,
 }
 
 /// One type occurrence (G83): its spelling as the syntactic extractor spells it
@@ -160,6 +175,7 @@ fn resolve_on_this_stack(
     let mut out = Vec::new();
     let mut types = Vec::new();
     let mut releases = Vec::new();
+    let mut withheld = Vec::new();
     for (file, module) in map.file_modules.clone() {
         if let Some(ast) = parsed.get(&file) {
             let mut walker = CallWalker {
@@ -173,6 +189,7 @@ fn resolve_on_this_stack(
                 out: &mut out,
                 types: &mut types,
                 releases: &mut releases,
+                withheld: &mut withheld,
             };
             walker.visit_file(ast);
         }
@@ -182,11 +199,13 @@ fn resolve_on_this_stack(
     releases.sort_by(|a, b| {
         (&a.path, a.acquired, a.line, a.column).cmp(&(&b.path, b.acquired, b.line, b.column))
     });
+    withheld.sort_by(|a, b| (&a.path, a.line, a.column).cmp(&(&b.path, b.line, b.column)));
     WorkspaceResolution {
         reached: parsed.into_keys().collect(),
         calls: out,
         types,
         releases,
+        withheld,
     }
 }
 
@@ -502,6 +521,8 @@ struct Module {
     /// Names may exist that this pass cannot see (an unbounded item macro, an unresolvable glob,
     /// a missing or unparsable module file).
     open: bool,
+    /// G162: why the module is open -- the first cause found, in words an agent can act on.
+    open_cause: Option<String>,
     /// G145: the names this module's own item-position `macro_rules!` invocations may define.
     macro_names: BTreeSet<String>,
     /// G145: `macro_names` and those a glob import brings in -- a lookup of one of these names is
@@ -1038,6 +1059,32 @@ fn start(span: proc_macro2::Span) -> (usize, usize) {
     (start.line, start.column)
 }
 
+/// G162: the conservative meet of two alternating scopes of one module. A name both phases bind
+/// to the same definition keeps it; any other name either phase binds stays bound, to `Unknown`,
+/// so it neither resolves anything nor lets a lookup fall through to an outer scope or the extern
+/// prelude.
+fn merge_alternating(a: &Scope, b: &Scope) -> Scope {
+    let mut out = Scope::default();
+    for ns in [Ns::Types, Ns::Values] {
+        let (x, y) = (a.ns(ns), b.ns(ns));
+        for name in x.keys().chain(y.keys()) {
+            let entry = match (x.get(name), y.get(name)) {
+                (Some(p), Some(q)) if p == q => p.clone(),
+                (p, q) => {
+                    let base = p.or(q).expect("a name one of the scopes binds");
+                    Entry {
+                        def: Def::Unknown,
+                        vis: base.vis.clone(),
+                        origin: base.origin,
+                    }
+                }
+            };
+            out.ns_mut(ns).insert(name.clone(), entry);
+        }
+    }
+    out
+}
+
 impl DefMap {
     fn new_module(&mut self, krate: usize, parent: Option<ModId>, lexical: Option<ModId>) -> ModId {
         self.modules.push(Module {
@@ -1049,11 +1096,43 @@ impl DefMap {
             scope: Scope::default(),
             imports: Vec::new(),
             open: false,
+            open_cause: None,
             macro_names: BTreeSet::new(),
             shadow: BTreeSet::new(),
             name: String::new(),
         });
         self.modules.len() - 1
+    }
+
+    /// G162: opens `module`, recording `cause` unless it is open already.
+    fn open_with(&mut self, module: ModId, cause: impl FnOnce() -> String) {
+        let module = &mut self.modules[module];
+        if !module.open {
+            module.open = true;
+            module.open_cause = Some(cause());
+        }
+    }
+
+    /// G162: why a lookup of `name` from `scope` is uncertain -- the cause of the nearest open
+    /// scope on its lexical chain, or the item macro that may define `name` there.
+    fn open_cause(&self, mut scope: ModId, name: &str) -> Option<String> {
+        loop {
+            let module = &self.modules[scope];
+            if module.open {
+                return Some(
+                    module
+                        .open_cause
+                        .clone()
+                        .unwrap_or_else(|| "the scope is open".into()),
+                );
+            }
+            if module.shadow.contains(name) {
+                return Some(format!(
+                    "an item-position macro whose definition names `{name}` may define it here"
+                ));
+            }
+            scope = module.lexical_parent?;
+        }
     }
 
     /// The module whose `self`/`super` a scope uses (a block uses its enclosing module's).
@@ -1144,12 +1223,16 @@ impl DefMap {
             })
             .and_then(|text| syn::parse_file(text).ok())
         else {
-            self.modules[module].open = true;
+            self.open_with(module, || {
+                format!("module file `{file}` is missing, does not parse, or is refused by the recursion pre-scan")
+            });
             return;
         };
         if self.file_modules.contains_key(file) {
             // The same file reached twice (a `#[path]` cycle or two crates): resolve it once.
-            self.modules[module].open = true;
+            self.open_with(module, || {
+                format!("module file `{file}` is reached twice (a `#[path]` cycle or two crates)")
+            });
             return;
         }
         self.file_modules.insert(file.to_owned(), module);
@@ -1372,7 +1455,9 @@ impl DefMap {
                                     };
                                     self.collect_file(child, &path, &dir, sources, parsed);
                                 }
-                                None => self.modules[child].open = true,
+                                None => self.open_with(child, || {
+                                    format!("`mod {name}` names no module file this census holds")
+                                }),
                             }
                         }
                     }
@@ -1659,7 +1744,22 @@ impl DefMap {
                 && call.attributes_allowed
                 && candidates.iter().all(|d| !d.names.unbounded);
             if !bounded {
-                self.modules[call.module].open = true;
+                let spelled = format!(
+                    "{}{}!",
+                    if call.leading_colon { "::" } else { "" },
+                    call.segments.join("::")
+                );
+                let why = if candidates.is_empty() {
+                    "no workspace `macro_rules!` definition this pass follows names it (a dependency's macro, or one imported from another crate)"
+                } else if !call.attributes_allowed {
+                    "the invocation carries an attribute outside the allowlist"
+                } else {
+                    "its definition may define names this pass cannot bound (an import, a nested macro, or an attribute or derive outside the allowlist)"
+                };
+                let (file, line) = (call.file.clone(), call.line);
+                self.open_with(call.module, || {
+                    format!("item macro `{spelled}` at {file}:{line} may define any name: {why}")
+                });
                 continue;
             }
             let mut names = BTreeSet::new();
@@ -1685,9 +1785,11 @@ impl DefMap {
             module.scope = module.items.clone();
             module.shadow = module.macro_names.clone();
         }
+        // G162: the state two rounds back, to recognize a period-2 oscillation.
+        let mut before: Option<(Vec<Scope>, Vec<BTreeSet<String>>)> = None;
         for _ in 0..64 {
             let mut next: Vec<Scope> = self.modules.iter().map(|m| m.items.clone()).collect();
-            let mut opened = vec![false; self.modules.len()];
+            let mut opened: Vec<Option<String>> = vec![None; self.modules.len()];
             let mut shadows: Vec<BTreeSet<String>> =
                 self.modules.iter().map(|m| m.macro_names.clone()).collect();
             for (id, module) in self.modules.iter().enumerate() {
@@ -1702,28 +1804,52 @@ impl DefMap {
                     );
                 }
             }
+            // G162 (replay R7): each round recomputes every scope from the previous round's, so a
+            // placeholder an early round binds for a not-yet-resolved named import can travel
+            // around a re-export cycle (`pub use crate::X` in a module the crate root glob-imports)
+            // and flip every round without support. When a round repeats the state two rounds
+            // back, the two alternating states are merged conservatively and the iteration stops.
+            let current: Vec<Scope> = self.modules.iter().map(|m| m.scope.clone()).collect();
+            let current_shadows: Vec<BTreeSet<String>> =
+                self.modules.iter().map(|m| m.shadow.clone()).collect();
+            let oscillates = before.as_ref().is_some_and(|(scopes, shadow_sets)| {
+                *scopes == next
+                    && *shadow_sets == shadows
+                    && (current != next || current_shadows != shadows)
+            });
+            before = Some((current, current_shadows));
             let mut changed = false;
             for (id, (scope, shadow)) in next.into_iter().zip(shadows).enumerate() {
-                if self.modules[id].scope != scope {
-                    changed = true;
-                    self.modules[id].scope = scope;
+                if oscillates {
+                    self.modules[id].scope = merge_alternating(&self.modules[id].scope, &scope);
+                    self.modules[id].shadow.extend(shadow);
+                } else {
+                    if self.modules[id].scope != scope {
+                        changed = true;
+                        self.modules[id].scope = scope;
+                    }
+                    if self.modules[id].shadow != shadow {
+                        changed = true;
+                        self.modules[id].shadow = shadow;
+                    }
                 }
-                if self.modules[id].shadow != shadow {
+                if let Some(cause) = opened[id].take()
+                    && !self.modules[id].open
+                {
                     changed = true;
-                    self.modules[id].shadow = shadow;
-                }
-                if opened[id] && !self.modules[id].open {
-                    changed = true;
-                    self.modules[id].open = true;
+                    self.open_with(id, || cause);
                 }
             }
+            // A merged round reports no change unless it opened a module, so it ends here.
             if !changed {
                 return;
             }
         }
         // No fixed point within the bound: nothing imported may be trusted.
-        for module in &mut self.modules {
-            module.open = true;
+        for id in 0..self.modules.len() {
+            self.open_with(id, || {
+                "imports reach no fixed point within 64 rounds".into()
+            });
         }
     }
 
@@ -1733,7 +1859,7 @@ impl DefMap {
         id: ModId,
         import: &Import,
         into: &mut Scope,
-        opened: &mut bool,
+        opened: &mut Option<String>,
         shadow: &mut BTreeSet<String>,
     ) {
         let whole_is_prefix = import.name.is_none() || import.self_import;
@@ -1745,7 +1871,15 @@ impl DefMap {
             whole_is_prefix,
         ) else {
             match &import.name {
-                None => *opened = true,
+                None => {
+                    opened.get_or_insert_with(|| {
+                        format!(
+                            "glob import `{}{}::*` does not resolve",
+                            if import.leading_colon { "::" } else { "" },
+                            import.segments.join("::")
+                        )
+                    });
+                }
                 Some(name) => {
                     for ns in [Ns::Types, Ns::Values] {
                         into.insert(
@@ -1765,7 +1899,16 @@ impl DefMap {
         match (&import.name, prefix) {
             (None, Def::Module(target)) => {
                 if self.modules[target].open {
-                    *opened = true;
+                    opened.get_or_insert_with(|| {
+                        format!(
+                            "glob import `{}::*` reads an open module ({})",
+                            import.segments.join("::"),
+                            self.modules[target]
+                                .open_cause
+                                .as_deref()
+                                .unwrap_or("its cause unrecorded")
+                        )
+                    });
                 }
                 shadow.extend(self.modules[target].shadow.iter().cloned());
                 for ns in [Ns::Types, Ns::Values] {
@@ -1799,7 +1942,15 @@ impl DefMap {
                     }
                 }
             }
-            (None, _) => *opened = true,
+            (None, _) => {
+                opened.get_or_insert_with(|| {
+                    format!(
+                        "glob import `{}{}::*` reads a crate or item outside the workspace (its names are unknown)",
+                        if import.leading_colon { "::" } else { "" },
+                        import.segments.join("::")
+                    )
+                });
+            }
             (Some(name), Def::External(path)) if import.self_import => {
                 into.insert(
                     Ns::Types,
@@ -2550,6 +2701,7 @@ struct CallWalker<'a> {
     out: &'a mut Vec<PathCallResolution>,
     types: &'a mut Vec<TypeResolution>,
     releases: &'a mut Vec<ReleaseResolution>,
+    withheld: &'a mut Vec<WithheldPath>,
 }
 
 /// Every identifier a pattern binds.
@@ -3380,6 +3532,31 @@ impl CallWalker<'_> {
         (!traits.is_empty()).then_some(traits)
     }
 
+    /// G162: why `path` was withheld -- the open scope its first segment is looked up in, else
+    /// the open module its prefix names.
+    fn withheld_cause(&self, path: &syn::ExprPath) -> String {
+        let segments: Vec<String> = path
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect();
+        let scope = self.scope();
+        if let Some(cause) = self.map.open_cause(scope, &segments[0]) {
+            return cause;
+        }
+        let leading = path.path.leading_colon.is_some();
+        if let (Some(Def::Module(module)), Some(last)) = (
+            self.map
+                .resolve_prefix(self.crates, scope, &segments, leading, false),
+            segments.last(),
+        ) && let Some(cause) = self.map.open_cause(module, last)
+        {
+            return cause;
+        }
+        "a scope on its path is open".into()
+    }
+
     fn resolve_call(&self, path: &syn::ExprPath) -> PathCallOutcome {
         if path.qself.is_some() {
             return PathCallOutcome::Unresolved("qualified-self");
@@ -3431,6 +3608,17 @@ impl CallWalker<'_> {
                 }
                 _ => PathCallOutcome::Unresolved("trait-method"),
             };
+        }
+        // G162: a first segment an open scope may shadow (`std` under an unbounded item macro)
+        // is withheld for that reason, not reported as an unresolvable prefix.
+        if !leading
+            && !matches!(segments[0].as_str(), "crate" | "self" | "super")
+            && matches!(
+                self.map.lexical_lookup(scope, Ns::Types, &segments[0]),
+                Lookup::Open
+            )
+        {
+            return PathCallOutcome::Unresolved("open-scope");
         }
         let Some(prefix) = self
             .map
@@ -3691,12 +3879,22 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
                 .map(|s| s.ident.to_string())
                 .collect::<Vec<_>>()
                 .join("::");
+            let outcome = self.resolve_call(path);
+            if outcome == PathCallOutcome::Unresolved("open-scope") {
+                self.withheld.push(WithheldPath {
+                    path: self.file.to_owned(),
+                    line,
+                    column,
+                    callee: callee.clone(),
+                    cause: self.withheld_cause(path),
+                });
+            }
             self.out.push(PathCallResolution {
                 path: self.file.to_owned(),
                 line,
                 column,
                 callee,
-                outcome: self.resolve_call(path),
+                outcome,
             });
         }
         syn::visit::visit_expr_call(self, call);

@@ -66,7 +66,7 @@ Around these levels sit:
 | `impact --target T[,T…]` | resolved transitive callers (a lower bound), components, state readers, invariants at risk |
 | `trace --from A --to B` | shortest typed path, or `NO_PATH_OBSERVED` with status `UNKNOWN` |
 | `why --from A --to B` | direct relations, dependency edges and invariants between two targets |
-| `invariants`, `unknowns`, `effects`, `state`, `dependencies`, `capabilities --target T` | projections of the model |
+| `invariants`, `unknowns`, `effects`, `state`, `dependencies`, `capabilities --target T` | projections of the model; `unknowns` also lists `withheld`, why path calls in the target are withheld -- each open scope's cause (G162) |
 | `resources`, `causal` | the gap that owns the question (`GAP-RESOURCE`, `GAP-CAUSALITY`), never an answer |
 | `compare --from A --to B` | two targets side by side |
 | `plan --target T` | a `DERIVED` checklist: what to preserve, re-verify and resolve first; the design stays the agent's |

@@ -731,11 +731,8 @@ fn a_workspace_macro_rules_bounds_the_names_its_invocation_may_define() {
                 format!("src/lib.rs:{}:helper", line_of(&lib, "pub fn helper"))
             ),
             // A name the macro may define is uncertain, not an external crate.
-            (
-                "Verdict::held".into(),
-                "unresolved:unresolved-prefix".into()
-            ),
-            ("Mode::on".into(), "unresolved:unresolved-prefix".into()),
+            ("Verdict::held".into(), "unresolved:open-scope".into()),
+            ("Mode::on".into(), "unresolved:open-scope".into()),
         ]
     );
 }
@@ -785,10 +782,7 @@ fn a_glob_import_carries_the_names_a_macro_may_define() {
     assert_eq!(
         outcomes(&results, "src/lib.rs"),
         [
-            (
-                "Kind::from_str".into(),
-                "unresolved:unresolved-prefix".into()
-            ),
+            ("Kind::from_str".into(), "unresolved:open-scope".into()),
             ("Other::f".into(), "unresolved:external".into()),
             // Through a path, too: `gen`'s glob `Kind` may be shadowed by the macro's.
             (
@@ -1006,4 +1000,125 @@ fn moved(p: &str, m: &Mutex<u8>, c: bool) -> std::io::Result<File> {
             "{callee} -> {outcome} in {got:?}"
         );
     }
+}
+
+/// G162 (replay R7, zed's `language` crate): a module re-exports `crate::Registry` by name while
+/// the crate root glob-imports that module and names `Registry` from its defining module. The
+/// placeholder an early round binds for the not-yet-resolved `pub use crate::Registry` then
+/// travels around the cycle in the value namespace, flipping every round; before G162 the import
+/// fixed point failed after 64 rounds and every module of the workspace was opened.
+#[test]
+fn a_re_export_cycle_converges_instead_of_opening_the_workspace() {
+    let lib = "mod registry;\nmod buffer;\npub use registry::Registry;\npub use buffer::*;\npub fn entry() {\n    helper();\n    std::fs::read(\"x\").ok();\n    Registry::new();\n}\n";
+    let buffer = "pub use crate::Registry;\npub fn helper() {}\n";
+    let registry = "pub struct Registry {\n    pub size: usize,\n}\nimpl Registry {\n    pub fn new() -> Self {\n        Registry { size: 0 }\n    }\n}\n";
+    let workspace = resolve_workspace(
+        &one_crate("src/lib.rs"),
+        &sources(&[
+            ("src/lib.rs", lib),
+            ("src/buffer.rs", buffer),
+            ("src/registry.rs", registry),
+        ]),
+    );
+    assert_eq!(
+        outcomes(&workspace.calls, "src/lib.rs"),
+        [
+            ("helper".into(), "src/buffer.rs:2:helper".into()),
+            ("std::fs::read".into(), "external:std::fs::read".into()),
+            ("Registry::new".into(), "src/registry.rs:5:new".into()),
+        ]
+    );
+    assert_eq!(workspace.withheld, []);
+}
+
+/// G162: every path call withheld because of an open scope says which scope and why -- an item
+/// macro this pass cannot bound, an unresolvable glob, a glob of an open module, a missing
+/// module file -- instead of leaving the pilot to find the cause by hand.
+#[test]
+fn every_withheld_path_names_why_its_scope_is_open() {
+    let lib = "mod missing;\nmod macros {\n    dependency::make_items! { pub struct Made; }\n    other::more_items! { pub struct More; }\n    fn t() {\n        std::fs::read(\"x\").ok();\n    }\n}\nmod importer {\n    use super::macros::*;\n    fn t() {\n        generated();\n    }\n}\nmod external {\n    use outside::*;\n    fn t() {\n        anything();\n    }\n}\nmod missing_user {\n    use super::missing::*;\n    fn t() {\n        lost();\n    }\n}\n";
+    let workspace = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    let causes: Vec<(String, String)> = workspace
+        .withheld
+        .iter()
+        .map(|w| (w.callee.clone(), w.cause.clone()))
+        .collect();
+    assert_eq!(
+        causes,
+        [
+            (
+                "std::fs::read".into(),
+                "item macro `dependency::make_items!` at src/lib.rs:3 may define any name: no workspace `macro_rules!` definition this pass follows names it (a dependency's macro, or one imported from another crate)".into()
+            ),
+            (
+                "generated".into(),
+                "glob import `super::macros::*` reads an open module (item macro `dependency::make_items!` at src/lib.rs:3 may define any name: no workspace `macro_rules!` definition this pass follows names it (a dependency's macro, or one imported from another crate))".into()
+            ),
+            (
+                "anything".into(),
+                "glob import `outside::*` reads a crate or item outside the workspace (its names are unknown)".into()
+            ),
+            (
+                "lost".into(),
+                "glob import `super::missing::*` reads an open module (`mod missing` names no module file this census holds)".into()
+            ),
+        ]
+    );
+    // The withheld calls are exactly the ones reported `open-scope`.
+    let open: Vec<&str> = workspace
+        .calls
+        .iter()
+        .filter(|c| c.outcome == PathCallOutcome::Unresolved("open-scope"))
+        .map(|c| c.callee.as_str())
+        .collect();
+    assert_eq!(open, ["std::fs::read", "generated", "anything", "lost"]);
+}
+
+/// G162: the merge of two alternating scopes keeps what both phases agree on and binds anything
+/// else to `Unknown` -- a conflicting definition and a name only one phase binds alike.
+#[test]
+fn alternating_scopes_merge_to_their_agreement_and_unknown() {
+    let entry = |def: Def| Entry {
+        def,
+        vis: Vis::Public,
+        origin: Origin::Named,
+    };
+    let mut a = Scope::default();
+    let mut b = Scope::default();
+    a.insert(Ns::Types, "Same", entry(Def::Module(1)));
+    b.insert(Ns::Types, "Same", entry(Def::Module(1)));
+    a.insert(Ns::Types, "Differs", entry(Def::Module(1)));
+    b.insert(Ns::Types, "Differs", entry(Def::Module(2)));
+    a.insert(Ns::Values, "OnlyA", entry(Def::Module(3)));
+    b.insert(Ns::Values, "OnlyB", entry(Def::Module(4)));
+    let merged = merge_alternating(&a, &b);
+    assert_eq!(merged.types["Same"].def, Def::Module(1));
+    assert_eq!(merged.types["Differs"].def, Def::Unknown);
+    assert_eq!(merged.values["OnlyA"].def, Def::Unknown);
+    assert_eq!(merged.values["OnlyB"].def, Def::Unknown);
+    assert_eq!(
+        merged,
+        merge_alternating(&b, &a),
+        "the merge is symmetric in its defs"
+    );
+}
+
+/// G162: a name a bounded workspace macro may define is withheld with that reason, and a module
+/// opened twice keeps the first cause found (item macros are resolved before imports).
+#[test]
+fn a_bounded_macro_name_and_the_first_open_cause_are_reported() {
+    let lib = "mod bounded {\n    macro_rules! make {\n        ($name:ident) => {\n            pub struct $name;\n        };\n    }\n    make!(Made);\n    fn t() {\n        Made::build();\n    }\n}\n";
+    let workspace = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    let causes: Vec<(String, String)> = workspace
+        .withheld
+        .iter()
+        .map(|w| (w.callee.clone(), w.cause.clone()))
+        .collect();
+    assert_eq!(
+        causes,
+        [(
+            "Made::build".into(),
+            "an item-position macro whose definition names `Made` may define it here".into()
+        )]
+    );
 }

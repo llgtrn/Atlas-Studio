@@ -573,6 +573,67 @@ fn run(s: &core::store::Store) { s.save(); }
     /// with a resolved call reach L6, Markdown stops at L2 (syntax is not semantics), a C file and
     /// a PNG stay at L0 with their class read from the extension -- and a claim above the
     /// measured level, or for a subject never measured, is refused.
+    /// G162 (replay R7): a module an item macro from a dependency may extend is open, and the
+    /// model says so where the pilot looks -- the component's `withheld`, `GAP-OPEN-SCOPE` and the
+    /// unknowns lens -- instead of silently resolving less.
+    #[test]
+    fn an_open_scope_is_explained_where_the_pilot_looks() {
+        let clean = model_of("open-scope-clean", ADL, CORE_LIB);
+        let gap = |m: &WorldModel| {
+            m.gaps
+                .iter()
+                .find(|g| g.id == "GAP-OPEN-SCOPE")
+                .map(|g| g.magnitude)
+        };
+        assert_eq!(gap(&clean), Some(0));
+        let store = format!("dependency::make_items! {{ pub struct Made; }}\n{STORE}");
+        let dir = fixture_with(
+            "open-scope",
+            ADL,
+            CORE_LIB,
+            &store,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        let model = world_model(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).ok();
+        assert_eq!(gap(&model), Some(1));
+        let component = model
+            .components
+            .iter()
+            .find(|c| c.path == "core/src/store.rs")
+            .unwrap();
+        assert_eq!(component.withheld.len(), 1, "{:?}", component.withheld);
+        let why = &component.withheld[0];
+        assert!(why.starts_with(atlas_core::OPEN_SCOPE_DIAGNOSTIC), "{why}");
+        assert!(
+            why.contains("item macro `dependency::make_items!` at core/src/store.rs:1"),
+            "{why}"
+        );
+        assert!(why.contains("first `std::fs::write` at line"), "{why}");
+        // What the open scope costs: `save`'s file write is no longer derived from a resolved
+        // std path, only inferred from its spelling.
+        let save = |m: &WorldModel| {
+            m.functions
+                .iter()
+                .find(|f| f.name == "save")
+                .map(|f| {
+                    f.effects
+                        .iter()
+                        .map(|e| format!("{} {}", e.kind, e.status.as_str()))
+                        .collect::<Vec<_>>()
+                })
+                .unwrap()
+        };
+        assert_eq!(save(&clean), ["FILESYSTEM_WRITE DERIVED"]);
+        assert_eq!(save(&model), ["FILESYSTEM_WRITE INFERRED"]);
+        let index = lens::Index::new(&model);
+        let unknowns = lens::unknowns(&index, &index.resolve("path:core/src/store.rs").unwrap());
+        assert_eq!(unknowns.withheld, component.withheld);
+        assert!(unknowns.gaps.contains(&"GAP-OPEN-SCOPE".to_owned()));
+    }
+
     #[test]
     fn support_levels_are_measured_and_overclaims_are_refused() {
         use atlas_core::coverage::{SubjectKind, SupportLevel as L, validate_claims};

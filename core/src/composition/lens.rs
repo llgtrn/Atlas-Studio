@@ -423,6 +423,10 @@ pub struct Unknowns {
     pub unresolved_values: usize,
     pub components_without_purpose: usize,
     pub gaps: Vec<String>,
+    /// G162: why path calls in the scope's components are withheld (their open-scope
+    /// diagnostics), so an UNKNOWN names its cause instead of leaving the pilot to find it.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub withheld: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -547,6 +551,7 @@ pub fn unknowns(index: &Index, scope: &Scope) -> Unknowns {
             }
         }
         u.components_without_purpose += usize::from(c.purpose.status == EpistemicStatus::Unknown);
+        u.withheld.extend(c.withheld.iter().cloned());
     }
     for id in &scope.functions {
         if let Some(f) = index.function(id) {

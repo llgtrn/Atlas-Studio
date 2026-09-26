@@ -663,6 +663,11 @@ pub fn resolve_rust_path_calls(
         entry.types.push(observation);
     }
 
+    // G162: the path calls withheld because a scope is open, by artifact.
+    let mut withheld: BTreeMap<&str, Vec<&adapter::WithheldPath>> = BTreeMap::new();
+    for w in &workspace.withheld {
+        withheld.entry(w.path.as_str()).or_default().push(w);
+    }
     let mut out = Vec::new();
     for (path, work) in per_artifact {
         let Some(artifact) = artifacts.get(&path) else {
@@ -671,7 +676,7 @@ pub fn resolve_rust_path_calls(
         let reached = workspace.reached.contains(&path);
         let concurrency_scope = if reached {
             format!(
-                "{RUST_PATH_RESOLUTION_ID} derives concurrency only for path calls resolved to a standard-library path the declared std-path concurrency table names ({path}); method calls (spawn_scoped, lock, send, recv, atomics), `async` blocks and macro arguments are outside it"
+                "{RUST_PATH_RESOLUTION_ID} derives concurrency only for path calls resolved to a standard-library path the declared std-path concurrency table names ({path}); method calls (spawn_scoped, lock, send, recv, atomics), macro arguments and paths withheld in open scopes are outside it"
             )
         } else {
             format!(
@@ -699,7 +704,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), or bound once by a `let` to a call or literal whose callee declares a plain workspace type (G142), or a field or call result such types declare (G143), or a std receiver calling a declared inherent std method (G144, the std path the effect, persistence and concurrency tables read), decided by the method probe's first step or, where no by-value method can come first, its autoref step (G142) ({path}); other method calls, `async` blocks and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139) or known only by workspace-trait bounds (G140, DYNAMIC_PARTIAL to the trait's declaration), or bound once by a `let` to a call or literal whose callee declares a plain workspace type (G142), or a field or call result such types declare (G143), or a std receiver calling a declared inherent std method (G144, the std path the effect, persistence and concurrency tables read), decided by the method probe's first step or, where no by-value method can come first, its autoref step (G142) ({path}), in closure and `async` block bodies too (G133, G159); other method calls, macro arguments and paths withheld in open scopes (G162) are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"
@@ -797,6 +802,15 @@ pub fn resolve_rust_path_calls(
             resource_diagnostic,
             type_diagnostic,
         ];
+        if let Some(calls) = withheld.get(path.as_str()) {
+            let open = ExtractionDiagnostic::new(
+                DiagnosticCode::IncompleteAnalysis,
+                Some(SemanticDimension::Call),
+                open_scope_message(&path, calls),
+            );
+            call_obligation.diagnostics.push(open.id.clone());
+            diagnostics.push(open);
+        }
         if work.unattached > 0 {
             let disagreement = ExtractionDiagnostic::new(
                 DiagnosticCode::IncompleteAnalysis,
@@ -851,6 +865,33 @@ fn ids(evidence: &[Evidence]) -> Vec<EvidenceId> {
         .iter()
         .map(|e| EvidenceId::new(e.id.clone()))
         .collect()
+}
+
+/// G162: the open-scope diagnostic of one artifact -- how many path calls are withheld, and for
+/// each cause how many and the first of them.
+fn open_scope_message(path: &str, calls: &[&adapter::WithheldPath]) -> String {
+    let mut by_cause: BTreeMap<&str, Vec<&adapter::WithheldPath>> = BTreeMap::new();
+    for call in calls {
+        by_cause.entry(call.cause.as_str()).or_default().push(call);
+    }
+    let causes: Vec<String> = by_cause
+        .into_iter()
+        .map(|(cause, calls)| {
+            let first = calls[0];
+            format!(
+                "{cause} ({} call(s), first `{}` at line {})",
+                calls.len(),
+                first.callee,
+                first.line
+            )
+        })
+        .collect();
+    format!(
+        "{}{} path call(s) in {path} withheld: a name on their path is looked up in an open scope, which a macro-expanded item may extend (Rust lets one shadow a glob import or the extern prelude, `std` included); {}",
+        atlas_core::OPEN_SCOPE_DIAGNOSTIC,
+        calls.len(),
+        causes.join("; ")
+    )
 }
 
 #[cfg(test)]
