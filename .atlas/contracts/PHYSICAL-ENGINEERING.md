@@ -31,6 +31,8 @@ Every physical report states its level, and a report never claims a level above 
   - A dimensionally wrong parameter is a finding, and the model is not assembled.
   - A unit Atlas cannot represent exactly is `UNKNOWN`, never approximated.
 - **Verdicts are three-valued.** Constraints over physical parameters use `SATISFIED`/`VIOLATED`/`UNKNOWN` (ADR 0007). `UNKNOWN` is never merged into success or failure.
+- **Kinds survive scaling (G165, ADR 0080).** A product or quotient has no kind (torque × angle is not a torque), except scaling by a pure dimensionless number (a gear ratio, an efficiency), which keeps the quantity's kind. A joint torque over a gear reduction is therefore still a torque and never compares equal to an energy.
+- **Derived quantities are census truth (G165, ADR 0080).** Every quantity the physical model derives enters the census as a `QUANTITY` fact with its status, and each of its inputs as a `QUANTITY_DERIVATION` fact. In the engineering graph it is a derived-quantity node owned by its entity, with `DERIVED_FROM` edges to the inputs that have a node. The `physical` report remains a view of the same values; requirement verdicts and findings stay in it.
 
 ## Epistemic discipline (MUST)
 

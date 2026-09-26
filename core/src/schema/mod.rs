@@ -55,6 +55,13 @@ pub struct SourceReport {
     pub files: Vec<FileFact>,
 }
 
+/// G165 (ADR 0080): the extractor names of the quantities the census derives from declarations
+/// (the physical and product models); a QUANTITY fact from any other extractor is declared.
+pub const QUANTITY_DERIVATION_EXTRACTORS: [&str; 2] = [
+    "atlas.physical.derivation.v1",
+    "atlas.product.derivation.v1",
+];
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SemanticFactKind {
@@ -87,8 +94,14 @@ pub enum SemanticFactKind {
     SemanticObligation,
     /// G124 (ADR 0045): a quantity-valued declared attribute, parsed into an exact `Quantity`
     /// with its kind and uncertainty (object: its canonical SI form); UNSUPPORTED with the parse
-    /// error when the value is quantity-shaped but not admitted.
+    /// error when the value is quantity-shaped but not admitted. G165 (ADR 0080): also a quantity
+    /// the physical or product model derives from declarations, with the status the model gives
+    /// it (UNKNOWN when an input was missing).
     Quantity,
+    /// G165 (ADR 0080): one input of a derived quantity -- subject the entity, predicate the
+    /// derived quantity's name, object the input it was computed from (`Entity.attribute`, a
+    /// derived `Entity.name`, a metric or an entity): why the value exists.
+    QuantityDerivation,
 }
 
 impl SemanticFactKind {
@@ -110,6 +123,7 @@ impl SemanticFactKind {
             Self::FunctionSignature => "FUNCTION_SIGNATURE",
             Self::SemanticObligation => "SEMANTIC_OBLIGATION",
             Self::Quantity => "QUANTITY",
+            Self::QuantityDerivation => "QUANTITY_DERIVATION",
         }
     }
 }

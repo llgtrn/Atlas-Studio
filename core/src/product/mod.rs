@@ -33,6 +33,18 @@ pub enum EvidenceBasis {
 }
 
 impl EvidenceBasis {
+    /// The declared name, the inverse of [`EvidenceBasis::parse`].
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Hypothesized => "HYPOTHESIZED",
+            Self::Estimated => "ESTIMATED",
+            Self::Quoted => "QUOTED",
+            Self::Prototyped => "PROTOTYPED",
+            Self::Validated => "VALIDATED",
+            Self::ProductionMeasured => "PRODUCTION_MEASURED",
+        }
+    }
+
     pub fn parse(text: &str) -> Option<Self> {
         Some(match text {
             "HYPOTHESIZED" => Self::Hypothesized,

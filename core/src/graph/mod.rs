@@ -64,6 +64,9 @@ crate::vocabulary_enum! {
         ProducesResourceOp => "PRODUCES_RESOURCE_OP",
         /// G157: a release gives back the resource an acquisition took.
         Releases => "RELEASES",
+        /// G165: a derived quantity was computed from an input (a quantity or an entity) --
+        /// computation, not causation.
+        DerivedFrom => "DERIVED_FROM",
         Fallthrough => "FALLTHROUGH",
         Branch => "BRANCH",
         LoopRepeat => "LOOP_REPEAT",
@@ -140,7 +143,8 @@ impl EdgeKind {
             | ProducesConcurrencyOp
             | ProducesPersistenceOp
             | ProducesResourceOp
-            | Releases => EdgeCategory::Semantic,
+            | Releases
+            | DerivedFrom => EdgeCategory::Semantic,
         }
     }
 
@@ -169,6 +173,7 @@ impl EdgeKind {
             | ProducesConcurrencyOp
             | ProducesPersistenceOp
             | ProducesResourceOp
+            | DerivedFrom
             | Branch
             | Unresolved => Cardinality::ManyToMany,
         }
@@ -319,5 +324,7 @@ mod edge_kind_tests {
         // Wire-compatible: the name an edge kind serializes to is the string it replaced.
         assert_eq!(EdgeKind::ProducesEffect.as_str(), "PRODUCES_EFFECT");
         assert!(!EdgeKind::Calls.causal() && !EdgeKind::ProducesEffect.causal());
+        assert_eq!(EdgeKind::DerivedFrom.category(), EdgeCategory::Semantic);
+        assert!(!EdgeKind::DerivedFrom.owns() && !EdgeKind::DerivedFrom.causal());
     }
 }

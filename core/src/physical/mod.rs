@@ -1364,9 +1364,10 @@ mod tests {
         let report = analyze_physical(&with_drivetrain("0.5 kg", "5 A"));
         assert!(report.findings.is_empty(), "{:?}", report.findings);
         // Shoulder: 4.535575625 N*m / (50 * 0.8) = 0.113389390625 N*m -> / 0.05 = 2.2677878125 A.
+        // G165: a joint torque over a gear reduction is still a torque, never an energy.
         assert_eq!(
             value(&report, "ShoulderMotor", "motor_torque").value,
-            Quantity::parse("0.113389390625 N*m").unwrap()
+            Quantity::parse("0.113389390625 N*m torque").unwrap()
         );
         assert_eq!(
             value(&report, "ShoulderMotor", "holding_current").value,

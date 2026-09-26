@@ -877,7 +877,15 @@ impl Quantity {
         )
     }
 
-    /// A product has no declared kind: torque times angle is not a torque.
+    /// A pure number: dimensionless. An angle is not (it has its own base dimension), and no
+    /// kind is dimensionless, so `with_kind` never lets a pure number carry one.
+    fn is_pure_number(&self) -> bool {
+        self.dimension == Dimension::DIMENSIONLESS
+    }
+
+    /// A product has no declared kind: torque times angle is not a torque. G165: scaling by a
+    /// pure number (a gear ratio, an efficiency) keeps the kind -- a torque over a gear
+    /// reduction is still a torque.
     pub fn checked_mul(&self, other: &Self) -> Result<Self, QuantityError> {
         let dimension = self
             .dimension
@@ -891,15 +899,18 @@ impl Quantity {
             .interval()
             .checked_mul(other.interval())
             .ok_or(QuantityError::Overflow)?;
-        self.derived(
-            other,
-            value,
-            dimension,
-            QuantityKind::Unspecified,
-            &[bounds.low, bounds.high],
-        )
+        let kind = if other.is_pure_number() {
+            self.kind
+        } else if self.is_pure_number() {
+            other.kind
+        } else {
+            QuantityKind::Unspecified
+        };
+        self.derived(other, value, dimension, kind, &[bounds.low, bounds.high])
     }
 
+    /// A quotient has no declared kind, except a quantity divided by a pure number, which keeps
+    /// its own (G165); a pure number over a torque is not a torque.
     pub fn checked_div(&self, other: &Self) -> Result<Self, QuantityError> {
         let (l2, h2) = other.bounds();
         if other.uncertainty.is_some()
@@ -916,7 +927,12 @@ impl Quantity {
             .ok_or(QuantityError::Overflow)?;
         let value = div(self.si_value, other.si_value)?;
         let corners = [div(l1, l2)?, div(l1, h2)?, div(h1, l2)?, div(h1, h2)?];
-        self.derived(other, value, dimension, QuantityKind::Unspecified, &corners)
+        let kind = if other.is_pure_number() {
+            self.kind
+        } else {
+            QuantityKind::Unspecified
+        };
+        self.derived(other, value, dimension, kind, &corners)
     }
 
     /// Exact ordering of two quantities of one dimension and compatible kinds. Uncertain
@@ -1097,6 +1113,47 @@ mod tests {
             rotated.kind,
             QuantityKind::Unspecified,
             "a product declares no kind"
+        );
+        // G165: scaling by a pure number keeps the kind; an angle, a kinded or a dimensional
+        // factor does not, and a pure number over a torque is no torque.
+        let pure = |n: i128, d: i128| {
+            Quantity::new(
+                Rational::integer(n)
+                    .checked_div(Rational::integer(d))
+                    .unwrap(),
+                Dimension::DIMENSIONLESS,
+            )
+        };
+        let reduction = pure(50, 1).checked_mul(&pure(4, 5)).unwrap();
+        let geared = torque.checked_div(&reduction).unwrap();
+        assert_eq!(
+            geared.kind,
+            QuantityKind::Torque,
+            "a torque over a gear reduction"
+        );
+        assert_eq!(
+            reduction.checked_mul(&torque).unwrap().kind,
+            QuantityKind::Torque
+        );
+        assert_eq!(
+            torque.checked_mul(&pure(3, 1)).unwrap().kind,
+            QuantityKind::Torque
+        );
+        assert_eq!(
+            pure(2, 1).checked_div(&torque).unwrap().kind,
+            QuantityKind::Unspecified
+        );
+        assert_eq!(
+            torque.checked_div(&q("2 rad")).unwrap().kind,
+            QuantityKind::Unspecified
+        );
+        assert_eq!(
+            torque.checked_div(&q("2 m")).unwrap().kind,
+            QuantityKind::Unspecified
+        );
+        assert!(
+            geared.checked_cmp(&energy).is_err(),
+            "a geared torque never compares equal to an energy"
         );
     }
 

@@ -63,6 +63,8 @@ Physical concepts are not duplicated. Parts will reference Physical Engineering 
 
 Each form uses each uncertain input once, so the intervals are exact rather than widened.
 
+Every metric of every variant enters the census (G165, ADR 0080) as a `QUANTITY` fact whose object is `[low, high] CCY BASIS`. A metric that cannot be derived is `UNKNOWN`, never a number. Each input is a `QUANTITY_DERIVATION` fact, and the graph links a metric by `DERIVED_FROM` to the metrics and entities it came from. Market hypotheses and requirement verdicts stay in the `product` report.
+
 ## Donors
 
 Donors enter through the bounded working set (`DONOR-WORKING-SET.md`) and only for a concrete lane blocker. The first wave (G56) was censused remotely:

@@ -195,6 +195,104 @@ fn source_provenance(path: &str, language: Option<&str>, revision: &RevisionRef)
     }
 }
 
+/// G165 (ADR 0080): every quantity the physical model derives (with the status the model gives
+/// it: DERIVED, or SIMULATED behind a simulation) and every metric the product model derives per
+/// variant (DERIVED, or UNKNOWN when an input was missing or unusable) as a QUANTITY fact, and
+/// each of its inputs as a QUANTITY_DERIVATION fact -- the side reports' values, now in the
+/// census, the graph, the certificate's counts and the census container. Requirement verdicts
+/// and findings stay in the reports.
+fn derived_quantity_facts(
+    nodes: &[atlas_core::DeclaredNode],
+    revision: &RevisionRef,
+    facts: &mut Vec<SemanticFact>,
+) {
+    let [physical_extractor, product_extractor] =
+        atlas_core::schema::QUANTITY_DERIVATION_EXTRACTORS;
+    let provenance = |subject: &str, extractor: &str| {
+        let span = nodes.iter().find(|n| n.name == subject).map(|n| &n.span);
+        Provenance {
+            source_path: span.map(|s| s.path.clone()).unwrap_or_default(),
+            source_revision: Some(revision.clone()),
+            extractor: extractor.into(),
+            content_hash: None,
+            span: span.map(|s| format!("{}:{}", s.line, s.column)),
+        }
+    };
+    let mut push = |subject: &str,
+                    name: &str,
+                    status: EpistemicStatus,
+                    object: String,
+                    inputs: &[String],
+                    extractor: &str| {
+        let key = format!(
+            "{}:{}",
+            escape_identity_field(subject, ':'),
+            escape_identity_field(name, ':')
+        );
+        facts.push(SemanticFact {
+            id: fact_id(&format!("derived-quantity:{key}")),
+            kind: SemanticFactKind::Quantity,
+            status,
+            subject: subject.to_owned(),
+            predicate: name.to_owned(),
+            object,
+            provenance: provenance(subject, extractor),
+        });
+        for input in inputs {
+            facts.push(SemanticFact {
+                id: fact_id(&format!(
+                    "quantity-derivation:{key}:{}",
+                    escape_identity_field(input, ':')
+                )),
+                kind: SemanticFactKind::QuantityDerivation,
+                status: EpistemicStatus::Derived,
+                subject: subject.to_owned(),
+                predicate: name.to_owned(),
+                object: input.clone(),
+                provenance: provenance(subject, extractor),
+            });
+        }
+    };
+    for derived in atlas_core::physical::analyze_physical(nodes).derived {
+        push(
+            &derived.subject,
+            &derived.name,
+            derived.status,
+            derived.value.to_string(),
+            &derived.inputs,
+            physical_extractor,
+        );
+    }
+    for variant in atlas_core::product::analyze_products(nodes).variants {
+        for metric in &variant.metrics {
+            let (status, object) = match &metric.value {
+                Some(value) => (
+                    EpistemicStatus::Derived,
+                    format!(
+                        "[{}, {}] {} {}",
+                        value.amount.low,
+                        value.amount.high,
+                        value.currency,
+                        value.basis.as_str()
+                    ),
+                ),
+                None => (
+                    EpistemicStatus::Unknown,
+                    "UNKNOWN: an input was missing or unusable".into(),
+                ),
+            };
+            push(
+                &variant.variant,
+                &metric.name,
+                status,
+                object,
+                &metric.inputs,
+                product_extractor,
+            );
+        }
+    }
+}
+
 fn adl_provenance(path: &str, line: usize, column: usize, revision: &RevisionRef) -> Provenance {
     Provenance {
         source_path: path.to_owned(),
@@ -299,6 +397,10 @@ pub fn build_census(
             });
         }
     }
+
+    // G165 (NA-QUANTITY-SIDE-REPORTS, ADR 0080): the quantities the physical and product models
+    // derive from those declarations enter the census beside them, with their inputs.
+    derived_quantity_facts(&adl.ir.declared.nodes, revision, &mut facts);
 
     // `edge.from`/`.relation`/`.to` and `binding.consumer`/`.capability`/`.provider` are
     // ADL-authored free text, extracted by `parse_relation`'s simple `split_once("->")`, not a
@@ -1974,6 +2076,196 @@ mod tests {
                 .iter()
                 .any(|e| e.kind == "HAS_QUANTITY" && e.from == owner.id && e.to == node.id)
         );
+    }
+
+    /// G165 (NA-QUANTITY-SIDE-REPORTS, ADR 0080): what the physical and product side reports
+    /// derive enters the census -- every derived quantity as a QUANTITY fact equal to the
+    /// report's value and status, every input as a QUANTITY_DERIVATION fact -- and the graph as
+    /// derived-quantity nodes owned by their entity, DERIVED_FROM the inputs that have a node. The
+    /// side reports are the oracle; a declared quantity keeps its own node.
+    #[test]
+    fn derived_quantities_of_the_side_reports_reach_census_and_graph_with_lineage() {
+        let (inventory, source, _) = single_rust_file_context();
+        let fixtures = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
+        for fixture in ["physical/two-link-arm", "product/desk-organizer"] {
+            let sources = adapter::read_adl_sources(fixtures.join(fixture)).unwrap();
+            let adl = compile_adl(&sources, &source);
+            let nodes = &adl.ir.declared.nodes;
+            let census = build_census(&inventory, &source, &adl, &[], &test_revision());
+            let facts_of = |kind: SemanticFactKind| -> Vec<&SemanticFact> {
+                census.facts.iter().filter(|f| f.kind == kind).collect()
+            };
+            let derived: BTreeMap<(String, String), &SemanticFact> =
+                facts_of(SemanticFactKind::Quantity)
+                    .into_iter()
+                    .filter(|f| {
+                        atlas_core::schema::QUANTITY_DERIVATION_EXTRACTORS
+                            .contains(&f.provenance.extractor.as_str())
+                    })
+                    .map(|f| ((f.subject.clone(), f.predicate.clone()), f))
+                    .collect();
+            let lineage: std::collections::BTreeSet<(String, String, String)> =
+                facts_of(SemanticFactKind::QuantityDerivation)
+                    .into_iter()
+                    .map(|f| (f.subject.clone(), f.predicate.clone(), f.object.clone()))
+                    .collect();
+            // The oracle: the side reports computed from the same declarations.
+            let mut expected = BTreeMap::new();
+            let mut inputs = std::collections::BTreeSet::new();
+            for q in atlas_core::physical::analyze_physical(nodes).derived {
+                for input in &q.inputs {
+                    inputs.insert((q.subject.clone(), q.name.clone(), input.clone()));
+                }
+                expected.insert((q.subject, q.name), (q.status, q.value.to_string()));
+            }
+            for variant in atlas_core::product::analyze_products(nodes).variants {
+                for metric in variant.metrics {
+                    for input in &metric.inputs {
+                        inputs.insert((
+                            variant.variant.clone(),
+                            metric.name.clone(),
+                            input.clone(),
+                        ));
+                    }
+                    let value = metric.value.map_or_else(
+                        || (EpistemicStatus::Unknown, "UNKNOWN".to_owned()),
+                        |v| {
+                            (
+                                EpistemicStatus::Derived,
+                                format!("{} {}", v.currency, v.basis.as_str()),
+                            )
+                        },
+                    );
+                    expected.insert((variant.variant.clone(), metric.name), value);
+                }
+            }
+            assert!(!expected.is_empty(), "{fixture} derives nothing");
+            assert_eq!(
+                derived.keys().collect::<Vec<_>>(),
+                expected.keys().collect::<Vec<_>>(),
+                "{fixture}"
+            );
+            for (key, (status, value)) in &expected {
+                let fact = derived[key];
+                assert_eq!(fact.status, *status, "{fixture} {key:?}");
+                match *status {
+                    EpistemicStatus::Unknown => assert!(fact.object.starts_with("UNKNOWN")),
+                    _ if fixture.starts_with("physical") => assert_eq!(&fact.object, value),
+                    _ => assert!(fact.object.ends_with(value.as_str()), "{}", fact.object),
+                }
+                assert!(!fact.provenance.source_path.is_empty(), "{key:?}");
+            }
+            assert_eq!(lineage, inputs, "{fixture}: every input, once");
+            if fixture.starts_with("physical") {
+                // A torque over a gear reduction reaches the census as a torque (G165).
+                let motor = &derived[&("ShoulderMotor".to_owned(), "motor_torque".to_owned())];
+                assert!(motor.object.ends_with(" torque"), "{}", motor.object);
+            }
+
+            let normalization = crate::normalize::normalize(&census);
+            let docs = atlas_core::DocsReport {
+                schema: "test".into(),
+                standard: "test".into(),
+                root: "/repo".into(),
+                gate_ready: true,
+                hard_violations_total: 0,
+                documents_total: 0,
+                canonical_frontmatter_total: 0,
+                required_control_docs_missing: Vec::new(),
+                missing_frontmatter: Vec::new(),
+                documents: Vec::new(),
+            };
+            let graph = atlas_core::build_system_graph(&source, &docs, &normalization);
+            let derived_nodes: Vec<_> = graph
+                .nodes
+                .iter()
+                .filter(|n| {
+                    n.kind == "Quantity"
+                        && atlas_core::schema::QUANTITY_DERIVATION_EXTRACTORS
+                            .contains(&n.provenance.extractor.as_str())
+                })
+                .collect();
+            assert_eq!(derived_nodes.len(), expected.len(), "{fixture}");
+            let derived_from: Vec<_> = graph
+                .edges
+                .iter()
+                .filter(|e| e.kind == atlas_core::graph::EdgeKind::DerivedFrom)
+                .collect();
+            assert!(!derived_from.is_empty(), "{fixture}");
+            let node_ids: std::collections::BTreeSet<&str> =
+                graph.nodes.iter().map(|n| n.id.as_str()).collect();
+            for edge in graph.edges.iter().filter(|e| {
+                matches!(
+                    e.kind,
+                    atlas_core::graph::EdgeKind::DerivedFrom
+                        | atlas_core::graph::EdgeKind::HasQuantity
+                )
+            }) {
+                assert!(
+                    node_ids.contains(edge.from.as_str()),
+                    "{fixture}: dangling {edge:?}"
+                );
+                assert!(
+                    node_ids.contains(edge.to.as_str()),
+                    "{fixture}: dangling {edge:?}"
+                );
+            }
+            let edge_ids: std::collections::BTreeSet<&str> =
+                graph.edges.iter().map(|e| e.id.as_str()).collect();
+            assert_eq!(
+                edge_ids.len(),
+                graph.edges.len(),
+                "{fixture}: edge ids are unique"
+            );
+            if fixture.starts_with("physical") {
+                // A derived motor torque is linked to the declared joint torque it came from,
+                // through the derived joint torque, down to the declared link lengths.
+                let identity = |id: &str| {
+                    graph
+                        .nodes
+                        .iter()
+                        .find(|n| n.id == id)
+                        .map(|n| n.identity.clone())
+                };
+                let links: std::collections::BTreeSet<(String, String)> = derived_from
+                    .iter()
+                    .filter_map(|e| Some((identity(&e.from)?, identity(&e.to)?)))
+                    .collect();
+                assert!(links.contains(&(
+                    "ShoulderMotor.motor_torque".to_owned(),
+                    "Shoulder.static_joint_torque".to_owned()
+                )));
+                assert!(links.contains(&("Arm1.reach".to_owned(), "Upper.length".to_owned())));
+            }
+        }
+    }
+
+    /// G165: a metric the product model cannot derive (no price, no bill of materials) enters
+    /// the census UNKNOWN -- never dropped, never a number.
+    #[test]
+    fn an_underivable_metric_enters_the_census_unknown() {
+        let (inventory, source, _) = single_rust_file_context();
+        let text = "atlas 1\nsystem Shop\n\nentity Product Bare {\n    currency = USD\n}\n";
+        let adl = compile_adl(
+            &[atlas_core::AdlSource {
+                path: ".atlas/declared/shop.adl".into(),
+                text: text.into(),
+            }],
+            &source,
+        );
+        let census = build_census(&inventory, &source, &adl, &[], &test_revision());
+        let price = census
+            .facts
+            .iter()
+            .find(|f| {
+                f.kind == SemanticFactKind::Quantity
+                    && f.subject == "Bare"
+                    && f.predicate == "price"
+            })
+            .expect("the price metric of the implicit variant");
+        assert_eq!(price.status, EpistemicStatus::Unknown);
+        assert!(price.object.starts_with("UNKNOWN"), "{}", price.object);
+        assert_eq!(price.provenance.source_path, ".atlas/declared/shop.adl");
     }
 
     fn span() -> SourceSpan {

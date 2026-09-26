@@ -322,10 +322,17 @@ pub fn build_system_graph(
             }
             // G124 (ADR 0045): a declared quantity is its own typed node -- canonical SI value,
             // dimension, kind and interval -- linked from the declared entity that states it.
+            // G165 (ADR 0080): a derived quantity is a node of its own identity beside the
+            // declared ones, so a metric named like a declared attribute never merges with it.
             SemanticFactKind::Quantity => {
                 let subject = crate::identity::escape_identity_field(&fact.subject, ':');
                 let attribute = crate::identity::escape_identity_field(&fact.predicate, ':');
-                let quantity_id = stable_id("node", &format!("quantity:{subject}:{attribute}"));
+                let prefix = if is_derived_quantity(fact) {
+                    "derived-quantity"
+                } else {
+                    "quantity"
+                };
+                let quantity_id = stable_id("node", &format!("{prefix}:{subject}:{attribute}"));
                 // The owner node comes from the entity's own DECLARED_NODE fact, as for declared
                 // edges; it is never created here with a guessed kind.
                 let owner = declared_node_id(&fact.subject);
@@ -342,7 +349,7 @@ pub fn build_system_graph(
                     &fact.provenance,
                 );
                 graph.edges.push(Edge {
-                    id: stable_id("edge", &format!("quantity:{subject}:{attribute}")),
+                    id: stable_id("edge", &format!("{prefix}:{subject}:{attribute}")),
                     kind: EdgeKind::HasQuantity,
                     from: owner,
                     to: quantity_id,
@@ -538,12 +545,67 @@ pub fn build_system_graph(
             // dimension): already recorded via `add_normalized_fact` above; no dedicated node,
             // exactly like `SourceArtifact`'s "language" fact.
             SemanticFactKind::SemanticObligation => {}
+            // Linked below, once every quantity node exists.
+            SemanticFactKind::QuantityDerivation => {}
         }
     }
+    add_quantity_derivations(&mut graph, &normalization.facts);
 
     add_typed_semantic_nodes(&mut graph, &normalization.typed_semantic_records);
 
     graph
+}
+
+fn is_derived_quantity(fact: &SemanticFact) -> bool {
+    crate::schema::QUANTITY_DERIVATION_EXTRACTORS.contains(&fact.provenance.extractor.as_str())
+}
+
+/// G165 (ADR 0080): a DERIVED_FROM edge from each derived quantity to each input it was computed
+/// from -- a declared quantity (`Entity.attribute`), another derived quantity (`Entity.name`, or a
+/// metric of the same entity), or a declared entity -- whichever node exists, in that order. An
+/// input with no node stays a QUANTITY_DERIVATION fact only; no node is ever invented for it.
+fn add_quantity_derivations(graph: &mut EngineeringGraph, facts: &[SemanticFact]) {
+    let escape = |field: &str| crate::identity::escape_identity_field(field, ':');
+    for fact in facts {
+        if fact.kind != SemanticFactKind::QuantityDerivation {
+            continue;
+        }
+        let (subject, name) = (escape(&fact.subject), escape(&fact.predicate));
+        let from = stable_id("node", &format!("derived-quantity:{subject}:{name}"));
+        if !graph.node_index.contains(&graph.nodes, &from) {
+            continue;
+        }
+        let mut candidates = Vec::new();
+        if let Some((entity, attribute)) = fact.object.rsplit_once('.') {
+            let (entity, attribute) = (escape(entity), escape(attribute));
+            candidates.push(stable_id("node", &format!("quantity:{entity}:{attribute}")));
+            candidates.push(stable_id(
+                "node",
+                &format!("derived-quantity:{entity}:{attribute}"),
+            ));
+        }
+        let input = escape(&fact.object);
+        candidates.push(stable_id(
+            "node",
+            &format!("derived-quantity:{subject}:{input}"),
+        ));
+        candidates.push(declared_node_id(&fact.object));
+        let Some(to) = candidates
+            .into_iter()
+            .find(|id| graph.node_index.contains(&graph.nodes, id))
+        else {
+            continue;
+        };
+        graph.edges.push(Edge {
+            id: stable_id("edge", &format!("derived-from:{subject}:{name}:{input}")),
+            kind: EdgeKind::DerivedFrom,
+            from,
+            to,
+            attributes: BTreeMap::new(),
+            provenance: fact.provenance.clone(),
+            revision: fact.provenance.source_revision.clone(),
+        });
+    }
 }
 
 /// R4.3.3: the authoritative source for SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE graph
