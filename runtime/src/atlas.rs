@@ -327,6 +327,7 @@ mod tests {
     /// container of a different census is refused.
     #[test]
     fn the_self_census_packages_into_a_verified_unsealed_container() {
+        let _census = crate::whole_repo_census_lock();
         let root = root();
         let (genome_schema, genome_hash) = genome_identity(&root).unwrap();
         let report = crate::systemize(&root).unwrap();

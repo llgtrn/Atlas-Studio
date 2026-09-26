@@ -1639,6 +1639,7 @@ fn run(s: &core::store::Store) { s.save(); }
     /// with Cargo and resolved calls, and composition is deterministic.
     #[test]
     fn atlas_self_world_model_is_complete_and_deterministic() {
+        let _census = crate::whole_repo_census_lock();
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
         let report = crate::systemize(&root).unwrap();
         let model = compose(&report);

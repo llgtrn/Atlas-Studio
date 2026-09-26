@@ -406,6 +406,7 @@ mod tests {
     /// source vanished) fails here.
     #[test]
     fn repository_donor_storage_has_no_unrecorded_violation() {
+        let _census = crate::whole_repo_census_lock();
         let root = workspace_root();
         let request = AdmissionRequest {
             donor: "probe".into(),

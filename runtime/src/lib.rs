@@ -296,6 +296,16 @@ pub fn derive_census_adl(root: impl AsRef<Path>) -> io::Result<String> {
     Ok(membership + &atlas_core::derive_effect_envelopes(&declared, &model))
 }
 
+/// Tests that census the whole repository hold this lock, so at most one such census is
+/// resident at a time: several in parallel exceeded the host's memory once the suite grew (G151:
+/// the unit obligation of `verification self` was killed by the OOM killer at 12.8 GB).
+#[cfg(test)]
+pub(crate) fn whole_repo_census_lock() -> std::sync::MutexGuard<'static, ()> {
+    static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    LOCK.lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     systemize_since(root, None)
 }
@@ -1765,6 +1775,7 @@ mod tests {
         /// census, so the chain of Atlases is auditable end to end.
         #[test]
         fn generation_ledger_self_recensus_chain() {
+            let _census = crate::whole_repo_census_lock();
             use crate::recensus::{SelfRecensusReport, Verdict, read_snapshot};
             let root = workspace_root();
             let text = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
@@ -4754,6 +4765,7 @@ mod tests {
     /// change is declared in the generation's self-recensus intent.
     #[test]
     fn integrity_envelope_is_pinned_and_atlas_is_eligible() {
+        let _census = crate::whole_repo_census_lock();
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
         let pinned = integrity::read_envelope(root.join(integrity::PINNED_ENVELOPE_PATH)).unwrap();
         assert_eq!(
@@ -4886,6 +4898,7 @@ mod tests {
     /// WebUI -> Runtime (not a Cargo member) is accounted as not censusable, never passed.
     #[test]
     fn systemize_reconciles_declared_dependencies_against_the_census() {
+        let _census = crate::whole_repo_census_lock();
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
         let report = systemize(&root).unwrap();
         let reconciled: Vec<(&str, atlas_core::ConstraintVerdict)> = report
