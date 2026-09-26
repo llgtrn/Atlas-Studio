@@ -1,0 +1,22 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G149",
+  "trigger": "review cadence: DEBT-IMPACT_CLOSURE, last advanced G136 and reviewed G116, fell due at G149",
+  "method": "the closure rules (core/src/composition/closure.rs R1-R5) re-read against G137-G149 (trait dispatch keys, bounded item-macro names, field projections, typed sections, selection, seal policy)",
+  "reviews": [
+    {
+      "debt": "DEBT-IMPACT_CLOSURE",
+      "verdict": "CORRECTED",
+      "finding": "its evidence omitted G141: mission M5 added rule R5 (a seed trait method declaration or implementation affects every method sharing its trait and method key); G145 opened a second blind spot of the re-export class: a changed macro_rules! transcriber changes which names are uncertain in modules that invoke it by crate path, in files the change does not touch -- found by reading the rules against G145, not by an observed miss; NA-CLOSURE-CONSUMER",
+      "correction": {
+        "evidence": "appended: G141 (mission M5): rule R5, trait dispatch keys",
+        "unknowns": "re-export and mod-item edges, and (since G145) changed macro_rules! transcribers invoked by crate path from unchanged files: both re-route resolution by a name the model does not carry; a consumer that skips work outside the closure"
+      }
+    }
+  ],
+  "summary": {
+    "reviewed": 1,
+    "confirmed": 0,
+    "corrected": 1
+  }
+}

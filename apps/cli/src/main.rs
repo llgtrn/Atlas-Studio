@@ -255,6 +255,55 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{derived}");
         }
+        [cmd, sub, rest @ ..] if cmd == "seal" && sub == "policy" => {
+            // G149 (ADR 0065): the strict self-scope seal policy. `--check` validates the declared
+            // policy (identity, totality, never-permitted kinds, HARD dimensions) and exits
+            // SEAL_POLICY_INVALID otherwise.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            if rest.iter().any(|arg| arg == "--check") {
+                let declared =
+                    runtime::seal::declared_policy(&root).map_err(|e| format!("{root}: {e}"))?;
+                let problems = runtime::seal::validate_policy(&declared);
+                if !problems.is_empty() {
+                    return Err(format!("SEAL_POLICY_INVALID: {}", problems.join("; ")));
+                }
+                println!("{}", json(&declared)?);
+            } else {
+                let text = json(&runtime::seal::self_scope_policy())? + "\n";
+                match value(rest, "--out")? {
+                    Some(out) => write_report_to_out(&out, &text)?,
+                    None => print!("{text}"),
+                }
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "seal" && sub == "evaluate" => {
+            // G149: a certificate's scoped verdict under the declared seal policy; exits
+            // SEAL_NOT_ELIGIBLE unless every blocker is permitted.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let certificate =
+                value(rest, "--certificate")?.ok_or("seal evaluate requires --certificate")?;
+            let policy = match value(rest, "--policy")? {
+                Some(path) => {
+                    runtime::seal::read_policy(&path).map_err(|e| format!("{path}: {e}"))?
+                }
+                None => {
+                    runtime::seal::declared_policy(&root).map_err(|e| format!("{root}: {e}"))?
+                }
+            };
+            let verdict = runtime::seal::evaluate(&certificate, &policy)
+                .map_err(|e| format!("{certificate}: {e}"))?;
+            let text = json(&verdict)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if verdict.verdict != runtime::seal::ScopeVerdict::Eligible {
+                return Err(format!(
+                    "SEAL_NOT_ELIGIBLE: {} blockers refused",
+                    verdict.refused.len()
+                ));
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "design" && sub == "roots" => {
             // G148: the FUNCTION_IDENTITY roots of a verified container named `--function`.
             let atlas = value(rest, "--atlas")?.ok_or("design roots requires --atlas")?;

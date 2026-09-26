@@ -33,10 +33,15 @@ pub fn parse_root(spec: &str) -> Result<SemanticRoot, String> {
 }
 
 pub fn read_design(path: impl AsRef<Path>) -> io::Result<SelectedDesign> {
+    read_json(path)
+}
+
+/// A JSON file as `T`; malformed content is `InvalidData`.
+pub(crate) fn read_json<T: serde::de::DeserializeOwned>(path: impl AsRef<Path>) -> io::Result<T> {
     serde_json::from_str(&fs::read_to_string(path)?).map_err(invalid)
 }
 
-fn invalid(why: impl std::fmt::Display) -> io::Error {
+pub(crate) fn invalid(why: impl std::fmt::Display) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, why.to_string())
 }
 

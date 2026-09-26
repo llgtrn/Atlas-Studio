@@ -1,0 +1,63 @@
+{
+  "schema": "atlas.seal-policy.v1",
+  "policy_id": "blake3-256:9537882e8c8425c79bb5f7e962d536244d467f8e79efabca20bb88ac89a27745",
+  "scope": "atlas-self",
+  "verification": {
+    "artifact_kind": "LIBRARY_PACKAGE",
+    "required_classes": [
+      "SEMANTIC",
+      "UNIT",
+      "COMPATIBILITY"
+    ]
+  },
+  "certificate": {
+    "scope": "atlas-self",
+    "rules": {
+      "REVISION_DIRTY": "REQUIRED_CLEAR",
+      "INVENTORY_NOT_ACCOUNTED": "REQUIRED_CLEAR",
+      "ARTIFACTS_WITHOUT_SOURCE_FRONTEND": "REQUIRED_CLEAR",
+      "WORKSPACE_MEMBER_OUTSIDE_INVENTORY": "REQUIRED_CLEAR",
+      "DEPENDENCY_CLOSURE_NOT_CLOSED": "REQUIRED_CLEAR",
+      "DEPENDENCY_UNRESOLVED": "REQUIRED_CLEAR",
+      "SEMANTIC_OBLIGATIONS_NOT_ACCOUNTED": "REQUIRED_CLEAR",
+      "COVERAGE_UNKNOWN": "REQUIRED_CLEAR",
+      "COVERAGE_UNSUPPORTED": "REQUIRED_CLEAR",
+      "COVERAGE_CONFLICT": "REQUIRED_CLEAR",
+      "UNKNOWN_FACTS": "REQUIRED_CLEAR",
+      "UNSUPPORTED_FACTS": "REQUIRED_CLEAR",
+      "DYNAMIC_DEPENDENCY_OBLIGATIONS": {
+        "ACCEPTED_BOUNDED_RESIDUAL": {
+          "bound": {
+            "AT_MOST": 9
+          },
+          "reason": "the dynamic dependency classes the Cargo census cannot observe (BUILD_SCRIPT, PROC_MACRO_EXPANSION, PKG_CONFIG, NATIVE_LINKING, GENERATED_SOURCE, ENVIRONMENT_PROBE, DYNAMIC_LOADING, PLUGIN_DISCOVERY, EXTERNAL_CAPABILITY); they stay listed as residuals"
+        }
+      },
+      "PROVENANCE_INCOMPLETE": "REQUIRED_CLEAR",
+      "NORMALIZATION_CONFLICTS": "REQUIRED_CLEAR",
+      "REPLAY_NOT_CONVERGED": "REQUIRED_CLEAR",
+      "MULTI_ENGINE_RECONCILIATION_ABSENT": "REQUIRED_CLEAR",
+      "ATLAS_ROOT_ABSENT": "REQUIRED_CLEAR",
+      "ATLAS_ROOT_UNSEALED": {
+        "OUT_OF_SCOPE": {
+          "reason": "the seal gate is what seals the candidate's root"
+        }
+      }
+    }
+  },
+  "hard_dimensions": [
+    "SYMBOL",
+    "TYPE",
+    "FUNCTION_IDENTITY",
+    "FUNCTION_SIGNATURE",
+    "CALL",
+    "CONTROL_FLOW",
+    "DATA_FLOW",
+    "STATE",
+    "EFFECT",
+    "OWNERSHIP",
+    "CONCURRENCY",
+    "PERSISTENCE"
+  ],
+  "integrity_verdict_required": "ELIGIBLE"
+}

@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-SEAL-POLICY"
+next_native_attack = "NA-DESIGN-CANDIDATES"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -645,9 +645,14 @@ objective = "NA-SELECTED-DESIGN, construction node M7 (done: SelectedDesign with
 [[planned_generation]]
 id = "G149"
 priority = "P2"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-SEAL-POLICY, construction nodes M3 and M4 -- toward the seal eligibility gate M8"
+objective = "NA-SEAL-POLICY, construction nodes M3 and M4 (done: all 19 certificate blocker codes typed, a scope policy disposing of each kind, a digest-pinned SealPolicy no provider can weaken past its bounds; the self census NOT_ELIGIBLE with every reason named; 9 mutants killed)"
 
 [[planned_generation]]
-id = "G150+"
+id = "G150"
+priority = "P2"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-DESIGN-CANDIDATES (DEBT-DESIGN_GENERATION, unadvanced since G52) -- candidate designs over a verified container compared by explicit criteria and handed to selection; NA-SEAL-GATE (M8, M9) follows"
+
+[[planned_generation]]
+id = "G151+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

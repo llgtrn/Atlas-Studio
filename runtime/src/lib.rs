@@ -13,6 +13,7 @@ pub mod physical;
 pub mod product;
 pub mod recensus;
 pub mod sandbox;
+pub mod seal;
 pub mod verification;
 pub mod visual;
 

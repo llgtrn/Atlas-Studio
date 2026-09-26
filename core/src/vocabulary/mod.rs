@@ -174,6 +174,11 @@ pub const CARRIERS: &[Carrier] = &[
         "a design accepted or rejected by its check against container, evidence and authority",
     ),
     carrier(
+        "ScopeVerdict",
+        CarrierRole::Verdict,
+        "a certificate eligible or not under a scope's seal policy (G149)",
+    ),
+    carrier(
         "Enforcement",
         CarrierRole::Enforcement,
         "an isolation property applied or not, with why",

@@ -25,6 +25,7 @@ pub mod quantity;
 pub mod recensus;
 pub mod sandbox;
 pub mod schema;
+pub mod seal;
 pub mod semantic;
 pub mod state;
 pub mod temporal;

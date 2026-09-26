@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G148"
+current_generation = "G149"
 
 [[generation]]
 id = "G35"
@@ -3207,3 +3207,35 @@ after = 153668
 key = "composed:function_behavior"
 before = 5223
 after = 5281
+
+[[generation]]
+id = "G149"
+kind = "NATIVE_ATTACK"
+base_commit = "657c1a0de12190ea9dea6219cd363860ad7794a8"
+priority = "P2"
+serves = "DEBT-SEAL_GATE and DEBT-DEPENDENCY: NA-SEAL-POLICY, construction nodes M3 and M4 -- the policy inputs the seal eligibility gate M8 needs"
+objective = "every certificate blocker a typed kind disposed of by a scope policy, and a SealPolicy record pinned by digest identity that no provider can weaken past its bounds"
+writer = "coordinator (sole writer); contracts CENSUS-CERTIFICATE and SEALED-ATLAS read for the blocker vocabulary and the policy field set"
+evidence = ".atlas/evidence/seal/G149-seal-policy.json"
+self_recensus = ".atlas/evidence/census/G149/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 0efe89476a = G148 post digest (the evidence commit 657c1a0de1 adds only out-of-scope evidence)"
+atlas_first = "the certificate writes its blockers as CODE: detail text with 19 codes; CertificateInputs has no scope permission input and the contract names REQUIRED_CLEAR, ACCEPTED_BOUNDED_RESIDUAL and OUT_OF_SCOPE dispositions without a record; the verification policy (M2) and integrity report verdict (M6) exist to be bound"
+change = "core::seal: BlockerKind (19 kinds, NEVER_PERMITTED six), parse_blocker, ResidualBound, Disposition, ScopePolicy, ScopeVerdict, ScopedCertificateVerdict, evaluate_certificate, SealPolicy, policy_identity, validate_policy; vocabulary carrier ScopeVerdict. runtime::seal: self_scope_policy, read_policy, declared_policy, evaluate. CLI seal policy and seal evaluate (exits non-zero when not eligible). .atlas/declared/seal-policy.json. Contract CENSUS-CERTIFICATE implementation status; ADR 0065"
+oracle = "the G148 self certificate under the declared policy is NOT_ELIGIBLE with 13 refused blockers named (REVISION_DIRTY, ATLAS_ROOT_ABSENT, eight UNKNOWN coverage dimensions, UNKNOWN_FACTS, UNSUPPORTED_FACTS, MULTI_ENGINE_RECONCILIATION_ABSENT) and DYNAMIC_DEPENDENCY_OBLIGATIONS 9 listed as the permitted bounded residual"
+falsification = "9 mutants killed (unknown code skipped, unclassified kind permitted, bound unchecked, permitted residuals dropped, never-permitted kinds unchecked, HARD coverage acceptable, totality unchecked, identity unchecked, enumerated bound admits anything)"
+boundary = "the self census is not seal-eligible: sealing needs its UNKNOWN coverage, facts and single-engine dimensions closed, a pinned revision and a packaged root in the certificate run; the gate (M8) and SEALED encoder (M9) do not exist yet"
+debts = "DEBT-SEAL_GATE last advance G149 (M2_PARTIAL); DEBT-DEPENDENCY's 9 dynamic obligations a policy-permitted bounded residual; construction nodes M3 and M4 EXIST; revalidation milestone SEAL_POLICY; next native head by the selection rule NA-DESIGN-CANDIDATES (DEBT-DESIGN_GENERATION, stale 97, pressure 97 over NA-SEAL-GATE 22), then NA-SEAL-GATE (M8, M9)"
+review = "DEBT-IMPACT_CLOSURE corrected: G141 rule R5 recorded, G145 macro-transcriber blind spot named (evidence/census/G149/debt-review.json)"
+proof = "PROVEN (post 3dbaa256...): no unexplained UNKNOWN (the new core::seal and runtime::seal files explained)"
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5281
+after = 5332
+
+[[generation.metric]]
+key = "obligations"
+before = 2195
+after = 2246
