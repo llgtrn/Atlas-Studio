@@ -1,0 +1,183 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G156",
+  "base_revision": "bc3754c959f4fee257049e06bca3d8af3b980ee9",
+  "candidate_revision": "19d507bafd878cfe96698f9faf323a73db955d3a",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:c26abc65f43fc49c6078508ef63b2574e4da65193a1d1876f748096edcfe94de",
+  "after_census_digest": "blake3-256:fa6785eb967dce7e72082fe5af5e7a5d91d682a9fac2782930a932b681c2a84c",
+  "replay_digest": "blake3-256:fa6785eb967dce7e72082fe5af5e7a5d91d682a9fac2782930a932b681c2a84c",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 5,
+      "fact:FunctionSignature|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 5,
+      "record:CALL|DERIVED": 4,
+      "record:CALL|OBSERVED": 53,
+      "record:CONTROL_FLOW|INFERRED": 3,
+      "record:CONTROL_FLOW|OBSERVED": 19,
+      "record:DATA_FLOW|OBSERVED": 105,
+      "record:EFFECT|INFERRED": 3,
+      "record:FUNCTION_IDENTITY|OBSERVED": 5,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 2,
+      "record:OWNERSHIP|OBSERVED": 22,
+      "record:SYMBOL|OBSERVED": 5
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 331,
+    "graph_nodes": 238
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/impl_shape()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/impl_shape()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/renamed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/inline_and_where_bounds_with_renamed_parameters_share_an_impl_shape()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1776,
+    "total_after": 1776
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R4 salsa at its G115 pin: an impl's shape is the set of types it applies to -- inline and where-clause bounds and renamed parameters share a shape, so inherent methods split across such impls resolve; the G150 revalidation of salsa carried by the replay",
+    "changed_paths": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/impl_shape().",
+      "CHANGED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+      "CREATED adapter semantic/rust/resolve/renamed().",
+      "CREATED adapter semantic/rust/resolve/tests/inline_and_where_bounds_with_renamed_parameters_share_an_impl_shape()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path runtime/src/lib.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/impl_shape().",
+    "entity CHANGED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+    "entity CREATED adapter semantic/rust/resolve/renamed().",
+    "entity CREATED adapter semantic/rust/resolve/tests/inline_and_where_bounds_with_renamed_parameters_share_an_impl_shape()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

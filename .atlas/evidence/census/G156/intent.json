@@ -1,0 +1,41 @@
+{
+  "objective": "FULL_OSS_REPLAY R4 salsa at its G115 pin: an impl's shape is the set of types it applies to -- inline and where-clause bounds and renamed parameters share a shape, so inherent methods split across such impls resolve; the G150 revalidation of salsa carried by the replay",
+  "changed_paths": [
+    "adapter/src/semantic/rust/resolve.rs",
+    "adapter/src/semantic/rust/resolve/tests.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:ENCLOSES",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter semantic/rust/resolve/impl_shape().",
+    "CHANGED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+    "CREATED adapter semantic/rust/resolve/renamed().",
+    "CREATED adapter semantic/rust/resolve/tests/inline_and_where_bounds_with_renamed_parameters_share_an_impl_shape()."
+  ],
+  "adl_changes": [],
+  "dependency_changes": []
+}

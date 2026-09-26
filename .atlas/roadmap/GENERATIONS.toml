@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G155"
+current_generation = "G156"
 
 [[generation]]
 id = "G35"
@@ -3441,3 +3441,45 @@ after = 5836
 key = "facts"
 before = 27456
 after = 27492
+
+[[generation]]
+id = "G156"
+kind = "REPLAY"
+base_commit = "19d507bafd878cfe96698f9faf323a73db955d3a"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R4: salsa replayed through Atlas E4 at its G115 pin -- DEBT-CALL advanced, DEBT-IMPACT_CLOSURE's missing consumer studied, the G150 revalidation of salsa carried by the replay"
+objective = "replay the incremental-recomputation donor at the bytes its historical verdict was decided on: Atlas_N first, a challenge Atlas_N cannot answer, one bounded Atlas-native improvement, the same pin re-censused at N+1, the source extinct"
+writer = "coordinator (sole writer)"
+replay = "salsa-rs/salsa"
+pinned_commit = "5d8eaf1fa372a73d44f9b717407de41f19ef59d7"
+source_path = ".atlas/.cache/donors/salsa"
+epoch_before = "E4"
+epoch_after = "E5"
+mission = ".atlas/evidence/replay/R4-salsa.json"
+evidence = ".atlas/evidence/replay/R4-salsa.json"
+self_recensus = ".atlas/evidence/census/G156/recensus.json"
+
+[generation.verification]
+pre_census = "G155 post digest"
+atlas_first = "agent model, coverage levels and impact on the donor before any source reading: 10,069 functions, 367 components, Rust L6; the challenge (what does the early-cutoff check maybe_changed_after reach, and where is early cutoff realized?) ends at an unresolved self.get_memo_from_table_for although the method is declared in the same crate"
+change = "adapter resolver: impl_shape renames type parameters by position, merges inline and where bounds into one sorted predicate set, erases lifetimes and keeps const parameter types, so impls of the same applied types share a shape; a resolver test (a different bound set stays apart); runtime: a REPLAY generation may carry revalidation records"
+oracle = "the same pin at E4 vs E5: 986 -> 997 resolved call edges, 7,602 -> 7,631 relations; get_memo_from_table_for resolved (ATLAS_CORRECT against the source); early cutoff located at backdate_if_appropriate with both callers; let-else Option bindings and trait methods on associated-type receivers stay UNKNOWN; Atlas Studio +4 INVOKES"
+falsification = "3 mutants killed (bounds not merged, parameters not renamed, bound sets ignored)"
+boundary = "the gain is modest (+1.1% edges on the donor); salsa decided REFERENCE_ONLY_UNTIL_TRIGGER at E5 for invalidation, early cutoff and durability, the G115 ABSORBED kept as history; revalidation R3 REVALIDATED; source extinct"
+debts = "DEBT-CALL last advance G156; capability epoch E5; GitNexus and tree-sitter re-checked at E5 and CURRENT; next replay xyflow/xyflow (QUEUED); native head NA-RESOURCE-DIMENSION planned G157"
+proof = "PROVEN (post fa6785eb...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 4803
+after = 4807
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 6710
+after = 6714
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5836
+after = 5841

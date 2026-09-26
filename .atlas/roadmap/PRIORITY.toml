@@ -687,7 +687,7 @@ objective = "NA-SUPPORT-LEVELS (universal engineering-world directive; done: eve
 [[planned_generation]]
 id = "G156"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa (QUEUED): the incremental-recomputation donor facing DEBT-IMPACT_CLOSURE's missing consumer, replayed through the strongest Atlas; its languages measured on the support ladder before and after"
+objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa at its G115 pin 5d8eaf1fa372 (done: the incremental-recomputation donor; Atlas_N could not follow maybe_changed_after into get_memo_from_table_for because salsa splits IngredientImpl's inherent methods across impls whose bounds are spelled differently; capability epoch E5 -- impl shapes normalized by the set of types they apply to; the same pin 986 -> 997 resolved edges and 7,602 -> 7,631 relations; early cutoff located at backdate_if_appropriate; 3 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER at E5, the G115 ABSORBED kept as history, revalidation R3 REVALIDATED; source extinct)"
 
 [[planned_generation]]
 id = "G157"
@@ -695,6 +695,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
 
 [[planned_generation]]
-id = "G158+"
+id = "G158"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R5 xyflow/xyflow (QUEUED): a TypeScript node-graph UI library facing the strongest Atlas (E5 or later), TypeScript measured on the support ladder for the first time; the admitted legacy checkout under .atlas/temporary/donors extinguished with it"
+
+[[planned_generation]]
+id = "G159+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

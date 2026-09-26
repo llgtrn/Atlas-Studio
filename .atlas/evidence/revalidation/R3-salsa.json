@@ -1,0 +1,82 @@
+{
+  "schema": "atlas.evidence.revalidation.v1",
+  "revalidation": "R3",
+  "generation": "G156",
+  "donor": "salsa",
+  "historical_decision": {
+    "generation": "G115",
+    "terminal_state": "ABSORBED",
+    "detail": "memoized derivation reuse absorbed (G39, ADR 0008); revision-based invalidation, early cutoff and durability REFERENCE_ONLY; reopen trigger: a real workload whose whole-program recensus stages dominate an edit loop"
+  },
+  "trigger": {
+    "status_before": "REVALIDATION_REQUIRED (since G150)",
+    "reason": "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since (G129 impact closure with its full-recompute oracle)"
+  },
+  "question": "does the G129 impact closure change salsa's REFERENCE_ONLY part (invalidation, early cutoff, durability), and can Atlas now observe the donor's own mechanism?",
+  "materialization": {
+    "pinned_commit": "5d8eaf1fa372a73d44f9b717407de41f19ef59d7",
+    "mode": "SHALLOW_BLOBLESS",
+    "path": ".atlas/.cache/donors/salsa"
+  },
+  "engines": {
+    "historical": "Atlas built from fd603365765d26605bfb18dcfd7dcd85a695842d (the G115 commit that decided salsa)",
+    "current": "Atlas built from the G156 tree",
+    "same_source": true
+  },
+  "crate_census": {
+    "historical_records": {
+      "CALL|DERIVED": 676,
+      "CALL|OBSERVED": 8519,
+      "CONCURRENCY|INFERRED": 25,
+      "CONTROL_FLOW|INFERRED": 88,
+      "CONTROL_FLOW|OBSERVED": 3885,
+      "DATA_FLOW|OBSERVED": 17751,
+      "EFFECT|INFERRED": 95,
+      "FUNCTION_IDENTITY|OBSERVED": 2403,
+      "FUNCTION_SIGNATURE|OBSERVED": 2403,
+      "OWNERSHIP|OBSERVED": 5373,
+      "STATE|OBSERVED": 365,
+      "SYMBOL|OBSERVED": 5079,
+      "TYPE|DERIVED": 913,
+      "TYPE|OBSERVED": 4701
+    },
+    "current_records": {
+      "CALL|DERIVED": 1071,
+      "CALL|OBSERVED": 29900,
+      "CONCURRENCY|INFERRED": 58,
+      "CONTROL_FLOW|INFERRED": 746,
+      "CONTROL_FLOW|OBSERVED": 4619,
+      "DATA_FLOW|OBSERVED": 22250,
+      "EFFECT|DERIVED": 1,
+      "EFFECT|INFERRED": 754,
+      "FUNCTION_IDENTITY|OBSERVED": 10069,
+      "FUNCTION_SIGNATURE|OBSERVED": 9521,
+      "OWNERSHIP|OBSERVED": 6913,
+      "STATE|OBSERVED": 404,
+      "SYMBOL|OBSERVED": 7683,
+      "TYPE|DERIVED": 915,
+      "TYPE|OBSERVED": 4707
+    },
+    "historical_total": 52276,
+    "current_total": 99611
+  },
+  "mechanism_through_atlas": "at E5 Atlas locates early cutoff at IngredientImpl::backdate_if_appropriate by its declared purpose and two resolved callers (execute, specify_and_record); the impact closure is a static reachability over the world model and has no consumer that recomputes, so a value-equality cutoff has nothing to cut",
+  "semantic_delta": [
+    "IMPACT_CLOSURE_WITH_ORACLE",
+    "IMPL_SHAPE_BY_APPLIED_TYPES"
+  ],
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: memo stays ABSORBED; invalidation, early cutoff and durability stay REFERENCE_ONLY until a closure consumer exists -- then backdating is the mechanism to study (a recomputed function whose records are unchanged stops propagation)",
+  "follow_up": "NA-CLOSURE-CONSUMER",
+  "decision_layer": {
+    "historical_record_rewritten": false,
+    "appended": "G156 REVALIDATED at E5"
+  },
+  "extinction": {
+    "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/salsa (from the repository root)",
+    "runtime_dependency": "none: Atlas does not depend on salsa (no crate, no path); the resolver fix is Atlas's own code",
+    "evidence_retained": "R4 replay and R3 revalidation records: pin, license, Atlas_N mission, differential, both-engine crate census, N versus N+1; no salsa text in Atlas",
+    "path_absent_after": true,
+    "status": "SOURCE_EXTINCT"
+  }
+}

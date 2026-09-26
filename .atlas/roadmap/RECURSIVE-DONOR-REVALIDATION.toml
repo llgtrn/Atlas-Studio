@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G155"
+evaluated_at = "G156"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -109,6 +109,30 @@ debts = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DE
 languages = ["rust"]
 observes = "each dimension's semantics inside standard macro arguments, implicit format captures"
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
+
+[[capability_milestone]]
+id = "DECLARED_SHAPES"
+generation = "G153"
+debts = ["DEBT-TYPE"]
+languages = ["rust"]
+observes = "struct, enum, variant and field definitions carry item kind, visibility, derives, attributes and field shape"
+evidence = ".atlas/decisions/0069-self-reconstruction-lane.md"
+
+[[capability_milestone]]
+id = "FOREIGN_FUNCTIONS"
+generation = "G154"
+debts = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+languages = ["rust"]
+observes = "functions declared in extern blocks are call targets and a literal include splices its file"
+evidence = ".atlas/decisions/0070-foreign-functions-and-unrecognized-source.md"
+
+[[capability_milestone]]
+id = "IMPL_SHAPE_BY_APPLIED_TYPES"
+generation = "G156"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "inherent methods of impls spelled with inline or where bounds and renamed parameters are one namespace"
+evidence = ".atlas/evidence/replay/R4-salsa.json"
 
 [[capability_milestone]]
 id = "TS_JS_PROFILE"
@@ -315,7 +339,7 @@ capabilities_available_then = []
 semantic_delta = ["SEAL_POLICY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DEPENDENCY, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 120
+priority = 121
 rank = 6
 
 [[donor]]
@@ -344,10 +368,10 @@ last_materialized_generation = "G75"
 last_deep_census_generation = "G75"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
-semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "DECLARED_SHAPES", "FOREIGN_FUNCTIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1320
+priority = 1694
 rank = 1
 
 [[donor]]
@@ -356,15 +380,15 @@ first_50_ordinal = 5
 language = "rust"
 language_verified = false
 historical_decision_generation = "G115"
-last_materialized_generation = "G115"
-last_deep_census_generation = "G115"
+last_materialized_generation = "G156"
+last_deep_census_generation = "G156"
 capabilities_examined = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
-status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 120
-rank = 8
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
 
 [[donor]]
 donor = "tree-sitter"
@@ -376,7 +400,7 @@ last_materialized_generation = "G65"
 last_deep_census_generation = "G65"
 capabilities_examined = ["DEBT-MULTILANGUAGE"]
 capabilities_available_then = []
-semantic_delta = ["TS_JS_PROFILE"]
+semantic_delta = ["FOREIGN_FUNCTIONS", "TS_JS_PROFILE"]
 status = "CAPABILITY_NOT_APPLICABLE"
 reason = "the advanced capabilities are Rust semantic engines; a c source exposes nothing new to them (condition 3 fails)"
 priority = 0
@@ -408,7 +432,7 @@ last_materialized_generation = "G67"
 last_deep_census_generation = "G67"
 capabilities_examined = ["DEBT-SYMBOL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["CANONICAL_TYPE_IDENTITY", "ITEM_MACRO_NAMES"]
+semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "ITEM_MACRO_NAMES"]
 status = "CAPABILITY_NOT_APPLICABLE"
 reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
 priority = 0
@@ -440,7 +464,7 @@ last_materialized_generation = "G69"
 last_deep_census_generation = "G69"
 capabilities_examined = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
 reason = "the advanced capabilities are Rust semantic engines; a scala source exposes nothing new to them (condition 3 fails)"
 priority = 0
@@ -504,10 +528,10 @@ last_materialized_generation = "G121"
 last_deep_census_generation = "G121"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["DECLARED_SHAPES", "FOREIGN_FUNCTIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 960
+priority = 1331
 rank = 2
 
 [[donor]]
@@ -523,7 +547,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "STD_RECEIVERS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 480
+priority = 484
 rank = 3
 
 [[donor]]
@@ -536,7 +560,7 @@ last_materialized_generation = "G78"
 last_deep_census_generation = "G78"
 capabilities_examined = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS"]
-semantic_delta = ["SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "LANGUAGE_UNDETERMINED"
 reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
 priority = 0
@@ -555,7 +579,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 120
+priority = 121
 rank = 7
 
 [[donor]]
@@ -584,10 +608,10 @@ last_materialized_generation = "G82"
 last_deep_census_generation = "G82"
 capabilities_examined = ["DEBT-TYPE", "DEBT-DESIGN_GENERATION"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
-semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DESIGN_CANDIDATES", "ITEM_MACRO_NAMES"]
+semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "DESIGN_CANDIDATES", "ITEM_MACRO_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DESIGN_GENERATION, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 345
+priority = 469
 rank = 4
 
 [[donor]]
@@ -939,8 +963,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 117
-rank = 9
+priority = 118
+rank = 8
 
 [[donor]]
 donor = "podman"
@@ -1080,10 +1104,10 @@ last_materialized_generation = "G114"
 last_deep_census_generation = "G114"
 capabilities_examined = ["DEBT-MULTILANGUAGE", "DEBT-TRANSFORMATION"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = ["TS_JS_PROFILE"]
+semantic_delta = ["FOREIGN_FUNCTIONS", "TS_JS_PROFILE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-MULTILANGUAGE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 120
+priority = 242
 rank = 5
 
 [[donor]]
@@ -1328,4 +1352,22 @@ status = "COMPLETE"
 evidence = ".atlas/evidence/revalidation/R2-datafrog.json"
 outcome = "REVALIDATED"
 finding = "verdict holds: the impact closure is one-hop rules plus a reachability walk, no multi-way join, so the REFERENCE_ONLY part still has no caller; run over the donor history the closure was unsound on seven of its changes, exposing two defects fixed in the same generation; the stage rotation stays invisible (interior mutability) and its dispatch unresolved (trait objects)"
+follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R3"
+donor = "salsa"
+generation = "G156"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["IMPACT_CLOSURE_WITH_ORACLE"]
+question = "does the G129 impact closure change salsa's REFERENCE_ONLY part (invalidation, early cutoff, durability), and can Atlas now observe the donor's own mechanism?"
+remote = "https://github.com/salsa-rs/salsa.git"
+pinned_commit = "5d8eaf1fa372a73d44f9b717407de41f19ef59d7"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the G115 pin, carried by replay R4"
+source_path = ".atlas/.cache/donors/salsa"
+status = "COMPLETE"
+evidence = ".atlas/evidence/revalidation/R3-salsa.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: memo stays ABSORBED; the impact closure is static reachability with no recomputing consumer, so salsa's value-equality early cutoff (backdating) has nothing to cut yet; Atlas now locates it by its declared purpose and resolved callers, and the replay exposed and fixed the impl-shape defect that hid salsa's split IngredientImpl methods"
 follow_up = "NA-CLOSURE-CONSUMER"

@@ -1,0 +1,294 @@
+{
+  "schema": "atlas.evidence.full-oss-replay.v1",
+  "replay": "R4",
+  "generation": "G156",
+  "lane": "FULL_OSS_REPLAY",
+  "donor": {
+    "key": "salsa-rs/salsa",
+    "remote": "https://github.com/salsa-rs/salsa",
+    "pin": "5d8eaf1fa372a73d44f9b717407de41f19ef59d7",
+    "pin_choice": "the exact G115 pin (evidence/campaign/05-salsa.json), so the replay is also the G150 revalidation of the same bytes",
+    "license": "MIT OR Apache-2.0 (LICENSE-MIT and LICENSE-APACHE at the pin, verified)",
+    "code_reuse": "NONE",
+    "selection": "queued at G154: DEBT-IMPACT_CLOSURE has no consumer (NA-CLOSURE-CONSUMER) and salsa is the canonical incremental-recomputation donor; its G115 verdict was REVALIDATION_REQUIRED since G150",
+    "dependency_class": "MECHANISM_INTERNAL (the incremental engine itself; no dependency followed)",
+    "materialization": "blobless clone fetched at the pin into .atlas/.cache/donors/salsa (7.7 MB): 294 .rs, 58 .md"
+  },
+  "epochs": {
+    "before": "E4",
+    "after": "E5 (G156: impl shapes normalized by the set of types they apply to)"
+  },
+  "support_levels": {
+    "N": {
+      "javascript": "L6_AGENT_USABLE",
+      "rust": "L6_AGENT_USABLE",
+      "css": "L2_SYNTAX",
+      "json": "L2_SYNTAX",
+      "markdown": "L2_SYNTAX",
+      "toml": "L2_SYNTAX",
+      "yaml": "L2_SYNTAX"
+    },
+    "N_plus_1": {
+      "javascript": "L6_AGENT_USABLE",
+      "rust": "L6_AGENT_USABLE",
+      "css": "L2_SYNTAX",
+      "json": "L2_SYNTAX",
+      "markdown": "L2_SYNTAX",
+      "toml": "L2_SYNTAX",
+      "yaml": "L2_SYNTAX"
+    },
+    "note": "measured with coverage levels (ADR 0071) on the same pin; Rust L6 before and after -- the delta is inside L6, in resolution"
+  },
+  "atlas_n_mission": {
+    "commands": [
+      "agent model --root .atlas/.cache/donors/salsa",
+      "coverage levels --root .atlas/.cache/donors/salsa",
+      "agent impact --target src/function/maybe_changed_after.rs"
+    ],
+    "atlas_knew": {
+      "functions": 10069,
+      "components": 367,
+      "resolved_call_edges": 986,
+      "unresolved_call_sites": 28840,
+      "impact_frontier": {
+        "callers": 4,
+        "inferred": {
+          "DISPATCHES_TO": 1,
+          "UNIQUE_NAME": 37
+        },
+        "inferred_nearest": {
+          "items": [
+            {
+              "label": "IngredientImpl<C>::fetch_hot@src/function/fetch.rs:75",
+              "id": "semantic:FUNCTION_IDENTITY:45f8349838c7e857",
+              "signature": "fn fetch_hot(&self: &'db Self, zalsa: &'db Zalsa, id: Id, memo_ingredient_index: MemoIngredientIndex) -> Option<&'db Memo<C>>",
+              "weight": 1
+            },
+            {
+              "label": "IngredientImpl<C>::fetch_cold@src/function/fetch.rs:107",
+              "id": "semantic:FUNCTION_IDENTITY:99242097d73504d6",
+              "signature": "fn fetch_cold(&self: &'db Self, zalsa: &'db Zalsa, zalsa_local: &'db ZalsaLocal, db: &'db C::DbView, id: Id, memo_ingredient_index: MemoIngredientIndex) -> Option<&'db Memo<C>>",
+              "weight": 1
+            },
+            {
+              "label": "maybe_changed_after@src/ingredient.rs:41",
+              "id": "semantic:FUNCTION_IDENTITY:142985fe0c9c7b02",
+              "signature": "fn maybe_changed_after(&self: &Self, zalsa: &Zalsa, db: RawDatabase<'_>, input: Id, revision: Revision) -> VerifyResult",
+              "weight": 2
+            },
+            {
+              "label": "IngredientImpl<C>::refresh_memo@src/function/fetch.rs:51",
+              "id": "semantic:FUNCTION_IDENTITY:c6384833be8cbb55",
+              "signature": "pub(super) fn refresh_memo(&self: &'db Self, db: &'db C::DbView, zalsa: &'db Zalsa, zalsa_local: &'db ZalsaLocal, id: Id) -> &'db Memo<C>",
+              "weight": 2
+            },
+            {
+              "label": "IngredientImpl<C>::fetch@src/function/fetch.rs:14",
+              "id": "semantic:FUNCTION_IDENTITY:36c58c4397711a16",
+              "signature": "pub fn fetch(&self: &'db Self, db: &'db C::DbView, zalsa: &'db Zalsa, zalsa_local: &'db ZalsaLocal, id: Id) -> &'db C::Output<'db>",
+              "weight": 3
+            },
+            {
+              "label": "IngredientImpl<C>::accumulated_map@src/function/accumulated.rs:94",
+              "id": "semantic:FUNCTION_IDENTITY:ade097da5b8beceb",
+              "signature": "pub(super) fn accumulated_map(&self: &'db Self, db: &'db C::DbView, key: Id) -> (Option<&'db AccumulatedMap>, InputAccumulatedValues)",
+              "weight": 3
+            },
+            {
+              "label": "IngredientImpl<C>::accumulated@src/function.rs:525",
+              "id": "semantic:FUNCTION_IDENTITY:3c772f8c0fe7f6db",
+              "signature": "fn accumulated(&self: &'db Self, db: RawDatabase<'db>, key_index: Id) -> (Option<&'db crate::accumulator::accumulated_map::AccumulatedMap>, crate::accumulator::accumulated_map::InputAccumulatedValues)",
+              "weight": 4
+            },
+            {
+              "label": "IngredientImpl<C>::accumulated_by@src/function/accumulated.rs:13",
+              "id": "semantic:FUNCTION_IDENTITY:d6f407b286a33398",
+              "signature": "pub fn accumulated_by(&self: &Self, db: &'db C::DbView, key: Id) -> Vec<&'db A>",
+              "weight": 4
+            },
+            {
+              "label": "access_all_with@benches/eviction/support.rs:58",
+              "id": "semantic:FUNCTION_IDENTITY:e4dbb0cfca4cfa7b",
+              "signature": "pub(crate) fn access_all_with(db: &dyn salsa :: Database, items: impl IntoIterator < Item = Item >, fetch: impl Fn (& dyn salsa :: Database , Item) -> Value) -> Value",
+              "weight": 4
+            },
+            {
+              "label": "access_all@benches/eviction/support.rs:46",
+              "id": "semantic:FUNCTION_IDENTITY:1102ffdec6910fb7",
+              "signature": "pub(crate) fn access_all(policy: Policy, db: &dyn salsa :: Database, items: impl IntoIterator < Item = Item >) -> Value",
+              "weight": 5
+            },
+            {
+              "label": "{closure@388:13}@benches/eviction_walltime.rs:388",
+              "id": "semantic:FUNCTION_IDENTITY:1e32f6ee719aabc6",
+              "signature": "fn {closure@388:13}()",
+              "weight": 5
+            },
+            {
+              "label": "accumulated@src/ingredient.rs:146",
+              "id": "semantic:FUNCTION_IDENTITY:471e2aa7077d4bb7",
+              "signature": "fn accumulated(&self: &'db Self, db: RawDatabase<'db>, key_index: Id) -> (Option<&'db crate::accumulator::accumulated_map::AccumulatedMap>, crate::accumulator::accumulated_map::InputAccumulatedValues)",
+              "weight": 5
+            }
+          ],
+          "omitted": 26
+        },
+        "by_subsystem": {
+          "-": 4
+        },
+        "nearest": {
+          "items": [
+            {
+              "label": "IngredientImpl<C>::maybe_changed_after@src/interned.rs:1111",
+              "id": "semantic:FUNCTION_IDENTITY:19eb7386f2c6c61f",
+              "signature": "fn maybe_changed_after(&self: &Self, zalsa: &crate::zalsa::Zalsa, _db: crate::database::RawDatabase<'_>, input: Id, _revision: Revision) -> VerifyResult",
+              "weight": 1
+            },
+            {
+              "label": "IngredientImpl<C>::maybe_changed_after@src/function.rs:427",
+              "id": "semantic:FUNCTION_IDENTITY:59038a3e786039c7",
+              "signature": "fn maybe_changed_after(&self: &Self, _zalsa: &Zalsa, db: RawDatabase<'_>, input: Id, revision: Revision) -> VerifyResult",
+              "weight": 1
+            },
+            {
+              "label": "FieldIngredientImpl<C>::maybe_changed_after@src/tracked_struct/tracked_field.rs:63",
+              "id": "semantic:FUNCTION_IDENTITY:7ea7fc1904b0bc27",
+              "signature": "fn maybe_changed_after(&self: &Self, zalsa: &crate::zalsa::Zalsa, _db: crate::database::RawDatabase<'_>, input: Id, revision: crate::Revision) -> VerifyResult",
+              "weight": 1
+            },
+            {
+              "label": "FieldIngredientImpl<C>::maybe_changed_after@src/input/input_field.rs:58",
+              "id": "semantic:FUNCTION_IDENTITY:dcdb42b83025d323",
+              "signature": "fn maybe_changed_after(&self: &Self, zalsa: &Zalsa, _db: crate::database::RawDatabase<'_>, input: Id, revision: Revision) -> VerifyResult",
+              "weight": 1
+            }
+          ],
+          "omitted": 0
+        },
+        "tests_reached_inferred": 0,
+        "status": "DERIVED",
+        "candidate_callers": {
+          "items": [
+            {
+              "label": "IngredientImpl<C>::fetch_hot@src/function/fetch.rs:75",
+              "id": "semantic:FUNCTION_IDENTITY:45f8349838c7e857",
+              "signature": "fn fetch_hot(&self: &'db Self, zalsa: &'db Zalsa, id: Id, memo_ingredient_index: MemoIngredientIndex) -> Option<&'db Memo<C>>",
+              "weight": 3
+            },
+            {
+              "label": "IngredientImpl<C>::fetch_cold@src/function/fetch.rs:107",
+              "id": "semantic:FUNCTION_IDENTITY:99242097d73504d6",
+              "signature": "fn fetch_cold(&self: &'db Self, zalsa: &'db Zalsa, zalsa_local: &'db ZalsaLocal, db: &'db C::DbView, id: Id, memo_ingredient_index: MemoIngredientIndex) -> Option<&'db Memo<C>>",
+              "weight": 1
+            },
+            {
+              "label": "DatabaseKeyIndex::maybe_changed_after@src/key.rs:36",
+              "id": "semantic:FUNCTION_IDENTITY:9e66b06a2a0c2fa7",
+              "signature": "pub(crate) fn maybe_changed_after(&self: &Self, db: crate::database::RawDatabase<'_>, zalsa: &Zalsa, last_verified_at: crate::Revision) -> VerifyResult",
+              "weight": 1
+            }
+          ],
+          "omitted": 0
+        },
+        "candidate_sites": 5,
+        "unnamed_sites": 563,
+        "residual": "LOWER BOUND: resolved callers only; 5 unresolved call sites spelled with a scope function's name are INFERRED candidates; 563 unresolved call sites with a non-name callee may reach anything (GAP-UNRESOLVED-CALLEE); 38 dependents are INFERRED (through a closure's enclosing function, a trait declaration's dispatch, or a call site spelled with a name one function carries), and calls inside `async` blocks are not censused"
+      }
+    },
+    "challenge": "what is the blast radius of changing salsa's early-cutoff check (IngredientImpl::maybe_changed_after), and which functions does it reach?",
+    "answer": "26 changed functions; 4 resolved callers and 38 INFERRED dependents (37 by unique name, 1 by dispatch); inside, maybe_changed_after reached maybe_changed_after_cold, memo_ingredient_index and database_key_index but not get_memo_from_table_for, zalsas or the hot path memo.header.maybe_changed_after_hot -- 986 resolved edges against 28,840 unresolved sites on the whole donor (3.3%)",
+    "understanding_gaps": [
+      "an inherent method declared in impl<C: Configuration> IngredientImpl<C> (src/function/memo.rs) is unreachable from impl<C> IngredientImpl<C> where C: Configuration (src/function.rs, maybe_changed_after.rs): the resolver compared the two impls' spellings, not the types they apply to",
+      "let Some(memo) = <Option<&Memo<C>>> else { .. } does not type its binding, so memo.header.maybe_changed_after_hot stays unresolved",
+      "trait methods on an associated-type receiver (db: &C::DbView; db.zalsas()) are not resolved"
+    ]
+  },
+  "differential": {
+    "oracle": "the source at the pin (ORACLE_READ of the call sites below, recorded) and two minimal crates reproducing the impl split; salsa is not a code-intelligence tool, so the differential is Atlas against source",
+    "findings": [
+      {
+        "question": "does IngredientImpl::maybe_changed_after call get_memo_from_table_for?",
+        "ground_truth": "yes: self.get_memo_from_table_for (src/function/maybe_changed_after.rs:107), declared in impl<C: Configuration> IngredientImpl<C> at src/function/memo.rs:35",
+        "atlas_n": "unresolved (generic-impl: shapes differed by bound spelling)",
+        "atlas_n_plus_1": "resolved (DERIVED)",
+        "classification_n": "ATLAS_UNKNOWN (no false claim; a resolver defect)",
+        "classification_n_plus_1": "ATLAS_CORRECT"
+      },
+      {
+        "question": "does it reach MemoHeader::maybe_changed_after_hot?",
+        "ground_truth": "yes, through let Some(memo) = memo_guard else {..}; memo.header.maybe_changed_after_hot(..)",
+        "atlas_n_plus_1": "unresolved: the let-else Option pattern does not type memo",
+        "classification": "ATLAS_UNKNOWN (residual, NA-CALL-TYPE-RESIDUAL)"
+      },
+      {
+        "question": "does it reach Zalsa via db.zalsas()?",
+        "ground_truth": "a default method of a trait bound on the associated type C::DbView",
+        "atlas_n_plus_1": "unresolved",
+        "classification": "ATLAS_UNKNOWN (trait method on an associated-type receiver, DEBT-CALL)"
+      },
+      {
+        "question": "where is early cutoff realized?",
+        "ground_truth": "IngredientImpl::backdate_if_appropriate (src/function/backdate.rs), called by execute and specify_and_record",
+        "atlas_n_plus_1": "backdate_if_appropriate with its DECLARED purpose (value equal -> keep changed_at) and both resolved callers; its MemoHeader calls stay behind the let-pattern residual",
+        "classification": "ATLAS_CORRECT for location and callers"
+      }
+    ]
+  },
+  "implementation": {
+    "mechanism_vs_implementation": "salsa's implementation (ingredients, memo tables, revisions) is not absorbed; the blindness it exposed is Atlas's own: two spellings of one impl's bounds. Absorbed capability: impl shapes as the set of types they apply to",
+    "change": "adapter resolver impl_shape: generic parameters renamed by position, inline and where-clause bounds split into sorted predicates, lifetimes erased as since G151; different bound sets stay apart",
+    "falsification": "3 mutants killed (inline bounds kept out of the predicates, parameters not renamed, bounds dropped so every generic impl shares one shape)"
+  },
+  "n_vs_n_plus_1": {
+    "same_pin": "5d8eaf1fa372",
+    "N": {
+      "functions": 10069,
+      "resolved": 986,
+      "unresolved": 28840,
+      "relations": 7602
+    },
+    "N_plus_1": {
+      "functions": 10069,
+      "resolved": 997,
+      "unresolved": 28829,
+      "relations": 7631
+    },
+    "what_atlas_n_saw": "the early-cutoff check's cold path and its callers",
+    "what_atlas_n_missed": "every inherent method across salsa's split IngredientImpl impls (get_memo_from_table_for and its kin)",
+    "what_atlas_n_plus_1_sees": "986 -> 997 resolved edges, 7,602 -> 7,631 relations; the hot path's memo lookup",
+    "still_unknown": "let-else/if-let Option pattern bindings; trait methods on associated-type receivers; 28,829 unresolved sites (generic and macro-generated code)",
+    "magnitude": "modest: +11 edges (+1.1%) on the donor, +4 relations on Atlas Studio, which rarely splits a generic type's impls by bound spelling"
+  },
+  "manual_reads": [
+    {
+      "what": "src/function/maybe_changed_after.rs:89-130",
+      "why": "Atlas_N left the hot path unresolved; find what the call sites are",
+      "gap": "impl-shape spelling; let-pattern typing"
+    },
+    {
+      "what": "grep of fn definitions (get_memo_from_table_for, zalsas, memo_ingredient_index) and impl headers in src/function*.rs",
+      "why": "locate the unresolved callees' impls",
+      "gap": "impl-shape spelling"
+    },
+    {
+      "what": "LICENSE-MIT, LICENSE-APACHE",
+      "why": "license verification"
+    }
+  ],
+  "revalidation": {
+    "record": ".atlas/evidence/revalidation/R3-salsa.json",
+    "outcome": "REVALIDATED"
+  },
+  "decision": {
+    "donor": "REFERENCE_ONLY_UNTIL_TRIGGER at E5 for invalidation, early cutoff and durability; memoized reuse stays ABSORBED (G39, G115 history kept)",
+    "capability_delta": "CAPABILITY_ADVANCED (E4 -> E5)",
+    "trigger": "CURRENT; re-opened when NA-CLOSURE-CONSUMER starts: a consumer recomputing inside the impact closure should cut off propagation when a recomputed function's records are unchanged (salsa's backdating)"
+  },
+  "extinction": {
+    "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/salsa (from the repository root)",
+    "runtime_dependency": "none: Atlas does not depend on salsa (no crate, no path); the resolver fix is Atlas's own code",
+    "evidence_retained": "R4 replay and R3 revalidation records: pin, license, Atlas_N mission, differential, both-engine crate census, N versus N+1; no salsa text in Atlas",
+    "path_absent_after": true,
+    "status": "SOURCE_EXTINCT"
+  }
+}
