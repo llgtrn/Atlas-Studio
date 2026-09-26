@@ -15,7 +15,8 @@
     ".atlas/licenses/donors/zed/ASSET-THEME-LICENSES"
   ],
   "license_map": ".atlas/provenance/donors/zed/license-map.json",
-  "ingestion_status": "CLONED",
+  "ingestion_status": "EXTINCT",
+  "storage_state": "SOURCE_DELETED",
   "census_status": "INITIAL_COMPONENT_LICENSE_MAPPED",
   "decision_status": "APPROVED_IDE_DONOR_REFERENCE",
   "runtime_dependency_status": "REFERENCE_ONLY",

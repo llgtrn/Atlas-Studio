@@ -717,7 +717,7 @@ objective = "NA-SEAL-GATE (DEBT-SEAL_GATE, DEBT-VERIFICATION_EVIDENCE; done: one
 [[planned_generation]]
 id = "G162"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R7 zed-industries/zed (QUEUED): an async-heavy Rust editor facing the strongest Atlas (E10) -- async-block regions and the RESOURCE dimension on a real executor-driven codebase; GPL/Apache, studied only; the admitted legacy checkout extinguished with it"
+objective = "FULL_OSS_REPLAY R7 zed-industries/zed at 0eda7703f6c8 (done: Atlas E10 could not hold the whole workspace (killed at 15 GB) and withheld the fs crate's file acquisitions without a reason; on a 17-crate slice its import fixed point oscillated around a re-export cycle and opened every module; capability epoch E11 -- the oscillation merged conservatively and every open scope named where the pilot looks; the same slice 7,648 -> 9,059 INVOKES, 0 -> 6 resources, 20 of 20 sampled new edges correct; rustc confirmed the remaining refusals sound; 10 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER at E11; both copies of the source extinct; SCALE-CENSUS_MEMORY fired)"
 
 [[planned_generation]]
 id = "G163"
@@ -725,6 +725,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-QUANTITY-SIDE-REPORTS (DEBT-QUANTITY_UNITS) -- physical and product reports enter the census: derived quantities as typed facts with kind and status, not side JSON"
 
 [[planned_generation]]
-id = "G164+"
+id = "G164"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R8 google/crubit (QUEUED): Rust/C++ interop facing the strongest Atlas (E11 or later) -- FFI acquire/release pairs, cyclic dev-dependency graphs and import resolution on a real interop workspace; license verified at the pin; the admitted legacy checkout extinguished with it"
+
+[[planned_generation]]
+id = "G165+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

@@ -1,0 +1,501 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G162",
+  "base_revision": "6e99a2b93c87c828b6cb2c28f92932b105482523",
+  "candidate_revision": "0f6ba05346cd5a5672b92c4bddffddedcf42298a",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:54162c26574239c9cb2a6956b470588ce548f30adc3defcbf3783f17b59ea21d",
+  "after_census_digest": "blake3-256:69e37d0521b38e9ce9a3af3863ace6e8a371457fda38424f0c552abc5b296e73",
+  "replay_digest": "blake3-256:69e37d0521b38e9ce9a3af3863ace6e8a371457fda38424f0c552abc5b296e73",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/diagnostic.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 45,
+      "fact:FunctionSignature|OBSERVED": 10,
+      "fact:Symbol|OBSERVED": 57,
+      "fact:Type|DERIVED": 5,
+      "fact:Type|OBSERVED": 11,
+      "record:CALL|DERIVED": 28,
+      "record:CALL|OBSERVED": 238,
+      "record:CONTROL_FLOW|INFERRED": 20,
+      "record:CONTROL_FLOW|OBSERVED": 84,
+      "record:DATA_FLOW|OBSERVED": 389,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 21,
+      "record:FUNCTION_IDENTITY|OBSERVED": 45,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 10,
+      "record:OWNERSHIP|OBSERVED": 91,
+      "record:STATE|OBSERVED": 1,
+      "record:SYMBOL|OBSERVED": 57,
+      "record:TYPE|DERIVED": 5,
+      "record:TYPE|OBSERVED": 11
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1355,
+    "graph_nodes": 1043
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/tests/real_census_of_every_cargo_based_donor_workspace_reaches_closed_state()."
+      ],
+      "after": [
+        "adapter dependency/cargo/tests/real_census_of_every_cargo_based_donor_workspace_reaches_closed_state()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/tests/real_donor_corpus_exercises_every_source_kind_role_and_activation_combination()."
+      ],
+      "after": [
+        "adapter dependency/cargo/tests/real_donor_corpus_exercises_every_source_kind_role_and_activation_combination()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_file()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_file()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/unknowns()."
+      ],
+      "after": [
+        "core composition/lens/unknowns()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/withheld_cause()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/open_cause()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/open_with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/merge_alternating()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_bounded_macro_name_and_the_first_open_cause_are_reported()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_re_export_cycle_converges_instead_of_opening_the_workspace()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/every_withheld_path_names_why_its_scope_is_open()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/open_scope_message()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2153,
+    "total_after": 2153
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R7 zed-industries/zed at 0eda7703f6c8 (E10 -> E11): import resolution converges on re-export cycles (a period-2 oscillation merged conservatively) and every open scope names its cause -- the census diagnostic, the component's withheld, GAP-OPEN-SCOPE and the unknowns lens; GAP-RESOURCE corrected; the pinned clone and the tracked legacy checkout extinct",
+    "changed_paths": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+composed:understanding_gap",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter dependency/cargo/tests/real_census_of_every_cargo_based_donor_workspace_reaches_closed_state().",
+      "CHANGED adapter dependency/cargo/tests/real_donor_corpus_exercises_every_source_kind_role_and_activation_combination().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_file().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_call().",
+      "CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+      "CHANGED adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define().",
+      "CHANGED adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core composition/lens/unknowns().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/withheld_cause().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/open_cause().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/open_with().",
+      "CREATED adapter semantic/rust/resolve/merge_alternating().",
+      "CREATED adapter semantic/rust/resolve/tests/a_bounded_macro_name_and_the_first_open_cause_are_reported().",
+      "CREATED adapter semantic/rust/resolve/tests/a_re_export_cycle_converges_instead_of_opening_the_workspace().",
+      "CREATED adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown().",
+      "CREATED adapter semantic/rust/resolve/tests/every_withheld_path_names_why_its_scope_is_open().",
+      "CREATED runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks().",
+      "CREATED runtime census/resolution/open_scope_message()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/dependency/cargo.rs",
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/mod.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/semantic/diagnostic.rs",
+    "path core/src/semantic/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/donor_storage.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +composed:understanding_gap",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter dependency/cargo/tests/real_census_of_every_cargo_based_donor_workspace_reaches_closed_state().",
+    "entity CHANGED adapter dependency/cargo/tests/real_donor_corpus_exercises_every_source_kind_role_and_activation_combination().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_file().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_call().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/a_glob_import_carries_the_names_a_macro_may_define().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/a_workspace_macro_rules_bounds_the_names_its_invocation_may_define().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core composition/lens/unknowns().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/withheld_cause().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/open_cause().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/open_with().",
+    "entity CREATED adapter semantic/rust/resolve/merge_alternating().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_bounded_macro_name_and_the_first_open_cause_are_reported().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_re_export_cycle_converges_instead_of_opening_the_workspace().",
+    "entity CREATED adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown().",
+    "entity CREATED adapter semantic/rust/resolve/tests/every_withheld_path_names_why_its_scope_is_open().",
+    "entity CREATED runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks().",
+    "entity CREATED runtime census/resolution/open_scope_message()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -514,6 +514,7 @@ mod tests {
                 "wasmtime",
                 "xdsl",
                 "xyflow",
+                "zed",
                 "zstd"
             ]
         );

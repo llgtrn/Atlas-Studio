@@ -1,0 +1,190 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R7",
+ "generation": "G162",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "zed-industries/zed",
+  "remote": "https://github.com/zed-industries/zed",
+  "pin": "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4",
+  "pin_choice": "the commit of the admitted legacy checkout (provenance/donors/zed.json, tree 29b1e214fd75 verified at the pin); the tracked checkout (.atlas/temporary/donors/zed, 4,313 files) equals the pin in every .rs file -- it differs only in 246 per-crate LICENSE symlinks stored as copies, the agent-instruction files renamed .donor-untrusted, two symlinked markdown files and one bench snapshot text",
+  "license": "mixed, verified at the pin: LICENSE-GPL (GPL-3.0) and LICENSE-APACHE (Apache-2.0); of the 17 crates censused, gpui, gpui_macros, collections, sum_tree and util declare Apache-2.0 and the other 12 GPL-3.0-or-later",
+  "code_reuse": "NONE (study only: nothing copied; the fixtures are Atlas's own minimal reproductions)",
+  "selection": "queued at G160 as the next replay: an async-heavy Rust editor to face the strongest Atlas (E10) with async-block regions (E8) and the RESOURCE dimension (E6); its admitted legacy checkout was still materialized",
+  "dependency_class": "MECHANISM_INTERNAL (a Cargo workspace of 245 crates; no dependency source materialized)",
+  "materialization": "blobless depth-1 fetch of the pin into .atlas/.cache/donors/zed (121 MB, 1,968 .rs files, 1.67 M lines); for the dependency-relevant census, a sparse checkout of the same pin: the root manifests and 17 crates (clock, collections, sum_tree, gpui_macros, rope, text, file_finder, settings, fs, git, util, worktree, project_panel, language, ui, workspace, gpui) -- 402 .rs files, 306 k lines"
+ },
+ "epochs": {
+  "before": "E10",
+  "after": "E11 (G162: import resolution converges on re-export cycles; every open scope names its cause)"
+ },
+ "support_levels": {
+  "N": {
+   "rust": "L6_AGENT_USABLE",
+   "json": "L2_SYNTAX",
+   "markdown": "L2_SYNTAX",
+   "toml": "L2_SYNTAX"
+  },
+  "N_plus_1": {
+   "rust": "L6_AGENT_USABLE",
+   "json": "L2_SYNTAX",
+   "markdown": "L2_SYNTAX",
+   "toml": "L2_SYNTAX"
+  },
+  "note": "measured on the 17-crate slice at both epochs; the ladder measures presence, and what E11 changes is below it (resolution through imports)"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root .atlas/.cache/donors/zed (the whole workspace)",
+   "agent model / recensus snapshot --root .atlas/.cache/donors/zed/crates/fs and crates/gpui (resident memory sampled)",
+   "agent model --root .atlas/.cache/donors/zed (the 17-crate sparse slice)",
+   "atomic_write, save and their regions in the fs model: calls, unresolved callee names, effects, persistence, concurrency, resources"
+  ],
+  "atlas_knew": {
+   "whole_workspace": "killed at 15 GB after 157 s: no model",
+   "memory": "fs 9,355 lines: 192 MB, 2 s; gpui 92,701 lines: 1,771 MB (census alone 1,814 MB), 12 s -- about 19 KB per line; on gpui the extraction batches reach 386 MB, resolution +146, the census +415, normalization +373, the graph +472, all alive together",
+   "fs_crate": {
+    "functions": 775,
+    "async_blocks": 44,
+    "closures": 290,
+    "async_functions": 132,
+    "resource_records": 0,
+    "atomic_write_windows_closure_unresolved": [
+     "create_new",
+     "write_all",
+     "new_in",
+     "join",
+     "parent",
+     "..."
+    ]
+   },
+   "slice": {
+    "functions": 25896,
+    "async_blocks": 304,
+    "closures": 12086,
+    "invokes": 7648,
+    "resource_records": 0,
+    "unresolved_call_sites": 109980,
+    "explanations": 0
+   }
+  },
+  "challenge": "when Zed saves or atomically writes a file (RealFs::save, RealFs::atomic_write in crates/fs), which file handles are acquired, in which region, and where are they released?",
+  "answer": "E10: none -- no RESOURCE record in the fs crate, and no reason given; on the slice nothing at all resolved through imports. Hand bisection found one `slotmap::new_key_type! { pub struct TrashId; }` opening fs.rs, and a trace of the import fixed point found a period-2 oscillation opening every module of the slice"
+ },
+ "differential": {
+  "oracle": "the source at the pin (ORACLE_READ, recorded) and rustc 1.90 on five minimal crates for the shadowing rules; zed is an editor, not a code-intelligence tool, so the differential is Atlas against source and compiler",
+  "findings": [
+   {
+    "question": "which file handles do RealFs::save and RealFs::atomic_write acquire, and where are they released?",
+    "ground_truth": "Windows atomic_write: std::fs::File::create_new inside the smol::unblock closure, holder `file` released at the end of its inner block; Unix atomic_write: tempfile::NamedTempFile::new_in, consumed by persist; save: smol::fs::File::create, moved into a BufWriter released at the end of save",
+    "atlas_n": "no acquisition claimed, no reason given",
+    "atlas_n_plus_1": "no acquisition claimed; fs.rs carries its cause -- 281 path calls withheld under item macro `slotmap::new_key_type!` at src/fs.rs:440, 2 under an unresolvable glob",
+    "classification_n": "ATLAS_CORRECT for std::fs::File::create_new (a sound refusal: rustc lets a macro-expanded `mod std` shadow the extern prelude silently, and the macro's expansion is not in the donor); OUT_OF_SCOPE for the tempfile and smol handles (non-std resources, outside the declared std-path table)",
+    "classification_n_plus_1": "ATLAS_CORRECT, now explained; the non-std handles stay OUT_OF_SCOPE"
+   },
+   {
+    "question": "why is a std-path call in fs.rs withheld?",
+    "ground_truth": "the module is open because `slotmap::new_key_type!` may define any name; bisection over 94 top-level item boundaries isolated it",
+    "atlas_n": "no answer (the pilot bisected by hand)",
+    "atlas_n_plus_1": "the component's `withheld`, GAP-OPEN-SCOPE and the unknowns lens name the macro, its line and the calls it withholds",
+    "classification_n": "UNDECIDABLE for the pilot through Atlas (the cause was not surfaced)",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   },
+   {
+    "question": "do the slice's imports resolve?",
+    "ground_truth": "rustc builds them: `LanguageRegistry` is language_registry's struct in the type namespace only; buffer re-exports `crate::LanguageRegistry` and the crate root glob-imports buffer",
+    "atlas_n": "no fixed point within 64 rounds: every module of the slice opened, 0 resources, 7,648 INVOKES",
+    "atlas_n_plus_1": "the period-2 oscillation (an unsupported value-namespace placeholder travelling around the buffer <-> root re-export cycle) is merged conservatively: 9,059 INVOKES, 6 resources, 65 files open, each with its cause",
+    "classification_n": "DONOR_CORRECT (the compiler resolves what Atlas withheld; Atlas made no false claim)",
+    "classification_n_plus_1": "ATLAS_CORRECT for the edges gained (sample below); the remaining withheld calls sound"
+   },
+   {
+    "question": "are the new edges right?",
+    "ground_truth": "20 of the 1,411 new INVOKES sampled at random (seed 162) and checked against the call site and the target's definition",
+    "atlas_n_plus_1": "20 of 20 correct (free functions, associated functions, methods on typed receivers, calls inside closures and an async block); no E10 edge lost",
+    "classification": "ATLAS_CORRECT"
+   },
+   {
+    "question": "what do the 5,942 still-withheld calls wait on?",
+    "ground_truth": "dependency globs (rand::prelude::*), `actions!` (its expansion derives the proc macro gpui::Action), slotmap::new_key_type!, inventory::collect!, db::static_connection!, proptest!, and `super::*` globs of such modules",
+    "atlas_n_plus_1": "each named per file",
+    "classification": "UNDECIDABLE without macro expansion (an ORACLE boundary: dependency source and proc-macro execution)"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of zed's implementation is absorbed; the donor exposed two Atlas defects of its own -- an import fixed point that oscillates on a re-export cycle, and a withheld path that gives no reason -- and one scale limit",
+  "change": "adapter resolve: a period-2 oscillation of the import fixed point merged conservatively (agreed definitions kept, anything else Unknown); every module records why it is open (item macro, glob, module file, fixed point); WithheldPath for every path call withheld in an open scope; a multi-segment path whose first segment an open scope may shadow reported open-scope; runtime: one OPEN_SCOPE_DIAGNOSTIC per artifact on the CALL obligation; core composition: component `withheld`, GAP-OPEN-SCOPE, GAP-RESOURCE corrected (it still said there was no RESOURCE dimension); unknowns lens `withheld`; ADR 0077",
+  "falsification": "10 mutants killed (the oscillation merge disabled, conflicting and one-sided entries kept, withheld calls not collected, the first-segment check dropped, the macro-shadow cause dropped, causes overwritten, the component, lens and diagnostic wiring dropped); one equivalent mutant exposed a redundant return condition, removed"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "0eda7703f6c8 (17-crate sparse slice)",
+  "N": {
+   "functions": 25896,
+   "invokes": 7648,
+   "resources": 0,
+   "unresolved": 109980,
+   "explained_open_files": 0
+  },
+  "N_plus_1": {
+   "functions": 25896,
+   "invokes": 9059,
+   "resources": 6,
+   "unresolved": 107841,
+   "explained_open_files": 65
+  },
+  "what_atlas_n_saw": "every function, closure and async block, their syntax-level facts and same-file resolution",
+  "what_atlas_n_missed": "every resolution through an import on the slice (the fixed point failed and opened every module), and why anything was withheld",
+  "what_atlas_n_plus_1_sees": "7,648 -> 9,059 resolved INVOKES, 0 -> 6 RESOURCE records (thread spawns and a JOIN release, checked against the source), 109,980 -> 107,841 unresolved sites; 65 open files, each with its cause",
+  "still_unknown": "the whole workspace (does not fit in 15 GB); 5,942 calls behind dependency macros and globs; non-std resources (smol, tempfile, async runtimes); member calls on untyped receivers",
+  "magnitude": "large on the donor; Atlas Studio's own imports already converged, so its self-census gains the explanations, not edges"
+ },
+ "manual_reads": [
+  {
+   "what": "crates/fs/src/fs.rs lines 965-1040 (read_file, both atomic_write, save)",
+   "why": "ground truth for the challenge question",
+   "gap": "RESOURCE withheld in an open scope; non-std resources"
+  },
+  {
+   "what": "fs.rs replayed as a standalone crate, bisected over its top-level items",
+   "why": "find what opened the module",
+   "gap": "open-scope causes were not surfaced (fixed in E11)"
+  },
+  {
+   "what": "crates/language/src/{language,buffer,syntax_map}.rs imports",
+   "why": "find the re-export cycle the fixed-point trace named",
+   "gap": "import fixed point oscillation (fixed in E11)"
+  },
+  {
+   "what": "gpui threaded_dispatcher.rs 584-611, test/dispatcher.rs 143-146",
+   "why": "falsify the new RESOURCE records",
+   "gap": "none (verification)"
+  },
+  {
+   "what": "the definitions and call sites of 20 sampled new edges",
+   "why": "falsify the new edges",
+   "gap": "none (verification)"
+  },
+  {
+   "what": "LICENSE-GPL, LICENSE-APACHE, the 17 crates' license fields",
+   "why": "license verification"
+  }
+ ],
+ "revalidation": {
+  "record": "none: zed's historical verdict (APPROVED_IDE_DONOR_REFERENCE, reference only for UI) named no debt; the replay decides at E11",
+  "outcome": "DECIDED_AT_E11"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY_UNTIL_TRIGGER at E11: GPUI's executor and editor mechanisms are studied, not absorbed (GPL/Apache; the studio is not a Zed fork); zed stays the falsification target for census scale and for macro-opened scopes",
+  "capability_delta": "CAPABILITY_ADVANCED (E10 -> E11)",
+  "trigger": "CURRENT; re-opened when the census fits the whole workspace (a staged census), when dependency macro expansion or a proc-macro oracle bounds macro-opened scopes, or when non-std resources (async file handles) enter the resource table"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/zed; git rm -r .atlas/temporary/donors/zed (4,313 tracked files, the admitted legacy checkout)",
+  "runtime_dependency": "none: Atlas does not depend on zed (no package, no path); the resolver changes are Atlas's own code and fixtures",
+  "evidence_retained": "this record: pin, license, Atlas_N mission, differential, N versus N+1; donor-corpus and provenance records EXTINCT / SOURCE_DELETED; license copies at .atlas/licenses/donors/zed/; no zed text in Atlas",
+  "path_absent_after": true,
+  "legacy_checkout_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

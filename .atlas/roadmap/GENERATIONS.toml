@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G161"
+current_generation = "G162"
 
 [[generation]]
 id = "G35"
@@ -3677,3 +3677,46 @@ after = 6985
 key = "composed:relation:INVOKES"
 before = 4906
 after = 5004
+
+[[generation]]
+id = "G162"
+kind = "REPLAY"
+base_commit = "62f2ac7893c6f1fc1cd32b2a3f76412c8ac00635"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R7: an async-heavy Rust editor facing the strongest Atlas (E10), at its admitted legacy pin; DEBT-CALL and DEBT-RESOURCE advanced"
+objective = "replay zed at the exact pin of its admitted legacy checkout: Atlas_N first, a falsifiable resource question, a dependency-relevant census, one bounded Atlas-native improvement, the same pin at N+1, both copies of the source extinct"
+writer = "coordinator (sole writer)"
+replay = "zed-industries/zed"
+pinned_commit = "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4"
+source_path = ".atlas/.cache/donors/zed"
+epoch_before = "E10"
+epoch_after = "E11"
+mission = ".atlas/evidence/replay/R7-zed.json"
+evidence = ".atlas/evidence/replay/R7-zed.json"
+self_recensus = ".atlas/evidence/census/G162/recensus.json"
+
+[generation.verification]
+pre_census = "G161 post digest"
+atlas_first = "the whole workspace killed at 15 GB after 157 s (about 19 KB of census per line); the fs crate (775 functions, 44 async blocks) with 0 RESOURCE records and no reason; on a 17-crate slice of the same pin no import fixed point within 64 rounds, every module open, 0 resources"
+change = "adapter resolve: a period-2 oscillation of the import fixed point merged conservatively (agreed definitions kept, anything else Unknown); every open scope records its cause; WithheldPath per withheld path call; runtime: one open-scope diagnostic per artifact; core composition: component withheld, GAP-OPEN-SCOPE, GAP-RESOURCE corrected; unknowns lens withheld; ADR 0077"
+oracle = "rustc 1.90 on five minimal crates: a macro-expanded item shadows the extern prelude and a glob silently, and collides with an item or an explicit import (E0428, E0255); the zed source at the pin for the challenge and 20 of 1,411 new edges (all correct); the same slice E10 -> E11: 7,648 -> 9,059 INVOKES, 0 -> 6 resources, 109,980 -> 107,841 unresolved sites, 65 open files each naming its cause"
+falsification = "10 mutants killed (the merge disabled, conflicting and one-sided entries kept, withheld calls not collected, the first-segment check dropped, the macro-shadow cause dropped, causes overwritten, the component, lens and diagnostic wiring dropped); one equivalent mutant exposed a redundant return condition, removed"
+boundary = "macro expansion (dependency macros, proc-macro derives) stays an ORACLE boundary; the whole workspace needs a staged census (SCALE-CENSUS_MEMORY fired); non-std async file handles stay outside the resource table"
+debts = "DEBT-CALL and DEBT-RESOURCE last advance G162; capability epoch E11; tree-sitter, salsa, xyflow and GitNexus re-checked CURRENT at E11; IMPORT_CYCLE_CONVERGENCE milestone for historical Rust donors; next replay google/crubit; native head NA-QUANTITY-SIDE-REPORTS planned G163"
+review = "2 debts reviewed at their cadence: DEBT-IMPACT_CLOSURE and DEBT-DEPENDENCY confirmed (evidence/census/G162/debt-review.json)"
+proof = "PROVEN (post 69e37d05...): no unexplained UNKNOWN; the pinned clone and the tracked legacy checkout (4,313 files) deleted before the recensus"
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 6985
+after = 7013
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5004
+after = 5028
+
+[[generation.metric]]
+key = "diagnostic:IncompleteAnalysis"
+before = 1773
+after = 1780

@@ -750,8 +750,8 @@ license = [
   ".atlas/licenses/donors/zed/ASSET-THEME-LICENSES"
 ]
 technology_domains = ["ide", "editor", "workspace", "agent_interaction", "ui_runtime"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "INITIAL_COMPONENT_LICENSE_MAPPED"
 decision_status = "APPROVED_IDE_DONOR_REFERENCE"

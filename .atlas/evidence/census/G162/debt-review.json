@@ -1,0 +1,20 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G162",
+  "trigger": "review cadence: DEBT-DEPENDENCY (last reviewed G142, stale 13) and DEBT-IMPACT_CLOSURE (last reviewed G149, stale 26) fell due at G162",
+  "method": "re-read against G149-G162 (the seal policy's bounded residual, the G161 seal gate and SealRecord, replay R7's macro-opened scopes and re-export cycles; the impact closure's consumers in runtime and the CLI)",
+  "reviews": [
+    {
+      "debt": "DEBT-IMPACT_CLOSURE",
+      "verdict": "CONFIRMED",
+      "finding": "the closure still has no consumer: agent verify computes it and nothing skips work outside it; its named blind spot -- re-export and mod-item edges re-routing resolution by a name the model does not carry -- is where replay R7's import cycles live, and G162 made such cycles converge in resolution but not visible to the closure; hunk-level seeds (replay R1) and salsa's early cutoff (replay R4) remain the design inputs; NA-CLOSURE-CONSUMER, NA-HUNK-SEEDS",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-DEPENDENCY",
+      "verdict": "CONFIRMED",
+      "finding": "the nine dynamic dependency obligations (build scripts, proc macros, env-dependent inputs) are unchanged since G149; the seal policy permits them as a bounded residual and since G161 the seal gate carries them into a SealRecord as permitted, and the sealed container's reader refuses a blocker the record did not permit; replay R7 showed proc-macro derives also open modules for path resolution (DEBT-CALL), the same expansion boundary; resolving a class still needs build-script and proc-macro observation",
+      "correction": {}
+    }
+  ]
+}

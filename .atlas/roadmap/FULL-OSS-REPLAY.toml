@@ -13,23 +13,23 @@ campaign_start = "G151"
 materialization_root = ".atlas/.cache/donors"
 max_materialized = 1
 max_non_replay_between = 1
-current_epoch = "E10"
-next_replay = "zed-industries/zed"
-next_replay_reason = "priority after R6: the strongest Atlas (E10, the seal gate) carries async-block regions (E8) and the RESOURCE dimension (E6), and no replay has yet faced an async-heavy Rust codebase; zed is one (GPUI executors, tasks, futures, locks and file handles everywhere), and its admitted legacy checkout is still materialized under .atlas/temporary/donors; mixed GPL/Apache licenses -- studied only, nothing copied; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
+current_epoch = "E11"
+next_replay = "google/crubit"
+next_replay_reason = "priority after R7: the strongest Atlas (E11) now converges on re-export cycles and names why it withholds; crubit is Rust/C++ interop -- FFI acquire/release pairs are a named RESOURCE residual (replay R3) and C++ has no frontend -- its dependency graph holds genuine cycles through member dev-dependencies, and its admitted legacy checkout is still materialized under .atlas/temporary/donors; Apache-2.0 WITH LLVM-exception per its LICENSE at the recorded pin, to be verified at the pin; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
 
 [counts]
 total = 160
-never_replayed = 155
+never_replayed = 154
 queued = 1
 materialized = 0
-processed = 4
-capability_advanced = 4
+processed = 5
+capability_advanced = 5
 no_capability_delta = 0
 revalidation_required = 0
 license_review_required = 0
-source_extinct = 4
+source_extinct = 5
 blocked_on_user = 6
-remaining = 156
+remaining = 155
 
 [[epoch]]
 id = "E0"
@@ -97,6 +97,12 @@ generation = "G161"
 commit = "85690579a7f388f0efb6ff9f1f486cbcd0be446e"
 capability = "a seal is decided: one gate joins the seal policy, the container own certificate (verdict recomputed), an admissible verification report and the required integrity verdict for the container census digest and clean revision, and a SELECTED design, and a SEALED census container carries the record binding it, re-checked by its reader"
 
+[[epoch]]
+id = "E11"
+generation = "G162"
+commit = "0f6ba05346cd5a5672b92c4bddffddedcf42298a"
+capability = "import resolution converges on re-export cycles: a period-2 oscillation of the fixed point (a placeholder travelling around a pub-use cycle) is merged conservatively instead of opening every module; every open scope records its cause and every withheld path call names it in the census, the component, GAP-OPEN-SCOPE and the unknowns lens"
+
 [[repository]]
 key = "666ghj/bettafish"
 remote = "https://github.com/666ghj/BettaFish.git"
@@ -150,7 +156,7 @@ replays = ["R1 G151 E0->E1 .atlas/evidence/replay/R1-gitnexus.json", "R2 G152 E1
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E9"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E10"
+trigger_checked_at_epoch = "E11"
 revalidation_trigger = "an epoch that adds member/this call resolution for TypeScript (NA-MULTILANGUAGE), execution flows (NA-EXECUTION-FLOWS) or hunk seeds (NA-HUNK-SEEDS) re-opens this verdict: re-census the same pin"
 source_path = ".atlas/.cache/donors/gitnexus"
 source_extinct = true
@@ -732,7 +738,7 @@ historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_sta
 license = "RECORDED_FILES"
 historical_pins = ["0695a5130e0e40936cfce0997c770cf578a6b524", "34c96fb368e1a734c06425172f810ca1371eb705"]
 physically_present_legacy = true
-replay_status = "NEVER_REPLAYED"
+replay_status = "QUEUED"
 
 [[repository]]
 key = "google/flatbuffers"
@@ -1739,7 +1745,7 @@ replays = ["R4 G156 E4->E5 .atlas/evidence/replay/R4-salsa.json"]
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E5"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E10"
+trigger_checked_at_epoch = "E11"
 revalidation_trigger = "NA-CLOSURE-CONSUMER starts: a consumer recomputing inside the impact closure should cut off propagation when a recomputed function keeps its records (salsa backdating); re-census the same pin"
 source_path = ".atlas/.cache/donors/salsa"
 source_extinct = true
@@ -1939,7 +1945,7 @@ gaps = ["DEBT-MULTILANGUAGE: C source (28 .c, 35 .h) has no frontend; the implem
 terminal_state = "EXTERNAL_BOUNDARY"
 decided_at_epoch = "E4"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E10"
+trigger_checked_at_epoch = "E11"
 revalidation_trigger = "a C frontend (DEBT-MULTILANGUAGE) or a native TypeScript/JavaScript parser replacing the syntax substrate re-opens this verdict: re-census the same pin"
 verdict_history = ["G65: REFERENCE_ONLY (historical, terminal_state; DEBT-MULTILANGUAGE rejected)", "E4 (G154, R3): EXTERNAL_BOUNDARY -- Atlas links it as the syntax substrate of its TypeScript/JavaScript profile (a parse is never semantic support); mechanism studied: the Rust-to-C boundary, absorbed as FOREIGN_FUNCTION records and include splicing"]
 replays = ["R3 G154 E3->E4 .atlas/evidence/replay/R3-tree-sitter.json"]
@@ -2071,7 +2077,7 @@ replays = ["R5 G158 E6->E7 .atlas/evidence/replay/R5-xyflow.json"]
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E7"
 trigger_status = "CURRENT"
-trigger_checked_at_epoch = "E10"
+trigger_checked_at_epoch = "E11"
 revalidation_trigger = "member/this call or JSX resolution for TypeScript, a Svelte frontend, or studio graph interaction becoming a planned capability re-opens this verdict: re-census the same pin"
 source_path = ".atlas/.cache/donors/xyflow"
 source_extinct = true
@@ -2097,8 +2103,29 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: APPROVED_IDE_DONOR_REFERENCE (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_IDE_DONOR_REFERENCE (decision_status)", "-: PENDING_ATLAS_NATIVE (implementation_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["0eda7703f6c88aa08a25c1d2105ff1ca46f775d4", "2c4bc2d7b2c5b7832ad964f39840d823d961cb0e"]
-physically_present_legacy = true
-replay_status = "QUEUED"
+physically_present_legacy = false
+replay_status = "PROCESSED"
+replay_generation = "G162"
+pinned_commit = "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4"
+license_status = "GPL-3.0 and Apache-2.0 (LICENSE-GPL, LICENSE-APACHE at the pin; per crate: gpui, gpui_macros, collections, sum_tree, util Apache-2.0, the other censused crates GPL-3.0-or-later; copies at .atlas/licenses/donors/zed): studied only, nothing copied -- the resolver changes are Atlas-native"
+code_reuse = "NONE"
+materialization = "blobless depth-1 fetch at the pin (121 MB, 1,968 rs, 1.67 M lines), then a sparse checkout of the same pin: root manifests and 17 crates (402 rs, 306 k lines) for the dependency-relevant census; the admitted legacy checkout (.atlas/temporary/donors/zed, 4,313 tracked files) equal to the pin in every rs file"
+epoch_before = "E10"
+epoch_after = "E11"
+levels_reached = "E10: the whole workspace killed at 15 GB (about 19 KB of census per line); the fs crate 0 RESOURCE records, withheld without a reason; the 17-crate slice with no import fixed point (every module open): 7,648 INVOKES, 0 resources; E11: 9,059 INVOKES, 6 resources, 65 open files each naming its cause; Rust L6 at both"
+mission = ".atlas/evidence/replay/R7-zed.json"
+capability_delta = "CAPABILITY_ADVANCED"
+n_plus_1 = ".atlas/evidence/replay/R7-zed.json"
+mechanisms = ["GPUI executors (foreground, background, realtime threads) with tasks as detachable futures", "Fs trait with a real and a fake implementation; async file IO through smol and tempfile", "workspace-wide action declarations through a macro_rules whose expansion derives a proc macro", "crate roots re-exporting their modules by glob while modules re-export crate-root names"]
+gaps = ["DEBT-CALL: dependency item macros and proc-macro derives open modules (macro expansion is an ORACLE boundary)", "DEBT-RESOURCE: non-std resources (smol, tempfile async file handles) outside the std-path table", "SCALE: the census holds every representation at once, about 19 KB per source line; the whole workspace does not fit in 15 GB"]
+verdict_history = ["G118: APPROVED_IDE_DONOR_REFERENCE (historical decision_status; reference only for UI, no debt named)", "E11 (G162, R7): REFERENCE_ONLY_UNTIL_TRIGGER -- the import fixed point oscillated on a re-export cycle and opened every module (fixed: 7,648 -> 9,059 INVOKES, 0 -> 6 resources on the same slice, 20 of 20 sampled new edges correct); std-path acquisitions under slotmap::new_key_type! withheld soundly (rustc: a macro-expanded mod std shadows the extern prelude) and now explained; nothing copied"]
+replays = ["R7 G162 E10->E11 .atlas/evidence/replay/R7-zed.json"]
+terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
+decided_at_epoch = "E11"
+trigger_status = "CURRENT"
+revalidation_trigger = "a staged census that fits the whole workspace, dependency macro expansion or a proc-macro oracle bounding macro-opened scopes, or non-std resources (async file handles) entering the resource table re-opens this verdict: re-census the same pin"
+source_path = ".atlas/.cache/donors/zed"
+source_extinct = true
 
 [[repository]]
 key = "zephyrproject-rtos/zephyr"
