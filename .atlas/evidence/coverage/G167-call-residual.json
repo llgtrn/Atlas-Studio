@@ -1,0 +1,68 @@
+{
+  "schema": "atlas.evidence.native-attack-measurement.v1",
+  "generation": "G167",
+  "attack": "NA-CALL-TYPE-RESIDUAL",
+  "debt": "DEBT-CALL",
+  "outcome": "NO_CAPABILITY_DELTA",
+  "atlas_first": {
+    "question": "where does the method-call residual on Atlas's own workspace come from, and which bounded step would shrink it?",
+    "method": "the agent world model at 3f28c957 (6,168 Rust functions, 31,763 unresolved call sites), then the census's syntactic and resolution CALL records joined by record id to find every unresolved method call, then the resolver's own reasons",
+    "unresolved_method_calls_on_workspace_method_names": 5929,
+    "by_receiver": {
+      "let": 1742,
+      "field": 1472,
+      "chain_or_expression": 985,
+      "parameter": 749,
+      "self": 270,
+      "closure_parameter": 255,
+      "for_binding": 138,
+      "pattern": 68,
+      "other": 250
+    },
+    "note_on_receivers": "many are std receivers whose method names coincide with workspace ones (insert, len, join, contains on std collections); self calls are the unambiguous class",
+    "unresolved_self_calls": 280,
+    "self_calls_by_shape": {
+      "inherent_to_inherent_in_lifetime_generic_impls": 101,
+      "inside_trait_impls": 163,
+      "other": 16
+    },
+    "resolver_reason_for_the_inherent_class": "receiver-form-differs: a &mut self caller reaching a &self method through the probe's autoref step (G142), withheld by its guard",
+    "autoref_guard_evaluations": {
+      "allowed": 1355,
+      "refused_unseen_import": 1187,
+      "refused_macro_shadow": 147,
+      "refused_open_scope": 8
+    },
+    "unseen_imports_blocking": {
+      "Spanned": 527,
+      "Deserialize": 466,
+      "Serialize": 466,
+      "Visit": 231,
+      "Parser": 176,
+      "Node": 174,
+      "Punctuated": 7,
+      "HasherExt": 6,
+      "Map": 3,
+      "Value": 3,
+      "ToTokens": 2
+    }
+  },
+  "why_the_guard_is_right": "an import the pass cannot see into may be a trait; a trait in scope may supply a same-named method at an earlier probe step (a blanket impl in the dependency applies to a workspace type); without the dependency's declaration the claim is unsound",
+  "experiment": {
+    "hypothesis": "from edition 2021 a bare trait is no type, so an import used as a plain single-segment type is proven not a trait and brings no method; the guard may skip it",
+    "implemented": "crate editions carried from manifests (edition.workspace inherited from the nearest workspace root), a per-module proof set (minus generic parameters, block-level items and imports, and everything under a block glob), the guard skipping proven types; unit tests for every refusal",
+    "measured_same_source": {
+      "atlas_studio_at_3f28c957_with_the_root_manifest_in_scope": "5,117 -> 5,117 INVOKES",
+      "syn-3.0.6": "2,909 -> 2,910",
+      "serde_json-1.0.151": "544 -> 544",
+      "tree-sitter-0.25.10": "245 -> 245",
+      "proc-macro2-1.0.107": "354 -> 354"
+    },
+    "why_nothing_moved": "the blocking imports are traits (Spanned, Serialize, Deserialize, Visit, ToTokens) or types used only in expression position (Parser::new(), which a trait call would spell the same way); a module is blocked while any one of them is in scope",
+    "decision": "not shipped: a sound mechanism that moves one edge in five workspaces is no capability (anti-cheat: no N+1 from a meaningless edit); the patch is kept outside the repository",
+    "self_scope_finding": "Atlas's own census scope (.atlas/repo.toml source_roots) excludes the workspace root manifest, so its census cannot know the edition its crates inherit"
+  },
+  "boundary": "the method-call residual on real Rust is dominated by an external-declaration boundary: which traits a dependency declares and which methods they carry. Resolving it needs the locked dependencies' declarations (Cargo.lock names each crate, version and checksum), read as data only -- a decision whether such sources are a recorded ORACLE input or a census input, since they live outside the repository",
+  "queued": "NA-DEPENDENCY-DECLARATIONS (DEBT-CALL, DEBT-DEPENDENCY)",
+  "next": "FULL_OSS_REPLAY R10 rust-lang/rust-analyzer faces Atlas E15 unchanged"
+}

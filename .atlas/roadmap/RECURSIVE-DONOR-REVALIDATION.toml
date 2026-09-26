@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G166"
+evaluated_at = "G167"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -395,7 +395,7 @@ capabilities_available_then = []
 semantic_delta = ["SEAL_POLICY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DEPENDENCY, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 131
+priority = 132
 rank = 6
 
 [[donor]]
@@ -427,7 +427,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "DECLARED_SHAPES", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 2227
+priority = 2244
 rank = 1
 
 [[donor]]
@@ -587,7 +587,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["DECLARED_SHAPES", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1834
+priority = 1848
 rank = 2
 
 [[donor]]
@@ -603,7 +603,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "ASYNC_BLOCK_REGIONS", "STD_RECEIVERS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 655
+priority = 660
 rank = 3
 
 [[donor]]
@@ -635,7 +635,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 131
+priority = 132
 rank = 7
 
 [[donor]]
@@ -667,7 +667,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "DESIGN_CANDIDATES", "ITEM_MACRO_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DESIGN_GENERATION, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 509
+priority = 513
 rank = 5
 
 [[donor]]
@@ -1019,7 +1019,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 128
+priority = 129
 rank = 8
 
 [[donor]]
@@ -1163,7 +1163,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["FOREIGN_FUNCTIONS", "COMPILED_PACKAGE_ENTRIES", "TS_MODULE_LINKING", "TS_JS_PROFILE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-MULTILANGUAGE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 524
+priority = 528
 rank = 4
 
 [[donor]]

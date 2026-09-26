@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G166"
+current_generation = "G167"
 
 [[generation]]
 id = "G35"
@@ -3869,4 +3869,36 @@ after = 6168
 [[generation.metric]]
 key = "composed:relation:INVOKES"
 before = 5114
+after = 5117
+
+[[generation]]
+id = "G167"
+kind = "NATIVE_ATTACK"
+base_commit = "3f28c957ec5567b6caeda040c86ac54dc1549dfd"
+priority = "P0"
+serves = "DEBT-CALL: the native queue head, between replays R9 and R10"
+objective = "NA-CALL-TYPE-RESIDUAL: find the bounded step that shrinks the method-call residual, measured Atlas-first; ship it only if it moves resolution"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/coverage/G167-call-residual.json"
+self_recensus = ".atlas/evidence/census/G167/recensus.json"
+
+[generation.verification]
+pre_census = "G166 post digest"
+atlas_first = "the world model and the census's CALL records joined by record id: 5,929 unresolved method calls on workspace method names; 280 unresolved self.m() calls -- 101 inherent calls in lifetime-generic impls withheld at the probe's autoref step (receiver-form-differs), 163 inside trait impls; the autoref guard refused 1,187 of 2,697 claims for unseen imports (Spanned 527, Serialize and Deserialize 466, Visit 231, Parser 176, Node 174), 147 for macro shadows, 8 for open scopes"
+change = "none shipped: a type-proof (from edition 2021 an import used as a plain single-segment type is no trait, so the guard may skip it; editions carried from manifests and inherited from the workspace root) was implemented with unit tests and measured, then reverted; the patch is kept outside the repository"
+oracle = "the same source under the E15 binary and the experiment: Atlas at 3f28c957 with its root manifest in scope 5,117 -> 5,117 INVOKES; syn-3.0.6 2,909 -> 2,910; serde_json, tree-sitter and proc-macro2 unchanged -- the blocking imports are traits or expression-only types (Parser::new(), which a trait call would spell alike)"
+falsification = "the experiment's own unit tests (a type unblocks, a trait bound, a 2018 crate, a generic parameter, a block import and a block glob keep the claim withheld) passed; the measurement falsified its value, not its soundness"
+boundary = "the method-call residual on real Rust is an external-declaration boundary: which traits a dependency declares and which methods they carry; the self census scope excludes the workspace root manifest, so Atlas cannot know its own crates' inherited edition"
+debts = "DEBT-CALL not advanced (NO_CAPABILITY_DELTA); NA-DEPENDENCY-DECLARATIONS queued (DEBT-CALL, DEBT-DEPENDENCY); no capability epoch; next replay rust-lang/rust-analyzer G168 against E15; native head NA-CALL-TYPE-RESIDUAL planned G169"
+review = "no debt review due at G167"
+proof = "PROVEN (post ffb0b424..., identical to G166): no census input changed"
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 7134
+after = 7134
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5117
 after = 5117

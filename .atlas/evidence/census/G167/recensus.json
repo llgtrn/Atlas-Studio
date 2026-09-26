@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G167",
+  "base_revision": "483db2e36098200a8ff459c2a3c1c2911b972554",
+  "candidate_revision": "3f28c957ec5567b6caeda040c86ac54dc1549dfd",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:ffb0b424896d4b71d0a2722bca567a4458aef8c81f60dfd9dabc1356b494669c",
+  "after_census_digest": "blake3-256:ffb0b424896d4b71d0a2722bca567a4458aef8c81f60dfd9dabc1356b494669c",
+  "replay_digest": "blake3-256:ffb0b424896d4b71d0a2722bca567a4458aef8c81f60dfd9dabc1356b494669c",
+  "inventory_delta": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [],
+    "counts": {}
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {},
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2241,
+    "total_after": 2241
+  },
+  "intent": {
+    "objective": "NA-CALL-TYPE-RESIDUAL measured (NO_CAPABILITY_DELTA): the method-call residual is an external-declaration boundary; no code shipped",
+    "changed_paths": [],
+    "total_changes": [],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": []
+  },
+  "intended_changes": [],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

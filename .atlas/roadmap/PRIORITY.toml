@@ -742,14 +742,19 @@ objective = "FULL_OSS_REPLAY R9 huggingface/safetensors at e246a2560645 (done: t
 [[planned_generation]]
 id = "G167"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE) -- method-call resolution through inferred receiver types (untyped lets, fields, chains, trait objects); closes the resolution engine's TYPE obligations and the method-level persistence sites (sync_all, flush)"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done, measured, NO_CAPABILITY_DELTA: Atlas-first, 280 unresolved self.m() calls on Atlas -- 101 inherent calls withheld at the probe's autoref step, 163 inside trait impls -- and the autoref guard refusing 1,187 of 2,697 claims for imports it cannot see into; a sound type-proof for imports used as plain types (edition 2021+) moved 0 edges on Atlas and 1 on four registry crates and was not shipped; the boundary is the dependencies' own declarations: NA-DEPENDENCY-DECLARATIONS queued; evidence/coverage/G167-call-residual.json)"
 
 [[planned_generation]]
 id = "G168"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R10 rust-lang/rust-analyzer (QUEUED): rank 1 of the recursive revalidation, its G75 ABSORBED verdict on DEBT-CALL and DEBT-TYPE facing the strongest Atlas (E15 or later) -- every Rust capability milestone since can observe it; a fresh pin, license verified at it"
+objective = "FULL_OSS_REPLAY R10 rust-lang/rust-analyzer (QUEUED): rank 1 of the recursive revalidation, its G75 ABSORBED verdict on DEBT-CALL and DEBT-TYPE facing the strongest Atlas (E15) -- every Rust capability milestone since can observe it, and G167's external-declaration boundary will be measured on it; a fresh pin, license verified at it"
 
 [[planned_generation]]
-id = "G169+"
+id = "G169"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE) -- G167 measured its next lever as the external-declaration boundary (NA-DEPENDENCY-DECLARATIONS, which needs an ADR on whether locked dependency sources are an ORACLE or a census input)"
+
+[[planned_generation]]
+id = "G170+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
