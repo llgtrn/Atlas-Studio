@@ -1,0 +1,24 @@
+{
+  "schema": "atlas.scoped-certificate-verdict.v1",
+  "scope": "atlas-self",
+  "policy_id": "blake3-256:9537882e8c8425c79bb5f7e962d536244d467f8e79efabca20bb88ac89a27745",
+  "certificate_id": "census-certificate:403291e58efcc2de5260039499da198d4b3d3930e1b9d8924b6a18dbd7276234",
+  "verdict": "NOT_ELIGIBLE",
+  "refused": [
+    "COVERAGE_UNKNOWN: CALL: required clear",
+    "COVERAGE_UNKNOWN: CONCURRENCY: required clear",
+    "COVERAGE_UNKNOWN: CONTROL_FLOW: required clear",
+    "COVERAGE_UNKNOWN: DATA_FLOW: required clear",
+    "COVERAGE_UNKNOWN: EFFECT: required clear",
+    "COVERAGE_UNKNOWN: OWNERSHIP: required clear",
+    "COVERAGE_UNKNOWN: PERSISTENCE: required clear",
+    "COVERAGE_UNKNOWN: STATE: required clear",
+    "MULTI_ENGINE_RECONCILIATION_ABSENT: one engine for CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, STATE, SYMBOL (Genome: multi_engine_reconciliation_required): required clear",
+    "UNKNOWN_FACTS: 1548: required clear",
+    "UNSUPPORTED_FACTS: 228: required clear"
+  ],
+  "permitted": [
+    "ATLAS_ROOT_UNSEALED: the packaged .atlas is an unsealed census container (no seal gate exists): out of scope (the seal gate is what seals the candidate's root)",
+    "DYNAMIC_DEPENDENCY_OBLIGATIONS: 9: bounded residual (the dynamic dependency classes the Cargo census cannot observe (BUILD_SCRIPT, PROC_MACRO_EXPANSION, PKG_CONFIG, NATIVE_LINKING, GENERATED_SOURCE, ENVIRONMENT_PROBE, DYNAMIC_LOADING, PLUGIN_DISCOVERY, EXTERNAL_CAPABILITY); they stay listed as residuals)"
+  ]
+}
