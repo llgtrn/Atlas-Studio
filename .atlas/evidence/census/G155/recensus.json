@@ -1,0 +1,204 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G155",
+  "base_revision": "f537bb14d5f05a696b39c844e45fd31201cedb1d",
+  "candidate_revision": "bc3754c959f4fee257049e06bca3d8af3b980ee9",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:b3e91fd30240bff1388d27dfe445852214d37af62817deb06f5eb5c7b1d88a7c",
+  "after_census_digest": "blake3-256:c26abc65f43fc49c6078508ef63b2574e4da65193a1d1876f748096edcfe94de",
+  "replay_digest": "blake3-256:c26abc65f43fc49c6078508ef63b2574e4da65193a1d1876f748096edcfe94de",
+  "inventory_delta": {
+    "created": [
+      "core/src/coverage"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 15,
+      "fact:FunctionSignature|OBSERVED": 3,
+      "fact:SourceArtifact|IGNORED": 1,
+      "fact:Symbol|OBSERVED": 16,
+      "fact:Type|OBSERVED": 1,
+      "record:CALL|DERIVED": 11,
+      "record:CALL|OBSERVED": 75,
+      "record:CONTROL_FLOW|INFERRED": 13,
+      "record:CONTROL_FLOW|OBSERVED": 18,
+      "record:DATA_FLOW|OBSERVED": 116,
+      "record:EFFECT|DERIVED": 3,
+      "record:EFFECT|INFERRED": 16,
+      "record:FUNCTION_IDENTITY|OBSERVED": 15,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 3,
+      "record:OWNERSHIP|OBSERVED": 29,
+      "record:PERSISTENCE|DERIVED": 1,
+      "record:SYMBOL|OBSERVED": 16,
+      "record:TYPE|OBSERVED": 1
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 440,
+    "graph_nodes": 347
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/support_levels()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/support_levels_are_measured_and_overclaims_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/support_claims_never_exceed_the_measured_levels()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1776,
+    "total_after": 1776
+  },
+  "intent": {
+    "objective": "NA-SUPPORT-LEVELS (universal engineering-world directive): every language and artifact class measured on the L0-L6 ladder from its own evidence, syntax never semantics, claims above the measured level refused; the universal engineering-world contract and its invariants; DEBT-TARGET_PROFILE and DEBT-ARTIFACT_SEMANTICS opened",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/coverage",
+      "core/src/lib.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CREATED runtime agent/support_levels().",
+      "CREATED runtime agent/tests/support_levels_are_measured_and_overclaims_are_refused().",
+      "CREATED runtime tests/essential_complexity/support_claims_never_exceed_the_measured_levels()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/coverage",
+    "path core/src/lib.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED `apps/cli` run().",
+    "entity CREATED runtime agent/support_levels().",
+    "entity CREATED runtime agent/tests/support_levels_are_measured_and_overclaims_are_refused().",
+    "entity CREATED runtime tests/essential_complexity/support_claims_never_exceed_the_measured_levels()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

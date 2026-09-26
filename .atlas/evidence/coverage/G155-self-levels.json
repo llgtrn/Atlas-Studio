@@ -1,0 +1,250 @@
+{
+  "schema": "atlas.support-levels.v1",
+  "revision": "bc3754c959f4fee257049e06bca3d8af3b980ee9",
+  "subjects": [
+    {
+      "subject": "javascript",
+      "kind": "LANGUAGE",
+      "level": "L6_AGENT_USABLE",
+      "next_rung_missing": "",
+      "evidence": {
+        "artifacts": 3,
+        "parsed_artifacts": 3,
+        "typed_records": 322,
+        "dimensions": {
+          "CALL": "UNKNOWN",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "OBSERVED",
+          "FUNCTION_SIGNATURE": "OBSERVED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "OBSERVED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 48,
+        "functions_with_derived_relations": 42
+      }
+    },
+    {
+      "subject": "rust",
+      "kind": "LANGUAGE",
+      "level": "L6_AGENT_USABLE",
+      "next_rung_missing": "",
+      "evidence": {
+        "artifacts": 125,
+        "parsed_artifacts": 125,
+        "typed_records": 168941,
+        "dimensions": {
+          "CALL": "OBSERVED",
+          "CONCURRENCY": "UNKNOWN",
+          "CONTROL_FLOW": "UNKNOWN",
+          "DATA_FLOW": "UNKNOWN",
+          "EFFECT": "UNKNOWN",
+          "FUNCTION_IDENTITY": "OBSERVED",
+          "FUNCTION_SIGNATURE": "OBSERVED",
+          "OWNERSHIP": "UNKNOWN",
+          "PERSISTENCE": "UNKNOWN",
+          "STATE": "UNKNOWN",
+          "SYMBOL": "OBSERVED",
+          "TYPE": "OBSERVED"
+        },
+        "composed_functions": 5788,
+        "functions_with_derived_relations": 5496
+      }
+    },
+    {
+      "subject": "css",
+      "kind": "LANGUAGE",
+      "level": "L2_SYNTAX",
+      "next_rung_missing": "no typed semantic record comes from it (syntax is not semantics)",
+      "evidence": {
+        "artifacts": 1,
+        "parsed_artifacts": 1,
+        "typed_records": 0,
+        "dimensions": {
+          "CALL": "UNSUPPORTED",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "UNSUPPORTED",
+          "FUNCTION_SIGNATURE": "UNSUPPORTED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "UNSUPPORTED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": "html",
+      "kind": "LANGUAGE",
+      "level": "L2_SYNTAX",
+      "next_rung_missing": "no typed semantic record comes from it (syntax is not semantics)",
+      "evidence": {
+        "artifacts": 4,
+        "parsed_artifacts": 4,
+        "typed_records": 0,
+        "dimensions": {
+          "CALL": "UNSUPPORTED",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "UNSUPPORTED",
+          "FUNCTION_SIGNATURE": "UNSUPPORTED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "UNSUPPORTED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": "json",
+      "kind": "LANGUAGE",
+      "level": "L2_SYNTAX",
+      "next_rung_missing": "no typed semantic record comes from it (syntax is not semantics)",
+      "evidence": {
+        "artifacts": 4,
+        "parsed_artifacts": 4,
+        "typed_records": 0,
+        "dimensions": {
+          "CALL": "UNSUPPORTED",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "UNSUPPORTED",
+          "FUNCTION_SIGNATURE": "UNSUPPORTED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "UNSUPPORTED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": "markdown",
+      "kind": "LANGUAGE",
+      "level": "L2_SYNTAX",
+      "next_rung_missing": "no typed semantic record comes from it (syntax is not semantics)",
+      "evidence": {
+        "artifacts": 1,
+        "parsed_artifacts": 1,
+        "typed_records": 0,
+        "dimensions": {
+          "CALL": "UNSUPPORTED",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "UNSUPPORTED",
+          "FUNCTION_SIGNATURE": "UNSUPPORTED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "UNSUPPORTED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": "rust-include-fragment",
+      "kind": "LANGUAGE",
+      "level": "L2_SYNTAX",
+      "next_rung_missing": "no typed semantic record comes from it (syntax is not semantics)",
+      "evidence": {
+        "artifacts": 3,
+        "parsed_artifacts": 3,
+        "typed_records": 0,
+        "dimensions": {
+          "CALL": "UNSUPPORTED",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "UNSUPPORTED",
+          "FUNCTION_SIGNATURE": "UNSUPPORTED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "UNSUPPORTED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": "toml",
+      "kind": "LANGUAGE",
+      "level": "L2_SYNTAX",
+      "next_rung_missing": "no typed semantic record comes from it (syntax is not semantics)",
+      "evidence": {
+        "artifacts": 4,
+        "parsed_artifacts": 4,
+        "typed_records": 0,
+        "dimensions": {
+          "CALL": "UNSUPPORTED",
+          "CONCURRENCY": "UNSUPPORTED",
+          "CONTROL_FLOW": "UNSUPPORTED",
+          "DATA_FLOW": "UNSUPPORTED",
+          "EFFECT": "UNSUPPORTED",
+          "FUNCTION_IDENTITY": "UNSUPPORTED",
+          "FUNCTION_SIGNATURE": "UNSUPPORTED",
+          "OWNERSHIP": "UNSUPPORTED",
+          "PERSISTENCE": "UNSUPPORTED",
+          "STATE": "UNSUPPORTED",
+          "SYMBOL": "UNSUPPORTED",
+          "TYPE": "UNSUPPORTED"
+        },
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": "(no extension)",
+      "kind": "ARTIFACT_CLASS",
+      "level": "L0_DISCOVERED",
+      "next_rung_missing": "no registered source frontend identifies it (its class is read from the extension)",
+      "evidence": {
+        "artifacts": 1,
+        "parsed_artifacts": 0,
+        "typed_records": 0,
+        "dimensions": {},
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    },
+    {
+      "subject": ".atlas",
+      "kind": "ARTIFACT_CLASS",
+      "level": "L0_DISCOVERED",
+      "next_rung_missing": "no registered source frontend identifies it (its class is read from the extension)",
+      "evidence": {
+        "artifacts": 2,
+        "parsed_artifacts": 0,
+        "typed_records": 0,
+        "dimensions": {},
+        "composed_functions": 0,
+        "functions_with_derived_relations": 0
+      }
+    }
+  ]
+}

@@ -682,14 +682,19 @@ objective = "FULL_OSS_REPLAY R3 tree-sitter/tree-sitter at v0.25.10 (done: the s
 [[planned_generation]]
 id = "G155"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records; R3 added acquisition and release across FFI (ts_parser_new / ts_parser_delete) to its evidence"
+objective = "NA-SUPPORT-LEVELS (universal engineering-world directive; done: every language and artifact class measured on L0-L6 from its own evidence, syntax never semantics, claims above the measured level refused by a test against roadmap/SUPPORT-LEVELS.toml; Atlas Studio Rust and JavaScript L6, CSS/HTML/JSON/Markdown/TOML L2; contracts/UNIVERSAL-ENGINEERING-WORLD.md; DEBT-TARGET_PROFILE and DEBT-ARTIFACT_SEMANTICS opened; 5 mutants killed)"
 
 [[planned_generation]]
 id = "G156"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa (QUEUED): the incremental-recomputation donor facing DEBT-IMPACT_CLOSURE's missing consumer, replayed through the strongest Atlas (E4 or later)"
+objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa (QUEUED): the incremental-recomputation donor facing DEBT-IMPACT_CLOSURE's missing consumer, replayed through the strongest Atlas; its languages measured on the support ladder before and after"
 
 [[planned_generation]]
-id = "G157+"
+id = "G157"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
+
+[[planned_generation]]
+id = "G158+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

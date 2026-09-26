@@ -1,0 +1,48 @@
+{
+  "objective": "NA-SUPPORT-LEVELS (universal engineering-world directive): every language and artifact class measured on the L0-L6 ladder from its own evidence, syntax never semantics, claims above the measured level refused; the universal engineering-world contract and its invariants; DEBT-TARGET_PROFILE and DEBT-ARTIFACT_SEMANTICS opened",
+  "changed_paths": [
+    "apps/cli/src/main.rs",
+    "core/src/coverage",
+    "core/src/lib.rs",
+    "runtime/src/agent.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:ENCLOSES",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.resolution.rust-paths",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:PERSISTENCE|atlas.resolution.rust-paths",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED `apps/cli` run().",
+    "CREATED runtime agent/support_levels().",
+    "CREATED runtime agent/tests/support_levels_are_measured_and_overclaims_are_refused().",
+    "CREATED runtime tests/essential_complexity/support_claims_never_exceed_the_measured_levels()."
+  ],
+  "adl_changes": [],
+  "dependency_changes": []
+}

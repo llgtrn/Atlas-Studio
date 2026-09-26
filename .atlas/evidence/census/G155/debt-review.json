@@ -1,0 +1,99 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G155",
+  "trigger": "review cadence: 14 debts last reviewed G142 fell due at G155",
+  "method": "re-read against G143-G155 (std receivers, construction reachability, field projections, typed sections, selected design, seal policy, candidate comparison, replays R1-R3, TS/JS profile, SELF_RECONSTRUCTION, foreign functions, measured support levels)",
+  "reviews": [
+    {
+      "debt": "DEBT-SYMBOL",
+      "verdict": "CONFIRMED",
+      "finding": "G153 put the declared shape on SYMBOL definitions and G154 added foreign declarations and statics, both from the one syntactic engine; no second engine or SCIP boundary for SYMBOL exists; NA-SECOND-ENGINE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-PROVENANCE",
+      "verdict": "CONFIRMED",
+      "finding": "census products keep revision and extractor provenance; G153's shadow artifacts record backend, toolchain and content hash but are never admitted, so no constructed artifact has provenance yet; NA-FIRST-ARTIFACT",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-CONSTRAINT_REASONING",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G130 widened the quantifier language; NA-QUANTIFIED-STATE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-ATLASX",
+      "verdict": "CONFIRMED",
+      "finding": "still contract only: M8 (seal eligibility gate) is the first missing node on the critical path; G155's universal-world contract fixes one .atlasx per selected design coordinate and treats a multi-target family as a projection over one sealed root; NA-ATLASX-CODEC then NA-ATLASX-MATERIALIZE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-COMPILER_LOWERING",
+      "verdict": "CORRECTED",
+      "finding": "its current support still said Creator HTML lowering only; since G153 a construction IR v0 is lowered by a never-guessing Rust backend for SELF_RECONSTRUCTION shadows -- not from .atlasx and never admitted, so the end state is unchanged",
+      "correction": {
+        "native": "Creator HTML lowering (frozen, not from AtlasX); since G153 the construction IR v0 Rust backend for SELF_RECONSTRUCTION shadows (pre-AtlasX, never admitted)"
+      }
+    },
+    {
+      "debt": "DEBT-ARTIFACT_IDENTITY",
+      "verdict": "CONFIRMED",
+      "finding": "no constructed artifact is admitted; shadow artifacts have content hashes only; non-code artifact meaning is now its own debt (DEBT-ARTIFACT_SEMANTICS, G155); NA-FIRST-ARTIFACT",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-TRANSFORMATION",
+      "verdict": "CONFIRMED",
+      "finding": "no transformation is applied by Atlas; still blocked by filesystem confinement (DEBT-SANDBOXED_EXECUTION); G155's contract requires derived representations to carry lossless or lossy lineage when they come",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-UNCERTAINTY",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G131 changed predictions; NA-BOUNDED-SIMULATION",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-DISTRIBUTED_SEMANTICS",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-CONCURRENCY and DEBT-PERSISTENCE, neither closed; no distributed donor replayed yet",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-REAL_WORLD_OBSERVATION",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-ARTIFACT_IDENTITY; nothing Atlas built runs, so nothing is observed",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-SIMULATION",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-QUANTITY_UNITS; no generation since G131 changed simulation",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-PHYSICAL_ONTOLOGY",
+      "verdict": "CONFIRMED",
+      "finding": "frozen until its unfreeze gate; G155 measures CAD/3D and electronics artifact classes at L0 under DEBT-ARTIFACT_SEMANTICS, so physical geometry has no ingestion path yet",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-RESOURCE",
+      "verdict": "CONFIRMED",
+      "finding": "still absent; replay R3 added acquisition and release across FFI (ts_parser_new / ts_parser_delete) to its evidence; NA-RESOURCE-DIMENSION is the queue head, planned G157 after the G156 replay",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-CONSTRUCTION_TRANSACTION",
+      "verdict": "CONFIRMED",
+      "finding": "blocked by DEBT-ATLASX; no operation decoder before MIN_ATLASX",
+      "correction": {}
+    }
+  ],
+  "summary": {
+    "reviewed": 14,
+    "confirmed": 13,
+    "corrected": 1
+  }
+}

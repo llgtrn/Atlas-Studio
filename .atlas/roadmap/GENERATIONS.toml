@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G154"
+current_generation = "G155"
 
 [[generation]]
 id = "G35"
@@ -3409,3 +3409,35 @@ after = 5821
 key = "composed:understanding_gap"
 before = 9
 after = 10
+
+[[generation]]
+id = "G155"
+kind = "NATIVE_ATTACK"
+base_commit = "bc3754c959f4fee257049e06bca3d8af3b980ee9"
+priority = "P0"
+serves = "universal engineering-world directive: DEBT-MULTILANGUAGE (support measured, not declared), DEBT-ARTIFACT_SEMANTICS and DEBT-TARGET_PROFILE opened"
+objective = "NA-SUPPORT-LEVELS: every language and artifact class measured on the L0-L6 ladder from its own evidence, syntax never semantics, claims above the measured level refused; the universal engineering-world contract fixed with its invariants and its conceptual parts labelled"
+writer = "coordinator (sole writer); one read-only lane surveyed the .atlas/.atlasx definitions, artifact model, target concepts, debts and construction nodes"
+evidence = ".atlas/evidence/coverage/G155-self-levels.json"
+self_recensus = ".atlas/evidence/census/G155/recensus.json"
+
+[generation.verification]
+pre_census = "G154 post digest (re-proven with ADR 0070 in scope)"
+atlas_first = "survey: no TargetProfile type (SelectedDesign.target_kind is a free string), no semantics for any non-code artifact (binary files BINARY_DESCRIBED, the visual module observes browser layout only), AtlasX contract only, L0-L3 vocabulary only as replay prose"
+change = "core::coverage (SupportLevel L0-L6, SubjectKind, measure over inventory + census + world model, artifact_class by extension, validate_claims); runtime::agent::support_levels; CLI coverage levels; tests: ladder rungs, extension classes, a fixture with Rust, JavaScript, C, PNG and Markdown, the claims ledger against the measured report; contracts/UNIVERSAL-ENGINEERING-WORLD.md; ADR 0071; roadmap/SUPPORT-LEVELS.toml"
+oracle = "Atlas Studio measured: Rust L6 (125 artifacts, 5,788 composed functions), JavaScript L6 (3 browser scripts, 48 functions), CSS, HTML, JSON, Markdown, TOML and include fragments L2; the fixture's C and PNG L0; claims for Markdown at L3, image at L1 and unmeasured Python refused"
+falsification = "5 mutants killed (a rung skipped, syntax counted as semantics, an artifact class promoted by records, a claim above the measured level accepted, a claim for an unmeasured subject accepted)"
+boundary = "TypeScript is not measurable on Atlas Studio (no artifact) and is not claimed; target profiles, non-code artifact semantics, AtlasX, cross-target reproduction and the product model stay conceptual, each owned by a debt; the first clean-HEAD G154 verification BLOCKED on a stale proof was re-proven before evidence"
+debts = "DEBT-TARGET_PROFILE (M0, NA-TARGET-PROFILE) and DEBT-ARTIFACT_SEMANTICS (M0, NA-ARTIFACT-SEMANTICS-IMAGE) opened; DEBT-MULTILANGUAGE last advance G155; replay cadence: G156 FULL_OSS_REPLAY R4 salsa, native head NA-RESOURCE-DIMENSION G157"
+review = "14 debts reviewed at the G142 cadence: 13 confirmed, DEBT-COMPILER_LOWERING corrected (evidence/census/G155/debt-review.json)"
+proof = "PROVEN (post c26abc65...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5821
+after = 5836
+
+[[generation.metric]]
+key = "facts"
+before = 27456
+after = 27492

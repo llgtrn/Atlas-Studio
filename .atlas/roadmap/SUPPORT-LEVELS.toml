@@ -1,0 +1,41 @@
+# Support-level claims (G155, ADR 0071, contracts/UNIVERSAL-ENGINEERING-WORLD.md). Every claim rests on
+# the measured report named below (atlas-systemizer coverage levels) and never exceeds it; a test refuses
+# a claim above the measured level, a claim for an unmeasured subject, and an L3+ subject left unclaimed.
+
+schema = "atlas.support-claims.v1"
+measured_in = "G155"
+measured_report = ".atlas/evidence/coverage/G155-self-levels.json"
+semantically_supported = ["javascript", "rust"]
+not_claimed = "TypeScript (no TypeScript artifact in Atlas Studio to measure); every non-code artifact class (L0: image, video, audio, document, UI design, CAD/3D, electronics); C, C++, Python, Go, Swift, Zig (no frontend); target profiles and AtlasX (not implemented)"
+
+[[claim]]
+subject = "javascript"
+level = "L6_AGENT_USABLE"
+
+[[claim]]
+subject = "rust"
+level = "L6_AGENT_USABLE"
+
+[[claim]]
+subject = "css"
+level = "L2_SYNTAX"
+
+[[claim]]
+subject = "html"
+level = "L2_SYNTAX"
+
+[[claim]]
+subject = "json"
+level = "L2_SYNTAX"
+
+[[claim]]
+subject = "markdown"
+level = "L2_SYNTAX"
+
+[[claim]]
+subject = "rust-include-fragment"
+level = "L2_SYNTAX"
+
+[[claim]]
+subject = "toml"
+level = "L2_SYNTAX"
