@@ -1,0 +1,151 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R5",
+ "generation": "G158",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "xyflow/xyflow",
+  "remote": "https://github.com/xyflow/xyflow",
+  "pin": "0a1f9575b25679f2880175de8d3eae21aedde921",
+  "pin_choice": "the commit of the admitted legacy checkout (provenance/donors/xyflow.json), so the replay covers the exact bytes Atlas had kept; the tracked checkout equals the pin except one file's CRLF line endings (packages/react/src/components/Edges/BezierEdge.tsx)",
+  "license": "MIT (LICENSE at the pin, verified: Copyright (c) 2019-2025 webkid GmbH)",
+  "code_reuse": "NONE",
+  "selection": "queued at G156: TypeScript had no measured support level (G155 contract: the next TypeScript donor measures it) and DEBT-MULTILANGUAGE is P0; xyflow's admitted legacy checkout was still materialized; its G118 verdict was DEFERRED",
+  "dependency_class": "MECHANISM_INTERNAL (a TypeScript monorepo: @xyflow/system core, @xyflow/react and @xyflow/svelte on top, examples importing the packages; no dependency followed)",
+  "materialization": "blobless clone fetched at the pin into .atlas/.cache/donors/xyflow (6.2 MB): 253 .ts, 198 .tsx, 128 .svelte, 27 .css, 24 .json, 18 .md"
+ },
+ "epochs": {
+  "before": "E6",
+  "after": "E7 (G158: TypeScript/JavaScript modules linked by a second CALL engine)"
+ },
+ "support_levels": {
+  "N": {
+   "javascript": "L6_AGENT_USABLE",
+   "typescript": "L6_AGENT_USABLE",
+   "css": "L2_SYNTAX",
+   "html": "L2_SYNTAX",
+   "json": "L2_SYNTAX",
+   "markdown": "L2_SYNTAX",
+   "yaml": "L2_SYNTAX",
+   ".svelte": "L0_DISCOVERED",
+   "image": "L0_DISCOVERED"
+  },
+  "N_plus_1": {
+   "javascript": "L6_AGENT_USABLE",
+   "typescript": "L6_AGENT_USABLE",
+   "css": "L2_SYNTAX",
+   "html": "L2_SYNTAX",
+   "json": "L2_SYNTAX",
+   "markdown": "L2_SYNTAX",
+   "yaml": "L2_SYNTAX",
+   ".svelte": "L0_DISCOVERED",
+   "image": "L0_DISCOVERED"
+  },
+  "note": "TypeScript measured on the ladder for the first time: L6 (451 artifacts, 14,187 typed records, 2,249 composed functions); FUNCTION_IDENTITY, FUNCTION_SIGNATURE, SYMBOL OBSERVED, CALL UNKNOWN, every other dimension UNSUPPORTED; functions with a DERIVED relation 1,748 -> 1,895; .svelte (128 files) L0: no frontend"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "coverage levels --root .atlas/.cache/donors/xyflow",
+   "agent model --root .atlas/.cache/donors/xyflow",
+   "callers of getBezierPath in the composed model"
+  ],
+  "atlas_knew": {
+   "functions": 2260,
+   "components": 546,
+   "relations": 1440,
+   "resolved_call_edges": 147,
+   "unresolved_call_sites": 4796,
+   "getBezierPath_callers": 0
+  },
+  "challenge": "what does a change to getBezierPath (packages/system/src/utils/edges/bezier-edge.ts) put at risk?",
+  "answer": "nothing: no caller; every callee reached through an import was unresolved (same-file resolution only)"
+ },
+ "differential": {
+  "oracle": "the source at the pin (ORACLE_READ of the call sites, recorded); xyflow is a UI library, not a code-intelligence tool, so the differential is Atlas against source",
+  "findings": [
+   {
+    "question": "who calls getBezierPath?",
+    "ground_truth": "10 TypeScript call sites (React BezierEdge's memo closure, React ConnectionLine, 8 example components through @xyflow/react's re-export of @xyflow/system) and 3 Svelte components",
+    "atlas_n": "0 callers",
+    "atlas_n_plus_1": "exactly the 10 TypeScript callers",
+    "classification_n": "ATLAS_UNKNOWN (no false claim; imported callees never resolved)",
+    "classification_n_plus_1": "ATLAS_CORRECT for TypeScript; the 3 Svelte callers UNDECIDABLE for Atlas (.svelte L0)"
+   },
+   {
+    "question": "are the new cross-module edges right?",
+    "ground_truth": "25 of the 698 new edges sampled at random (seed 158) and checked against the imports and definitions in the source",
+    "atlas_n_plus_1": "25 of 25 correct, including addEdge bound to React's own wrapper (an explicit re-export wins over the star export of @xyflow/system)",
+    "classification": "ATLAS_CORRECT"
+   },
+   {
+    "question": "what do the stores and hooks call?",
+    "ground_truth": "member calls on store objects (store.getState(), get().x) and JSX component uses",
+    "atlas_n_plus_1": "unresolved",
+    "classification": "ATLAS_UNKNOWN (member calls and JSX outside the profile, DEBT-MULTILANGUAGE)"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "xyflow's implementation (a node-graph renderer, stores, hooks) is not absorbed and was never read beyond the call sites; the blindness it exposed is Atlas's own: no module linking. Absorbed capability: ECMAScript module linking as a second CALL engine (ADR 0073)",
+  "change": "adapter typescript::modules (module facts, specifier resolution with a fixed candidate order and workspace packages by declared name and source entry, binding through exports, explicit re-exports and unambiguous star exports); runtime census::typescript_modules (the engine observing the same CALL claims, DERIVED, one UNKNOWN CALL obligation per artifact); RESOURCE added to the canonical dimensions every extractor accounts for (a G157 omission)",
+  "falsification": "8 mutants killed (ambiguous stars accepted, a rebound import accepted, .js not mapped to .ts, duplicate package names accepted, type-only imports binding, re-exports ignored, packages ignored, RESOURCE not canonical); one equivalent mutant exposed dead code (namespace star check), removed"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "0a1f9575b256",
+  "N": {
+   "functions": 2260,
+   "resolved": 147,
+   "unresolved": 4796,
+   "relations": 1440
+  },
+  "N_plus_1": {
+   "functions": 2260,
+   "resolved": 845,
+   "unresolved": 4043,
+   "relations": 2138
+  },
+  "what_atlas_n_saw": "every function, signature and symbol of the TypeScript; calls within one file",
+  "what_atlas_n_missed": "every call across a module boundary: the monorepo's packages call each other only through imports",
+  "what_atlas_n_plus_1_sees": "147 -> 845 resolved edges (5.7x), 1,440 -> 2,138 relations; getBezierPath 0 -> 10 callers",
+  "still_unknown": "member and this calls, JSX component uses, namespace imports, Svelte components (L0), 4,043 unresolved sites",
+  "magnitude": "large on the donor; Atlas Studio's own three browser scripts do not import each other, so its self-census gains the engine's accounting, not edges"
+ },
+ "manual_reads": [
+  {
+   "what": "grep of getBezierPath call sites (ts, tsx, svelte)",
+   "why": "ground truth for the challenge question",
+   "gap": "module linking; no Svelte frontend"
+  },
+  {
+   "what": "packages/system/package.json and packages/react/package.json (name, source)",
+   "why": "find how a bare specifier names a workspace package without guessing",
+   "gap": "package entry resolution"
+  },
+  {
+   "what": "imports of 25 sampled caller files and 3 re-export lines (react index.ts, utils/edges.ts)",
+   "why": "falsify the new edges",
+   "gap": "none (verification)"
+  },
+  {
+   "what": "LICENSE",
+   "why": "license verification"
+  }
+ ],
+ "revalidation": {
+  "record": "none: xyflow's G118 verdict (DEFERRED, CAPABILITY_NOT_REQUIRED) named no debt and no historical pin revalidation; the replay decides at E7",
+  "outcome": "DECIDED_AT_E7"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY_UNTIL_TRIGGER at E7: node-graph interaction is a studio-projection mechanism Atlas does not need yet (CAPABILITY_NOT_REQUIRED kept); the TypeScript monorepo stays the falsification target of NA-MULTILANGUAGE",
+  "capability_delta": "CAPABILITY_ADVANCED (E6 -> E7)",
+  "trigger": "CURRENT; re-opened when member/this calls or JSX resolution land for TypeScript, when a Svelte frontend exists, or when studio graph interaction becomes a planned capability"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/xyflow; git rm -r .atlas/temporary/donors/xyflow (697 tracked files, the admitted legacy checkout)",
+  "runtime_dependency": "none: Atlas does not depend on xyflow (no package, no path); the module-linking engine is Atlas's own code",
+  "evidence_retained": "this record: pin, license, Atlas_N mission, differential, N versus N+1; donor-corpus and provenance records EXTINCT / SOURCE_DELETED; license copy at .atlas/licenses/xyflow/LICENSE; no xyflow text in Atlas",
+  "path_absent_after": true,
+  "legacy_checkout_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

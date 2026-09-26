@@ -513,6 +513,7 @@ mod tests {
                 "wasm-tools",
                 "wasmtime",
                 "xdsl",
+                "xyflow",
                 "zstd"
             ]
         );

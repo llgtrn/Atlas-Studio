@@ -1,8 +1,0 @@
-version: 2
-updates:
-  - package-ecosystem: 'npm'
-    directory: '/packages/'
-    schedule:
-      interval: 'weekly'
-    ignore:
-      - dependency-type: 'development'

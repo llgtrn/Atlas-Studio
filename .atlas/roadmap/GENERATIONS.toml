@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G157"
+current_generation = "G158"
 
 [[generation]]
 id = "G35"
@@ -3523,3 +3523,45 @@ after = 5892
 key = "facts"
 before = 27504
 after = 27897
+
+[[generation]]
+id = "G158"
+kind = "REPLAY"
+base_commit = "1bc52c34adc89eba9e114f23b17c3d7c696d0ce5"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R5: xyflow replayed through Atlas E6 at its legacy checkout's pin -- TypeScript measured on the support ladder for the first time, DEBT-MULTILANGUAGE advanced, the admitted legacy checkout extinguished"
+objective = "replay the TypeScript monorepo Atlas had kept as a legacy checkout: Atlas_N first, a challenge Atlas_N cannot answer, one bounded Atlas-native improvement, the same pin re-censused at N+1, both copies of the source extinct"
+writer = "coordinator (sole writer)"
+replay = "xyflow/xyflow"
+pinned_commit = "0a1f9575b25679f2880175de8d3eae21aedde921"
+source_path = ".atlas/.cache/donors/xyflow"
+epoch_before = "E6"
+epoch_after = "E7"
+mission = ".atlas/evidence/replay/R5-xyflow.json"
+evidence = ".atlas/evidence/replay/R5-xyflow.json"
+self_recensus = ".atlas/evidence/census/G158/recensus.json"
+
+[generation.verification]
+pre_census = "G157 post digest"
+atlas_first = "coverage levels and agent model on the donor before any source reading: TypeScript L6 (451 artifacts, 2,249 composed functions), Svelte L0; 147 resolved call edges against 4,796 unresolved sites; the challenge (what does a change to getBezierPath put at risk?) answered nothing -- no caller"
+change = "adapter typescript::modules: module facts (imports, exports, re-exports, star exports, module-level functions bound once), specifiers (fixed candidate order, .js spelled for .ts, workspace packages by declared name and source entry), bindings (explicit exports before stars, ambiguous stars and cycles resolve to nothing); runtime census::typescript_modules: the second TypeScript/JavaScript CALL engine observing the same claims, DERIVED, with one UNKNOWN CALL obligation per artifact; RESOURCE made canonical for every extractor (G157 had left it out of the requested set); ADR 0073"
+oracle = "the same pin at E6 vs E7: 147 -> 845 resolved call edges, 1,440 -> 2,138 relations, 4,796 -> 4,043 unresolved sites; getBezierPath 0 -> 10 callers, exactly its 10 TypeScript call sites (the 3 Svelte callers stay invisible); 25 of 25 randomly sampled new edges correct against the source"
+falsification = "8 mutants killed (ambiguous stars accepted, a rebound import accepted, .js not mapped to .ts, duplicate package names accepted, type-only imports binding, re-exports ignored, packages ignored, RESOURCE not canonical); one equivalent mutant exposed a dead namespace-star check, removed"
+boundary = "member and this calls, namespace imports, JSX component uses and Svelte stay outside; xyflow decided REFERENCE_ONLY_UNTIL_TRIGGER at E7 (node-graph interaction not needed yet, G118 DEFERRED kept as history); both the pinned clone and the tracked legacy checkout (697 files) deleted"
+debts = "DEBT-MULTILANGUAGE last advance G158; capability epoch E7; GitNexus's trigger fired at E7 (cross-file TypeScript module resolution) -- REVALIDATION_REQUIRED and next replay; tree-sitter and salsa re-checked CURRENT; native head NA-ASYNC-REGIONS planned G159"
+proof = "PROVEN (post 01d5e2f3...): no unexplained UNKNOWN (new functions explained); coverage RESOURCE ABSENT -> UNKNOWN declared"
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 4841
+after = 4887
+
+[[generation.metric]]
+key = "facts"
+before = 27897
+after = 28408
+
+[[generation.metric]]
+key = "obligations"
+before = 2508
+after = 2733

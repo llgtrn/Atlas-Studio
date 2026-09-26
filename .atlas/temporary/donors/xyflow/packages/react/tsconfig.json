@@ -1,9 +1,0 @@
-{
-  "extends": "@xyflow/tsconfig/react.json",
-  "display": "@xyflow/react",
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist"],
-  "compilerOptions": {
-    "outDir": "dist"
-  }
-}

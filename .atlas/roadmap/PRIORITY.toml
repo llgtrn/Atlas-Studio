@@ -697,7 +697,7 @@ objective = "NA-RESOURCE-DIMENSION (DEBT-RESOURCE; done: RESOURCE is the thirtee
 [[planned_generation]]
 id = "G158"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R5 xyflow/xyflow (QUEUED): a TypeScript node-graph UI library facing the strongest Atlas (E6), TypeScript measured on the support ladder for the first time; the admitted legacy checkout under .atlas/temporary/donors extinguished with it"
+objective = "FULL_OSS_REPLAY R5 xyflow/xyflow at 0a1f9575b256 (done: TypeScript measured on the support ladder for the first time -- L6, Svelte L0; Atlas_N could not name one caller of getBezierPath; capability epoch E7 -- a second CALL engine links TypeScript/JavaScript modules through exports, re-exports, star exports and workspace packages; the same pin 147 -> 845 resolved edges, getBezierPath 0 -> 10 callers, all correct; 8 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER at E7; the pinned clone and the tracked legacy checkout extinct; GitNexus's trigger fired)"
 
 [[planned_generation]]
 id = "G159"
@@ -705,6 +705,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-ASYNC-REGIONS (DEBT-CALL, DEBT-EFFECT, DEBT-CONCURRENCY) -- async blocks as their own executable regions, like closures"
 
 [[planned_generation]]
-id = "G160+"
+id = "G160"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R6 GitNexus revalidation (REVALIDATION_REQUIRED since E7): the same pin 06ce60beb674 re-censused by the strongest Atlas -- cross-file TypeScript module linking against GitNexus's own graph, studied and never copied (PolyForm Noncommercial)"
+
+[[planned_generation]]
+id = "G161+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
