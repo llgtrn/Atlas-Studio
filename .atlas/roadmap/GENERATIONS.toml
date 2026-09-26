@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G164"
+current_generation = "G165"
 
 [[generation]]
 id = "G35"
@@ -3800,3 +3800,35 @@ after = 5085
 key = "artifacts"
 before = 161
 after = 161
+
+[[generation]]
+id = "G165"
+kind = "NATIVE_ATTACK"
+base_commit = "f03a1352e0a0070f503299c958d6afe9db7dda8a"
+priority = "P0"
+serves = "DEBT-QUANTITY_UNITS: the native queue head, between replays R8 and R9"
+objective = "NA-QUANTITY-SIDE-REPORTS: what the physical and product models derive from declarations enters the census, the graph, the certificate counts and the census container as typed quantity facts with status and lineage, not side JSON"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0080-derived-quantities-enter-the-census.md"
+self_recensus = ".atlas/evidence/census/G165/recensus.json"
+
+[generation.verification]
+pre_census = "G164 post digest"
+atlas_first = "the world model named runtime::physical and runtime::product each exposing one analyze_root used only by the CLI: their derived values reached no census fact, graph node or container record; carried into the census, the derived motor torque showed no kind -- a torque over a gear reduction lost it in every quotient and could join an energy"
+change = "core schema: QUANTITY_DERIVATION fact kind and the derivation extractors; core graph: DERIVED_FROM edge kind, derived-quantity nodes of their own identity, add_quantity_derivations; core quantity: scaling by a pure dimensionless number keeps the kind; core product: EvidenceBasis::as_str; runtime census: derived_quantity_facts runs the physical and product models over the declared nodes"
+oracle = "the side reports computed from the same declarations: every derived value and status equal, every input once, on the two-link arm (12 quantities, 33 inputs) and the desk organizer (24 metrics); the derived motor torque DERIVED_FROM the derived joint torque DERIVED_FROM the declared link lengths; facts 38 -> 83 and 29 -> 109, graph edges 29 -> 70 and 4 -> 76"
+falsification = "11 mutants: 10 killed (emission, lineage, node identity, edges, dangling targets, UNKNOWN status, the kind rule in multiplication, division and its left operand); 1 equivalent (the kind check of a pure number: with_kind never lets a dimensionless quantity carry a kind) and removed; an underivable metric enters UNKNOWN"
+boundary = "requirement verdicts, findings, simulations and market hypotheses stay in the reports; the kind lattice stops at four kinds and derived products carry none; Atlas's own declared ADL has no physical or product entity, so its self-census gains no quantity fact"
+debts = "DEBT-QUANTITY_UNITS M2_PARTIAL -> M3_SINGLE_ENGINE_BOUNDED, last advance G165; NA-QUANTITY-KINDS queued; capability epoch E14; replay triggers re-checked at E14 (none concerns quantities); next replay huggingface/safetensors G166; native head NA-QUANTIFIED-STATE planned G167"
+review = "no debt review due at G165"
+proof = "PROVEN (post a2b5d3d3...): no unexplained UNKNOWN"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6128
+after = 6161
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5085
+after = 5114

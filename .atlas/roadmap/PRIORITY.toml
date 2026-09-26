@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-QUANTITY-SIDE-REPORTS"
+next_native_attack = "NA-QUANTIFIED-STATE"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -732,14 +732,19 @@ objective = "FULL_OSS_REPLAY R8 google/crubit at 34c96fb368e1 (done: Atlas E12 c
 [[planned_generation]]
 id = "G165"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-QUANTITY-SIDE-REPORTS (DEBT-QUANTITY_UNITS) -- physical and product reports enter the census: derived quantities as typed facts with kind and status, not side JSON"
+objective = "NA-QUANTITY-SIDE-REPORTS (DEBT-QUANTITY_UNITS; done: every quantity the physical and product models derive enters the census as a QUANTITY fact with its status and a QUANTITY_DERIVATION fact per input, the graph as a derived-quantity node with DERIVED_FROM edges; scaling by a pure number keeps a kind, so a torque over a gear reduction stays a torque; the side reports are the oracle; 10 mutants killed, 1 equivalent removed; capability epoch E14; ADR 0080)"
 
 [[planned_generation]]
 id = "G166"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R9 huggingface/safetensors (QUEUED): the format donor facing the strongest Atlas (E13), whose SafeTensors reader (E12, G163) was written from the published description alone -- its Rust crate and test corpus falsify the W1 census and construction, its Python bindings are a second-language boundary; license verified at the pin"
+objective = "FULL_OSS_REPLAY R9 huggingface/safetensors (QUEUED): the format donor facing the strongest Atlas (E14), whose SafeTensors reader (E12, G163) was written from the published description alone -- its Rust crate and test corpus falsify the W1 census and construction, its Python bindings are a second-language boundary; license verified at the pin"
 
 [[planned_generation]]
-id = "G167+"
+id = "G167"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-QUANTIFIED-STATE (DEBT-CONSTRAINT_REASONING) -- census-quantified invariants over state writes and types (forbid write to <state>), and an independent check of the verdicts"
+
+[[planned_generation]]
+id = "G168+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
