@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-QUANTIFIED-STATE"
+next_native_attack = "NA-CALL-TYPE-RESIDUAL"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -737,14 +737,19 @@ objective = "NA-QUANTITY-SIDE-REPORTS (DEBT-QUANTITY_UNITS; done: every quantity
 [[planned_generation]]
 id = "G166"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R9 huggingface/safetensors (QUEUED): the format donor facing the strongest Atlas (E14), whose SafeTensors reader (E12, G163) was written from the published description alone -- its Rust crate and test corpus falsify the W1 census and construction, its Python bindings are a second-language boundary; license verified at the pin"
+objective = "FULL_OSS_REPLAY R9 huggingface/safetensors at e246a2560645 (done: the format's own reader, built from the pinned crate as a black-box oracle, falsified the E12 weight reader on 44 hand-written containers -- 7 element types missing, a 100 MiB header bound over the format's 100,000,000 bytes, misaligned sub-byte tensors refused for the wrong reason; capability epoch E15 -- the whole dtype table sized in bits and the format's bound; 34 -> 42 of 44 agree, 26 of 26 constructed files accepted by the reference; duplicate keys and unknown fields refused on purpose; REFERENCE_ONLY_UNTIL_TRIGGER; source extinct; ADR 0081)"
 
 [[planned_generation]]
 id = "G167"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-QUANTIFIED-STATE (DEBT-CONSTRAINT_REASONING) -- census-quantified invariants over state writes and types (forbid write to <state>), and an independent check of the verdicts"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE) -- method-call resolution through inferred receiver types (untyped lets, fields, chains, trait objects); closes the resolution engine's TYPE obligations and the method-level persistence sites (sync_all, flush)"
 
 [[planned_generation]]
-id = "G168+"
+id = "G168"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R10 rust-lang/rust-analyzer (QUEUED): rank 1 of the recursive revalidation, its G75 ABSORBED verdict on DEBT-CALL and DEBT-TYPE facing the strongest Atlas (E15 or later) -- every Rust capability milestone since can observe it; a fresh pin, license verified at it"
+
+[[planned_generation]]
+id = "G169+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G165"
+current_generation = "G166"
 
 [[generation]]
 id = "G35"
@@ -3832,3 +3832,41 @@ after = 6161
 key = "composed:relation:INVOKES"
 before = 5085
 after = 5114
+
+[[generation]]
+id = "G166"
+kind = "REPLAY"
+base_commit = "483db2e36098200a8ff459c2a3c1c2911b972554"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R9: the first weight-format donor facing the strongest Atlas (E14); DEBT-ARTIFACT_SEMANTICS advanced"
+objective = "replay safetensors at a fresh exact pin: Atlas_N first on its code and on the format, a falsifiable question about which containers the format admits, the format's own reader as a black-box oracle, one bounded Atlas-native improvement, the same corpus at N+1, the source extinct"
+writer = "coordinator (sole writer)"
+replay = "huggingface/safetensors"
+pinned_commit = "e246a2560645b7525f5775669ed816eb57c5bcc8"
+source_path = ".atlas/.cache/donors/safetensors"
+epoch_before = "E14"
+epoch_after = "E15"
+mission = ".atlas/evidence/replay/R9-safetensors.json"
+evidence = ".atlas/evidence/replay/R9-safetensors.json"
+self_recensus = ".atlas/evidence/census/G166/recensus.json"
+
+[generation.verification]
+pre_census = "G165 post digest"
+atlas_first = "the donor's code censused (524 functions, 215 INVOKES; read_metadata, validate and the header tests located; Python 43 files L0); no lens lists an enum's variants, so the dtype table was read by hand; the E14 weight reader agreed with the format on 34 of 44 containers"
+change = "core weights: the format's whole dtype table (F4, F6_E2M3, F6_E3M2, F8_E8M0, F8_E4M3FNUZ, F8_E5M2FNUZ, C64 added), element_bits, expected_bytes with SizeError (Overflow, Misaligned); adapter safetensors: the header bound is the format's 100,000,000 bytes (ADR 0081)"
+oracle = "the donor's Rust reader at the pin, built into a scratch binary, on 44 hand-written containers: 34 -> 42 agree; the 2 left are deliberate refusals (duplicate keys ATLAS_CORRECT, unknown fields BOTH_CORRECT_DIFFERENT_ABSTRACTION); 26 of 26 files Atlas constructs are accepted by the reference; misaligned sub-byte tensors now refused as misaligned"
+falsification = "7 mutants killed (the 100 MiB bound, the whole-byte check, F4, F6 and C64 widths, a wrong byte count, a misnamed dtype)"
+boundary = "Python has no frontend; block-quantized formats (GGUF) are W5; unknown tensor fields cannot be preserved and stay refused; roles UNKNOWN; the donor's code census is unchanged at E15"
+debts = "DEBT-ARTIFACT_SEMANTICS last advance G166; capability epoch E15; the six earlier replays re-checked CURRENT at E15; next replay rust-lang/rust-analyzer G168; native head NA-CALL-TYPE-RESIDUAL planned G167 (the pressure map moved it ahead of NA-QUANTIFIED-STATE)"
+review = "3 debts reviewed at their cadence: DEBT-TYPE, DEBT-CONSTRUCTION_IR and DEBT-BACKEND_ADAPTER confirmed (evidence/census/G166/debt-review.json)"
+proof = "PROVEN (post ffb0b424...): no unexplained UNKNOWN (a test's serde_json::json! dependency macro explained); the pinned clone and the scratch oracle build deleted before the recensus"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6161
+after = 6168
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5114
+after = 5117

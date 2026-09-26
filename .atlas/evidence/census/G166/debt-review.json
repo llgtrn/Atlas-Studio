@@ -1,0 +1,26 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G166",
+  "trigger": "review cadence: DEBT-TYPE, DEBT-CONSTRUCTION_IR and DEBT-BACKEND_ADAPTER (last reviewed G142, last advanced G153) fell due at G166",
+  "method": "re-read against the code at 483db2e3 plus the G166 change: the G166 post census's TYPE obligations and records, core::construction (no body nodes), runtime::self_reconstruction (the toolchain a shadow names), the weight construction path",
+  "reviews": [
+    {
+      "debt": "DEBT-TYPE",
+      "verdict": "CONFIRMED",
+      "finding": "the resolution engine's TYPE obligations are still UNKNOWN on every Rust artifact (138 at G166) beside 2,534 DERIVED canonical type records; receivers are typed forward through signatures, fields and call results for the method probe (G139-G143), but no expression type is recorded; generic instantiation absent; NA-CALL-TYPE-RESIDUAL heads the native queue",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-CONSTRUCTION_IR",
+      "verdict": "CONFIRMED",
+      "finding": "the construction IR still lifts declarations only: no body node is lowerable, so SR1 reconstructs a type's declaration and not its methods; the census's control- and data-flow records remain relational identities; NA-SELF-RECONSTRUCTION-BODIES unchanged",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-BACKEND_ADAPTER",
+      "verdict": "CONFIRMED",
+      "finding": "rustc, cargo and linkers are still ambient: a shadow names the rustc -V it was built with, nothing pins or confines it; the weight construction (G163) writes its format mechanically and needs no toolchain, so it neither closes nor widens this debt; NA-DELEGATED-BACKEND unchanged",
+      "correction": {}
+    }
+  ]
+}

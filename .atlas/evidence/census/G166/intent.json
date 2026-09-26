@@ -1,0 +1,58 @@
+{
+  "objective": "FULL_OSS_REPLAY R9 huggingface/safetensors: the weight reader carries the format's whole dtype table (sub-byte sizes in bits, whole-byte rule) and its 100,000,000-byte header bound, falsified against the format's own reader (ADR 0081); the pinned clone extinguished",
+  "changed_paths": [
+    "adapter/src/weights/safetensors.rs",
+    "adapter/src/weights/safetensors/tests.rs",
+    "core/src/weights/mod.rs",
+    "core/src/weights/tests.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:ENCLOSES",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "-obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+records:TYPE|atlas.resolution.rust-paths",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "entity_changes": [
+    "CHANGED adapter weights/safetensors/tensor_entry().",
+    "CHANGED adapter weights/safetensors/tests/every_untrusted_header_claim_is_checked_before_it_is_believed().",
+    "CHANGED core weights/expected_bytes().",
+    "CHANGED core weights/tests/exact_reconstruction_is_claimable_only_where_information_survives().",
+    "CHANGED core weights/validate().",
+    "DELETED core weights/`impl:TensorDtype`/element_bytes().",
+    "CREATED adapter weights/safetensors/tests/sub_byte_and_wide_tensors_round_trip().",
+    "CREATED core weights/`impl:TensorDtype`/element_bits().",
+    "CREATED core weights/`impl:std::fmt::Display for SizeError`/fmt().",
+    "CREATED core weights/tests/sub_byte_and_wide_dtypes_are_sized_in_bits()."
+  ],
+  "adl_changes": [],
+  "dependency_changes": [],
+  "explained_unknowns": [
+    "core/src/weights/tests.rs: a test enumerating the format's dtype names through serde_json::json!, a dependency macro whose expansion the census does not bound (ORACLE boundary, ADR 0077)"
+  ]
+}

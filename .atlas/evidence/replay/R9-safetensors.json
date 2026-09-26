@@ -1,0 +1,487 @@
+{
+  "schema": "atlas.evidence.full-oss-replay.v1",
+  "replay": "R9",
+  "generation": "G166",
+  "lane": "FULL_OSS_REPLAY",
+  "donor": {
+    "key": "huggingface/safetensors",
+    "remote": "https://github.com/huggingface/safetensors",
+    "pin": "e246a2560645b7525f5775669ed816eb57c5bcc8",
+    "pin_choice": "the upstream main head resolved at execution (2026-09-22 commit 'return PrefetchLoader handle from Open::prefetch'), pinned; never tracked after",
+    "license": "Apache-2.0 (LICENSE at the pin; copy at .atlas/licenses/safetensors/LICENSE; crate license field Apache-2.0)",
+    "code_reuse": "NONE (the reference crate was built and run in a scratch directory as a black-box oracle; the dtype names are the format's vocabulary; Atlas's reader is its own)",
+    "selection": "explicitly authorized weight-format donor (G163); queued at G164: the format donor falsifies the W1 reader written from the published description alone",
+    "dependency_class": "MECHANISM_INTERNAL (one Rust crate: serde, serde_json, hashbrown; Python bindings through pyo3; no dependency source materialized)",
+    "materialization": "blobless depth-1 fetch of the pin (1.9 MB: 13 rs, 43 py), moved to .atlas/.cache/donors/safetensors"
+  },
+  "epochs": {
+    "before": "E14",
+    "after": "E15 (G166: the weight reader carries the format's whole dtype table, sizes in bits, and the format's header bound)"
+  },
+  "support_levels": {
+    "note": "the donor's Rust at L6 at both epochs (code census unchanged: 524 functions, 215 INVOKES); what E15 changes is the weight artifact class: files the format admits"
+  },
+  "atlas_n_mission": {
+    "commands": [
+      "agent model --root <pin> (524 functions, 215 INVOKES, 71 unrecognized files: 43 py)",
+      "agent understand --target safetensors/src/tensor.rs --mission 'which dtypes and header shapes does the reference reader admit'",
+      "weights census --artifact <each of 44 containers>"
+    ],
+    "atlas_knew": {
+      "code": "read_metadata, validate and the header tests located; dtype enum variants not listed by any lens",
+      "format": "15 dtypes, 100 MiB header bound, duplicate keys and unknown fields refused"
+    },
+    "challenge": "which element types and header shapes does the format's own reader admit, and does Atlas's weight reader (written from the published description) agree on every one?",
+    "answer": "E14: 34 of 44 containers agree; 7 dtypes the format admits are refused (3 sub-byte), a 100,000,001-byte header the format refuses is admitted, misaligned sub-byte tensors are refused for the wrong reason"
+  },
+  "differential": {
+    "oracle": "the donor's Rust crate at the pin, built in a scratch directory into a 10-line binary calling SafeTensors::read_metadata (black box, never an Atlas dependency); 44 containers written by hand as raw bytes",
+    "summary": {
+      "containers": 44,
+      "agree_n": 34,
+      "agree_n_plus_1": 42,
+      "constructed_n_plus_1": 26,
+      "constructed_accepted_by_reference": 26
+    },
+    "classifications": [
+      {
+        "finding": "F4, F6_E2M3, F6_E3M2, F8_E8M0, F8_E4M3FNUZ, F8_E5M2FNUZ, C64 admitted by the format, refused by E14",
+        "classification": "DONOR_CORRECT (fixed at E15)"
+      },
+      {
+        "finding": "a 100,000,001-byte header refused by the format, admitted by E14",
+        "classification": "DONOR_CORRECT (fixed at E15: Atlas could have constructed a file the format refuses)"
+      },
+      {
+        "finding": "misaligned sub-byte tensors refused by both, by E14 only as an unknown dtype",
+        "classification": "DONOR_CORRECT on the reason (fixed at E15: refused as misaligned)"
+      },
+      {
+        "finding": "two entries for one tensor name: the reference keeps the last silently, Atlas refuses",
+        "classification": "ATLAS_CORRECT"
+      },
+      {
+        "finding": "an unknown field in a tensor entry: the reference ignores it, Atlas refuses",
+        "classification": "BOTH_CORRECT_DIFFERENT_ABSTRACTION (Atlas claims lossless construction and cannot preserve an unmodelled field)"
+      },
+      {
+        "finding": "the Python bindings (43 files)",
+        "classification": "OUT_OF_SCOPE (no Python frontend)"
+      }
+    ],
+    "cases": [
+      {
+        "case": "dtype-BF16",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-BOOL",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-C64",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F16",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F32",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F4",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F64",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F6_E2M3",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F6_E3M2",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F8_E4M3",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F8_E4M3FNUZ",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F8_E5M2",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F8_E5M2FNUZ",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-F8_E8M0",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-I16",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-I32",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-I64",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-I8",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-U16",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-U32",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-U64",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "dtype-U8",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "duplicate-key",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": "duplicate key `t` at line 1 column 105"
+      },
+      {
+        "case": "empty",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "float-offset",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "`data_offsets` holds a value that is not a non-negative integer"
+      },
+      {
+        "case": "gap",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "payload ranges overlap or leave a hole"
+      },
+      {
+        "case": "header-100000000",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "header-100000001",
+        "reference": "REFUSE",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "ACCEPT",
+        "atlas_n_plus_1_reason": "header length 100000001 exceeds 100000000"
+      },
+      {
+        "case": "header-104857601",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "header length 104857601 exceeds 100000000"
+      },
+      {
+        "case": "leading-space",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "metadata-non-string",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "__metadata__ value `n` is not a string"
+      },
+      {
+        "case": "metadata-string",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "misaligned-F4",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "12 bits do not fill whole bytes"
+      },
+      {
+        "case": "misaligned-F6",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "18 bits do not fill whole bytes"
+      },
+      {
+        "case": "negative-shape",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "`shape` holds a value that is not a non-negative integer"
+      },
+      {
+        "case": "not-json",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "expected ident at line 1 column 2"
+      },
+      {
+        "case": "offset-order",
+        "reference": "ACCEPT",
+        "atlas_n": "ACCEPT",
+        "atlas_n_plus_1": "ACCEPT",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": null
+      },
+      {
+        "case": "overlap",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "payload ranges overlap or leave a hole"
+      },
+      {
+        "case": "scalar-F4",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "4 bits do not fill whole bytes"
+      },
+      {
+        "case": "short",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "shorter than the 8-byte header length"
+      },
+      {
+        "case": "size-mismatch",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "range 0..3 holds not the 4 bytes its dtype and shape need"
+      },
+      {
+        "case": "trailing-bytes",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "tensors cover 1 of the 2 payload bytes"
+      },
+      {
+        "case": "unknown-dtype",
+        "reference": "REFUSE",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": "REFUSE",
+        "atlas_n_plus_1_reason": "tensor `t` has no known dtype"
+      },
+      {
+        "case": "unknown-field",
+        "reference": "ACCEPT",
+        "atlas_n": "REFUSE",
+        "atlas_n_plus_1": "REFUSE",
+        "reference_reason": null,
+        "atlas_n_plus_1_reason": "tensor `t` carries unknown field `extra`"
+      }
+    ]
+  },
+  "implementation": {
+    "mechanism_vs_implementation": "nothing of the donor's implementation is absorbed; its format rules are the oracle: the element-type table with bit widths and the whole-byte rule, and the header bound",
+    "change": "core weights: TensorDtype gains F4, F6_E2M3, F6_E3M2, F8_E8M0, F8_E4M3FNUZ, F8_E5M2FNUZ, C64; element_bits replaces element_bytes; expected_bytes returns SizeError (Overflow, Misaligned); adapter safetensors: MAX_HEADER_BYTES = 100,000,000 (ADR 0081)",
+    "falsification": "7 mutants killed (the 100 MiB bound restored, the whole-byte check dropped, F4, F6 and C64 widths wrong, a wrong byte count, a misnamed dtype)"
+  },
+  "n_vs_n_plus_1": {
+    "same_pin": "e246a2560645 (the same 44 containers and the same donor code)",
+    "N": {
+      "agree": 34,
+      "dtypes": 15,
+      "header_bound": 104857600,
+      "code_functions": 524,
+      "code_invokes": 215
+    },
+    "N_plus_1": {
+      "agree": 42,
+      "dtypes": 22,
+      "header_bound": 100000000,
+      "code_functions": 524,
+      "code_invokes": 215
+    },
+    "what_atlas_n_saw": "the donor's code structure and 34 of 44 containers the way the format does",
+    "what_atlas_n_missed": "7 element types, the format's header bound, and why misaligned sub-byte tensors are refused",
+    "what_atlas_n_plus_1_sees": "42 of 44 containers the way the format does, the other 2 refused deliberately; every constructed file accepted by the reference",
+    "still_unknown": "the Python bindings (no frontend); block-quantized formats (GGUF, W5); tensor roles; the donor's lazy and mmap loading paths are mechanisms studied, not needed by a streamed reader",
+    "magnitude": "small in code, decisive in format coverage: 7 more element types, including the OCP microscaling ones (F4, F6, F8_E8M0) current checkpoints use"
+  },
+  "manual_reads": [
+    {
+      "what": "safetensors/src/tensor.rs Dtype enum and bitsize (811-900)",
+      "why": "the element-type table: no lens lists enum variants",
+      "gap": "the world model does not expose an enum's variants (SYMBOL shapes are censused, not lensed)"
+    },
+    {
+      "what": "safetensors/src/tensor.rs read_metadata, validate, HashMetadata, TensorInfo (388-430, 536-560, 627-700, 795-806)",
+      "why": "the reference's header rules, to design the differential corpus",
+      "gap": "implementation detail"
+    },
+    {
+      "what": "safetensors/Cargo.toml, LICENSE",
+      "why": "license verification and building the oracle"
+    }
+  ],
+  "revalidation": {
+    "record": "none: never replayed before (authorized at G163)",
+    "outcome": "DECIDED_AT_E15"
+  },
+  "decision": {
+    "donor": "REFERENCE_ONLY_UNTIL_TRIGGER at E15: the format's rules are absorbed as Atlas-native checks (a capability, not code); the reference stays the oracle for SafeTensors",
+    "capability_delta": "CAPABILITY_ADVANCED (E14 -> E15)",
+    "trigger": "CURRENT; re-opened when the format adds an element type or header rule, when Atlas models unknown fields (then it could preserve them), or when a Python frontend exists: re-census the same pin and rerun the corpus"
+  },
+  "extinction": {
+    "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/safetensors; the scratch oracle build removed",
+    "runtime_dependency": "none: Atlas does not depend on safetensors (no package, no path); the oracle binary lived only in the scratch directory",
+    "evidence_retained": "this record with every case; the license copy at .atlas/licenses/safetensors/LICENSE; no donor text in Atlas",
+    "path_absent_after": true,
+    "legacy_checkout_absent_after": true,
+    "status": "SOURCE_EXTINCT"
+  }
+}
