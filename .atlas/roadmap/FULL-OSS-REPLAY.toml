@@ -13,22 +13,23 @@ campaign_start = "G151"
 materialization_root = ".atlas/.cache/donors"
 max_materialized = 1
 max_non_replay_between = 1
-current_epoch = "E2"
-next_replay = "tree-sitter/tree-sitter"
-next_replay_reason = "E2 made tree-sitter a build dependency of Atlas (the syntax substrate of the TypeScript/JavaScript profile): dependency recursion replays it next, and as a mixed Rust + JavaScript + C repository it faces both semantic profiles of the strongest Atlas at once"
+current_epoch = "E4"
+next_replay = "salsa-rs/salsa"
+next_replay_reason = "priority after R3: DEBT-IMPACT_CLOSURE has no consumer (NA-CLOSURE-CONSUMER) and salsa is the canonical incremental-recomputation donor (durability, revisions, early cutoff); its verdict is from W3, three epochs and a closure-regions epoch ago; pure Rust, bounded materialization; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind the selected one"
 
 [counts]
 total = 160
-never_replayed = 159
+never_replayed = 157
+queued = 1
 materialized = 0
-processed = 1
-capability_advanced = 1
+processed = 2
+capability_advanced = 2
 no_capability_delta = 0
 revalidation_required = 0
 license_review_required = 0
-source_extinct = 1
+source_extinct = 2
 blocked_on_user = 6
-remaining = 159
+remaining = 158
 
 [[epoch]]
 id = "E0"
@@ -47,6 +48,18 @@ id = "E2"
 generation = "G152"
 commit = "3b52f6a11a6508c1b449bf2a8c9dea998d6738d5"
 capability = "the bounded first TypeScript/JavaScript semantic profile (atlas.typescript.source-semantic.v1): FUNCTION_IDENTITY, FUNCTION_SIGNATURE, SYMBOL and CALL with same-file lexical resolution; tree-sitter as syntax substrate only"
+
+[[epoch]]
+id = "E3"
+generation = "G153"
+commit = "a655d039ee1a7280885fcfe4084467ca7fbf131b"
+capability = "SYMBOL definitions carry their declared shape (item kind, visibility, derives, attributes, field shape) and their documentation; the construction IR v0 lifts types from census records and a shadow reconstruction verifies them (SELF_RECONSTRUCTION SR1)"
+
+[[epoch]]
+id = "E4"
+generation = "G154"
+commit = "b4ec37bd57893bb16dd4165028624fd91a68c409"
+capability = "functions declared in extern blocks are FOREIGN_FUNCTION records with their ABI and no body, bound by the path resolver, and a literal include! splices its file into the including module, so a call across a language boundary resolves to its declaration; source in a language no frontend recognizes is an understanding gap by extension"
 
 [[repository]]
 key = "666ghj/bettafish"
@@ -101,6 +114,7 @@ replays = ["R1 G151 E0->E1 .atlas/evidence/replay/R1-gitnexus.json", "R2 G152 E1
 terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
 decided_at_epoch = "E2"
 trigger_status = "CURRENT"
+trigger_checked_at_epoch = "E4"
 revalidation_trigger = "an epoch that adds cross-file TypeScript module resolution (NA-MULTILANGUAGE), execution flows (NA-EXECUTION-FLOWS) or hunk seeds (NA-HUNK-SEEDS) re-opens this verdict: re-census the same pin"
 source_path = ".atlas/.cache/donors/gitnexus"
 source_extinct = true
@@ -1670,7 +1684,7 @@ historical_verdicts = ["G115: ABSORBED (terminal_state)", "-: CLONED (ingestion_
 license = "RECORDED_FILES"
 historical_pins = ["5d8eaf1fa372a73d44f9b717407de41f19ef59d7", "687bfce0418aa717561b83cb90b732549703f144"]
 physically_present_legacy = false
-replay_status = "NEVER_REPLAYED"
+replay_status = "QUEUED"
 
 [[repository]]
 key = "selinuxproject/selinux"
@@ -1850,7 +1864,28 @@ historical_verdicts = ["G65: REFERENCE_ONLY (terminal_state)", "-: CLONED (inges
 license = "MIT"
 historical_pins = ["5b951eff4f8b1431e933ed0fe45e48fcd4036a38", "dcdc8cc55e5dfedfc858080835f153999a29ec40"]
 physically_present_legacy = false
-replay_status = "NEVER_REPLAYED"
+replay_status = "PROCESSED"
+replay_generation = "G154"
+pinned_commit = "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406"
+license_status = "MIT (LICENSE at the pin): study and reuse permitted; nothing copied -- Atlas links the published crates (tree-sitter 0.25.10, tree-sitter-typescript, tree-sitter-javascript) as its syntax substrate"
+code_reuse = "NONE"
+materialization = "blobless clone fetched at the pin (13 MB checkout): 102 Rust, 28 C and 35 header files, 66 JavaScript, 23 TypeScript"
+epoch_before = "E3"
+epoch_after = "E4"
+levels_reached = "E3: L4 for its Rust (binding, CLI, generator), L3 bounded CALL for its JavaScript and TypeScript, its C core absent from the world model; E4: the Rust binding reaches every C entry point it declares (165 FOREIGN_FUNCTION records, 156 with resolved callers), the C and header files named as an understanding gap"
+mission = ".atlas/evidence/replay/R3-tree-sitter.json"
+capability_delta = "CAPABILITY_ADVANCED"
+n_plus_1 = ".atlas/evidence/replay/R3-tree-sitter.json"
+mechanisms = ["incremental re-parse with an edited old tree (ts_tree_edit, ts_parser_parse)", "LR(1)/GLR parse tables generated from a grammar DSL (cli/generate)", "query language over syntax trees (tags, highlights)", "a C core behind a generated Rust FFI binding"]
+gaps = ["DEBT-MULTILANGUAGE: C source (28 .c, 35 .h) has no frontend; the implementations behind the foreign declarations stay UNKNOWN", "DEBT-CALL: method calls on FFI pointers and std iterators unresolved (16,616 sites)", "DEBT-RESOURCE: acquisition and release across the FFI boundary (ts_parser_new / ts_parser_delete) not represented"]
+terminal_state = "EXTERNAL_BOUNDARY"
+decided_at_epoch = "E4"
+trigger_status = "CURRENT"
+revalidation_trigger = "a C frontend (DEBT-MULTILANGUAGE) or a native TypeScript/JavaScript parser replacing the syntax substrate re-opens this verdict: re-census the same pin"
+verdict_history = ["G65: REFERENCE_ONLY (historical, terminal_state; DEBT-MULTILANGUAGE rejected)", "E4 (G154, R3): EXTERNAL_BOUNDARY -- Atlas links it as the syntax substrate of its TypeScript/JavaScript profile (a parse is never semantic support); mechanism studied: the Rust-to-C boundary, absorbed as FOREIGN_FUNCTION records and include splicing"]
+replays = ["R3 G154 E3->E4 .atlas/evidence/replay/R3-tree-sitter.json"]
+source_path = ".atlas/.cache/donors/tree-sitter"
+source_extinct = true
 
 [[repository]]
 key = "ultimaker/curaengine"

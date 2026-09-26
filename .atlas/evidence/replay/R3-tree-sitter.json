@@ -1,0 +1,165 @@
+{
+  "schema": "atlas.evidence.full-oss-replay.v1",
+  "replay": "R3",
+  "generation": "G154",
+  "lane": "FULL_OSS_REPLAY",
+  "donor": {
+    "key": "tree-sitter/tree-sitter",
+    "remote": "https://github.com/tree-sitter/tree-sitter",
+    "pin": "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406",
+    "tag": "v0.25.10 (the version Atlas links since E2)",
+    "license": "MIT (LICENSE at the pin, verified)",
+    "code_reuse": "NONE",
+    "selection": "dependency recursion: E2 made tree-sitter a build dependency of Atlas (syntax substrate of the TypeScript/JavaScript profile); a mixed Rust, C and JavaScript repository facing both semantic profiles",
+    "dependency_class": "SUPPORT_LIBRARY with a RUNTIME_BOUNDARY: a C core linked through a generated Rust FFI binding",
+    "materialization": "blobless clone fetched at the pin into .atlas/.cache/donors/tree-sitter (13 MB): 102 .rs, 28 .c, 35 .h, 66 .js, 23 .ts"
+  },
+  "epochs": {
+    "before": "E3 (G153: declared shapes on SYMBOL definitions, construction IR v0)",
+    "after": "E4 (G154: FOREIGN_FUNCTION records, literal include! splicing, unrecognized source as an understanding gap)"
+  },
+  "atlas_n_mission": {
+    "commands": [
+      "agent model --root .atlas/.cache/donors/tree-sitter",
+      "agent impact --target lib/src/parser.c",
+      "agent understand --target lib/binding_rust --mission 'what executes when Parser::parse runs, and what does a change to lib/src/parser.c put at risk?'"
+    ],
+    "atlas_knew": {
+      "functions": 3225,
+      "components": 311,
+      "languages": {
+        "rust": 102,
+        "javascript": 67,
+        "typescript": 23,
+        "markdown": 70
+      },
+      "resolved_call_edges": 2133,
+      "unresolved_call_sites": 16808,
+      "mission_context_compression": {
+        "composed_objects": 99,
+        "ratio": 54,
+        "raw_obligations": 84,
+        "raw_records": 5269
+      }
+    },
+    "challenge": "what executes when the Rust binding's Parser::parse runs, and what does a change to lib/src/parser.c put at risk?",
+    "answer": "Parser::parse -> Parser::parse_with_options (DERIVED); parse_with_options -> ts_parser_parse_with_options UNRESOLVED; Atlas_N held no record of any function declared in an extern block (0 of 165) and no component for any C or header file: impact on lib/src/parser.c was refused (no censused component). Atlas_N did not invent a callee; it could not say that the path crosses into C or that C exists.",
+    "understanding_gaps": [
+      "foreign modules were skipped by the extractor by design (R4.3 minimum set) -- neither claimed nor fabricated, but silently absent from the world model",
+      "include!(\"./bindings.rs\") at item position was not followed by the path resolver, so ffi:: paths could not reach the declarations even if they existed",
+      "63 C/H files (and Zig, Go, Swift, Python) were in the inventory as UNKNOWN but in no component and no gap: the pilot saw a Rust/JS repository"
+    ]
+  },
+  "differential": {
+    "oracle": "ground truth from the source: bindings.rs extern blocks and the C definitions in lib/src/**/*.c (ORACLE_READ by pattern match, recorded under manual_reads); tree-sitter is a parser, not a code-intelligence tool, so the differential is Atlas against source, not against the donor's own answers",
+    "findings": [
+      {
+        "question": "does Parser::parse_with_options call a function Atlas can name?",
+        "atlas_n": "unresolved ts_parser_parse_with_options",
+        "ground_truth": "ffi::ts_parser_parse_with_options, declared at lib/binding_rust/bindings.rs:230 (extern \"C\"), included into ffi by include!(\"./bindings.rs\"), defined in lib/src/parser.c",
+        "classification_at_n": "ATLAS_UNKNOWN (no claim, a real blind spot)",
+        "atlas_n_plus_1": "resolved to the FOREIGN_FUNCTION declaration (DERIVED), marked as crossing a language boundary",
+        "classification_at_n_plus_1": "ATLAS_CORRECT"
+      },
+      {
+        "question": "how many C entry points does the binding declare, and where are they implemented?",
+        "atlas_n_plus_1": "165 FOREIGN_FUNCTION records, none claimed implemented inside the census",
+        "ground_truth": "162 defined in lib/src C; 3 elsewhere: _open_osfhandle, getuid, tree_sitter_PARSER_NAME (Windows CRT, libc, a template placeholder)",
+        "classification": "ATLAS_CORRECT: every declaration is a boundary; which object implements it is UNKNOWN, not guessed"
+      },
+      {
+        "question": "what does lib/src/parser.c contain?",
+        "atlas_n_plus_1": "GAP-UNRECOGNIZED-SOURCE names c 28 and h 35 among 171 unrecognized artifacts; no component, no function",
+        "ground_truth": "the C parser core",
+        "classification": "OUT_OF_SCOPE for E4 (no C frontend; DEBT-MULTILANGUAGE), now stated instead of silent"
+      }
+    ]
+  },
+  "implementation": {
+    "mechanism_vs_implementation": "tree-sitter's implementation (a C runtime behind bindgen output) is not absorbed; the mechanism studied is the language boundary itself, and the capability absorbed is Atlas seeing the Rust side of any extern boundary: FOREIGN_FUNCTION declarations with their ABI, calls resolved to them, include! splicing, and unrecognized source as a stated gap",
+    "changes": [
+      "core: FunctionDeclarationKind::ForeignFunction (FOREIGN_FUNCTION)",
+      "adapter extractor: extern blocks emit FOREIGN_FUNCTION identity and signature (block ABI, no body, DECLARATION role) and declared statics",
+      "adapter resolver: foreign functions bound as call targets; item-position include!(\"literal\") splices the file into the including module; computed include! not followed",
+      "core composition: GAP-UNRECOGNIZED-SOURCE by extension (DEBT-MULTILANGUAGE)"
+    ],
+    "falsification": "7 mutants killed (foreign items not bound, include not spliced, include path from the crate root, foreign function as a definition, block ABI dropped, recognized files counted, computed include followed)"
+  },
+  "n_vs_n_plus_1": {
+    "same_pin": "da6fe9beb4f7",
+    "N": {
+      "functions": 3225,
+      "foreign": 0,
+      "resolved_edges": 2133,
+      "unresolved": 16808,
+      "relations": 5303,
+      "gaps": {
+        "GAP-COMPONENT-PURPOSE": 310,
+        "GAP-ITEM-DOCUMENTATION": 2996,
+        "GAP-UNRESOLVED-CALLEE": 14,
+        "GAP-CAUSALITY": 5303,
+        "GAP-RESOURCE": 3225,
+        "GAP-CAPABILITY-REALIZATION": 0,
+        "GAP-TYPE-USE-SITES": 5065,
+        "GAP-TEST-IDENTITY": 657,
+        "GAP-ARGUMENT-BINDING": 1872
+      }
+    },
+    "N_plus_1": {
+      "functions": 3390,
+      "foreign": 165,
+      "resolved_edges": 2322,
+      "unresolved": 16616,
+      "relations": 5571,
+      "gaps": {
+        "GAP-UNRECOGNIZED-SOURCE": 171,
+        "GAP-COMPONENT-PURPOSE": 310,
+        "GAP-ITEM-DOCUMENTATION": 3025,
+        "GAP-UNRESOLVED-CALLEE": 14,
+        "GAP-CAUSALITY": 5571,
+        "GAP-RESOURCE": 3390,
+        "GAP-CAPABILITY-REALIZATION": 0,
+        "GAP-TYPE-USE-SITES": 5229,
+        "GAP-TEST-IDENTITY": 661,
+        "GAP-ARGUMENT-BINDING": 1872
+      }
+    },
+    "what_atlas_n_saw": "a Rust/JS/TS repository; Parser::parse ending in an unresolved call",
+    "what_atlas_n_missed": "165 foreign entry points, the call path into C, and 171 files it has no frontend for",
+    "what_atlas_n_plus_1_sees": "every C entry point the binding declares, 156 of them with resolved Rust callers; the parse path ends at a named FFI boundary; the unrecognized C/H/Zig/Go/Swift/Python files stated by extension",
+    "still_unknown": "what the C does (no C frontend); method calls on raw FFI pointers and std iterators; resource acquisition and release across the boundary (ts_parser_new / ts_parser_delete)"
+  },
+  "manual_reads": [
+    {
+      "what": "lib/binding_rust/bindings.rs:221-235 (the ts_parser_parse_with_options declaration)",
+      "why": "Atlas_N answered UNRESOLVED; confirm the callee exists and how it is declared",
+      "gap": "foreign modules not censused"
+    },
+    {
+      "what": "lib/binding_rust/ffi.rs include! lines",
+      "why": "find how bindings.rs reaches the ffi module",
+      "gap": "item-position include! not followed by the resolver"
+    },
+    {
+      "what": "pattern search of lib/src/**/*.c for the 165 declared names",
+      "why": "ground truth for where each foreign function is implemented",
+      "gap": "no C frontend (DEBT-MULTILANGUAGE)"
+    },
+    {
+      "what": "LICENSE",
+      "why": "license verification"
+    }
+  ],
+  "decision": {
+    "donor": "EXTERNAL_BOUNDARY decided at E4 (G154): Atlas links tree-sitter as the syntax substrate of its TypeScript/JavaScript profile; its mechanisms (GLR tables, incremental re-parse, queries) are not absorbed; G65's REFERENCE_ONLY stays history",
+    "capability_delta": "CAPABILITY_ADVANCED (E3 -> E4)",
+    "trigger": "CURRENT; re-opened by a C frontend or a native TypeScript/JavaScript parser"
+  },
+  "extinction": {
+    "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/tree-sitter (from the repository root)",
+    "runtime_dependency": "none on the checkout: Atlas links the published crates tree-sitter 0.25.10, tree-sitter-typescript 0.23.2 and tree-sitter-javascript 0.23.1 from the registry (Cargo.lock), never the donor source",
+    "evidence_retained": "this record: pin, license, Atlas_N mission, differential, N versus N+1 measurements; no donor text in Atlas",
+    "path_absent_after": true,
+    "status": "SOURCE_EXTINCT"
+  }
+}

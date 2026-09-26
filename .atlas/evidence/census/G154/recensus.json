@@ -1,0 +1,293 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G154",
+  "base_revision": "b54574a62e2d5bd2c48115291e5c5569f67cbdd3",
+  "candidate_revision": "fc7c501ec6e8ff91827cf069f548cca8908bc661",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:c2189168d5ddcb04946ea21ef69c1a585bda69d983432e5c09dd4b39431fdcac",
+  "after_census_digest": "blake3-256:2d3e65010ea4e32679dd7badba9a7f41e110994ee6d9ce5060303d1992f3eda4",
+  "replay_digest": "blake3-256:2d3e65010ea4e32679dd7badba9a7f41e110994ee6d9ce5060303d1992f3eda4",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/function.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/function.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 14,
+      "fact:FunctionSignature|OBSERVED": 5,
+      "fact:Symbol|OBSERVED": 15,
+      "fact:Type|OBSERVED": 2,
+      "record:CALL|DERIVED": 26,
+      "record:CALL|OBSERVED": 126,
+      "record:CONTROL_FLOW|INFERRED": 22,
+      "record:CONTROL_FLOW|OBSERVED": 30,
+      "record:DATA_FLOW|OBSERVED": 212,
+      "record:EFFECT|DERIVED": 4,
+      "record:EFFECT|INFERRED": 26,
+      "record:FUNCTION_IDENTITY|OBSERVED": 14,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 5,
+      "record:OWNERSHIP|OBSERVED": 66,
+      "record:PERSISTENCE|DERIVED": 2,
+      "record:SYMBOL|OBSERVED": 15,
+      "record:TYPE|OBSERVED": 2
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 822,
+    "graph_nodes": 569
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/function/`impl:FunctionDeclarationKind`/as_str()."
+      ],
+      "after": [
+        "core semantic/function/`impl:FunctionDeclarationKind`/as_str()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/every_replay_is_pinned_epoch_relative_and_extinct()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/every_replay_is_pinned_epoch_relative_and_extinct()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/full_oss_replay_accounts_every_canonical_donor_once()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/full_oss_replay_accounts_every_canonical_donor_once()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/included_path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/foreign_functions_resolve_through_a_literal_include()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/an_extern_block_declares_foreign_functions_with_their_abi_and_no_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/unrecognized_source_is_an_understanding_gap_by_extension()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1776,
+    "total_after": 1776
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R3 tree-sitter: functions declared in extern blocks become FOREIGN_FUNCTION records bound by the path resolver, a literal item-position include! splices its file into the including module, and source no frontend recognizes is an understanding gap by extension",
+    "changed_paths": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/function.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:understanding_gap",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core semantic/function/`impl:FunctionDeclarationKind`/as_str().",
+      "CHANGED runtime tests/essential_complexity/every_replay_is_pinned_epoch_relative_and_extinct().",
+      "CHANGED runtime tests/essential_complexity/full_oss_replay_accounts_every_canonical_donor_once().",
+      "CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod().",
+      "CREATED adapter semantic/rust/resolve/included_path().",
+      "CREATED adapter semantic/rust/resolve/tests/foreign_functions_resolve_through_a_literal_include().",
+      "CREATED adapter semantic/rust/tests/an_extern_block_declares_foreign_functions_with_their_abi_and_no_body().",
+      "CREATED runtime agent/tests/unrecognized_source_is_an_understanding_gap_by_extension()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/semantic/function.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/lib.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:understanding_gap",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core semantic/function/`impl:FunctionDeclarationKind`/as_str().",
+    "entity CHANGED runtime tests/essential_complexity/every_replay_is_pinned_epoch_relative_and_extinct().",
+    "entity CHANGED runtime tests/essential_complexity/full_oss_replay_accounts_every_canonical_donor_once().",
+    "entity CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod().",
+    "entity CREATED adapter semantic/rust/resolve/included_path().",
+    "entity CREATED adapter semantic/rust/resolve/tests/foreign_functions_resolve_through_a_literal_include().",
+    "entity CREATED adapter semantic/rust/tests/an_extern_block_declares_foreign_functions_with_their_abi_and_no_body().",
+    "entity CREATED runtime agent/tests/unrecognized_source_is_an_understanding_gap_by_extension()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

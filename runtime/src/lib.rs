@@ -4044,6 +4044,8 @@ mod tests {
             };
             assert_eq!(number(counts, "never_replayed"), status("NEVER_REPLAYED"));
             assert_eq!(number(counts, "materialized"), status("MATERIALIZED"));
+            assert_eq!(number(counts, "queued"), status("QUEUED"));
+            assert!(status("QUEUED") <= 1, "one donor is queued at a time");
             assert_eq!(number(counts, "processed"), status("PROCESSED"));
             assert_eq!(
                 number(counts, "remaining"),
@@ -4105,7 +4107,8 @@ mod tests {
                 let key = text(record, "key");
                 let status = text(record, "replay_status");
                 assert!(
-                    ["NEVER_REPLAYED", "MATERIALIZED", "PROCESSED"].contains(&status.as_str()),
+                    ["NEVER_REPLAYED", "QUEUED", "MATERIALIZED", "PROCESSED"]
+                        .contains(&status.as_str()),
                     "{key}: {status}"
                 );
                 if status == "MATERIALIZED" {
@@ -4170,10 +4173,16 @@ mod tests {
                     );
                 }
             }
-            assert!(
-                repositories.iter().any(|r| text(r, "key") == next),
-                "next_replay {next} is not in the ledger"
-            );
+            let queued = repositories
+                .iter()
+                .find(|r| text(r, "key") == next)
+                .unwrap_or_else(|| panic!("next_replay {next} is not in the ledger"));
+            // The selected next donor is QUEUED, or a processed one whose verdict was re-opened.
+            match text(queued, "replay_status").as_str() {
+                "QUEUED" => {}
+                "PROCESSED" => assert_eq!(text(queued, "trigger_status"), "REVALIDATION_REQUIRED"),
+                other => panic!("next_replay {next} is {other}"),
+            }
             // One donor at a time, and only the materialized one on disk.
             let window = number(&ledger, "max_materialized") as usize;
             assert!(materialized.len() <= window);

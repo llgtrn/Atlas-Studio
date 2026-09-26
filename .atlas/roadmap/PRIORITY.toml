@@ -677,14 +677,19 @@ objective = "SELF_RECONSTRUCTION SR1 (owner directive; done: the lane canonicali
 [[planned_generation]]
 id = "G154"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R3 tree-sitter/tree-sitter at v0.25.10 (da6fe9beb4f7), the syntax substrate Atlas links since E2 -- dependency recursion; a mixed Rust, C and JavaScript repository facing both semantic profiles; the swarm scouts of batch B1 beside it on the same epoch"
+objective = "FULL_OSS_REPLAY R3 tree-sitter/tree-sitter at v0.25.10 (done: the syntax substrate Atlas links, by dependency recursion; Atlas_N could not follow Parser::parse past an unresolved FFI call and did not know C existed; capability epoch E4 -- FOREIGN_FUNCTION declarations bound by the resolver, literal include! splicing, unrecognized source as an understanding gap; the same pin 0 -> 165 foreign declarations and 2,133 -> 2,322 resolved edges; 7 mutants killed; EXTERNAL_BOUNDARY at E4; source extinct)"
 
 [[planned_generation]]
 id = "G155"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records; R3 added acquisition and release across FFI (ts_parser_new / ts_parser_delete) to its evidence"
 
 [[planned_generation]]
-id = "G156+"
+id = "G156"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa (QUEUED): the incremental-recomputation donor facing DEBT-IMPACT_CLOSURE's missing consumer, replayed through the strongest Atlas (E4 or later)"
+
+[[planned_generation]]
+id = "G157+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

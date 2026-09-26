@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G153"
+current_generation = "G154"
 
 [[generation]]
 id = "G35"
@@ -3372,3 +3372,40 @@ after = 5807
 key = "facts"
 before = 26578
 after = 27420
+
+[[generation]]
+id = "G154"
+kind = "REPLAY"
+base_commit = "fc7c501ec6e8ff91827cf069f548cca8908bc661"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R3 (dependency recursion from E2): tree-sitter replayed through Atlas E3 -- DEBT-CALL and DEBT-MULTILANGUAGE advanced"
+objective = "replay the syntax substrate Atlas links at the exact version it links: Atlas_N first, a challenge Atlas_N cannot answer, one bounded Atlas-native improvement, the same pin re-censused at N+1, the source extinct"
+writer = "coordinator (sole writer)"
+replay = "tree-sitter/tree-sitter"
+pinned_commit = "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406"
+source_path = ".atlas/.cache/donors/tree-sitter"
+epoch_before = "E3"
+epoch_after = "E4"
+mission = ".atlas/evidence/replay/R3-tree-sitter.json"
+evidence = ".atlas/evidence/replay/R3-tree-sitter.json"
+self_recensus = ".atlas/evidence/census/G154/recensus.json"
+
+[generation.verification]
+pre_census = "G153 post digest"
+atlas_first = "agent model, impact and understand on the donor before any source reading: 3,225 functions, 311 components (Rust, JavaScript, TypeScript, Markdown); the challenge (what executes when Parser::parse runs, what does a change to lib/src/parser.c put at risk?) ends at an unresolved ts_parser_parse_with_options; 0 foreign declarations, no component for 63 C/H files, impact on lib/src/parser.c refused"
+change = "core: FunctionDeclarationKind::ForeignFunction; adapter extractor: extern blocks emit FOREIGN_FUNCTION identity and signature (block ABI, no body, DECLARATION) and declared statics; adapter resolver: foreign functions bound as call targets, item-position include!(literal) splices the file into the including module, a computed include! is not followed; core composition: GAP-UNRECOGNIZED-SOURCE by extension; runtime tests: the replay ledger's QUEUED state and counter, one queued donor, the next replay queued; ADR 0070"
+oracle = "the same pin at E3 vs E4: 0 -> 165 foreign declarations (156 with resolved Rust callers), 2,133 -> 2,322 resolved call edges, 5,303 -> 5,571 relations, 171 unrecognized artifacts stated (c 28, h 35); against the C sources 162 of 165 declarations are defined in lib/src, the other 3 in the CRT, libc and a template -- Atlas claims none implemented inside the census (ATLAS_CORRECT)"
+falsification = "7 mutants killed (foreign items not bound, include not spliced, include path taken from the crate root, foreign function as a definition, block ABI dropped, recognized files counted as unrecognized, computed include followed)"
+boundary = "no C frontend: what the C does stays UNKNOWN (DEBT-MULTILANGUAGE); tree-sitter decided EXTERNAL_BOUNDARY at E4 (the linked syntax substrate), G65's REFERENCE_ONLY kept as history; source extinct, the published crates are what Atlas links"
+debts = "DEBT-CALL and DEBT-MULTILANGUAGE last advance G154; capability epoch E4; GitNexus re-checked at E4 and CURRENT; next replay salsa-rs/salsa (QUEUED); native head NA-RESOURCE-DIMENSION planned G155"
+proof = "PROVEN (post 2d3e6501...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5807
+after = 5821
+
+[[generation.metric]]
+key = "composed:understanding_gap"
+before = 9
+after = 10
