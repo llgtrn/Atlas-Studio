@@ -12,6 +12,7 @@ pub mod closure;
 pub mod composition;
 pub mod constraint;
 pub mod construction;
+pub mod coverage;
 pub mod design;
 pub mod donor;
 pub mod evidence;

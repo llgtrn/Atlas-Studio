@@ -13,6 +13,18 @@ pub fn world_model(root: impl AsRef<Path>) -> io::Result<WorldModel> {
     Ok(compose(&crate::systemize(root)?))
 }
 
+/// G155 (ADR 0071): the measured support level of every language and artifact class under
+/// `root`, from its inventory, census and composed world model.
+pub fn support_levels(root: impl AsRef<Path>) -> io::Result<atlas_core::coverage::SupportReport> {
+    let report = crate::systemize(root)?;
+    let model = compose(&report);
+    Ok(atlas_core::coverage::measure(
+        &report.inventory,
+        &report.census,
+        &model,
+    ))
+}
+
 pub fn read_world_model(path: impl AsRef<Path>) -> io::Result<WorldModel> {
     let text = std::fs::read_to_string(path)?;
     serde_json::from_str(&text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -554,6 +566,69 @@ fn run(s: &core::store::Store) { s.save(); }
         name: &str,
     ) -> &'m atlas_core::composition::FunctionBehavior {
         model.functions.iter().find(|f| f.name == name).unwrap()
+    }
+
+    /// G155 (ADR 0071): support levels are measured from evidence -- Rust and a JavaScript file
+    /// with a resolved call reach L6, Markdown stops at L2 (syntax is not semantics), a C file and
+    /// a PNG stay at L0 with their class read from the extension -- and a claim above the
+    /// measured level, or for a subject never measured, is refused.
+    #[test]
+    fn support_levels_are_measured_and_overclaims_are_refused() {
+        use atlas_core::coverage::{SubjectKind, SupportLevel as L, validate_claims};
+        let dir = fixture("support", ADL, CORE_LIB);
+        for (path, bytes) in [
+            (
+                "web/app.js",
+                b"function helper() { return 1; }\nexport function main() { return helper(); }\n"
+                    .to_vec(),
+            ),
+            (
+                "native/parser.c",
+                b"int parse(void) { return 0; }\n".to_vec(),
+            ),
+            (
+                "assets/logo.png",
+                vec![0x89, b'P', b'N', b'G', 0, 1, 2, 0, 0xff],
+            ),
+            ("docs/guide.md", b"# Guide\n".to_vec()),
+        ] {
+            let path = dir.join(path);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(path, bytes).unwrap();
+        }
+        let report = support_levels(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let subject = |name: &str| {
+            report
+                .subjects
+                .iter()
+                .find(|s| s.subject == name)
+                .unwrap_or_else(|| panic!("{name} not measured: {report:?}"))
+        };
+        assert_eq!(subject("rust").level, L::L6AgentUsable);
+        assert_eq!(subject("javascript").level, L::L6AgentUsable);
+        let markdown = subject("markdown");
+        assert_eq!(markdown.level, L::L2Syntax);
+        assert!(!markdown.level.is_semantic());
+        for (class, kind) in [
+            ("c", SubjectKind::ArtifactClass),
+            ("image", SubjectKind::ArtifactClass),
+        ] {
+            let s = subject(class);
+            assert_eq!((s.level, s.kind), (L::L0Discovered, kind), "{s:?}");
+            assert!(s.next_rung_missing.contains("extension"));
+        }
+        let claims = [
+            ("rust".to_string(), L::L6AgentUsable),
+            ("markdown".to_string(), L::L3TypedRecords),
+            ("image".to_string(), L::L1Identified),
+            ("python".to_string(), L::L0Discovered),
+        ];
+        let refused: Vec<String> = validate_claims(&report, &claims)
+            .into_iter()
+            .map(|v| v.subject)
+            .collect();
+        assert_eq!(refused, ["image", "markdown", "python"]);
     }
 
     /// G154 (replay R3, tree-sitter): source files in a language no frontend recognizes are in

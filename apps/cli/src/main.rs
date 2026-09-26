@@ -313,6 +313,14 @@ fn run(args: &[String]) -> Result<(), String> {
                 .map_err(|e| format!("{atlas}: {e}"))?;
             println!("{}", json(&roots)?);
         }
+        [cmd, sub, rest @ ..] if cmd == "coverage" && sub == "levels" => {
+            // G155 (ADR 0071): measured L0-L6 support per language and artifact class, from the
+            // inventory, census and composed world model of `--root`.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let report =
+                runtime::agent::support_levels(&root).map_err(|e| format!("{root}: {e}"))?;
+            println!("{}", json(&report)?);
+        }
         [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "candidates" => {
             // G153 (ADR 0069): the core types Atlas could reconstruct, ranked from what the
             // world model knows (`--model`), constructible first.

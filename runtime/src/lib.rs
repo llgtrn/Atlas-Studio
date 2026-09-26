@@ -3756,6 +3756,51 @@ mod tests {
             }
         }
 
+        /// ADR 0071: the repository's support claims rest on a measured report and never exceed
+        /// it; every subject the report places at L3 or above is claimed (a real capability is
+        /// not hidden), and nothing below L3 is called semantically supported.
+        #[test]
+        fn support_claims_never_exceed_the_measured_levels() {
+            use atlas_core::coverage::{SupportLevel, SupportReport, validate_claims};
+            let ledger = read(".atlas/roadmap/SUPPORT-LEVELS.toml");
+            let report: SupportReport =
+                serde_json::from_str(&read(&text(&ledger, "measured_report"))).unwrap();
+            assert_eq!(report.schema, atlas_core::coverage::SUPPORT_REPORT_SCHEMA);
+            let claims: Vec<(String, SupportLevel)> = blocks(&ledger, "claim")
+                .into_iter()
+                .map(|b| {
+                    let level = serde_json::from_value(serde_json::Value::String(text(b, "level")))
+                        .unwrap_or_else(|e| panic!("{b}: {e}"));
+                    (text(b, "subject"), level)
+                })
+                .collect();
+            assert_eq!(
+                validate_claims(&report, &claims),
+                vec![],
+                "claims above what was measured"
+            );
+            let claimed: BTreeSet<&str> = claims.iter().map(|(s, _)| s.as_str()).collect();
+            for subject in report.subjects.iter().filter(|s| s.level.is_semantic()) {
+                assert!(
+                    claimed.contains(subject.subject.as_str()),
+                    "{} is measured but unclaimed",
+                    subject.subject
+                );
+            }
+            let semantic: BTreeSet<String> = claims
+                .iter()
+                .filter(|(_, level)| level.is_semantic())
+                .map(|(s, _)| s.clone())
+                .collect();
+            assert_eq!(
+                semantic,
+                list(&ledger, "semantically_supported")
+                    .into_iter()
+                    .collect::<BTreeSet<_>>(),
+                "the ledger's semantically supported list is exactly the claims at L3 or above"
+            );
+        }
+
         const SELF_RECONSTRUCTION: &str = ".atlas/roadmap/SELF-RECONSTRUCTION.toml";
 
         /// ADR 0069: the SELF_RECONSTRUCTION lane is its own lane with Rust as the bootstrap
