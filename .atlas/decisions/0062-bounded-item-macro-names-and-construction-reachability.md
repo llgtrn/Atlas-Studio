@@ -51,3 +51,9 @@ The selection rule checked only the debt-level `blocked_by` edges, which say not
 - **Macro-defined items are not collected.** A macro-defined type such as `NodeId` or `EnvelopeStatus` stays uncanonical, and calls to its functions stay unresolved. Expanding `macro_rules!` natively would make them workspace items; that is queued under NA-CALL-TYPE-RESIDUAL.
 - **Other residuals.** Glob imports of external enums (`use std::cmp::Ordering::*`) still open their scope.
 - **Selection.** The G145 selection is NA-CALL-TYPE-RESIDUAL (61) over NA-ATLAS-TYPED-SECTIONS (58). M1, the first missing node on the critical path, is on the frontier and next by pressure once DEBT-TYPE advances.
+
+## Amendment (G147)
+
+Decision 1 said construction nodes M5 and M6 "become EXISTS". The G145 edit went to a generated copy of the construction graph, and the ledger kept both nodes MISSING. The claim was not true when this ADR was written.
+
+G147 records M5 and M6 as EXISTS at the graph's source, together with M1. The G145 selection is unaffected: DEBT-INTEGRITY_ENVELOPE, which owns both nodes, was not a candidate primary debt.

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G146"
+current_generation = "G147"
 
 [[generation]]
 id = "G35"
@@ -3142,3 +3142,36 @@ after = 56550
 key = "composed:understanding_gap"
 before = 8
 after = 9
+
+[[generation]]
+id = "G147"
+kind = "NATIVE_ATTACK"
+base_commit = "fa8bf573c67792167342e5ea479fa78bb70150e4"
+priority = "P2"
+serves = "DEBT-ATLAS_COMPLETENESS: NA-ATLAS-TYPED-SECTIONS, construction node M1 -- the first missing node on the FIRST_ARTIFACT critical path, reachable since G145"
+objective = "the census container carries every typed semantic record, evidence record and extraction diagnostic field by field through declared record kinds, read back and verified"
+writer = "coordinator (sole writer); two read-only lanes: M1 scoping (G145) and the exact serde shapes of every typed record type"
+evidence = ".atlas/evidence/census/G147/typed-sections.json"
+self_recensus = ".atlas/evidence/census/G147/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 09e10b527e = G146 post digest (the evidence commit fa8bf573c6 adds only out-of-scope evidence)"
+atlas_first = "mission M6 (G146) answered through the agent interface that atlas_of reads no typed_semantic_records -- they reached the container only through the census digest; the census showed 146,800 typed records, all 146,791 distinct as values while record_id alone is not unique (engines share ids), and every evidence reference resolving"
+change = "core::atlas schema: FieldDef nested/repeated/element with a shape suffix that leaves earlier definition texts unchanged; SEMANTIC_RECORDS typed kinds 2-13 (shared header) and embedded kinds 100-122; EVIDENCE and DIAGNOSTICS sections; RECORD, PACKED and BOOL wire types; conformance compares shapes; schema history generation G147. core::atlas::typed: schema-directed encode, collect and decode over serde values. CensusAtlas typed_records, evidence, diagnostics; canonical order by typed_key; FORMAT_MINOR 1 and unknown minors refused; dangling evidence refused and rejected; embedded kinds never alone. runtime atlas_of packages them with the collapse check; PackOutcome counts. serde_json into core. Contract ATLAS-BINARY-WIRE-FORMAT; ADR 0063"
+oracle = "the self census packs 151,171 typed records (all twelve families), 151,198 evidence records and 1,401 diagnostics; publish requires the decoded container equal to the packaged state and the runtime test the packaged records equal to the census list; 114.0 MB uncompressed (was 5.7 MB), 40 s release pack"
+falsification = "10 mutants killed (undeclared key skipped, absent sequence not decoded as empty, enum payload dropped, dangling evidence accepted, unknown minor accepted, embedded kind alone accepted, typed order unchecked, shape ignored by conformance, any nonzero byte true, embedded kind unchecked); per-byte corruption now rejects the minor bytes too"
+intended_change = "benchmark B20 (G146) asserted atlas_of reads no typed_semantic_records; it now reads them, and B20 expects census.typed_semantic_records, census.evidence and census.diagnostics"
+debts = "DEBT-ATLAS_COMPLETENESS last advance G147, M3_SINGLE_ENGINE_BOUNDED (interning tables, DESIGN and compression remain); construction node M1 EXISTS; DEBT-SELECTED_DESIGN and DEBT-SEAL_GATE no longer blocked by it; revalidation milestone TYPED_ATLAS_SECTIONS; next native head NA-SELECTED-DESIGN (M7)"
+correction = "G145 recorded construction nodes M5 and M6 as EXISTS, but the edit went to a generated copy of the construction graph and never reached the ledger; G147 applies it at the graph's source (M5, M6 and M1 EXISTS) and amends ADR 0062"
+review = "DEBT-EPISTEMIC_UNIFICATION confirmed (evidence/census/G147/debt-review.json)"
+proof = "PROVEN (post 39457dac...): the dependency core -> serde_json declared in the intent; no unexplained UNKNOWN"
+
+[[generation.metric]]
+key = "typed_records"
+before = 148570
+after = 151171
+
+[[generation.metric]]
+key = "records:DATA_FLOW|atlas.rust.source-semantic.v1"
+before = 56550
+after = 57578

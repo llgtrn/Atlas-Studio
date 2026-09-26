@@ -24,14 +24,18 @@
 
 pub mod schema;
 mod schema_history;
+mod typed;
 
 use crate::identity::{IntegrityDigest, blake3};
+use crate::{Evidence, ExtractionDiagnostic, SemanticObservation};
 use std::collections::BTreeMap;
 
 pub const MAGIC: [u8; 8] = *b"ATLAS\0\x01\0";
 pub const HEADER_LEN: usize = 72;
 pub const FORMAT_MAJOR: u16 = 1;
-pub const FORMAT_MINOR: u16 = 0;
+/// G147: minor 1 adds the EVIDENCE and DIAGNOSTICS sections and the typed record kinds; a
+/// minor-0 container (no typed content) still reads.
+pub const FORMAT_MINOR: u16 = 1;
 pub const FLAG_UNSEALED: u16 = 1;
 pub const DIGEST_BLAKE3_256: u16 = 1;
 pub const COMPRESSION_NONE: u16 = 0;
@@ -46,6 +50,8 @@ pub const STRING_TABLE: u16 = 2;
 pub const SEMANTIC_RECORDS: u16 = 6;
 pub const GRAPH_NODES: u16 = 7;
 pub const GRAPH_EDGES: u16 = 8;
+pub const EVIDENCE: u16 = 10;
+pub const DIAGNOSTICS: u16 = 11;
 pub const OBLIGATIONS: u16 = 12;
 pub const CENSUS_CERTIFICATE: u16 = 17;
 
@@ -53,6 +59,13 @@ const WIRE_UVARINT: u8 = 1;
 const WIRE_UTF8: u8 = 6;
 const WIRE_HASH32: u8 = 7;
 const WIRE_LOCAL_INDEX: u8 = 9;
+/// G147: a sequence of embedded records (`kind`, record schema version, length, fields) of the
+/// field's declared kind -- exactly one unless the field is declared repeated.
+const WIRE_RECORD: u8 = 10;
+/// G147: a sequence of minimal uvarints of the field's declared element wire type.
+const WIRE_PACKED: u8 = 11;
+/// G147: one byte, 0 or 1.
+const WIRE_BOOL: u8 = 12;
 
 /// A section's schema id: the first 8 bytes (little-endian) of the hash of its declared
 /// definition and dependencies (`schema::schema_hash`, G68). Any change to a field's tag, name,
@@ -131,6 +144,39 @@ pub struct CensusAtlas {
     pub nodes: Vec<DeclaredNodeRecord>,
     pub edges: Vec<DeclaredEdgeRecord>,
     pub certificate: CertificateRecord,
+    /// G147: every typed semantic record of the census, written field by field through its
+    /// declared kind; in canonical order (`typed_key`).
+    pub typed_records: Vec<SemanticObservation>,
+    /// G147: the census's evidence records, by id; every typed record's evidence reference
+    /// resolves among them.
+    pub evidence: Vec<Evidence>,
+    /// G147: the census's extraction diagnostics, by id.
+    pub diagnostics: Vec<ExtractionDiagnostic>,
+}
+
+/// G147: a typed record's canonical order key: its serde value as compact JSON text (object keys
+/// sorted). Two distinct records never share it, and `record_id` alone is not unique (engines
+/// claim the same id).
+pub fn typed_key(record: &SemanticObservation) -> String {
+    let value = serde_json::to_value(record).expect("a SemanticObservation always serializes");
+    serde_json::to_string(&value).expect("a serde value always serializes")
+}
+
+/// `typed_key` of the record tagged `family` whose inner serde value is `inner`.
+fn tagged_key(family: &str, inner: &serde_json::Value) -> String {
+    format!(
+        "{{{}:{}}}",
+        serde_json::Value::String(family.to_owned()),
+        serde_json::to_string(inner).expect("a serde value always serializes")
+    )
+}
+
+/// G147: the typed content of a container as written: `(section, kind, serde form)` in order, the
+/// typed records' canonical keys, and every string it puts in the string table.
+struct TypedContent {
+    values: Vec<(u16, u16, serde_json::Value)>,
+    keys: Vec<String>,
+    strings: Vec<String>,
 }
 
 impl CensusAtlas {
@@ -145,15 +191,74 @@ impl CensusAtlas {
         self.edges.dedup();
         self.certificate.blockers.sort();
         self.certificate.blockers.dedup();
+        self.typed_records.sort_by_cached_key(typed_key);
+        self.typed_records.dedup();
+        self.evidence.sort_by(|a, b| a.id.cmp(&b.id));
+        self.evidence.dedup();
+        self.diagnostics.sort_by(|a, b| a.id.cmp(&b.id));
+        self.diagnostics.dedup();
     }
 
-    fn is_canonical(&self) -> bool {
+    /// Canonical order of everything but the typed records, whose keys the caller checks.
+    fn is_canonical_except_typed(&self) -> bool {
+        let evidence: Vec<&str> = self.evidence.iter().map(|e| e.id.as_str()).collect();
+        let diagnostics: Vec<&str> = self.diagnostics.iter().map(|d| d.id.as_str()).collect();
         strictly_sorted(&self.facts)
             && strictly_sorted(&self.obligations)
             && strictly_sorted(&self.nodes)
             && strictly_sorted(&self.edges)
             && strictly_sorted(&self.certificate.blockers)
+            && strictly_sorted(&evidence)
+            && strictly_sorted(&diagnostics)
     }
+
+    /// G147: the typed content, in one pass; `Err` when a value does not fit its declared kind.
+    fn typed_content(&self) -> Result<TypedContent, String> {
+        let mut out = Vec::new();
+        let mut keys = Vec::with_capacity(self.typed_records.len());
+        for record in &self.typed_records {
+            let value = serde_json::to_value(record).map_err(|e| e.to_string())?;
+            let serde_json::Value::Object(tagged) = value else {
+                return Err("a typed record is not a tagged object".into());
+            };
+            let (family, inner) = tagged.into_iter().next().ok_or("an empty typed record")?;
+            let kind = typed_kind(&family).ok_or(format!("no record kind for `{family}`"))?;
+            keys.push(tagged_key(&family, &inner));
+            out.push((SEMANTIC_RECORDS, kind, inner));
+        }
+        for evidence in &self.evidence {
+            out.push((
+                EVIDENCE,
+                1,
+                serde_json::to_value(evidence).map_err(|e| e.to_string())?,
+            ));
+        }
+        for diagnostic in &self.diagnostics {
+            out.push((
+                DIAGNOSTICS,
+                1,
+                serde_json::to_value(diagnostic).map_err(|e| e.to_string())?,
+            ));
+        }
+        let mut strings = Vec::new();
+        for (section, kind, value) in &out {
+            typed::collect_strings(*section, *kind, value, &mut strings)?;
+        }
+        Ok(TypedContent {
+            values: out,
+            keys,
+            strings,
+        })
+    }
+}
+
+/// G147: the SEMANTIC_RECORDS kind of a typed record family (`Call`, `DataFlow`, ...).
+fn typed_kind(family: &str) -> Option<u16> {
+    schema::section(SEMANTIC_RECORDS)?
+        .records
+        .iter()
+        .find(|r| r.kind > 1 && r.kind < schema::FIRST_EMBEDDED_KIND && r.name == family)
+        .map(|r| r.kind)
 }
 
 fn strictly_sorted<T: Ord>(items: &[T]) -> bool {
@@ -304,8 +409,8 @@ impl Record {
 struct Strings(BTreeMap<String, u64>);
 
 impl Strings {
-    fn of(atlas: &CensusAtlas) -> Self {
-        let mut all: Vec<&str> = Vec::new();
+    fn of(atlas: &CensusAtlas, typed_strings: &[String]) -> Self {
+        let mut all: Vec<&str> = typed_strings.iter().map(String::as_str).collect();
         for f in &atlas.facts {
             all.extend(
                 [
@@ -386,7 +491,10 @@ pub fn write(atlas: &CensusAtlas) -> Result<Vec<u8>, AtlasError> {
             atlas.manifest.seal
         )));
     }
-    if !atlas.is_canonical() {
+    let content = atlas
+        .typed_content()
+        .map_err(|why| AtlasError::Refused(format!("typed content: {why}")))?;
+    if !atlas.is_canonical_except_typed() || !strictly_sorted(&content.keys) {
         return Err(AtlasError::Refused(
             "records are not in canonical order (call canonicalize)".into(),
         ));
@@ -396,7 +504,25 @@ pub fn write(atlas: &CensusAtlas) -> Result<Vec<u8>, AtlasError> {
             "record status `{status}` is not in the epistemic vocabulary"
         )));
     }
-    Ok(encode(atlas, schema_id))
+    if let Some(dangling) = dangling_evidence(&atlas.typed_records, &atlas.evidence) {
+        return Err(AtlasError::Refused(format!(
+            "evidence reference `{dangling}` resolves to no evidence record"
+        )));
+    }
+    Ok(encode_content(atlas, &content, schema_id))
+}
+
+/// G147: the first evidence reference of a typed record that names no evidence record.
+fn dangling_evidence<'a>(
+    records: &'a [SemanticObservation],
+    evidence: &[Evidence],
+) -> Option<&'a str> {
+    let ids: std::collections::BTreeSet<&str> = evidence.iter().map(|e| e.id.as_str()).collect();
+    records
+        .iter()
+        .flat_map(|r| r.evidence_refs())
+        .map(|e| e.as_str())
+        .find(|e| !ids.contains(e))
 }
 
 /// G134: the first fact or obligation status that is not an `EpistemicStatus` name.
@@ -414,8 +540,27 @@ fn outside_vocabulary<'a>(
 /// The encoding itself, without `write`'s refusals (tests use it to build hostile containers).
 /// Encodes `atlas`, stamping each section with `id(section)` -- `schema_id` in production; tests
 /// substitute a recorded earlier identity to build a container an older writer produced.
+#[cfg(test)]
 fn encode(atlas: &CensusAtlas, id: impl Fn(u16) -> u64) -> Vec<u8> {
-    let strings = Strings::of(atlas);
+    let content = atlas
+        .typed_content()
+        .expect("typed content fits its declared kinds");
+    encode_content(atlas, &content, id)
+}
+
+fn encode_content(atlas: &CensusAtlas, content: &TypedContent, id: impl Fn(u16) -> u64) -> Vec<u8> {
+    let strings = Strings::of(atlas, &content.strings);
+    let typed_of = |wanted: u16| -> Vec<Record> {
+        content
+            .values
+            .iter()
+            .filter(|(section, ..)| *section == wanted)
+            .map(|(section, kind, value)| {
+                typed::encode(*section, *kind, value, &strings)
+                    .expect("typed content fits its declared kinds (write checks it)")
+            })
+            .collect()
+    };
     let mut body = vec![
         section(
             STRING_TABLE,
@@ -443,6 +588,7 @@ fn encode(atlas: &CensusAtlas, id: impl Fn(u16) -> u64) -> Vec<u8> {
                         .string("extractor", &strings, &f.extractor)
                         .optional_string("span", &strings, f.span.as_deref())
                 })
+                .chain(typed_of(SEMANTIC_RECORDS))
                 .collect(),
         ),
         section(
@@ -471,6 +617,8 @@ fn encode(atlas: &CensusAtlas, id: impl Fn(u16) -> u64) -> Vec<u8> {
                 })
                 .collect(),
         ),
+        section(EVIDENCE, typed_of(EVIDENCE)),
+        section(DIAGNOSTICS, typed_of(DIAGNOSTICS)),
         section(
             OBLIGATIONS,
             atlas
@@ -823,6 +971,11 @@ fn read_with_history(
     if major != FORMAT_MAJOR {
         return reject(format!("unknown format major version {major}"));
     }
+    // G147: a minor this reader does not know may carry sections it cannot read.
+    let minor = u16_at(bytes, 12);
+    if minor > FORMAT_MINOR {
+        return reject(format!("unknown format minor version {minor}"));
+    }
     let flags = u16_at(bytes, 14);
     if flags & !FLAG_UNSEALED != 0 {
         return reject(format!("unknown header flags {flags:#06x}"));
@@ -992,8 +1145,39 @@ fn read_with_history(
         return reject("string table is not sorted and unique");
     }
     let mut facts = Vec::new();
+    let mut typed_records = Vec::new();
+    let mut typed_keys = Vec::new();
     for r in records_of(SEMANTIC_RECORDS)? {
-        expect_kind(&r, 1, SEMANTIC_RECORDS)?;
+        // G147: the facts, then the typed records; an embedded-only kind never stands alone.
+        if r.kind != 1 {
+            if minor == 0 || r.kind >= schema::FIRST_EMBEDDED_KIND {
+                return reject(format!(
+                    "section {SEMANTIC_RECORDS}: record kind {} outside a typed record",
+                    r.kind
+                ));
+            }
+            let Some(def) = schema::record(SEMANTIC_RECORDS, r.kind) else {
+                return reject(format!(
+                    "section {SEMANTIC_RECORDS}: unknown record kind {}",
+                    r.kind
+                ));
+            };
+            let inner = typed::decode(&r, SEMANTIC_RECORDS, &strings)?;
+            typed_keys.push(tagged_key(def.name, &inner));
+            let mut tagged = serde_json::Map::new();
+            tagged.insert(def.name.to_owned(), inner);
+            let record: SemanticObservation =
+                serde_json::from_value(serde_json::Value::Object(tagged)).or_else(|e| {
+                    reject(format!("section {SEMANTIC_RECORDS}: typed record: {e}"))
+                })?;
+            typed_records.push(record);
+            continue;
+        }
+        if !typed_records.is_empty() {
+            return reject(format!(
+                "section {SEMANTIC_RECORDS}: a fact after the typed records"
+            ));
+        }
         let f = Fields::new(&r, SEMANTIC_RECORDS)?;
         facts.push(CensusFact {
             id: f.string("id", &strings)?,
@@ -1045,6 +1229,32 @@ fn read_with_history(
             "record status `{status}` is not in the epistemic vocabulary"
         ));
     }
+    // G147: evidence and diagnostics, required from minor 1 on.
+    let typed_section = |kind: u16| -> Result<Vec<serde_json::Value>, AtlasError> {
+        if minor == 0 && !entries.iter().any(|e| e.kind == kind) {
+            return Ok(Vec::new());
+        }
+        records_of(kind)?
+            .iter()
+            .map(|r| {
+                expect_kind(r, 1, kind)?;
+                typed::decode(r, kind, &strings)
+            })
+            .collect()
+    };
+    let evidence: Vec<Evidence> = typed_section(EVIDENCE)?
+        .into_iter()
+        .map(|v| serde_json::from_value(v).or_else(|e| reject(format!("evidence: {e}"))))
+        .collect::<Result<_, _>>()?;
+    let diagnostics: Vec<ExtractionDiagnostic> = typed_section(DIAGNOSTICS)?
+        .into_iter()
+        .map(|v| serde_json::from_value(v).or_else(|e| reject(format!("diagnostic: {e}"))))
+        .collect::<Result<_, _>>()?;
+    if let Some(dangling) = dangling_evidence(&typed_records, &evidence) {
+        return reject(format!(
+            "evidence reference `{dangling}` resolves to no evidence record"
+        ));
+    }
     let certificate_records = records_of(CENSUS_CERTIFICATE)?;
     let Some((cert_head, blocker_records)) = certificate_records.split_first() else {
         return reject("empty certificate section");
@@ -1072,8 +1282,11 @@ fn read_with_history(
         nodes,
         edges,
         certificate,
+        typed_records,
+        evidence,
+        diagnostics,
     };
-    if !atlas.is_canonical() {
+    if !atlas.is_canonical_except_typed() || !strictly_sorted(&typed_keys) {
         return reject("records are not in canonical order");
     }
     Ok((atlas, root_identity(content(manifest_entry))))

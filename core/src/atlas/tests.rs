@@ -58,9 +58,56 @@ fn sample() -> CensusAtlas {
                 "ATLAS_ROOT_ABSENT: x".into(),
             ],
         },
+        typed_records: fixture().typed_records,
+        evidence: fixture().evidence,
+        diagnostics: fixture().diagnostics,
     };
     atlas.canonicalize();
     atlas
+}
+
+/// G147: typed records of every family taken from a self census (the largest and the smallest
+/// of each, both `PlaceRef` variants, present and absent optional fields, a projection), the
+/// evidence they reference plus one without a revision, and diagnostics with and without a
+/// dimension.
+#[derive(serde::Deserialize)]
+struct Fixture {
+    typed_records: Vec<SemanticObservation>,
+    evidence: Vec<Evidence>,
+    diagnostics: Vec<ExtractionDiagnostic>,
+}
+
+/// G147: `sample` with three typed records (a call with a resolved and an unresolved place, a
+/// signature, a control-flow block), the evidence they reference and one diagnostic, so the
+/// per-byte batteries cover every section while staying small.
+fn compact_sample() -> CensusAtlas {
+    let mut atlas = sample();
+    let mut picked = Vec::new();
+    for family in ["\"Call\"", "\"FunctionSignature\"", "\"ControlFlow\""] {
+        let record = atlas
+            .typed_records
+            .iter()
+            .filter(|r| typed_key(r).starts_with(&format!("{{{family}")))
+            .find(|r| family != "\"Call\"" || typed_key(r).contains("Resolved"))
+            .unwrap()
+            .clone();
+        picked.push(record);
+    }
+    let refs: std::collections::BTreeSet<String> = picked
+        .iter()
+        .flat_map(|r| r.evidence_refs().iter().map(|e| e.as_str().to_owned()))
+        .collect();
+    atlas
+        .evidence
+        .retain(|e| refs.contains(&e.id) || e.revision.is_none());
+    atlas.typed_records = picked;
+    atlas.diagnostics.truncate(1);
+    atlas.canonicalize();
+    atlas
+}
+
+fn fixture() -> Fixture {
+    serde_json::from_str(include_str!("typed_fixture.json")).expect("the typed fixture parses")
 }
 
 fn rejected(bytes: &[u8]) -> String {
@@ -136,11 +183,10 @@ fn a_record_status_outside_the_vocabulary_is_refused_and_rejected() {
 
 #[test]
 fn every_single_byte_corruption_is_rejected() {
-    let bytes = write(&sample()).unwrap();
+    // G147: the minor bytes are no longer exempt -- a minor this reader does not know is refused,
+    // and minor 0 cannot carry typed content.
+    let bytes = write(&compact_sample()).unwrap();
     for at in 0..bytes.len() {
-        if (12..14).contains(&at) {
-            continue; // format_minor: any minor of major 1 is readable by contract
-        }
         let mut corrupt = bytes.clone();
         corrupt[at] ^= 0x01;
         assert!(
@@ -153,7 +199,7 @@ fn every_single_byte_corruption_is_rejected() {
 
 #[test]
 fn every_truncation_and_extension_is_rejected() {
-    let bytes = write(&sample()).unwrap();
+    let bytes = write(&compact_sample()).unwrap();
     for len in 0..bytes.len() {
         assert!(
             read(&bytes[..len]).is_err(),
@@ -339,10 +385,13 @@ fn every_definition_change_moves_the_schema_identity() {
         let mut changed = fields.to_vec();
         edit(&mut changed);
         let leaked: &'static [schema::FieldDef] = Box::leak(changed.into_boxed_slice());
-        let record: &'static [schema::RecordDef] = Box::leak(Box::new([schema::RecordDef {
+        // The edited fact kind, and (G147) the section's typed kinds unchanged.
+        let mut records = vec![schema::RecordDef {
             fields: leaked,
             ..facts.records[0]
-        }]));
+        }];
+        records.extend_from_slice(&facts.records[1..]);
+        let record: &'static [schema::RecordDef] = Box::leak(records.into_boxed_slice());
         schema::schema_hash(&schema::SectionDef {
             records: record,
             ..facts
@@ -727,4 +776,205 @@ fn a_container_an_older_conforming_writer_produced_is_read_with_its_history() {
             .contains("unknown schema id"),
         "the compiled-in history does not record it"
     );
+}
+
+// --- G147: typed records, evidence and diagnostics, field by field -----------------------------
+
+#[test]
+fn every_typed_record_evidence_and_diagnostic_round_trips_field_by_field() {
+    let atlas = sample();
+    let families: std::collections::BTreeSet<String> = atlas
+        .typed_records
+        .iter()
+        .map(|r| typed_key(r).split('"').nth(1).unwrap().to_owned())
+        .collect();
+    assert_eq!(families.len(), 12, "{families:?}");
+    let bytes = write(&atlas).unwrap();
+    let (decoded, _) = read(&bytes).unwrap();
+    assert_eq!(decoded.typed_records, atlas.typed_records);
+    assert_eq!(decoded.evidence, atlas.evidence);
+    assert_eq!(decoded.diagnostics, atlas.diagnostics);
+    // Field by field, never as text: no record's serde form is in the container.
+    for record in &atlas.typed_records {
+        let text = typed_key(record);
+        assert!(!bytes.windows(text.len()).any(|w| w == text.as_bytes()));
+    }
+}
+
+#[test]
+fn a_typed_value_its_kind_does_not_declare_is_refused() {
+    let evidence = serde_json::to_value(&sample().evidence[0]).unwrap();
+    let refused = |value: &serde_json::Value, section: u16, kind: u16| {
+        typed::collect_strings(section, kind, value, &mut Vec::new()).unwrap_err()
+    };
+    let mut extra = evidence.clone();
+    extra["unexpected"] = "x".into();
+    assert!(refused(&extra, EVIDENCE, 1).contains("undeclared field `unexpected`"));
+    let mut null = evidence.clone();
+    null["summary"] = serde_json::Value::Null;
+    assert!(refused(&null, EVIDENCE, 1).contains("required field `summary` is null"));
+    let mut missing = evidence;
+    missing.as_object_mut().unwrap().remove("path");
+    assert!(refused(&missing, EVIDENCE, 1).contains("missing required field `path`"));
+    let other_variant = serde_json::json!({ "Other": {} });
+    assert!(
+        refused(&other_variant, SEMANTIC_RECORDS, schema::PLACE_REF)
+            .contains("undeclared variant `Other`")
+    );
+    let mut negative = serde_json::to_value(&sample().typed_records[0]).unwrap();
+    let family = negative.as_object().unwrap().keys().next().unwrap().clone();
+    let kind = typed_kind(&family).unwrap();
+    negative[&family]["dimension"] = 7.into();
+    assert!(refused(&negative[&family], SEMANTIC_RECORDS, kind).contains("not a string"));
+}
+
+#[test]
+fn typed_forgeries_are_rejected_by_the_reader() {
+    let atlas = sample();
+    let bytes = write(&atlas).unwrap();
+    let facts = atlas.facts.len();
+    let swap_typed = |c: &mut Vec<u8>| {
+        let mut records = raw_records(c);
+        records.swap(facts, facts + 1);
+        *c = records.concat();
+    };
+    assert_eq!(
+        rejected(&resealed(&bytes, SEMANTIC_RECORDS, true, swap_typed)),
+        "records are not in canonical order"
+    );
+    let fact_last = |c: &mut Vec<u8>| {
+        let mut records = raw_records(c);
+        let fact = records.remove(0);
+        records.push(fact);
+        *c = records.concat();
+    };
+    assert!(
+        rejected(&resealed(&bytes, SEMANTIC_RECORDS, true, fact_last))
+            .contains("a fact after the typed records")
+    );
+    let embedded_alone = |c: &mut Vec<u8>| {
+        let mut records = raw_records(c);
+        records[facts][0..2].copy_from_slice(&schema::REVISION.to_le_bytes());
+        *c = records.concat();
+    };
+    assert!(
+        rejected(&resealed(&bytes, SEMANTIC_RECORDS, true, embedded_alone))
+            .contains("record kind 100 outside a typed record")
+    );
+    // A typed record whose evidence the container does not carry: `write` refuses it, and a
+    // container encoded anyway is rejected.
+    let mut dangling = atlas.clone();
+    dangling.evidence.remove(0);
+    assert!(
+        write(&dangling)
+            .unwrap_err()
+            .to_string()
+            .contains("resolves to no evidence record")
+    );
+    assert!(rejected(&encode(&dangling, schema_id)).contains("resolves to no evidence record"));
+    // A minor this reader does not know, and typed content under minor 0.
+    let mut minor = bytes.clone();
+    minor[12..14].copy_from_slice(&2u16.to_le_bytes());
+    assert_eq!(rejected(&minor), "unknown format minor version 2");
+    let mut minor0 = bytes.clone();
+    minor0[12..14].copy_from_slice(&0u16.to_le_bytes());
+    assert!(rejected(&minor0).contains("outside a typed record"));
+}
+
+/// G147: a typed record whose framing is valid but whose payload is not is rejected: a boolean
+/// byte other than 0 or 1, an embedded record of another kind than declared, and a truncated
+/// packed list.
+#[test]
+fn embedded_fields_are_checked_against_their_declaration() {
+    let strings = Strings([("a".to_owned(), 0)].into_iter().collect());
+    let table = ["a".to_owned()];
+    let embedded = |kind: u16| {
+        let mut bytes = Vec::new();
+        let record = Record::of(SEMANTIC_RECORDS, kind);
+        let record = if kind == schema::SCOPE {
+            record.put("segments", WIRE_PACKED, &[0])
+        } else {
+            record
+                .string("kind", &strings, "a")
+                .string("value", &strings, "a")
+        };
+        record.encode(&mut bytes);
+        bytes
+    };
+    let block = |is_entry: &[u8], revision: &[u8]| {
+        let mut content = Vec::new();
+        Record::of(SEMANTIC_RECORDS, schema::CONTROL_FLOW_BLOCK)
+            .string("repository", &strings, "a")
+            .put("revision", WIRE_RECORD, revision)
+            .string("function", &strings, "a")
+            .number("block_index", 0)
+            .string("kind", &strings, "a")
+            .put("is_entry", WIRE_BOOL, is_entry)
+            .encode(&mut content);
+        content
+    };
+    let decode = |content: Vec<u8>| {
+        let records = parse_records(&content, SEMANTIC_RECORDS).unwrap();
+        typed::decode(&records[0], SEMANTIC_RECORDS, &table).map_err(|e| e.to_string())
+    };
+    let good = decode(block(&[1], &embedded(schema::REVISION))).unwrap();
+    assert_eq!(good["is_entry"], serde_json::Value::Bool(true));
+    assert_eq!(
+        good["successors"],
+        serde_json::json!([]),
+        "an absent sequence is empty"
+    );
+    assert!(
+        decode(block(&[2], &embedded(schema::REVISION)))
+            .unwrap_err()
+            .contains("is not a boolean")
+    );
+    assert!(
+        decode(block(&[0], &embedded(schema::SCOPE)))
+            .unwrap_err()
+            .contains("embeds kind 101, declared 100")
+    );
+    let mut scope = Vec::new();
+    Record::of(SEMANTIC_RECORDS, schema::SCOPE)
+        .put("segments", WIRE_PACKED, &[0x80])
+        .encode(&mut scope);
+    let records = parse_records(&scope, SEMANTIC_RECORDS).unwrap();
+    assert!(typed::decode(&records[0], SEMANTIC_RECORDS, &table).is_err());
+}
+
+/// G147: a recorded field whose shape (embedded kind, repetition, element type) changed does not
+/// conform, even with the same tag and wire type.
+#[test]
+fn a_changed_field_shape_does_not_conform() {
+    let current = schema::section(SEMANTIC_RECORDS).unwrap();
+    let text = schema::definition_text(current);
+    for (from, to) in [
+        (
+            "field 5 scope 10 required record=101",
+            "field 5 scope 10 required record=100",
+        ),
+        (
+            "field 7 arguments 10 optional record=105 repeated",
+            "field 7 arguments 10 optional record=105",
+        ),
+        (
+            "field 6 callees 11 optional repeated element=9",
+            "field 6 callees 11 optional repeated element=1",
+        ),
+    ] {
+        assert!(text.contains(from), "{from}");
+        let edited = text.replacen(from, to, 1);
+        let recorded = schema::recorded_generations(&format!("generation TEST\n{edited}"))
+            .pop()
+            .unwrap()
+            .1
+            .pop()
+            .unwrap();
+        assert!(
+            schema::conforms(&recorded, current)
+                .unwrap_err()
+                .contains("changed shape"),
+            "{to}"
+        );
+    }
 }

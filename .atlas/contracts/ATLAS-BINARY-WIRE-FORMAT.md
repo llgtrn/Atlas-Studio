@@ -335,3 +335,35 @@ ADR 0027 pins what this contract leaves undefined:
 
 Deferred: sealing, compression, sharding and FAT mode.
 
+### Typed records (G147, ADR 0063)
+
+`format_minor` 1 carries the census's typed content field by field.
+
+**Sections.**
+- SEMANTIC_RECORDS holds one record kind per typed semantic record family, kinds 2 to 13. Each kind is named exactly as its family is tagged: `FunctionIdentity` to `Persistence`.
+- Each typed record is written after the census facts. It has a shared header: record id, dimension, status, subject, scope, repository, revision, extractor, evidence references and provenance.
+- Its subject and every nested struct are embedded records of declared kinds numbered 100 and above. Those kinds are embedded-only and are refused at top level.
+- EVIDENCE holds the census's evidence records and DIAGNOSTICS its extraction diagnostics, one record per item, ordered by id.
+
+**Pinned encodings.**
+- `RECORD` (10) is a sequence of embedded records of the field's declared kind: exactly one, unless the field is declared repeated.
+- `PACKED` (11) is minimal uvarints of the declared element wire type.
+- `BOOL` (12) is one byte, 0 or 1.
+- An empty sequence is an absent field.
+- An enum kind carries its variant name in `variant`, and a variant with data in the field named after it.
+- A field's shape (`record=<kind>`, `repeated`, `element=<wire>`) is part of the definition text. A scalar field has no shape suffix, so every earlier schema identity is unchanged.
+
+**What the reader enforces.**
+- A value its kind does not declare is refused at write.
+- Typed records are in strictly ascending order of their serde form: `record_id` alone is not unique.
+- Every evidence reference resolves to an evidence record.
+- A `format_minor` above 1 is refused, and so is typed content under minor 0.
+- A minor-0 container still reads.
+
+`atlas pack` round-trips every typed record of a census.
+
+Deferred:
+- IDENTITY/TYPE/SYMBOL interning tables: identities are written inline through the string table;
+- the DESIGN section (M7);
+- compression.
+

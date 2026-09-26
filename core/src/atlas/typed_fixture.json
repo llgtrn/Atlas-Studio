@@ -1,0 +1,2549 @@
+{
+ "typed_records": [
+  {
+   "Call": {
+    "record_id": "semantic:CALL:fd6e9747ef3ba130",
+    "dimension": "CALL",
+    "status": "DERIVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:bc6471dd40bb6d6d",
+     "span": {
+      "path": "adapter/src/semantic/rust/mod.rs",
+      "line": 1675,
+      "column": 25
+     },
+     "dispatch": "STATIC_RESOLVED",
+     "callees": [
+      "semantic:FUNCTION_IDENTITY:82c532f9fb3196da"
+     ],
+     "arguments": [
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:7f10e20cc8cf85a7"
+       }
+      },
+      "Unresolved",
+      "Unresolved",
+      "Unresolved",
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:2f363d12fd032c4e"
+       }
+      },
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:fad24cb2afb63aaf"
+       }
+      },
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:19dd5e3377f0e7b2"
+       }
+      },
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:1693709aaace2716"
+       }
+      },
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:a38958cbf7f60bbd"
+       }
+      },
+      "Unresolved"
+     ],
+     "result": "Unresolved",
+     "callee_spelling": ".handle_function"
+    },
+    "scope": {
+     "segments": [
+      "impl:ExtractionContext<'a>"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.resolution.rust-paths",
+     "version": "1"
+    },
+    "evidence_refs": [
+     "evidence:44d1a2e5d1b5a038"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.resolution.rust-paths",
+     "content_hash": null,
+     "span": "1675:25"
+    }
+   }
+  },
+  {
+   "Call": {
+    "record_id": "semantic:CALL:0011e415f3ab445d",
+    "dimension": "CALL",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:8192e7094685dadc",
+     "span": {
+      "path": "runtime/src/census/mod.rs",
+      "line": 460,
+      "column": 41
+     },
+     "dispatch": "UNRESOLVED",
+     "callees": [],
+     "arguments": [],
+     "result": "Unresolved",
+     "callee_spelling": ".clone"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:5230eb3c3f1b0fa5"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/census/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "460:41"
+    }
+   }
+  },
+  {
+   "Concurrency": {
+    "record_id": "semantic:CONCURRENCY:cf63793c3b1c870a",
+    "dimension": "CONCURRENCY",
+    "status": "DERIVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:3470842310cac23a",
+     "kind": "THREAD_SCOPE",
+     "span": {
+      "path": "adapter/src/semantic/rust/mod.rs",
+      "line": 208,
+      "column": 21
+     }
+    },
+    "scope": {
+     "segments": [
+      "impl:SemanticExtractor for RustSemanticExtractor"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.resolution.rust-paths",
+     "version": "1"
+    },
+    "evidence_refs": [
+     "evidence:98f103c1913d7581"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.resolution.rust-paths",
+     "content_hash": null,
+     "span": "208:21"
+    }
+   }
+  },
+  {
+   "Concurrency": {
+    "record_id": "semantic:CONCURRENCY:13fe18c4ffa27f87",
+    "dimension": "CONCURRENCY",
+    "status": "INFERRED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:6990e9afcf62f2c7",
+     "kind": "SPAWN",
+     "span": {
+      "path": "runtime/src/sandbox.rs",
+      "line": 210,
+      "column": 20
+     }
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:6f6ebb0f68988119"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/sandbox.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "210:20"
+    }
+   }
+  },
+  {
+   "ControlFlow": {
+    "record_id": "semantic:CONTROL_FLOW:b6e57bcb8c60a5bb",
+    "dimension": "CONTROL_FLOW",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:274b530e216c12b7",
+     "block_index": 0,
+     "kind": "FUNCTION_ENTRY",
+     "is_entry": true,
+     "successors": [
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:b6e57acb8c60a408"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:b6e57dcb8c60a921"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:b6e57fcb8c60ac87"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:b6e573cb8c609823"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:2893dfdf88370b28"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:2893e0df88370cdb"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:2893e5df8837155a"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289dd1df883f47e3"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289dd0df883f4630"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289dd5df883f4eaf"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289dd4df883f4cfc"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289dd8df883f53c8"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a6bdf883c64ba"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a6cdf883c666d"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a69df883c6154"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a6adf883c6307"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a67df883c5dee"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a68df883c5fa1"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a65df883c5a88"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a63df883c5722"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:289a64df883c58d5"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a4dddf88457af5"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a4dcdf88457942"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a4dadf884575dc"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a4d8df88457276"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a4e4df884586da"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a158df8842631f"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a15adf88426685"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a156df88425fb9"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a15fdf88426f04"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28a160df884270b7"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28ab69df884ad487"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28ab68df884ad2d4"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28ab6bdf884ad7ed"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28ab6adf884ad63a"
+      },
+      {
+       "kind": "BRANCH",
+       "target": "semantic:CONTROL_FLOW:28ab64df884acc08"
+      }
+     ]
+    },
+    "scope": {
+     "segments": [
+      "impl:DataFlowWalker<'ctx, 'a>"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:4b152cff15795ed2"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/dataflow.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "273:68"
+    }
+   }
+  },
+  {
+   "ControlFlow": {
+    "record_id": "semantic:CONTROL_FLOW:004f572cb506b8f0",
+    "dimension": "CONTROL_FLOW",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:c6988d699875a5ee",
+     "block_index": 14,
+     "kind": "CONTINUATION",
+     "is_entry": false,
+     "successors": [
+      {
+       "kind": "LOOP_REPEAT",
+       "target": "semantic:CONTROL_FLOW:c4455049aa7e8eca"
+      }
+     ]
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:918cb4b80d1a87e4"
+    ],
+    "provenance": {
+     "source_path": "core/src/language/adl/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "466:16"
+    }
+   }
+  },
+  {
+   "DataFlow": {
+    "record_id": "semantic:DATA_FLOW:dea72f926a4c5a4b",
+    "dimension": "DATA_FLOW",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:461a47f9e319c168",
+     "name": "class",
+     "span": {
+      "path": "runtime/src/lib.rs",
+      "line": 3061,
+      "column": 30
+     },
+     "role": "DEFINITION",
+     "is_parameter": true,
+     "is_return_flow": false,
+     "resolution": "RESOLVED",
+     "resolved_definition": null
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "fn native_attack_queue_is_ordered_and_heads_selection",
+      "fn {closure@3052:87}",
+      "fn {closure@3054:58}"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:68a53904fe21d278"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "3061:30"
+    }
+   }
+  },
+  {
+   "DataFlow": {
+    "record_id": "semantic:DATA_FLOW:00017218ae2e460a",
+    "dimension": "DATA_FLOW",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:1efa42c5e3eae34f",
+     "name": "None",
+     "span": {
+      "path": "core/src/product/mod.rs",
+      "line": 810,
+      "column": 13
+     },
+     "role": "USE",
+     "is_parameter": false,
+     "is_return_flow": false,
+     "resolution": "UNRESOLVED",
+     "resolved_definition": null
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:f48a5373043ea7e0"
+    ],
+    "provenance": {
+     "source_path": "core/src/product/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "810:13"
+    }
+   }
+  },
+  {
+   "Effect": {
+    "record_id": "semantic:EFFECT:ff54a9c3dd997d6e",
+    "dimension": "EFFECT",
+    "status": "INFERRED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:8faf8d5e72ce07c0",
+     "category": "PANIC",
+     "span": {
+      "path": "runtime/src/lib.rs",
+      "line": 3864,
+      "column": 67
+     }
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "fn semantic_dimensions_and_avoidance_drift_are_audited",
+      "fn {closure@3861:21}"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:ad7fbb255e08f12f"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "3864:67"
+    }
+   }
+  },
+  {
+   "Effect": {
+    "record_id": "semantic:EFFECT:00126a0e768236ae",
+    "dimension": "EFFECT",
+    "status": "INFERRED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:fe1417d275e6a988",
+     "category": "PANIC",
+     "span": {
+      "path": "adapter/src/semantic/rust/tests.rs",
+      "line": 6376,
+      "column": 4
+     }
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:a9b71da99204c716"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/tests.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "6376:4"
+    }
+   }
+  },
+  {
+   "FunctionIdentity": {
+    "record_id": "semantic:FUNCTION_IDENTITY:f466d0ad87c4e928",
+    "dimension": "FUNCTION_IDENTITY",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "language": "rust",
+     "scope": {
+      "segments": [
+       "tests",
+       "essential_complexity",
+       "impl:Ledger"
+      ]
+     },
+     "symbol": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "scope": {
+       "segments": [
+        "tests",
+        "essential_complexity",
+        "impl:Ledger"
+       ]
+      },
+      "name": "known_ids",
+      "role": "DEFINITION",
+      "path": "runtime/src/lib.rs",
+      "documentation": {
+       "summary": "Every id a companion file may cite: essential debts and scale triggers.",
+       "lines": 1
+      }
+     },
+     "span": {
+      "path": "runtime/src/lib.rs",
+      "line": 2336,
+      "column": 12
+     },
+     "generated": false,
+     "declaration_kind": "INHERENT_METHOD",
+     "owner": {
+      "target": {
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+       },
+       "scope": {
+        "segments": [
+         "tests",
+         "essential_complexity"
+        ]
+       },
+       "name": "Ledger",
+       "canonical": null,
+       "path": "runtime/src/lib.rs"
+      },
+      "trait_path": null
+     },
+     "generics": []
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "impl:Ledger"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:efbb64394fa8eb71"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "2336:12"
+    }
+   }
+  },
+  {
+   "FunctionIdentity": {
+    "record_id": "semantic:FUNCTION_IDENTITY:0093d08d1a6693b6",
+    "dimension": "FUNCTION_IDENTITY",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "language": "rust",
+     "scope": {
+      "segments": []
+     },
+     "symbol": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "scope": {
+       "segments": []
+      },
+      "name": "struct_destructuring_pattern_binds_each_local_and_its_uses_resolve",
+      "role": "DEFINITION",
+      "path": "adapter/src/semantic/rust/tests.rs"
+     },
+     "span": {
+      "path": "adapter/src/semantic/rust/tests.rs",
+      "line": 3213,
+      "column": 0
+     },
+     "generated": false,
+     "declaration_kind": "FREE_FUNCTION",
+     "owner": {
+      "target": null,
+      "trait_path": null
+     },
+     "generics": []
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:f34e3b0098fe6917"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/tests.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "3213:0"
+    }
+   }
+  },
+  {
+   "FunctionSignature": {
+    "record_id": "semantic:FUNCTION_SIGNATURE:dc867be80cf93ad6",
+    "dimension": "FUNCTION_SIGNATURE",
+    "status": "OBSERVED",
+    "subject": {
+     "function": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "language": "rust",
+      "scope": {
+       "segments": [
+        "impl:ExtractionContext<'a>"
+       ]
+      },
+      "symbol": {
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+       },
+       "scope": {
+        "segments": [
+         "impl:ExtractionContext<'a>"
+        ]
+       },
+       "name": "handle_function",
+       "role": "DEFINITION",
+       "path": "adapter/src/semantic/rust/mod.rs"
+      },
+      "span": {
+       "path": "adapter/src/semantic/rust/mod.rs",
+       "line": 1424,
+       "column": 4
+      },
+      "generated": false,
+      "declaration_kind": "INHERENT_METHOD",
+      "owner": {
+       "target": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": []
+        },
+        "name": "ExtractionContext<'a>",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       },
+       "trait_path": null
+      },
+      "generics": []
+     },
+     "parameters": [
+      {
+       "name": "&mut self",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "&mut Self",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "name",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "&str",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "visibility",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "String",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "sig",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "&syn::Signature",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "body",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "Option<&syn::Block>",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "scope",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "&SemanticScope",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "span",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "atlas_core::SourceSpan",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "role",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "SymbolRole",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "declaration_kind",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "FunctionDeclarationKind",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "owner",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "FunctionOwner",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      },
+      {
+       "name": "documentation",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "impl:ExtractionContext<'a>"
+         ]
+        },
+        "name": "Option<Documentation>",
+        "canonical": null,
+        "path": "adapter/src/semantic/rust/mod.rs"
+       }
+      }
+     ],
+     "return_type": null,
+     "generics": [],
+     "abi": null,
+     "visibility": "inherited",
+     "is_async": false,
+     "is_unsafe": false,
+     "is_extern": false,
+     "body_fingerprint": "blake3-256:519aed7a042ef7c5b2c2550f3f46d97febedd84fa8996d99905882b545bce11e"
+    },
+    "scope": {
+     "segments": [
+      "impl:ExtractionContext<'a>"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:6b2e35dd8c30446c"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "1424:4"
+    }
+   }
+  },
+  {
+   "FunctionSignature": {
+    "record_id": "semantic:FUNCTION_SIGNATURE:002057f7ca0788e5",
+    "dimension": "FUNCTION_SIGNATURE",
+    "status": "OBSERVED",
+    "subject": {
+     "function": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "language": "rust",
+      "scope": {
+       "segments": []
+      },
+      "symbol": {
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+       },
+       "scope": {
+        "segments": []
+       },
+       "name": "source_frontend_and_extractor_are_decoupled_layers",
+       "role": "DEFINITION",
+       "path": "adapter/src/semantic/boundary_tests.rs"
+      },
+      "span": {
+       "path": "adapter/src/semantic/boundary_tests.rs",
+       "line": 309,
+       "column": 0
+      },
+      "generated": false,
+      "declaration_kind": "FREE_FUNCTION",
+      "owner": {
+       "target": null,
+       "trait_path": null
+      },
+      "generics": []
+     },
+     "parameters": [],
+     "return_type": null,
+     "generics": [],
+     "abi": null,
+     "visibility": "inherited",
+     "is_async": false,
+     "is_unsafe": false,
+     "is_extern": false,
+     "body_fingerprint": "blake3-256:1c2985029a5e94fc1a8cb9e084ffd9898fa9b8d91b4a63056e43cfaa740635be"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:7e36f874170de14c"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/boundary_tests.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "309:0"
+    }
+   }
+  },
+  {
+   "Ownership": {
+    "record_id": "semantic:OWNERSHIP:f85779410c921da0",
+    "dimension": "OWNERSHIP",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:461a47f9e319c168",
+     "name": "class",
+     "span": {
+      "path": "runtime/src/lib.rs",
+      "line": 3061,
+      "column": 51
+     },
+     "kind": "MOVE_OR_COPY",
+     "resolution": "RESOLVED"
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "fn native_attack_queue_is_ordered_and_heads_selection",
+      "fn {closure@3052:87}",
+      "fn {closure@3054:58}"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:38e9dd62649f15ad"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "3061:51"
+    }
+   }
+  },
+  {
+   "Ownership": {
+    "record_id": "semantic:OWNERSHIP:0003aa7f88aa2913",
+    "dimension": "OWNERSHIP",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:84fdb170a752cf82",
+     "name": "unmatched_old",
+     "span": {
+      "path": "core/src/recensus/entity.rs",
+      "line": 279,
+      "column": 13
+     },
+     "kind": "BORROW_SHARED",
+     "resolution": "RESOLVED"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:7f49797d282143a1"
+    ],
+    "provenance": {
+     "source_path": "core/src/recensus/entity.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "279:13"
+    }
+   }
+  },
+  {
+   "Persistence": {
+    "record_id": "semantic:PERSISTENCE:85460bf80fe31d75",
+    "dimension": "PERSISTENCE",
+    "status": "DERIVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:58ed41d0b6c0623e",
+     "kind": "DURABLE_READ",
+     "span": {
+      "path": "runtime/src/lib.rs",
+      "line": 2871,
+      "column": 33
+     },
+     "place": "Unresolved",
+     "resolution": "RESOLVED"
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "fn historical_donor_revalidation_triggers_are_capability_based"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.resolution.rust-paths",
+     "version": "1"
+    },
+    "evidence_refs": [
+     "evidence:ee45869693a9a5c8"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.resolution.rust-paths",
+     "content_hash": null,
+     "span": "2871:33"
+    }
+   }
+  },
+  {
+   "Persistence": {
+    "record_id": "semantic:PERSISTENCE:00379de0572aee61",
+    "dimension": "PERSISTENCE",
+    "status": "DERIVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:056391e28e1a04ba",
+     "kind": "DURABLE_READ",
+     "span": {
+      "path": "runtime/src/census/extraction.rs",
+      "line": 390,
+      "column": 18
+     },
+     "place": "Unresolved",
+     "resolution": "RESOLVED"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.resolution.rust-paths",
+     "version": "1"
+    },
+    "evidence_refs": [
+     "evidence:aa7423c33e26f0da"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/census/extraction.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.resolution.rust-paths",
+     "content_hash": null,
+     "span": "390:18"
+    }
+   }
+  },
+  {
+   "State": {
+    "record_id": "semantic:STATE:cd442bc465e40932",
+    "dimension": "STATE",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:8c440d27cb5d65a0",
+     "scope": {
+      "segments": [
+       "tests",
+       "essential_complexity",
+       "impl:Ledger"
+      ]
+     },
+     "name": "text",
+     "span": {
+      "path": "runtime/src/lib.rs",
+      "line": 2354,
+      "column": 56
+     },
+     "kind": "READ",
+     "resolution": "RESOLVED"
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "impl:Ledger"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:c2522fcee50a553c"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "2354:56"
+    }
+   }
+  },
+  {
+   "State": {
+    "record_id": "semantic:STATE:001351cb2404626c",
+    "dimension": "STATE",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:8422c5f0b8e14ba4",
+     "scope": {
+      "segments": [
+       "impl:CallWalker<'_>"
+      ]
+     },
+     "name": "crates",
+     "span": {
+      "path": "adapter/src/semantic/rust/resolve.rs",
+      "line": 1934,
+      "column": 76
+     },
+     "kind": "READ",
+     "resolution": "RESOLVED"
+    },
+    "scope": {
+     "segments": [
+      "impl:CallWalker<'_>"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:0d608c5ba370db8a"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/resolve.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "1934:76"
+    }
+   }
+  },
+  {
+   "Symbol": {
+    "record_id": "semantic:SYMBOL:a65a2570c263fe08",
+    "dimension": "SYMBOL",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "scope": {
+      "segments": [
+       "tests",
+       "essential_complexity",
+       "fn native_attack_queue_is_ordered_and_heads_selection",
+       "fn {closure@3071:36}",
+       "fn {closure@3072:58}"
+      ]
+     },
+     "name": "{closure@3075:37}",
+     "role": "DEFINITION",
+     "path": "runtime/src/lib.rs"
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "fn native_attack_queue_is_ordered_and_heads_selection",
+      "fn {closure@3071:36}",
+      "fn {closure@3072:58}"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:afc71d7750823dd4"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "3075:37"
+    }
+   }
+  },
+  {
+   "Symbol": {
+    "record_id": "semantic:SYMBOL:00113e97e93ed59c",
+    "dimension": "SYMBOL",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "scope": {
+      "segments": []
+     },
+     "name": "UNSEALED",
+     "role": "DEFINITION",
+     "path": "core/src/atlas/mod.rs"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:f9a4cab715b810b0"
+    ],
+    "provenance": {
+     "source_path": "core/src/atlas/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "39:0"
+    }
+   }
+  },
+  {
+   "Type": {
+    "record_id": "semantic:TYPE:b388590d624f11b1",
+    "dimension": "TYPE",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "scope": {
+      "segments": [
+       "tests",
+       "essential_complexity",
+       "impl:Ledger"
+      ]
+     },
+     "name": "BTreeMap<String, &str>",
+     "canonical": null,
+     "path": "runtime/src/lib.rs"
+    },
+    "scope": {
+     "segments": [
+      "tests",
+      "essential_complexity",
+      "impl:Ledger"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:121ad70df7a11b98"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/lib.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "2322:31"
+    }
+   }
+  },
+  {
+   "Type": {
+    "record_id": "semantic:TYPE:001f965ddbdf7e92",
+    "dimension": "TYPE",
+    "status": "DERIVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "scope": {
+      "segments": []
+     },
+     "name": "Strings",
+     "canonical": "core atlas/Strings#",
+     "path": ""
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.resolution.rust-paths",
+     "version": "1"
+    },
+    "evidence_refs": [
+     "evidence:8335f47a09f6ee8b"
+    ],
+    "provenance": {
+     "source_path": "core/src/atlas/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.resolution.rust-paths",
+     "content_hash": null,
+     "span": null
+    }
+   }
+  },
+  {
+   "Call": {
+    "record_id": "semantic:CALL:00083032950d8523",
+    "dimension": "CALL",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:2f11f04347f1683f",
+     "span": {
+      "path": "adapter/src/dependency/cargo.rs",
+      "line": 517,
+      "column": 16
+     },
+     "dispatch": "UNRESOLVED",
+     "callees": [],
+     "arguments": [
+      {
+       "Resolved": {
+        "dimension": "DATA_FLOW",
+        "record_id": "semantic:DATA_FLOW:26a2d61c3dbe9de5"
+       }
+      },
+      "Unresolved"
+     ],
+     "result": "Unresolved",
+     "callee_spelling": "quoted_field_anywhere"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:0c5c38295e9d1143"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/dependency/cargo.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "517:16"
+    }
+   }
+  },
+  {
+   "Call": {
+    "record_id": "semantic:CALL:00289be583a7aeb6",
+    "dimension": "CALL",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:5783bbf1db511923",
+     "span": {
+      "path": "adapter/src/semantic/rust/tests.rs",
+      "line": 5872,
+      "column": 54
+     },
+     "dispatch": "UNRESOLVED",
+     "callees": [],
+     "arguments": [],
+     "result": {
+      "Resolved": {
+       "dimension": "DATA_FLOW",
+       "record_id": "semantic:DATA_FLOW:da1507689da7d374"
+      }
+     },
+     "callee_spelling": ".unwrap"
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:6d676bef7963e225"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/tests.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "5872:54"
+    }
+   }
+  },
+  {
+   "Symbol": {
+    "record_id": "semantic:SYMBOL:02181dcc854fca5b",
+    "dimension": "SYMBOL",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "scope": {
+      "segments": []
+     },
+     "name": "self",
+     "role": "DEFINITION",
+     "path": "runtime/src/agent.rs",
+     "documentation": {
+      "summary": "Agent-Worn Atlas entry points (G122, ADR 0044): compose the census of a repository into a `WorldModel` and serve the lens operations over it. The composition and every operation are pure (`atlas_core::composition`); this module only runs the census and fixes digests.",
+      "lines": 3
+     }
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:47ec4b921f100f33"
+    ],
+    "provenance": {
+     "source_path": "runtime/src/agent.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "1:0"
+    }
+   }
+  },
+  {
+   "FunctionIdentity": {
+    "record_id": "semantic:FUNCTION_IDENTITY:025c80f928498279",
+    "dimension": "FUNCTION_IDENTITY",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "language": "rust",
+     "scope": {
+      "segments": [
+       "impl:syn::visit::Visit<'ast> for IndependentCallSites"
+      ]
+     },
+     "symbol": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "scope": {
+       "segments": [
+        "impl:syn::visit::Visit<'ast> for IndependentCallSites"
+       ]
+      },
+      "name": "visit_expr_call",
+      "role": "DEFINITION",
+      "path": "adapter/src/semantic/rust/tests.rs"
+     },
+     "span": {
+      "path": "adapter/src/semantic/rust/tests.rs",
+      "line": 6708,
+      "column": 4
+     },
+     "generated": false,
+     "declaration_kind": "TRAIT_IMPLEMENTATION_METHOD",
+     "owner": {
+      "target": {
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+       },
+       "scope": {
+        "segments": []
+       },
+       "name": "IndependentCallSites",
+       "canonical": null,
+       "path": "adapter/src/semantic/rust/tests.rs"
+      },
+      "trait_path": "syn::visit::Visit<'ast>"
+     },
+     "generics": []
+    },
+    "scope": {
+     "segments": [
+      "impl:syn::visit::Visit<'ast> for IndependentCallSites"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:c1a0b1f259af39ad"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/tests.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "6708:4"
+    }
+   }
+  },
+  {
+   "FunctionSignature": {
+    "record_id": "semantic:FUNCTION_SIGNATURE:628d22fb0ff09771",
+    "dimension": "FUNCTION_SIGNATURE",
+    "status": "OBSERVED",
+    "subject": {
+     "function": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "language": "rust",
+      "scope": {
+       "segments": [
+        "trait:SourceFrontend"
+       ]
+      },
+      "symbol": {
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+       },
+       "scope": {
+        "segments": [
+         "trait:SourceFrontend"
+        ]
+       },
+       "name": "id",
+       "role": "DECLARATION",
+       "path": "adapter/src/source/frontend.rs"
+      },
+      "span": {
+       "path": "adapter/src/source/frontend.rs",
+       "line": 20,
+       "column": 4
+      },
+      "generated": false,
+      "declaration_kind": "TRAIT_METHOD_DECLARATION",
+      "owner": {
+       "target": null,
+       "trait_path": "SourceFrontend"
+      },
+      "generics": []
+     },
+     "parameters": [
+      {
+       "name": "&self",
+       "type_identity": {
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+        },
+        "scope": {
+         "segments": [
+          "trait:SourceFrontend"
+         ]
+        },
+        "name": "&Self",
+        "canonical": null,
+        "path": "adapter/src/source/frontend.rs"
+       }
+      }
+     ],
+     "return_type": {
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+      },
+      "scope": {
+       "segments": [
+        "trait:SourceFrontend"
+       ]
+      },
+      "name": "&'static str",
+      "canonical": null,
+      "path": "adapter/src/source/frontend.rs"
+     },
+     "generics": [],
+     "abi": null,
+     "visibility": "inherited",
+     "is_async": false,
+     "is_unsafe": false,
+     "is_extern": false,
+     "body_fingerprint": null
+    },
+    "scope": {
+     "segments": [
+      "trait:SourceFrontend"
+     ]
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:2db021992f16c76e"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/source/frontend.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "20:4"
+    }
+   }
+  },
+  {
+   "ControlFlow": {
+    "record_id": "semantic:CONTROL_FLOW:003022c488c860c5",
+    "dimension": "CONTROL_FLOW",
+    "status": "INFERRED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:c626ba590af9fb59",
+     "block_index": 0,
+     "kind": "FUNCTION_ENTRY",
+     "is_entry": true,
+     "successors": [
+      {
+       "kind": "FALLTHROUGH",
+       "target": "semantic:CONTROL_FLOW:003021c488c85f12"
+      },
+      {
+       "kind": "PANIC",
+       "target": null
+      }
+     ]
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:cc1815fae24c0598"
+    ],
+    "provenance": {
+     "source_path": "adapter/src/semantic/rust/tests.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "1150:63"
+    }
+   }
+  },
+  {
+   "DataFlow": {
+    "record_id": "semantic:DATA_FLOW:00017218ae2e460ap",
+    "dimension": "DATA_FLOW",
+    "status": "OBSERVED",
+    "subject": {
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "function": "semantic:FUNCTION_IDENTITY:1efa42c5e3eae34f",
+     "name": "None",
+     "span": {
+      "path": "core/src/product/mod.rs",
+      "line": 810,
+      "column": 13
+     },
+     "role": "USE",
+     "is_parameter": false,
+     "is_return_flow": false,
+     "resolution": "UNRESOLVED",
+     "resolved_definition": null,
+     "projection": [
+      "census",
+      "facts"
+     ]
+    },
+    "scope": {
+     "segments": []
+    },
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+    },
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "evidence_refs": [
+     "evidence:f48a5373043ea7e0"
+    ],
+    "provenance": {
+     "source_path": "core/src/product/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+     },
+     "extractor": "atlas.rust.source-semantic.v1",
+     "content_hash": null,
+     "span": "810:13"
+    }
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "evidence:0c5c38295e9d1143",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/dependency/cargo.rs",
+   "summary": "parsed call to `quoted_field_anywhere` at adapter/src/dependency/cargo.rs:517:16",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:0d608c5ba370db8a",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/resolve.rs",
+   "summary": "parsed state-access READ `self.crates` at adapter/src/semantic/rust/resolve.rs:1934:76",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:121ad70df7a11b98",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed type spelling `BTreeMap<String, &str>` at runtime/src/lib.rs:2322:31",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:2db021992f16c76e",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/source/frontend.rs",
+   "summary": "parsed function signature for `id`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:38e9dd62649f15ad",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed ownership MOVE_OR_COPY `class` at runtime/src/lib.rs:3061:51",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:44d1a2e5d1b5a038",
+   "kind": "NAME_RESOLUTION",
+   "path": "adapter/src/semantic/rust/mod.rs",
+   "summary": "resolved `self.handle_function` at adapter/src/semantic/rust/mod.rs:1675:25 to `handle_function` at adapter/src/semantic/rust/mod.rs:1424:4",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:47ec4b921f100f33",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/agent.rs",
+   "summary": "parsed DEFINITION `self` at runtime/src/agent.rs:1:0",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:4b152cff15795ed2",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/dataflow.rs",
+   "summary": "parsed control-flow block FUNCTION_ENTRY (block_index=0) at adapter/src/semantic/rust/dataflow.rs:273:68",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:5230eb3c3f1b0fa5",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/census/mod.rs",
+   "summary": "parsed call to `.clone` at runtime/src/census/mod.rs:460:41",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:68a53904fe21d278",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed data-flow DEFINITION `class` at runtime/src/lib.rs:3061:30",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:6b2e35dd8c30446c",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/mod.rs",
+   "summary": "parsed function signature for `handle_function`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:6d676bef7963e225",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/tests.rs",
+   "summary": "parsed call to `.unwrap` at adapter/src/semantic/rust/tests.rs:5872:54",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:6f6ebb0f68988119",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/sandbox.rs",
+   "summary": "parsed concurrency SPAWN at runtime/src/sandbox.rs:210:20",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:7e36f874170de14c",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/boundary_tests.rs",
+   "summary": "parsed function signature for `source_frontend_and_extractor_are_decoupled_layers`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:7f49797d282143a1",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/recensus/entity.rs",
+   "summary": "parsed ownership BORROW_SHARED `unmatched_old` at core/src/recensus/entity.rs:279:13",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:8335f47a09f6ee8b",
+   "kind": "NAME_RESOLUTION",
+   "path": "core/src/atlas/mod.rs",
+   "summary": "type `Strings` in core/src/atlas/mod.rs denotes `core atlas/Strings#`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:918cb4b80d1a87e4",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/language/adl/mod.rs",
+   "summary": "parsed control-flow block CONTINUATION (block_index=14) at core/src/language/adl/mod.rs:466:16",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:98f103c1913d7581",
+   "kind": "NAME_RESOLUTION",
+   "path": "adapter/src/semantic/rust/mod.rs",
+   "summary": "`std::thread::scope` at adapter/src/semantic/rust/mod.rs:208:21 resolves to `std::thread::scope`: THREAD_SCOPE (declared std-path concurrency table)",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:a9b71da99204c716",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/tests.rs",
+   "summary": "parsed effect candidate PANIC at adapter/src/semantic/rust/tests.rs:6376:4",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:aa7423c33e26f0da",
+   "kind": "NAME_RESOLUTION",
+   "path": "runtime/src/census/extraction.rs",
+   "summary": "`fs::read_to_string` at runtime/src/census/extraction.rs:390:18 resolves to `std::fs::read_to_string`: DURABLE_READ (declared std-path persistence table)",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:ad7fbb255e08f12f",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed effect candidate PANIC at runtime/src/lib.rs:3864:67",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:afc71d7750823dd4",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed DEFINITION `{closure@3075:37}` at runtime/src/lib.rs:3075:37",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:c1a0b1f259af39ad",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/tests.rs",
+   "summary": "parsed function identity `visit_expr_call`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:c2522fcee50a553c",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed state-access READ `self.text` at runtime/src/lib.rs:2354:56",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:cc1815fae24c0598",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/tests.rs",
+   "summary": "parsed control-flow block FUNCTION_ENTRY (block_index=0) at adapter/src/semantic/rust/tests.rs:1150:63",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:ee45869693a9a5c8",
+   "kind": "NAME_RESOLUTION",
+   "path": "runtime/src/lib.rs",
+   "summary": "`std::fs::read_to_string` at runtime/src/lib.rs:2871:33 resolves to `std::fs::read_to_string`: DURABLE_READ (declared std-path persistence table)",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:efbb64394fa8eb71",
+   "kind": "PARSER_OUTPUT",
+   "path": "runtime/src/lib.rs",
+   "summary": "parsed function identity `known_ids`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:f34e3b0098fe6917",
+   "kind": "PARSER_OUTPUT",
+   "path": "adapter/src/semantic/rust/tests.rs",
+   "summary": "parsed function identity `struct_destructuring_pattern_binds_each_local_and_its_uses_resolve`",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:f48a5373043ea7e0",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/product/mod.rs",
+   "summary": "parsed data-flow USE `None` at core/src/product/mod.rs:810:13",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:f9a4cab715b810b0",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/atlas/mod.rs",
+   "summary": "parsed DEFINITION `UNSEALED` at core/src/atlas/mod.rs:39:0",
+   "revision": {
+    "kind": "git",
+    "value": "e71cb0394bba9b388135eb30389ea478644a6af6"
+   }
+  },
+  {
+   "id": "evidence:unrevised",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/lib.rs",
+   "summary": "an evidence record without a revision",
+   "revision": null
+  }
+ ],
+ "diagnostics": [
+  {
+   "id": "extraction-diagnostic:009487619ea515c7",
+   "code": "INCOMPLETE_ANALYSIS",
+   "dimension": "DATA_FLOW",
+   "message": "atlas.rust.source-semantic.v1 currently has partial DATA_FLOW coverage for core/src/evidence/mod.rs; emitted observations are valid, but absence of unmodeled forms is not proven; opaque macro/attribute sites in profile: 0"
+  },
+  {
+   "id": "extraction-diagnostic:011592db4048267e",
+   "code": "INCOMPLETE_ANALYSIS",
+   "dimension": "TYPE",
+   "message": "atlas.resolution.rust-paths canonicalizes only type spellings every occurrence of which in core/src/atlas/schema_history.rs resolves to one type; generic, opaque and unresolvable spellings are outside it"
+  },
+  {
+   "id": "extraction-diagnostic:0f6a942ad3dea252",
+   "code": "UNSUPPORTED_LANGUAGE_OR_PROFILE",
+   "dimension": null,
+   "message": "no registered SemanticExtractor supports language \"json\" (apps/studio/design/tokens.json)"
+  }
+ ]
+}

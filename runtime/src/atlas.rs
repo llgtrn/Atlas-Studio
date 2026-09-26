@@ -44,7 +44,8 @@ fn revision(report: &SystemizeReport) -> String {
 }
 
 /// The container for `report`: every census fact, typed obligation and declared ADL node/edge,
-/// plus `certificate` as issued for this container (its own root hash cannot be inside it; state
+/// (G147) every typed semantic record, evidence record and extraction diagnostic, plus
+/// `certificate` as issued for this container (its own root hash cannot be inside it; state
 /// and blockers do not depend on the hash value).
 pub fn atlas_of(
     report: &SystemizeReport,
@@ -126,6 +127,10 @@ pub fn atlas_of(
             state: format!("{:?}", certificate.state).to_ascii_uppercase(),
             blockers: certificate.blockers.clone(),
         },
+        // G147 (NA-ATLAS-TYPED-SECTIONS): every typed record, evidence record and diagnostic.
+        typed_records: census.typed_semantic_records.clone(),
+        evidence: census.evidence.clone(),
+        diagnostics: census.diagnostics.clone(),
     };
     atlas.canonicalize();
     // Canonicalization deduplicates; a census whose records collapse is not packaged silently.
@@ -135,6 +140,21 @@ pub fn atlas_of(
             "obligations",
             atlas.obligations.len(),
             census.typed_obligations.len(),
+        ),
+        (
+            "typed records",
+            atlas.typed_records.len(),
+            census.typed_semantic_records.len(),
+        ),
+        (
+            "evidence records",
+            atlas.evidence.len(),
+            census.evidence.len(),
+        ),
+        (
+            "diagnostics",
+            atlas.diagnostics.len(),
+            census.diagnostics.len(),
         ),
     ] {
         if packaged != censused {
@@ -181,6 +201,10 @@ pub struct PackOutcome {
     pub declared_nodes: usize,
     pub declared_edges: usize,
     pub certificate_state: String,
+    /// G147: the typed semantic records, evidence records and diagnostics packaged.
+    pub typed_records: usize,
+    pub evidence: usize,
+    pub diagnostics: usize,
 }
 
 fn outcome(
@@ -201,6 +225,9 @@ fn outcome(
         declared_nodes: atlas.nodes.len(),
         declared_edges: atlas.edges.len(),
         certificate_state: atlas.certificate.state.clone(),
+        typed_records: atlas.typed_records.len(),
+        evidence: atlas.evidence.len(),
+        diagnostics: atlas.diagnostics.len(),
     }
 }
 
@@ -359,6 +386,34 @@ mod tests {
         );
         let again = publish(&atlas, &dir.join("again.atlas")).unwrap();
         assert_eq!(again.root_id, packed.root_id, "deterministic root identity");
+        // G147 (NA-ATLAS-TYPED-SECTIONS): every typed record of the census -- all twelve
+        // families -- every evidence record and every diagnostic come back from the container
+        // (`publish` proved the decoded container equal to `atlas`).
+        let decoded = &atlas;
+        let mut censused = report.census.typed_semantic_records.clone();
+        censused.sort_by_cached_key(atlas_core::atlas::typed_key);
+        assert_eq!(decoded.typed_records, censused);
+        let families: std::collections::BTreeSet<_> = decoded
+            .typed_records
+            .iter()
+            .map(|r| r.dimension())
+            .collect();
+        assert_eq!(families.len(), 12, "{families:?}");
+        assert_eq!(decoded.evidence.len(), report.census.evidence.len());
+        assert_eq!(decoded.diagnostics.len(), report.census.diagnostics.len());
+        let mut duplicated_record = report.clone();
+        let record = duplicated_record.census.typed_semantic_records[0].clone();
+        duplicated_record.census.typed_semantic_records.push(record);
+        assert!(
+            atlas_of(
+                &duplicated_record,
+                &genome_schema,
+                &genome_hash,
+                &certificate
+            )
+            .is_err(),
+            "typed records that collapse are refused, not shrunk"
+        );
 
         // The certificate issued with this root is not SEALED and says why.
         let with_root = certify(

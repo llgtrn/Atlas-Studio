@@ -1,0 +1,111 @@
+{
+  "schema": "atlas.evidence.typed-sections.v1",
+  "generation": "G147",
+  "decision": ".atlas/decisions/0063-typed-records-in-the-census-container.md",
+  "construction_node": "M1 typed-record .atlas sections: EXISTS",
+  "method": "atlas-systemizer atlas pack of the G147 tree (release build); publish encodes, decodes and requires the decoded container equal to the packaged state before the atomic rename; the runtime self-census test asserts the packaged typed records equal the census list (all twelve families) and the evidence and diagnostic counts",
+  "pack": {
+    "path": "(scratch)",
+    "root_id": "blake3-256:d1cf8a264d1013f06a7a328a5e5dbfecfa216e5576db13247e5de9cc209dd971",
+    "bytes": 114038025,
+    "census_digest": "blake3-256:39457dac8887823e831314eb0f5d0fd02dec703fda57049041cb7f8dd2d26022",
+    "facts": 24767,
+    "obligations": 2144,
+    "declared_nodes": 9,
+    "declared_edges": 12,
+    "certificate_state": "RECONCILED",
+    "typed_records": 151171,
+    "evidence": 151198,
+    "diagnostics": 1401
+  },
+  "pack_seconds": 40.1,
+  "format_minor": 1,
+  "sections": {
+    "ROOT_MANIFEST": {
+      "bytes": 1019,
+      "records": 9
+    },
+    "STRING_TABLE": {
+      "bytes": 31469392,
+      "records": 568747
+    },
+    "SEMANTIC_RECORDS": {
+      "bytes": 68752285,
+      "records": 175938
+    },
+    "GRAPH_NODES": {
+      "bytes": 369,
+      "records": 9
+    },
+    "GRAPH_EDGES": {
+      "bytes": 492,
+      "records": 12
+    },
+    "EVIDENCE": {
+      "bytes": 13607820,
+      "records": 151198
+    },
+    "DIAGNOSTICS": {
+      "bytes": 72632,
+      "records": 1401
+    },
+    "OBLIGATIONS": {
+      "bytes": 132928,
+      "records": 2144
+    },
+    "CENSUS_CERTIFICATE": {
+      "bytes": 296,
+      "records": 15
+    }
+  },
+  "before": {
+    "generation": "G146",
+    "bytes": 5735767,
+    "typed_records": 0,
+    "evidence": 0,
+    "diagnostics": 0
+  },
+  "size_note": "the container grew from 5.7 MB to 114.0 MB uncompressed: the wire's record framing costs 8 bytes per field and 8 per record, embedded records included; the string table holds 568,747 strings; compression (ZSTD, contract-pinned but refused by this reader) is deferred",
+  "fixture_tests": "31 typed records of all twelve families (largest and smallest of each, both PlaceRef variants, present and absent optional fields, a projection), their evidence, one evidence record without a revision, diagnostics with and without a dimension: byte-deterministic round trip; no record's serde text in the container; per-byte corruption and truncation of a compact typed sample all rejected (the minor bytes included)",
+  "adversarial": [
+    "undeclared field refused at write",
+    "required field null refused",
+    "required field missing refused",
+    "wrongly typed value refused",
+    "undeclared enum variant refused",
+    "swapped typed records rejected (canonical order)",
+    "a fact after the typed records rejected",
+    "an embedded-only kind at top level rejected",
+    "a dangling evidence reference refused at write and rejected at read",
+    "format minor 2 rejected",
+    "typed content under minor 0 rejected",
+    "a boolean byte other than 0 or 1 rejected",
+    "an embedded record of another kind rejected",
+    "a truncated packed list rejected",
+    "a changed field shape does not conform"
+  ],
+  "mutants": {
+    "killed": 10,
+    "survived": 0,
+    "cases": [
+      "undeclared key skipped",
+      "absent sequence not decoded as empty",
+      "enum payload dropped",
+      "dangling evidence accepted by the reader",
+      "unknown minor accepted",
+      "embedded kind accepted at top level",
+      "typed order unchecked on read",
+      "shape ignored by conformance",
+      "any nonzero byte is true",
+      "embedded kind unchecked"
+    ]
+  },
+  "intended_change": "benchmark B20 (G146) asserted atlas_of reads no typed_semantic_records; G147 packages them, so B20 now expects census.typed_semantic_records, census.evidence and census.diagnostics among atlas_of's field reads",
+  "dependency": "core gains serde_json (pure serialization, already in the workspace build through runtime and adapter); declared in the recensus intent",
+  "deferred": [
+    "identity/type/symbol interning tables (identities inline through the string table)",
+    "the DESIGN section (construction node M7)",
+    "compression"
+  ],
+  "test_cost": "the runtime test suite takes 285 s (about 115 s at G146): its self-census pack test encodes and decodes 151k typed records in a debug build; the core container tests take 9 s after the per-byte batteries moved to a compact typed sample"
+}

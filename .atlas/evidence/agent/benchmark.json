@@ -266,7 +266,7 @@
  },
  {
   "id": "B20",
-  "question": "Which parts of the census report does atlas_of (the .atlas container builder) read, and does it read the typed semantic records?",
+  "question": "Which parts of the census report does atlas_of (the .atlas container builder) read -- since G147, the typed semantic records, evidence and diagnostics too?",
   "op": "field_reads",
   "args": [
    "fn:atlas_of"
@@ -274,13 +274,15 @@
   "expect": [
    "census.facts",
    "census.typed_obligations",
+   "census.typed_semantic_records",
+   "census.evidence",
+   "census.diagnostics",
    "report.adl.ir.declared.nodes",
    "report.adl.ir.declared.edges",
    "whole:report",
-   "absent:typed_semantic_records",
    "absent:whole:atlas"
   ],
-  "manual_alternative": "read atlas_of and every field access in its body, note that `report` is also passed whole to CensusSnapshot::from_report and revision (before G146 Atlas knew only that atlas_of had 33 uses and 4 parameter flows, not which fields)",
+  "manual_alternative": "read atlas_of and every field access in its body, note that `report` is also passed whole to CensusSnapshot::from_report and revision (before G146 Atlas knew only that atlas_of had 33 uses and 4 parameter flows; G146 answered that it read no typed_semantic_records, and G147 changed that answer by packaging them)",
   "class": "DATA_INFLUENCE"
  },
  {

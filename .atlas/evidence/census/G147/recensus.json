@@ -1,0 +1,836 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G147",
+  "base_revision": "66842678739155740bf2f5ba30c76a51a0a74261",
+  "candidate_revision": "fa8bf573c67792167342e5ea479fa78bb70150e4",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:c48824e7075c5a978dafc21ccf221e5723b30a5618bc55880e7b40b9b3d7ab0a",
+  "after_census_digest": "blake3-256:39457dac8887823e831314eb0f5d0fd02dec703fda57049041cb7f8dd2d26022",
+  "replay_digest": "blake3-256:39457dac8887823e831314eb0f5d0fd02dec703fda57049041cb7f8dd2d26022",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlas/typed.rs",
+      "core/src/atlas/typed_fixture.json"
+    ],
+    "modified": [
+      "core/Cargo.toml",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/atlas.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/atlas.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 83,
+      "fact:FunctionSignature|OBSERVED": 32,
+      "fact:SemanticObligation|OBSERVED": 5,
+      "fact:SemanticObligation|UNKNOWN": 12,
+      "fact:SemanticObligation|UNSUPPORTED": 12,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 143,
+      "fact:Type|DERIVED": 33,
+      "fact:Type|OBSERVED": 46,
+      "record:CALL|DERIVED": 128,
+      "record:CALL|OBSERVED": 536,
+      "record:CONTROL_FLOW|INFERRED": 29,
+      "record:CONTROL_FLOW|OBSERVED": 190,
+      "record:DATA_FLOW|OBSERVED": 1028,
+      "record:EFFECT|INFERRED": 29,
+      "record:FUNCTION_IDENTITY|OBSERVED": 83,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 32,
+      "record:OWNERSHIP|OBSERVED": 316,
+      "record:STATE|OBSERVED": 8,
+      "record:SYMBOL|OBSERVED": 143,
+      "record:TYPE|DERIVED": 33,
+      "record:TYPE|OBSERVED": 46
+    }
+  },
+  "dependency_delta": {
+    "added": [
+      "core -> serde_json@1.0.151 (Registry) [Some(Runtime)]"
+    ],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 3664,
+    "graph_nodes": 2690
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 1,
+    "obligation:CALL|UNSUPPORTED": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNSUPPORTED": 1,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:CONTROL_FLOW|UNSUPPORTED": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNSUPPORTED": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:EFFECT|UNSUPPORTED": 1,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_IDENTITY|UNSUPPORTED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:OWNERSHIP|UNSUPPORTED": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNSUPPORTED": 1,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:STATE|UNSUPPORTED": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:SYMBOL|UNSUPPORTED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1,
+    "obligation:TYPE|UNSUPPORTED": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:CensusAtlas`/canonicalize()."
+      ],
+      "after": [
+        "core atlas/`impl:CensusAtlas`/canonicalize()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Strings`/of()."
+      ],
+      "after": [
+        "core atlas/`impl:Strings`/of()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/encode()."
+      ],
+      "after": [
+        "core atlas/encode()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/read_with_history()."
+      ],
+      "after": [
+        "core atlas/read_with_history()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/schema/conforms()."
+      ],
+      "after": [
+        "core atlas/schema/conforms()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/schema/definition_text()."
+      ],
+      "after": [
+        "core atlas/schema/definition_text()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/schema/opt()."
+      ],
+      "after": [
+        "core atlas/schema/opt()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/schema/recorded_generations()."
+      ],
+      "after": [
+        "core atlas/schema/recorded_generations()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/schema/req()."
+      ],
+      "after": [
+        "core atlas/schema/req()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/every_definition_change_moves_the_schema_identity()."
+      ],
+      "after": [
+        "core atlas/tests/every_definition_change_moves_the_schema_identity()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/every_single_byte_corruption_is_rejected()."
+      ],
+      "after": [
+        "core atlas/tests/every_single_byte_corruption_is_rejected()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/every_truncation_and_extension_is_rejected()."
+      ],
+      "after": [
+        "core atlas/tests/every_truncation_and_extension_is_rejected()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/sample()."
+      ],
+      "after": [
+        "core atlas/tests/sample()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/write()."
+      ],
+      "after": [
+        "core atlas/write()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlas/atlas_of()."
+      ],
+      "after": [
+        "runtime atlas/atlas_of()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlas/outcome()."
+      ],
+      "after": [
+        "runtime atlas/outcome()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "after": [
+        "runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core atlas/`impl:CensusAtlas`/is_canonical()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:CensusAtlas`/is_canonical_except_typed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:CensusAtlas`/typed_content()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/dangling_evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/encode_content()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/`impl:FieldDef`/shape()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/header()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/many()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/maybe()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/one()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/strings()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/typed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tagged_key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_changed_field_shape_does_not_conform()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_typed_value_its_kind_does_not_declare_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/compact_sample()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/embedded_fields_are_checked_against_their_declaration()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/every_typed_record_evidence_and_diagnostic_round_trips_field_by_field()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/fixture()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/typed_forgeries_are_rejected_by_the_reader()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/collect_strings()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/declared()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/decode()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/embedded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/encode()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/field_named()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/is_enum()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/items()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/packed_uvarints()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/present()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/string_at()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed/text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed_key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/typed_kind()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/atlas/typed.rs: 0 -> 12",
+      "core/src/atlas/typed_fixture.json: 0 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1621
+  },
+  "intent": {
+    "objective": "NA-ATLAS-TYPED-SECTIONS (construction node M1): the census container carries every typed semantic record, evidence record and diagnostic field by field through declared record kinds",
+    "changed_paths": [
+      "core/Cargo.toml",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/atlas/typed.rs",
+      "core/src/atlas/typed_fixture.json",
+      "runtime/src/atlas.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+diagnostic:UnsupportedLanguageOrProfile",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [
+      "+core -> serde_json@1.0.151 (Registry) [Some(Runtime)]"
+    ],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/atlas/typed.rs: a new source file (the schema-directed typed-record codec, core/src/atlas/typed.rs) carries the per-file UNKNOWN profile every Rust source has for the dimensions the census does not close",
+      "core/src/atlas/typed_fixture.json: a new source file (the schema-directed typed-record codec, core/src/atlas/typed.rs) carries the per-file UNKNOWN profile every Rust source has for the dimensions the census does not close"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core atlas/`impl:CensusAtlas`/canonicalize().",
+      "CHANGED core atlas/`impl:Strings`/of().",
+      "CHANGED core atlas/encode().",
+      "CHANGED core atlas/read_with_history().",
+      "CHANGED core atlas/schema/conforms().",
+      "CHANGED core atlas/schema/definition_text().",
+      "CHANGED core atlas/schema/opt().",
+      "CHANGED core atlas/schema/recorded_generations().",
+      "CHANGED core atlas/schema/req().",
+      "CHANGED core atlas/tests/every_definition_change_moves_the_schema_identity().",
+      "CHANGED core atlas/tests/every_single_byte_corruption_is_rejected().",
+      "CHANGED core atlas/tests/every_truncation_and_extension_is_rejected().",
+      "CHANGED core atlas/tests/sample().",
+      "CHANGED core atlas/write().",
+      "CHANGED runtime atlas/atlas_of().",
+      "CHANGED runtime atlas/outcome().",
+      "CHANGED runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+      "DELETED core atlas/`impl:CensusAtlas`/is_canonical().",
+      "CREATED core atlas/`impl:CensusAtlas`/is_canonical_except_typed().",
+      "CREATED core atlas/`impl:CensusAtlas`/typed_content().",
+      "CREATED core atlas/dangling_evidence().",
+      "CREATED core atlas/encode_content().",
+      "CREATED core atlas/schema/`impl:FieldDef`/shape().",
+      "CREATED core atlas/schema/header().",
+      "CREATED core atlas/schema/many().",
+      "CREATED core atlas/schema/maybe().",
+      "CREATED core atlas/schema/one().",
+      "CREATED core atlas/schema/strings().",
+      "CREATED core atlas/schema/typed().",
+      "CREATED core atlas/tagged_key().",
+      "CREATED core atlas/tests/a_changed_field_shape_does_not_conform().",
+      "CREATED core atlas/tests/a_typed_value_its_kind_does_not_declare_is_refused().",
+      "CREATED core atlas/tests/compact_sample().",
+      "CREATED core atlas/tests/embedded_fields_are_checked_against_their_declaration().",
+      "CREATED core atlas/tests/every_typed_record_evidence_and_diagnostic_round_trips_field_by_field().",
+      "CREATED core atlas/tests/fixture().",
+      "CREATED core atlas/tests/typed_forgeries_are_rejected_by_the_reader().",
+      "CREATED core atlas/typed/collect_strings().",
+      "CREATED core atlas/typed/declared().",
+      "CREATED core atlas/typed/decode().",
+      "CREATED core atlas/typed/embedded().",
+      "CREATED core atlas/typed/encode().",
+      "CREATED core atlas/typed/field_named().",
+      "CREATED core atlas/typed/is_enum().",
+      "CREATED core atlas/typed/items().",
+      "CREATED core atlas/typed/packed_uvarints().",
+      "CREATED core atlas/typed/present().",
+      "CREATED core atlas/typed/string_at().",
+      "CREATED core atlas/typed/text().",
+      "CREATED core atlas/typed_key().",
+      "CREATED core atlas/typed_kind()."
+    ]
+  },
+  "intended_changes": [
+    "path core/Cargo.toml",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/schema_history.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/atlas/typed.rs",
+    "path core/src/atlas/typed_fixture.json",
+    "path runtime/src/atlas.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +diagnostic:UnsupportedLanguageOrProfile",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "dependency +core -> serde_json@1.0.151 (Registry) [Some(Runtime)]",
+    "entity CHANGED core atlas/`impl:CensusAtlas`/canonicalize().",
+    "entity CHANGED core atlas/`impl:Strings`/of().",
+    "entity CHANGED core atlas/encode().",
+    "entity CHANGED core atlas/read_with_history().",
+    "entity CHANGED core atlas/schema/conforms().",
+    "entity CHANGED core atlas/schema/definition_text().",
+    "entity CHANGED core atlas/schema/opt().",
+    "entity CHANGED core atlas/schema/recorded_generations().",
+    "entity CHANGED core atlas/schema/req().",
+    "entity CHANGED core atlas/tests/every_definition_change_moves_the_schema_identity().",
+    "entity CHANGED core atlas/tests/every_single_byte_corruption_is_rejected().",
+    "entity CHANGED core atlas/tests/every_truncation_and_extension_is_rejected().",
+    "entity CHANGED core atlas/tests/sample().",
+    "entity CHANGED core atlas/write().",
+    "entity CHANGED runtime atlas/atlas_of().",
+    "entity CHANGED runtime atlas/outcome().",
+    "entity CHANGED runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+    "entity DELETED core atlas/`impl:CensusAtlas`/is_canonical().",
+    "entity CREATED core atlas/`impl:CensusAtlas`/is_canonical_except_typed().",
+    "entity CREATED core atlas/`impl:CensusAtlas`/typed_content().",
+    "entity CREATED core atlas/dangling_evidence().",
+    "entity CREATED core atlas/encode_content().",
+    "entity CREATED core atlas/schema/`impl:FieldDef`/shape().",
+    "entity CREATED core atlas/schema/header().",
+    "entity CREATED core atlas/schema/many().",
+    "entity CREATED core atlas/schema/maybe().",
+    "entity CREATED core atlas/schema/one().",
+    "entity CREATED core atlas/schema/strings().",
+    "entity CREATED core atlas/schema/typed().",
+    "entity CREATED core atlas/tagged_key().",
+    "entity CREATED core atlas/tests/a_changed_field_shape_does_not_conform().",
+    "entity CREATED core atlas/tests/a_typed_value_its_kind_does_not_declare_is_refused().",
+    "entity CREATED core atlas/tests/compact_sample().",
+    "entity CREATED core atlas/tests/embedded_fields_are_checked_against_their_declaration().",
+    "entity CREATED core atlas/tests/every_typed_record_evidence_and_diagnostic_round_trips_field_by_field().",
+    "entity CREATED core atlas/tests/fixture().",
+    "entity CREATED core atlas/tests/typed_forgeries_are_rejected_by_the_reader().",
+    "entity CREATED core atlas/typed/collect_strings().",
+    "entity CREATED core atlas/typed/declared().",
+    "entity CREATED core atlas/typed/decode().",
+    "entity CREATED core atlas/typed/embedded().",
+    "entity CREATED core atlas/typed/encode().",
+    "entity CREATED core atlas/typed/field_named().",
+    "entity CREATED core atlas/typed/is_enum().",
+    "entity CREATED core atlas/typed/items().",
+    "entity CREATED core atlas/typed/packed_uvarints().",
+    "entity CREATED core atlas/typed/present().",
+    "entity CREATED core atlas/typed/string_at().",
+    "entity CREATED core atlas/typed/text().",
+    "entity CREATED core atlas/typed_key().",
+    "entity CREATED core atlas/typed_kind()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

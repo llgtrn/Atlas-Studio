@@ -1,0 +1,19 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G147",
+  "trigger": "review cadence: DEBT-EPISTEMIC_UNIFICATION, last advanced G134 and reviewed G129, fell due at G147",
+  "method": "re-read against G135-G147 (typed relations, typed receivers, field projections, typed container sections)",
+  "reviews": [
+    {
+      "debt": "DEBT-EPISTEMIC_UNIFICATION",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G134 changed the vocabulary map; G147's typed records carry EpistemicStatus as the typed enum through the container, adding no untyped carrier; the donor ledger's three boundary texts and the struct-field-only map test stand; NA-VOCABULARY-COMPLETION",
+      "correction": {}
+    }
+  ],
+  "summary": {
+    "reviewed": 1,
+    "confirmed": 1,
+    "corrected": 0
+  }
+}
