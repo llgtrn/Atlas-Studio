@@ -1,0 +1,1988 @@
+# FULL_OSS_REPLAY (G151, ADR 0067): every canonical donor replayed through successively stronger
+# Atlas capability epochs. Generated from the union of the donor ledgers (donor corpus, First-50,
+# capability audit, repo-exact frontier, revalidation, working set, campaign and provenance records)
+# deduplicated by remote, plus explicitly authorized donors. A verdict is valid at the epoch that
+# decided it; newer decisions append, history is never rewritten.
+
+schema = "atlas.full-oss-replay.v1"
+lane = "FULL_OSS_REPLAY"
+distinct_from = ["NEW_DONOR_PROGRESSION", "FRONTIER_EXPANSION", "HISTORICAL_DONOR_REVALIDATION"]
+authorization = "owner directive: HARD OVERRIDE -- FULL OSS REPLAY CAMPAIGN (G151)"
+eligible = "the repositories below, and only them; no other repository may be materialized under this lane"
+campaign_start = "G151"
+materialization_root = ".atlas/.cache/donors"
+max_materialized = 1
+max_non_replay_between = 1
+current_epoch = "E1"
+next_replay = "abhigyanpatwari/gitnexus"
+next_replay_reason = "owner directive: GitNexus (R1) exposed DEBT-MULTILANGUAGE -- Atlas cannot see TypeScript or JavaScript, including its own tools/*.mjs; the same GitNexus pin is the falsification target of the bounded TypeScript/JavaScript semantic profile and is re-censused at the next epoch (tree-sitter as syntax substrate only)"
+
+[counts]
+total = 160
+never_replayed = 159
+materialized = 0
+processed = 1
+capability_advanced = 1
+no_capability_delta = 0
+revalidation_required = 1
+license_review_required = 0
+source_extinct = 1
+blocked_on_user = 6
+remaining = 159
+
+[[epoch]]
+id = "E0"
+generation = "G150"
+commit = "db711846e54ebba591f5c5e2c8e17502becfde9b"
+capability = "Atlas at campaign start: Rust-only semantics (12 dimensions), composed world model, agent lenses, impact closure, typed .atlas sections, SelectedDesign, seal policy, design comparison"
+
+[[epoch]]
+id = "E1"
+generation = "G151"
+capability = "lifetime parameters erased from impl shapes and declared types (a Self-returning constructor of a lifetime-generic impl types its let); the impact frontier crosses closures (ENCLOSES), trait dispatch (DISPATCHES_TO) and uniquely named call sites (UNIQUE_NAME), each INFERRED and counted by why"
+
+[[repository]]
+key = "666ghj/bettafish"
+remote = "https://github.com/666ghj/BettaFish.git"
+names = ["BettaFish"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "GPL-2.0"
+historical_pins = ["c4ca6360489b53c38d3d41d213a67b50d2fcb883"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "666ghj/mirofish"
+remote = "https://github.com/666ghj/MiroFish.git"
+names = ["MiroFish"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "AGPL-3.0"
+historical_pins = ["39d849138ef254f6c737ab4c4705e5545dbe31d4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "abhigyanpatwari/gitnexus"
+remote = "https://github.com/abhigyanpatwari/GitNexus"
+names = ["GitNexus", "gitnexus"]
+sources = ["owner directive (HARD OVERRIDE -- FULL OSS REPLAY CAMPAIGN): explicitly authorized donor"]
+historical_generations = []
+historical_verdicts = []
+license = "PolyForm-Noncommercial-1.0.0"
+historical_pins = []
+physically_present_legacy = false
+replay_status = "PROCESSED"
+replay_generation = "G151"
+pinned_commit = "06ce60beb67494cac7801c0bdf97a4e9a4b65862"
+license_status = "STUDY_AND_TESTING_ONLY: run and read for research and testing (Personal Uses clause); no implementation copied"
+code_reuse = "NONE"
+materialization = "shallow blobless clone at the pin into .atlas/.cache/donors/gitnexus (300,602,876 bytes, 5,679 files); npm install with telemetry and update checks off, HOME isolated"
+epoch_before = "E0"
+epoch_after = "E1"
+levels_reached = "L0 FILE_INVENTORY for its TypeScript (2,543 files, UNSUPPORTED in every dimension); L2 LOCAL_SEMANTICS for its 209 Rust test fixtures"
+mission = ".atlas/evidence/replay/R1-gitnexus.json"
+capability_delta = "CAPABILITY_ADVANCED"
+n_plus_1 = ".atlas/evidence/replay/R1-gitnexus.json"
+mechanisms = ["bounded name-fallback resolution (refuse ambiguous)", "hunk-level change detection", "execution-flow (process) clustering", "multi-language tree-sitter indexing", "agent context budget"]
+gaps = ["DEBT-MULTILANGUAGE: TypeScript and JavaScript unseen", "DEBT-CALL: trait-impl methods on concrete receivers", "DEBT-IMPACT_CLOSURE: file-level seeds", "DEBT-SEMANTIC-COMPOSITION: no execution flows"]
+terminal_state = "REFERENCE_ONLY_UNTIL_TRIGGER"
+decided_at_epoch = "E1"
+trigger_status = "REVALIDATION_REQUIRED"
+revalidation_trigger = "the bounded TypeScript/JavaScript semantic profile (DEBT-MULTILANGUAGE) is attacked with this pin as its falsification target: re-census the same pin at the next epoch"
+source_path = ".atlas/.cache/donors/gitnexus"
+source_extinct = true
+
+[[repository]]
+key = "abi/screenshot-to-code"
+remote = "https://github.com/abi/screenshot-to-code.git"
+names = ["screenshot-to-code"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["d026163f586dfa8c5c10d28c36edd59a9d3b0e88"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "anyoptimization/pymoo"
+remote = "https://github.com/anyoptimization/pymoo.git"
+names = ["pymoo"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["23110c155aa8f31b5f1b86928227fb3931ba7f00"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "apache/arrow"
+remote = "https://github.com/apache/arrow.git"
+names = ["Apache Arrow", "apache/arrow", "arrow"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G88"]
+historical_verdicts = ["G88: REFERENCE_ONLY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G88: CAPABILITY_OPEN_SCALE_TRIGGERED (capability_decision)", "G88: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "G88: CAMPAIGN_PROVEN (current_status)", "G88: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["1f789ffd70f96907698e93ef99f4e034caf0788b", "70f5c269ae8d154f57f7a7ec6babe6e0685ed6ec"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "apalache-mc/apalache"
+remote = "https://github.com/apalache-mc/apalache.git"
+names = ["Apalache"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["1371658a2c7377b43882b82764ea7720ec689e21"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ardupilot/ardupilot"
+remote = "https://github.com/ArduPilot/ardupilot.git"
+names = ["ArduPilot"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "GPL-3.0"
+historical_pins = ["4965c4e84a7f5cb48a437ad20ba2c967b034ac0d"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ast-grep/ast-grep"
+remote = "https://github.com/ast-grep/ast-grep.git"
+names = ["ast-grep", "ast-grep/ast-grep"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G71"]
+historical_verdicts = ["G71: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: NOT_ABSORBED_REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G71: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G71: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-TRANSFORMATION) (mechanisms_rejected)", "G71: CAMPAIGN_PROVEN (current_status)", "G71: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["6175e07b668b388a1a326d8fc543c4856eb5f54b", "cf48ff457aa0963ea4133c75a511bcd8d2c2ea56"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "babylonjs/babylon.js"
+remote = "https://github.com/BabylonJS/Babylon.js.git"
+names = ["Babylon.js"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "Apache-2.0"
+historical_pins = ["0520900e8d7afcb7b7923bb9bad913e49b6cf919"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "bazelbuild/bazel"
+remote = "https://github.com/bazelbuild/bazel.git"
+names = ["Bazel"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE_OVERLAPPING (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: OVERLAPPING (status)"]
+license = "Apache-2.0"
+historical_pins = ["33548fb14304a703ec713a45a656a6e27dfbcdbb", "4e1c9b4dd5c54599bf70e73797f659d15d614192"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "blake3-team/blake3"
+remote = "https://github.com/BLAKE3-team/BLAKE3.git"
+names = ["BLAKE3", "blake3", "BLAKE3-team/BLAKE3"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/GENERATIONS.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G36"]
+historical_verdicts = ["-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "-: ABSORB_NOW (decision_status)", "-: EXTINCT (extinction_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G36: CAPABILITY_PARTIAL (capability_decision)", "G36: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-ARTIFACT_IDENTITY) (mechanisms_absorbed)", "-: HISTORICALLY_PROVEN (current_status)", "-: ABSORBED (terminal_state)", "G36: true (extinction.eligible)", "G36: true (extinction.performed)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["6aab490a26124663329dfd3961b8469f8fdb158b"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "boj/iris"
+remote = "https://github.com/boj/iris.git"
+names = ["boj/iris", "IRIS", "iris"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G91"]
+historical_verdicts = ["G91: ABSORBED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: ABSORBED (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G91: CAPABILITY_PARTIAL (capability_decision)", "G91: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-EFFECT) (mechanisms_absorbed)", "G91: CAMPAIGN_PROVEN (current_status)", "G91: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: LANGUAGE_UNDETERMINED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["743491588edf21ace27a1c331f6ff8e3b75d492d"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "boostorg/units"
+remote = "https://github.com/boostorg/units.git"
+names = ["Boost.Units"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSL-1.0"
+historical_pins = ["f39b667d7803a6428d869c0087d92128b1212685"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "borgbackup/borg"
+remote = "https://github.com/borgbackup/borg.git"
+names = ["borg"]
+sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = []
+historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
+license = "UNRECORDED"
+historical_pins = ["177d09c9152dcf983f3f3c918bc5ec630cfc7426"]
+physically_present_legacy = true
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "bytecodealliance/regalloc2"
+remote = "https://github.com/bytecodealliance/regalloc2.git"
+names = ["bytecodealliance/regalloc2", "regalloc2"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G102"]
+historical_verdicts = ["G102: REFERENCE_ONLY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G102: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G102: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-COMPILER_LOWERING) (mechanisms_rejected)", "G102: CAMPAIGN_PROVEN (current_status)", "G102: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["2fe490bc9dda433f70c54f90f7633ed929f693d9"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "bytecodealliance/wasm-tools"
+remote = "https://github.com/bytecodealliance/wasm-tools.git"
+names = ["bytecodealliance/wasm-tools", "Wasm Tools", "wasm-tools", "WebAssembly spec/runtimes"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G99"]
+historical_verdicts = ["G99: REFERENCE_ONLY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G99: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G99: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-BACKEND_ADAPTER) (mechanisms_rejected)", "-: REJECTED(DEBT-SANDBOXED_EXECUTION) (mechanisms_rejected)", "G99: CAMPAIGN_PROVEN (current_status)", "G99: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)", "-: ALREADY_ADMITTED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["5b9827a7eabc4e365c6e15ed2ab5059a3db8b215", "cf7962455a2d58e32b8c1f92da017fe4ed7d4b85"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "bytecodealliance/wasmtime"
+remote = "https://github.com/bytecodealliance/wasmtime.git"
+names = ["bytecodealliance/wasmtime", "Cranelift", "WASI", "Wasmtime", "wasmtime", "Wasmtime/WASI", "WebAssembly spec/runtimes"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G100"]
+historical_verdicts = ["G100: EXTERNAL_BOUNDARY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: EXTERNAL_BOUNDARY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G100: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G100: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:PERMANENT_REALITY (external_boundaries)", "G100: CAMPAIGN_PROVEN (current_status)", "G100: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)", "-: ALREADY_ADMITTED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["7ad2e732ab9ca8665d3cdd91f9c395315eeafc81", "944bb6bc4ce80ee9fe614f7fef33e342afb2c5fd"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "c9x.me/git/qbe"
+remote = "https://c9x.me/git/qbe.git"
+names = ["QBE"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["e786f06032fefa2e3790d6b1c9e31ed138f475a6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "cadquery/cadquery"
+remote = "https://github.com/CadQuery/cadquery.git"
+names = ["CadQuery"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["c11b3f93278bb25053991f7071451f71664c90fc"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "capnproto/capnproto"
+remote = "https://github.com/capnproto/capnproto.git"
+names = ["Cap'n Proto", "capnproto", "capnproto/capnproto"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G84"]
+historical_verdicts = ["G84: REFERENCE_ONLY (terminal_state)", "-: STUDY_FOR_BINARY_FORMAT_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G84: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G84: REFERENCE_ONLY (mechanism_decision)", "-: REJECTED(DEBT-ATLAS_COMPLETENESS) (mechanisms_rejected)", "-: REJECTED(DEBT-SEAL_GATE) (mechanisms_rejected)", "G84: CAMPAIGN_PROVEN (current_status)", "G84: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "MIT"
+historical_pins = ["7fff7b6482a19bdedb18884d13f66a1a4f5e5650", "fda9aecf8120d92f2085c9625330ffd9ddca7c24"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "clabstreamteam/open-higgsfield-ai"
+remote = "https://github.com/ClabstreamTeam/Open-Higgsfield-AI.git"
+names = ["community 'open-higgsfield' clones"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: REJECTED_UNLICENSED (lifecycle)", "-: EXCLUDED (working_set)", "-: NOT_OFFICIAL; UNLICENSED (status)"]
+license = "none | none (no LICENSE file; GH API null)"
+historical_pins = ["44788b5ae32dd396f51daa6c7ffca6fde86e0378"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "coatisoftware/sourcetrail"
+remote = "https://github.com/CoatiSoftware/Sourcetrail.git"
+names = ["CoatiSoftware/Sourcetrail", "sourcetrail", "Sourcetrail"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G72"]
+historical_verdicts = ["G72: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: NOT_ABSORBED_REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G72: CAPABILITY_NOT_REQUIRED (capability_decision)", "G72: REFERENCE_ONLY (mechanism_decision)", "G72: CAMPAIGN_PROVEN (current_status)", "G72: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["4b1b0e4fd19c4af235fef12b0564c05348f5f6d3"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "comfy-org/comfyui"
+remote = "https://github.com/Comfy-Org/ComfyUI.git"
+names = ["ComfyUI"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED; COPYLEFT_REFERENCE_ONLY (status)"]
+license = "GPL-3.0-only | GPL-3.0-only (GH API: GPL-3.0)"
+historical_pins = ["1568e6cfd04586a4b3c4e1817ea7dde09b1bf9e7"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "containers/bubblewrap"
+remote = "https://github.com/containers/bubblewrap.git"
+names = ["bubblewrap (alt)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "LGPL-2.0-or-later"
+historical_pins = ["f8e1e5077eb8613ca559bac0d422282a910015d6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "containers/image"
+remote = "https://github.com/containers/image.git"
+names = ["containers-image", "containers/image", "Sigstore"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G107"]
+historical_verdicts = ["G107: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G107: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G107: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-ARTIFACT_IDENTITY) (mechanisms_rejected)", "-: REJECTED(DEBT-SEAL_GATE) (mechanisms_rejected)", "G107: CAMPAIGN_PROVEN (current_status)", "G107: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)", "-: OVERLAPPING (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["df7e80d2d19872b61f352a8a182ec934dc0c2346"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "containers/podman"
+remote = "https://github.com/containers/podman.git"
+names = ["containers/podman", "Linux namespaces/seccomp", "podman", "Podman"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G106"]
+historical_verdicts = ["G106: EXTERNAL_BOUNDARY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: EXTERNAL_BOUNDARY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G106: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G106: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:PERMANENT_REALITY (external_boundaries)", "G106: CAMPAIGN_PROVEN (current_status)", "G106: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)", "-: OVERLAPPING (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["0d12a23e7bc94460f7986c01c79636b63ab6cd36", "5866b09c1f064775ab5e049c120ffe51c1cf1623"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "cvc5/cvc5"
+remote = "https://github.com/cvc5/cvc5.git"
+names = ["cvc5"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["02594aba46d28c583d16f8f03a972a64a36742e9", "504043a215a99e73b56f564e0bb83a44d92ea843"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "cytoscape/cytoscape.js"
+remote = "https://github.com/cytoscape/cytoscape.js.git"
+names = ["cytoscape-js", "Cytoscape.js", "cytoscape/cytoscape.js"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["7ba634095d8954089ee5dc09ada0030f2dca134c"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "deap/deap"
+remote = "https://github.com/DEAP/deap.git"
+names = ["DEAP"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "LGPL-3.0"
+historical_pins = ["8a96fd3a75026f7b30e835f595a5199c75634ddf"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "dequelabs/axe-core"
+remote = "https://github.com/dequelabs/axe-core.git"
+names = ["axe-core"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED; WEAK_COPYLEFT_FILE_LEVEL (status)"]
+license = "MPL-2.0"
+historical_pins = ["eb854ed3e7498f1c1c6bd941b44181455a8e4866"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "egraphs-good/egglog"
+remote = "https://github.com/egraphs-good/egglog.git"
+names = ["egglog", "egraphs-good/egglog"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G82"]
+historical_verdicts = ["G82: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G82: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G82: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-DESIGN_GENERATION) (mechanisms_rejected)", "-: REJECTED(DEBT-TYPE) (mechanisms_rejected)", "G82: CAMPAIGN_PROVEN (current_status)", "G82: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["90635860397ce710f8c0a4eeb04154a8ebc3ac05"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "facebook/ax"
+remote = "https://github.com/facebook/Ax.git"
+names = ["Ax"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["57efa05aefce2a93d4d93227a4acbe2da0150aed"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "facebook/buck2"
+remote = "https://github.com/facebook/buck2.git"
+names = ["buck2", "Buck2", "Buck2/Dice", "facebook/buck2"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G81"]
+historical_verdicts = ["G81: DEFERRED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: DEFERRED (decision_status)", "-: DEFERRED (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G81: CAPABILITY_OPEN_SCALE_TRIGGERED (capability_decision)", "G81: DEFERRED (mechanism_decision)", "G81: CAMPAIGN_PROVEN (current_status)", "G81: DEFERRED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)", "-: ALREADY_ADMITTED (status)"]
+license = "MIT OR Apache-2.0"
+historical_pins = ["78ec517305d8214d6160f6c99b1d0a3554879878", "b32ed8ac7d6e935fed7d667e22adaa6a43f359fd"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "facebook/yoga"
+remote = "https://github.com/facebook/yoga.git"
+names = ["Yoga"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["a8b4817143940e2717f60148ec418cf95b789628"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "facebook/zstd"
+remote = "https://github.com/facebook/zstd.git"
+names = ["facebook/zstd", "Zstandard", "zstd"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G87"]
+historical_verdicts = ["G87: REFERENCE_ONLY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G87: CAPABILITY_OPEN_SCALE_TRIGGERED (capability_decision)", "G87: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "G87: CAMPAIGN_PROVEN (current_status)", "G87: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["01b7154f1172432f8abe9b3bb9909e14a1176b7d"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "facebookincubator/glean"
+remote = "https://github.com/facebookincubator/Glean.git"
+names = ["facebookincubator/Glean", "glean", "Glean"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G68"]
+historical_verdicts = ["G68: ABSORBED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: ABSORBED_NATIVE (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G68: CAPABILITY_PARTIAL (capability_decision)", "G68: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-ATLAS_COMPLETENESS) (mechanisms_absorbed)", "G68: CAMPAIGN_PROVEN (current_status)", "G68: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["2a48dea4cddb316d3b8bd65b54965cb9a7855c52", "e32e6d0d1643eb32227d7544c5d8a06449f78e06"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ffmpeg/ffmpeg"
+remote = "https://github.com/FFmpeg/FFmpeg.git"
+names = ["FFmpeg"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED; COPYLEFT_REFERENCE_ONLY (status)"]
+license = "LGPL-2.1-or-later | LGPL-2.1-or-later (default build); GPL-2.0-or-later when configured --enable-gpl (a few files GPL-3.0-or-later e.g. vf_lensfun.c); some files MIT/BSD"
+historical_pins = ["9cee5ae719d6f82356d12782611b4a1d5866d251", "c0e8b139fd32fc1a547d546042be6bc2b03d5b73"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "fidelityframework/clef"
+remote = "https://github.com/FidelityFramework/clef.git"
+names = ["clef", "CLEF COMPILER / CCS", "Clef Compiler / CCS", "FidelityFramework/clef"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G78"]
+historical_verdicts = ["G78: REFERENCE_ONLY (terminal_state)", "-: CANDIDATE_UNDER_REVIEW (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G78: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G78: REFERENCE_ONLY (mechanism_decision)", "-: REJECTED(DEBT-CALL) (mechanisms_rejected)", "-: REJECTED(DEBT-MULTILANGUAGE) (mechanisms_rejected)", "G78: CAMPAIGN_PROVEN (current_status)", "G78: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: LANGUAGE_UNDETERMINED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["e94fa905f7f13c2b8216b355e9d84b17dceef5c8"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "fidelityframework/composer"
+remote = "https://github.com/FidelityFramework/Composer.git"
+names = ["Clef / Composer", "CLEF / COMPOSER", "composer", "FidelityFramework/Composer"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G94"]
+historical_verdicts = ["G94: REFERENCE_ONLY (terminal_state)", "-: PENDING_COORDINATOR_REVIEW (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G94: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G94: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-COMPILER_LOWERING) (mechanisms_rejected)", "G94: CAMPAIGN_PROVEN (current_status)", "G94: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["c46485096c38dc2c9fef9db4ae60caa1905ca1a3"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "firecracker-microvm/firecracker"
+remote = "https://github.com/firecracker-microvm/firecracker.git"
+names = ["Firecracker"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["8ff4940e6a723c541331e74c92cc2caeb26b6e31"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "frappe/erpnext"
+remote = "https://github.com/frappe/erpnext.git"
+names = ["ERPNext"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "GPL-3.0-or-later"
+historical_pins = ["b78c2bc5092a82edc7f9edf16161bc1480bcc171"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "freecad/freecad"
+remote = "https://github.com/FreeCAD/FreeCAD.git"
+names = ["FreeCAD"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "LGPL-2.1-or-later"
+historical_pins = ["1b7d32fb7f24ea65e98d50d4194843089557e9fc", "3f714943e2948c8c6a2f2022cf196371eed576fb"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "gazebosim/gz-sim"
+remote = "https://github.com/gazebosim/gz-sim.git"
+names = ["Gazebo", "Gazebo gz-sim"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["ec2a672be4249d5bafe25b0285e88ef3bbdff689"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "gimli-rs/object"
+remote = "https://github.com/gimli-rs/object.git"
+names = ["gimli-rs/object", "object"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G101"]
+historical_verdicts = ["G101: REFERENCE_ONLY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G101: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G101: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-ARTIFACT_IDENTITY) (mechanisms_rejected)", "-: REJECTED(DEBT-BACKEND_ADAPTER) (mechanisms_rejected)", "G101: CAMPAIGN_PROVEN (current_status)", "G101: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["7770b8c580b07999a67226c4f9ae638e483e0314", "dce50f05c9de3f461fb0b76c9e48cab67a256de4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "git.code.sf.net/p/ngspice/ngspice"
+remote = "https://git.code.sf.net/p/ngspice/ngspice"
+names = ["ngspice"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause | BSD-3-Clause (Modified BSD) + mixed: KLU/tclspice/numparam LGPL-2, xspice/icm/table GPL-2+, osdi MPL-2.0"
+historical_pins = ["032b1c32c4dbad45ff132bcfac1dbecadbd8abb0", "a9950f0e8ca7f3ea7a7ae00c4e93944a30c2c1b4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "git/git"
+remote = "https://github.com/git/git.git"
+names = ["git", "Git"]
+sources = [".atlas/evidence/campaign/*.json", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G110"]
+historical_verdicts = ["G110: EXTERNAL_BOUNDARY (terminal_state)", "G110: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G110: EXTERNAL_BOUNDARY (mechanism_decision)", "-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)", "-: EXTERNAL_BOUNDARY:PERMANENT_REALITY (external_boundaries)", "G110: CAMPAIGN_PROVEN (current_status)", "G110: EXTERNAL_BOUNDARY (terminal_state)", "-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "G150: CURRENT (status)", "-: MISSING (status)"]
+license = "GPL-2.0-only"
+historical_pins = ["0f8e75abebff0877cae681a3d5ff31ac47f54220", "d38352cd43ab9745686d697872408bc3249a153f"]
+physically_present_legacy = true
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "gitlab.com/kicad/code/kicad"
+remote = "https://gitlab.com/kicad/code/kicad.git"
+names = ["KiCad"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "GPL-3.0-or-later"
+historical_pins = ["d1191971d12cf0c40d6b032d5d46ab14a8b176e4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "google-deepmind/mujoco"
+remote = "https://github.com/google-deepmind/mujoco.git"
+names = ["MuJoCo"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse) (status)"]
+license = "Apache-2.0"
+historical_pins = ["c0d845b93c463993eeb7abe1547b45c89dac6f10"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "google/cdc-file-transfer"
+remote = "https://github.com/google/cdc-file-transfer.git"
+names = ["cdc-file-transfer"]
+sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = []
+historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
+license = "UNRECORDED"
+historical_pins = ["370023a944d8c81f60463b6659d0de4de99637a7"]
+physically_present_legacy = true
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "google/crubit"
+remote = "https://github.com/google/crubit.git"
+names = ["Crubit", "crubit", "google/crubit"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["0695a5130e0e40936cfce0997c770cf578a6b524", "34c96fb368e1a734c06425172f810ca1371eb705"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "google/flatbuffers"
+remote = "https://github.com/google/flatbuffers.git"
+names = ["flatbuffers", "FlatBuffers", "google/flatbuffers"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G86"]
+historical_verdicts = ["G86: ABSORBED (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: ABSORBED_NATIVE (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G86: CAPABILITY_PARTIAL (capability_decision)", "G86: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-ATLAS_COMPLETENESS) (mechanisms_absorbed)", "G86: CAMPAIGN_PROVEN (current_status)", "G86: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["b8431fbcd7a5c71817f314e18b332c0648554efa"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "google/nsjail"
+remote = "https://github.com/google/nsjail.git"
+names = ["nsjail (compact ns/seccomp ref)"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["f100fd917c6d3ed0fd15d868528b735cb5fb1a1a"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "hgahub/duumbi"
+remote = "https://github.com/hgahub/duumbi.git"
+names = ["duumbi", "DUUMBI", "hgahub/duumbi"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G93"]
+historical_verdicts = ["G93: REFERENCE_ONLY (terminal_state)", "-: UNDER_COORDINATOR_REVIEW (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G93: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G93: REFERENCE_ONLY (mechanism_decision)", "-: REJECTED(DEBT-CONSTRUCTION_IR) (mechanisms_rejected)", "-: REJECTED(DEBT-TRANSFORMATION) (mechanisms_rejected)", "G93: CAMPAIGN_PROVEN (current_status)", "G93: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["ab4c8776f795052d3669774a7ff12bdd3231fd02"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "hgrecco/pint"
+remote = "https://github.com/hgrecco/pint.git"
+names = ["pint"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["e4042bbe5c6647e1d6ef5d242228d2e1462df7db"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/cli"
+remote = "https://github.com/higgsfield-ai/cli.git"
+names = ["Higgsfield CLI"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; CLIENT_ONLY (status)"]
+license = "MIT"
+historical_pins = ["dc7e2d2eac0b1fdad255de24d87552d1ba479037"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/cursor-plugin"
+remote = "https://github.com/higgsfield-ai/cursor-plugin.git"
+names = ["other higgsfield-ai repos"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; IRRELEVANT (status)"]
+license = "MIT / MIT / none"
+historical_pins = ["c9215059e409dc81c69ff0fe77ea2740c5fc6249"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/higgsfield"
+remote = "https://github.com/higgsfield-ai/higgsfield.git"
+names = ["higgsfield (GPU training framework)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; NOT_A_CREATOR_DONOR (status)"]
+license = "Apache-2.0"
+historical_pins = ["d12a36e66024a93d33ec61826a77d5a346c16869"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/higgsfield-client"
+remote = "https://github.com/higgsfield-ai/higgsfield-client.git"
+names = ["higgsfield-client (Python SDK)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; CLIENT_ONLY (status)"]
+license = "Apache-2.0"
+historical_pins = ["aefd1ca677929762b9f69a7a7ea530a4a695d6a8"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/higgsfield-js"
+remote = "https://github.com/higgsfield-ai/higgsfield-js.git"
+names = ["higgsfield-js (Node SDK)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; CLIENT_ONLY (status)"]
+license = "MIT | MIT (package.json only; no LICENSE file at HEAD; GH API license null)"
+historical_pins = ["e3f274249962417e21f6566d4eecec6d8491d11c"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/homebrew-tap"
+remote = "https://github.com/higgsfield-ai/homebrew-tap.git"
+names = ["other higgsfield-ai repos"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; IRRELEVANT (status)"]
+license = "MIT / MIT / none"
+historical_pins = ["7d356a8bca3f08ab2dba402cf64c72cc5eee8561"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/omagotchi"
+remote = "https://github.com/higgsfield-ai/omagotchi.git"
+names = ["other higgsfield-ai repos"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; IRRELEVANT (status)"]
+license = "MIT / MIT / none"
+historical_pins = ["f9e6f422429c3c0d66ed37a7603c62d27fc4d81c"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "higgsfield-ai/skills"
+remote = "https://github.com/higgsfield-ai/skills.git"
+names = ["Higgsfield skills"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_PROVIDER_ARTIFACT (lifecycle)", "-: EXCLUDED (working_set)", "-: EXISTS; CLIENT_ONLY (status)"]
+license = "MIT"
+historical_pins = ["d071406147a37b835bed09543d85ab3e9bd85c7d"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "huggingface/diffusers"
+remote = "https://github.com/huggingface/diffusers.git"
+names = ["Diffusers"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "Apache-2.0"
+historical_pins = ["e0118ade2f60234c41bacf40330a7e2f61108849"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "icaros-usc/pyribs"
+remote = "https://github.com/icaros-usc/pyribs.git"
+names = ["pyribs (QD)"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["7bd723cf9863d480c8f2fec5ba9aa36f3b68c083"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "iliekturtles/uom"
+remote = "https://github.com/iliekturtles/uom.git"
+names = ["uom"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0 OR MIT"
+historical_pins = ["a465bcc2b3bf67f9f12fc0b133d371762d9d8fe4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "immunant/c2rust"
+remote = "https://github.com/immunant/c2rust.git"
+names = ["C2Rust", "c2rust", "immunant/c2rust"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G114"]
+historical_verdicts = ["G114: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G114: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G114: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-MULTILANGUAGE) (mechanisms_rejected)", "-: REJECTED(DEBT-TRANSFORMATION) (mechanisms_rejected)", "G114: CAMPAIGN_PROVEN (current_status)", "G114: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["1d37ebbf4d505c947f20947edc264f47e33ed14b", "7fe0cf95d0ff1414b6aa93b17ca328f56b4c450f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "in-toto/attestation"
+remote = "https://github.com/in-toto/attestation.git"
+names = ["in-toto attestation"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["fd2609c16bcb0ac53443e2b4612977f997e8f9a5"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "in-toto/in-toto"
+remote = "https://github.com/in-toto/in-toto.git"
+names = ["in-toto"]
+sources = [".atlas/evidence/campaign/*.json", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G109"]
+historical_verdicts = ["G109: ABSORBED (terminal_state)", "G109: CAPABILITY_PARTIAL (capability_decision)", "G109: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-ARTIFACT_IDENTITY) (mechanisms_absorbed)", "G109: CAMPAIGN_PROVEN (current_status)", "G109: ABSORBED (terminal_state)", "-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "G150: CURRENT (status)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["e352b43ad7cb8915d84c36d791aa61346152a0a3"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "in-toto/in-toto-rs"
+remote = "https://github.com/in-toto/in-toto-rs.git"
+names = ["in-toto-rs (smallest impl)"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["48e57fd04624d30d081fae1dddf56caaa4a5b81e"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "joernio/joern"
+remote = "https://github.com/joernio/joern.git"
+names = ["Joern", "joern", "joernio/joern"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G69"]
+historical_verdicts = ["G69: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: NOT_ABSORBED_REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G69: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G69: REFERENCE_ONLY (mechanism_decision)", "-: REJECTED(DEBT-CALL) (mechanisms_rejected)", "-: REJECTED(DEBT-CONTROL_FLOW) (mechanisms_rejected)", "-: REJECTED(DEBT-DATA_FLOW) (mechanisms_rejected)", "G69: CAMPAIGN_PROVEN (current_status)", "G69: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["b381922638ae436fcb6862a90241c8f7ce508894", "b895fe47518d61408fb891dd890dd705597b4ac1"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "keycloak/keycloak"
+remote = "https://github.com/keycloak/keycloak.git"
+names = ["keycloak", "Keycloak", "keycloak/keycloak"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["08f960d0dd5e99912253d7a7aeba4772ae174e86", "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "keylime/keylime"
+remote = "https://github.com/keylime/keylime.git"
+names = ["keylime", "Keylime", "keylime/keylime"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["3476366881d7931407154597d88577895f2f818e"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "kieler/elkjs"
+remote = "https://github.com/kieler/elkjs.git"
+names = ["ELK.js", "elkjs", "kieler/elkjs"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["722f1a3f63016e64f534a8b445283d4d31a88d0e"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "kythe/kythe"
+remote = "https://github.com/kythe/kythe.git"
+names = ["Kythe", "kythe", "kythe/kythe"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G67"]
+historical_verdicts = ["G67: ABSORBED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: ABSORBED_NATIVE (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G67: CAPABILITY_PARTIAL (capability_decision)", "G67: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-SYMBOL) (mechanisms_absorbed)", "-: ABSORBED(DEBT-TYPE) (mechanisms_absorbed)", "G67: CAMPAIGN_PROVEN (current_status)", "G67: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["69141f022689a611e8a4a1d9b08a3783a2e8a9ed"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ladybirdbrowser/ladybird"
+remote = "https://github.com/LadybirdBrowser/ladybird.git"
+names = ["Ladybird", "ladybird", "LadybirdBrowser/ladybird"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G55"]
+historical_verdicts = ["-: REMOTE_CENSUSED (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: REMOTE_CENSUSED (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G55: CAPABILITY_PARTIAL (capability_decision)", "G55: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:PERMANENT_REALITY (external_boundaries)", "-: ADMITTED_REMOTE (lifecycle)", "-: REMOTE_ONLY (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "BSD-2-Clause"
+historical_pins = ["1647fd9789ef06a6200d6a52b9aa5f3366c480b3"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "leanprover/lean4"
+remote = "https://github.com/leanprover/lean4.git"
+names = ["Lean", "Lean 4"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["1a63affc1b788fa3b9823ef3ee9805f03501e9b8", "dd8693c1c9d8cd3fc8102e3b2beded261cfb7b24"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "linuxcnc/linuxcnc"
+remote = "https://github.com/LinuxCNC/linuxcnc.git"
+names = ["LinuxCNC"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "GPL-2.0 | GPL-2.0 (COPYING; per-file exceptions UNVERIFIED)"
+historical_pins = ["f218ffbf0d182c2c438ffaaaa2743f33ad75e6ff"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "llvm/llvm-project"
+remote = "https://github.com/llvm/llvm-project.git"
+names = ["LLVM", "LLVM / MLIR / IRDL", "LLVM Project", "llvm-project", "llvm/llvm-project", "MLIR", "mlir", "MLIR (llvm-project subtree)"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G89", "G96"]
+historical_verdicts = ["G89: REFERENCE_ONLY (terminal_state)", "G96: EXTERNAL_BOUNDARY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: PENDING_COORDINATOR_REVIEW (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: REFERENCE_ONLY (decision_status)", "-: EXTERNAL_BOUNDARY (implementation_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G89: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G96: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G89: REFERENCE_ONLY (mechanism_decision)", "G96: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:TEMPORARY_UNTIL_NATIVE (external_boundaries)", "-: REJECTED(DEBT-CONSTRUCTION_IR) (mechanisms_rejected)", "G89: CAMPAIGN_PROVEN (current_status)", "G96: CAMPAIGN_PROVEN (current_status)", "G89: REFERENCE_ONLY (terminal_state)", "G96: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)", "-: ALREADY_ADMITTED (status)"]
+license = "Apache-2.0 WITH LLVM-exception"
+historical_pins = ["0bd330675f9eb08126e467505a0800f167084473", "4790b21292d10b2cab1037ebef100e7f595e4209", "591f2e73fd4b81298d847ff0e39fe7e01985d8d6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "lz4/lz4"
+remote = "https://github.com/lz4/lz4.git"
+names = ["lz4"]
+sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = []
+historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
+license = "UNRECORDED"
+historical_pins = ["0774d05537f9762f838f7ab541b7765f1a729cb5"]
+physically_present_legacy = true
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "mapbox/pixelmatch"
+remote = "https://github.com/mapbox/pixelmatch.git"
+names = ["pixelmatch"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "ISC"
+historical_pins = ["b2800051f2b79d18cf27e51cd240cafd38cfb0ba"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "medusajs/medusa"
+remote = "https://github.com/medusajs/medusa.git"
+names = ["Medusa"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "MIT"
+historical_pins = ["08f73ec78e17a3a5b6db112290e28f8b3ed79ef6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "meta-pytorch/botorch"
+remote = "https://github.com/meta-pytorch/botorch.git"
+names = ["BoTorch"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["a1b1ad847b8c93e6a938f742ab0c71f936736111"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "microsoft/playwright"
+remote = "https://github.com/microsoft/playwright.git"
+names = ["Playwright"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED; installed-in-container v1.56.1 (status)"]
+license = "Apache-2.0"
+historical_pins = ["0c0594d4d377eeb99c22b5da00a5a71d814f46be", "b7957c51db7074a1bb28b6cab57386c1b856300a"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "moby/moby"
+remote = "https://github.com/moby/moby.git"
+names = ["Docker"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "Apache-2.0"
+historical_pins = ["8bc88f10b9be3086d85fb1f8f515fd1c39f03fc4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "model-checking/kani"
+remote = "https://github.com/model-checking/kani.git"
+names = ["kani", "Kani", "model-checking/kani"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G104"]
+historical_verdicts = ["G104: EXTERNAL_BOUNDARY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: EXTERNAL_BOUNDARY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G104: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G104: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:ORACLE (external_boundaries)", "G104: CAMPAIGN_PROVEN (current_status)", "G104: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["80f3cc98af976a54b9dd0614e877e4d2f1f5a58d", "c610df629e04ce7e09e503f4a917a7dcbebb5f36"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "motiondivision/motion"
+remote = "https://github.com/motiondivision/motion.git"
+names = ["Motion", "Motion (framer-motion)"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["33f6e72d17ebd3e23a2bfb53f3d4c36ce7c11343"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "moveit/moveit2"
+remote = "https://github.com/moveit/moveit2.git"
+names = ["MoveIt", "MoveIt 2"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["b222baf2272980e758b90727fa90177d556fb5fa"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "mpusz/mp-units"
+remote = "https://github.com/mpusz/mp-units.git"
+names = ["mp-units"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["bbf20c832028d8f7e49ac4940a26a86e293630a8"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "mrdoob/three.js"
+remote = "https://github.com/mrdoob/three.js.git"
+names = ["Three.js"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["aed5f6ebcfb0cdeff7ff6593fc4b90fb0360da39"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "name:xz"
+remote = ""
+names = ["xz"]
+sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = []
+historical_verdicts = ["-: DANGLING_GITLINK (unadmitted_checkout.classification)"]
+license = "UNRECORDED"
+historical_pins = []
+physically_present_legacy = false
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "nixos/nix"
+remote = "https://github.com/NixOS/nix.git"
+names = ["nix", "Nix"]
+sources = [".atlas/evidence/campaign/*.json", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G111"]
+historical_verdicts = ["G111: REFERENCE_ONLY (terminal_state)", "G111: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G111: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-ARTIFACT_IDENTITY) (mechanisms_rejected)", "-: REJECTED(DEBT-SANDBOXED_EXECUTION) (mechanisms_rejected)", "G111: CAMPAIGN_PROVEN (current_status)", "G111: REFERENCE_ONLY (terminal_state)", "-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "G150: CURRENT (status)", "-: MISSING (status)"]
+license = "LGPL-2.1"
+historical_pins = ["8f7ed1c1d1246bfa98cefd152c87d1ea26a3d463"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "nlfiedler/fastcdc-rs"
+remote = "https://github.com/nlfiedler/fastcdc-rs.git"
+names = ["fastcdc-rs"]
+sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = []
+historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
+license = "UNRECORDED"
+historical_pins = ["b025a70229a13d9482c943d27e494c40e84e0892"]
+physically_present_legacy = true
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "nucleic/kiwi"
+remote = "https://github.com/nucleic/kiwi.git"
+names = ["kiwi (Cassowary)"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "BSD-3-Clause | BSD-3-Clause (Modified BSD; GH API NOASSERTION)"
+historical_pins = ["4df2f39c016e90a5ffb3c6e71470146077100200"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "open-cascade-sas/occt"
+remote = "https://github.com/Open-Cascade-SAS/OCCT.git"
+names = ["OpenCascade", "OpenCascade OCCT"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "LGPL-2.1-only WITH OCCT-exception-1.0"
+historical_pins = ["3d097a0328e71b826377d4814ab05ec3c3d23871"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "open-telemetry/opentelemetry-rust"
+remote = "https://github.com/open-telemetry/opentelemetry-rust.git"
+names = ["opentelemetry-rust"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["844df52c4cff4d462bf013a0ceb0692d538ca6f6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "open-telemetry/opentelemetry-specification"
+remote = "https://github.com/open-telemetry/opentelemetry-specification.git"
+names = ["OpenTelemetry spec"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["cac5b81ebcfdecb272bb4e2d31f885b7142207d9"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "openfoam/openfoam-dev"
+remote = "https://github.com/OpenFOAM/OpenFOAM-dev.git"
+names = ["OpenFOAM", "OpenFOAM-dev"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "GPL-3.0-or-later"
+historical_pins = ["0ae4d61b7fa7075d13b74e2ddc6f81a3a19d7284"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "openmodelica/omcompiler"
+remote = "https://github.com/OpenModelica/OMCompiler.git"
+names = ["OMCompiler (standalone)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "OSMC-PL | OSMC-PL (AGPL-3.0/EPL)"
+historical_pins = ["5dc61f678fe0ed388fc811fe2cea14c54a0a0b29"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "openmodelica/openmodelica"
+remote = "https://github.com/OpenModelica/OpenModelica.git"
+names = ["OpenModelica"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "OSMC-PL-1.x | OSMC-PL-1.x (AGPL-3.0 | OSMC-EPL-1.0)"
+historical_pins = ["8e77d72e0f5ed79a9c6fc404191f7988f168432d", "c8d6649d7fd0974d596781173c817f2e9893a52e"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "openrewrite/rewrite"
+remote = "https://github.com/openrewrite/rewrite.git"
+names = ["OpenRewrite", "openrewrite", "openrewrite/rewrite"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G113"]
+historical_verdicts = ["G113: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G113: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G113: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-TRANSFORMATION) (mechanisms_rejected)", "G113: CAMPAIGN_PROVEN (current_status)", "G113: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["3d834b41cd18c94bef285e0e9d77b37656d3ccd5", "f7372139f62f62a66e5b78d70bbad50aaea7d8ee"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "openscad/openscad"
+remote = "https://github.com/openscad/openscad.git"
+names = ["OpenSCAD"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "GPL-2.0-or-later WITH CGAL-linking-exception"
+historical_pins = ["28fe66bcaf3e89239153cd16c34499c541d2841e"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "openscap/openscap"
+remote = "https://github.com/OpenSCAP/openscap.git"
+names = ["OpenSCAP", "openscap", "OpenSCAP/openscap"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["6942b59fc861ad77ebcea93e70f32832d88e20f9"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "paholg/dimensioned"
+remote = "https://github.com/paholg/dimensioned.git"
+names = ["dimensioned"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["615c908ae5735435077a73e74d0e996c49d46015"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "pixijs/pixijs"
+remote = "https://github.com/pixijs/pixijs.git"
+names = ["PixiJS"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["ecd3797cf9b57766b045f3eea8388db9677744f8"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "projectchrono/chrono"
+remote = "https://github.com/projectchrono/chrono.git"
+names = ["Project Chrono"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["aa3922df4ad18cc8571cb71b7fb274fd7e1612fa"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "prusa3d/prusaslicer"
+remote = "https://github.com/prusa3d/PrusaSlicer.git"
+names = ["PrusaSlicer"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "AGPL-3.0-or-later"
+historical_pins = ["30ef59195e0f3ee6f270b185bb5f9fb5f349f81f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "px4/px4-autopilot"
+remote = "https://github.com/PX4/PX4-Autopilot.git"
+names = ["PX4"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse) (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["86716507be65ac348645d35dd483dda1ff92144e"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "py-why/causal-learn"
+remote = "https://github.com/py-why/causal-learn.git"
+names = ["causal-learn"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["0dacacf36390e3084704636bc3c36e82e35ee0cc"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "py-why/dowhy"
+remote = "https://github.com/py-why/dowhy.git"
+names = ["DoWhy"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["cc23521127ba21ade40514539ae7b91db27ca54a"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "py2many/py2many"
+remote = "https://github.com/py2many/py2many.git"
+names = ["py2many", "py2many/py2many"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["a3c39224e71430bf99057f473c4b4542971daa9d"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "pyro-ppl/numpyro"
+remote = "https://github.com/pyro-ppl/numpyro.git"
+names = ["NumPyro"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["5064a3cc3f1547983e21944a3a63f7a602e0e505", "a39b7ae6a6502e02f158a60136d4e19bc37f3d9f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "pyro-ppl/pyro"
+remote = "https://github.com/pyro-ppl/pyro.git"
+names = ["Pyro"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["ae65fa4b3dc0eaa243c1a5c29f0710e667c68ece"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "pzalutski-pixel/sigil-lang"
+remote = "https://github.com/pzalutski-pixel/sigil-lang.git"
+names = ["pzalutski-pixel/sigil-lang", "Sigil", "SIGIL", "sigil-lang"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G92"]
+historical_verdicts = ["G92: REFERENCE_ONLY (terminal_state)", "-: PENDING_COORDINATOR_REVIEW (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G92: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G92: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-COMPILER_LOWERING) (mechanisms_rejected)", "-: REJECTED(DEBT-VERIFICATION_EVIDENCE) (mechanisms_rejected)", "G92: CAMPAIGN_PROVEN (current_status)", "G92: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["9c7de956d926fba2f9d5c0598b35c57fb6399f7f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "quay/clair"
+remote = "https://github.com/quay/clair.git"
+names = ["Clair", "clair", "quay/clair"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["c9ac9a0aa5651670a690854fc2c12adfc951243f"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "radix-ui/primitives"
+remote = "https://github.com/radix-ui/primitives.git"
+names = ["Radix Primitives"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["f7ecd5ab16f5e1e820eb5786a1419a98a2d594ae"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "restic/restic"
+remote = "https://github.com/restic/restic.git"
+names = ["restic"]
+sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = []
+historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
+license = "UNRECORDED"
+historical_pins = ["6adedec6b48ae9ff0ffbc37bd675ccebd02c728f"]
+physically_present_legacy = true
+legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rkyv/rkyv"
+remote = "https://github.com/rkyv/rkyv.git"
+names = ["rkyv", "rkyv/rkyv"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G85"]
+historical_verdicts = ["G85: REFERENCE_ONLY (terminal_state)", "-: STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G85: CAPABILITY_OPEN_SCALE_TRIGGERED (capability_decision)", "G85: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "G85: CAMPAIGN_PROVEN (current_status)", "G85: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "MIT"
+historical_pins = ["4845668ae9730a3987966769f6872d86b822dc41"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "robotlocomotion/drake"
+remote = "https://github.com/RobotLocomotion/drake.git"
+names = ["Drake"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse) (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["324b479a1421a77f46e48745892dfa23f5bdc6c1", "53fc1b45a465310673be2ef498e41741eff0c53c"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rocq-prover/rocq"
+remote = "https://github.com/rocq-prover/rocq.git"
+names = ["Coq", "Rocq", "Rocq/Coq"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "LGPL-2.1"
+historical_pins = ["295beaf5197294e24862e42adfc651ef40b7a472"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ros-controls/ros2_control"
+remote = "https://github.com/ros-controls/ros2_control.git"
+names = ["ros2_control"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse) (status)"]
+license = "Apache-2.0"
+historical_pins = ["b0c14b5edca8d17fc2996be1909815e8fcb587c6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ros/urdfdom"
+remote = "https://github.com/ros/urdfdom.git"
+names = ["URDF (urdfdom)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["57cb55f016b6503a6e0a5a4fb495871321b220bc", "c3def983918a8bb28dc7c94e63ff8c2d0e6e2f43"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ros2/geometry2"
+remote = "https://github.com/ros2/geometry2.git"
+names = ["ROS 2 tf2"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["77f7559fd41311dd248168fb0249fdd272ca23cb"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ros2/rclcpp"
+remote = "https://github.com/ros2/rclcpp.git"
+names = ["ROS 2 rclcpp"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse requested-frontier row) (status)"]
+license = "Apache-2.0"
+historical_pins = ["29de98cf1bc2e736ec1a5f7ad4c74e98c3fd3b17"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rrweb-io/rrweb"
+remote = "https://github.com/rrweb-io/rrweb.git"
+names = ["rrweb"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["5b08843faf9cb21c836613489ffd93d455f38181"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rui314/mold"
+remote = "https://github.com/rui314/mold.git"
+names = ["mold", "rui314/mold"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G103"]
+historical_verdicts = ["G103: EXTERNAL_BOUNDARY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: EXTERNAL_BOUNDARY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G103: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G103: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:BOOTSTRAP (external_boundaries)", "G103: CAMPAIGN_PROVEN (current_status)", "G103: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["6fc6e1916f383ea3ea319e12d3df4daee33267d9", "89a9b334e8a7ddda367adf05591342b2766eb1e7"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rust-lang/cargo"
+remote = "https://github.com/rust-lang/cargo.git"
+names = ["Cargo"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: EXTERNAL_ORACLE (lifecycle)", "-: ORACLE_ONLY (working_set)"]
+license = "MIT OR Apache-2.0"
+historical_pins = ["694054f34bcb04025b16d0eaf075038c0e58a15d"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rust-lang/datafrog"
+remote = "https://github.com/rust-lang/datafrog.git"
+names = ["datafrog", "Datafrog", "rust-lang/datafrog"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/GENERATIONS.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G35", "G136"]
+historical_verdicts = ["-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "-: CLONED (ingestion_status)", "-: ABSORB_NOW (decision_status)", "-: EXTINCT (extinction_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G35: CAPABILITY_PARTIAL (capability_decision)", "G35: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-DEPENDENCY) (mechanisms_absorbed)", "-: ABSORBED(DEBT-IMPACT_CLOSURE) (mechanisms_absorbed)", "-: HISTORICALLY_PROVEN (current_status)", "-: ABSORBED (terminal_state)", "G35: true (extinction.eligible)", "G35: true (extinction.performed)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G136: REVALIDATED (revalidation.outcome)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rust-lang/miri"
+remote = "https://github.com/rust-lang/miri.git"
+names = ["Miri", "miri", "rust-lang/miri"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G76"]
+historical_verdicts = ["G76: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G76: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G76: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-CONCURRENCY) (mechanisms_rejected)", "-: REJECTED(DEBT-OWNERSHIP) (mechanisms_rejected)", "-: REJECTED(DEBT-VERIFICATION_EVIDENCE) (mechanisms_rejected)", "G76: CAMPAIGN_PROVEN (current_status)", "G76: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["2812a59145bf4c4aa3f015bf5dda863828ce5975", "c63eee41f54d6a4b414af7b22ab717063da0c50a"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rust-lang/rust"
+remote = "https://github.com/rust-lang/rust.git"
+names = ["Rust", "rust", "rust-lang/rust"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G73", "G121"]
+historical_verdicts = ["G73: EXTERNAL_BOUNDARY (terminal_state)", "-: APPROVED_COMPILER_BINARY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: EXTERNAL_BOUNDARY_ORACLE (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G73: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G73: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:ORACLE (external_boundaries)", "G73: CAMPAIGN_PROVEN (current_status)", "G73: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G121: REVALIDATED (revalidation.outcome)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["2350b22a89d30fe814a299a73c9ab83c72cafaf3", "d287eb7a292caa8abbe12051dce2ee707fe03200"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "rust-lang/rust-analyzer"
+remote = "https://github.com/rust-lang/rust-analyzer.git"
+names = ["rust-analyzer", "rust-lang/rust-analyzer"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/GENERATIONS.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G37", "G75"]
+historical_verdicts = ["G75: ABSORBED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: ABSORBED_NATIVE (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G75: CAPABILITY_PARTIAL (capability_decision)", "G75: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-CALL) (mechanisms_absorbed)", "-: ABSORBED(DEBT-TYPE) (mechanisms_absorbed)", "G75: CAMPAIGN_PROVEN (current_status)", "G75: ABSORBED (terminal_state)", "G37: false (extinction.eligible)", "G37: false (extinction.performed)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: REVALIDATION_REQUIRED (status)", "-: ALREADY_ADMITTED (status)"]
+license = "MIT OR Apache-2.0"
+historical_pins = ["230fe0a6d7b4a7b70587aa306ac068bda14a675e", "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "saleor/saleor"
+remote = "https://github.com/saleor/saleor.git"
+names = ["Saleor"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "BSD-3-Clause"
+historical_pins = ["5ff56489737c78a9a5631d528f699303c953696a"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "salsa-rs/salsa"
+remote = "https://github.com/salsa-rs/salsa.git"
+names = ["Salsa", "salsa", "salsa-rs/salsa"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G115"]
+historical_verdicts = ["G115: ABSORBED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G115: CAPABILITY_PARTIAL (capability_decision)", "G115: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-IMPACT_CLOSURE) (mechanisms_absorbed)", "G115: HISTORICALLY_PROVEN (current_status)", "G115: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["5d8eaf1fa372a73d44f9b717407de41f19ef59d7", "687bfce0418aa717561b83cb90b732549703f144"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "selinuxproject/selinux"
+remote = "https://github.com/SELinuxProject/selinux.git"
+names = ["SELinux", "selinux", "SELinuxProject/selinux"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["3361233fa3cb0c27f68f682f195accefb69d06c0", "98aefb43b002ad5ebc39d21e50e344dac5dc3c10"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "semgrep/semgrep"
+remote = "https://github.com/semgrep/semgrep.git"
+names = ["semgrep", "Semgrep", "semgrep/semgrep"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G70"]
+historical_verdicts = ["G70: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: NOT_ABSORBED_REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G70: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G70: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-CONSTRAINT_REASONING) (mechanisms_rejected)", "G70: CAMPAIGN_PROVEN (current_status)", "G70: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["0516c0f23a3dceac5c8f5ff3fecd402af4450182", "56e04ee9581f76a2a1cfcdd806dd2d276851a39f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "shadcn-ui/ui"
+remote = "https://github.com/shadcn-ui/ui.git"
+names = ["shadcn/ui"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: CANDIDATE_NOT_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["98a1fe67b439324ddc857f47fbdce056600a4329"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "sigstore/rekor"
+remote = "https://github.com/sigstore/rekor.git"
+names = ["Sigstore rekor"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["904bbccce4df5e63c30209d7b7a00d9dda5400d6", "b49786ad97f6fa7ebcf373f51fb4fac1f112fc1c"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "sigstore/sigstore-rs"
+remote = "https://github.com/sigstore/sigstore-rs.git"
+names = ["sigstore-rs"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Apache-2.0"
+historical_pins = ["038e36aefac21dd4ae608cda33736a494250fd1f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "slsa-framework/slsa"
+remote = "https://github.com/slsa-framework/slsa.git"
+names = ["SLSA"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "Community-Spec-1.0"
+historical_pins = ["618f5b2192aad8417a8ee8ccb9e3f27d05c0e9b6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "souffle-lang/souffle"
+remote = "https://github.com/souffle-lang/souffle.git"
+names = ["souffle", "Souffle", "souffle-lang/souffle", "Soufflé"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["pre-G57"]
+historical_verdicts = ["-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "-: CLONED (ingestion_status)", "-: ABSORB_NOW (decision_status)", "-: EXTINCT (extinction_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "pre-G57: CAPABILITY_PARTIAL (capability_decision)", "pre-G57: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-CONSTRAINT_REASONING) (mechanisms_absorbed)", "-: HISTORICALLY_PROVEN (current_status)", "-: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["a1303be3c0166400dee3d1f36f0d96abe03e6901"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "sourcegraph/scip"
+remote = "https://github.com/sourcegraph/scip.git"
+names = ["SCIP", "scip", "sourcegraph/scip"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G66"]
+historical_verdicts = ["G66: ABSORBED (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: ABSORBED (decision_status)", "-: ABSORBED_NATIVE (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G66: CAPABILITY_PARTIAL (capability_decision)", "G66: ABSORBED (mechanism_decision)", "-: ABSORBED(DEBT-SYMBOL) (mechanisms_absorbed)", "G66: CAMPAIGN_PROVEN (current_status)", "G66: ABSORBED (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5", "db62094c7f9d464d0a6d9fd7815fcf3c9214b4c2"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "stack-of-tasks/pinocchio"
+remote = "https://github.com/stack-of-tasks/pinocchio.git"
+names = ["Pinocchio"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse) (status)"]
+license = "BSD-2-Clause"
+historical_pins = ["6d53a7bede3f70c8bb949aefde7ba9c6ef01d472", "c50ac0f904ff18d3e222f26d1f09107cf799f9cc"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "stan-dev/math"
+remote = "https://github.com/stan-dev/math.git"
+names = ["Stan Math (dep)"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["4105b294b6357e1e2a52eea8781077e90946c935", "d43cb82a51874d9bcb40e6689a699582a2c709df"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "stan-dev/stan"
+remote = "https://github.com/stan-dev/stan.git"
+names = ["Stan"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["a3afc41011583251b6b2ae76ede5b53a35dda284", "a5c457d260645b2b12a291839f7b2b7b3a31adc4"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "the-openroad-project/openroad"
+remote = "https://github.com/The-OpenROAD-Project/OpenROAD.git"
+names = ["OpenROAD"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)"]
+license = "BSD-3-Clause"
+historical_pins = ["196fc50266871c04a7235278c150fd28132e47d7", "a95a14a992297c6e8ce14d55abfa31750e13df0b"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "timelydataflow/differential-dataflow"
+remote = "https://github.com/TimelyDataflow/differential-dataflow.git"
+names = ["Differential Dataflow", "differential-dataflow", "TimelyDataflow/differential-dataflow"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G80"]
+historical_verdicts = ["G80: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G80: CAPABILITY_OPEN_SCALE_TRIGGERED (capability_decision)", "G80: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-IMPACT_CLOSURE) (mechanisms_rejected)", "G80: CAMPAIGN_PROVEN (current_status)", "G80: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["aa8745f93ea8abe131104fc7885ba4fd47e63902"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "tlaplus/tlaplus"
+remote = "https://github.com/tlaplus/tlaplus.git"
+names = ["TLA+", "TLA+ tools", "tlaplus", "TLC"]
+sources = [".atlas/evidence/campaign/*.json", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G112"]
+historical_verdicts = ["G112: EXTERNAL_BOUNDARY (terminal_state)", "G112: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G112: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:ORACLE (external_boundaries)", "G112: CAMPAIGN_PROVEN (current_status)", "G112: EXTERNAL_BOUNDARY (terminal_state)", "-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "G150: CURRENT (status)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["4260e471245fce04ad5610bae7125bdc9ef7eec6"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "tree-sitter/tree-sitter"
+remote = "https://github.com/tree-sitter/tree-sitter.git"
+names = ["Tree-sitter", "tree-sitter", "tree-sitter/tree-sitter"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G65"]
+historical_verdicts = ["G65: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: NOT_ABSORBED_REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G65: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G65: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-MULTILANGUAGE) (mechanisms_rejected)", "G65: CAMPAIGN_PROVEN (current_status)", "G65: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)", "-: ALREADY_ADMITTED (status)"]
+license = "MIT"
+historical_pins = ["5b951eff4f8b1431e933ed0fe45e48fcd4036a38", "dcdc8cc55e5dfedfc858080835f153999a29ec40"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "ultimaker/curaengine"
+remote = "https://github.com/Ultimaker/CuraEngine.git"
+names = ["Cura", "CuraEngine"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)"]
+license = "AGPL-3.0-or-later"
+historical_pins = ["741be28fdfecd4428b84ab6046098e611e10dd60"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "verus-lang/verus"
+remote = "https://github.com/verus-lang/verus.git"
+names = ["verus", "Verus", "verus-lang/verus"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G105"]
+historical_verdicts = ["G105: EXTERNAL_BOUNDARY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: EXTERNAL_BOUNDARY (decision_status)", "-: EXTERNAL_BOUNDARY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G105: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G105: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:ORACLE (external_boundaries)", "G105: CAMPAIGN_PROVEN (current_status)", "G105: EXTERNAL_BOUNDARY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: REVALIDATION_REQUIRED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["5f0930a0b820425aa857269070362ddcf7c29672", "b9416fad06904c6023d93ba79fcf2d06dd7db4fe"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "vustudio/opendesign"
+remote = "https://github.com/vustudio/opendesign.git"
+names = ["OpenDesign", "opendesign", "vustudio/opendesign"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_DONOR_GAP (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["b4e69ac61b50576298f9f564603e5a4beb27417f"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "webassembly/component-model"
+remote = "https://github.com/WebAssembly/component-model.git"
+names = ["wasm-component-model", "WebAssembly Component Model", "WebAssembly Component Model / WIT", "WebAssembly spec/runtimes", "WebAssembly/component-model"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G98"]
+historical_verdicts = ["G98: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G98: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G98: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-CONSTRUCTION_IR) (mechanisms_rejected)", "-: REJECTED(DEBT-IDENTITY_AUTHORITY) (mechanisms_rejected)", "G98: CAMPAIGN_PROVEN (current_status)", "G98: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)", "-: ALREADY_ADMITTED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["06e3db039e38588e2643a9417bf5d03100feafde", "5b724da8c634c4f2b2d2b3f6a4e9e13b4eb01596"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "webassembly/spec"
+remote = "https://github.com/WebAssembly/spec.git"
+names = ["wasm-spec", "WebAssembly spec", "WebAssembly spec/runtimes", "WebAssembly Specification", "WebAssembly/spec"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G97"]
+historical_verdicts = ["G97: REFERENCE_ONLY (terminal_state)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G97: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G97: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-CONSTRUCTION_IR) (mechanisms_rejected)", "-: REJECTED(DEBT-SEAL_GATE) (mechanisms_rejected)", "G97: CAMPAIGN_PROVEN (current_status)", "G97: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)", "-: ALREADY_ADMITTED (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["608711107b7f1edb13efd57b7d79b49477462d36", "ba9fd9f5c23e569201265d5bda6fb8dde18ad8c0"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "whitzardagent/agentir"
+remote = "https://github.com/WhitzardAgent/agentir.git"
+names = ["agentir", "AgentIR", "WhitzardAgent/agentir"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G95"]
+historical_verdicts = ["G95: REFERENCE_ONLY (terminal_state)", "-: STUDY_FOR_PIPELINE_STAGING_DISCIPLINE (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G95: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G95: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-ATLAS_COMPLETENESS) (mechanisms_rejected)", "G95: CAMPAIGN_PROVEN (current_status)", "G95: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: LANGUAGE_UNDETERMINED (status)"]
+license = "Apache-2.0"
+historical_pins = ["68d991160ad579d2b4514da01684249a2a0bf629"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "wide-trace/open-higgsfield"
+remote = "https://github.com/wide-trace/open-higgsfield.git"
+names = ["community 'open-higgsfield' clones"]
+sources = [".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: REJECTED_UNLICENSED (lifecycle)", "-: EXCLUDED (working_set)", "-: NOT_OFFICIAL; UNLICENSED (status)"]
+license = "none | none (no LICENSE file; GH API null)"
+historical_pins = ["44788b5ae32dd396f51daa6c7ffca6fde86e0378", "b16a0efe4d7e2707b56f8ccb02387fd2a9d2eddf"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "xdslproject/xdsl"
+remote = "https://github.com/xdslproject/xdsl.git"
+names = ["xDSL", "xdsl", "xdslproject/xdsl"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/evidence/campaign/*.json", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"]
+historical_generations = ["G90"]
+historical_verdicts = ["G90: REFERENCE_ONLY (terminal_state)", "-: PENDING_COORDINATOR_REVIEW (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: REFERENCE_ONLY (decision_status)", "-: REFERENCE_ONLY (implementation_status)", "-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (storage_state)", "G90: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G90: REFERENCE_ONLY_UNTIL_TRIGGER (mechanism_decision)", "-: REJECTED(DEBT-CONSTRUCTION_IR) (mechanisms_rejected)", "-: REJECTED(DEBT-VERIFICATION_EVIDENCE) (mechanisms_rejected)", "G90: CAMPAIGN_PROVEN (current_status)", "G90: REFERENCE_ONLY (terminal_state)", "-: EXTINCT (lifecycle)", "-: EXTINCT (working_set)", "G150: CURRENT (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["00703508e37a2b4ef06687b3bbbe4cd78c41c740", "c94a32286238c40e12eab91770daf6cf84cab7ea"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "xyflow/xyflow"
+remote = "https://github.com/xyflow/xyflow.git"
+names = ["xyflow", "xyflow/xyflow"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["0a1f9575b25679f2880175de8d3eae21aedde921", "3d35b57317576b0916c0bfeaaedd573aaacc2839"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "z3prover/z3"
+remote = "https://github.com/Z3Prover/z3.git"
+names = ["z3", "Z3"]
+sources = [".atlas/evidence/campaign/*.json", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = ["G108"]
+historical_verdicts = ["G108: EXTERNAL_BOUNDARY (terminal_state)", "G108: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G108: EXTERNAL_BOUNDARY (mechanism_decision)", "-: EXTERNAL_BOUNDARY:PERMANENT_REALITY (external_boundaries)", "G108: CAMPAIGN_PROVEN (current_status)", "G108: EXTERNAL_BOUNDARY (terminal_state)", "-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "G150: CAPABILITY_NOT_APPLICABLE (status)", "-: MISSING (status)"]
+license = "MIT"
+historical_pins = ["17cb5863c61fd30bde8af3b4c6c8175d6041a644", "fccce195c8d735ae415c994b935955390b75ff6f"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "zed-industries/zed"
+remote = "https://github.com/zed-industries/zed"
+names = ["zed", "Zed", "zed-industries/zed"]
+sources = [".atlas/census/*.md + census/donors/*.md + licenses/<name>/ + licenses/donors/<name>/", ".atlas/provenance/donors/*.json", ".atlas/provenance/donors/donor-clone-index.json", ".atlas/provenance/donors/donor-workbench-inventory.json", ".atlas/references/donor-corpus.toml", ".atlas/roadmap/DONOR-ABSORPTION-PLAN.toml", ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml", ".atlas/roadmap/FIRST-50-CAMPAIGN.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
+historical_generations = ["G118"]
+historical_verdicts = ["-: APPROVED_IDE_DONOR_REFERENCE (decision_status)", "-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_IDE_DONOR_REFERENCE (decision_status)", "-: PENDING_ATLAS_NATIVE (implementation_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
+license = "RECORDED_FILES"
+historical_pins = ["0eda7703f6c88aa08a25c1d2105ff1ca46f775d4", "2c4bc2d7b2c5b7832ad964f39840d823d961cb0e"]
+physically_present_legacy = true
+replay_status = "NEVER_REPLAYED"
+
+[[repository]]
+key = "zephyrproject-rtos/zephyr"
+remote = "https://github.com/zephyrproject-rtos/zephyr.git"
+names = ["Zephyr"]
+sources = [".atlas/roadmap/FRONTIER.toml", ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml", ".atlas/roadmap/frontier/*.tsv"]
+historical_generations = []
+historical_verdicts = ["-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "-: MISSING (status)", "-: MISSING (reuse) (status)"]
+license = "Apache-2.0"
+historical_pins = ["0d3ec1aeccd3ab713d2e007d689cac4a28157f37", "0f7aa710fefee49da5406b5fb4ad599c56822ae1"]
+physically_present_legacy = false
+replay_status = "NEVER_REPLAYED"

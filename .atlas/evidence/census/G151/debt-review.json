@@ -1,0 +1,19 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G151",
+  "trigger": "review cadence: DEBT-INTEGRITY_ENVELOPE, last advanced G138 and reviewed G129, fell due at G151",
+  "method": "re-read against G139-G151 (resolution widening, typed sections, selected design, seal policy, candidate comparison, replay R1)",
+  "reviews": [
+    {
+      "debt": "DEBT-INTEGRITY_ENVELOPE",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G138 changed the envelope or its evaluator; since G149 the declared seal policy requires the ELIGIBLE integrity verdict every clean-HEAD evidence commit records, which consumes the report without widening the invariant classes; NA-INTEGRITY-CLASSES",
+      "correction": {}
+    }
+  ],
+  "summary": {
+    "reviewed": 1,
+    "confirmed": 1,
+    "corrected": 0
+  }
+}

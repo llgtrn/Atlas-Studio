@@ -1507,6 +1507,15 @@ mod tests {
                 .lines()
                 .filter(|line| !line.trim_start().starts_with('#'))
             {
+                // ADR 0044/0067: a donor's `source_path` names what was deleted; it must be absent.
+                if let Some(rest) = line.trim_start().strip_prefix("source_path = ") {
+                    let path = rest.trim_matches('"');
+                    assert!(
+                        !root.join(path).exists(),
+                        "donor source `{path}` still exists"
+                    );
+                    continue;
+                }
                 extract_quoted_strings(line, &mut quoted);
             }
             let paths: Vec<&String> = quoted.iter().filter(|q| q.starts_with(".atlas/")).collect();
@@ -3058,6 +3067,7 @@ mod tests {
                             "HISTORICAL_DONOR_REVALIDATION",
                             "AGENT_MISSION",
                             "DEBT_TRIGGERED_DONOR_ATTACK",
+                            "FULL_OSS_REPLAY",
                         ]
                         .iter()
                         .any(|class| o.starts_with(class))
@@ -3146,7 +3156,8 @@ mod tests {
                     run <= max_run,
                     "{id}: more than {max_run} consecutive interleaving generations"
                 );
-                if kind == "AGENT_MISSION" {
+                // ADR 0067: every replay generation is an Agent-Worn mission on its donor.
+                if kind == "AGENT_MISSION" || kind == "REPLAY" {
                     last_mission = generation(&id);
                 }
             }
@@ -3637,7 +3648,8 @@ mod tests {
                         "REVALIDATION",
                         "COMPOSITION_ATTACK",
                         "AGENT_MISSION",
-                        "DEBT_TRIGGERED_DONOR_ATTACK"
+                        "DEBT_TRIGGERED_DONOR_ATTACK",
+                        "REPLAY"
                     ]
                     .contains(&kind.as_str()),
                     "{id}: kind {kind}"
@@ -3692,6 +3704,12 @@ mod tests {
                         "ALLOWED_WHEN_TRIGGERED"
                     );
                 }
+                // ADR 0067: a REPLAY generation is the FULL_OSS_REPLAY lane, never new-donor
+                // progression: it replays one repository of the canonical replay ledger at an
+                // exact pin, records its Agent-Worn mission, and leaves no source behind.
+                if kind == "REPLAY" {
+                    replay_generation_is_accounted(&id, &block);
+                }
                 if generation(&id) >= audit_generation {
                     assert_ne!(
                         kind, "DONOR",
@@ -3703,6 +3721,350 @@ mod tests {
                         "{id}: P3 donor campaign while BLOCKED"
                     );
                 }
+            }
+        }
+
+        const REPLAY: &str = ".atlas/roadmap/FULL-OSS-REPLAY.toml";
+        const REPLAY_TERMINAL: [&str; 10] = [
+            "ABSORBED",
+            "REFERENCE_ONLY",
+            "REFERENCE_ONLY_UNTIL_TRIGGER",
+            "EXTERNAL_BOUNDARY",
+            "REVALIDATED",
+            "REJECTED",
+            "DUPLICATE_MECHANISM",
+            "NOT_APPLICABLE",
+            "BLOCKED_BY_LICENSE",
+            "BLOCKED_BY_MISSING_CAPABILITY",
+        ];
+
+        /// `https://github.com/Owner/Repo.git` -> `owner/repo`; other hosts keep the host.
+        fn replay_key(url: &str) -> String {
+            let lower = url.trim().to_ascii_lowercase();
+            let bare = lower
+                .trim_start_matches("https://")
+                .trim_start_matches("http://")
+                .trim_end_matches('/')
+                .trim_end_matches(".git")
+                .to_owned();
+            bare.strip_prefix("github.com/")
+                .map_or(bare.clone(), str::to_owned)
+        }
+
+        fn is_pin(value: &str) -> bool {
+            value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
+        }
+
+        fn replay_ledger() -> (String, Vec<String>) {
+            let text = read(REPLAY);
+            let repositories = blocks(&text, "repository")
+                .into_iter()
+                .map(str::to_owned)
+                .collect();
+            (text, repositories)
+        }
+
+        fn replay_epochs(ledger: &str) -> Vec<String> {
+            blocks(ledger, "epoch")
+                .iter()
+                .map(|e| text(e, "id"))
+                .collect()
+        }
+
+        /// ADR 0067: a REPLAY generation's record in the replay ledger and its evidence.
+        fn replay_generation_is_accounted(id: &str, block: &str) {
+            let (ledger, repositories) = replay_ledger();
+            let key = text(block, "replay");
+            let record = repositories
+                .iter()
+                .find(|r| text(r, "key") == key)
+                .unwrap_or_else(|| panic!("{id}: {key} is not in the replay ledger"));
+            assert_eq!(text(record, "replay_generation"), id, "{id}");
+            let pin = text(block, "pinned_commit");
+            assert!(is_pin(&pin), "{id}: exact pin");
+            assert_eq!(text(record, "pinned_commit"), pin, "{id}");
+            assert!(
+                !root().join(text(block, "source_path")).exists(),
+                "{id}: the donor source must be deleted"
+            );
+            let epochs = replay_epochs(&ledger);
+            for field in ["epoch_before", "epoch_after"] {
+                assert!(epochs.contains(&text(block, field)), "{id}: {field}");
+            }
+            let evidence: serde_json::Value =
+                serde_json::from_str(&read(&text(block, "mission"))).unwrap();
+            for field in [
+                "donor",
+                "atlas_n_mission",
+                "differential",
+                "n_vs_n_plus_1",
+                "manual_reads",
+                "decision",
+                "extinction",
+            ] {
+                assert!(
+                    !evidence[field].is_null(),
+                    "{id}: replay evidence lacks {field}"
+                );
+            }
+            for field in ["atlas_knew", "challenge", "answer"] {
+                assert!(
+                    !evidence["atlas_n_mission"][field].is_null(),
+                    "{id}: the Atlas_N mission lacks {field}"
+                );
+            }
+            assert_eq!(evidence["extinction"]["path_absent_after"], true, "{id}");
+        }
+
+        /// ADR 0067: the replay ledger accounts for every repository any donor ledger names --
+        /// the repo-exact frontier, the donor corpus, the First-50 campaign and the legacy
+        /// unadmitted checkouts -- once, by canonical remote.
+        #[test]
+        fn full_oss_replay_accounts_every_canonical_donor_once() {
+            let (ledger, repositories) = replay_ledger();
+            let mut keys = BTreeSet::new();
+            let mut names = BTreeSet::new();
+            for record in &repositories {
+                assert!(keys.insert(text(record, "key")), "duplicate replay key");
+                names.extend(
+                    list(record, "names")
+                        .into_iter()
+                        .map(|n| n.to_ascii_lowercase()),
+                );
+            }
+            let mut required: Vec<(String, &str)> = Vec::new();
+            for block in blocks(
+                &read(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"),
+                "repository",
+            ) {
+                required.push((replay_key(&text(block, "canonical_url")), "frontier"));
+            }
+            for block in blocks(&read(".atlas/references/donor-corpus.toml"), "donor") {
+                if let Some(url) = string(block, "resolved_url") {
+                    required.push((replay_key(&url), "donor corpus"));
+                }
+            }
+            for block in blocks(&read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml"), "donor") {
+                if let Some(url) = string(block, "canonical_url") {
+                    required.push((replay_key(&url), "First-50"));
+                }
+            }
+            for (key, source) in &required {
+                assert!(
+                    keys.contains(key),
+                    "{source} repository {key} is not in the replay ledger"
+                );
+            }
+            for block in blocks(
+                &read(".atlas/roadmap/DONOR-WORKING-SET.toml"),
+                "unadmitted_checkout",
+            ) {
+                let directory = text(block, "directory").to_ascii_lowercase();
+                assert!(
+                    names.contains(&directory) || keys.contains(&format!("name:{directory}")),
+                    "legacy checkout {directory} is not in the replay ledger"
+                );
+            }
+            let counts = table(&ledger, "counts");
+            assert_eq!(number(counts, "total"), repositories.len() as i64);
+            let status = |s: &str| {
+                repositories
+                    .iter()
+                    .filter(|r| text(r, "replay_status") == s)
+                    .count() as i64
+            };
+            assert_eq!(number(counts, "never_replayed"), status("NEVER_REPLAYED"));
+            assert_eq!(number(counts, "materialized"), status("MATERIALIZED"));
+            assert_eq!(number(counts, "processed"), status("PROCESSED"));
+            assert_eq!(
+                number(counts, "remaining"),
+                repositories.len() as i64 - status("PROCESSED")
+            );
+            let processed: Vec<&String> = repositories
+                .iter()
+                .filter(|r| text(r, "replay_status") == "PROCESSED")
+                .collect();
+            let count = |field: &str, value: &str| {
+                processed
+                    .iter()
+                    .filter(|r| string(r, field).as_deref() == Some(value))
+                    .count() as i64
+            };
+            assert_eq!(
+                number(counts, "capability_advanced"),
+                count("capability_delta", "CAPABILITY_ADVANCED")
+            );
+            assert_eq!(
+                number(counts, "no_capability_delta"),
+                count("capability_delta", "NO_CAPABILITY_DELTA")
+            );
+            assert_eq!(
+                number(counts, "revalidation_required"),
+                count("trigger_status", "REVALIDATION_REQUIRED")
+            );
+            assert_eq!(
+                number(counts, "source_extinct"),
+                processed
+                    .iter()
+                    .filter(|r| flag(r, "source_extinct"))
+                    .count() as i64
+            );
+        }
+
+        /// ADR 0067: a processed replay has an exact pin, a terminal state valid at the epoch that
+        /// decided it (never permanently), mission and N-versus-N+1 evidence when Atlas changed,
+        /// no copied code from a restrictively licensed donor, and no source left behind; the
+        /// one-donor window holds.
+        #[test]
+        fn every_replay_is_pinned_epoch_relative_and_extinct() {
+            let (ledger, repositories) = replay_ledger();
+            let epochs = replay_epochs(&ledger);
+            assert!(!epochs.is_empty());
+            for (index, epoch) in epochs.iter().enumerate() {
+                assert_eq!(*epoch, format!("E{index}"), "epochs are E0, E1, ...");
+            }
+            let current = text(&ledger, "current_epoch");
+            assert_eq!(epochs.last(), Some(&current));
+            let generations: BTreeSet<String> =
+                ledger_generations().into_iter().map(|(id, _)| id).collect();
+            for epoch in blocks(&ledger, "epoch") {
+                assert!(generations.contains(&text(epoch, "generation")), "{epoch}");
+            }
+            let next = text(&ledger, "next_replay");
+            let mut materialized = Vec::new();
+            for record in &repositories {
+                let key = text(record, "key");
+                let status = text(record, "replay_status");
+                assert!(
+                    ["NEVER_REPLAYED", "MATERIALIZED", "PROCESSED"].contains(&status.as_str()),
+                    "{key}: {status}"
+                );
+                if status == "MATERIALIZED" {
+                    materialized.push(text(record, "source_path"));
+                }
+                if status != "PROCESSED" {
+                    continue;
+                }
+                assert!(is_pin(&text(record, "pinned_commit")), "{key}: exact pin");
+                assert!(
+                    generations.contains(&text(record, "replay_generation")),
+                    "{key}"
+                );
+                let terminal = text(record, "terminal_state");
+                assert!(
+                    REPLAY_TERMINAL.contains(&terminal.as_str()),
+                    "{key}: {terminal}"
+                );
+                // A verdict is valid at its epoch: an older one is re-checked or re-opened.
+                let decided = text(record, "decided_at_epoch");
+                assert!(epochs.contains(&decided), "{key}");
+                let trigger = text(record, "trigger_status");
+                assert!(
+                    ["CURRENT", "REVALIDATION_REQUIRED"].contains(&trigger.as_str()),
+                    "{key}"
+                );
+                if decided != current && trigger == "CURRENT" {
+                    assert_eq!(text(record, "trigger_checked_at_epoch"), current, "{key}");
+                }
+                text(record, "revalidation_trigger");
+                // Mission evidence; an epoch change carries the N versus N+1 comparison.
+                assert!(root().join(text(record, "mission")).exists(), "{key}");
+                let before = text(record, "epoch_before");
+                let after = text(record, "epoch_after");
+                match text(record, "capability_delta").as_str() {
+                    "CAPABILITY_ADVANCED" => {
+                        assert_ne!(before, after, "{key}: an advance moves the epoch");
+                        let delta: serde_json::Value =
+                            serde_json::from_str(&read(&text(record, "n_plus_1"))).unwrap();
+                        assert!(!delta["n_vs_n_plus_1"].is_null(), "{key}: N versus N+1");
+                    }
+                    "NO_CAPABILITY_DELTA" => assert_eq!(before, after, "{key}"),
+                    other => panic!("{key}: capability_delta {other}"),
+                }
+                // A donor decision never closes capability debt by itself.
+                assert!(raw(record, "closes_debt").is_none(), "{key}");
+                // A restrictively licensed donor is studied, never copied.
+                let license = text(record, "license").to_ascii_lowercase();
+                if license.contains("noncommercial") || license.contains("polyform") {
+                    assert_eq!(text(record, "code_reuse"), "NONE", "{key}");
+                }
+                assert!(flag(record, "source_extinct"), "{key}: source left behind");
+                assert!(
+                    !root().join(text(record, "source_path")).exists(),
+                    "{key}: source path still exists"
+                );
+                // A processed repository is replayed again only when its verdict was reopened.
+                if key == next {
+                    assert_eq!(
+                        trigger, "REVALIDATION_REQUIRED",
+                        "{key}: replayed again while CURRENT"
+                    );
+                }
+            }
+            assert!(
+                repositories.iter().any(|r| text(r, "key") == next),
+                "next_replay {next} is not in the ledger"
+            );
+            // One donor at a time, and only the materialized one on disk.
+            let window = number(&ledger, "max_materialized") as usize;
+            assert!(materialized.len() <= window);
+            let cache = root().join(text(&ledger, "materialization_root"));
+            if cache.is_dir() {
+                for entry in std::fs::read_dir(&cache).unwrap() {
+                    let path = entry.unwrap().path();
+                    let relative = path
+                        .strip_prefix(root())
+                        .unwrap()
+                        .to_string_lossy()
+                        .into_owned();
+                    assert!(
+                        materialized.contains(&relative),
+                        "{relative} is on disk but no replay is MATERIALIZED there"
+                    );
+                }
+            }
+        }
+
+        /// ADR 0067: from the campaign start, no more than `max_non_replay_between` generations
+        /// pass without a REPLAY, unless a generation names the materialized donor it serves as
+        /// a prerequisite.
+        #[test]
+        fn replay_cadence_is_machine_enforced() {
+            let (ledger, _) = replay_ledger();
+            let start = generation(&text(&ledger, "campaign_start"));
+            let allowed = number(&ledger, "max_non_replay_between");
+            let mut run = 0;
+            let mut replays = 0;
+            for (id, block) in ledger_generations() {
+                if generation(&id) < start {
+                    continue;
+                }
+                if text(&block, "kind") == "REPLAY" {
+                    run = 0;
+                    replays += 1;
+                } else if string(&block, "replay_prerequisite").is_none() {
+                    run += 1;
+                    assert!(
+                        run <= allowed,
+                        "{id}: more than {allowed} non-replay generations without a replay"
+                    );
+                }
+            }
+            if current_generation() >= start {
+                assert!(replays > 0, "the campaign start generation is a replay");
+            }
+            // The plan keeps the cadence: after a non-replay generation, the next is a replay.
+            if run >= allowed {
+                let priority = read(".atlas/roadmap/PRIORITY.toml");
+                let next = format!("G{}", current_generation() + 1);
+                assert!(
+                    blocks(&priority, "planned_generation").iter().any(|b| {
+                        string(b, "id") == Some(next.clone())
+                            && string(b, "objective")
+                                .is_some_and(|o| o.starts_with("FULL_OSS_REPLAY"))
+                    }),
+                    "{next} must be planned as a FULL_OSS_REPLAY generation"
+                );
             }
         }
 

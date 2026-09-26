@@ -1,0 +1,266 @@
+{
+  "schema": "atlas.evidence.replay.v1",
+  "replay": "R1",
+  "generation": "G151",
+  "lane": "FULL_OSS_REPLAY",
+  "donor": {
+    "key": "abhigyanpatwari/gitnexus",
+    "remote": "https://github.com/abhigyanpatwari/GitNexus",
+    "pinned_commit": "06ce60beb67494cac7801c0bdf97a4e9a4b65862",
+    "pin_date": "2026-09-25T22:59:32+01:00",
+    "license": "PolyForm-Noncommercial-1.0.0",
+    "license_reading": "Personal Uses: research, experiment and testing for the benefit of public knowledge and personal study, without anticipated commercial application, is a permitted purpose. GitNexus was run and its outputs compared for research and testing; no implementation was read into or copied into Atlas; every mechanism below is an Atlas-native reimplementation from observed behavior",
+    "code_reuse": "NONE",
+    "materialization": {
+      "path": ".atlas/.cache/donors/gitnexus",
+      "bytes": {
+        "du_sb_total": 300602876,
+        "du_sb_excluding_git": 270801347,
+        "note": "~103MB are 42 prebuilt .node binaries and ~96MB are 24 generated tree-sitter parser.c files under gitnexus/vendor"
+      },
+      "files": 5679,
+      "scope": "shallow blobless clone at the pin (full tree)",
+      "install": "npm install (10 s), SCARF_ANALYTICS=false DO_NOT_TRACK=1 NO_UPDATE_NOTIFIER=1, HOME isolated in scratch"
+    },
+    "dependencies": {
+      "@ladybugdb/core (Kuzu-derived graph DB)": "DATABASE_BOUNDARY",
+      "tree-sitter + 18 grammars": "MECHANISM_INTERNAL (parsing substrate; separately MIT-licensed; replay target tree-sitter/tree-sitter)",
+      "graphology + vendored Leiden": "SUPPORT_LIBRARY",
+      "@modelcontextprotocol/sdk": "PROTOCOL_BOUNDARY",
+      "onnxruntime (opt-in embeddings)": "RUNTIME_BOUNDARY (not used)"
+    }
+  },
+  "epochs": {
+    "before": "E0 (G150, db711846e5)",
+    "after": "E1 (G151)"
+  },
+  "atlas_n_mission": {
+    "commands": [
+      "agent model --root .atlas/.cache/donors/gitnexus/gitnexus",
+      "agent understand --target src/mcp/local --mission 'which code realizes impact analysis, and what is its blast radius?'",
+      "agent unknowns --target src"
+    ],
+    "atlas_knew": {
+      "components": 3102,
+      "languages": {
+        "typescript": 2543,
+        "rust": 209,
+        "javascript": 163
+      },
+      "functions": 363,
+      "functions_are": "all Rust test fixtures",
+      "typescript_coverage": "UNSUPPORTED in all 12 dimensions on 973 src files"
+    },
+    "challenge": "which code realizes impact analysis in GitNexus, and what is its blast radius?",
+    "answer": "UNKNOWN: 0 functions in scope (8 components of src/mcp/local, every dimension UNSUPPORTED); Atlas_N did not invent one",
+    "levels_reached": {
+      "L0_FILE_INVENTORY": "3,102 components",
+      "L1_SYNTAX": "none for TypeScript (classification only)",
+      "L2_LOCAL_SEMANTICS": "209 Rust fixture files only",
+      "L3_plus": "none"
+    },
+    "understanding_gaps": [
+      "UNSUPPORTED language is not itself a world-model gap entry: next_questions ask whether CALL is complete where no extractor exists (routed to DEBT-MULTILANGUAGE)"
+    ]
+  },
+  "differential": {
+    "method": "GitNexus 1.6.12 analyze (41 s: 20,884 nodes, 58,371 edges, 941 clusters, 725 flows) on a local clone of Atlas Studio at E0 (362faa3e68) vs Atlas agent model of the same tree; ground truth from the source",
+    "cases": [
+      {
+        "question": "direct callers of walk_call_like",
+        "atlas_e0": [
+          "walk_expr",
+          "walk_value_position_expr"
+        ],
+        "gitnexus": [
+          "walk_expr",
+          "walk_value_position_expr"
+        ],
+        "ground_truth": "adapter/src/semantic/rust/mod.rs:1061 and :1207",
+        "classification": "BOTH_CORRECT"
+      },
+      {
+        "question": "transitive dependents of walk_call_like",
+        "atlas_e0": {
+          "dependents": 12,
+          "stops_at": "handle_*/walk_item: the call ctx.walk_item sits in a closure region with no caller of its own"
+        },
+        "gitnexus": {
+          "dependents": 254,
+          "by_depth": {
+            "1": 2,
+            "2": 2,
+            "3": 1,
+            "4": 1,
+            "5": 2,
+            "6": 3,
+            "7": 2,
+            "8": 3,
+            "9": 27,
+            "10": 210,
+            "11": 1
+          },
+          "reaches": "extract at depth 9, then 240+ test functions"
+        },
+        "ground_truth": "extract (mod.rs:238) calls ctx.walk_item inside a spawn_scoped closure inside std::thread::scope",
+        "classification": "DONOR_CORRECT",
+        "atlas_e1": {
+          "dependents": 89,
+          "inferred": {
+            "UNIQUE_NAME": 77
+          },
+          "reaches": "extract, extract_with_panic_isolation, extract_semantics, systemize, world_model, main (52 non-test dependents)"
+        }
+      },
+      {
+        "question": "test callers through RustSemanticExtractor.extract (a trait-impl method on a unit-struct value)",
+        "atlas_e1": "unresolved: trait methods on concrete receivers are not resolved and the name extract is shared (UNIQUE_NAME refuses)",
+        "gitnexus": "resolved: 210 tests at depth 10",
+        "ground_truth": "adapter/src/semantic/rust/tests.rs:699 extract -> RustSemanticExtractor.extract(..)",
+        "classification": "DONOR_CORRECT",
+        "routed": "DEBT-CALL (trait-impl methods on concrete receivers)"
+      },
+      {
+        "question": "trace main -> compare_designs",
+        "atlas_e0": "PATH_OBSERVED main -> run -> runtime::design::compare -> compare_designs (DERIVED)",
+        "gitnexus": "no_path (furthest policy_boundary at depth 10)",
+        "ground_truth": "apps/cli/src/main.rs run calls runtime::design::compare, which calls atlas_core::design::compare::compare_designs through the renamed package atlas_core = { package = core }",
+        "classification": "ATLAS_CORRECT"
+      },
+      {
+        "question": "which functions named main exist",
+        "atlas_e0": "Rust only",
+        "gitnexus": "93 candidates including tools/benchmark/*.mjs",
+        "ground_truth": "Atlas Studio carries JavaScript tooling Atlas cannot see",
+        "classification": "DONOR_CORRECT",
+        "routed": "DEBT-MULTILANGUAGE"
+      },
+      {
+        "question": "what changed after editing one line of walk_call_like",
+        "atlas_e1": "impact closure seeds all 81 functions of the file, 156 affected, SOUND against the full recompute",
+        "gitnexus": "2 changed symbols (walk_call_like and its impl) by diff hunk",
+        "ground_truth": "one string literal inside walk_call_like",
+        "classification": "BOTH_CORRECT_DIFFERENT_ABSTRACTION",
+        "routed": "DEBT-IMPACT_CLOSURE (hunk-level seeds)"
+      },
+      {
+        "question": "functional clusters and execution flows",
+        "atlas_e0": "declared subsystems only; no execution-flow object",
+        "gitnexus": "941 Leiden clusters, 725 flows (truncated, disclosed)",
+        "classification": "BOTH_CORRECT_DIFFERENT_ABSTRACTION",
+        "routed": "DEBT-SEMANTIC-COMPOSITION (execution flows)"
+      }
+    ]
+  },
+  "implementation": {
+    "mechanisms": [
+      "lifetime-erased impl shapes and declared types (adapter/src/semantic/rust/resolve.rs impl_shape, without_lifetimes, output_type, field_type, declared_receiver_type)",
+      "upstream traversal with INFERRED steps by reason: ENCLOSES, DISPATCHES_TO, UNIQUE_NAME (core/src/composition/lens.rs Index::upstream; frontier.inferred)"
+    ],
+    "derived_from": "GitNexus behavior (its impact reached extract; its logs name bounded name-fallback that refuses ambiguous candidates); no GitNexus source was read for these mechanisms",
+    "mutants": {
+      "killed": 10,
+      "survived": 0,
+      "strengthened": [
+        "MR5 ambiguous names guessed survived until both same-named functions reached the seed"
+      ],
+      "cases": [
+        "lifetime params kept in impl shape",
+        "lifetime arguments kept",
+        "closures not crossed",
+        "dispatch not crossed",
+        "ambiguous names guessed",
+        "unique names not crossed",
+        "inferred steps reported as resolved",
+        "inferred counts dropped",
+        "inferred dependents mixed into nearest",
+        "inferred list left empty"
+      ]
+    },
+    "frontier_shape": "callers, nearest and by_subsystem stay resolved dependents only; INFERRED dependents are counted in inferred (by reason) and listed in inferred_nearest, never mixed"
+  },
+  "n_vs_n_plus_1": {
+    "donor_itself": {
+      "E0": {
+        "functions": 363,
+        "components": 3102,
+        "resolved_call_edges": 6,
+        "unresolved_call_sites": 216,
+        "typescript_functions": 0
+      },
+      "E1": {
+        "functions": 363,
+        "components": 3102,
+        "resolved_call_edges": 6,
+        "unresolved_call_sites": 216,
+        "typescript_functions": 0
+      },
+      "delta": "none: E1 improves Rust resolution and impact inference; the donor is TypeScript, still UNSUPPORTED"
+    },
+    "differential_corpus_atlas_studio": {
+      "E0": {
+        "functions": 5410,
+        "components": 139,
+        "resolved_call_edges": 4458,
+        "unresolved_call_sites": 27252,
+        "typescript_functions": 0
+      },
+      "E1": {
+        "functions": 5410,
+        "components": 139,
+        "resolved_call_edges": 4512,
+        "unresolved_call_sites": 27184,
+        "typescript_functions": 0
+      },
+      "walk_call_like_dependents": {
+        "E0_resolved": 12,
+        "E1_resolved": 12,
+        "E1_inferred": {
+          "UNIQUE_NAME": 77
+        },
+        "E1_total": 89
+      },
+      "what_E0_missed": "everything above the closure region in extract",
+      "what_E1_sees": "the production path to systemize and main, 37 tests",
+      "still_unknown": "test callers through trait-impl methods on concrete receivers; all TypeScript/JavaScript"
+    }
+  },
+  "manual_reads": [
+    {
+      "path": "adapter/src/semantic/rust/mod.rs:200-245,1050-1065,1195-1210",
+      "why": "ground truth for the differential (who calls walk_call_like and walk_item)",
+      "gap": "Atlas had no edge from the closure region to extract"
+    },
+    {
+      "path": "adapter/src/semantic/rust/tests.rs:695-710",
+      "why": "ground truth for the 130 tests GitNexus reached",
+      "gap": "trait-impl method on a concrete receiver unresolved"
+    },
+    {
+      "path": "adapter/src/semantic/rust/resolve.rs (impl_shape, output_type, autoref guard)",
+      "why": "implementing E1 (Atlas's own resolver)",
+      "gap": "none: the resolver's source is the implementation target"
+    },
+    {
+      "path": "core/src/composition/lens.rs (frontier, callers_closure)",
+      "why": "implementing E1",
+      "gap": "none"
+    }
+  ],
+  "gitnexus_source_reads": "none beyond its CLI help, package manifest scripts and LICENSE (pre-check); every answer came from running it",
+  "decision": {
+    "donor": "REFERENCE_ONLY_UNTIL_TRIGGER at E1",
+    "mechanism_absorbed": "bounded name-fallback upstream inference (UNIQUE_NAME, refusing ambiguous names) as an Atlas-native INFERRED step; not donor code",
+    "capability_state": "DEBT-CALL and DEBT-IMPACT_CLOSURE advance; DEBT-MULTILANGUAGE stays OPEN (the donor exposed it, did not close it)",
+    "trigger": "a TypeScript semantic extractor makes GitNexus visible: re-replay"
+  },
+  "extinction": {
+    "deleted": [
+      ".atlas/.cache/donors/gitnexus (source, node_modules, dist)",
+      "<scratch>/r1/atlas-copy (the analyzed clone and its .gitnexus index)",
+      "<scratch>/r1/home (isolated ~/.gitnexus)"
+    ],
+    "path_absent_after": true,
+    "runtime_dependency": "none: Atlas never links, calls or reads GitNexus"
+  }
+}

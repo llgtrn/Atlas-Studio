@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G150"
+current_generation = "G151"
 
 [[generation]]
 id = "G35"
@@ -3271,3 +3271,41 @@ after = 5410
 key = "typed_records"
 before = 154836
 after = 157443
+
+[[generation]]
+id = "G151"
+kind = "REPLAY"
+base_commit = "362faa3e68adf1fd3f544fc7f045cd26f6ee829c"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R1 (owner directive, ADR 0067): GitNexus replayed through Atlas E0 -- DEBT-CALL, DEBT-SEMANTIC-COMPOSITION advanced; DEBT-MULTILANGUAGE, DEBT-IMPACT_CLOSURE evidenced"
+objective = "the first replay of the FULL_OSS_REPLAY lane: GitNexus at an exact pin through Atlas_N first, then as a differential oracle on Atlas Studio against ground truth, one bounded Atlas-native improvement, the donor and the differential re-censused at N+1, and the source extinct"
+writer = "coordinator (sole writer); read-only lanes built the canonical replay set, pinned and license-checked GitNexus, and mapped the donor gates"
+replay = "abhigyanpatwari/gitnexus"
+pinned_commit = "06ce60beb67494cac7801c0bdf97a4e9a4b65862"
+source_path = ".atlas/.cache/donors/gitnexus"
+epoch_before = "E0"
+epoch_after = "E1"
+mission = ".atlas/evidence/replay/R1-gitnexus.json"
+evidence = ".atlas/evidence/replay/R1-gitnexus.json"
+self_recensus = ".atlas/evidence/census/G151/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of db711846e5 = G150 post digest (the evidence commit 362faa3e68 adds only out-of-scope evidence)"
+atlas_first = "agent model and understand on the donor before any source reading: 3,102 components, 363 functions all Rust test fixtures, 2,543 TypeScript files UNSUPPORTED in every dimension; the challenge question (which code realizes impact analysis?) answered UNKNOWN, nothing invented"
+change = "adapter resolve: impl_shape and declared-type checks erase lifetime parameters and arguments (without_lifetimes). core lens: Index::upstream crosses ENCLOSES, DISPATCHES_TO and UNIQUE_NAME steps as INFERRED; the frontier keeps callers and nearest resolved-only and lists INFERRED dependents apart (inferred by why, inferred_nearest). runtime tests: REPLAY generation kind, replay-ledger completeness, epoch-relative verdicts, extinction, license, one-donor window, replay cadence; mission cadence counts replays. roadmap/FULL-OSS-REPLAY.toml (160 repositories, epochs E0 and E1). ADR 0067"
+oracle = "GitNexus 1.6.12 on a clone of Atlas Studio at E0 against the source: direct callers BOTH_CORRECT; dependents above a closure region DONOR_CORRECT (fixed: walk_call_like keeps 12 resolved dependents and gains 77 INFERRED ones, reaching extract, systemize and main); trait-impl methods on concrete receivers DONOR_CORRECT (queued); main -> compare_designs across a renamed package ATLAS_CORRECT; Atlas's own JavaScript DONOR_CORRECT (queued); hunk-level seeds and execution flows different abstractions (queued)"
+falsification = "10 mutants killed (lifetime params kept, lifetime args kept, closures not crossed, dispatch not crossed, ambiguous names guessed, unique names not crossed, inferred steps reported as resolved, inferred counts dropped, inferred dependents mixed into the resolved list, inferred list left empty); the ambiguous-name mutant survived until both same-named functions reached the seed"
+boundary = "GitNexus is PolyForm Noncommercial: run and studied for research and testing only, code_reuse NONE; its TypeScript stays invisible to Atlas until a second-language profile exists, so the donor itself shows no N versus N+1 delta"
+debts = "DEBT-CALL and DEBT-SEMANTIC-COMPOSITION last advance G151; queued NA-TRAIT-IMPL-RECEIVERS, NA-HUNK-SEEDS, NA-EXECUTION-FLOWS; DEBT-MULTILANGUAGE next attack with the GitNexus pin re-replayed as its falsification target (G152); revalidation milestone INFERRED_UPSTREAM_AND_LIFETIME_ERASURE; native head NA-RESOURCE-DIMENSION planned G153"
+review = "DEBT-INTEGRITY_ENVELOPE confirmed (evidence/census/G151/debt-review.json)"
+proof = "PROVEN (post 40ab6b38...): no unexplained UNKNOWN (new test functions explained)"
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 6246
+after = 6394
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5410
+after = 5460

@@ -108,7 +108,10 @@ next_native_attack = "NA-RESOURCE-DIMENSION"
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
 interface_generation = "G122"
-generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR"]
+generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY"]
+# G151 (ADR 0067): REPLAY is the FULL_OSS_REPLAY lane (roadmap/FULL-OSS-REPLAY.toml); every replay is an
+# Agent-Worn mission, and no more than one non-replay generation passes between replays.
+full_oss_replay = ".atlas/roadmap/FULL-OSS-REPLAY.toml"
 native_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AUDIT"]
 interleaving_classes = ["REVALIDATION", "AGENT_MISSION", "DEBT_TRIGGERED_DONOR_ATTACK"]
 max_consecutive_interleaving = 2
@@ -655,14 +658,19 @@ objective = "NA-DESIGN-CANDIDATES (done: candidate designs at one coordinate com
 [[planned_generation]]
 id = "G151"
 priority = "P0"
-objective = "AGENT_MISSION: the seventh mission through the agent interface (cadence: within five generations of G146)"
+objective = "FULL_OSS_REPLAY R1 GitNexus, an Agent-Worn mission (done: pinned 06ce60beb674, PolyForm Noncommercial -- run and studied, never copied; Atlas_N blind to its TypeScript; differential on Atlas Studio against ground truth; capability epoch E1: lifetime-erased impl shapes and an INFERRED impact frontier through closures, dispatch and unique names; 10 mutants killed; source extinct)"
 
 [[planned_generation]]
 id = "G152"
 priority = "P0"
+objective = "FULL_OSS_REPLAY R2: the same GitNexus pin re-replayed as the falsification target of a bounded TypeScript/JavaScript semantic profile (DEBT-MULTILANGUAGE; tree-sitter as syntax substrate only), with the N versus N+1 delta recorded"
+
+[[planned_generation]]
+id = "G153"
+priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
 
 [[planned_generation]]
-id = "G153+"
+id = "G154+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
