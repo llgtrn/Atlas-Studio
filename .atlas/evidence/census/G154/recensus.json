@@ -2,11 +2,11 @@
   "schema": "atlas.self-recensus-report.v1",
   "generation": "G154",
   "base_revision": "b54574a62e2d5bd2c48115291e5c5569f67cbdd3",
-  "candidate_revision": "fc7c501ec6e8ff91827cf069f548cca8908bc661",
+  "candidate_revision": "f537bb14d5f05a696b39c844e45fd31201cedb1d",
   "candidate_dirty": true,
   "before_census_digest": "blake3-256:c2189168d5ddcb04946ea21ef69c1a585bda69d983432e5c09dd4b39431fdcac",
-  "after_census_digest": "blake3-256:2d3e65010ea4e32679dd7badba9a7f41e110994ee6d9ce5060303d1992f3eda4",
-  "replay_digest": "blake3-256:2d3e65010ea4e32679dd7badba9a7f41e110994ee6d9ce5060303d1992f3eda4",
+  "after_census_digest": "blake3-256:b3e91fd30240bff1388d27dfe445852214d37af62817deb06f5eb5c7b1d88a7c",
+  "replay_digest": "blake3-256:b3e91fd30240bff1388d27dfe445852214d37af62817deb06f5eb5c7b1d88a7c",
   "inventory_delta": {
     "created": [],
     "modified": [
@@ -61,8 +61,8 @@
     "Closed"
   ],
   "graph_delta": {
-    "graph_edges": 822,
-    "graph_nodes": 569
+    "graph_edges": 827,
+    "graph_nodes": 575
   },
   "obligation_delta": {},
   "adl_delta": {
@@ -199,6 +199,7 @@
       "+composed:relation:INVOKES",
       "+composed:relation:SUPPLIES_DATA",
       "+composed:understanding_gap",
+      "+docs",
       "+entities",
       "+evidence",
       "+facts",
@@ -255,6 +256,7 @@
     "total +composed:relation:INVOKES",
     "total +composed:relation:SUPPLIES_DATA",
     "total +composed:understanding_gap",
+    "total +docs",
     "total +entities",
     "total +evidence",
     "total +facts",

@@ -3398,7 +3398,7 @@ oracle = "the same pin at E3 vs E4: 0 -> 165 foreign declarations (156 with reso
 falsification = "7 mutants killed (foreign items not bound, include not spliced, include path taken from the crate root, foreign function as a definition, block ABI dropped, recognized files counted as unrecognized, computed include followed)"
 boundary = "no C frontend: what the C does stays UNKNOWN (DEBT-MULTILANGUAGE); tree-sitter decided EXTERNAL_BOUNDARY at E4 (the linked syntax substrate), G65's REFERENCE_ONLY kept as history; source extinct, the published crates are what Atlas links"
 debts = "DEBT-CALL and DEBT-MULTILANGUAGE last advance G154; capability epoch E4; GitNexus re-checked at E4 and CURRENT; next replay salsa-rs/salsa (QUEUED); native head NA-RESOURCE-DIMENSION planned G155"
-proof = "PROVEN (post 2d3e6501...): no unexplained UNKNOWN (new functions explained)"
+proof = "PROVEN (post b3e91fd3...): no unexplained UNKNOWN (new functions explained; re-proven with ADR 0070 in scope)"
 
 [[generation.metric]]
 key = "composed:function_behavior"

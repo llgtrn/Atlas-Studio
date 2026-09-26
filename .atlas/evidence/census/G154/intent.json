@@ -19,6 +19,7 @@
     "+composed:relation:INVOKES",
     "+composed:relation:SUPPLIES_DATA",
     "+composed:understanding_gap",
+    "+docs",
     "+entities",
     "+evidence",
     "+facts",
