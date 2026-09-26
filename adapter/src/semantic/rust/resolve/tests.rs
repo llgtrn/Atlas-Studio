@@ -868,3 +868,25 @@ fn foreign_functions_resolve_through_a_literal_include() {
         "a computed include is never followed: {found:?}"
     );
 }
+
+/// G156 (replay R4, salsa): an impl's shape is the set of types it applies to, not its spelling.
+/// `impl<C: Config> Ingredient<C>` and `impl<T> Ingredient<T> where T: Config` apply to the same
+/// types, so a `self` call from one reaches a method of the other (salsa splits
+/// `IngredientImpl<C>` this way across files); impls with different bound sets stay apart.
+#[test]
+fn inline_and_where_bounds_with_renamed_parameters_share_an_impl_shape() {
+    let lib = "pub trait Config {}\npub trait Other {}\npub struct Ingredient<C> { c: C }\nmod memo;\nimpl<T> Ingredient<T> where T: Config {\n    pub fn top(&self) {\n        self.from_bound();\n        self.from_split_bounds();\n        self.from_other_bound();\n    }\n}\nimpl<C: Config + Other> Ingredient<C> {\n    fn from_split_bounds_twin(&self) {}\n}\n";
+    let memo = "use super::*;\nimpl<C: Config> Ingredient<C> {\n    pub(super) fn from_bound(&self) {}\n}\nimpl<X> Ingredient<X> where X: Config, {\n    pub(super) fn from_split_bounds(&self) {}\n}\nimpl<C: Other> Ingredient<C> {\n    pub(super) fn from_other_bound(&self) {}\n}\n";
+    let results = resolve(&[("src/lib.rs", lib), ("src/memo.rs", memo)], "src/lib.rs");
+    let found = outcomes(&results, "src/lib.rs");
+    assert_eq!(
+        found[0],
+        ("self.from_bound".into(), "src/memo.rs:3:from_bound".into()),
+        "{found:?}"
+    );
+    assert_eq!(found[1].1, "src/memo.rs:6:from_split_bounds", "{found:?}");
+    assert!(
+        found[2].1.starts_with("unresolved"),
+        "a different bound set is a different impl: {found:?}"
+    );
+}

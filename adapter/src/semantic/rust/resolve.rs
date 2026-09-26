@@ -368,45 +368,115 @@ fn receiver_of(sig: &syn::Signature) -> Option<Receiver> {
 /// G151: lifetimes are erased. Which method a call dispatches to never depends on a lifetime,
 /// so `impl<'a> Walker<'a>` is shaped like `impl Walker` (and is plain when nothing else is
 /// generic); a lifetime predicate in a where clause is dropped with it.
+///
+/// G156 (replay R4, salsa): the shape is the set of types the impl applies to, not its spelling.
+/// Generic parameters are renamed by position, every bound -- inline (`impl<C: Config>`) or in
+/// the where clause (`where C: Config`), `A + B` split into one predicate each -- becomes a sorted
+/// predicate, so `impl<C: Config> S<C>` and `impl<T> S<T> where T: Config` share a shape and
+/// their inherent methods are one namespace, as rustc sees them. Different bound sets still
+/// differ.
 fn impl_shape(item: &syn::ItemImpl) -> String {
     use quote::ToTokens;
+    let mut names: BTreeMap<String, String> = BTreeMap::new();
+    let mut params: Vec<(String, Option<syn::Type>)> = Vec::new();
+    let mut bounds: Vec<(proc_macro2::TokenStream, proc_macro2::TokenStream)> = Vec::new();
+    let mut push_bounds =
+        |subject: proc_macro2::TokenStream,
+         list: &syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]>| {
+            for bound in list {
+                if !matches!(bound, syn::TypeParamBound::Lifetime(_)) {
+                    bounds.push((subject.clone(), bound.to_token_stream()));
+                }
+            }
+        };
+    for param in &item.generics.params {
+        match param {
+            syn::GenericParam::Lifetime(_) => {}
+            syn::GenericParam::Type(ty) => {
+                let positional = format!("P{}", names.len());
+                names.insert(ty.ident.to_string(), positional.clone());
+                params.push((positional, None));
+                push_bounds(ty.ident.to_token_stream(), &ty.bounds);
+            }
+            syn::GenericParam::Const(konst) => {
+                let positional = format!("P{}", names.len());
+                names.insert(konst.ident.to_string(), positional.clone());
+                params.push((positional, Some(konst.ty.clone())));
+            }
+        }
+    }
+    if let Some(clause) = &item.generics.where_clause {
+        for predicate in &clause.predicates {
+            if let syn::WherePredicate::Type(predicate) = predicate {
+                let mut subject = proc_macro2::TokenStream::new();
+                if let Some(lifetimes) = &predicate.lifetimes {
+                    lifetimes.to_tokens(&mut subject);
+                }
+                predicate.bounded_ty.to_tokens(&mut subject);
+                push_bounds(subject, &predicate.bounds);
+            }
+        }
+    }
+    let rename = |tokens: proc_macro2::TokenStream| renamed(tokens, &names).to_string();
+    let predicates: BTreeSet<String> = bounds
+        .into_iter()
+        .map(|(subject, bound)| format!("{} : {}", rename(subject), rename(bound)))
+        .collect();
     let arguments = match item.self_ty.as_ref() {
         syn::Type::Path(path) => path
             .path
             .segments
             .last()
-            .map(|segment| {
-                without_lifetimes(&segment.arguments)
-                    .to_token_stream()
-                    .to_string()
-            })
+            .map(|segment| rename(without_lifetimes(&segment.arguments).to_token_stream()))
             .unwrap_or_default(),
-        other => other.to_token_stream().to_string(),
+        other => rename(other.to_token_stream()),
     };
-    let mut generics = item.generics.clone();
-    generics.params = generics
-        .params
-        .into_iter()
-        .filter(|p| !matches!(p, syn::GenericParam::Lifetime(_)))
-        .collect();
-    if let Some(clause) = generics.where_clause.as_mut() {
-        clause.predicates = std::mem::take(&mut clause.predicates)
-            .into_iter()
-            .filter(|p| !matches!(p, syn::WherePredicate::Lifetime(_)))
+    let generics = if params.is_empty() {
+        String::new()
+    } else {
+        let list: Vec<String> = params
+            .iter()
+            .map(|(name, ty)| match ty {
+                Some(ty) => format!("const {name} : {}", rename(ty.to_token_stream())),
+                None => name.clone(),
+            })
             .collect();
-        if clause.predicates.is_empty() {
-            generics.where_clause = None;
-        }
-    }
-    if generics.params.is_empty() {
-        generics.lt_token = None;
-        generics.gt_token = None;
-    }
-    format!(
-        "{} {} | {arguments}",
-        generics.to_token_stream(),
-        generics.where_clause.to_token_stream()
-    )
+        format!("< {} >", list.join(" , "))
+    };
+    let clause = if predicates.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "where {}",
+            predicates.into_iter().collect::<Vec<_>>().join(" , ")
+        )
+    };
+    format!("{generics} {clause} | {arguments}")
+}
+
+/// `tokens` with every identifier in `names` replaced by its positional name.
+fn renamed(
+    tokens: proc_macro2::TokenStream,
+    names: &BTreeMap<String, String>,
+) -> proc_macro2::TokenStream {
+    tokens
+        .into_iter()
+        .map(|tree| match tree {
+            proc_macro2::TokenTree::Ident(ident) => match names.get(&ident.to_string()) {
+                Some(name) => {
+                    proc_macro2::TokenTree::Ident(proc_macro2::Ident::new(name, ident.span()))
+                }
+                None => proc_macro2::TokenTree::Ident(ident),
+            },
+            proc_macro2::TokenTree::Group(group) => {
+                let mut inner =
+                    proc_macro2::Group::new(group.delimiter(), renamed(group.stream(), names));
+                inner.set_span(group.span());
+                proc_macro2::TokenTree::Group(inner)
+            }
+            other => other,
+        })
+        .collect()
 }
 
 /// Path arguments with every lifetime argument removed; `None` when only lifetimes were given.

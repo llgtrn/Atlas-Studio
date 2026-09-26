@@ -2948,9 +2948,12 @@ mod tests {
                     .into_iter()
                     .find(|(g, _)| *g == generation_id)
                     .unwrap_or_else(|| panic!("{id}: {generation_id} not in the ledger"));
-                // A donor Gundam proof is an agent mission that carries a revalidation (G136).
+                // A donor Gundam proof is an agent mission that carries a revalidation (G136); a
+                // replay at the donor's exact historical pin carries one too (G156, ADR 0067:
+                // every replay is an Agent-Worn mission).
                 assert!(
-                    ["REVALIDATION", "AGENT_MISSION"].contains(&text(&block, "kind").as_str()),
+                    ["REVALIDATION", "AGENT_MISSION", "REPLAY"]
+                        .contains(&text(&block, "kind").as_str()),
                     "{id}"
                 );
                 let follow_up = text(r, "follow_up");
