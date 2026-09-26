@@ -25,8 +25,9 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 
-/// The largest header this reader accepts (the format's own bound on header size).
-pub const MAX_HEADER_BYTES: u64 = 100 * 1024 * 1024;
+/// The largest header this reader accepts: the format's own bound, 100,000,000 bytes (G166,
+/// replay R9: the reference reader refuses one byte more; 100 MiB admitted files it refuses).
+pub const MAX_HEADER_BYTES: u64 = 100_000_000;
 /// Chunk size of every payload read: memory stays bounded whatever the tensor size.
 const CHUNK: usize = 64 * 1024;
 
@@ -223,8 +224,8 @@ fn tensor_entry(name: &str, value: &serde_json::Value) -> Result<PhysicalTensor,
     if end < start {
         return malformed(format!("tensor `{name}`: data_offsets end before start"));
     }
-    if expected_bytes(dtype, &shape).is_none() {
-        return malformed(format!("tensor `{name}`: element count overflows"));
+    if let Err(error) = expected_bytes(dtype, &shape) {
+        return malformed(format!("tensor `{name}`: {error}"));
     }
     Ok(PhysicalTensor {
         name: name.to_owned(),

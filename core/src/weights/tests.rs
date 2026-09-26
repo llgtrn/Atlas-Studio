@@ -79,13 +79,85 @@ fn exact_reconstruction_is_claimable_only_where_information_survives() {
     assert!(PreservationClass::ReversibleWithRetained.exact_reconstruction_claimable(true));
     assert!(!PreservationClass::ReversibleWithRetained.exact_reconstruction_claimable(false));
     assert!(!PreservationClass::Lossy.exact_reconstruction_claimable(true));
-    assert_eq!(expected_bytes(TensorDtype::BF16, &[3, 5]), Some(30));
+    assert_eq!(expected_bytes(TensorDtype::BF16, &[3, 5]), Ok(30));
     assert_eq!(
         expected_bytes(TensorDtype::U8, &[]),
-        Some(1),
+        Ok(1),
         "a scalar holds one element"
     );
-    assert_eq!(expected_bytes(TensorDtype::I64, &[u64::MAX]), None);
+    assert_eq!(
+        expected_bytes(TensorDtype::I64, &[u64::MAX]),
+        Err(SizeError::Overflow)
+    );
     // An element count that wraps to zero must not pass as an empty tensor.
-    assert_eq!(expected_bytes(TensorDtype::U8, &[1 << 32, 1 << 32]), None);
+    assert_eq!(
+        expected_bytes(TensorDtype::U8, &[1 << 32, 1 << 32]),
+        Err(SizeError::Overflow)
+    );
+}
+
+/// G166 (replay R9): the format's whole element-type table; sub-byte elements pack across
+/// bytes and must fill whole bytes, as the reference reader requires.
+#[test]
+fn sub_byte_and_wide_dtypes_are_sized_in_bits() {
+    // The reference reader's table at the replayed pin, in its order.
+    let names = [
+        "BOOL",
+        "F4",
+        "F6_E2M3",
+        "F6_E3M2",
+        "U8",
+        "I8",
+        "F8_E5M2",
+        "F8_E4M3",
+        "F8_E8M0",
+        "F8_E4M3FNUZ",
+        "F8_E5M2FNUZ",
+        "I16",
+        "U16",
+        "F16",
+        "BF16",
+        "I32",
+        "U32",
+        "F32",
+        "C64",
+        "F64",
+        "I64",
+        "U64",
+    ];
+    let bits: Vec<(&str, u64)> = names
+        .iter()
+        .map(|name| {
+            let dtype: TensorDtype = serde_json::from_value(serde_json::json!(name))
+                .unwrap_or_else(|e| panic!("{name}: {e}"));
+            assert_eq!(dtype.as_str(), *name);
+            (*name, dtype.element_bits())
+        })
+        .collect();
+    for (name, expected) in [
+        ("F4", 4),
+        ("F6_E2M3", 6),
+        ("F6_E3M2", 6),
+        ("F8_E8M0", 8),
+        ("F8_E4M3FNUZ", 8),
+        ("F8_E5M2FNUZ", 8),
+        ("C64", 64),
+        ("BOOL", 8),
+        ("BF16", 16),
+    ] {
+        assert!(bits.contains(&(name, expected)), "{name}");
+    }
+    assert_eq!(expected_bytes(TensorDtype::F4, &[2, 4]), Ok(4));
+    assert_eq!(expected_bytes(TensorDtype::F6E2M3, &[4]), Ok(3));
+    assert_eq!(expected_bytes(TensorDtype::C64, &[3]), Ok(24));
+    assert_eq!(
+        expected_bytes(TensorDtype::F4, &[3]),
+        Err(SizeError::Misaligned { bits: 12 })
+    );
+    assert_eq!(
+        expected_bytes(TensorDtype::F6E3M2, &[]),
+        Err(SizeError::Misaligned { bits: 6 }),
+        "a sub-byte scalar fills no byte"
+    );
+    assert_eq!(expected_bytes(TensorDtype::F4, &[0]), Ok(0));
 }

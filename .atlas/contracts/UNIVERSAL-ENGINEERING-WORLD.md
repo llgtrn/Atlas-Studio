@@ -142,7 +142,7 @@ Pickle-based checkpoints are never unpickled: no format other than SafeTensors i
 
 | Stage | Capability | Maturity |
 |---|---|---|
-| W1 | SafeTensors physical census, lossless mechanical re-encoding, CLI `weights census` / `weights construct` | EXPERIMENTAL, verified by tests and the reference implementation as oracle |
+| W1 | SafeTensors physical census, lossless mechanical re-encoding, CLI `weights census` / `weights construct`; the format's whole dtype table (sub-byte types sized in bits) and its 100,000,000-byte header bound (G166, replay R9, ADR 0081) | EXPERIMENTAL, verified by tests and the format's own reader as oracle (42 of 44 differential containers agree; the two refusals are deliberate) |
 | W2 | weight census records in the self census (typed record family, inventory class, support ladder level) | PLANNED (NA-WEIGHT-CENSUS-RECORDS) |
 | W3 | semantic role mapping from structural evidence (shape families, tying, graph metadata), with names as hints only | PLANNED (NA-WEIGHT-ROLES) |
 | W4 | transforms with typed preservation: dtype casts, quantization with a retained residual, sharding and merging | PLANNED (NA-WEIGHT-TRANSFORMS) |

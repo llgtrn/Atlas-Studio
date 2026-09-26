@@ -111,6 +111,15 @@ fn every_untrusted_header_claim_is_checked_before_it_is_believed() {
     let mut bomb = (u64::MAX).to_le_bytes().to_vec();
     bomb.extend_from_slice(b"{}");
     assert!(refused(&bomb).contains("exceeds"));
+    // G166 (replay R9): the bound is the format's own 100,000,000 bytes, checked before a byte
+    // of the header is read -- one byte more is refused, the bound itself is read (and here
+    // found past the end of the file).
+    let mut over = 100_000_001u64.to_le_bytes().to_vec();
+    over.extend_from_slice(b"{}");
+    assert!(refused(&over).contains("exceeds 100000000"));
+    let mut at = 100_000_000u64.to_le_bytes().to_vec();
+    at.extend_from_slice(b"{}");
+    assert!(refused(&at).contains("past the end"));
     let mut past = 64u64.to_le_bytes().to_vec();
     past.extend_from_slice(b"{}");
     assert!(refused(&past).contains("past the end"));
@@ -121,6 +130,11 @@ fn every_untrusted_header_claim_is_checked_before_it_is_believed() {
     assert!(refused(&container(dup, &[0, 0])).contains("duplicate key"));
     // Tensor entries: dtype, fields, shape and offsets.
     assert!(refused(&container(&tensor("Q4_K", "[4]", "[0,4]"), &four)).contains("no known dtype"));
+    // G166: sub-byte elements must fill whole bytes, as the reference reader requires.
+    assert!(
+        refused(&container(&tensor("F4", "[3]", "[0,2]"), &four[..2]))
+            .contains("12 bits do not fill whole bytes")
+    );
     let extra = r#"{"t":{"dtype":"U8","shape":[4],"data_offsets":[0,4],"code":"x"}}"#;
     assert!(refused(&container(extra, &four)).contains("unknown field"));
     assert!(
@@ -196,4 +210,21 @@ fn a_constructed_header_is_padded_with_spaces_to_eight_bytes() {
         unpadded += usize::from(!raw.len().is_multiple_of(8));
     }
     assert!(unpadded > 0, "some fixture needs padding");
+}
+
+/// G166 (replay R9): sub-byte and wide element types -- the format's whole table -- are
+/// censused and rebuilt losslessly like any other.
+#[test]
+fn sub_byte_and_wide_tensors_round_trip() {
+    let payload: Vec<u8> = (0u8..31).collect();
+    let bytes = container(
+        r#"{"f4":{"dtype":"F4","shape":[2,4],"data_offsets":[0,4]},"f6":{"dtype":"F6_E3M2","shape":[4],"data_offsets":[4,7]},"c":{"dtype":"C64","shape":[3],"data_offsets":[7,31]}}"#,
+        &payload,
+    );
+    let source = census_of(&bytes).unwrap();
+    let dtypes: Vec<&str> = source.tensors.iter().map(|t| t.dtype.as_str()).collect();
+    assert_eq!(dtypes, ["F4", "F6_E3M2", "C64"]);
+    let mut out = Vec::new();
+    construct(&source, &mut Cursor::new(&bytes), &mut out).unwrap();
+    assert!(same_content(&source, &census_of(&out).unwrap()));
 }

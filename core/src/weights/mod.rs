@@ -30,12 +30,19 @@ vocabulary_enum! {
 
 vocabulary_enum! {
     /// Element types of a stored tensor, by their storage encoding.
+    /// G166 (replay R9): the format's full element-type table, sub-byte types included.
     pub enum TensorDtype {
         Bool => "BOOL",
+        F4 => "F4",
+        F6E2M3 => "F6_E2M3",
+        F6E3M2 => "F6_E3M2",
         U8 => "U8",
         I8 => "I8",
         F8E5M2 => "F8_E5M2",
         F8E4M3 => "F8_E4M3",
+        F8E8M0 => "F8_E8M0",
+        F8E4M3Fnuz => "F8_E4M3FNUZ",
+        F8E5M2Fnuz => "F8_E5M2FNUZ",
         I16 => "I16",
         U16 => "U16",
         F16 => "F16",
@@ -43,6 +50,7 @@ vocabulary_enum! {
         I32 => "I32",
         U32 => "U32",
         F32 => "F32",
+        C64 => "C64",
         F64 => "F64",
         I64 => "I64",
         U64 => "U64",
@@ -50,14 +58,42 @@ vocabulary_enum! {
 }
 
 impl TensorDtype {
-    /// Bytes per element (every type here is byte-addressed; sub-byte and block-quantized
-    /// encodings are a later stage).
-    pub const fn element_bytes(self) -> u64 {
+    /// Bits per element: sub-byte types pack elements across byte boundaries, so a tensor's
+    /// size is its element count times this, in whole bytes. Block-quantized encodings (GGUF)
+    /// are a later stage.
+    pub const fn element_bits(self) -> u64 {
         match self {
-            Self::Bool | Self::U8 | Self::I8 | Self::F8E5M2 | Self::F8E4M3 => 1,
-            Self::I16 | Self::U16 | Self::F16 | Self::BF16 => 2,
-            Self::I32 | Self::U32 | Self::F32 => 4,
-            Self::F64 | Self::I64 | Self::U64 => 8,
+            Self::F4 => 4,
+            Self::F6E2M3 | Self::F6E3M2 => 6,
+            Self::Bool
+            | Self::U8
+            | Self::I8
+            | Self::F8E5M2
+            | Self::F8E4M3
+            | Self::F8E8M0
+            | Self::F8E4M3Fnuz
+            | Self::F8E5M2Fnuz => 8,
+            Self::I16 | Self::U16 | Self::F16 | Self::BF16 => 16,
+            Self::I32 | Self::U32 | Self::F32 => 32,
+            Self::C64 | Self::F64 | Self::I64 | Self::U64 => 64,
+        }
+    }
+}
+
+/// Why a tensor's dtype and shape name no byte size.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SizeError {
+    /// The element or bit count overflows.
+    Overflow,
+    /// Sub-byte elements that do not fill whole bytes (G166: the format refuses them too).
+    Misaligned { bits: u64 },
+}
+
+impl std::fmt::Display for SizeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Overflow => f.write_str("element count overflows"),
+            Self::Misaligned { bits } => write!(f, "{bits} bits do not fill whole bytes"),
         }
     }
 }
@@ -140,8 +176,8 @@ pub fn validate(census: &WeightCensus) -> Vec<String> {
             problems.push(format!("tensor `{}` appears twice", t.name));
         }
         match expected_bytes(t.dtype, &t.shape) {
-            None => problems.push(format!("tensor `{}`: element count overflows", t.name)),
-            Some(bytes) => {
+            Err(error) => problems.push(format!("tensor `{}`: {error}", t.name)),
+            Ok(bytes) => {
                 if t.payload.end.checked_sub(t.payload.start) != Some(bytes) {
                     problems.push(format!(
                         "tensor `{}`: range {}..{} holds not the {bytes} bytes its dtype and shape need",
@@ -176,12 +212,18 @@ pub fn validate(census: &WeightCensus) -> Vec<String> {
     problems
 }
 
-/// Bytes a tensor of `dtype` and `shape` occupies; `None` when the count overflows.
-pub fn expected_bytes(dtype: TensorDtype, shape: &[u64]) -> Option<u64> {
-    shape
+/// Bytes a tensor of `dtype` and `shape` occupies: its element count times the dtype's bits, in
+/// whole bytes.
+pub fn expected_bytes(dtype: TensorDtype, shape: &[u64]) -> Result<u64, SizeError> {
+    let bits = shape
         .iter()
-        .try_fold(1u64, |n, d| n.checked_mul(*d))?
-        .checked_mul(dtype.element_bytes())
+        .try_fold(1u64, |n, d| n.checked_mul(*d))
+        .and_then(|count| count.checked_mul(dtype.element_bits()))
+        .ok_or(SizeError::Overflow)?;
+    if !bits.is_multiple_of(8) {
+        return Err(SizeError::Misaligned { bits });
+    }
+    Ok(bits / 8)
 }
 
 /// A census's identity: BLAKE3 over its canonical serde form.
