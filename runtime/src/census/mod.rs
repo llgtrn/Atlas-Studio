@@ -1436,6 +1436,7 @@ mod tests {
             is_return_flow: false,
             resolution: DataFlowResolution::Unresolved,
             resolved_definition: None,
+            projection: Vec::new(),
         };
         let record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());

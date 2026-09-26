@@ -36,6 +36,11 @@ Around these levels sit:
   - `ENCLOSES`, from a function to the closure regions it defines. It is DERIVED from the closure's scope, but it is not an invocation.
 
   A trace through either is INFERRED. None of these relations implies cause, ordering or authority.
+- **Field reads** (G146, mission M6). Each `FunctionBehavior` carries two lists, read from the projections of its DATA_FLOW uses (OBSERVED syntax):
+  - `projections`: the field chains the function reads (`report.census.facts`);
+  - `whole_parameter_uses`: the parameters it uses whole.
+
+  A whole use means the value's content may be read wherever the value goes. Call arguments are not bound to callee parameters (GAP-ARGUMENT-BINDING), so a field is never claimed unread beyond the function itself.
 - **Typed invariants.** The kinds are `STATE`, `ORDERING`, `DEPENDENCY`, `AUTHORITY`, `RESOURCE`, `SAFETY` and `CONSTRUCTION`, each with a status, evidence and a residual.
 - **`UnderstandingGap` records.** Each names a question class Atlas cannot answer yet and the debt that owns it.
 

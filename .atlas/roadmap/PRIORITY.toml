@@ -630,7 +630,7 @@ objective = "planned NA-FIRST-ARTIFACT, which is not construction-reachable (M17
 [[planned_generation]]
 id = "G146"
 priority = "P0"
-objective = "AGENT_MISSION: the sixth mission through the agent interface (cadence: within five generations of G141)"
+objective = "AGENT_MISSION: the sixth mission through the agent interface (done: M6 -- which parts of the census report reach the .atlas container, answered through field projections on DATA_FLOW uses; GAP-ARGUMENT-BINDING routed to DEBT-DATA_FLOW; 22 of 22 benchmark cases; 5 mutants killed)"
 
 [[planned_generation]]
 id = "G147"

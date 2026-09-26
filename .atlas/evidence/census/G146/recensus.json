@@ -1,0 +1,351 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G146",
+  "base_revision": "b8819e08a04c1acd8ca478f12d1aaf5e716a9d99",
+  "candidate_revision": "66842678739155740bf2f5ba30c76a51a0a74261",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:73a2d210423153b88bc88564eb6c2dea54fb0ed88b019a34dca6d9501b0ef1e6",
+  "after_census_digest": "blake3-256:c48824e7075c5a978dafc21ccf221e5723b30a5618bc55880e7b40b9b3d7ab0a",
+  "replay_digest": "blake3-256:c48824e7075c5a978dafc21ccf221e5723b30a5618bc55880e7b40b9b3d7ab0a",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/semantic/data_flow.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/mod.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/semantic/data_flow.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/mod.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 15,
+      "fact:FunctionSignature|OBSERVED": 5,
+      "fact:Symbol|OBSERVED": 18,
+      "fact:Type|DERIVED": 3,
+      "fact:Type|OBSERVED": 5,
+      "record:CALL|DERIVED": 10,
+      "record:CALL|OBSERVED": 119,
+      "record:CONTROL_FLOW|INFERRED": 7,
+      "record:CONTROL_FLOW|OBSERVED": 30,
+      "record:DATA_FLOW|OBSERVED": 169,
+      "record:EFFECT|INFERRED": 7,
+      "record:FUNCTION_IDENTITY|OBSERVED": 15,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 5,
+      "record:OWNERSHIP|OBSERVED": 43,
+      "record:SYMBOL|OBSERVED": 18,
+      "record:TYPE|DERIVED": 3,
+      "record:TYPE|OBSERVED": 5
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 600,
+    "graph_nodes": 450
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/place_ref_for_value()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/place_ref_for_value()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_definition()."
+      ],
+      "after": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_definition()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_use_or_store()."
+      ],
+      "after": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_use_or_store()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/walk_expr()."
+      ],
+      "after": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/walk_expr()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/data_flow_value_observation()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/data_flow_value_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/data_flow/tests/base()."
+      ],
+      "after": [
+        "core semantic/data_flow/tests/base()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/data_flow/tests/identity_key_is_unaffected_by_resolution_fields()."
+      ],
+      "after": [
+        "core semantic/data_flow/tests/identity_key_is_unaffected_by_resolution_fields()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/answer()."
+      ],
+      "after": [
+        "runtime agent/answer()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/run_benchmark()."
+      ],
+      "after": [
+        "runtime agent/run_benchmark()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/tests/extraction_batch_with_data_flow_from()."
+      ],
+      "after": [
+        "runtime census/tests/extraction_batch_with_data_flow_from()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_value()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/dataflow/member_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/g146_data_flow_uses_carry_the_field_chain_they_read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/expectation_holds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/benchmark_expectations_can_require_an_absence()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "agent mission M6: field projections on DATA_FLOW uses, composed per function as projections and whole parameter uses, answer which parts of the census report the .atlas container builder reads",
+    "changed_paths": [
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/semantic/data_flow.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/mod.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:understanding_gap",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/place_ref_for_value().",
+      "CHANGED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_definition().",
+      "CHANGED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_use_or_store().",
+      "CHANGED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/walk_expr().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core graph/engineering_graph/tests/data_flow_value_observation().",
+      "CHANGED core semantic/data_flow/tests/base().",
+      "CHANGED core semantic/data_flow/tests/identity_key_is_unaffected_by_resolution_fields().",
+      "CHANGED runtime agent/answer().",
+      "CHANGED runtime agent/run_benchmark().",
+      "CHANGED runtime census/tests/extraction_batch_with_data_flow_from().",
+      "CREATED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_value().",
+      "CREATED adapter semantic/rust/dataflow/member_text().",
+      "CREATED adapter semantic/rust/tests/g146_data_flow_uses_carry_the_field_chain_they_read().",
+      "CREATED runtime agent/expectation_holds().",
+      "CREATED runtime agent/tests/benchmark_expectations_can_require_an_absence()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/dataflow.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/semantic/data_flow.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/census/mod.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:understanding_gap",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/place_ref_for_value().",
+    "entity CHANGED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_definition().",
+    "entity CHANGED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_use_or_store().",
+    "entity CHANGED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/walk_expr().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core graph/engineering_graph/tests/data_flow_value_observation().",
+    "entity CHANGED core semantic/data_flow/tests/base().",
+    "entity CHANGED core semantic/data_flow/tests/identity_key_is_unaffected_by_resolution_fields().",
+    "entity CHANGED runtime agent/answer().",
+    "entity CHANGED runtime agent/run_benchmark().",
+    "entity CHANGED runtime census/tests/extraction_batch_with_data_flow_from().",
+    "entity CREATED adapter semantic/rust/dataflow/`impl:DataFlowWalker<'ctx, 'a>`/emit_value().",
+    "entity CREATED adapter semantic/rust/dataflow/member_text().",
+    "entity CREATED adapter semantic/rust/tests/g146_data_flow_uses_carry_the_field_chain_they_read().",
+    "entity CREATED runtime agent/expectation_holds().",
+    "entity CREATED runtime agent/tests/benchmark_expectations_can_require_an_absence()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

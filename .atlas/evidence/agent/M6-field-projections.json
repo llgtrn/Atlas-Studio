@@ -1,0 +1,128 @@
+{
+ "schema": "atlas.agent.mission.v1",
+ "id": "M6",
+ "generation": "G146",
+ "mission": "prepare the next construction attack (NA-ATLAS-TYPED-SECTIONS, node M1) Atlas-first: which parts of the census report does atlas_of -- the .atlas container builder -- read today, do the typed semantic records reach the container, and what would changing the container's model impact?",
+ "pilot": "coding agent (the AI); Atlas as the worn semantic body",
+ "base_commit": "66842678739155740bf2f5ba30c76a51a0a74261",
+ "atlas_first_sequence": [
+  {
+   "op": "understand",
+   "target": "fn:atlas_of",
+   "answered": "a MissionContext of 51 composed objects from 97 raw records: 6 resolved callees, 2 callers, an impact frontier of 13 callers (AtlasCli 8, Runtime 5), 11 dependency invariants, 26 unresolved call sites; no state, no effects -- and nothing about which parts of `report` it reads"
+  },
+  {
+   "op": "explain",
+   "target": "fn:atlas_of",
+   "answered": "data_flow 10 definitions, 33 uses, 4 parameter flows; the uses name only `report`, `census`, `certificate`: which fields are read was UNKNOWN (GAP-FIELD-PROJECTIONS)"
+  },
+  {
+   "op": "census records (deep dive)",
+   "target": "DATA_FLOW records of runtime/src/atlas.rs",
+   "answered": "USE records carry the base name at its span only; the field chain is dropped by the extractor, not by composition"
+  },
+  {
+   "op": "explain (after)",
+   "target": "fn:atlas_of",
+   "answered": "projections: census.facts, census.typed_obligations, report.adl.ir.declared.nodes, report.adl.ir.declared.edges, report.census, certificate.{certificate_id,state,blockers}, atlas.{facts,obligations}; whole parameter uses: report, genome_schema, genome_hash -- no typed_semantic_records read directly, but `report` escapes whole"
+  },
+  {
+   "op": "explain (after)",
+   "target": "fn:CensusSnapshot::from_report",
+   "answered": "projections include census.typed_semantic_records and census.typed_obligations; so the typed records shape the container manifest's census_digest without being stored in it"
+  },
+  {
+   "op": "explain (after)",
+   "target": "fn:revision (runtime/src/atlas.rs)",
+   "answered": "projections report.snapshot.dirty, report.snapshot.head_sha only"
+  },
+  {
+   "op": "hypothesis",
+   "target": "invokes:atlas_of:publish",
+   "answered": "FALSIFIED: every call site of atlas_of is resolved and none reaches publish (pack does)"
+  },
+  {
+   "op": "trace",
+   "target": "fn:pack -> fn:atlas_of",
+   "answered": "PATH_OBSERVED, DERIVED"
+  },
+  {
+   "op": "impact",
+   "target": "core/src/atlas/mod.rs",
+   "answered": "75 changed functions, 37 callers (AtlasCli 8, Core 22, Runtime 7), 29 tests reached (INFERRED), 8 invariants at risk; impact of the CensusAtlas type itself: GAP-TYPE-USE-SITES (construction sites are not censused)"
+  }
+ ],
+ "atlas_knew": [
+  "atlas_of's callers, callees, impact frontier and dependency invariants",
+  "that pack reaches atlas_of and that atlas_of does not call publish",
+  "after the fix: the field chains every function reads (7,572 chains in 2,649 of 5,130 functions) and the parameters each uses whole (3,405 in 2,213 functions)"
+ ],
+ "unknown": [
+  "what a callee reads from a value passed to it whole: call arguments are not bound to callee parameters (GAP-ARGUMENT-BINDING, DEBT-DATA_FLOW); the pilot followed from_report and revision by name, which Atlas does not claim as the binding",
+  "the construction and use sites of CensusAtlas (GAP-TYPE-USE-SITES, DEBT-SYMBOL)",
+  "field reads through method-call results or parentheses ((r).z, r.m().n): those stay whole uses of the root"
+ ],
+ "manual_source_reads": [
+  {
+   "what": "runtime/src/atlas.rs atlas_of and revision (about 35 lines)",
+   "reason": "FALSIFICATION: the ground truth the new projections were checked against"
+  },
+  {
+   "what": "adapter/src/semantic/rust/dataflow.rs walk_expr and the value emitters (about 70 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the edit target"
+  },
+  {
+   "what": "core/src/semantic/data_flow.rs ValueIdentity and core/src/composition/mod.rs the DATA_FLOW arm (about 90 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the edit targets"
+  },
+  {
+   "what": "runtime/src/agent.rs benchmark ops and run_benchmark (about 60 lines)",
+   "reason": "IMPLEMENTATION_DETAIL: the field_reads op and the absent: expectation"
+  }
+ ],
+ "manual_reads_summary": {
+  "reads": 4,
+  "implementation_detail": 3,
+  "unknown": 0,
+  "falsification": 1,
+  "lines_read": "about 255 lines in 5 files; no read driven by an UNKNOWN"
+ },
+ "gaps": [
+  {
+   "id": "GAP-FIELD-PROJECTIONS",
+   "status": "CLOSED",
+   "fix": "a DATA_FLOW Use of a field chain rooted at a simple name carries its projection (content, outside the record identity); FunctionBehavior.projections and whole_parameter_uses; benchmark op field_reads",
+   "debt": "DEBT-DATA_FLOW"
+  },
+  {
+   "id": "GAP-ARGUMENT-BINDING",
+   "status": "OPENED",
+   "note": "registered as an UnderstandingGap (magnitude: parameters used whole); binding call arguments to callee parameters would let a field read be followed across calls",
+   "debt": "DEBT-DATA_FLOW"
+  },
+  {
+   "id": "GAP-TYPE-USE-SITES",
+   "status": "CONFIRMED",
+   "note": "hit again: the impact of changing CensusAtlas as a type",
+   "debt": "DEBT-SYMBOL"
+  }
+ ],
+ "measured": {
+  "projections": "7,572 field chains in 2,649 of 5,130 functions; 3,405 whole parameter uses in 2,213 functions (self world model at 6684267873 + the G146 engine)",
+  "record_identity": "unchanged: the projection is outside the DATA_FLOW identity key, so no record id moved",
+  "benchmark": "22 of 22 (B20, B21, B22 new)",
+  "manual_reads": "M1 7, M2 8, M3 4, M4 4, M5 4, M6 4 (none UNKNOWN-driven)"
+ },
+ "challenge": "does the .atlas container carry the typed semantic records? Atlas answers: atlas_of reads no typed_semantic_records field (field_reads, OBSERVED syntax); it passes report whole to from_report, which reads census.typed_semantic_records into the census digest the manifest commits to; whether anything else reads them after the report is passed on is GAP-ARGUMENT-BINDING -- never 'the container stores them', never 'nothing reads them'",
+ "falsification": [
+  "MF1 the chain not reversed (leaf first): killed",
+  "MF2 a field chain emitted without its projection: killed",
+  "MF3 projections not composed: killed (B20 over the self world model)",
+  "MF4 whole uses not restricted to parameters: killed (B20 absent:whole:atlas)",
+  "MF5 absent: expectations ignored: killed"
+ ],
+ "benchmark": {
+  "cases": 22,
+  "correct": 22
+ }
+}

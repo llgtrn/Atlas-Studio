@@ -263,5 +263,53 @@
   ],
   "manual_alternative": "read extract_with_panic_isolation, see the closure handed to catch_unwind, see the dyn SemanticExtractor call inside it, and search the workspace for impls of SemanticExtractor (before G140 and G141 Atlas answered UNKNOWN: no path among resolved relations)",
   "class": "TRACE"
+ },
+ {
+  "id": "B20",
+  "question": "Which parts of the census report does atlas_of (the .atlas container builder) read, and does it read the typed semantic records?",
+  "op": "field_reads",
+  "args": [
+   "fn:atlas_of"
+  ],
+  "expect": [
+   "census.facts",
+   "census.typed_obligations",
+   "report.adl.ir.declared.nodes",
+   "report.adl.ir.declared.edges",
+   "whole:report",
+   "absent:typed_semantic_records",
+   "absent:whole:atlas"
+  ],
+  "manual_alternative": "read atlas_of and every field access in its body, note that `report` is also passed whole to CensusSnapshot::from_report and revision (before G146 Atlas knew only that atlas_of had 33 uses and 4 parameter flows, not which fields)",
+  "class": "DATA_INFLUENCE"
+ },
+ {
+  "id": "B21",
+  "question": "Where the report escapes whole from atlas_of into CensusSnapshot::from_report, does that function read the typed semantic records (and so shape the container's census digest)?",
+  "op": "field_reads",
+  "args": [
+   "fn:CensusSnapshot::from_report"
+  ],
+  "expect": [
+   "census.typed_semantic_records",
+   "census.typed_obligations",
+   "whole:report"
+  ],
+  "manual_alternative": "read CensusSnapshot::from_report (about 150 lines) and follow its field accesses",
+  "class": "DATA_INFLUENCE"
+ },
+ {
+  "id": "B22",
+  "question": "Is census.typed_semantic_records read anywhere the report travels after atlas_of passes it on?",
+  "op": "gap",
+  "args": [
+   "GAP-ARGUMENT-BINDING"
+  ],
+  "expect": [
+   "GAP-ARGUMENT-BINDING",
+   "DEBT-DATA_FLOW"
+  ],
+  "manual_alternative": "follow every call that receives the report and read each callee's field accesses by hand; Atlas answers per function (field_reads) but does not bind arguments to parameters, so it declines rather than claiming the field unread",
+  "class": "UNKNOWN_HONESTY"
  }
 ]

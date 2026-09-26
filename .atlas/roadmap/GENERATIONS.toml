@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G145"
+current_generation = "G146"
 
 [[generation]]
 id = "G35"
@@ -3103,3 +3103,42 @@ after = 2123
 key = "records:CALL|atlas.resolution.rust-paths"
 before = 5783
 after = 5847
+
+[[generation]]
+id = "G146"
+kind = "AGENT_MISSION"
+base_commit = "66842678739155740bf2f5ba30c76a51a0a74261"
+priority = "P0"
+serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the sixth agent mission (cadence: within five generations of G141), preparing the next construction attack NA-ATLAS-TYPED-SECTIONS (M1) Atlas-first"
+objective = "mission M6: 'which parts of the census report does atlas_of read, do the typed semantic records reach the .atlas container, and what would changing its model impact?' answered through the agent interface with its certainty"
+writer = "coordinator (sole writer)"
+mission = ".atlas/evidence/agent/M6-field-projections.json"
+evidence = ".atlas/evidence/agent/benchmark.json"
+self_recensus = ".atlas/evidence/census/G146/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 88798d9bd0 = G145 post digest (the evidence commit 6684267873 adds only out-of-scope evidence)"
+atlas_first = "understand(atlas_of) gave callers, callees, an impact frontier and invariants but no reads; explain showed 33 uses of report, census and certificate without the fields; the DATA_FLOW records themselves dropped the field chain -- a gap found by the interface"
+change = "core ValueIdentity.projection (content, outside the identity key); adapter data-flow walker emits one Use per field chain rooted at a simple name with the fields read; composition FunctionBehavior.projections and whole_parameter_uses (parameters used whole, from DATA_FLOW parameter definitions); UnderstandingGap GAP-ARGUMENT-BINDING (DEBT-DATA_FLOW); benchmark op field_reads, expectation absent:, cases B20-B22; contract AGENT-WORN-ATLAS field reads"
+manual_reads = "4 (3 implementation detail, 1 falsification: atlas_of and revision read to check the projections); none driven by an UNKNOWN"
+gaps = "closed: GAP-FIELD-PROJECTIONS; opened: GAP-ARGUMENT-BINDING (call arguments not bound to callee parameters); confirmed: GAP-TYPE-USE-SITES (the impact of changing the CensusAtlas type)"
+challenge = "does the .atlas container carry the typed semantic records: atlas_of reads no typed_semantic_records field; report escapes whole into CensusSnapshot::from_report, which reads census.typed_semantic_records into the census digest the manifest commits to; anything further is GAP-ARGUMENT-BINDING"
+falsification = "5 mutants killed: the chain not reversed; a chain emitted without its projection; projections not composed; whole uses not restricted to parameters; absent: expectations ignored"
+benchmark = "22 of 22 (B20 field_reads of atlas_of with absent:typed_semantic_records, B21 from_report reads census.typed_semantic_records, B22 GAP-ARGUMENT-BINDING)"
+debts = "DEBT-DATA_FLOW and DEBT-SEMANTIC-COMPOSITION last advance G146; review cadence: CONTROL_FLOW, STATE and OWNERSHIP confirmed, EFFECT corrected (evidence/census/G146/debt-review.json); revalidation milestone FIELD_PROJECTIONS; next native head NA-ATLAS-TYPED-SECTIONS (M1) at G147"
+proof = "PROVEN (post c48824e7...): no new UNKNOWN obligation; composed:understanding_gap grows by GAP-ARGUMENT-BINDING"
+
+[[generation.metric]]
+key = "typed_records"
+before = 148139
+after = 148570
+
+[[generation.metric]]
+key = "records:DATA_FLOW|atlas.rust.source-semantic.v1"
+before = 56381
+after = 56550
+
+[[generation.metric]]
+key = "composed:understanding_gap"
+before = 8
+after = 9

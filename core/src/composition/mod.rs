@@ -212,6 +212,14 @@ pub struct FunctionBehavior {
     pub dispatches_to: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub dispatched_from: Vec<String>,
+    /// G146 (mission M6): the field chains the function reads, `name.field..` (the projections of
+    /// its DATA_FLOW uses, OBSERVED syntax), sorted and unique.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub projections: Vec<String>,
+    /// G146: parameters used whole -- passed on, returned, borrowed or called on without a field
+    /// projection -- whose content may therefore be read wherever the value goes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub whole_parameter_uses: Vec<String>,
 }
 
 /// G141: the trait a method belongs to and its name, from its scope: `trait:<Trait>` for a
@@ -570,6 +578,9 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
 
     // Level 1: functions.
     let mut functions: BTreeMap<String, FunctionBehavior> = BTreeMap::new();
+    // G146: DATA_FLOW parameter definitions, and whole-value uses to check against them.
+    let mut parameter_definitions: BTreeSet<String> = BTreeSet::new();
+    let mut whole_uses: Vec<(String, String, String)> = Vec::new();
     for record in &census.typed_semantic_records {
         *accounting
             .records
@@ -615,6 +626,8 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     enclosing: None,
                     dispatches_to: Vec::new(),
                     dispatched_from: Vec::new(),
+                    projections: Vec::new(),
+                    whole_parameter_uses: Vec::new(),
                     purpose: match &f.symbol.documentation {
                         Some(documentation) => Claim {
                             value: Some(documentation.summary.clone()),
@@ -800,7 +813,22 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
             }
             SemanticObservation::DataFlow(header) => {
                 let v = &header.subject;
+                if v.is_parameter {
+                    parameter_definitions.insert(header.record_id.as_str().to_owned());
+                }
                 if let Some(f) = functions.get_mut(v.function.as_str()) {
+                    if v.role == crate::semantic::ValueRole::Use {
+                        if !v.projection.is_empty() {
+                            let chain = format!("{}.{}", v.name, v.projection.join("."));
+                            push_unique(&mut f.projections, &chain);
+                        } else if let Some(definition) = &v.resolved_definition {
+                            whole_uses.push((
+                                v.function.as_str().to_owned(),
+                                v.name.clone(),
+                                definition.as_str().to_owned(),
+                            ));
+                        }
+                    }
                     let d = &mut f.data_flow;
                     match v.role {
                         crate::semantic::ValueRole::Definition => d.definitions += 1,
@@ -977,10 +1005,19 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
             push_unique(&mut f.callers, &relation.from);
         }
     }
+    for (function, name, definition) in &whole_uses {
+        if parameter_definitions.contains(definition)
+            && let Some(f) = functions.get_mut(function)
+        {
+            push_unique(&mut f.whole_parameter_uses, name);
+        }
+    }
     for f in functions.values_mut() {
         f.calls.sort();
         f.callers.sort();
         f.dispatches_to.sort();
+        f.projections.sort();
+        f.whole_parameter_uses.sort();
         f.effects
             .sort_by(|a, b| (a.line, &a.kind).cmp(&(b.line, &b.kind)));
         f.state
@@ -1737,6 +1774,18 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                 .into(),
             magnitude: tests_inferred,
             debt: "DEBT-SEMANTIC-COMPOSITION".into(),
+        },
+        UnderstandingGap {
+            id: "GAP-ARGUMENT-BINDING".into(),
+            question_class: "which fields of this value are read after it is passed on?".into(),
+            missing: "call arguments are not bound to callee parameters, so what a parameter used \
+                      whole carries may be read beyond the function (G146 mission M6)"
+                .into(),
+            magnitude: functions
+                .values()
+                .map(|f| f.whole_parameter_uses.len())
+                .sum(),
+            debt: "DEBT-DATA_FLOW".into(),
         },
     ];
 

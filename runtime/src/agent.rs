@@ -287,6 +287,23 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
                 f.purpose.evidence.len(),
             )
         }
+        // G146 (mission M6): the field chains one function reads and the parameters it uses whole.
+        "field_reads" => {
+            let scope = index.resolve(arg(0)?)?;
+            let [id] = scope.functions.iter().collect::<Vec<_>>()[..] else {
+                return Err(format!(
+                    "{}: {} names {} functions, not one",
+                    case.id,
+                    arg(0)?,
+                    scope.functions.len()
+                ));
+            };
+            let f = find(&model.functions, |f| &f.id == id, "function")?;
+            let mut answer = f.projections.clone();
+            answer.extend(f.whole_parameter_uses.iter().map(|p| format!("whole:{p}")));
+            let evidence = answer.len();
+            (answer, evidence)
+        }
         "component_purpose" => {
             let path = arg(0)?;
             let component = find(&model.components, |c| c.path == path, "component")?;
@@ -322,20 +339,14 @@ pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, 
 }
 
 /// Run every case. A case is correct when each expectation holds: `x` must equal an answer item,
-/// `contains:x` must be a substring of one.
+/// `contains:x` must be a substring of one, and (G146) `absent:x` must be a substring of none.
 pub fn run_benchmark(model: &WorldModel, cases: &[BenchmarkCase]) -> Vec<BenchmarkResult> {
     cases
         .iter()
         .map(|case| {
             let (answer, evidence) =
                 answer(model, case).unwrap_or_else(|e| (vec![format!("ERROR: {e}")], 0));
-            let correct = case
-                .expect
-                .iter()
-                .all(|x| match x.strip_prefix("contains:") {
-                    Some(part) => answer.iter().any(|a| a.contains(part)),
-                    None => answer.contains(x),
-                });
+            let correct = case.expect.iter().all(|x| expectation_holds(x, &answer));
             BenchmarkResult {
                 id: case.id.clone(),
                 class: case.class.clone(),
@@ -348,6 +359,17 @@ pub fn run_benchmark(model: &WorldModel, cases: &[BenchmarkCase]) -> Vec<Benchma
         .collect()
 }
 
+/// One benchmark expectation against an answer (see `run_benchmark`).
+fn expectation_holds(expectation: &str, answer: &[String]) -> bool {
+    if let Some(part) = expectation.strip_prefix("contains:") {
+        answer.iter().any(|a| a.contains(part))
+    } else if let Some(part) = expectation.strip_prefix("absent:") {
+        !answer.iter().any(|a| a.contains(part))
+    } else {
+        answer.iter().any(|a| a == expectation)
+    }
+}
+
 pub fn read_benchmark(path: impl AsRef<Path>) -> io::Result<Vec<BenchmarkCase>> {
     let text = std::fs::read_to_string(path)?;
     serde_json::from_str(&text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -357,6 +379,19 @@ pub fn read_benchmark(path: impl AsRef<Path>) -> io::Result<Vec<BenchmarkCase>> 
 mod tests {
     use super::*;
     use atlas_core::EpistemicStatus;
+
+    /// G146: `absent:x` fails as soon as any answer item mentions `x`; exact and `contains:`
+    /// expectations are unchanged.
+    #[test]
+    fn benchmark_expectations_can_require_an_absence() {
+        let answer = vec!["census.facts".to_owned(), "whole:report".to_owned()];
+        assert!(expectation_holds("census.facts", &answer));
+        assert!(!expectation_holds("census", &answer));
+        assert!(expectation_holds("contains:report", &answer));
+        assert!(expectation_holds("absent:typed_semantic_records", &answer));
+        assert!(!expectation_holds("absent:facts", &answer));
+        assert!(!expectation_holds("absent:report", &answer));
+    }
     use atlas_core::composition::{InvariantKind, RelationKind, lens};
     use std::path::PathBuf;
     use std::process::Command;

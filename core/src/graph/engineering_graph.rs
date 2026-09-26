@@ -2380,6 +2380,7 @@ mod tests {
             is_return_flow,
             resolution,
             resolved_definition,
+            projection: Vec::new(),
         };
         let record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key());
         SemanticObservation::DataFlow(SemanticRecordHeader {

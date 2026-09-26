@@ -101,6 +101,12 @@ pub struct ValueIdentity {
     /// The resolved `Definition`'s own record_id, when `resolution == Resolved`. Always `None` for
     /// a `Definition` event itself and for any `Unresolved` `Use`/`Store`.
     pub resolved_definition: Option<SemanticRecordId>,
+    /// G146 (mission M6): for a `Use` of a field chain rooted at this name (`report.census.facts`),
+    /// the fields read, outermost first (`["census", "facts"]`); empty when the value is used
+    /// whole. Content, not identity: the event is this name at this span, and the projection is
+    /// a fact about it.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub projection: Vec<String>,
 }
 
 impl ValueIdentity {
@@ -145,6 +151,7 @@ mod tests {
             is_return_flow: false,
             resolution: DataFlowResolution::Resolved,
             resolved_definition: None,
+            projection: Vec::new(),
         }
     }
 
@@ -199,6 +206,7 @@ mod tests {
             is_return_flow: true,
             resolution: DataFlowResolution::Unresolved,
             resolved_definition: Some(SemanticRecordId::new(SemanticDimension::DataFlow, "def")),
+            projection: vec!["census".into(), "facts".into()],
             ..base()
         };
         let unresolved = ValueIdentity {

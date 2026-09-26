@@ -7427,3 +7427,43 @@ fn every_status_carrier_in_the_workspace_is_in_the_vocabulary_map() {
         assert!(types.iter().any(|t| t.contains(name)), "{name}");
     }
 }
+
+// --- G146 (mission M6): field projections on DATA_FLOW uses ------------------------------------
+
+/// A field chain rooted at a simple name is one Use of that name at the name's own span, carrying
+/// the fields read outermost first (a tuple index as its number); a chain rooted anywhere else
+/// (a method call, parentheses) is walked as before, and a whole-value use carries none.
+#[test]
+fn g146_data_flow_uses_carry_the_field_chain_they_read() {
+    let source = "fn run(r: R, t: (u8, u8)) {\n    let c = &r.a.b;\n    r.x.len();\n    t.0;\n    g(r);\n    (r).z;\n    r.m().n;\n    self_like.q;\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::DataFlow]);
+    let mut uses: Vec<(usize, usize, String, Vec<String>)> = all_data_flow_values(&batch)
+        .iter()
+        .filter(|v| v.role == ValueRole::Use)
+        .map(|v| {
+            (
+                v.span.line,
+                v.span.column,
+                v.name.clone(),
+                v.projection.clone(),
+            )
+        })
+        .collect();
+    uses.sort();
+    let at =
+        |line: usize, needle: &str| source.lines().nth(line - 1).unwrap().find(needle).unwrap();
+    let chain = |parts: &[&str]| parts.iter().map(|p| p.to_string()).collect::<Vec<_>>();
+    assert_eq!(
+        uses,
+        [
+            (2, at(2, "r.a"), "r".to_owned(), chain(&["a", "b"])),
+            (3, at(3, "r.x"), "r".to_owned(), chain(&["x"])),
+            (4, at(4, "t.0"), "t".to_owned(), chain(&["0"])),
+            (5, at(5, "g("), "g".to_owned(), chain(&[])),
+            (5, at(5, "r)"), "r".to_owned(), chain(&[])),
+            (6, at(6, "r)"), "r".to_owned(), chain(&[])),
+            (7, at(7, "r.m"), "r".to_owned(), chain(&[])),
+            (8, at(8, "self_like"), "self_like".to_owned(), chain(&["q"])),
+        ]
+    );
+}

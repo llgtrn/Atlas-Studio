@@ -122,6 +122,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             is_return_flow: false,
             resolution: DataFlowResolution::Resolved,
             resolved_definition: None,
+            projection: Vec::new(),
         };
         let record_id = self.emit(subject, span);
         self.bind(name, record_id);
@@ -133,6 +134,17 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
         span: atlas_core::SourceSpan,
         role: ValueRole,
         is_return_flow: bool,
+    ) {
+        self.emit_value(name, span, role, is_return_flow, Vec::new());
+    }
+
+    fn emit_value(
+        &mut self,
+        name: &str,
+        span: atlas_core::SourceSpan,
+        role: ValueRole,
+        is_return_flow: bool,
+        projection: Vec<String>,
     ) {
         let resolved = self.lookup(name);
         let (resolution, resolved_definition) = match resolved {
@@ -150,6 +162,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             is_return_flow,
             resolution,
             resolved_definition,
+            projection,
         };
         self.emit(subject, span);
     }
@@ -405,7 +418,24 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             syn::Expr::Paren(paren) => self.walk_expr(&paren.expr, is_return_flow),
             syn::Expr::Group(group) => self.walk_expr(&group.expr, is_return_flow),
             syn::Expr::Reference(reference) => self.walk_expr(&reference.expr, false),
-            syn::Expr::Field(field) => self.walk_expr(&field.base, false),
+            // G146 (mission M6): a field chain rooted at a simple name is one Use of that name,
+            // at the name's own span, carrying the fields read (`report.census.facts`).
+            syn::Expr::Field(field) => {
+                let mut members = vec![member_text(&field.member)];
+                let mut root = field.base.as_ref();
+                while let syn::Expr::Field(inner) = root {
+                    members.push(member_text(&inner.member));
+                    root = inner.base.as_ref();
+                }
+                match spelling::simple_path_ident(root) {
+                    Some(ident) => {
+                        members.reverse();
+                        let span = self.ctx.span_of(root);
+                        self.emit_value(&ident.to_string(), span, ValueRole::Use, false, members);
+                    }
+                    None => self.walk_expr(root, false),
+                }
+            }
             syn::Expr::Index(index) => {
                 self.walk_expr(&index.expr, false);
                 self.walk_expr(&index.index, false);
@@ -555,5 +585,13 @@ impl<'a> ExtractionContext<'a> {
         }
         walker.walk_block(body, true);
         walker.pop_scope();
+    }
+}
+
+/// A field access's member as written: a name, or a tuple index.
+fn member_text(member: &syn::Member) -> String {
+    match member {
+        syn::Member::Named(ident) => ident.to_string(),
+        syn::Member::Unnamed(index) => index.index.to_string(),
     }
 }

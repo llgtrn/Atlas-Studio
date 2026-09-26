@@ -965,6 +965,7 @@ impl<'a> ExtractionContext<'a> {
             is_return_flow: false,
             resolution: DataFlowResolution::Unresolved,
             resolved_definition: None,
+            projection: Vec::new(),
         };
         PlaceRef::Resolved {
             dimension: SemanticDimension::DataFlow,

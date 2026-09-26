@@ -1,0 +1,39 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G146",
+  "trigger": "review cadence: DEBT-CONTROL_FLOW, DEBT-STATE, DEBT-EFFECT and DEBT-OWNERSHIP, last advanced and reviewed at G133/G130, fell due at G146",
+  "method": "each debt re-read against G134-G146 (typed receivers, std receivers, bounded item-macro names, field projections); its next attack confirmed or corrected",
+  "reviews": [
+    {
+      "debt": "DEBT-CONTROL_FLOW",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G133 changed the statement-level CFG; intra-expression branching and the missing second engine stand; NA-SECOND-ENGINE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-STATE",
+      "verdict": "CONFIRMED",
+      "finding": "G144 made Mutex::lock a CONCURRENCY Lock site where the receiver's std type is known, not a STATE access; G146's field projections are DATA_FLOW reads, not STATE; interior mutability stays unmodelled",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-EFFECT",
+      "verdict": "CORRECTED",
+      "finding": "its unknowns said effects behind methods were outside; since G144 a declared inherent std method on a receiver whose std type is known reaches the declared effect table",
+      "correction": {
+        "unknowns": "effects behind undeclared or workspace methods, non-std crates and trait objects; std receivers whose type is not known (closure parameters, untyped lets); opaque macros; print-family stdout/stderr effects not claimed; EFFECT is partial on every file by construction, so no census-quantified effect invariant can be SATISFIED (G130)"
+      }
+    },
+    {
+      "debt": "DEBT-OWNERSHIP",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G133 changed the ownership walker; implicit borrows, auto-ref and reborrows are not records; no oracle integrated",
+      "correction": {}
+    }
+  ],
+  "summary": {
+    "reviewed": 4,
+    "confirmed": 3,
+    "corrected": 1
+  }
+}
