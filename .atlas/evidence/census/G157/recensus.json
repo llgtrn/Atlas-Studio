@@ -1,0 +1,1450 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G157",
+  "base_revision": "19d507bafd878cfe96698f9faf323a73db955d3a",
+  "candidate_revision": "e3d95676d1436863e7e6085f13d4445b7ca97aa0",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:fa6785eb967dce7e72082fe5af5e7a5d91d682a9fac2782930a932b681c2a84c",
+  "after_census_digest": "blake3-256:b1e70590510d82337c9ec83e48627352da547818513e780f11c4ee2eea5add62",
+  "replay_digest": "blake3-256:b1e70590510d82337c9ec83e48627352da547818513e780f11c4ee2eea5add62",
+  "inventory_delta": {
+    "created": [
+      "core/src/semantic/resource.rs"
+    ],
+    "modified": [
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/composition/mod.rs",
+      "core/src/design/compare.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/observation.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/seal.rs",
+      "runtime/src/self_reconstruction.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/build.rs",
+      "adapter/src/browser/mod.rs",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/cargo_oracle.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/batch.rs",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/macros.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/vcs/mod.rs",
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/atlas/typed.rs",
+      "core/src/capability/mod.rs",
+      "core/src/census/delta.rs",
+      "core/src/census/dependency.rs",
+      "core/src/census/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/closure/mod.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/composition/quantified.rs",
+      "core/src/constraint/mod.rs",
+      "core/src/construction/mod.rs",
+      "core/src/construction/rust.rs",
+      "core/src/construction/tests.rs",
+      "core/src/design/compare.rs",
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "core/src/donor/mod.rs",
+      "core/src/evidence/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/identity/mod.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/integrity/tests.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/language/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/provenance/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/sandbox/mod.rs",
+      "core/src/schema/mod.rs",
+      "core/src/seal/mod.rs",
+      "core/src/seal/tests.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/concurrency.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/obligation.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/ownership.rs",
+      "core/src/semantic/persistence.rs",
+      "core/src/semantic/place.rs",
+      "core/src/semantic/state.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "core/src/state/mod.rs",
+      "core/src/temporal/mod.rs",
+      "core/src/verification/mod.rs",
+      "core/src/visual/compose.rs",
+      "core/src/visual/differential.rs",
+      "core/src/visual/genome.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/design.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/integrity.rs",
+      "runtime/src/inventory/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/physical.rs",
+      "runtime/src/product.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/sandbox.rs",
+      "runtime/src/seal.rs",
+      "runtime/src/self_reconstruction.rs",
+      "runtime/src/verification.rs",
+      "runtime/src/visual.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 51,
+      "fact:FunctionSignature|OBSERVED": 27,
+      "fact:SemanticObligation|OBSERVED": 4,
+      "fact:SemanticObligation|UNKNOWN": 139,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 96,
+      "fact:Type|DERIVED": 10,
+      "fact:Type|OBSERVED": 64,
+      "record:CALL|DERIVED": 55,
+      "record:CALL|OBSERVED": 417,
+      "record:CONTROL_FLOW|INFERRED": 30,
+      "record:CONTROL_FLOW|OBSERVED": 133,
+      "record:DATA_FLOW|OBSERVED": 778,
+      "record:EFFECT|DERIVED": 7,
+      "record:EFFECT|INFERRED": 35,
+      "record:FUNCTION_IDENTITY|OBSERVED": 51,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 27,
+      "record:OWNERSHIP|OBSERVED": 172,
+      "record:PERSISTENCE|DERIVED": 3,
+      "record:RESOURCE|DERIVED": 6,
+      "record:RESOURCE|INFERRED": 1,
+      "record:STATE|OBSERVED": 38,
+      "record:SYMBOL|OBSERVED": 96,
+      "record:TYPE|DERIVED": 10,
+      "record:TYPE|OBSERVED": 64
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 1,
+    "graph_edges": 2669,
+    "graph_nodes": 2012
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNKNOWN": 126,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/dimension_coverage()."
+      ],
+      "after": [
+        "adapter semantic/rust/dimension_coverage()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/compare/function_of()."
+      ],
+      "after": [
+        "core design/compare/function_of()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/`impl:EdgeKind`/cardinality()."
+      ],
+      "after": [
+        "core graph/`impl:EdgeKind`/cardinality()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/`impl:EdgeKind`/category()."
+      ],
+      "after": [
+        "core graph/`impl:EdgeKind`/category()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/add_typed_semantic_nodes()."
+      ],
+      "after": [
+        "core graph/engineering_graph/add_typed_semantic_nodes()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/place_node_id_for()."
+      ],
+      "after": [
+        "core graph/engineering_graph/place_node_id_for()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/`impl:SemanticDimension`/as_str()."
+      ],
+      "after": [
+        "core semantic/`impl:SemanticDimension`/as_str()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/dimension()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/dimension()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/evidence_refs()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/evidence_refs()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/header_dimension()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/header_dimension()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/provenance()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/provenance()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/raw_observation_id()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/raw_observation_id()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/record_id()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/record_id()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/scope()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/scope()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/status()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/status()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/observation/`impl:SemanticObservation`/subject_repr()."
+      ],
+      "after": [
+        "core semantic/observation/`impl:SemanticObservation`/subject_repr()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "after": [
+        "runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/semantic_observation_fact()."
+      ],
+      "after": [
+        "runtime census/semantic_observation_fact()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime seal/self_scope_policy()."
+      ],
+      "after": [
+        "runtime seal/self_scope_policy()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/candidates()."
+      ],
+      "after": [
+        "runtime self_reconstruction/candidates()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/acquired_by()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/acquisition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:HolderUses<'_, '_>`/is_holder()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:HolderUses<'_, '_>`/release()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_arm()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_block()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_expr()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_block()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_local()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/consumes_receiver()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/lets_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/releases()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/`impl:ResourceIdentity`/identity_key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/`impl:ResourceIdentity`/is_well_formed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/`impl:ResourceKind`/released_by_drop()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/std_path_resource()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/tests/a_release_names_its_acquisition_and_a_way_its_kind_allows()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/tests/identity_distinguishes_operation_release_and_acquisition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/tests/site()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/tests/span()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core semantic/resource/tests/the_declared_table_is_sorted_and_names_only_std_paths()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/resolved_acquisitions_and_let_bound_releases_are_resource_records()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/build.rs: 12 -> 13",
+      "adapter/src/browser/mod.rs: 12 -> 13",
+      "adapter/src/dependency/cargo.rs: 12 -> 13",
+      "adapter/src/dependency/cargo_oracle.rs: 12 -> 13",
+      "adapter/src/dependency/mod.rs: 12 -> 13",
+      "adapter/src/lib.rs: 13 -> 14",
+      "adapter/src/semantic/batch.rs: 12 -> 13",
+      "adapter/src/semantic/boundary_tests.rs: 12 -> 13",
+      "adapter/src/semantic/extractor.rs: 12 -> 13",
+      "adapter/src/semantic/mod.rs: 12 -> 13",
+      "adapter/src/semantic/registry.rs: 12 -> 13",
+      "adapter/src/semantic/rust/cfg.rs: 12 -> 13",
+      "adapter/src/semantic/rust/concurrency.rs: 12 -> 13",
+      "adapter/src/semantic/rust/dataflow.rs: 13 -> 14",
+      "adapter/src/semantic/rust/effect.rs: 12 -> 13",
+      "adapter/src/semantic/rust/macros.rs: 13 -> 14",
+      "adapter/src/semantic/rust/mod.rs: 13 -> 14",
+      "adapter/src/semantic/rust/ownership.rs: 13 -> 14",
+      "adapter/src/semantic/rust/persistence.rs: 12 -> 13",
+      "adapter/src/semantic/rust/resolve.rs: 13 -> 14",
+      "adapter/src/semantic/rust/resolve/tests.rs: 12 -> 13",
+      "adapter/src/semantic/rust/spelling.rs: 13 -> 14",
+      "adapter/src/semantic/rust/state.rs: 13 -> 14",
+      "adapter/src/semantic/rust/tests.rs: 13 -> 14",
+      "adapter/src/semantic/typescript/mod.rs: 13 -> 14",
+      "adapter/src/semantic/typescript/tests.rs: 12 -> 13",
+      "adapter/src/source/frontend.rs: 13 -> 14",
+      "adapter/src/source/mod.rs: 13 -> 14",
+      "adapter/src/vcs/mod.rs: 12 -> 13",
+      "apps/cli/src/main.rs: 13 -> 14",
+      "core/src/atlas/mod.rs: 12 -> 13",
+      "core/src/atlas/schema.rs: 12 -> 13",
+      "core/src/atlas/schema_history.rs: 12 -> 13",
+      "core/src/atlas/tests.rs: 13 -> 14",
+      "core/src/atlas/typed.rs: 12 -> 13",
+      "core/src/capability/mod.rs: 12 -> 13",
+      "core/src/census/delta.rs: 13 -> 14",
+      "core/src/census/dependency.rs: 12 -> 13",
+      "core/src/census/mod.rs: 12 -> 13",
+      "core/src/certificate/mod.rs: 13 -> 14",
+      "core/src/closure/mod.rs: 12 -> 13",
+      "core/src/composition/closure.rs: 13 -> 14",
+      "core/src/composition/lens.rs: 13 -> 14",
+      "core/src/composition/mod.rs: 13 -> 14",
+      "core/src/composition/quantified.rs: 13 -> 14",
+      "core/src/constraint/mod.rs: 12 -> 13",
+      "core/src/construction/mod.rs: 13 -> 14",
+      "core/src/construction/rust.rs: 12 -> 13",
+      "core/src/construction/tests.rs: 12 -> 13",
+      "core/src/design/compare.rs: 13 -> 14",
+      "core/src/design/mod.rs: 13 -> 14",
+      "core/src/design/tests.rs: 13 -> 14",
+      "core/src/donor/mod.rs: 13 -> 14",
+      "core/src/evidence/mod.rs: 12 -> 13",
+      "core/src/graph/engineering_graph.rs: 12 -> 13",
+      "core/src/graph/mod.rs: 13 -> 14",
+      "core/src/identity/blake3.rs: 12 -> 13",
+      "core/src/identity/mod.rs: 13 -> 14",
+      "core/src/integrity/mod.rs: 13 -> 14",
+      "core/src/integrity/tests.rs: 12 -> 13",
+      "core/src/language/adl/census.rs: 12 -> 13",
+      "core/src/language/adl/census/tests.rs: 12 -> 13",
+      "core/src/language/adl/mod.rs: 13 -> 14",
+      "core/src/language/mod.rs: 12 -> 13",
+      "core/src/lib.rs: 12 -> 13",
+      "core/src/physical/dynamics.rs: 12 -> 13",
+      "core/src/physical/mod.rs: 12 -> 13",
+      "core/src/product/mod.rs: 12 -> 13",
+      "core/src/product/tests.rs: 12 -> 13",
+      "core/src/provenance/mod.rs: 12 -> 13",
+      "core/src/quantity/mod.rs: 13 -> 14",
+      "core/src/recensus/entity.rs: 13 -> 14",
+      "core/src/recensus/entity/tests.rs: 12 -> 13",
+      "core/src/recensus/mod.rs: 13 -> 14",
+      "core/src/recensus/tests.rs: 12 -> 13",
+      "core/src/sandbox/mod.rs: 13 -> 14",
+      "core/src/schema/mod.rs: 12 -> 13",
+      "core/src/seal/mod.rs: 13 -> 14",
+      "core/src/seal/tests.rs: 12 -> 13",
+      "core/src/semantic/call.rs: 12 -> 13",
+      "core/src/semantic/concurrency.rs: 12 -> 13",
+      "core/src/semantic/control_flow.rs: 12 -> 13",
+      "core/src/semantic/data_flow.rs: 12 -> 13",
+      "core/src/semantic/diagnostic.rs: 12 -> 13",
+      "core/src/semantic/effect.rs: 12 -> 13",
+      "core/src/semantic/function.rs: 12 -> 13",
+      "core/src/semantic/mod.rs: 12 -> 13",
+      "core/src/semantic/obligation.rs: 12 -> 13",
+      "core/src/semantic/observation.rs: 12 -> 13",
+      "core/src/semantic/ownership.rs: 12 -> 13",
+      "core/src/semantic/persistence.rs: 12 -> 13",
+      "core/src/semantic/place.rs: 12 -> 13",
+      "core/src/semantic/state.rs: 12 -> 13",
+      "core/src/semantic/symbol.rs: 13 -> 14",
+      "core/src/semantic/types.rs: 12 -> 13",
+      "core/src/state/mod.rs: 12 -> 13",
+      "core/src/temporal/mod.rs: 12 -> 13",
+      "core/src/verification/mod.rs: 13 -> 14",
+      "core/src/visual/compose.rs: 13 -> 14",
+      "core/src/visual/differential.rs: 12 -> 13",
+      "core/src/visual/genome.rs: 12 -> 13",
+      "core/src/visual/mod.rs: 13 -> 14",
+      "core/src/visual/search.rs: 12 -> 13",
+      "core/src/vocabulary/mod.rs: 12 -> 13",
+      "runtime/src/agent.rs: 13 -> 14",
+      "runtime/src/atlas.rs: 12 -> 13",
+      "runtime/src/census/extraction.rs: 12 -> 13",
+      "runtime/src/census/mod.rs: 13 -> 14",
+      "runtime/src/census/resolution.rs: 12 -> 13",
+      "runtime/src/census/resolution/tests.rs: 12 -> 13",
+      "runtime/src/certificate.rs: 12 -> 13",
+      "runtime/src/design.rs: 13 -> 14",
+      "runtime/src/donor_storage.rs: 13 -> 14",
+      "runtime/src/integrity.rs: 12 -> 13",
+      "runtime/src/inventory/mod.rs: 12 -> 13",
+      "runtime/src/lib.rs: 13 -> 14",
+      "runtime/src/normalize/mod.rs: 12 -> 13",
+      "runtime/src/physical.rs: 12 -> 13",
+      "runtime/src/product.rs: 12 -> 13",
+      "runtime/src/recensus.rs: 12 -> 13",
+      "runtime/src/sandbox.rs: 12 -> 13",
+      "runtime/src/seal.rs: 12 -> 13",
+      "runtime/src/self_reconstruction.rs: 12 -> 13",
+      "runtime/src/verification.rs: 13 -> 14",
+      "runtime/src/visual.rs: 13 -> 14",
+      "core/src/semantic/resource.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 1776,
+    "total_after": 1915
+  },
+  "intent": {
+    "objective": "NA-RESOURCE-DIMENSION (DEBT-RESOURCE): RESOURCE is the thirteenth semantic dimension -- std acquisitions derived at resolved calls, releases where a let-bound holder that is never moved gives them back",
+    "changed_paths": [
+      "adapter/build.rs",
+      "adapter/src/browser/mod.rs",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/cargo_oracle.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/batch.rs",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/macros.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/vcs/mod.rs",
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/atlas/typed.rs",
+      "core/src/capability/mod.rs",
+      "core/src/census/delta.rs",
+      "core/src/census/dependency.rs",
+      "core/src/census/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/closure/mod.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/composition/quantified.rs",
+      "core/src/constraint/mod.rs",
+      "core/src/construction/mod.rs",
+      "core/src/construction/rust.rs",
+      "core/src/construction/tests.rs",
+      "core/src/design/compare.rs",
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "core/src/donor/mod.rs",
+      "core/src/evidence/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/identity/mod.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/integrity/tests.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/language/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/provenance/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/sandbox/mod.rs",
+      "core/src/schema/mod.rs",
+      "core/src/seal/mod.rs",
+      "core/src/seal/tests.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/concurrency.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/obligation.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/ownership.rs",
+      "core/src/semantic/persistence.rs",
+      "core/src/semantic/place.rs",
+      "core/src/semantic/resource.rs",
+      "core/src/semantic/state.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "core/src/state/mod.rs",
+      "core/src/temporal/mod.rs",
+      "core/src/verification/mod.rs",
+      "core/src/visual/compose.rs",
+      "core/src/visual/differential.rs",
+      "core/src/visual/genome.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/design.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/integrity.rs",
+      "runtime/src/inventory/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/physical.rs",
+      "runtime/src/product.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/sandbox.rs",
+      "runtime/src/seal.rs",
+      "runtime/src/self_reconstruction.rs",
+      "runtime/src/verification.rs",
+      "runtime/src/visual.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:STATE_FLOW",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:RESOURCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/build.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/browser/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/dependency/cargo.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/dependency/cargo_oracle.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/dependency/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/lib.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/batch.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/boundary_tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/extractor.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/registry.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/cfg.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/concurrency.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/dataflow.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/effect.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/macros.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/ownership.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/persistence.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/resolve.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/resolve/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/spelling.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/state.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/rust/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/typescript/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/semantic/typescript/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/source/frontend.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/source/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "adapter/src/vcs/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "apps/cli/src/main.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/atlas/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/atlas/schema.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/atlas/schema_history.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/atlas/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/atlas/typed.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/capability/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/census/delta.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/census/dependency.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/census/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/certificate/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/closure/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/composition/closure.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/composition/lens.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/composition/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/composition/quantified.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/constraint/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/construction/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/construction/rust.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/construction/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/design/compare.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/design/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/design/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/donor/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/evidence/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/graph/engineering_graph.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/graph/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/identity/blake3.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/identity/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/integrity/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/integrity/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/language/adl/census.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/language/adl/census/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/language/adl/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/language/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/lib.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/physical/dynamics.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/physical/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/product/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/product/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/provenance/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/quantity/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/recensus/entity.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/recensus/entity/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/recensus/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/recensus/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/sandbox/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/schema/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/seal/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/seal/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/call.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/concurrency.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/control_flow.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/data_flow.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/diagnostic.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/effect.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/function.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/obligation.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/observation.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/ownership.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/persistence.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/place.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/state.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/symbol.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/types.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/state/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/temporal/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/verification/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/visual/compose.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/visual/differential.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/visual/genome.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/visual/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/visual/search.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/vocabulary/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/agent.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/atlas.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/census/extraction.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/census/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/census/resolution.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/census/resolution/tests.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/certificate.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/design.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/donor_storage.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/integrity.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/inventory/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/lib.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/normalize/mod.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/physical.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/product.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/recensus.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/sandbox.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/seal.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/self_reconstruction.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/verification.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "runtime/src/visual.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)",
+      "core/src/semantic/resource.rs: new functions explained: the resource dimension (resolver holder tracking, the resource record kind, its graph, composition and container projections, tests)"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/dimension_coverage().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+      "CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core design/compare/function_of().",
+      "CHANGED core graph/`impl:EdgeKind`/cardinality().",
+      "CHANGED core graph/`impl:EdgeKind`/category().",
+      "CHANGED core graph/engineering_graph/add_typed_semantic_nodes().",
+      "CHANGED core graph/engineering_graph/place_node_id_for().",
+      "CHANGED core semantic/`impl:SemanticDimension`/as_str().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/dimension().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/evidence_refs().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/header_dimension().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/provenance().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/raw_observation_id().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/record_id().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/scope().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/status().",
+      "CHANGED core semantic/observation/`impl:SemanticObservation`/subject_repr().",
+      "CHANGED runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CHANGED runtime census/semantic_observation_fact().",
+      "CHANGED runtime seal/self_scope_policy().",
+      "CHANGED runtime self_reconstruction/candidates().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/acquired_by().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/acquisition().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases().",
+      "CREATED adapter semantic/rust/resolve/`impl:HolderUses<'_, '_>`/is_holder().",
+      "CREATED adapter semantic/rust/resolve/`impl:HolderUses<'_, '_>`/release().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_arm().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_block().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_expr().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_item().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_macro().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_block().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_item().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_local().",
+      "CREATED adapter semantic/rust/resolve/consumes_receiver().",
+      "CREATED adapter semantic/rust/resolve/lets_of().",
+      "CREATED adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back().",
+      "CREATED adapter semantic/rust/resolve/tests/releases().",
+      "CREATED core semantic/resource/`impl:ResourceIdentity`/identity_key().",
+      "CREATED core semantic/resource/`impl:ResourceIdentity`/is_well_formed().",
+      "CREATED core semantic/resource/`impl:ResourceKind`/released_by_drop().",
+      "CREATED core semantic/resource/std_path_resource().",
+      "CREATED core semantic/resource/tests/a_release_names_its_acquisition_and_a_way_its_kind_allows().",
+      "CREATED core semantic/resource/tests/identity_distinguishes_operation_release_and_acquisition().",
+      "CREATED core semantic/resource/tests/site().",
+      "CREATED core semantic/resource/tests/span().",
+      "CREATED core semantic/resource/tests/the_declared_table_is_sorted_and_names_only_std_paths().",
+      "CREATED runtime census/resolution/tests/resolved_acquisitions_and_let_bound_releases_are_resource_records()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/build.rs",
+    "path adapter/src/browser/mod.rs",
+    "path adapter/src/dependency/cargo.rs",
+    "path adapter/src/dependency/cargo_oracle.rs",
+    "path adapter/src/dependency/mod.rs",
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/batch.rs",
+    "path adapter/src/semantic/boundary_tests.rs",
+    "path adapter/src/semantic/extractor.rs",
+    "path adapter/src/semantic/mod.rs",
+    "path adapter/src/semantic/registry.rs",
+    "path adapter/src/semantic/rust/cfg.rs",
+    "path adapter/src/semantic/rust/concurrency.rs",
+    "path adapter/src/semantic/rust/dataflow.rs",
+    "path adapter/src/semantic/rust/effect.rs",
+    "path adapter/src/semantic/rust/macros.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/ownership.rs",
+    "path adapter/src/semantic/rust/persistence.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/semantic/rust/spelling.rs",
+    "path adapter/src/semantic/rust/state.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path adapter/src/semantic/typescript/mod.rs",
+    "path adapter/src/semantic/typescript/tests.rs",
+    "path adapter/src/source/frontend.rs",
+    "path adapter/src/source/mod.rs",
+    "path adapter/src/vcs/mod.rs",
+    "path apps/cli/src/main.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/schema_history.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/atlas/typed.rs",
+    "path core/src/capability/mod.rs",
+    "path core/src/census/delta.rs",
+    "path core/src/census/dependency.rs",
+    "path core/src/census/mod.rs",
+    "path core/src/certificate/mod.rs",
+    "path core/src/closure/mod.rs",
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/composition/quantified.rs",
+    "path core/src/constraint/mod.rs",
+    "path core/src/construction/mod.rs",
+    "path core/src/construction/rust.rs",
+    "path core/src/construction/tests.rs",
+    "path core/src/design/compare.rs",
+    "path core/src/design/mod.rs",
+    "path core/src/design/tests.rs",
+    "path core/src/donor/mod.rs",
+    "path core/src/evidence/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/graph/mod.rs",
+    "path core/src/identity/blake3.rs",
+    "path core/src/identity/mod.rs",
+    "path core/src/integrity/mod.rs",
+    "path core/src/integrity/tests.rs",
+    "path core/src/language/adl/census.rs",
+    "path core/src/language/adl/census/tests.rs",
+    "path core/src/language/adl/mod.rs",
+    "path core/src/language/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/physical/dynamics.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/product/mod.rs",
+    "path core/src/product/tests.rs",
+    "path core/src/provenance/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "path core/src/recensus/entity.rs",
+    "path core/src/recensus/entity/tests.rs",
+    "path core/src/recensus/mod.rs",
+    "path core/src/recensus/tests.rs",
+    "path core/src/sandbox/mod.rs",
+    "path core/src/schema/mod.rs",
+    "path core/src/seal/mod.rs",
+    "path core/src/seal/tests.rs",
+    "path core/src/semantic/call.rs",
+    "path core/src/semantic/concurrency.rs",
+    "path core/src/semantic/control_flow.rs",
+    "path core/src/semantic/data_flow.rs",
+    "path core/src/semantic/diagnostic.rs",
+    "path core/src/semantic/effect.rs",
+    "path core/src/semantic/function.rs",
+    "path core/src/semantic/mod.rs",
+    "path core/src/semantic/obligation.rs",
+    "path core/src/semantic/observation.rs",
+    "path core/src/semantic/ownership.rs",
+    "path core/src/semantic/persistence.rs",
+    "path core/src/semantic/place.rs",
+    "path core/src/semantic/resource.rs",
+    "path core/src/semantic/state.rs",
+    "path core/src/semantic/symbol.rs",
+    "path core/src/semantic/types.rs",
+    "path core/src/state/mod.rs",
+    "path core/src/temporal/mod.rs",
+    "path core/src/verification/mod.rs",
+    "path core/src/visual/compose.rs",
+    "path core/src/visual/differential.rs",
+    "path core/src/visual/genome.rs",
+    "path core/src/visual/mod.rs",
+    "path core/src/visual/search.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/census/resolution/tests.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/src/design.rs",
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/integrity.rs",
+    "path runtime/src/inventory/mod.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/normalize/mod.rs",
+    "path runtime/src/physical.rs",
+    "path runtime/src/product.rs",
+    "path runtime/src/recensus.rs",
+    "path runtime/src/sandbox.rs",
+    "path runtime/src/seal.rs",
+    "path runtime/src/self_reconstruction.rs",
+    "path runtime/src/verification.rs",
+    "path runtime/src/visual.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:STATE_FLOW",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:RESOURCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED adapter semantic/rust/dimension_coverage().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core design/compare/function_of().",
+    "entity CHANGED core graph/`impl:EdgeKind`/cardinality().",
+    "entity CHANGED core graph/`impl:EdgeKind`/category().",
+    "entity CHANGED core graph/engineering_graph/add_typed_semantic_nodes().",
+    "entity CHANGED core graph/engineering_graph/place_node_id_for().",
+    "entity CHANGED core semantic/`impl:SemanticDimension`/as_str().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/dimension().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/evidence_refs().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/header_dimension().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/provenance().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/raw_observation_id().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/record_id().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/scope().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/status().",
+    "entity CHANGED core semantic/observation/`impl:SemanticObservation`/subject_repr().",
+    "entity CHANGED runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CHANGED runtime census/semantic_observation_fact().",
+    "entity CHANGED runtime seal/self_scope_policy().",
+    "entity CHANGED runtime self_reconstruction/candidates().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/acquired_by().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/acquisition().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:HolderUses<'_, '_>`/is_holder().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:HolderUses<'_, '_>`/release().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_arm().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_block().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_expr().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for HolderUses<'_, '_>`/visit_macro().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_block().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'b> for Lets<'b>`/visit_local().",
+    "entity CREATED adapter semantic/rust/resolve/consumes_receiver().",
+    "entity CREATED adapter semantic/rust/resolve/lets_of().",
+    "entity CREATED adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back().",
+    "entity CREATED adapter semantic/rust/resolve/tests/releases().",
+    "entity CREATED core semantic/resource/`impl:ResourceIdentity`/identity_key().",
+    "entity CREATED core semantic/resource/`impl:ResourceIdentity`/is_well_formed().",
+    "entity CREATED core semantic/resource/`impl:ResourceKind`/released_by_drop().",
+    "entity CREATED core semantic/resource/std_path_resource().",
+    "entity CREATED core semantic/resource/tests/a_release_names_its_acquisition_and_a_way_its_kind_allows().",
+    "entity CREATED core semantic/resource/tests/identity_distinguishes_operation_release_and_acquisition().",
+    "entity CREATED core semantic/resource/tests/site().",
+    "entity CREATED core semantic/resource/tests/span().",
+    "entity CREATED core semantic/resource/tests/the_declared_table_is_sorted_and_names_only_std_paths().",
+    "entity CREATED runtime census/resolution/tests/resolved_acquisitions_and_let_bound_releases_are_resource_records()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

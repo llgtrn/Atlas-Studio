@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-RESOURCE-DIMENSION"
+next_native_attack = "NA-ASYNC-REGIONS"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -692,14 +692,19 @@ objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa at its G115 pin 5d8eaf1fa372 (don
 [[planned_generation]]
 id = "G157"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
+objective = "NA-RESOURCE-DIMENSION (DEBT-RESOURCE; done: RESOURCE is the thirteenth semantic dimension -- acquisitions of files, sockets, std lock guards and threads derived at resolved calls, releases claimed where a let-bound holder that is never moved gives them back, at its block end (INFERRED) or a resolved drop or join (DERIVED); a dropped thread handle detaches; on Atlas Studio 7 records, each checked against the source; the first proof exposed by-value methods as moves; 12 mutants killed; capability epoch E6)"
 
 [[planned_generation]]
 id = "G158"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R5 xyflow/xyflow (QUEUED): a TypeScript node-graph UI library facing the strongest Atlas (E5 or later), TypeScript measured on the support ladder for the first time; the admitted legacy checkout under .atlas/temporary/donors extinguished with it"
+objective = "FULL_OSS_REPLAY R5 xyflow/xyflow (QUEUED): a TypeScript node-graph UI library facing the strongest Atlas (E6), TypeScript measured on the support ladder for the first time; the admitted legacy checkout under .atlas/temporary/donors extinguished with it"
 
 [[planned_generation]]
-id = "G159+"
+id = "G159"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-ASYNC-REGIONS (DEBT-CALL, DEBT-EFFECT, DEBT-CONCURRENCY) -- async blocks as their own executable regions, like closures"
+
+[[planned_generation]]
+id = "G160+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

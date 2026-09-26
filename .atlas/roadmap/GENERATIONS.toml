@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G156"
+current_generation = "G157"
 
 [[generation]]
 id = "G35"
@@ -3483,3 +3483,43 @@ after = 6714
 key = "composed:function_behavior"
 before = 5836
 after = 5841
+
+[[generation]]
+id = "G157"
+kind = "NATIVE_ATTACK"
+base_commit = "e3d95676d1436863e7e6085f13d4445b7ca97aa0"
+priority = "P0"
+serves = "DEBT-RESOURCE (M0_ABSENT since the G118 audit): the native queue head, between replays R4 and R5"
+objective = "NA-RESOURCE-DIMENSION: RESOURCE is the thirteenth semantic dimension -- acquisitions of files, sockets, std lock guards and threads derived at resolved calls, releases claimed where a let-bound holder that is never moved gives them back"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0072-resource-dimension.md"
+self_recensus = ".atlas/evidence/census/G157/recensus.json"
+
+[generation.verification]
+pre_census = "G156 post digest"
+atlas_first = "the world model had twelve dimensions and no resource record; OWNERSHIP knew moves, PERSISTENCE durable writes, CONCURRENCY lock calls, none when a file, a guard or a thread is given back; replay R3 had added ts_parser_new / ts_parser_delete to the debt's evidence"
+change = "core: SemanticDimension::Resource, ResourceIdentity (operation, kind, span, acquisition, holder, release) with well-formedness, the declared std-path resource table; container kinds resource and Resource with a G157 schema generation; graph PRODUCES_RESOURCE_OP and RELEASES edges; composed per-function resource sites; seal hard dimensions (policy re-pinned) and design comparison; adapter resolver: holders bound once by a let followed through their block (borrows, fields, receivers stay; by-value methods, passing, returning, move closures, other macros and branch releases move), prelude drop resolved to std::mem::drop, JoinHandle and RwLock typed; runtime: the path-resolution engine derives acquisitions and releases and accounts for RESOURCE per artifact; ADR 0072"
+oracle = "Atlas Studio: 7 RESOURCE records, each checked against the source -- publish acquires the partial file and releases it at its block end, then syncs the parent through a temporary (no release claimed); read_file_content's file is consumed by take (no release claimed; the first proof claimed a scope end there, which exposed the by-value method rule); a test's file is released by drop; the sandbox drain thread is detached (no release)"
+falsification = "12 mutants killed (a thread released by drop, a move closure not taking, a branch release accepted, every macro borrowing, into_ and take keeping the holder, a stored value staying, prelude drop unmapped, unwrap not peeled, a scope end claimed DERIVED, the acquisition table ignored)"
+boundary = "one engine and a syntactic move check: scope-end releases are INFERRED; temporaries, moved holders, statics, child processes, non-std resources and FFI pairs keep an unknown release point (NA-RESOURCE-RESIDUAL); no reconciliation with OWNERSHIP yet"
+debts = "DEBT-RESOURCE M0_ABSENT -> M2_PARTIAL, last advance G157; capability epoch E6; replay triggers re-checked at E6; next replay xyflow/xyflow planned G158"
+review = "2 debts reviewed at their cadence: DEBT-CONCURRENCY and DEBT-PERSISTENCE confirmed (evidence/census/G157/debt-review.json)"
+proof = "PROVEN (post b1e70590...): no unexplained UNKNOWN (new functions explained)"
+
+[[generation.metric]]
+key = "records:RESOURCE|atlas.resolution.rust-paths"
+after = 7
+
+[[generation.metric]]
+key = "obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN"
+after = 126
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5841
+after = 5892
+
+[[generation.metric]]
+key = "facts"
+before = 27504
+after = 27897

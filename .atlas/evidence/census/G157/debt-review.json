@@ -1,0 +1,20 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G157",
+  "trigger": "review cadence: DEBT-CONCURRENCY (last reviewed G142) and DEBT-PERSISTENCE (last reviewed G137) fell due at G157",
+  "method": "re-read against G144-G157 (std receivers, typed sections, replays R1-R4, SELF_RECONSTRUCTION, measured support levels, the RESOURCE dimension)",
+  "reviews": [
+    {
+      "debt": "DEBT-CONCURRENCY",
+      "verdict": "CONFIRMED",
+      "finding": "G157 made thread spawns a RESOURCE acquisition and typed JoinHandle receivers, so a join of a let-bound handle is a RESOURCE release; CONCURRENCY itself records nothing new: the self census's scoped spawns and joins are method calls on untyped closure parameters, and a join is not yet a CONCURRENCY ordering record; NA-CALL-TYPE-RESIDUAL",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-PERSISTENCE",
+      "verdict": "CONFIRMED",
+      "finding": "G157's resource table names file opens and creates as acquisitions (RESOURCE), orthogonal to durable reads, writes and syncs; the spelling engine's INFERRED guesses remain beside the derived sites and flush on writers still needs receiver types; NA-CALL-TYPE-RESIDUAL",
+      "correction": {}
+    }
+  ]
+}
