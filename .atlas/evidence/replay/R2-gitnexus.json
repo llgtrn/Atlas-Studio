@@ -1,0 +1,149 @@
+{
+  "schema": "atlas.evidence.replay.v1",
+  "replay": "R2",
+  "generation": "G152",
+  "lane": "FULL_OSS_REPLAY",
+  "donor": {
+    "key": "abhigyanpatwari/gitnexus",
+    "pinned_commit": "06ce60beb67494cac7801c0bdf97a4e9a4b65862",
+    "license": "PolyForm-Noncommercial-1.0.0",
+    "code_reuse": "NONE",
+    "materialization": {
+      "path": ".atlas/.cache/donors/gitnexus",
+      "bytes": 310674730,
+      "scope": "blobless clone checked out at the same pin as R1",
+      "note": "re-materialized as the falsification target of the second-language attack"
+    }
+  },
+  "epochs": {
+    "before": "E1 (G151)",
+    "after": "E2 (G152)"
+  },
+  "atlas_n_mission": {
+    "atlas_knew": "at E1: 3,102 components, 363 functions (Rust fixtures), TypeScript UNSUPPORTED in every dimension",
+    "challenge": "which code realizes impact analysis, and what is its blast radius?",
+    "answer": "E1: UNKNOWN (0 functions in scope). E2: 391 functions in src/mcp/local with FUNCTION_IDENTITY and SYMBOL OBSERVED on its 8 files and CALL UNKNOWN; LocalBackend::_impactImpl at src/mcp/local/local-backend.ts:7098 resolves to ambiguityReport, logQueryError and nonBlankUid; its callers are INFERRED only ({'UNIQUE_NAME': 35})"
+  },
+  "differential": {
+    "method": "Atlas E2 answers checked against the donor source at the pin",
+    "cases": [
+      {
+        "question": "what does _impactImpl call",
+        "atlas_e2": [
+          "ambiguityReport@src/mcp/local/local-backend.ts:243",
+          "logQueryError@src/mcp/local/local-backend.ts:611",
+          "nonBlankUid@src/mcp/local/local-backend.ts:311"
+        ],
+        "ground_truth": "module-level functions ambiguityReport (243), nonBlankUid (311), logQueryError (611) of the same file",
+        "classification": "ATLAS_CORRECT"
+      },
+      {
+        "question": "who calls _impactImpl",
+        "atlas_e2": {
+          "resolved": 0,
+          "inferred": {
+            "UNIQUE_NAME": 35
+          }
+        },
+        "ground_truth": "this._impactImpl in LocalBackend.impact (7062) plus tests",
+        "classification": "ATLAS_CORRECT (a this-call stays unresolved; reached as INFERRED only, never claimed resolved)"
+      }
+    ]
+  },
+  "n_vs_n_plus_1": {
+    "donor_itself": {
+      "E1": {
+        "functions": 363,
+        "typescript_or_javascript_functions": 0,
+        "components": 3102,
+        "resolved_call_edges": 6,
+        "unresolved_call_sites": 216,
+        "records": {
+          "CALL": 228,
+          "CONCURRENCY": 2,
+          "CONTROL_FLOW": 407,
+          "DATA_FLOW": 610,
+          "FUNCTION_IDENTITY": 363,
+          "FUNCTION_SIGNATURE": 362,
+          "OWNERSHIP": 65,
+          "STATE": 16,
+          "SYMBOL": 751,
+          "TYPE": 561
+        }
+      },
+      "E2": {
+        "functions": 65414,
+        "typescript_or_javascript_functions": 65051,
+        "components": 3102,
+        "resolved_call_edges": 21045,
+        "unresolved_call_sites": 221635,
+        "records": {
+          "CALL": 249271,
+          "CONCURRENCY": 2,
+          "CONTROL_FLOW": 407,
+          "DATA_FLOW": 610,
+          "FUNCTION_IDENTITY": 65414,
+          "FUNCTION_SIGNATURE": 65413,
+          "OWNERSHIP": 65,
+          "STATE": 16,
+          "SYMBOL": 42424,
+          "TYPE": 561
+        }
+      }
+    },
+    "support_levels": {
+      "E1": {
+        "typescript": "L1 identified; every dimension UNSUPPORTED"
+      },
+      "E2": {
+        "FUNCTION_IDENTITY": "L4 (typed records, obligations evaluated)",
+        "FUNCTION_SIGNATURE": "L4",
+        "SYMBOL": "L4",
+        "CALL": "L3 bounded same-file profile (UNKNOWN)",
+        "TYPE, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE": "UNSUPPORTED"
+      }
+    },
+    "atlas_studio": "48 JavaScript functions of adapter/src/browser/*.js censused; tools/ (793 files) stays outside the self census scope"
+  },
+  "implementation": {
+    "extractor": "atlas.typescript.source-semantic.v1 (adapter/src/semantic/typescript)",
+    "substrate": "tree-sitter 0.25, tree-sitter-typescript 0.23, tree-sitter-javascript 0.23 (MIT)",
+    "mutants": {
+      "killed": 7,
+      "survived": 0,
+      "cases": [
+        "binding count ignored",
+        "assignment ignored",
+        "calls resolved while walking before later declarations",
+        "syntax errors treated as exhaustive",
+        "CALL claimed exhaustive",
+        "export lost",
+        "object methods treated as class methods"
+      ],
+      "rewritten": [
+        "the hoisting mutant first added a no-op resolve pass and survived vacuously; rewritten to resolve each call while walking"
+      ],
+      "falsified_by_the_donor": "re-running the donor found closures without an enclosing region (module-level callbacks, class fields of anonymous classes); fixed and covered by every_closure_has_an_enclosing_region"
+    },
+    "closure_regions": "every closure has an enclosing region: module-level closures are scoped under the generated {module} region and class-field closures under the region the class is in (0 closures without one on the donor)"
+  },
+  "manual_reads": [
+    {
+      "path": "src/mcp/local/local-backend.ts:243,311,611,7062,7098 (donor)",
+      "why": "ground truth for the two differential cases",
+      "gap": "none: the reads verified Atlas's answer"
+    }
+  ],
+  "decision": {
+    "donor": "REFERENCE_ONLY_UNTIL_TRIGGER decided at E2 (G152); the E1 verdict stays history",
+    "capability_state": "DEBT-MULTILANGUAGE M1 -> M3 for the bounded profile; cross-file module resolution, member calls, types and data flow queued",
+    "trigger": "CURRENT at E2: source extinct; re-opened by an epoch adding cross-file TypeScript module resolution, execution flows or hunk seeds"
+  },
+  "extinction": {
+    "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/gitnexus (from the repository root)",
+    "history": "a first attempt was refused by the session safety check because the shell working directory had been left inside the checkout; it was not re-issued until the owner directive named the step (extinct GitNexus source)",
+    "path_absent_after": true,
+    "status": "SOURCE_EXTINCT: .atlas/.cache/donors/gitnexus is absent; no Atlas build, test or runtime path reads it; the census and docs audit never walked it",
+    "retained": "only this evidence and R1 (measurements, pins, 7 mutants); no GitNexus code or text in Atlas"
+  }
+}

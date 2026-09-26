@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G151"
+current_generation = "G152"
 
 [[generation]]
 id = "G35"
@@ -3309,3 +3309,35 @@ after = 6394
 key = "composed:function_behavior"
 before = 5410
 after = 5460
+
+[[generation]]
+id = "G152"
+kind = "NATIVE_ATTACK"
+base_commit = "b0e043065fde348bc4a283ea55e0810a402e7c7c"
+priority = "P0"
+serves = "DEBT-MULTILANGUAGE: the bounded first TypeScript/JavaScript profile, with the GitNexus pin as its falsification target (owner directive; FULL_OSS_REPLAY R2)"
+replay_prerequisite = "abhigyanpatwari/gitnexus"
+objective = "a second language under the common typed-record contract -- Atlas-native TypeScript/JavaScript functions, signatures, symbols and calls over a tree-sitter syntax substrate -- and the same GitNexus pin re-censused at the new epoch"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/replay/R2-gitnexus.json"
+self_recensus = ".atlas/evidence/census/G152/recensus.json"
+
+[generation.verification]
+pre_census = "G151 post digest; the census changes since include the whole-repository census lock of 2ff2612720 (the G151 verification had been OOM-killed)"
+atlas_first = "R1 had recorded GitNexus at E1 as UNSUPPORTED in every dimension of its TypeScript; no JS/TS parser existed in the workspace; the registry held one extractor"
+change = "adapter/src/semantic/typescript: atlas.typescript.source-semantic.v1 (FUNCTION_IDENTITY, FUNCTION_SIGNATURE, SYMBOL, CALL; closures and a generated module region; same-file lexical resolution of uniquely bound, never assigned module functions and constructors after hoisting; UNSUPPORTED elsewhere; nesting and stack bounds). Registry: typescript and javascript. Dependencies tree-sitter 0.25, tree-sitter-typescript 0.23, tree-sitter-javascript 0.23 (MIT). Docs audit skips .atlas/.cache. Runtime tests: a donor source may exist again while the replay ledger records it MATERIALIZED. roadmap/FULL-OSS-REPLAY.toml epoch E2. Contract SEMANTIC-EXTRACTION; ADR 0068"
+oracle = "the GitNexus pin 06ce60beb674 at E1 vs E2: 363 -> 65,414 functions, 228 -> 249,271 CALL records, 751 -> 42,424 SYMBOL records, 6 -> 21,045 resolved call edges; LocalBackend::_impactImpl's resolved callees and INFERRED-only callers confirmed against the source"
+falsification = "7 mutants killed (binding count ignored, assignment ignored, calls resolved while walking before later declarations, syntax errors treated as exhaustive, CALL claimed exhaustive, export lost, object methods treated as class methods); the hoisting mutant was first written as a no-op and survived vacuously, then rewritten"
+boundary = "the re-materialized GitNexus source is deleted (a first attempt was refused by the session safety check while the shell sat inside the checkout; re-issued from the repository root on the owner directive) -- the replay is PROCESSED, source extinct, REFERENCE_ONLY_UNTIL_TRIGGER at E2; the self census scope still excludes tools/"
+debts = "DEBT-MULTILANGUAGE last advance G152 (M1 -> M3_SINGLE_ENGINE_BOUNDED); NA-MULTILANGUAGE requeued for module resolution, member calls, deeper dimensions and the tools/ scope; revalidation milestone TS_JS_PROFILE; native head NA-RESOURCE-DIMENSION planned G154 after the first swarm batch (G153)"
+proof = "PROVEN (post 0a0bd083...): no unexplained UNKNOWN (TypeScript files and new functions explained)"
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5460
+after = 5624
+
+[[generation.metric]]
+key = "facts"
+before = 25902
+after = 26578

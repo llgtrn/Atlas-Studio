@@ -1,0 +1,1564 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G152",
+  "base_revision": "362faa3e68adf1fd3f544fc7f045cd26f6ee829c",
+  "candidate_revision": "2ff2612720a8677e736ab9a4278c6d220117a047",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:40ab6b38e8b954683c5610bcdd5a8f4c5afb592dab862d7669cb1fa0ecdaa13b",
+  "after_census_digest": "blake3-256:0a0bd083252680a3f48cddb7840044c5f22cea252f5841c56d6e65b76a43415b",
+  "replay_digest": "blake3-256:0a0bd083252680a3f48cddb7840044c5f22cea252f5841c56d6e65b76a43415b",
+  "inventory_delta": {
+    "created": [
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/tests.rs"
+    ],
+    "modified": [
+      "adapter/Cargo.toml",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/browser/measure_layout.js",
+      "adapter/src/browser/observe.js",
+      "adapter/src/browser/webdriver.js",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 164,
+      "fact:FunctionSignature|OBSERVED": 99,
+      "fact:SemanticObligation|OBSERVED": 18,
+      "fact:SemanticObligation|UNKNOWN": 28,
+      "fact:SemanticObligation|UNSUPPORTED": -12,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 212,
+      "fact:Type|DERIVED": 61,
+      "fact:Type|OBSERVED": 102,
+      "record:CALL|DERIVED": 133,
+      "record:CALL|OBSERVED": 932,
+      "record:CONCURRENCY|DERIVED": 1,
+      "record:CONTROL_FLOW|INFERRED": 53,
+      "record:CONTROL_FLOW|OBSERVED": 265,
+      "record:DATA_FLOW|OBSERVED": 1458,
+      "record:EFFECT|DERIVED": 2,
+      "record:EFFECT|INFERRED": 55,
+      "record:FUNCTION_IDENTITY|OBSERVED": 164,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 99,
+      "record:OWNERSHIP|OBSERVED": 378,
+      "record:PERSISTENCE|DERIVED": 2,
+      "record:STATE|OBSERVED": 32,
+      "record:SYMBOL|OBSERVED": 212,
+      "record:TYPE|DERIVED": 61,
+      "record:TYPE|OBSERVED": 102
+    }
+  },
+  "dependency_delta": {
+    "added": [
+      "adapter -> tree-sitter-javascript@0.23.1 (Registry) [Some(Runtime)]",
+      "adapter -> tree-sitter-typescript@0.23.2 (Registry) [Some(Runtime)]",
+      "adapter -> tree-sitter@0.25.10 (Registry) [Some(Runtime)]",
+      "aho-corasick -> memchr@2.8.3 (Registry) [None]",
+      "indexmap -> equivalent@1.0.2 (Registry) [None]",
+      "indexmap -> hashbrown@0.17.1 (Registry) [None]",
+      "regex -> aho-corasick@1.1.5 (Registry) [None]",
+      "regex -> memchr@2.8.3 (Registry) [None]",
+      "regex -> regex-automata@0.4.18 (Registry) [None]",
+      "regex -> regex-syntax@0.8.11 (Registry) [None]",
+      "regex-automata -> aho-corasick@1.1.5 (Registry) [None]",
+      "regex-automata -> memchr@2.8.3 (Registry) [None]",
+      "regex-automata -> regex-syntax@0.8.11 (Registry) [None]",
+      "serde_json -> indexmap@2.14.2 (Registry) [None]",
+      "tree-sitter -> cc@1.4.7 (Registry) [None]",
+      "tree-sitter -> regex-syntax@0.8.11 (Registry) [None]",
+      "tree-sitter -> regex@1.13.1 (Registry) [None]",
+      "tree-sitter -> serde_json@1.0.151 (Registry) [None]",
+      "tree-sitter -> streaming-iterator@0.1.9 (Registry) [None]",
+      "tree-sitter -> tree-sitter-language@0.1.8 (Registry) [None]",
+      "tree-sitter-javascript -> cc@1.4.7 (Registry) [None]",
+      "tree-sitter-javascript -> tree-sitter-language@0.1.8 (Registry) [None]",
+      "tree-sitter-typescript -> cc@1.4.7 (Registry) [None]",
+      "tree-sitter-typescript -> tree-sitter-language@0.1.8 (Registry) [None]"
+    ],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 5504,
+    "graph_nodes": 4085
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 6,
+    "obligation:CALL|UNSUPPORTED": -3,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 5,
+    "obligation:FUNCTION_IDENTITY|UNSUPPORTED": -3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 5,
+    "obligation:FUNCTION_SIGNATURE|UNSUPPORTED": -3,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 5,
+    "obligation:SYMBOL|UNSUPPORTED": -3,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter visit_docs()."
+      ],
+      "after": [
+        "adapter visit_docs()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "after": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "after": [
+        "runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime certificate/tests/the_certificate_conforms_to_its_json_schema_field_sets()."
+      ],
+      "after": [
+        "runtime certificate/tests/the_certificate_conforms_to_its_json_schema_field_sets()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing()."
+      ],
+      "after": [
+        "runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/working_set_report()."
+      ],
+      "after": [
+        "runtime donor_storage/working_set_report()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/donor_corpus_integrity/generation_ledger_references_real_paths_and_real_base_commits()."
+      ],
+      "after": [
+        "runtime tests/donor_corpus_integrity/generation_ledger_references_real_paths_and_real_base_commits()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+      ],
+      "after": [
+        "runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/replay_generation_is_accounted()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/replay_generation_is_accounted()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible()."
+      ],
+      "after": [
+        "runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+      ],
+      "after": [
+        "runtime tests/systemize_reconciles_declared_dependencies_against_the_census()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`measure_layout.js`/`fn atlasMeasureLayout`/pathOf()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`measure_layout.js`/atlasMeasureLayout()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn freshPage`/`{closure@20:30}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn interact`/`fn toSelector`/`{closure@95:51}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn interact`/`fn {closure@79:44}`/`{closure@90:71}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn interact`/`fn {closure@79:44}`/pathOf()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn interact`/`{closure@79:44}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn interact`/toSelector()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`fn toSelector`/`{closure@142:51}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`fn {closure@127:44}`/`{closure@137:14}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`fn {closure@127:44}`/pathOf()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`fn {closure@151:40}`/`{closure@160:42}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`fn {closure@151:40}`/pathOf()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`{closure@127:44}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/`{closure@151:40}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn motion`/toSelector()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn settle`/`fn {closure@56:23}`/`fn {closure@58:37}`/`{closure@58:61}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn settle`/`fn {closure@56:23}`/`{closure@58:37}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn settle`/`{closure@56:23}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn snapshot`/`fn {closure@29:23}`/pathOf()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn snapshot`/`{closure@29:23}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn {module}`/`fn {closure@186:1}`/`{closure@213:32}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn {module}`/`{closure@186:1}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn {module}`/`{closure@223:11}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`fn {module}`/`{closure@7:69}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/`{module}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/diff()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/freshPage()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/interact()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/motion()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/settle()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`observe.js`/snapshot()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn fitViewport`/`{closure@82:24}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn fitViewport`/read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn freePort`/`fn {closure@22:21}`/`fn {closure@24:34}`/`{closure@26:19}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn freePort`/`fn {closure@22:21}`/`{closure@24:34}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn freePort`/`{closure@22:21}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@104:27}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@113:26}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@141:64}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn {module}`/`{closure@13:69}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn {module}`/`{closure@148:11}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`fn {module}`/`{closure@97:1}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/`{module}`()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/call()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/capabilities()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/fitViewport()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter browser/`webdriver.js`/freePort()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/registry/tests/typescript_and_javascript_resolve_to_the_bounded_profile()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/bind_pattern()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/call()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/collect_bindings()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/construct()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/defer_call()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/emit()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/emit_call()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/emit_function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/finish_failure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/finish_success()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/imports()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/region()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/resolve_calls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/resolve_module_function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/signature()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/span()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/symbol()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/tokens()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/type_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/unsupported()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/walk()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/walk_children()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/wants()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Header`/with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/extract()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/id()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/supported_dimensions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/supported_languages()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/version()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Walk`/deeper()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Walk`/module()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/compact()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/extract_file()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/grammar()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_call_resolves_only_by_an_unambiguous_lexical_binding_in_the_same_file()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_syntax_error_keeps_observations_but_nothing_is_exhaustive()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/an_empty_file_proves_absence_and_extraction_is_deterministic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/calls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/every_closure_has_an_enclosing_region()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/extract()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/functions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/functions_symbols_and_signatures_of_a_typescript_module_are_typed_records()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/javascript_jsx_and_tsx_files_are_parsed_with_their_grammar()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/name_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/status()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime donor_storage/replay_materialized_paths()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime whole_repo_census_lock()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/src/semantic/typescript/mod.rs: 0 -> 13",
+      "adapter/src/semantic/typescript/tests.rs: 0 -> 12"
+    ],
+    "decreased": [
+      "adapter/src/browser/measure_layout.js: 12 -> 9",
+      "adapter/src/browser/observe.js: 12 -> 9",
+      "adapter/src/browser/webdriver.js: 12 -> 9"
+    ],
+    "total_before": 1710,
+    "total_after": 1726
+  },
+  "intent": {
+    "objective": "NA-MULTILANGUAGE bounded TypeScript/JavaScript profile (capability epoch E2): atlas.typescript.source-semantic.v1 over a tree-sitter syntax substrate; the GitNexus pin re-censused as its falsification target",
+    "changed_paths": [
+      "adapter/Cargo.toml",
+      "adapter/src/browser/measure_layout.js",
+      "adapter/src/browser/observe.js",
+      "adapter/src/browser/webdriver.js",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/tests.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:DISPATCHES_TO",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "-diagnostic:UnsupportedLanguageOrProfile",
+      "+diagnostic:UnsupportedSemanticDimension",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "-obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CALL|atlas.typescript.source-semantic.v1|UNKNOWN",
+      "-obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_IDENTITY|atlas.typescript.source-semantic.v1|OBSERVED",
+      "-obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.typescript.source-semantic.v1|OBSERVED",
+      "-obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:OWNERSHIP|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "-obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:SYMBOL|atlas.typescript.source-semantic.v1|OBSERVED",
+      "-obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CALL|atlas.typescript.source-semantic.v1",
+      "+records:CONCURRENCY|atlas.resolution.rust-paths",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.typescript.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.typescript.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.typescript.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "-unsupported_facts"
+    ],
+    "dependency_changes": [
+      "+adapter -> tree-sitter-javascript@0.23.1 (Registry) [Some(Runtime)]",
+      "+adapter -> tree-sitter-typescript@0.23.2 (Registry) [Some(Runtime)]",
+      "+adapter -> tree-sitter@0.25.10 (Registry) [Some(Runtime)]",
+      "+aho-corasick -> memchr@2.8.3 (Registry) [None]",
+      "+indexmap -> equivalent@1.0.2 (Registry) [None]",
+      "+indexmap -> hashbrown@0.17.1 (Registry) [None]",
+      "+regex -> aho-corasick@1.1.5 (Registry) [None]",
+      "+regex -> memchr@2.8.3 (Registry) [None]",
+      "+regex -> regex-automata@0.4.18 (Registry) [None]",
+      "+regex -> regex-syntax@0.8.11 (Registry) [None]",
+      "+regex-automata -> aho-corasick@1.1.5 (Registry) [None]",
+      "+regex-automata -> memchr@2.8.3 (Registry) [None]",
+      "+regex-automata -> regex-syntax@0.8.11 (Registry) [None]",
+      "+serde_json -> indexmap@2.14.2 (Registry) [None]",
+      "+tree-sitter -> cc@1.4.7 (Registry) [None]",
+      "+tree-sitter -> regex-syntax@0.8.11 (Registry) [None]",
+      "+tree-sitter -> regex@1.13.1 (Registry) [None]",
+      "+tree-sitter -> serde_json@1.0.151 (Registry) [None]",
+      "+tree-sitter -> streaming-iterator@0.1.9 (Registry) [None]",
+      "+tree-sitter -> tree-sitter-language@0.1.8 (Registry) [None]",
+      "+tree-sitter-javascript -> cc@1.4.7 (Registry) [None]",
+      "+tree-sitter-javascript -> tree-sitter-language@0.1.8 (Registry) [None]",
+      "+tree-sitter-typescript -> cc@1.4.7 (Registry) [None]",
+      "+tree-sitter-typescript -> tree-sitter-language@0.1.8 (Registry) [None]"
+    ],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/src/semantic/typescript/mod.rs: new TypeScript extractor files and the three JavaScript files Atlas now censuses: dimensions outside the bounded profile are UNSUPPORTED and CALL is UNKNOWN by design; new Rust functions carry the same UNKNOWN obligations every Rust function does until an engine evaluates them",
+      "adapter/src/semantic/typescript/tests.rs: new TypeScript extractor files and the three JavaScript files Atlas now censuses: dimensions outside the bounded profile are UNSUPPORTED and CALL is UNKNOWN by design; new Rust functions carry the same UNKNOWN obligations every Rust function does until an engine evaluates them"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter visit_docs().",
+      "CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+      "CHANGED runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+      "CHANGED runtime certificate/tests/the_certificate_conforms_to_its_json_schema_field_sets().",
+      "CHANGED runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing().",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+      "CHANGED runtime donor_storage/working_set_report().",
+      "CHANGED runtime tests/donor_corpus_integrity/generation_ledger_references_real_paths_and_real_base_commits().",
+      "CHANGED runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain().",
+      "CHANGED runtime tests/essential_complexity/replay_generation_is_accounted().",
+      "CHANGED runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible().",
+      "CHANGED runtime tests/systemize_reconciles_declared_dependencies_against_the_census().",
+      "CREATED adapter browser/`measure_layout.js`/`fn atlasMeasureLayout`/pathOf().",
+      "CREATED adapter browser/`measure_layout.js`/atlasMeasureLayout().",
+      "CREATED adapter browser/`observe.js`/`fn freshPage`/`{closure@20:30}`().",
+      "CREATED adapter browser/`observe.js`/`fn interact`/`fn toSelector`/`{closure@95:51}`().",
+      "CREATED adapter browser/`observe.js`/`fn interact`/`fn {closure@79:44}`/`{closure@90:71}`().",
+      "CREATED adapter browser/`observe.js`/`fn interact`/`fn {closure@79:44}`/pathOf().",
+      "CREATED adapter browser/`observe.js`/`fn interact`/`{closure@79:44}`().",
+      "CREATED adapter browser/`observe.js`/`fn interact`/toSelector().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`fn toSelector`/`{closure@142:51}`().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@127:44}`/`{closure@137:14}`().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@127:44}`/pathOf().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@151:40}`/`{closure@160:42}`().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@151:40}`/pathOf().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`{closure@127:44}`().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/`{closure@151:40}`().",
+      "CREATED adapter browser/`observe.js`/`fn motion`/toSelector().",
+      "CREATED adapter browser/`observe.js`/`fn settle`/`fn {closure@56:23}`/`fn {closure@58:37}`/`{closure@58:61}`().",
+      "CREATED adapter browser/`observe.js`/`fn settle`/`fn {closure@56:23}`/`{closure@58:37}`().",
+      "CREATED adapter browser/`observe.js`/`fn settle`/`{closure@56:23}`().",
+      "CREATED adapter browser/`observe.js`/`fn snapshot`/`fn {closure@29:23}`/pathOf().",
+      "CREATED adapter browser/`observe.js`/`fn snapshot`/`{closure@29:23}`().",
+      "CREATED adapter browser/`observe.js`/`fn {module}`/`fn {closure@186:1}`/`{closure@213:32}`().",
+      "CREATED adapter browser/`observe.js`/`fn {module}`/`{closure@186:1}`().",
+      "CREATED adapter browser/`observe.js`/`fn {module}`/`{closure@223:11}`().",
+      "CREATED adapter browser/`observe.js`/`fn {module}`/`{closure@7:69}`().",
+      "CREATED adapter browser/`observe.js`/`{module}`().",
+      "CREATED adapter browser/`observe.js`/diff().",
+      "CREATED adapter browser/`observe.js`/freshPage().",
+      "CREATED adapter browser/`observe.js`/interact().",
+      "CREATED adapter browser/`observe.js`/motion().",
+      "CREATED adapter browser/`observe.js`/settle().",
+      "CREATED adapter browser/`observe.js`/snapshot().",
+      "CREATED adapter browser/`webdriver.js`/`fn fitViewport`/`{closure@82:24}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn fitViewport`/read().",
+      "CREATED adapter browser/`webdriver.js`/`fn freePort`/`fn {closure@22:21}`/`fn {closure@24:34}`/`{closure@26:19}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn freePort`/`fn {closure@22:21}`/`{closure@24:34}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn freePort`/`{closure@22:21}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@104:27}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@113:26}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@141:64}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn {module}`/`{closure@13:69}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn {module}`/`{closure@148:11}`().",
+      "CREATED adapter browser/`webdriver.js`/`fn {module}`/`{closure@97:1}`().",
+      "CREATED adapter browser/`webdriver.js`/`{module}`().",
+      "CREATED adapter browser/`webdriver.js`/call().",
+      "CREATED adapter browser/`webdriver.js`/capabilities().",
+      "CREATED adapter browser/`webdriver.js`/fitViewport().",
+      "CREATED adapter browser/`webdriver.js`/freePort().",
+      "CREATED adapter semantic/registry/tests/typescript_and_javascript_resolve_to_the_bounded_profile().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/bind_pattern().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/call().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/collect_bindings().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/construct().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/defer_call().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/emit().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/emit_call().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/emit_function().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/finish_failure().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/finish_success().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/function().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/imports().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/new().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/region().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/resolve_calls().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/resolve_module_function().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/signature().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/span().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/symbol().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/text().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/tokens().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/type_identity().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/unsupported().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/walk().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/walk_children().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/wants().",
+      "CREATED adapter semantic/typescript/`impl:Header`/with().",
+      "CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/extract().",
+      "CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/id().",
+      "CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/supported_dimensions().",
+      "CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/supported_languages().",
+      "CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/version().",
+      "CREATED adapter semantic/typescript/`impl:Walk`/deeper().",
+      "CREATED adapter semantic/typescript/`impl:Walk`/module().",
+      "CREATED adapter semantic/typescript/compact().",
+      "CREATED adapter semantic/typescript/extract_file().",
+      "CREATED adapter semantic/typescript/grammar().",
+      "CREATED adapter semantic/typescript/tests/a_call_resolves_only_by_an_unambiguous_lexical_binding_in_the_same_file().",
+      "CREATED adapter semantic/typescript/tests/a_syntax_error_keeps_observations_but_nothing_is_exhaustive().",
+      "CREATED adapter semantic/typescript/tests/an_empty_file_proves_absence_and_extraction_is_deterministic().",
+      "CREATED adapter semantic/typescript/tests/calls().",
+      "CREATED adapter semantic/typescript/tests/every_closure_has_an_enclosing_region().",
+      "CREATED adapter semantic/typescript/tests/extract().",
+      "CREATED adapter semantic/typescript/tests/functions().",
+      "CREATED adapter semantic/typescript/tests/functions_symbols_and_signatures_of_a_typescript_module_are_typed_records().",
+      "CREATED adapter semantic/typescript/tests/javascript_jsx_and_tsx_files_are_parsed_with_their_grammar().",
+      "CREATED adapter semantic/typescript/tests/name_of().",
+      "CREATED adapter semantic/typescript/tests/status().",
+      "CREATED runtime donor_storage/replay_materialized_paths().",
+      "CREATED runtime whole_repo_census_lock()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/Cargo.toml",
+    "path adapter/src/browser/measure_layout.js",
+    "path adapter/src/browser/observe.js",
+    "path adapter/src/browser/webdriver.js",
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/mod.rs",
+    "path adapter/src/semantic/registry.rs",
+    "path adapter/src/semantic/typescript/mod.rs",
+    "path adapter/src/semantic/typescript/tests.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:DISPATCHES_TO",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total -diagnostic:UnsupportedLanguageOrProfile",
+    "total +diagnostic:UnsupportedSemanticDimension",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total -obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CALL|atlas.typescript.source-semantic.v1|UNKNOWN",
+    "total -obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_IDENTITY|atlas.typescript.source-semantic.v1|OBSERVED",
+    "total -obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.typescript.source-semantic.v1|OBSERVED",
+    "total -obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:OWNERSHIP|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total -obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:SYMBOL|atlas.typescript.source-semantic.v1|OBSERVED",
+    "total -obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.typescript.source-semantic.v1|UNSUPPORTED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CALL|atlas.typescript.source-semantic.v1",
+    "total +records:CONCURRENCY|atlas.resolution.rust-paths",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.typescript.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.typescript.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.typescript.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total -unsupported_facts",
+    "dependency +adapter -> tree-sitter-javascript@0.23.1 (Registry) [Some(Runtime)]",
+    "dependency +adapter -> tree-sitter-typescript@0.23.2 (Registry) [Some(Runtime)]",
+    "dependency +adapter -> tree-sitter@0.25.10 (Registry) [Some(Runtime)]",
+    "dependency +aho-corasick -> memchr@2.8.3 (Registry) [None]",
+    "dependency +indexmap -> equivalent@1.0.2 (Registry) [None]",
+    "dependency +indexmap -> hashbrown@0.17.1 (Registry) [None]",
+    "dependency +regex -> aho-corasick@1.1.5 (Registry) [None]",
+    "dependency +regex -> memchr@2.8.3 (Registry) [None]",
+    "dependency +regex -> regex-automata@0.4.18 (Registry) [None]",
+    "dependency +regex -> regex-syntax@0.8.11 (Registry) [None]",
+    "dependency +regex-automata -> aho-corasick@1.1.5 (Registry) [None]",
+    "dependency +regex-automata -> memchr@2.8.3 (Registry) [None]",
+    "dependency +regex-automata -> regex-syntax@0.8.11 (Registry) [None]",
+    "dependency +serde_json -> indexmap@2.14.2 (Registry) [None]",
+    "dependency +tree-sitter -> cc@1.4.7 (Registry) [None]",
+    "dependency +tree-sitter -> regex-syntax@0.8.11 (Registry) [None]",
+    "dependency +tree-sitter -> regex@1.13.1 (Registry) [None]",
+    "dependency +tree-sitter -> serde_json@1.0.151 (Registry) [None]",
+    "dependency +tree-sitter -> streaming-iterator@0.1.9 (Registry) [None]",
+    "dependency +tree-sitter -> tree-sitter-language@0.1.8 (Registry) [None]",
+    "dependency +tree-sitter-javascript -> cc@1.4.7 (Registry) [None]",
+    "dependency +tree-sitter-javascript -> tree-sitter-language@0.1.8 (Registry) [None]",
+    "dependency +tree-sitter-typescript -> cc@1.4.7 (Registry) [None]",
+    "dependency +tree-sitter-typescript -> tree-sitter-language@0.1.8 (Registry) [None]",
+    "entity CHANGED adapter visit_docs().",
+    "entity CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "entity CHANGED runtime atlas/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+    "entity CHANGED runtime certificate/tests/the_certificate_conforms_to_its_json_schema_field_sets().",
+    "entity CHANGED runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "entity CHANGED runtime donor_storage/working_set_report().",
+    "entity CHANGED runtime tests/donor_corpus_integrity/generation_ledger_references_real_paths_and_real_base_commits().",
+    "entity CHANGED runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain().",
+    "entity CHANGED runtime tests/essential_complexity/replay_generation_is_accounted().",
+    "entity CHANGED runtime tests/integrity_envelope_is_pinned_and_atlas_is_eligible().",
+    "entity CHANGED runtime tests/systemize_reconciles_declared_dependencies_against_the_census().",
+    "entity CREATED adapter browser/`measure_layout.js`/`fn atlasMeasureLayout`/pathOf().",
+    "entity CREATED adapter browser/`measure_layout.js`/atlasMeasureLayout().",
+    "entity CREATED adapter browser/`observe.js`/`fn freshPage`/`{closure@20:30}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn interact`/`fn toSelector`/`{closure@95:51}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn interact`/`fn {closure@79:44}`/`{closure@90:71}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn interact`/`fn {closure@79:44}`/pathOf().",
+    "entity CREATED adapter browser/`observe.js`/`fn interact`/`{closure@79:44}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn interact`/toSelector().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`fn toSelector`/`{closure@142:51}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@127:44}`/`{closure@137:14}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@127:44}`/pathOf().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@151:40}`/`{closure@160:42}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`fn {closure@151:40}`/pathOf().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`{closure@127:44}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/`{closure@151:40}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn motion`/toSelector().",
+    "entity CREATED adapter browser/`observe.js`/`fn settle`/`fn {closure@56:23}`/`fn {closure@58:37}`/`{closure@58:61}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn settle`/`fn {closure@56:23}`/`{closure@58:37}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn settle`/`{closure@56:23}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn snapshot`/`fn {closure@29:23}`/pathOf().",
+    "entity CREATED adapter browser/`observe.js`/`fn snapshot`/`{closure@29:23}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn {module}`/`fn {closure@186:1}`/`{closure@213:32}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn {module}`/`{closure@186:1}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn {module}`/`{closure@223:11}`().",
+    "entity CREATED adapter browser/`observe.js`/`fn {module}`/`{closure@7:69}`().",
+    "entity CREATED adapter browser/`observe.js`/`{module}`().",
+    "entity CREATED adapter browser/`observe.js`/diff().",
+    "entity CREATED adapter browser/`observe.js`/freshPage().",
+    "entity CREATED adapter browser/`observe.js`/interact().",
+    "entity CREATED adapter browser/`observe.js`/motion().",
+    "entity CREATED adapter browser/`observe.js`/settle().",
+    "entity CREATED adapter browser/`observe.js`/snapshot().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn fitViewport`/`{closure@82:24}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn fitViewport`/read().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn freePort`/`fn {closure@22:21}`/`fn {closure@24:34}`/`{closure@26:19}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn freePort`/`fn {closure@22:21}`/`{closure@24:34}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn freePort`/`{closure@22:21}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@104:27}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@113:26}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn {module}`/`fn {closure@97:1}`/`{closure@141:64}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn {module}`/`{closure@13:69}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn {module}`/`{closure@148:11}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`fn {module}`/`{closure@97:1}`().",
+    "entity CREATED adapter browser/`webdriver.js`/`{module}`().",
+    "entity CREATED adapter browser/`webdriver.js`/call().",
+    "entity CREATED adapter browser/`webdriver.js`/capabilities().",
+    "entity CREATED adapter browser/`webdriver.js`/fitViewport().",
+    "entity CREATED adapter browser/`webdriver.js`/freePort().",
+    "entity CREATED adapter semantic/registry/tests/typescript_and_javascript_resolve_to_the_bounded_profile().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/bind_pattern().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/call().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/collect_bindings().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/construct().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/defer_call().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/emit().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/emit_call().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/emit_function().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/finish_failure().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/finish_success().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/function().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/imports().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/new().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/region().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/resolve_calls().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/resolve_module_function().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/signature().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/span().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/symbol().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/text().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/tokens().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/type_identity().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/unsupported().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/walk().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/walk_children().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/wants().",
+    "entity CREATED adapter semantic/typescript/`impl:Header`/with().",
+    "entity CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/extract().",
+    "entity CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/id().",
+    "entity CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/supported_dimensions().",
+    "entity CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/supported_languages().",
+    "entity CREATED adapter semantic/typescript/`impl:SemanticExtractor for TypeScriptSemanticExtractor`/version().",
+    "entity CREATED adapter semantic/typescript/`impl:Walk`/deeper().",
+    "entity CREATED adapter semantic/typescript/`impl:Walk`/module().",
+    "entity CREATED adapter semantic/typescript/compact().",
+    "entity CREATED adapter semantic/typescript/extract_file().",
+    "entity CREATED adapter semantic/typescript/grammar().",
+    "entity CREATED adapter semantic/typescript/tests/a_call_resolves_only_by_an_unambiguous_lexical_binding_in_the_same_file().",
+    "entity CREATED adapter semantic/typescript/tests/a_syntax_error_keeps_observations_but_nothing_is_exhaustive().",
+    "entity CREATED adapter semantic/typescript/tests/an_empty_file_proves_absence_and_extraction_is_deterministic().",
+    "entity CREATED adapter semantic/typescript/tests/calls().",
+    "entity CREATED adapter semantic/typescript/tests/every_closure_has_an_enclosing_region().",
+    "entity CREATED adapter semantic/typescript/tests/extract().",
+    "entity CREATED adapter semantic/typescript/tests/functions().",
+    "entity CREATED adapter semantic/typescript/tests/functions_symbols_and_signatures_of_a_typescript_module_are_typed_records().",
+    "entity CREATED adapter semantic/typescript/tests/javascript_jsx_and_tsx_files_are_parsed_with_their_grammar().",
+    "entity CREATED adapter semantic/typescript/tests/name_of().",
+    "entity CREATED adapter semantic/typescript/tests/status().",
+    "entity CREATED runtime donor_storage/replay_materialized_paths().",
+    "entity CREATED runtime whole_repo_census_lock()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -663,14 +663,19 @@ objective = "FULL_OSS_REPLAY R1 GitNexus, an Agent-Worn mission (done: pinned 06
 [[planned_generation]]
 id = "G152"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R2: the same GitNexus pin re-replayed as the falsification target of a bounded TypeScript/JavaScript semantic profile (DEBT-MULTILANGUAGE; tree-sitter as syntax substrate only), with the N versus N+1 delta recorded"
+objective = "NA-TS-JS-PROFILE with the GitNexus pin as falsification target (done: Atlas-native TypeScript/JavaScript functions, signatures, symbols and same-file calls over a tree-sitter syntax substrate; the same pin 363 -> 65,414 functions and 6 -> 21,045 resolved call edges; 7 mutants killed; the re-materialized source deleted)"
 
 [[planned_generation]]
 id = "G153"
 priority = "P0"
+objective = "FULL_OSS_REPLAY swarm batch B1 (owner directive): the swarm and capability-epoch architecture canonicalized -- typed scout missions and reports, an epoch-bound blackboard, root-gap aggregation, replay requirements and write leases -- and a bounded parallel scout proof of two to four donors on one Atlas epoch"
+
+[[planned_generation]]
+id = "G154"
+priority = "P0"
 objective = "native attack queue head (pressure map, dependency and construction-reachability order): NA-RESOURCE-DIMENSION (DEBT-RESOURCE) -- std guard and handle acquisition and scope-end release records"
 
 [[planned_generation]]
-id = "G154+"
+id = "G155+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
