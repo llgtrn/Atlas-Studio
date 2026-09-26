@@ -8,9 +8,9 @@
 
 use super::{
     CallSiteIdentity, ConcurrencyIdentity, ControlFlowBlockIdentity, EffectIdentity,
-    FunctionIdentity, FunctionSignature, OwnershipIdentity, PersistenceIdentity, SemanticDimension,
-    SemanticRecordHeader, SemanticRecordId, StateAccessIdentity, SymbolIdentity, TypeIdentity,
-    ValueIdentity,
+    FunctionIdentity, FunctionSignature, OwnershipIdentity, PersistenceIdentity, ResourceIdentity,
+    SemanticDimension, SemanticRecordHeader, SemanticRecordId, StateAccessIdentity, SymbolIdentity,
+    TypeIdentity, ValueIdentity,
 };
 use crate::identity::{EvidenceId, RawObservationId, stable_id};
 use serde::{Deserialize, Serialize};
@@ -34,6 +34,7 @@ pub enum SemanticObservation {
     Ownership(SemanticRecordHeader<OwnershipIdentity>),
     Concurrency(SemanticRecordHeader<ConcurrencyIdentity>),
     Persistence(SemanticRecordHeader<PersistenceIdentity>),
+    Resource(SemanticRecordHeader<ResourceIdentity>),
 }
 
 impl SemanticObservation {
@@ -51,6 +52,7 @@ impl SemanticObservation {
             Self::Ownership(_) => SemanticDimension::Ownership,
             Self::Concurrency(_) => SemanticDimension::Concurrency,
             Self::Persistence(_) => SemanticDimension::Persistence,
+            Self::Resource(_) => SemanticDimension::Resource,
         }
     }
 
@@ -68,6 +70,7 @@ impl SemanticObservation {
             Self::Ownership(header) => &header.record_id,
             Self::Concurrency(header) => &header.record_id,
             Self::Persistence(header) => &header.record_id,
+            Self::Resource(header) => &header.record_id,
         }
     }
 
@@ -85,6 +88,7 @@ impl SemanticObservation {
             Self::Ownership(header) => header.status,
             Self::Concurrency(header) => header.status,
             Self::Persistence(header) => header.status,
+            Self::Resource(header) => header.status,
         }
     }
 
@@ -102,6 +106,7 @@ impl SemanticObservation {
             Self::Ownership(header) => &header.scope,
             Self::Concurrency(header) => &header.scope,
             Self::Persistence(header) => &header.scope,
+            Self::Resource(header) => &header.scope,
         }
     }
 
@@ -119,6 +124,7 @@ impl SemanticObservation {
             Self::Ownership(header) => &header.provenance,
             Self::Concurrency(header) => &header.provenance,
             Self::Persistence(header) => &header.provenance,
+            Self::Resource(header) => &header.provenance,
         }
     }
 
@@ -136,6 +142,7 @@ impl SemanticObservation {
             Self::Ownership(header) => &header.evidence_refs,
             Self::Concurrency(header) => &header.evidence_refs,
             Self::Persistence(header) => &header.evidence_refs,
+            Self::Resource(header) => &header.evidence_refs,
         }
     }
 
@@ -204,6 +211,7 @@ impl SemanticObservation {
             Self::Ownership(header) => seed(&header.record_id, header),
             Self::Concurrency(header) => seed(&header.record_id, header),
             Self::Persistence(header) => seed(&header.record_id, header),
+            Self::Resource(header) => seed(&header.record_id, header),
         };
         RawObservationId::new(stable_id("raw-observation", &content))
     }
@@ -225,6 +233,7 @@ impl SemanticObservation {
             Self::Ownership(header) => header.dimension,
             Self::Concurrency(header) => header.dimension,
             Self::Persistence(header) => header.dimension,
+            Self::Resource(header) => header.dimension,
         }
     }
 
@@ -250,6 +259,7 @@ impl SemanticObservation {
             Self::Ownership(header) => format!("{:?}", header.subject),
             Self::Concurrency(header) => format!("{:?}", header.subject),
             Self::Persistence(header) => format!("{:?}", header.subject),
+            Self::Resource(header) => format!("{:?}", header.subject),
         }
     }
 

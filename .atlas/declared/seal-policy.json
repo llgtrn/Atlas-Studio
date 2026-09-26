@@ -1,6 +1,6 @@
 {
   "schema": "atlas.seal-policy.v1",
-  "policy_id": "blake3-256:9537882e8c8425c79bb5f7e962d536244d467f8e79efabca20bb88ac89a27745",
+  "policy_id": "blake3-256:9e68506f5e5ddec0ce3feaf490a998fcd71d288bada8c977e58c21cc039f4e41",
   "scope": "atlas-self",
   "verification": {
     "artifact_kind": "LIBRARY_PACKAGE",
@@ -57,7 +57,8 @@
     "EFFECT",
     "OWNERSHIP",
     "CONCURRENCY",
-    "PERSISTENCE"
+    "PERSISTENCE",
+    "RESOURCE"
   ],
   "integrity_verdict_required": "ELIGIBLE"
 }

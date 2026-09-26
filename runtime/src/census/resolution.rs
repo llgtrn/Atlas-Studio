@@ -43,11 +43,12 @@ pub const RUST_PATH_RESOLUTION_VERSION: &str = "1";
 
 /// The dimensions the resolution engine is asked to evaluate (accounting closure is checked
 /// against these, not against every dimension).
-pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 5] = [
+pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 6] = [
     SemanticDimension::Call,
     SemanticDimension::Concurrency,
     SemanticDimension::Effect,
     SemanticDimension::Persistence,
+    SemanticDimension::Resource,
     SemanticDimension::Type,
 ];
 
@@ -62,6 +63,8 @@ struct ArtifactWork {
     concurrency_evidence: Vec<Evidence>,
     persistence: Vec<SemanticObservation>,
     persistence_evidence: Vec<Evidence>,
+    resources: Vec<SemanticObservation>,
+    resource_evidence: Vec<Evidence>,
     types: Vec<SemanticObservation>,
     type_evidence: Vec<Evidence>,
     unattached: usize,
@@ -311,7 +314,12 @@ pub fn resolve_rust_path_calls(
                 let categories = atlas_core::std_path_effects(path);
                 let concurrency = atlas_core::std_path_concurrency(path);
                 let persistence = atlas_core::std_path_persistence(path);
-                if categories.is_empty() && concurrency.is_none() && persistence.is_none() {
+                let resource = atlas_core::std_path_resource(path);
+                if categories.is_empty()
+                    && concurrency.is_none()
+                    && persistence.is_none()
+                    && resource.is_none()
+                {
                     continue;
                 }
                 let Some(claim) = claim else {
@@ -415,6 +423,55 @@ pub fn resolve_rust_path_calls(
                     assert!(observation.is_dimension_consistent());
                     entry.persistence.push(observation);
                 }
+                // G157: a call resolved to a std path the declared resource table names acquires
+                // a resource in the calling function, anchored at the call.
+                if let Some(kind) = resource {
+                    let subject = atlas_core::ResourceIdentity {
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        function: claim.subject.function.clone(),
+                        operation: atlas_core::ResourceOperation::Acquire,
+                        kind,
+                        span: claim.subject.span.clone(),
+                        acquired_at: None,
+                        release: None,
+                        holder: String::new(),
+                    };
+                    let record_id =
+                        SemanticRecordId::new(SemanticDimension::Resource, &subject.identity_key());
+                    let evidence_id = EvidenceId::new(stable_id(
+                        "evidence",
+                        &format!("{RUST_PATH_RESOLUTION_ID}:{}", record_id.as_str()),
+                    ));
+                    entry.resource_evidence.push(Evidence {
+                        id: evidence_id.as_str().to_owned(),
+                        kind: "NAME_RESOLUTION".into(),
+                        path: resolution.path.clone(),
+                        summary: format!(
+                            "`{}` at {}:{}:{} resolves to `{path}`: ACQUIRE {} (declared std-path resource table)",
+                            resolution.callee,
+                            resolution.path,
+                            resolution.line,
+                            resolution.column,
+                            kind.as_str()
+                        ),
+                        revision: Some(revision.clone()),
+                    });
+                    let observation = SemanticObservation::Resource(SemanticRecordHeader {
+                        record_id,
+                        dimension: SemanticDimension::Resource,
+                        status: EpistemicStatus::Derived,
+                        scope: claim.scope.clone(),
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        extractor: extractor.clone(),
+                        evidence_refs: vec![evidence_id],
+                        provenance: provenance(resolution),
+                        subject,
+                    });
+                    assert!(observation.is_dimension_consistent());
+                    entry.resources.push(observation);
+                }
                 for &category in categories {
                     let subject = atlas_core::EffectIdentity {
                         repository: repository.clone(),
@@ -465,6 +522,89 @@ pub fn resolve_rust_path_calls(
 
     // G83: a spelling the syntactic extractor recorded in an artifact denotes one canonical type
     // when every occurrence of it there resolves to that type.
+    // G157: where a let-bound resource is given back. A release is attached to the syntactic
+    // CALL claim of the acquiring call (its function and scope); a scope-end release rests on a
+    // syntactic move check (INFERRED), a resolved `drop` or `join` on name resolution (DERIVED).
+    for release in &workspace.releases {
+        let entry = per_artifact.entry(release.path.clone()).or_default();
+        let Some(claim) =
+            claims.get(&(release.path.clone(), release.acquired.0, release.acquired.1))
+        else {
+            entry.unattached += 1;
+            continue;
+        };
+        let acquired_at = claim.subject.span.clone();
+        let subject = atlas_core::ResourceIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: claim.subject.function.clone(),
+            operation: atlas_core::ResourceOperation::Release,
+            kind: release.kind,
+            span: atlas_core::SourceSpan {
+                path: release.path.clone(),
+                line: release.line,
+                column: release.column,
+            },
+            acquired_at: Some(acquired_at.clone()),
+            release: Some(release.release),
+            holder: release.holder.clone(),
+        };
+        debug_assert!(subject.is_well_formed());
+        let status = match release.release {
+            atlas_core::ResourceRelease::ScopeEnd => EpistemicStatus::Inferred,
+            atlas_core::ResourceRelease::ExplicitDrop | atlas_core::ResourceRelease::Join => {
+                EpistemicStatus::Derived
+            }
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Resource, &subject.identity_key());
+        let evidence_id = EvidenceId::new(stable_id(
+            "evidence",
+            &format!("{RUST_PATH_RESOLUTION_ID}:{}", record_id.as_str()),
+        ));
+        entry.resource_evidence.push(Evidence {
+            id: evidence_id.as_str().to_owned(),
+            kind: "NAME_RESOLUTION".into(),
+            path: release.path.clone(),
+            summary: format!(
+                "`{}` holds the {} acquired at {}:{}:{}; released at {}:{} by {}{}",
+                release.holder,
+                release.kind.as_str(),
+                acquired_at.path,
+                acquired_at.line,
+                acquired_at.column,
+                release.line,
+                release.column,
+                release.release.as_str(),
+                if release.release == atlas_core::ResourceRelease::ScopeEnd {
+                    " (the holder is never moved: syntactic move check)"
+                } else {
+                    ""
+                }
+            ),
+            revision: Some(revision.clone()),
+        });
+        let observation = SemanticObservation::Resource(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Resource,
+            status,
+            scope: claim.scope.clone(),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id],
+            provenance: Provenance {
+                source_path: release.path.clone(),
+                source_revision: Some(revision.clone()),
+                extractor: RUST_PATH_RESOLUTION_ID.into(),
+                content_hash: None,
+                span: Some(format!("{}:{}", release.line, release.column)),
+            },
+            subject,
+        });
+        assert!(observation.is_dimension_consistent());
+        entry.resources.push(observation);
+    }
+
     let mut meanings: BTreeMap<(&str, &str), BTreeSet<Option<&str>>> = BTreeMap::new();
     for occurrence in &workspace.types {
         meanings
@@ -547,6 +687,15 @@ pub fn resolve_rust_path_calls(
                 "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
             )
         };
+        let resource_scope = if reached {
+            format!(
+                "{RUST_PATH_RESOLUTION_ID} derives resource acquisitions for calls resolved to a standard-library path the declared std-path resource table names (files, sockets, std lock guards on receivers whose std type is known, threads), and releases for a holder bound once by a `let` and never moved: at its block's end (INFERRED), at a resolved `drop` or `join` statement (DERIVED) ({path}); temporaries, moved holders, fields and statics, non-std resources, FFI acquire/release pairs and macro arguments are outside it"
+            )
+        } else {
+            format!(
+                "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
+            )
+        };
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
@@ -615,6 +764,20 @@ pub fn resolve_rust_path_calls(
             ids(&work.persistence_evidence),
             persistence_diagnostic.id.clone(),
         );
+        let resource_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::IncompleteAnalysis,
+            Some(SemanticDimension::Resource),
+            resource_scope,
+        );
+        let resource_obligation = ObligationResult::unknown_with_observations(
+            SemanticDimension::Resource,
+            work.resources
+                .iter()
+                .map(|o| o.record_id().clone())
+                .collect(),
+            ids(&work.resource_evidence),
+            resource_diagnostic.id.clone(),
+        );
         let type_diagnostic = ExtractionDiagnostic::new(
             DiagnosticCode::IncompleteAnalysis,
             Some(SemanticDimension::Type),
@@ -631,6 +794,7 @@ pub fn resolve_rust_path_calls(
             concurrency_diagnostic,
             effect_diagnostic,
             persistence_diagnostic,
+            resource_diagnostic,
             type_diagnostic,
         ];
         if work.unattached > 0 {
@@ -649,11 +813,13 @@ pub fn resolve_rust_path_calls(
         observations.extend(work.concurrency);
         observations.extend(work.effects);
         observations.extend(work.persistence);
+        observations.extend(work.resources);
         observations.extend(work.types);
         let mut evidence = work.call_evidence;
         evidence.extend(work.concurrency_evidence);
         evidence.extend(work.effect_evidence);
         evidence.extend(work.persistence_evidence);
+        evidence.extend(work.resource_evidence);
         evidence.extend(work.type_evidence);
         out.push(ExtractionBatch {
             extractor: extractor.clone(),
@@ -671,6 +837,7 @@ pub fn resolve_rust_path_calls(
                 concurrency_obligation,
                 effect_obligation,
                 persistence_obligation,
+                resource_obligation,
                 type_obligation,
             ],
             diagnostics,

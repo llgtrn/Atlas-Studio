@@ -194,6 +194,9 @@ pub struct FunctionBehavior {
     pub ownership: BTreeMap<String, usize>,
     pub concurrency: Vec<Site>,
     pub persistence: Vec<Site>,
+    /// G157: resource acquisitions and releases (`ACQUIRE FILE`, `RELEASE LOCK_GUARD SCOPE_END`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub resources: Vec<Site>,
     pub data_flow: DataFlowSummary,
     pub control: ControlSummary,
     /// Raw typed records composed into this behavior.
@@ -620,6 +623,7 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     ownership: BTreeMap::new(),
                     concurrency: Vec::new(),
                     persistence: Vec::new(),
+                    resources: Vec::new(),
                     data_flow: DataFlowSummary::default(),
                     control: ControlSummary::default(),
                     records: 0,
@@ -805,6 +809,27 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                     f.persistence.push(Site {
                         kind: header.subject.kind.as_str().to_owned(),
                         line: header.subject.span.line,
+                        status: header.status,
+                        records: vec![header.record_id.as_str().to_owned()],
+                    });
+                    f.records += 1;
+                }
+            }
+            SemanticObservation::Resource(header) => {
+                let r = &header.subject;
+                if let Some(f) = functions.get_mut(r.function.as_str()) {
+                    let kind = match r.release {
+                        Some(release) => format!(
+                            "{} {} {}",
+                            r.operation.as_str(),
+                            r.kind.as_str(),
+                            release.as_str()
+                        ),
+                        None => format!("{} {}", r.operation.as_str(), r.kind.as_str()),
+                    };
+                    f.resources.push(Site {
+                        kind,
+                        line: r.span.line,
                         status: header.status,
                         records: vec![header.record_id.as_str().to_owned()],
                     });
@@ -1025,6 +1050,8 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
         f.concurrency
             .sort_by(|a, b| (a.line, &a.kind).cmp(&(b.line, &b.kind)));
         f.persistence
+            .sort_by(|a, b| (a.line, &a.kind).cmp(&(b.line, &b.kind)));
+        f.resources
             .sort_by(|a, b| (a.line, &a.kind).cmp(&(b.line, &b.kind)));
     }
     for var in state_vars.values_mut() {

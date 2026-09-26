@@ -17,6 +17,7 @@ pub mod observation;
 pub mod ownership;
 pub mod persistence;
 pub mod place;
+pub mod resource;
 pub mod state;
 pub mod symbol;
 pub mod types;
@@ -39,6 +40,9 @@ pub use persistence::{
     PersistenceIdentity, PersistenceKind, PersistenceResolution, std_path_persistence,
 };
 pub use place::PlaceRef;
+pub use resource::{
+    ResourceIdentity, ResourceKind, ResourceOperation, ResourceRelease, std_path_resource,
+};
 pub use state::{StateAccessIdentity, StateAccessKind, StateResolution};
 pub use symbol::{
     Declaration, DeclaredItem, Documentation, FieldShape, SymbolIdentity, SymbolRole,
@@ -68,6 +72,8 @@ pub enum SemanticDimension {
     Ownership,
     Concurrency,
     Persistence,
+    /// G157: acquisition and release of files, sockets, lock guards and threads.
+    Resource,
 }
 
 impl SemanticDimension {
@@ -85,6 +91,7 @@ impl SemanticDimension {
             Self::Ownership => "OWNERSHIP",
             Self::Concurrency => "CONCURRENCY",
             Self::Persistence => "PERSISTENCE",
+            Self::Resource => "RESOURCE",
         }
     }
 }

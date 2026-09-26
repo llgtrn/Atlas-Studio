@@ -150,6 +150,9 @@ fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
         | SemanticDimension::Ownership
         | SemanticDimension::Concurrency
         | SemanticDimension::Persistence => Partial,
+        // G157: not in this extractor's profile -- RESOURCE is evaluated by the path-resolution
+        // engine, whose acquisitions need a resolved callee. Never a claim of absence here.
+        SemanticDimension::Resource => Partial,
     }
 }
 

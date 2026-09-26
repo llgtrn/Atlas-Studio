@@ -122,7 +122,8 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
         | SemanticObservation::Effect(_)
         | SemanticObservation::Ownership(_)
         | SemanticObservation::Concurrency(_)
-        | SemanticObservation::Persistence(_) => None,
+        | SemanticObservation::Persistence(_)
+        | SemanticObservation::Resource(_) => None,
     }
 }
 

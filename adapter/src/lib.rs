@@ -13,7 +13,7 @@ pub use dependency::{ManifestTargets, census_cargo_workspace, manifest_targets};
 pub use semantic::rust::RUST_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::{
     CrateInput, DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, FnTarget,
-    ObligationResult, PathCallOutcome, PathCallResolution, SemanticExtractor,
+    ObligationResult, PathCallOutcome, PathCallResolution, ReleaseResolution, SemanticExtractor,
     StaticUnsupportedExtractor, WorkspaceResolution, extractors_for_language, join_path,
     resolve_path_calls, resolve_workspace, semantic_extractors,
 };

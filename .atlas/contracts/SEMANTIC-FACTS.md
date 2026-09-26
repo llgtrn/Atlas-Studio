@@ -105,6 +105,7 @@ EffectFact
 OwnershipFact
 ConcurrencyFact
 PersistenceFact
+ResourceFact
 EvidenceLink
 ~~~
 
@@ -199,6 +200,15 @@ Represents task/thread/process boundaries, locks, atomics, channels, scheduling 
 ### PersistenceFact
 
 Represents durable read/write/commit/rollback/checkpoint/recovery relationships and durable resource identity.
+
+### ResourceFact
+
+Represents the acquisition and release of handles, locks, threads and other resources (G157, ADR 0072).
+
+- An acquisition names the function, the kind (FILE, SOCKET, LOCK_GUARD, THREAD) and the acquiring call.
+- A release additionally names the acquisition it gives back, the local holding it, and how it happens (SCOPE_END, EXPLICIT_DROP, JOIN).
+- A release the kind's semantics forbid is malformed. A dropped thread handle detaches; it does not release.
+- An acquisition without a release record has an unknown release point, never "no release".
 
 ### EvidenceLink
 

@@ -541,3 +541,105 @@ fn resolved_standard_library_paths_are_persistence_sites_of_the_caller() {
     );
     fs::remove_dir_all(&dir).unwrap();
 }
+
+#[test]
+fn resolved_acquisitions_and_let_bound_releases_are_resource_records() {
+    // G157: an acquisition is DERIVED at the resolved call; a holder never moved is released at
+    // its block's end (INFERRED, syntactic move check), a resolved `drop` statement releases it
+    // there (DERIVED); a moved holder and a temporary guard have no release claimed; every
+    // release names the acquisition it gives back.
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "atlas-g157-resource-{}-{nonce}",
+        std::process::id()
+    ));
+    fs::create_dir_all(dir.join("core/src")).unwrap();
+    fs::write(dir.join("core/Cargo.toml"), "[package]\nname = \"core\"\n").unwrap();
+    fs::write(dir.join("core/src/lib.rs"), "pub mod io;\n").unwrap();
+    fs::write(
+        dir.join("core/src/io.rs"),
+        "use std::fs::File;\nuse std::sync::Mutex;\nfn keep(_f: File) {}\npub fn read(p: &str, m: &Mutex<u8>) -> std::io::Result<()> {\n    let file = File::open(p)?;\n    file.metadata()?;\n    let guard = m.lock().unwrap();\n    drop(guard);\n    let kept = File::open(p)?;\n    keep(kept);\n    let _v = *m.lock().unwrap();\n    Ok(())\n}\n",
+    )
+    .unwrap();
+    let inventory = InventoryReport::new(
+        dir.to_string_lossy().into_owned(),
+        vec![
+            artifact("core/Cargo.toml", "toml"),
+            artifact("core/src/lib.rs", "rust"),
+            artifact("core/src/io.rs", "rust"),
+        ],
+    );
+    let batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
+    let resolution = resolve_rust_path_calls(&inventory, &batches);
+    let io = resolution
+        .iter()
+        .find(|b| b.artifact.as_str() == "artifact:core/src/io.rs")
+        .unwrap();
+    let sites: Vec<(usize, String, EpistemicStatus, Option<usize>)> = io
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Resource(h) => {
+                assert_eq!(h.extractor.id, RUST_PATH_RESOLUTION_ID);
+                assert!(h.subject.is_well_formed());
+                let kind = match h.subject.release {
+                    Some(release) => format!(
+                        "{} {} {} {}",
+                        h.subject.operation.as_str(),
+                        h.subject.kind.as_str(),
+                        release.as_str(),
+                        h.subject.holder
+                    ),
+                    None => format!(
+                        "{} {}",
+                        h.subject.operation.as_str(),
+                        h.subject.kind.as_str()
+                    ),
+                };
+                Some((
+                    h.subject.span.line,
+                    kind,
+                    h.status,
+                    h.subject.acquired_at.as_ref().map(|a| a.line),
+                ))
+            }
+            _ => None,
+        })
+        .collect();
+    let derived = EpistemicStatus::Derived;
+    assert_eq!(
+        sites,
+        [
+            (5, "ACQUIRE FILE".to_owned(), derived, None),
+            (7, "ACQUIRE LOCK_GUARD".to_owned(), derived, None),
+            (9, "ACQUIRE FILE".to_owned(), derived, None),
+            (11, "ACQUIRE LOCK_GUARD".to_owned(), derived, None),
+            (
+                13,
+                "RELEASE FILE SCOPE_END file".to_owned(),
+                EpistemicStatus::Inferred,
+                Some(5)
+            ),
+            (
+                8,
+                "RELEASE LOCK_GUARD EXPLICIT_DROP guard".to_owned(),
+                derived,
+                Some(7)
+            ),
+        ]
+    );
+    let obligation = io
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Resource)
+        .expect("the engine accounts for RESOURCE");
+    assert_eq!(
+        obligation.status,
+        EpistemicStatus::Unknown,
+        "temporaries and moved holders stay outside"
+    );
+    fs::remove_dir_all(&dir).unwrap();
+}

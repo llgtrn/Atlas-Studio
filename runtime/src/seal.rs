@@ -58,6 +58,7 @@ pub fn self_scope_policy() -> SealPolicy {
         SemanticDimension::Ownership,
         SemanticDimension::Concurrency,
         SemanticDimension::Persistence,
+        SemanticDimension::Resource,
     ]
     .iter()
     .map(|d| d.as_str().to_owned())

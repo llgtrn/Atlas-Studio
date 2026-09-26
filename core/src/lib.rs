@@ -85,11 +85,11 @@ pub use semantic::{
     EffectIdentity, ExtractionDiagnostic, ExtractorIdentity, FieldShape, FunctionDeclarationKind,
     FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature, OwnershipIdentity,
     OwnershipKind, OwnershipResolution, PersistenceIdentity, PersistenceKind,
-    PersistenceResolution, PlaceRef, SemanticDimension, SemanticObligationRecord,
-    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope,
-    StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity, SymbolRole,
-    TypeIdentity, ValueIdentity, ValueRole, std_path_concurrency, std_path_effects,
-    std_path_persistence,
+    PersistenceResolution, PlaceRef, ResourceIdentity, ResourceKind, ResourceOperation,
+    ResourceRelease, SemanticDimension, SemanticObligationRecord, SemanticObservation,
+    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateAccessIdentity, StateAccessKind,
+    StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
+    std_path_concurrency, std_path_effects, std_path_persistence, std_path_resource,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

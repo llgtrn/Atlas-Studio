@@ -70,7 +70,7 @@ Every language and every artifact class of a revision is placed on one ladder, f
 
 ## Current state (G155, measured)
 
-- **Rust: L6.** Twelve dimensions, a path resolver, and composition.
+- **Rust: L6.** Thirteen dimensions (RESOURCE since G157, ADR 0072), a path resolver, and composition.
 - **JavaScript: L6 on Atlas Studio's own three browser scripts.** This comes from the bounded G152 profile: functions, signatures, symbols, and CALL with same-file lexical resolution. Every other dimension is UNSUPPORTED.
 - **TypeScript: not measurable on Atlas Studio**, which has no TypeScript artifact. On the GitNexus pin at E2 (replay R2, before this measurement existed), FUNCTION_IDENTITY, FUNCTION_SIGNATURE and SYMBOL were evaluated and CALL was bounded. The next TypeScript donor replay measures it with this ladder.
 - **CSS, HTML, JSON, Markdown, TOML: L2.** Syntax only.

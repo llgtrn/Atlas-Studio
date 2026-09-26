@@ -235,6 +235,7 @@ fn place_node_id_for(dimension: SemanticDimension, record_id: &SemanticRecordId)
         SemanticDimension::ControlFlow => "control-flow-block",
         SemanticDimension::Concurrency => "concurrency-op",
         SemanticDimension::Persistence => "persistence-op",
+        SemanticDimension::Resource => "resource-op",
         SemanticDimension::Symbol
         | SemanticDimension::Type
         | SemanticDimension::FunctionIdentity
@@ -1279,6 +1280,88 @@ fn add_typed_semantic_nodes(
                         kind: EdgeKind::RefersToPlace,
                         from: op_node_id,
                         to: place_node_id,
+                        attributes: BTreeMap::from([(
+                            "origin".into(),
+                            "semantic-extraction".into(),
+                        )]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
+            }
+            // G157: one ResourceOperation node per acquisition or release, a
+            // PRODUCES_RESOURCE_OP edge from its function, and a RELEASES edge from a release
+            // to the acquisition it gives back.
+            SemanticObservation::Resource(header) => {
+                let subject = &header.subject;
+                let op_node_id = stable_id(
+                    "node",
+                    &format!("resource-op:{}", header.record_id.as_str()),
+                );
+                let mut attributes = BTreeMap::from([
+                    ("origin".into(), "semantic-extraction".into()),
+                    ("status".into(), header.status.as_str().into()),
+                    ("operation".into(), subject.operation.as_str().into()),
+                    ("kind".into(), subject.kind.as_str().into()),
+                ]);
+                if let Some(release) = subject.release {
+                    attributes.insert("release".into(), release.as_str().into());
+                    attributes.insert("holder".into(), subject.holder.clone());
+                }
+                ensure_node(
+                    graph,
+                    op_node_id.clone(),
+                    "ResourceOperation".into(),
+                    format!(
+                        "{} {}@{}:{}:{}",
+                        subject.operation.as_str(),
+                        subject.kind.as_str(),
+                        subject.span.path,
+                        subject.span.line,
+                        subject.span.column
+                    ),
+                    attributes,
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:PRODUCES_RESOURCE_OP:{op_node_id}"),
+                    ),
+                    kind: EdgeKind::ProducesResourceOp,
+                    from: caller_node_id,
+                    to: op_node_id.clone(),
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+                if let Some(acquired) = &subject.acquired_at {
+                    let acquisition = crate::semantic::ResourceIdentity {
+                        operation: crate::semantic::ResourceOperation::Acquire,
+                        span: acquired.clone(),
+                        acquired_at: None,
+                        release: None,
+                        holder: String::new(),
+                        ..subject.clone()
+                    };
+                    let acquisition_id = SemanticRecordId::new(
+                        SemanticDimension::Resource,
+                        &acquisition.identity_key(),
+                    );
+                    let acquisition_node_id =
+                        stable_id("node", &format!("resource-op:{}", acquisition_id.as_str()));
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{op_node_id}:RELEASES:{acquisition_node_id}"),
+                        ),
+                        kind: EdgeKind::Releases,
+                        from: op_node_id,
+                        to: acquisition_node_id,
                         attributes: BTreeMap::from([(
                             "origin".into(),
                             "semantic-extraction".into(),

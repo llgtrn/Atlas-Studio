@@ -38,7 +38,7 @@ pub enum Measure {
 }
 
 /// The dimensions whose records name the function they belong to.
-const ATTRIBUTABLE: [SemanticDimension; 8] = [
+const ATTRIBUTABLE: [SemanticDimension; 9] = [
     SemanticDimension::Call,
     SemanticDimension::ControlFlow,
     SemanticDimension::DataFlow,
@@ -47,6 +47,7 @@ const ATTRIBUTABLE: [SemanticDimension; 8] = [
     SemanticDimension::Ownership,
     SemanticDimension::Concurrency,
     SemanticDimension::Persistence,
+    SemanticDimension::Resource,
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -120,6 +121,7 @@ fn function_of(record: &SemanticObservation) -> Option<&str> {
         SemanticObservation::Ownership(h) => h.subject.function.as_str(),
         SemanticObservation::Concurrency(h) => h.subject.function.as_str(),
         SemanticObservation::Persistence(h) => h.subject.function.as_str(),
+        SemanticObservation::Resource(h) => h.subject.function.as_str(),
         _ => return None,
     })
 }

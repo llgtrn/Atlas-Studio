@@ -110,6 +110,8 @@ pub struct WorkspaceResolution {
     pub reached: BTreeSet<String>,
     pub calls: Vec<PathCallResolution>,
     pub types: Vec<TypeResolution>,
+    /// G157: where let-bound resources are given back.
+    pub releases: Vec<ReleaseResolution>,
 }
 
 /// One type occurrence (G83): its spelling as the syntactic extractor spells it
@@ -157,6 +159,7 @@ fn resolve_on_this_stack(
     map.resolve_impls(crates);
     let mut out = Vec::new();
     let mut types = Vec::new();
+    let mut releases = Vec::new();
     for (file, module) in map.file_modules.clone() {
         if let Some(ast) = parsed.get(&file) {
             let mut walker = CallWalker {
@@ -169,17 +172,222 @@ fn resolve_on_this_stack(
                 item_generics: Vec::new(),
                 out: &mut out,
                 types: &mut types,
+                releases: &mut releases,
             };
             walker.visit_file(ast);
         }
     }
     out.sort_by(|a, b| (&a.path, a.line, a.column).cmp(&(&b.path, b.line, b.column)));
     types.sort_by(|a, b| (&a.path, a.line, a.column).cmp(&(&b.path, b.line, b.column)));
+    releases.sort_by(|a, b| {
+        (&a.path, a.acquired, a.line, a.column).cmp(&(&b.path, b.acquired, b.line, b.column))
+    });
     WorkspaceResolution {
         reached: parsed.into_keys().collect(),
         calls: out,
         types,
+        releases,
     }
+}
+
+/// G157: where a resource bound by a `let` is given back (`std::mem::drop`, `JoinHandle::join`
+/// or the end of the holder's block), with the position of the call that acquired it -- the
+/// position its `PathCallResolution` is recorded at.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReleaseResolution {
+    pub path: String,
+    pub acquired: (usize, usize),
+    pub holder: String,
+    pub line: usize,
+    pub column: usize,
+    pub kind: atlas_core::ResourceKind,
+    pub release: atlas_core::ResourceRelease,
+}
+
+/// Every `let` of a body in source order with the block it is a statement of and that block's
+/// end (closure bodies included, nested items not).
+fn lets_of(block: &syn::Block) -> Vec<(&syn::Local, &syn::Block, (usize, usize))> {
+    struct Lets<'b> {
+        blocks: Vec<&'b syn::Block>,
+        found: Vec<(&'b syn::Local, &'b syn::Block, (usize, usize))>,
+    }
+    impl<'b> Visit<'b> for Lets<'b> {
+        fn visit_block(&mut self, block: &'b syn::Block) {
+            self.blocks.push(block);
+            syn::visit::visit_block(self, block);
+            self.blocks.pop();
+        }
+        fn visit_local(&mut self, local: &'b syn::Local) {
+            if let Some(block) = self.blocks.last() {
+                self.found
+                    .push((local, block, start(block.brace_token.span.close())));
+            }
+            syn::visit::visit_local(self, local);
+        }
+        fn visit_item(&mut self, _: &'b syn::Item) {}
+    }
+    let mut lets = Lets {
+        blocks: Vec::new(),
+        found: Vec::new(),
+    };
+    lets.visit_block(block);
+    lets.found
+}
+
+/// Formatting and assertion macros take their arguments by reference.
+const BORROWING_MACROS: &[&str] = &[
+    "assert",
+    "assert_eq",
+    "assert_ne",
+    "debug_assert",
+    "debug_assert_eq",
+    "debug_assert_ne",
+    "eprint",
+    "eprintln",
+    "format",
+    "panic",
+    "print",
+    "println",
+    "write",
+    "writeln",
+];
+
+/// G157: whether a method of that name takes a std resource holder by value: `Read::take`,
+/// `Read::bytes`, `Read::chain`, `Into::into`, `TryInto::try_into` and every `into_*` conversion
+/// consume a file, a socket or a handle (a guard's methods reach its data through `Deref`, where
+/// these names are treated the same way, conservatively). A workspace trait method taking `self`
+/// by value is not seen here, which is one reason a scope-end release stays INFERRED.
+fn consumes_receiver(method: &str) -> bool {
+    matches!(method, "take" | "bytes" | "chain" | "into" | "try_into")
+        || method.starts_with("into_")
+}
+
+/// G157: the uses of a resource holder after its `let`, in the block it lives in.
+struct HolderUses<'w, 'a> {
+    walker: &'w CallWalker<'a>,
+    name: &'w str,
+    after: (usize, usize),
+    until: (usize, usize),
+    /// Nested blocks, closures and match arms entered: a release there is conditional.
+    depth: usize,
+    moved: bool,
+    /// Inside a `move` closure: every mention takes the holder.
+    taking: bool,
+    released: Vec<(atlas_core::ResourceRelease, (usize, usize))>,
+}
+
+impl HolderUses<'_, '_> {
+    fn is_holder(&self, expr: &syn::Expr) -> bool {
+        match expr {
+            syn::Expr::Paren(inner) => self.is_holder(&inner.expr),
+            syn::Expr::Path(path) if path.qself.is_none() => {
+                let at = start(path.span());
+                path.path.is_ident(self.name) && at > self.after && at < self.until
+            }
+            _ => false,
+        }
+    }
+
+    fn release(&mut self, how: atlas_core::ResourceRelease, at: (usize, usize)) {
+        if self.depth == 0 {
+            self.released.push((how, at));
+        } else {
+            self.moved = true;
+        }
+    }
+}
+
+impl<'ast> Visit<'ast> for HolderUses<'_, '_> {
+    fn visit_expr(&mut self, expr: &'ast syn::Expr) {
+        if self.taking {
+            if self.is_holder(expr) {
+                self.moved = true;
+            } else {
+                syn::visit::visit_expr(self, expr);
+            }
+            return;
+        }
+        match expr {
+            syn::Expr::Reference(r) if self.is_holder(&r.expr) => {}
+            syn::Expr::Field(f) if self.is_holder(&f.base) => {}
+            syn::Expr::Unary(u)
+                if matches!(u.op, syn::UnOp::Deref(_)) && self.is_holder(&u.expr) => {}
+            syn::Expr::Index(i) if self.is_holder(&i.expr) => self.visit_expr(&i.index),
+            syn::Expr::MethodCall(call) if self.is_holder(&call.receiver) => {
+                let at = start(call.method.span());
+                match self.walker.method_outcome(call) {
+                    Some((_, PathCallOutcome::External(std)))
+                        if std == "std::thread::JoinHandle::join" =>
+                    {
+                        self.release(atlas_core::ResourceRelease::Join, at);
+                    }
+                    _ if consumes_receiver(&call.method.to_string()) => self.moved = true,
+                    _ => {}
+                }
+                for arg in &call.args {
+                    self.visit_expr(arg);
+                }
+            }
+            syn::Expr::Call(call) if call.args.len() == 1 && self.is_holder(&call.args[0]) => {
+                let dropped = match call.func.as_ref() {
+                    syn::Expr::Path(path) => matches!(
+                        self.walker.resolve_call(path),
+                        PathCallOutcome::External(std) if std == "std::mem::drop"
+                    )
+                    .then(|| {
+                        start(
+                            path.path
+                                .segments
+                                .last()
+                                .map_or(path.span(), |s| s.ident.span()),
+                        )
+                    }),
+                    _ => None,
+                };
+                match dropped {
+                    Some(at) => self.release(atlas_core::ResourceRelease::ExplicitDrop, at),
+                    None => self.moved = true,
+                }
+            }
+            syn::Expr::Closure(closure) => {
+                self.depth += 1;
+                // A `move` closure naming the holder takes it, however it uses it.
+                let taking = self.taking;
+                self.taking |= closure.capture.is_some();
+                syn::visit::visit_expr_closure(self, closure);
+                self.taking = taking;
+                self.depth -= 1;
+            }
+            syn::Expr::Path(_) if self.is_holder(expr) => self.moved = true,
+            _ => syn::visit::visit_expr(self, expr),
+        }
+    }
+    fn visit_block(&mut self, block: &'ast syn::Block) {
+        self.depth += 1;
+        syn::visit::visit_block(self, block);
+        self.depth -= 1;
+    }
+    fn visit_arm(&mut self, arm: &'ast syn::Arm) {
+        self.depth += 1;
+        syn::visit::visit_arm(self, arm);
+        self.depth -= 1;
+    }
+    fn visit_macro(&mut self, mac: &'ast syn::Macro) {
+        let mut names = BTreeSet::new();
+        stream_idents(mac.tokens.clone(), &mut names);
+        if !names.contains(self.name) {
+            return;
+        }
+        let borrowing = mac
+            .path
+            .segments
+            .last()
+            .is_some_and(|s| BORROWING_MACROS.contains(&s.ident.to_string().as_str()));
+        if self.taking || !borrowing {
+            self.moved = true;
+        }
+    }
+    fn visit_item(&mut self, _: &'ast syn::Item) {}
 }
 
 type ModId = usize;
@@ -2259,6 +2467,8 @@ const STD_RETURNS: &[(&str, &str, bool)] = &[
     ("std::fs::File::create", "std::fs::File", true),
     ("std::fs::File::open", "std::fs::File", true),
     ("std::sync::Mutex::new", "std::sync::Mutex", false),
+    ("std::sync::RwLock::new", "std::sync::RwLock", false),
+    ("std::thread::spawn", "std::thread::JoinHandle", false),
 ];
 
 /// The std type a declared std function returns (`fallible`: inside a `Result`).
@@ -2279,6 +2489,9 @@ const STD_INHERENT: &[(&str, &str, Receiver)] = &[
     ("std::sync::Mutex", "lock", Receiver::Ref),
     ("std::sync::mpsc::Receiver", "recv", Receiver::Ref),
     ("std::sync::mpsc::Sender", "send", Receiver::Ref),
+    ("std::sync::RwLock", "read", Receiver::Ref),
+    ("std::sync::RwLock", "write", Receiver::Ref),
+    ("std::thread::JoinHandle", "join", Receiver::Value),
 ];
 
 /// A receiver expression's type as the method probe first sees it (G143).
@@ -2336,6 +2549,7 @@ struct CallWalker<'a> {
     item_generics: Vec<BTreeSet<String>>,
     out: &'a mut Vec<PathCallResolution>,
     types: &'a mut Vec<TypeResolution>,
+    releases: &'a mut Vec<ReleaseResolution>,
 }
 
 /// Every identifier a pattern binds.
@@ -2526,6 +2740,8 @@ impl CallWalker<'_> {
             typed,
         });
         self.type_lets(sig, block);
+        let releases = self.resource_releases(sig, block);
+        self.releases.extend(releases);
     }
 
     /// G143: the type of a receiver expression as the method probe first sees it, with the impl
@@ -2765,6 +2981,125 @@ impl CallWalker<'_> {
                 );
             }
         }
+    }
+
+    /// G157 (NA-RESOURCE-DIMENSION): where a resource bound once by a `let` is given back. The
+    /// initializer, through `?`, `.unwrap()` or `.expect(..)`, is a call resolved to a std path
+    /// the declared resource table names; the local is then followed through the block it lives
+    /// in. A borrow, a field, an index, a dereference, a method receiver (except a method taking
+    /// it by value, `consumes_receiver`) and a formatting macro leave it in place; `drop(local)`
+    /// resolved to `std::mem::drop` or `local.join()` resolved to `JoinHandle::join`, as a
+    /// statement of that block, releases it there; any other use -- a value passed, returned,
+    /// stored, captured by a `move` closure, named inside another macro, or a release inside a
+    /// branch -- moves it, and nothing is claimed. A local never moved is released at the end of
+    /// its block when dropping it releases the resource (not a thread: a dropped `JoinHandle`
+    /// detaches).
+    fn resource_releases(
+        &self,
+        sig: &syn::Signature,
+        block: &syn::Block,
+    ) -> Vec<ReleaseResolution> {
+        let mut counts = BindingCounts::default();
+        for input in &sig.inputs {
+            counts.visit_fn_arg(input);
+        }
+        counts.visit_block(block);
+        let mut out = Vec::new();
+        for (local, holder_block, until) in lets_of(block) {
+            let syn::Pat::Ident(ident) = &local.pat else {
+                continue;
+            };
+            let name = ident.ident.to_string();
+            let Some(init) = &local.init else {
+                continue;
+            };
+            if ident.by_ref.is_some()
+                || ident.subpat.is_some()
+                || init.diverge.is_some()
+                || counts.0.get(&name) != Some(&1)
+            {
+                continue;
+            }
+            let Some((acquired, kind)) = self.acquisition(&init.expr) else {
+                continue;
+            };
+            let mut uses = HolderUses {
+                walker: self,
+                name: &name,
+                after: start(local.semi_token.span),
+                until,
+                depth: 0,
+                moved: false,
+                taking: false,
+                released: Vec::new(),
+            };
+            for stmt in &holder_block.stmts {
+                uses.visit_stmt(stmt);
+            }
+            if uses.moved {
+                continue;
+            }
+            let (how, at) = match uses.released.as_slice() {
+                [] if kind.released_by_drop() && until != FN_END => {
+                    (atlas_core::ResourceRelease::ScopeEnd, until)
+                }
+                [(atlas_core::ResourceRelease::ExplicitDrop, at)] if kind.released_by_drop() => {
+                    (atlas_core::ResourceRelease::ExplicitDrop, *at)
+                }
+                [(atlas_core::ResourceRelease::Join, at)]
+                    if kind == atlas_core::ResourceKind::Thread =>
+                {
+                    (atlas_core::ResourceRelease::Join, *at)
+                }
+                _ => continue,
+            };
+            out.push(ReleaseResolution {
+                path: self.file.to_owned(),
+                acquired,
+                holder: name,
+                line: at.0,
+                column: at.1,
+                kind,
+                release: how,
+            });
+        }
+        out
+    }
+
+    /// The acquiring call under `?`, `.unwrap()` and `.expect(..)`: its position (where its
+    /// resolution is recorded) and the resource the declared table names for its std path.
+    fn acquisition(&self, expr: &syn::Expr) -> Option<((usize, usize), atlas_core::ResourceKind)> {
+        match expr {
+            syn::Expr::Try(fallible) => self.acquisition(&fallible.expr),
+            syn::Expr::Paren(inner) => self.acquisition(&inner.expr),
+            syn::Expr::MethodCall(call)
+                if matches!(call.method.to_string().as_str(), "unwrap" | "expect") =>
+            {
+                self.acquisition(&call.receiver)
+            }
+            other => self.acquired_by(other),
+        }
+    }
+
+    /// The resource a call itself acquires, if its resolution is a std path the table names.
+    fn acquired_by(&self, expr: &syn::Expr) -> Option<((usize, usize), atlas_core::ResourceKind)> {
+        let (at, outcome) = match expr {
+            syn::Expr::Call(call) => {
+                let syn::Expr::Path(path) = call.func.as_ref() else {
+                    return None;
+                };
+                let last = path.path.segments.last()?;
+                (start(last.ident.span()), self.resolve_call(path))
+            }
+            syn::Expr::MethodCall(call) => {
+                (start(call.method.span()), self.method_outcome(call)?.1)
+            }
+            _ => return None,
+        };
+        let PathCallOutcome::External(std) = outcome else {
+            return None;
+        };
+        atlas_core::std_path_resource(&std).map(|kind| (at, kind))
     }
 
     /// The plain workspace type of a call's or literal's value, when its callee declares it.
@@ -3070,6 +3405,10 @@ impl CallWalker<'_> {
             return match self.map.lexical_lookup(scope, Ns::Values, &segments[0]) {
                 Lookup::Found(def) => outcome_of(def),
                 Lookup::Open => PathCallOutcome::Unresolved("open-scope"),
+                // G157: `drop` is the prelude's `std::mem::drop` when no scope defines it.
+                Lookup::Missing if segments[0] == "drop" => {
+                    PathCallOutcome::External("std::mem::drop".into())
+                }
                 Lookup::Missing => PathCallOutcome::External(String::new()),
             };
         }

@@ -890,3 +890,118 @@ fn inline_and_where_bounds_with_renamed_parameters_share_an_impl_shape() {
         "a different bound set is a different impl: {found:?}"
     );
 }
+
+/// G157: `holder@line -> (release, line)` for every release the resolver claims in `path`.
+fn releases(resolution: &WorkspaceResolution, path: &str) -> Vec<(String, String, usize)> {
+    resolution
+        .releases
+        .iter()
+        .filter(|r| r.path == path)
+        .map(|r| {
+            (
+                format!("{}@{}", r.holder, r.acquired.0),
+                format!("{} {}", r.kind.as_str(), r.release.as_str()),
+                r.line,
+            )
+        })
+        .collect()
+}
+
+#[test]
+fn let_bound_resources_are_released_where_their_holder_gives_them_back() {
+    // G157: a holder bound once by a `let` to a resolved acquisition (through `?`, `unwrap`,
+    // `expect`) and never moved is released at its block's end; a resolved `drop` or `join`
+    // statement of that block releases it there; a thread is never released by a drop; every
+    // move -- passed, returned, captured by a `move` closure, named in a non-formatting macro,
+    // consumed by a by-value method (`take`, `into_*`), released inside a branch -- leaves the
+    // release unclaimed.
+    let lib = "\
+use std::fs::File;
+use std::sync::Mutex;
+use std::thread;
+fn consume(_f: File) {}
+fn scope_end(p: &str) -> std::io::Result<()> {
+    let file = File::open(p)?;
+    file.metadata()?;
+    let _r = &file;
+    println!(\"{:?}\", file);
+    Ok(())
+}
+fn explicit(m: &Mutex<Vec<u8>>) {
+    let guard = m.lock().unwrap();
+    let _n = guard.len();
+    drop(guard);
+    m.lock().unwrap().push(1);
+}
+fn joined() {
+    let handle = thread::spawn(|| {});
+    handle.join().expect(\"joined\");
+    let detached = std::thread::spawn(|| {});
+}
+fn moved(p: &str, m: &Mutex<u8>, c: bool) -> std::io::Result<File> {
+    let passed = File::open(p)?;
+    consume(passed);
+    let branch = m.lock().unwrap();
+    if c {
+        drop(branch);
+    }
+    let captured = m.lock().expect(\"lock\");
+    let _k = move || *captured;
+    let hidden = File::open(p)?;
+    my_macro!(hidden);
+    let raw = File::open(p)?;
+    raw.into_inner();
+    let stored = File::open(p)?;
+    let _pair = (stored, 1);
+    let limited = File::open(p)?;
+    let _reader = limited.take(4);
+    let returned = File::create(p)?;
+    Ok(returned)
+}
+";
+    let resolution = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    let line = |needle: &str| line_of(lib, needle);
+    let end_of = |needle: &str| {
+        // The closing brace of the function containing `needle`.
+        lib.lines()
+            .enumerate()
+            .skip(line(needle))
+            .find(|(_, l)| *l == "}")
+            .map(|(i, _)| i + 1)
+            .unwrap()
+    };
+    assert_eq!(
+        releases(&resolution, "src/lib.rs"),
+        [
+            (
+                format!("file@{}", line("let file")),
+                "FILE SCOPE_END".to_owned(),
+                end_of("let file"),
+            ),
+            (
+                format!("guard@{}", line("let guard")),
+                "LOCK_GUARD EXPLICIT_DROP".to_owned(),
+                line("drop(guard)"),
+            ),
+            (
+                format!("handle@{}", line("let handle")),
+                "THREAD JOIN".to_owned(),
+                line("handle.join()"),
+            ),
+        ]
+    );
+    // The acquisitions themselves resolve to the std paths the resource table names.
+    let got = outcomes(&resolution.calls, "src/lib.rs");
+    for (callee, outcome) in [
+        ("File::open", "external:std::fs::File::open"),
+        ("m.lock", "external:std::sync::Mutex::lock"),
+        ("thread::spawn", "external:std::thread::spawn"),
+        ("drop", "external:std::mem::drop"),
+        ("handle.join", "external:std::thread::JoinHandle::join"),
+    ] {
+        assert!(
+            got.contains(&(callee.to_owned(), outcome.to_owned())),
+            "{callee} -> {outcome} in {got:?}"
+        );
+    }
+}

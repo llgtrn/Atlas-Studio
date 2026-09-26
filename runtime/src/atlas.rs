@@ -387,8 +387,8 @@ mod tests {
         );
         let again = publish(&atlas, &dir.join("again.atlas")).unwrap();
         assert_eq!(again.root_id, packed.root_id, "deterministic root identity");
-        // G147 (NA-ATLAS-TYPED-SECTIONS): every typed record of the census -- all twelve
-        // families -- every evidence record and every diagnostic come back from the container
+        // G147 (NA-ATLAS-TYPED-SECTIONS): every typed record of the census -- all thirteen
+        // families since G157 (RESOURCE) -- every evidence record and every diagnostic come back from the container
         // (`publish` proved the decoded container equal to `atlas`).
         let decoded = &atlas;
         let mut censused = report.census.typed_semantic_records.clone();
@@ -399,7 +399,7 @@ mod tests {
             .iter()
             .map(|r| r.dimension())
             .collect();
-        assert_eq!(families.len(), 12, "{families:?}");
+        assert_eq!(families.len(), 13, "{families:?}");
         assert_eq!(decoded.evidence.len(), report.census.evidence.len());
         assert_eq!(decoded.diagnostics.len(), report.census.diagnostics.len());
         let mut duplicated_record = report.clone();

@@ -60,6 +60,10 @@ crate::vocabulary_enum! {
         ProducesEffect => "PRODUCES_EFFECT",
         ProducesConcurrencyOp => "PRODUCES_CONCURRENCY_OP",
         ProducesPersistenceOp => "PRODUCES_PERSISTENCE_OP",
+        /// G157: a function acquires or releases a resource at a site.
+        ProducesResourceOp => "PRODUCES_RESOURCE_OP",
+        /// G157: a release gives back the resource an acquisition took.
+        Releases => "RELEASES",
         Fallthrough => "FALLTHROUGH",
         Branch => "BRANCH",
         LoopRepeat => "LOOP_REPEAT",
@@ -134,7 +138,9 @@ impl EdgeKind {
             | RefersToPlace
             | ProducesEffect
             | ProducesConcurrencyOp
-            | ProducesPersistenceOp => EdgeCategory::Semantic,
+            | ProducesPersistenceOp
+            | ProducesResourceOp
+            | Releases => EdgeCategory::Semantic,
         }
     }
 
@@ -146,7 +152,7 @@ impl EdgeKind {
             | Materializes => Cardinality::OneToMany,
             // Each site or value resolves to at most one target; many may share it.
             ResolvesTo | RefersToPlace | BindsResult | HasReturnType | ImplementedOn
-            | ResolvesDependency | MaterializesAs => Cardinality::ManyToOne,
+            | ResolvesDependency | MaterializesAs | Releases => Cardinality::ManyToOne,
             // A block has at most one successor of each kind.
             Fallthrough | Return | Break | Panic | LoopRepeat => Cardinality::OneToOne,
             Uses
@@ -162,6 +168,7 @@ impl EdgeKind {
             | ProducesEffect
             | ProducesConcurrencyOp
             | ProducesPersistenceOp
+            | ProducesResourceOp
             | Branch
             | Unresolved => Cardinality::ManyToMany,
         }

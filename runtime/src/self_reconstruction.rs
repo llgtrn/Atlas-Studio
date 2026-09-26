@@ -69,6 +69,7 @@ pub fn candidates(model: &WorldModel) -> Vec<Candidate> {
                     ("STATE", !f.state.is_empty()),
                     ("PERSISTENCE", !f.persistence.is_empty()),
                     ("CONCURRENCY", !f.concurrency.is_empty()),
+                    ("RESOURCE", !f.resources.is_empty()),
                     (
                         "UNRESOLVED_CALLS",
                         f.unresolved_calls > 0 || f.unnamed_unresolved_calls > 0,

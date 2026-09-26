@@ -140,6 +140,8 @@ pub const CONCURRENCY: u16 = 121;
 pub const PERSISTENCE: u16 = 122;
 /// G153 (ADR 0069): the declared shape of a type, variant or field definition.
 pub const DECLARATION: u16 = 123;
+/// G157 (ADR 0072): an acquisition or release of a resource.
+pub const RESOURCE: u16 = 124;
 /// Record kinds at and above this one are only ever embedded in a `RECORD` field.
 pub const FIRST_EMBEDDED_KIND: u16 = 100;
 
@@ -172,6 +174,7 @@ const HEADER_EFFECT: [FieldDef; 10] = header(EFFECT);
 const HEADER_OWNERSHIP: [FieldDef; 10] = header(OWNERSHIP);
 const HEADER_CONCURRENCY: [FieldDef; 10] = header(CONCURRENCY);
 const HEADER_PERSISTENCE: [FieldDef; 10] = header(PERSISTENCE);
+const HEADER_RESOURCE: [FieldDef; 10] = header(RESOURCE);
 
 pub const SECTIONS: &[SectionDef] = &[
     SectionDef {
@@ -251,6 +254,7 @@ pub const SECTIONS: &[SectionDef] = &[
             typed("Ownership", 11, &HEADER_OWNERSHIP),
             typed("Concurrency", 12, &HEADER_CONCURRENCY),
             typed("Persistence", 13, &HEADER_PERSISTENCE),
+            typed("Resource", 14, &HEADER_RESOURCE),
             typed(
                 "revision",
                 REVISION,
@@ -512,6 +516,21 @@ pub const SECTIONS: &[SectionDef] = &[
                     one("span", 5, SPAN),
                     one("place", 6, PLACE_REF),
                     req("resolution", 7, WIRE_LOCAL_INDEX),
+                ],
+            ),
+            typed(
+                "resource",
+                RESOURCE,
+                &[
+                    req("repository", 1, WIRE_LOCAL_INDEX),
+                    one("revision", 2, REVISION),
+                    req("function", 3, WIRE_LOCAL_INDEX),
+                    req("operation", 4, WIRE_LOCAL_INDEX),
+                    req("kind", 5, WIRE_LOCAL_INDEX),
+                    one("span", 6, SPAN),
+                    maybe("acquired_at", 7, SPAN),
+                    opt("release", 8, WIRE_LOCAL_INDEX),
+                    opt("holder", 9, WIRE_LOCAL_INDEX),
                 ],
             ),
         ],
