@@ -1,0 +1,67 @@
+{
+  "schema": "atlas.evidence.selection-boundary.v1",
+  "generation": "G148",
+  "decision": ".atlas/decisions/0064-selected-design-and-selection-authority.md",
+  "construction_node": "M7 SelectedDesign with selection authority event: EXISTS (mechanism); no design is SELECTED",
+  "container": {
+    "path": ".atlas/.cache/atlas-studio.census.atlas (packed at the G147 evidence commit)",
+    "report": ".atlas/evidence/verification/G147-self-scope.json"
+  },
+  "proposal": {
+    "command": "atlas-systemizer design propose --atlas <container> --report <report> --root FUNCTION_IDENTITY:<atlas_of> --root FUNCTION_IDENTITY:<publish> --scope atlas-census-container --target-kind RUST_COMPONENT",
+    "roots_found_by": "atlas-systemizer design roots --function atlas_of|publish (record ids read from the verified container, never guessed)",
+    "design": ".atlas/evidence/design/G148-container-codec.validated.json",
+    "check": {
+      "schema": "atlas.selected-design-check.v1",
+      "design_id": "blake3-256:a3436a9a8a67a416c2e1e5e64fd4820b9c64b07c456740863f7cd999a58661ee",
+      "design_state": "VALIDATED",
+      "parent_root": "blake3-256:5e4883884d5bb6a6ee062f8bdfcc2e09b04445f927c0f973c7f835cbd6ff9451",
+      "verdict": "ACCEPTED",
+      "violations": []
+    }
+  },
+  "attempted_selection": {
+    "by": "PROVIDER coding-agent (the AI proposing the design)",
+    "design": "the validated design with state SELECTED and an authority event the provider wrote",
+    "check": {
+      "schema": "atlas.selected-design-check.v1",
+      "design_id": "blake3-256:a3436a9a8a67a416c2e1e5e64fd4820b9c64b07c456740863f7cd999a58661ee",
+      "design_state": "SELECTED",
+      "parent_root": "blake3-256:5e4883884d5bb6a6ee062f8bdfcc2e09b04445f927c0f973c7f835cbd6ff9451",
+      "verdict": "REJECTED",
+      "violations": [
+        {
+          "code": "AUTHORITY_EVENT_ID_MISMATCH",
+          "detail": "(not computed: a provider cannot author a valid event)"
+        },
+        {
+          "code": "PRINCIPAL_IS_PROVIDER",
+          "detail": "a provider never selects"
+        },
+        {
+          "code": "PRINCIPAL_UNREGISTERED",
+          "detail": "PROVIDER coding-agent"
+        }
+      ]
+    },
+    "note": "the provider could not compute a valid event id without a digest tool and would still be refused: a provider never selects and is not a declared principal"
+  },
+  "registry": ".atlas/declared/principals.json declares no principal: nothing can be SELECTED until the repository owner declares one",
+  "boundary": "USER_AUTHORIZATION: selecting a design is a human decision (HUMAN_REQUIRED); Atlas proposes, validates and checks, and records the owner's authority event when one is declared; POLICY_AUTO is refused while no bounded policy envelope is defined",
+  "mutants": {
+    "killed": 10,
+    "survived": 0,
+    "cases": [
+      "root dimension ignored",
+      "provider may select",
+      "registry unchecked",
+      "event identity unchecked",
+      "bindings outside identity",
+      "policy auto accepted",
+      "supersession ignored",
+      "blocked evidence accepted",
+      "candidate unchecked",
+      "report wrapper ignored"
+    ]
+  }
+}

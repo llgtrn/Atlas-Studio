@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G147"
+current_generation = "G148"
 
 [[generation]]
 id = "G35"
@@ -3175,3 +3175,35 @@ after = 151171
 key = "records:DATA_FLOW|atlas.rust.source-semantic.v1"
 before = 56550
 after = 57578
+
+[[generation]]
+id = "G148"
+kind = "NATIVE_ATTACK"
+base_commit = "d0cb0dff6f9c8aac66587dbeb3aa8ac70a6e2854"
+priority = "P2"
+serves = "DEBT-SELECTED_DESIGN and DEBT-IDENTITY_AUTHORITY: NA-SELECTED-DESIGN, construction node M7 -- next on the FIRST_ARTIFACT critical path after M1"
+objective = "a SelectedDesign record with a digest identity, validated against a verified container, the evidence for its candidate and a declared principal registry, selectable only through an authority event of a declared human principal"
+writer = "coordinator (sole writer); one read-only lane scoped M7 from the contracts and the code"
+evidence = ".atlas/evidence/design/G148-selection-boundary.json"
+self_recensus = ".atlas/evidence/census/G148/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of d2e416af56 = G147 post digest (the evidence commit d0cb0dff6f adds only out-of-scope evidence)"
+atlas_first = "the G147 container carries every typed record, so a design's roots are record ids resolvable in a verified container; the scoping lane found no principal, authority event or design type anywhere, record_id not unique (roots resolve by id and dimension), and the verification report's candidate equal to the container's census digest"
+change = "core::design: DesignState, AuthorityMode, PrincipalKind, BindingKind, DesignVerdict; Principal, PrincipalRegistry, SemanticRoot, DesignBinding, AuthorityEvent, SelectedDesign; design_identity and event_identity digests; validate against container, root, report and registry; coordinate_conflicts; vocabulary carriers DesignState and DesignVerdict. runtime::design: read_container (root recomputed), read_report (bare or wrapped), read_registry, function_roots, propose, check. CLI design roots|propose|check. .atlas/declared/principals.json declared empty. Contract SELECTED-DESIGN implementation status; ADR 0064"
+oracle = "a VALIDATED design over the G147 container (roots atlas_of and publish found by name there, the G147 self-scope report as evidence) is ACCEPTED; the proposing provider's attempted selection is REJECTED (PRINCIPAL_IS_PROVIDER, PRINCIPAL_UNREGISTERED)"
+falsification = "10 mutants killed (root dimension ignored, provider may select, registry unchecked, event identity unchecked, bindings outside identity, POLICY_AUTO accepted, supersession ignored, blocked evidence accepted, candidate unchecked, report wrapper ignored)"
+boundary = "USER_AUTHORIZATION: no design is SELECTED -- selecting is the repository owner's decision, the registry declares no principal, and the AI never selects"
+debts = "DEBT-SELECTED_DESIGN and DEBT-IDENTITY_AUTHORITY last advance G148 (M2_PARTIAL); construction node M7 EXISTS; DEBT-DESIGN_GENERATION unblocked with its own queued attack NA-DESIGN-CANDIDATES; revalidation milestone SELECTED_DESIGN; next native head NA-SEAL-POLICY (M3, M4)"
+review = "DEBT-CAUSALITY confirmed (evidence/census/G148/debt-review.json); DEBT-IDENTITY_AUTHORITY's residual queued as NA-PRINCIPAL-AUTHENTICATION"
+proof = "PROVEN (post 1354b334...): no unexplained UNKNOWN (the new core::design and runtime::design files explained)"
+
+[[generation.metric]]
+key = "typed_records"
+before = 151171
+after = 153668
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5223
+after = 5281

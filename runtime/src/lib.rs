@@ -4,6 +4,7 @@ pub mod agent;
 pub mod atlas;
 pub mod census;
 pub mod certificate;
+pub mod design;
 pub mod donor_storage;
 pub mod integrity;
 pub mod inventory;

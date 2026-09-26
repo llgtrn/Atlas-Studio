@@ -11,6 +11,7 @@ pub mod certificate;
 pub mod closure;
 pub mod composition;
 pub mod constraint;
+pub mod design;
 pub mod donor;
 pub mod evidence;
 pub mod graph;

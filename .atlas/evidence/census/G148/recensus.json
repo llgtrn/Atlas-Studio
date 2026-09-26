@@ -1,0 +1,567 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G148",
+  "base_revision": "a1d12a30b41539ba2564c321b33a4f963c5ab00a",
+  "candidate_revision": "d0cb0dff6f9c8aac66587dbeb3aa8ac70a6e2854",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:f2c02fb129a51a2ab7d29296cb3a0aee9702c8f45f6982458ceb0a097fdd0433",
+  "after_census_digest": "blake3-256:1354b334b22ca463600755cd5580fe4481abf989a81f500758e9c7fb04593bcd",
+  "replay_digest": "blake3-256:1354b334b22ca463600755cd5580fe4481abf989a81f500758e9c7fb04593bcd",
+  "inventory_delta": {
+    "created": [
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "runtime/src/design.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 58,
+      "fact:FunctionSignature|OBSERVED": 31,
+      "fact:SemanticObligation|OBSERVED": 12,
+      "fact:SemanticObligation|UNKNOWN": 39,
+      "fact:SourceArtifact|OBSERVED": 6,
+      "fact:Symbol|OBSERVED": 133,
+      "fact:Type|DERIVED": 58,
+      "fact:Type|OBSERVED": 77,
+      "record:CALL|DERIVED": 115,
+      "record:CALL|OBSERVED": 526,
+      "record:CONTROL_FLOW|INFERRED": 38,
+      "record:CONTROL_FLOW|OBSERVED": 132,
+      "record:DATA_FLOW|OBSERVED": 969,
+      "record:EFFECT|DERIVED": 9,
+      "record:EFFECT|INFERRED": 46,
+      "record:FUNCTION_IDENTITY|OBSERVED": 58,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 31,
+      "record:OWNERSHIP|OBSERVED": 299,
+      "record:PERSISTENCE|DERIVED": 6,
+      "record:SYMBOL|OBSERVED": 133,
+      "record:TYPE|DERIVED": 58,
+      "record:TYPE|OBSERVED": 77
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 3363,
+    "graph_nodes": 2538
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 6,
+    "obligation:CONCURRENCY|UNKNOWN": 6,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:EFFECT|UNKNOWN": 6,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:PERSISTENCE|UNKNOWN": 6,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:SYMBOL|OBSERVED": 3,
+    "obligation:TYPE|OBSERVED": 3,
+    "obligation:TYPE|UNKNOWN": 3
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/`impl:PrincipalRegistry`/empty()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/authority()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/container_candidate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/coordinate_conflicts()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/design_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/event_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/a_design_that_does_not_resolve_in_its_container_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/a_validated_design_resolves_its_roots_against_verified_evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/codes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/container()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/human()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/identity_ignores_what_the_design_does_not_select()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/one_selected_design_per_coordinate_unless_superseded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/registry()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/report()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/selected_by()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/validated()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/validate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/violation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/check()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/function_roots()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/invalid()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/parse_root()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/propose()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/read_container()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/read_design()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/read_registry()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/read_report()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/tests/published()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/design/mod.rs: 0 -> 13",
+      "core/src/design/tests.rs: 0 -> 13",
+      "runtime/src/design.rs: 0 -> 13"
+    ],
+    "decreased": [],
+    "total_before": 1621,
+    "total_after": 1660
+  },
+  "intent": {
+    "objective": "NA-SELECTED-DESIGN (construction node M7): SelectedDesign record, identity and selection authority event, validated against a verified census container, its evidence and a declared principal registry",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/design.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/design/mod.rs: new source files (core::design and runtime::design, the SelectedDesign record and its checks) carry the per-file UNKNOWN profile every Rust source has for the dimensions the census does not close",
+      "core/src/design/tests.rs: new source files (core::design and runtime::design, the SelectedDesign record and its checks) carry the per-file UNKNOWN profile every Rust source has for the dimensions the census does not close",
+      "runtime/src/design.rs: new source files (core::design and runtime::design, the SelectedDesign record and its checks) carry the per-file UNKNOWN profile every Rust source has for the dimensions the census does not close"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CREATED core design/`impl:PrincipalRegistry`/empty().",
+      "CREATED core design/authority().",
+      "CREATED core design/container_candidate().",
+      "CREATED core design/coordinate_conflicts().",
+      "CREATED core design/design_identity().",
+      "CREATED core design/event_identity().",
+      "CREATED core design/tests/a_design_that_does_not_resolve_in_its_container_is_refused().",
+      "CREATED core design/tests/a_validated_design_resolves_its_roots_against_verified_evidence().",
+      "CREATED core design/tests/codes().",
+      "CREATED core design/tests/container().",
+      "CREATED core design/tests/human().",
+      "CREATED core design/tests/identity_ignores_what_the_design_does_not_select().",
+      "CREATED core design/tests/one_selected_design_per_coordinate_unless_superseded().",
+      "CREATED core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design().",
+      "CREATED core design/tests/registry().",
+      "CREATED core design/tests/report().",
+      "CREATED core design/tests/selected_by().",
+      "CREATED core design/tests/validated().",
+      "CREATED core design/validate().",
+      "CREATED core design/violation().",
+      "CREATED runtime design/check().",
+      "CREATED runtime design/function_roots().",
+      "CREATED runtime design/invalid().",
+      "CREATED runtime design/parse_root().",
+      "CREATED runtime design/propose().",
+      "CREATED runtime design/read_container().",
+      "CREATED runtime design/read_design().",
+      "CREATED runtime design/read_registry().",
+      "CREATED runtime design/read_report().",
+      "CREATED runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it().",
+      "CREATED runtime design/tests/published()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/design/mod.rs",
+    "path core/src/design/tests.rs",
+    "path core/src/lib.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/design.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CREATED core design/`impl:PrincipalRegistry`/empty().",
+    "entity CREATED core design/authority().",
+    "entity CREATED core design/container_candidate().",
+    "entity CREATED core design/coordinate_conflicts().",
+    "entity CREATED core design/design_identity().",
+    "entity CREATED core design/event_identity().",
+    "entity CREATED core design/tests/a_design_that_does_not_resolve_in_its_container_is_refused().",
+    "entity CREATED core design/tests/a_validated_design_resolves_its_roots_against_verified_evidence().",
+    "entity CREATED core design/tests/codes().",
+    "entity CREATED core design/tests/container().",
+    "entity CREATED core design/tests/human().",
+    "entity CREATED core design/tests/identity_ignores_what_the_design_does_not_select().",
+    "entity CREATED core design/tests/one_selected_design_per_coordinate_unless_superseded().",
+    "entity CREATED core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design().",
+    "entity CREATED core design/tests/registry().",
+    "entity CREATED core design/tests/report().",
+    "entity CREATED core design/tests/selected_by().",
+    "entity CREATED core design/tests/validated().",
+    "entity CREATED core design/validate().",
+    "entity CREATED core design/violation().",
+    "entity CREATED runtime design/check().",
+    "entity CREATED runtime design/function_roots().",
+    "entity CREATED runtime design/invalid().",
+    "entity CREATED runtime design/parse_root().",
+    "entity CREATED runtime design/propose().",
+    "entity CREATED runtime design/read_container().",
+    "entity CREATED runtime design/read_design().",
+    "entity CREATED runtime design/read_registry().",
+    "entity CREATED runtime design/read_report().",
+    "entity CREATED runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it().",
+    "entity CREATED runtime design/tests/published()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

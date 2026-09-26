@@ -459,3 +459,29 @@ A SelectedDesign answers, before materialization:
 > Exactly what executable engineering design has Atlas chosen, what remains dynamic/external, which invariants must survive, and which evidence justifies that choice?
 
 If that question cannot be answered from the selected design record and its referenced Atlas semantics, AtlasX materialization is not allowed.
+
+## Implementation status (G148, ADR 0064)
+
+`atlas_core::design` implements the SelectedDesign record, its identity and its selection authority event. `atlas-systemizer design roots|propose|check` exposes them.
+
+**What is implemented:**
+- the lifecycle states;
+- authority modes and principal kinds;
+- bindings and semantic roots;
+- the identity digest over what the design selects;
+- the authority event and its identity;
+- a validator against a verified census container, the verification report for its candidate, and the declared principal registry (`.atlas/declared/principals.json`);
+- one non-superseded SELECTED design per coordinate.
+
+**Rules enforced:**
+- A SELECTED design needs an event from a declared HUMAN principal that commits to this exact design and mode.
+- A PROVIDER never selects.
+- POLICY_AUTO is refused while no bounded policy envelope is defined.
+
+The registry ships empty: nothing is SELECTED until the repository owner declares a principal.
+
+**Deferred:**
+- principal authentication beyond the declared registry;
+- the policy envelope;
+- DecisionProposal and ProviderReceipt lineage;
+- the seal-time embedding of the design in its container.

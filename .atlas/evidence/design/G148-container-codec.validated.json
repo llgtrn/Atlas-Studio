@@ -1,0 +1,31 @@
+{
+  "schema": "atlas.selected-design.v1",
+  "design_id": "blake3-256:a3436a9a8a67a416c2e1e5e64fd4820b9c64b07c456740863f7cd999a58661ee",
+  "parent_root": "blake3-256:5e4883884d5bb6a6ee062f8bdfcc2e09b04445f927c0f973c7f835cbd6ff9451",
+  "candidate": "blake3-256:f2c02fb129a51a2ab7d29296cb3a0aee9702c8f45f6982458ceb0a097fdd0433",
+  "scope": "atlas-census-container",
+  "target_kind": "RUST_COMPONENT",
+  "variant": "default",
+  "state": "VALIDATED",
+  "roots": [
+    {
+      "dimension": "FUNCTION_IDENTITY",
+      "record_id": "semantic:FUNCTION_IDENTITY:5c2cef1ad626fa99"
+    },
+    {
+      "dimension": "FUNCTION_IDENTITY",
+      "record_id": "semantic:FUNCTION_IDENTITY:e85f702780289ea8"
+    }
+  ],
+  "bindings": [],
+  "candidate_set": [
+    "blake3-256:a3436a9a8a67a416c2e1e5e64fd4820b9c64b07c456740863f7cd999a58661ee"
+  ],
+  "evidence_refs": [
+    ".atlas/evidence/verification/G147-self-scope.json"
+  ],
+  "authority_mode": "HUMAN_REQUIRED",
+  "authority_event": null,
+  "rationale": "the census container builder and its transactional publisher, as built at G147",
+  "supersedes": null
+}

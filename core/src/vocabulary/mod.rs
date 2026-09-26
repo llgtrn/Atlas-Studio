@@ -164,6 +164,16 @@ pub const CARRIERS: &[Carrier] = &[
         "an integrity envelope active, superseded or draft",
     ),
     carrier(
+        "DesignState",
+        CarrierRole::Lifecycle,
+        "a design candidate, validated, selected, rejected or superseded (G148)",
+    ),
+    carrier(
+        "DesignVerdict",
+        CarrierRole::Verdict,
+        "a design accepted or rejected by its check against container, evidence and authority",
+    ),
+    carrier(
         "Enforcement",
         CarrierRole::Enforcement,
         "an isolation property applied or not, with why",

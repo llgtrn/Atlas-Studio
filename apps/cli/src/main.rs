@@ -255,6 +255,80 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{derived}");
         }
+        [cmd, sub, rest @ ..] if cmd == "design" && sub == "roots" => {
+            // G148: the FUNCTION_IDENTITY roots of a verified container named `--function`.
+            let atlas = value(rest, "--atlas")?.ok_or("design roots requires --atlas")?;
+            let name = value(rest, "--function")?.ok_or("design roots requires --function")?;
+            let roots = runtime::design::function_roots(&atlas, &name)
+                .map_err(|e| format!("{atlas}: {e}"))?;
+            println!("{}", json(&roots)?);
+        }
+        [cmd, sub, rest @ ..] if cmd == "design" && sub == "propose" => {
+            // G148 (ADR 0064): a VALIDATED SelectedDesign over a verified census container, its
+            // roots resolving there and its report admitting the container's candidate. Exits
+            // DESIGN_REJECTED otherwise. Proposing never selects.
+            let atlas = value(rest, "--atlas")?.ok_or("design propose requires --atlas")?;
+            let report_path = value(rest, "--report")?.ok_or("design propose requires --report")?;
+            let report = runtime::design::read_report(&report_path)
+                .map_err(|e| format!("{report_path}: {e}"))?;
+            let mut roots = Vec::new();
+            for (i, arg) in rest.iter().enumerate() {
+                if arg == "--root" {
+                    let spec = rest
+                        .get(i + 1)
+                        .ok_or("--root requires DIMENSION:RECORD_ID")?;
+                    roots.push(runtime::design::parse_root(spec)?);
+                }
+            }
+            let proposal = runtime::design::Proposal {
+                roots,
+                bindings: Vec::new(),
+                scope: value(rest, "--scope")?.ok_or("design propose requires --scope")?,
+                target_kind: value(rest, "--target-kind")?
+                    .ok_or("design propose requires --target-kind")?,
+                variant: value(rest, "--variant")?.unwrap_or_else(|| "default".into()),
+                rationale: value(rest, "--rationale")?.unwrap_or_default(),
+                evidence_ref: report_path.clone(),
+            };
+            let (design, violations) = runtime::design::propose(&atlas, &report, proposal)
+                .map_err(|e| format!("{atlas}: {e}"))?;
+            let text = json(&design)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if !violations.is_empty() {
+                return Err(format!("DESIGN_REJECTED: {}", json(&violations)?));
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "design" && sub == "check" => {
+            // G148 (ADR 0064): check a design in its state against the verified container, the
+            // verification report and the repository's declared principals. Exits
+            // DESIGN_REJECTED unless it is accepted.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let design_path = value(rest, "--design")?.ok_or("design check requires --design")?;
+            let atlas = value(rest, "--atlas")?.ok_or("design check requires --atlas")?;
+            let design = runtime::design::read_design(&design_path)
+                .map_err(|e| format!("{design_path}: {e}"))?;
+            let report = match value(rest, "--report")? {
+                Some(path) => {
+                    Some(runtime::design::read_report(&path).map_err(|e| format!("{path}: {e}"))?)
+                }
+                None => None,
+            };
+            let registry =
+                runtime::design::read_registry(&root).map_err(|e| format!("{root}: {e}"))?;
+            let checked = runtime::design::check(&design, &atlas, report.as_ref(), &registry)
+                .map_err(|e| format!("{atlas}: {e}"))?;
+            let text = json(&checked)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if checked.verdict != runtime::design::Verdict::Accepted {
+                return Err(format!("DESIGN_REJECTED: {}", json(&checked.violations)?));
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "integrity" && sub == "envelope" => {
             // G138 (ADR 0056): the architectural integrity envelope the ADL declares. `--check`
             // exits INTEGRITY_ENVELOPE_DRIFT when the pinned envelope differs from it.

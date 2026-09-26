@@ -1,0 +1,5 @@
+{
+  "schema": "atlas.principal-registry.v1",
+  "principals": [],
+  "note": "principals are declared by the repository owner; a provider never adds itself"
+}
