@@ -1,0 +1,45 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G150",
+  "trigger": "review cadence: DEBT-MULTI_ENGINE, DEBT-VERIFICATION_EVIDENCE, DEBT-SANDBOXED_EXECUTION, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-QUANTITY_UNITS, reviewed at G137, fell due at G150",
+  "method": "each debt re-read against G138-G150 (resolution widening, typed sections, selected design, seal policy, candidate comparison) and the history of its own files since G139",
+  "reviews": [
+    {
+      "debt": "DEBT-MULTI_ENGINE",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G125 added a second engine: G139-G145 widened the resolution engine on CALL and TYPE, which already had two; the seven single-engine dimensions stand, and since G149 the declared seal policy refuses the blocker, one of the 11 refused on the G149 clean-HEAD certificate; NA-SECOND-ENGINE",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-VERIFICATION_EVIDENCE",
+      "verdict": "CORRECTED",
+      "finding": "its reason still said nothing consumes the report; since G148 design validation and since G150 design comparison require a report admitting the exact candidate for a VALIDATED or SELECTED design",
+      "correction": {
+        "why": "G127 built M2 and evaluated the self scope; since G148 design validation and since G150 design comparison consume the report (a VALIDATED or SELECTED design needs a report admitting its exact candidate); the seal gate does not consume it yet and command evidence runs with ambient authority"
+      }
+    },
+    {
+      "debt": "DEBT-SANDBOXED_EXECUTION",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G126 changed the sandbox: filesystem confinement is still UNENFORCED on this host class and nothing executes a constructed artifact inside it; NA-SANDBOX-FS-CONFINEMENT",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-ADL_BEYOND_DEPENDENCIES",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G137 changed the ADL: state, package and capability declarations beyond dependencies and forbid rules remain undeclared; NA-ADL-STATE-AND-PACKAGES",
+      "correction": {}
+    },
+    {
+      "debt": "DEBT-QUANTITY_UNITS",
+      "verdict": "CONFIRMED",
+      "finding": "no generation since G131 changed quantity kinds or intervals; the side reports still carry untyped numbers; NA-QUANTITY-SIDE-REPORTS",
+      "correction": {}
+    }
+  ],
+  "summary": {
+    "reviewed": 5,
+    "confirmed": 4,
+    "corrected": 1
+  }
+}

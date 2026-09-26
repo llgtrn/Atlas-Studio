@@ -90,6 +90,7 @@ fn validated(container: &CensusAtlas) -> SelectedDesign {
         authority_event: None,
         rationale: "the container codec as built".into(),
         supersedes: None,
+        comparison: None,
     };
     design.design_id = design_identity(&design);
     design.candidate_set = vec![design.design_id.clone()];
@@ -106,6 +107,7 @@ fn human() -> Principal {
 /// `design` SELECTED by `principal` under the design's mode.
 fn selected_by(mut design: SelectedDesign, principal: Principal) -> SelectedDesign {
     design.state = DesignState::Selected;
+    design.comparison = Some("design-comparison:test".into());
     let mut event = AuthorityEvent {
         event_id: String::new(),
         principal,
@@ -361,4 +363,248 @@ fn identity_ignores_what_the_design_does_not_select() {
     let mut rescoped = design.clone();
     rescoped.scope = "elsewhere".into();
     assert_ne!(design_identity(&rescoped), design.design_id);
+}
+
+mod comparison {
+    use super::*;
+    use crate::design::compare::*;
+    use crate::visual::search::Direction;
+
+    fn function_ids(c: &CensusAtlas) -> Vec<crate::SemanticRecordId> {
+        c.typed_records
+            .iter()
+            .filter(|r| r.dimension() == SemanticDimension::FunctionIdentity)
+            .map(|r| r.record_id().clone())
+            .collect()
+    }
+
+    /// The fixture with both EFFECT records in the first function and one unresolved call site
+    /// in the second.
+    fn attributed() -> (CensusAtlas, Vec<crate::SemanticRecordId>) {
+        let mut c = container();
+        let fns = function_ids(&c);
+        let mut moved_call = false;
+        for record in &mut c.typed_records {
+            match record {
+                SemanticObservation::Effect(h) => h.subject.function = fns[0].clone(),
+                SemanticObservation::Call(h) if !moved_call && h.subject.callees.is_empty() => {
+                    h.subject.function = fns[1].clone();
+                    moved_call = true;
+                }
+                _ => {}
+            }
+        }
+        assert!(moved_call);
+        // A second engine's record of the same effect site shares its record id: one site.
+        let echo = c
+            .typed_records
+            .iter()
+            .find(|r| r.dimension() == SemanticDimension::Effect)
+            .cloned()
+            .unwrap();
+        c.typed_records.push(echo);
+        (c, fns)
+    }
+
+    fn with_roots(c: &CensusAtlas, roots: &[&crate::SemanticRecordId]) -> SelectedDesign {
+        let mut design = validated(c);
+        design.roots = roots
+            .iter()
+            .map(|id| SemanticRoot {
+                dimension: SemanticDimension::FunctionIdentity,
+                record_id: id.as_str().to_owned(),
+            })
+            .collect();
+        design.design_id = design_identity(&design);
+        design
+    }
+
+    /// Every design names all of them as its candidate set.
+    fn candidates(mut designs: Vec<SelectedDesign>) -> Vec<SelectedDesign> {
+        let ids: Vec<String> = designs.iter().map(|d| d.design_id.clone()).collect();
+        for d in &mut designs {
+            d.candidate_set = ids.clone();
+        }
+        designs
+    }
+
+    fn criterion(name: &str, measure: Measure) -> Criterion {
+        Criterion {
+            name: name.into(),
+            measure,
+            direction: Direction::Minimize,
+            meaning: format!("{name}, fewer is better"),
+        }
+    }
+
+    fn criteria() -> Vec<Criterion> {
+        vec![
+            criterion("effects", Measure::Records(SemanticDimension::Effect)),
+            criterion("unresolved", Measure::UnresolvedCalls),
+            criterion("roots", Measure::Roots),
+        ]
+    }
+
+    #[test]
+    fn candidates_are_measured_from_the_container_and_the_front_is_kept_as_a_set() {
+        let (c, f) = attributed();
+        let ok = report(&container_candidate(&c), ReportVerdict::Admissible);
+        let designs = candidates(vec![
+            with_roots(&c, &[&f[0]]),
+            with_roots(&c, &[&f[1]]),
+            with_roots(&c, &[&f[0], &f[1]]),
+        ]);
+        let (a, b, both) = (&designs[0], &designs[1], &designs[2]);
+        let comparison = compare_designs(&designs, &c, ROOT_ID, Some(&ok), &criteria()).unwrap();
+        let values = |id: &str| {
+            comparison
+                .measurements
+                .iter()
+                .find(|m| m.design_id == id)
+                .and_then(|m| m.values.clone())
+                .unwrap()
+        };
+        assert_eq!(values(&a.design_id), [2, 0, 1]);
+        assert_eq!(values(&b.design_id), [0, 1, 1]);
+        assert_eq!(values(&both.design_id), [2, 1, 2]);
+        let mut front = comparison.front.clone();
+        front.sort();
+        let mut expected = vec![a.design_id.clone(), b.design_id.clone()];
+        expected.sort();
+        assert_eq!(front, expected, "neither single design dominates the other");
+        assert_eq!(comparison.dominated.len(), 1);
+        assert_eq!(comparison.dominated[0].design_id, both.design_id);
+        assert_eq!(comparison.dominated[0].dominated_by.len(), 2);
+        assert_eq!(comparison.comparison_id, comparison_identity(&comparison));
+        // Order of input does not change the comparison.
+        let reversed: Vec<SelectedDesign> = designs.iter().rev().cloned().collect();
+        assert_eq!(
+            compare_designs(&reversed, &c, ROOT_ID, Some(&ok), &criteria()).unwrap(),
+            comparison
+        );
+
+        // Selecting: a front design citing the comparison passes; a dominated one does not.
+        let cite = |d: &SelectedDesign| {
+            let mut d = selected_by(d.clone(), human());
+            d.comparison = Some(comparison.comparison_id.clone());
+            d
+        };
+        assert_eq!(validate_selection(&cite(a), &comparison), []);
+        assert_eq!(
+            codes(&validate_selection(&cite(both), &comparison)),
+            ["DESIGN_DOMINATED"]
+        );
+        let mut uncited = cite(b);
+        uncited.comparison = Some("design-comparison:other".into());
+        assert_eq!(
+            codes(&validate_selection(&uncited, &comparison)),
+            ["COMPARISON_OTHER"]
+        );
+        let mut narrowed = cite(a);
+        narrowed.candidate_set = vec![a.design_id.clone()];
+        assert_eq!(
+            codes(&validate_selection(&narrowed, &comparison)),
+            ["CANDIDATE_SET_MISMATCH"]
+        );
+        let mut tampered = comparison.clone();
+        tampered.front.push(both.design_id.clone());
+        tampered.dominated.clear();
+        assert!(
+            codes(&validate_selection(&cite(both), &tampered)).contains(&"COMPARISON_ID_MISMATCH")
+        );
+    }
+
+    #[test]
+    fn a_comparison_is_refused_without_a_real_alternative_or_explicit_measurable_criteria() {
+        let (c, f) = attributed();
+        let ok = report(&container_candidate(&c), ReportVerdict::Admissible);
+        let pair = candidates(vec![with_roots(&c, &[&f[0]]), with_roots(&c, &[&f[1]])]);
+        let refused = |designs: &[SelectedDesign], criteria: &[Criterion]| {
+            let violations =
+                compare_designs(designs, &c, ROOT_ID, Some(&ok), criteria).expect_err("refused");
+            violations
+                .iter()
+                .map(|v| v.code.clone())
+                .collect::<Vec<_>>()
+        };
+        let alone = candidates(vec![with_roots(&c, &[&f[0]])]);
+        assert_eq!(refused(&alone, &criteria()), ["TOO_FEW_CANDIDATES"]);
+        assert_eq!(refused(&pair, &[]), ["NO_CRITERIA"]);
+        let mut twice = criteria();
+        twice.push(criterion("roots", Measure::Roots));
+        assert_eq!(refused(&pair, &twice), ["CRITERION_DUPLICATE"]);
+        assert_eq!(
+            refused(
+                &pair,
+                &[criterion(
+                    "types",
+                    Measure::Records(SemanticDimension::Type)
+                )]
+            ),
+            ["MEASURE_UNDEFINED"]
+        );
+        let mut duplicated = pair.clone();
+        duplicated.push(pair[0].clone());
+        assert!(refused(&duplicated, &criteria()).contains(&"DUPLICATE_CANDIDATE".to_owned()));
+        let mut elsewhere = pair.clone();
+        elsewhere[1].variant = "other".into();
+        elsewhere[1].design_id = design_identity(&elsewhere[1]);
+        let elsewhere = candidates(elsewhere);
+        assert!(refused(&elsewhere, &criteria()).contains(&"COORDINATE_MIXED".to_owned()));
+        let mut chosen = pair.clone();
+        chosen[0] = selected_by(chosen[0].clone(), human());
+        assert!(refused(&chosen, &criteria()).contains(&"STATE_NOT_COMPARABLE".to_owned()));
+        let mut unaware = pair.clone();
+        unaware[1].candidate_set = vec![unaware[1].design_id.clone()];
+        assert_eq!(refused(&unaware, &criteria()), ["CANDIDATE_SET_MISMATCH"]);
+        let mut broken = pair.clone();
+        broken[0].roots[0].record_id = "semantic:FUNCTION_IDENTITY:absent".into();
+        broken[0].design_id = design_identity(&broken[0]);
+        let broken = candidates(broken);
+        assert!(refused(&broken, &criteria()).contains(&"CANDIDATE_INVALID".to_owned()));
+    }
+
+    #[test]
+    fn an_unmeasurable_candidate_does_not_compete_and_one_measured_candidate_is_no_choice() {
+        let (c, f) = attributed();
+        let ok = report(&container_candidate(&c), ReportVerdict::Admissible);
+        let type_root = c
+            .typed_records
+            .iter()
+            .find(|r| r.dimension() == SemanticDimension::Type)
+            .unwrap();
+        let mut typed = validated(&c);
+        typed.roots = vec![SemanticRoot {
+            dimension: SemanticDimension::Type,
+            record_id: type_root.record_id().as_str().to_owned(),
+        }];
+        typed.design_id = design_identity(&typed);
+        let designs = candidates(vec![with_roots(&c, &[&f[0]]), typed]);
+        let comparison = compare_designs(&designs, &c, ROOT_ID, Some(&ok), &criteria()).unwrap();
+        assert_eq!(comparison.unmeasured, [designs[1].design_id.clone()]);
+        assert_eq!(comparison.front, [designs[0].design_id.clone()]);
+        let mut chosen = selected_by(designs[0].clone(), human());
+        chosen.comparison = Some(comparison.comparison_id.clone());
+        assert_eq!(
+            codes(&validate_selection(&chosen, &comparison)),
+            ["FEWER_THAN_TWO_MEASURED"]
+        );
+        let mut other = selected_by(designs[1].clone(), human());
+        other.comparison = Some(comparison.comparison_id.clone());
+        assert!(codes(&validate_selection(&other, &comparison)).contains(&"DESIGN_UNMEASURED"));
+        // Counting roots alone measures every design.
+        let roots_only = [criterion("roots", Measure::Roots)];
+        let counted = compare_designs(&designs, &c, ROOT_ID, Some(&ok), &roots_only).unwrap();
+        assert!(counted.unmeasured.is_empty());
+    }
+
+    #[test]
+    fn a_selected_design_cites_its_comparison() {
+        let c = container();
+        let ok = report(&container_candidate(&c), ReportVerdict::Admissible);
+        let mut design = selected_by(validated(&c), human());
+        design.comparison = None;
+        let violations = validate(&design, &c, ROOT_ID, Some(&ok), &registry(vec![human()]));
+        assert_eq!(codes(&violations), ["COMPARISON_MISSING"]);
+    }
 }

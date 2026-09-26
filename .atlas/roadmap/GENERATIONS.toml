@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G149"
+current_generation = "G150"
 
 [[generation]]
 id = "G35"
@@ -3239,3 +3239,35 @@ after = 5332
 key = "obligations"
 before = 2195
 after = 2246
+
+[[generation]]
+id = "G150"
+kind = "NATIVE_ATTACK"
+base_commit = "24cd94aac81c1fa4044b93ff81d97530c722b4ca"
+priority = "P2"
+serves = "DEBT-DESIGN_GENERATION: NA-DESIGN-CANDIDATES, unadvanced since G52 and the queue head by pressure (97)"
+objective = "candidate designs at one coordinate over one verified container compared by criteria Atlas measures from the container, the Pareto front kept as a set, and a selection resting on a comparison of at least two measured candidates"
+writer = "coordinator (sole writer); one read-only lane scoped the contracts (SELECTED-DESIGN, CREATOR-FABRIC, VERIFICATION-METRICS-PERFORMANCE, decision-proposal schema), the Creator Pareto code and the composition's per-function measures"
+evidence = ".atlas/evidence/design/G150-candidate-comparison.json"
+self_recensus = ".atlas/evidence/census/G150/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 90bc70abdd = G149 post digest (the evidence commit 24cd94aac8 adds only out-of-scope evidence)"
+atlas_first = "agent understand on core/src/design/mod.rs: 21 callers (Core 9, AtlasCli 8, Runtime 4), no effects, no state; every per-function typed record names its function by record id, so a design's roots select the records a criterion counts; the contract forbids selection because only one candidate exists or by highest provider score; candidate_set was checked only for membership; the Creator pareto_front and dominates are generic in core"
+change = "core::design::compare: Measure (ROOTS, RECORDS of a per-function dimension by distinct id, UNRESOLVED_CALLS), Criterion, CandidateMeasurement, Dominance, DesignComparison with a digest identity, compare_designs, validate_selection; SelectedDesign.comparison (outside identity) and COMPARISON_MISSING for SELECTED. runtime::design propose_candidates, compare, read_comparison, read_criteria, function_roots_in; check takes the cited comparison. CLI design candidates, design compare, design check --comparison, design roots --path. Contract SELECTED-DESIGN; ADR 0066"
+oracle = "on the G149 container three candidate container readers measured by four declared minimized criteria: core::atlas::read [0, 0, 0, 1] dominates runtime::design::read_container [2, 1, 5, 1] and the design selecting both; the provider's attempted selection of the dominated design is REJECTED (DESIGN_DOMINATED, PRINCIPAL_IS_PROVIDER, PRINCIPAL_UNREGISTERED, an event it cannot author); a single-design comparison refused"
+falsification = "16 mutants killed; two survived the first run (records of two engines under one id double-counted; a cited comparison ignored by check) and were killed after the tests gained those cases"
+boundary = "USER_AUTHORIZATION: nothing is SELECTED -- the registry declares no principal; the criteria do not measure capability or performance, so a front of one design is still not a selection"
+debts = "DEBT-DESIGN_GENERATION last advance G150 (M3_SINGLE_ENGINE_BOUNDED), success condition met for designs over .atlas, residual (generated candidates, capability measures) queued as NA-DESIGN-CANDIDATE-GENERATION; revalidation milestone DESIGN_CANDIDATES; G151 AGENT_MISSION (cadence), then native head NA-RESOURCE-DIMENSION by the selection rule"
+review = "DEBT-MULTI_ENGINE, DEBT-SANDBOXED_EXECUTION, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-QUANTITY_UNITS confirmed; DEBT-VERIFICATION_EVIDENCE corrected: design validation and comparison consume the report since G148 and G150 (evidence/census/G150/debt-review.json)"
+proof = "PROVEN (post 5d56cfc4...): no unexplained UNKNOWN (the new core::design::compare file explained)"
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 5332
+after = 5410
+
+[[generation.metric]]
+key = "typed_records"
+before = 154836
+after = 157443

@@ -1,0 +1,199 @@
+{
+  "schema": "atlas.evidence.design-comparison.v1",
+  "generation": "G150",
+  "decision": ".atlas/decisions/0066-candidate-designs-compared-by-measured-criteria.md",
+  "container": {
+    "path": ".atlas/.cache/atlas-studio.census.atlas (G149 clean-HEAD pack, evidence/census/G149/atlas.json)",
+    "root": "blake3-256:dbf15b674498162d4473ef194383ffc0083400bd22b0b05bdb0c9fba3eaf0013",
+    "candidate": "blake3-256:3dbaa256fbd1e36ff69fd31fdc810db5da73a9f0e22887e58dfb56bb1d1fddf5"
+  },
+  "report": ".atlas/evidence/verification/G149-self-scope.json",
+  "coordinate": {
+    "scope": "atlas-self",
+    "target_kind": "CONTAINER_READER",
+    "variant": "default"
+  },
+  "candidates": [
+    {
+      "design_id": "blake3-256:21e3ff4b22dc775a697cd3b68bc843087da0989552f98551a32578f96bc57732",
+      "state": "VALIDATED",
+      "roots": [
+        "runtime::design::read_container (runtime/src/design.rs)"
+      ],
+      "root_ids": [
+        "semantic:FUNCTION_IDENTITY:d61c71fe84967b67"
+      ],
+      "candidate_set_size": 3
+    },
+    {
+      "design_id": "blake3-256:28aa19796156c122301f5711c76a83c548b707ece50664ea582ad23c5e685e0d",
+      "state": "VALIDATED",
+      "roots": [
+        "core::atlas::read (core/src/atlas)",
+        "runtime::design::read_container (runtime/src/design.rs)"
+      ],
+      "root_ids": [
+        "semantic:FUNCTION_IDENTITY:33ab960c8f98c5e1",
+        "semantic:FUNCTION_IDENTITY:d61c71fe84967b67"
+      ],
+      "candidate_set_size": 3
+    },
+    {
+      "design_id": "blake3-256:c87ab99d8315c40d00abca82342bb2ef2c133c03e5536949fd8fbdf9aa256c49",
+      "state": "VALIDATED",
+      "roots": [
+        "core::atlas::read (core/src/atlas)"
+      ],
+      "root_ids": [
+        "semantic:FUNCTION_IDENTITY:33ab960c8f98c5e1"
+      ],
+      "candidate_set_size": 3
+    }
+  ],
+  "comparison": {
+    "schema": "atlas.design-comparison.v1",
+    "comparison_id": "blake3-256:076b117217739c42f641bdfa0ee1cbfafda20b10084f93ff8eeb06fe30c59960",
+    "parent_root": "blake3-256:dbf15b674498162d4473ef194383ffc0083400bd22b0b05bdb0c9fba3eaf0013",
+    "candidate": "blake3-256:3dbaa256fbd1e36ff69fd31fdc810db5da73a9f0e22887e58dfb56bb1d1fddf5",
+    "scope": "atlas-self",
+    "target_kind": "CONTAINER_READER",
+    "variant": "default",
+    "criteria": [
+      {
+        "name": "effects",
+        "measure": {
+          "RECORDS": "EFFECT"
+        },
+        "direction": "MINIMIZE",
+        "meaning": "distinct EFFECT records of the selected functions: fewer observed side effects; a count of derived sites, not their severity"
+      },
+      {
+        "name": "persistence",
+        "measure": {
+          "RECORDS": "PERSISTENCE"
+        },
+        "direction": "MINIMIZE",
+        "meaning": "distinct PERSISTENCE records of the selected functions: fewer durable reads and writes; not their cost"
+      },
+      {
+        "name": "unresolved_calls",
+        "measure": "UNRESOLVED_CALLS",
+        "direction": "MINIMIZE",
+        "meaning": "call sites no engine resolved: less of the design unknown to Atlas"
+      },
+      {
+        "name": "roots",
+        "measure": "ROOTS",
+        "direction": "MINIMIZE",
+        "meaning": "functions the design selects: a smaller surface, not less capability"
+      }
+    ],
+    "measurements": [
+      {
+        "design_id": "blake3-256:21e3ff4b22dc775a697cd3b68bc843087da0989552f98551a32578f96bc57732",
+        "values": [
+          2,
+          1,
+          5,
+          1
+        ],
+        "unmeasured": null
+      },
+      {
+        "design_id": "blake3-256:28aa19796156c122301f5711c76a83c548b707ece50664ea582ad23c5e685e0d",
+        "values": [
+          2,
+          1,
+          5,
+          2
+        ],
+        "unmeasured": null
+      },
+      {
+        "design_id": "blake3-256:c87ab99d8315c40d00abca82342bb2ef2c133c03e5536949fd8fbdf9aa256c49",
+        "values": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "unmeasured": null
+      }
+    ],
+    "front": [
+      "blake3-256:c87ab99d8315c40d00abca82342bb2ef2c133c03e5536949fd8fbdf9aa256c49"
+    ],
+    "dominated": [
+      {
+        "design_id": "blake3-256:21e3ff4b22dc775a697cd3b68bc843087da0989552f98551a32578f96bc57732",
+        "dominated_by": [
+          "blake3-256:c87ab99d8315c40d00abca82342bb2ef2c133c03e5536949fd8fbdf9aa256c49"
+        ]
+      },
+      {
+        "design_id": "blake3-256:28aa19796156c122301f5711c76a83c548b707ece50664ea582ad23c5e685e0d",
+        "dominated_by": [
+          "blake3-256:21e3ff4b22dc775a697cd3b68bc843087da0989552f98551a32578f96bc57732",
+          "blake3-256:c87ab99d8315c40d00abca82342bb2ef2c133c03e5536949fd8fbdf9aa256c49"
+        ]
+      }
+    ],
+    "unmeasured": []
+  },
+  "reading": "the pure container decoder core::atlas::read has no EFFECT, PERSISTENCE or unresolved CALL record in the census and one root; runtime::design::read_container reads the file (2 effect sites, 1 durable read) and has 5 call sites no engine resolved; on the four declared criteria the decoder dominates the reader and the design selecting both. The front is one design, but that is not a selection: the criteria do not measure capability (read_container accepts a path, read accepts bytes), and choosing stays the owner's decision",
+  "provider_attempt": {
+    "design": "the dominated two-root design, set SELECTED by the proposing provider and citing the comparison",
+    "check": {
+      "schema": "atlas.selected-design-check.v1",
+      "design_id": "blake3-256:28aa19796156c122301f5711c76a83c548b707ece50664ea582ad23c5e685e0d",
+      "design_state": "SELECTED",
+      "parent_root": "blake3-256:dbf15b674498162d4473ef194383ffc0083400bd22b0b05bdb0c9fba3eaf0013",
+      "verdict": "REJECTED",
+      "violations": [
+        {
+          "code": "AUTHORITY_EVENT_ID_MISMATCH",
+          "detail": "(not computed: a provider cannot author a valid event)"
+        },
+        {
+          "code": "DESIGN_DOMINATED",
+          "detail": "dominated by blake3-256:21e3ff4b22dc775a697cd3b68bc843087da0989552f98551a32578f96bc57732, blake3-256:c87ab99d8315c40d00abca82342bb2ef2c133c03e5536949fd8fbdf9aa256c49"
+        },
+        {
+          "code": "PRINCIPAL_IS_PROVIDER",
+          "detail": "a provider never selects"
+        },
+        {
+          "code": "PRINCIPAL_UNREGISTERED",
+          "detail": "PROVIDER coding-agent"
+        }
+      ]
+    }
+  },
+  "single_candidate": "design compare with one design is refused (COMPARISON_REFUSED: TOO_FEW_CANDIDATES, CANDIDATE_SET_MISMATCH)",
+  "mutants": {
+    "killed": 16,
+    "survived": 0,
+    "strengthened": [
+      "MG12 records double-counted across engines survived until a second engine's record under the same record id was added to the core fixture",
+      "MG11 cited comparison ignored survived until the runtime test checked a dominated selection through check"
+    ],
+    "cases": [
+      "dominated selectable",
+      "records of every function counted",
+      "every call site resolved",
+      "one candidate compared",
+      "one measured candidate is a choice",
+      "candidate set unchecked at comparison",
+      "selection needs no comparison",
+      "identity ignores the front",
+      "unattributable dimension measured",
+      "non-function root measured",
+      "cited comparison ignored",
+      "records double-counted across engines",
+      "coordinates not compared",
+      "comparison citation unchecked",
+      "selected designs comparable",
+      "invalid candidate compared"
+    ]
+  }
+}

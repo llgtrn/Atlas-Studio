@@ -485,3 +485,15 @@ The registry ships empty: nothing is SELECTED until the repository owner declare
 - the policy envelope;
 - DecisionProposal and ProviderReceipt lineage;
 - the seal-time embedding of the design in its container.
+
+## Candidate comparison (G150, ADR 0066)
+
+`atlas_core::design::compare` compares candidate designs at one coordinate over one verified container. `atlas-systemizer design candidates|compare` exposes it.
+
+- **Criteria.** Each criterion is declared with a direction and a meaning. Atlas measures it from the container's typed records attributed to the design's roots. The value is never a number a provider supplies.
+- **Result.** The comparison keeps the Pareto front as a set and names each dominated candidate's dominators. Unmeasurable designs do not compete. It ranks and selects nothing.
+- **Selection.** A SELECTED design must cite a comparison of at least two measured candidates in which it is not dominated. A design is therefore never selected because it was the only candidate, or against the criteria its comparison declared.
+- **Deferred:**
+  - generating candidates;
+  - capability and performance measures;
+  - DecisionProposal and ProviderReceipt lineage.

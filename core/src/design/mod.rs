@@ -145,6 +145,9 @@ pub struct SelectedDesign {
     pub authority_event: Option<AuthorityEvent>,
     pub rationale: String,
     pub supersedes: Option<String>,
+    /// G150: the `DesignComparison` a selection rests on (not part of the identity).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comparison: Option<String>,
 }
 
 /// A design's identity: BLAKE3 over its schema, parent root, candidate, coordinate, roots and
@@ -313,6 +316,12 @@ pub fn validate(
                 out.push(violation("UNRESOLVED_BLOCKER", &binding.name));
             }
         }
+        if design.comparison.is_none() {
+            out.push(violation(
+                "COMPARISON_MISSING",
+                "a SELECTED design cites the comparison of its candidates",
+            ));
+        }
         match &design.authority_event {
             None => out.push(violation(
                 "AUTHORITY_EVENT_MISSING",
@@ -399,6 +408,8 @@ pub fn coordinate_conflicts(designs: &[SelectedDesign]) -> Vec<DesignViolation> 
     }
     out
 }
+
+pub mod compare;
 
 #[cfg(test)]
 mod tests;

@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G149"
+evaluated_at = "G150"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -109,6 +109,14 @@ debts = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DE
 languages = ["rust"]
 observes = "each dimension's semantics inside standard macro arguments, implicit format captures"
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
+
+[[capability_milestone]]
+id = "DESIGN_CANDIDATES"
+generation = "G150"
+debts = ["DEBT-DESIGN_GENERATION"]
+languages = ["rust"]
+observes = "candidate designs over a verified container are compared by criteria measured from its typed records, and a selection rests on a comparison of real alternatives"
+evidence = ".atlas/decisions/0066-candidate-designs-compared-by-measured-criteria.md"
 
 [[capability_milestone]]
 id = "SEAL_POLICY"
@@ -291,7 +299,7 @@ capabilities_available_then = []
 semantic_delta = ["SEAL_POLICY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DEPENDENCY, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 114
+priority = 115
 rank = 5
 
 [[donor]]
@@ -323,7 +331,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1140
+priority = 1150
 rank = 1
 
 [[donor]]
@@ -339,7 +347,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 114
+priority = 115
 rank = 7
 
 [[donor]]
@@ -483,7 +491,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 798
+priority = 805
 rank = 2
 
 [[donor]]
@@ -499,7 +507,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "STD_RECEIVERS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 456
+priority = 460
 rank = 3
 
 [[donor]]
@@ -531,7 +539,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 114
+priority = 115
 rank = 6
 
 [[donor]]
@@ -560,10 +568,10 @@ last_materialized_generation = "G82"
 last_deep_census_generation = "G82"
 capabilities_examined = ["DEBT-TYPE", "DEBT-DESIGN_GENERATION"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
-semantic_delta = ["CANONICAL_TYPE_IDENTITY", "ITEM_MACRO_NAMES"]
+semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DESIGN_CANDIDATES", "ITEM_MACRO_NAMES"]
 status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 228
+reason = "its decision depended on DEBT-DESIGN_GENERATION, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
+priority = 330
 rank = 4
 
 [[donor]]
@@ -915,7 +923,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 111
+priority = 112
 rank = 8
 
 [[donor]]

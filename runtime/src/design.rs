@@ -15,6 +15,7 @@ use atlas_core::design::{
 use atlas_core::verification::VerificationReport;
 use std::{fs, io, path::Path};
 
+pub use atlas_core::design::compare::{Criterion, DesignComparison, Measure};
 pub use atlas_core::design::{DesignVerdict as Verdict, SelectedDesign as Design};
 
 pub const CHECK_SCHEMA_VERSION: &str = "atlas.selected-design-check.v1";
@@ -114,6 +115,7 @@ pub fn propose(
         authority_event: None,
         rationale: proposal.rationale,
         supersedes: None,
+        comparison: None,
     };
     design.design_id = design_identity(&design);
     design.candidate_set = vec![design.design_id.clone()];
@@ -127,6 +129,49 @@ pub fn propose(
     Ok((design, violations))
 }
 
+/// G150 (ADR 0066): candidate designs at one coordinate over `container_path`, one per
+/// proposal, each naming all of them as its candidate set. Returns each design with its
+/// violations. Proposing candidates never selects.
+pub fn propose_candidates(
+    container_path: impl AsRef<Path>,
+    report: &VerificationReport,
+    proposals: Vec<Proposal>,
+) -> io::Result<Vec<(SelectedDesign, Vec<DesignViolation>)>> {
+    let mut designs = Vec::new();
+    for proposal in proposals {
+        designs.push(propose(container_path.as_ref(), report, proposal)?);
+    }
+    let mut ids: Vec<String> = designs.iter().map(|(d, _)| d.design_id.clone()).collect();
+    ids.sort();
+    ids.dedup();
+    for (design, _) in &mut designs {
+        design.candidate_set = ids.clone();
+    }
+    Ok(designs)
+}
+
+/// The comparison of `designs` over the verified container by `criteria`, or every reason it
+/// cannot be made.
+pub fn compare(
+    container_path: impl AsRef<Path>,
+    report: Option<&VerificationReport>,
+    designs: &[SelectedDesign],
+    criteria: &[Criterion],
+) -> io::Result<Result<DesignComparison, Vec<DesignViolation>>> {
+    let (container, root) = read_container(container_path)?;
+    Ok(atlas_core::design::compare::compare_designs(
+        designs, &container, &root, report, criteria,
+    ))
+}
+
+pub fn read_comparison(path: impl AsRef<Path>) -> io::Result<DesignComparison> {
+    read_json(path)
+}
+
+pub fn read_criteria(path: impl AsRef<Path>) -> io::Result<Vec<Criterion>> {
+    read_json(path)
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct DesignCheck {
     pub schema: String,
@@ -137,15 +182,29 @@ pub struct DesignCheck {
     pub violations: Vec<DesignViolation>,
 }
 
-/// Checks `design` in its state against the container, the report and the registry.
+/// Checks `design` in its state against the container, the report and the registry; a SELECTED
+/// design also against the comparison it cites (G150).
 pub fn check(
     design: &SelectedDesign,
     container_path: impl AsRef<Path>,
     report: Option<&VerificationReport>,
     registry: &PrincipalRegistry,
+    comparison: Option<&DesignComparison>,
 ) -> io::Result<DesignCheck> {
     let (container, root) = read_container(container_path)?;
-    let violations = validate(design, &container, &root, report, registry);
+    let mut violations = validate(design, &container, &root, report, registry);
+    if design.state == DesignState::Selected && design.comparison.is_some() {
+        match comparison {
+            Some(c) => {
+                violations.extend(atlas_core::design::compare::validate_selection(design, c))
+            }
+            None => violations.push(DesignViolation {
+                code: "COMPARISON_UNAVAILABLE".into(),
+                detail: "the cited comparison was not supplied".into(),
+            }),
+        }
+        violations.sort();
+    }
     Ok(DesignCheck {
         schema: CHECK_SCHEMA_VERSION.into(),
         design_id: design.design_id.clone(),
@@ -166,13 +225,24 @@ pub fn function_roots(
     container_path: impl AsRef<Path>,
     name: &str,
 ) -> io::Result<Vec<SemanticRoot>> {
+    function_roots_in(container_path, name, "")
+}
+
+/// `function_roots` limited to functions whose source path starts with `path_prefix` (G150: two
+/// functions of one name are told apart by where they are, not by guessing).
+pub fn function_roots_in(
+    container_path: impl AsRef<Path>,
+    name: &str,
+    path_prefix: &str,
+) -> io::Result<Vec<SemanticRoot>> {
     let (container, _) = read_container(container_path)?;
     let mut roots: Vec<SemanticRoot> = container
         .typed_records
         .iter()
         .filter_map(|record| match record {
             atlas_core::SemanticObservation::FunctionIdentity(header)
-                if header.subject.symbol.name == name =>
+                if header.subject.symbol.name == name
+                    && header.subject.span.path.starts_with(path_prefix) =>
             {
                 Some(SemanticRoot {
                     dimension: atlas_core::SemanticDimension::FunctionIdentity,
@@ -286,7 +356,7 @@ mod tests {
             PrincipalRegistry::empty(),
             "no registry declares nobody"
         );
-        let checked = check(&design, &container, Some(&report), &registry).unwrap();
+        let checked = check(&design, &container, Some(&report), &registry, None).unwrap();
         assert_eq!(checked.verdict, DesignVerdict::Accepted);
         // An unknown root is refused at proposal.
         let absent =
@@ -309,10 +379,121 @@ mod tests {
         };
         event.event_id = event_identity(&event);
         selected.authority_event = Some(event);
-        let refused = check(&selected, &container, Some(&report), &registry).unwrap();
+        let refused = check(&selected, &container, Some(&report), &registry, None).unwrap();
         assert_eq!(refused.verdict, DesignVerdict::Rejected);
         let codes: Vec<&str> = refused.violations.iter().map(|v| v.code.as_str()).collect();
-        assert_eq!(codes, ["PRINCIPAL_IS_PROVIDER", "PRINCIPAL_UNREGISTERED"]);
+        assert_eq!(
+            codes,
+            [
+                "COMPARISON_MISSING",
+                "PRINCIPAL_IS_PROVIDER",
+                "PRINCIPAL_UNREGISTERED"
+            ]
+        );
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn candidates_are_proposed_together_compared_and_a_selection_is_checked_against_the_comparison()
+    {
+        let dir = std::env::temp_dir().join(format!("atlas-candidates-{}", std::process::id()));
+        let (container, report_path) = published(&dir);
+        let report = read_report(&report_path).unwrap();
+        let (atlas, _) = read_container(&container).unwrap();
+        let functions: Vec<SemanticRoot> = atlas
+            .typed_records
+            .iter()
+            .filter(|r| r.dimension() == atlas_core::SemanticDimension::FunctionIdentity)
+            .map(|r| SemanticRoot {
+                dimension: atlas_core::SemanticDimension::FunctionIdentity,
+                record_id: r.record_id().as_str().to_owned(),
+            })
+            .collect();
+        let proposal = |roots: Vec<SemanticRoot>| Proposal {
+            roots,
+            bindings: Vec::new(),
+            scope: "fixture".into(),
+            target_kind: "RUST_COMPONENT".into(),
+            variant: "default".into(),
+            rationale: "test".into(),
+            evidence_ref: report_path.display().to_string(),
+        };
+        let designs = propose_candidates(
+            &container,
+            &report,
+            vec![
+                proposal(vec![functions[0].clone()]),
+                proposal(vec![functions[0].clone(), functions[1].clone()]),
+            ],
+        )
+        .unwrap();
+        assert!(designs.iter().all(|(_, v)| v.is_empty()));
+        let designs: Vec<SelectedDesign> = designs.into_iter().map(|(d, _)| d).collect();
+        assert!(designs.iter().all(|d| d.candidate_set.len() == 2));
+        let criteria = vec![Criterion {
+            name: "roots".into(),
+            measure: Measure::Roots,
+            direction: atlas_core::visual::search::Direction::Minimize,
+            meaning: "fewer selected functions".into(),
+        }];
+        let comparison = compare(&container, Some(&report), &designs, &criteria)
+            .unwrap()
+            .unwrap();
+        assert_eq!(comparison.front, [designs[0].design_id.clone()]);
+        // A provider selecting even the front design is refused; the comparison itself holds.
+        let mut selected = designs[0].clone();
+        selected.state = DesignState::Selected;
+        selected.comparison = Some(comparison.comparison_id.clone());
+        let mut event = AuthorityEvent {
+            event_id: String::new(),
+            principal: Principal {
+                id: "coding-agent".into(),
+                kind: PrincipalKind::Provider,
+            },
+            mode: selected.authority_mode,
+            design_id: selected.design_id.clone(),
+            generation: "G150".into(),
+            statement: "select".into(),
+        };
+        event.event_id = event_identity(&event);
+        selected.authority_event = Some(event);
+        let registry = PrincipalRegistry::empty();
+        let codes =
+            |c: DesignCheck| -> Vec<String> { c.violations.into_iter().map(|v| v.code).collect() };
+        let with = check(
+            &selected,
+            &container,
+            Some(&report),
+            &registry,
+            Some(&comparison),
+        );
+        assert_eq!(
+            codes(with.unwrap()),
+            ["PRINCIPAL_IS_PROVIDER", "PRINCIPAL_UNREGISTERED"]
+        );
+        let without = check(&selected, &container, Some(&report), &registry, None);
+        assert!(codes(without.unwrap()).contains(&"COMPARISON_UNAVAILABLE".to_owned()));
+        // Through `check`, the cited comparison refuses a dominated candidate.
+        let mut dominated = designs[1].clone();
+        dominated.state = DesignState::Selected;
+        dominated.comparison = Some(comparison.comparison_id.clone());
+        dominated.authority_event = selected.authority_event.clone();
+        let refused = check(
+            &dominated,
+            &container,
+            Some(&report),
+            &registry,
+            Some(&comparison),
+        );
+        assert!(codes(refused.unwrap()).contains(&"DESIGN_DOMINATED".to_owned()));
+        // One design alone is no comparison.
+        let alone = compare(&container, Some(&report), &designs[..1], &criteria).unwrap();
+        assert!(
+            alone
+                .unwrap_err()
+                .iter()
+                .any(|v| v.code == "TOO_FEW_CANDIDATES")
+        );
         fs::remove_dir_all(&dir).ok();
     }
 }

@@ -308,7 +308,8 @@ fn run(args: &[String]) -> Result<(), String> {
             // G148: the FUNCTION_IDENTITY roots of a verified container named `--function`.
             let atlas = value(rest, "--atlas")?.ok_or("design roots requires --atlas")?;
             let name = value(rest, "--function")?.ok_or("design roots requires --function")?;
-            let roots = runtime::design::function_roots(&atlas, &name)
+            let path = value(rest, "--path")?.unwrap_or_default();
+            let roots = runtime::design::function_roots_in(&atlas, &name, &path)
                 .map_err(|e| format!("{atlas}: {e}"))?;
             println!("{}", json(&roots)?);
         }
@@ -350,6 +351,102 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err(format!("DESIGN_REJECTED: {}", json(&violations)?));
             }
         }
+        [cmd, sub, rest @ ..] if cmd == "design" && sub == "candidates" => {
+            // G150 (ADR 0066): candidate designs at one coordinate, one per `--candidate` (its
+            // roots, comma-separated DIMENSION:RECORD_ID), each naming all of them as its
+            // candidate set; written to `--out-dir` as <design id>.json. Never selects.
+            let atlas = value(rest, "--atlas")?.ok_or("design candidates requires --atlas")?;
+            let report_path =
+                value(rest, "--report")?.ok_or("design candidates requires --report")?;
+            let out_dir =
+                value(rest, "--out-dir")?.ok_or("design candidates requires --out-dir")?;
+            let report = runtime::design::read_report(&report_path)
+                .map_err(|e| format!("{report_path}: {e}"))?;
+            let scope = value(rest, "--scope")?.ok_or("design candidates requires --scope")?;
+            let target_kind =
+                value(rest, "--target-kind")?.ok_or("design candidates requires --target-kind")?;
+            let variant = value(rest, "--variant")?.unwrap_or_else(|| "default".into());
+            let rationale = value(rest, "--rationale")?.unwrap_or_default();
+            let mut proposals = Vec::new();
+            for (i, arg) in rest.iter().enumerate() {
+                if arg == "--candidate" {
+                    let spec = rest
+                        .get(i + 1)
+                        .ok_or("--candidate requires DIMENSION:RECORD_ID[,..]")?;
+                    let roots = spec
+                        .split(',')
+                        .map(runtime::design::parse_root)
+                        .collect::<Result<Vec<_>, _>>()?;
+                    proposals.push(runtime::design::Proposal {
+                        roots,
+                        bindings: Vec::new(),
+                        scope: scope.clone(),
+                        target_kind: target_kind.clone(),
+                        variant: variant.clone(),
+                        rationale: rationale.clone(),
+                        evidence_ref: report_path.clone(),
+                    });
+                }
+            }
+            let designs = runtime::design::propose_candidates(&atlas, &report, proposals)
+                .map_err(|e| format!("{atlas}: {e}"))?;
+            let mut written = Vec::new();
+            let mut rejected = Vec::new();
+            for (design, violations) in &designs {
+                let hex = design
+                    .design_id
+                    .rsplit(':')
+                    .next()
+                    .unwrap_or(&design.design_id);
+                let path = format!("{out_dir}/{hex}.json");
+                write_report_to_out(&path, &(json(design)? + "\n"))?;
+                written.push(path);
+                rejected.extend(violations.iter().cloned());
+            }
+            println!("{}", json(&written)?);
+            if !rejected.is_empty() {
+                return Err(format!("DESIGN_REJECTED: {}", json(&rejected)?));
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "design" && sub == "compare" => {
+            // G150 (ADR 0066): compare `--design` files over the verified container by the
+            // criteria in `--criteria`; the Pareto front is kept as a set. Exits
+            // COMPARISON_REFUSED when the comparison cannot be made. Never selects.
+            let atlas = value(rest, "--atlas")?.ok_or("design compare requires --atlas")?;
+            let criteria_path =
+                value(rest, "--criteria")?.ok_or("design compare requires --criteria")?;
+            let criteria = runtime::design::read_criteria(&criteria_path)
+                .map_err(|e| format!("{criteria_path}: {e}"))?;
+            let report = match value(rest, "--report")? {
+                Some(path) => {
+                    Some(runtime::design::read_report(&path).map_err(|e| format!("{path}: {e}"))?)
+                }
+                None => None,
+            };
+            let mut designs = Vec::new();
+            for (i, arg) in rest.iter().enumerate() {
+                if arg == "--design" {
+                    let path = rest.get(i + 1).ok_or("--design requires a path")?;
+                    designs.push(
+                        runtime::design::read_design(path).map_err(|e| format!("{path}: {e}"))?,
+                    );
+                }
+            }
+            let outcome = runtime::design::compare(&atlas, report.as_ref(), &designs, &criteria)
+                .map_err(|e| format!("{atlas}: {e}"))?;
+            match outcome {
+                Ok(comparison) => {
+                    let text = json(&comparison)? + "\n";
+                    match value(rest, "--out")? {
+                        Some(out) => write_report_to_out(&out, &text)?,
+                        None => print!("{text}"),
+                    }
+                }
+                Err(violations) => {
+                    return Err(format!("COMPARISON_REFUSED: {}", json(&violations)?));
+                }
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "design" && sub == "check" => {
             // G148 (ADR 0064): check a design in its state against the verified container, the
             // verification report and the repository's declared principals. Exits
@@ -367,8 +464,20 @@ fn run(args: &[String]) -> Result<(), String> {
             };
             let registry =
                 runtime::design::read_registry(&root).map_err(|e| format!("{root}: {e}"))?;
-            let checked = runtime::design::check(&design, &atlas, report.as_ref(), &registry)
-                .map_err(|e| format!("{atlas}: {e}"))?;
+            let comparison = match value(rest, "--comparison")? {
+                Some(path) => Some(
+                    runtime::design::read_comparison(&path).map_err(|e| format!("{path}: {e}"))?,
+                ),
+                None => None,
+            };
+            let checked = runtime::design::check(
+                &design,
+                &atlas,
+                report.as_ref(),
+                &registry,
+                comparison.as_ref(),
+            )
+            .map_err(|e| format!("{atlas}: {e}"))?;
             let text = json(&checked)? + "\n";
             match value(rest, "--out")? {
                 Some(out) => write_report_to_out(&out, &text)?,
