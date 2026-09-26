@@ -270,6 +270,7 @@ mod tests {
                 name: "run".into(),
                 role: SymbolRole::Definition,
                 documentation: None,
+                declaration: None,
             },
             span: SourceSpan {
                 path: "core/src/lib.rs".into(),

@@ -403,3 +403,60 @@ pub fn documentation(attrs: &[syn::Attribute]) -> Option<atlas_core::Documentati
         lines: lines.len(),
     })
 }
+
+/// G153 (ADR 0069): the declared shape of a type, variant or field definition -- its derives in
+/// order, and every other outer attribute except documentation, spelled as written.
+pub fn declaration(
+    item: atlas_core::DeclaredItem,
+    vis: Option<&syn::Visibility>,
+    attrs: &[syn::Attribute],
+    shape: Option<atlas_core::FieldShape>,
+) -> atlas_core::Declaration {
+    let mut derives = Vec::new();
+    let mut attributes = Vec::new();
+    for attr in attrs {
+        if attr.path().is_ident("doc") {
+            continue;
+        }
+        if attr.path().is_ident("derive") {
+            let paths = attr.parse_args_with(
+                syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+            );
+            if let Ok(paths) = paths {
+                derives.extend(paths.iter().map(path_spelling));
+                continue;
+            }
+        }
+        attributes.push(attribute_spelling(&attr.meta));
+    }
+    atlas_core::Declaration {
+        item,
+        visibility: vis.map_or_else(|| "inherited".to_owned(), visibility_spelling),
+        derives,
+        attributes,
+        shape,
+    }
+}
+
+/// An attribute's meta as written: `default`, `serde(rename_all = "SCREAMING_SNAKE_CASE")`,
+/// `repr(u8)`. List arguments keep the token stream's own spacing.
+fn attribute_spelling(meta: &syn::Meta) -> String {
+    match meta {
+        syn::Meta::Path(path) => path_spelling(path),
+        syn::Meta::List(list) => format!("{}({})", path_spelling(&list.path), list.tokens),
+        syn::Meta::NameValue(nv) => format!(
+            "{} = {}",
+            path_spelling(&nv.path),
+            nv.value.to_token_stream()
+        ),
+    }
+}
+
+/// How `fields` are carried.
+pub fn field_shape(fields: &syn::Fields) -> atlas_core::FieldShape {
+    match fields {
+        syn::Fields::Unit => atlas_core::FieldShape::Unit,
+        syn::Fields::Unnamed(_) => atlas_core::FieldShape::Tuple,
+        syn::Fields::Named(_) => atlas_core::FieldShape::Named,
+    }
+}

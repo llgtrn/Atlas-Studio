@@ -14,6 +14,7 @@ pub mod product;
 pub mod recensus;
 pub mod sandbox;
 pub mod seal;
+pub mod self_reconstruction;
 pub mod verification;
 pub mod visual;
 
@@ -3669,7 +3670,8 @@ mod tests {
                         "COMPOSITION_ATTACK",
                         "AGENT_MISSION",
                         "DEBT_TRIGGERED_DONOR_ATTACK",
-                        "REPLAY"
+                        "REPLAY",
+                        "SELF_RECONSTRUCTION"
                     ]
                     .contains(&kind.as_str()),
                     "{id}: kind {kind}"
@@ -3730,6 +3732,16 @@ mod tests {
                 if kind == "REPLAY" {
                     replay_generation_is_accounted(&id, &block);
                 }
+                // ADR 0069: a SELF_RECONSTRUCTION generation records its attempts in the lane's
+                // ledger, each with a module and a report that validate.
+                if kind == "SELF_RECONSTRUCTION" {
+                    let ledger = read(SELF_RECONSTRUCTION);
+                    let attempts: Vec<&str> = blocks(&ledger, "attempt")
+                        .into_iter()
+                        .filter(|a| text(a, "generation") == id)
+                        .collect();
+                    assert!(!attempts.is_empty(), "{id}: no attempt in the lane ledger");
+                }
                 if generation(&id) >= audit_generation {
                     assert_ne!(
                         kind, "DONOR",
@@ -3741,6 +3753,141 @@ mod tests {
                         "{id}: P3 donor campaign while BLOCKED"
                     );
                 }
+            }
+        }
+
+        const SELF_RECONSTRUCTION: &str = ".atlas/roadmap/SELF-RECONSTRUCTION.toml";
+
+        /// ADR 0069: the SELF_RECONSTRUCTION lane is its own lane with Rust as the bootstrap
+        /// target; every attempt's module and report validate (construction read census records,
+        /// a design and a comparison only; the verdict is the one its evidence supports); every
+        /// gap is owned by a debt; a gap the latest attempt still has feeds a queued attack; a
+        /// level is reached only by a reconstruction, and shadows live where nothing is admitted.
+        #[test]
+        fn self_reconstruction_keeps_its_boundary_and_feeds_its_gaps_back() {
+            use atlas_core::construction::{
+                ConstructionModule, ReconstructionVerdict, SelfReconstructionReport,
+                validate_report,
+            };
+            let ledger = read(SELF_RECONSTRUCTION);
+            assert_eq!(text(&ledger, "lane"), "SELF_RECONSTRUCTION");
+            for other in [
+                "FULL_OSS_REPLAY",
+                "NEW_DONOR_PROGRESSION",
+                "FRONTIER_EXPANSION",
+                "HISTORICAL_DONOR_REVALIDATION",
+                "NATIVE_ATTACK",
+            ] {
+                assert!(list(&ledger, "distinct_from").contains(&other.to_string()));
+            }
+            assert_eq!(
+                text(&ledger, "bootstrap_construction_target"),
+                atlas_core::construction::BOOTSTRAP_CONSTRUCTION_TARGET
+            );
+            let shadow_root = text(&ledger, "shadow_root");
+            assert_eq!(shadow_root, crate::self_reconstruction::SHADOW_ROOT);
+            assert!(
+                read(".gitignore")
+                    .lines()
+                    .any(|l| shadow_root.starts_with(l.trim_start_matches('/'))
+                        && !l.trim().is_empty()),
+                "the shadow root is never tracked"
+            );
+            let debt_ledger = Ledger::load();
+            let debts = debt_ledger.debts();
+            let queued: BTreeSet<String> = blocks(&debt_ledger.text, "native_attack")
+                .into_iter()
+                .map(|b| text(b, "id"))
+                .collect();
+            let attempts = blocks(&ledger, "attempt");
+            assert!(!attempts.is_empty());
+            let mut reconstructed = false;
+            for attempt in &attempts {
+                let id = text(attempt, "id");
+                let module: ConstructionModule =
+                    serde_json::from_str(&read(&text(attempt, "module"))).unwrap();
+                let report: SelfReconstructionReport =
+                    serde_json::from_str(&read(&text(attempt, "report"))).unwrap();
+                assert_eq!(validate_report(&report, &module), vec![], "{id}");
+                assert_eq!(report.verdict.as_str(), text(attempt, "verdict"), "{id}");
+                assert_eq!(module.target, text(attempt, "target"), "{id}");
+                if let Some(shadow) = &report.shadow {
+                    assert!(
+                        shadow.path.starts_with(&shadow_root),
+                        "{id}: {}",
+                        shadow.path
+                    );
+                    assert_ne!(shadow.toolchain, "", "{id}: the toolchain is recorded");
+                }
+                for gap in &module.gaps {
+                    assert!(
+                        debts.contains_key(&gap.debt),
+                        "{id}: {} owned by {}",
+                        gap.subject,
+                        gap.debt
+                    );
+                }
+                reconstructed |= matches!(
+                    report.verdict,
+                    ReconstructionVerdict::ReconstructedEquivalent
+                        | ReconstructionVerdict::ReconstructedWithDeclaredVariation
+                );
+            }
+            // The latest attempt's gaps each feed a queued attack; a closed gap is gone from it.
+            let latest: ConstructionModule =
+                serde_json::from_str(&read(&text(attempts.last().unwrap(), "module"))).unwrap();
+            let open: BTreeSet<&str> = latest.gaps.iter().map(|g| g.kind.as_str()).collect();
+            for feedback in blocks(&ledger, "gap_feedback") {
+                let gap = text(feedback, "gap");
+                match text(feedback, "status").as_str() {
+                    "OPEN" => {
+                        assert!(
+                            open.contains(gap.as_str()),
+                            "{gap}: OPEN but not in the latest attempt"
+                        );
+                        assert!(
+                            queued.contains(&text(feedback, "attack")),
+                            "{gap}: its attack is not queued"
+                        );
+                    }
+                    "CLOSED" => {
+                        assert!(!open.contains(gap.as_str()), "{gap}: CLOSED but still open");
+                        text(feedback, "closed_in");
+                    }
+                    // The attack is done and the re-attempt that shows it is pending: the gap may
+                    // still be in the latest attempt, but once the named re-attempt exists it must
+                    // not carry the gap.
+                    "CLOSING" => {
+                        let attack = text(feedback, "attack");
+                        assert!(
+                            debt_ledger.attack_ids().contains(&attack) && !queued.contains(&attack),
+                            "{gap}: CLOSING needs its attack done"
+                        );
+                        let reattempt = text(feedback, "reattempt");
+                        if let Some(done) = attempts.iter().find(|a| text(a, "id") == reattempt) {
+                            let module: ConstructionModule =
+                                serde_json::from_str(&read(&text(done, "module"))).unwrap();
+                            assert!(
+                                module.gaps.iter().all(|g| g.kind.as_str() != gap),
+                                "{gap}: the re-attempt {reattempt} still has it"
+                            );
+                        }
+                    }
+                    other => panic!("{gap}: status {other}"),
+                }
+            }
+            for gap in &open {
+                assert!(
+                    blocks(&ledger, "gap_feedback")
+                        .iter()
+                        .any(|f| text(f, "gap") == *gap
+                            && ["OPEN", "CLOSING"].contains(&text(f, "status").as_str())),
+                    "{gap}: an open gap without feedback"
+                );
+            }
+            let reached = text(&ledger, "level_reached");
+            if !reconstructed {
+                assert_eq!(reached, "SH0", "no reconstruction, so no level above SH0");
             }
         }
 

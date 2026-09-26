@@ -734,6 +734,7 @@ mod multi_extractor_tests {
             name: symbol_name.into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         let header = SemanticRecordHeader {

@@ -313,6 +313,103 @@ fn run(args: &[String]) -> Result<(), String> {
                 .map_err(|e| format!("{atlas}: {e}"))?;
             println!("{}", json(&roots)?);
         }
+        [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "candidates" => {
+            // G153 (ADR 0069): the core types Atlas could reconstruct, ranked from what the
+            // world model knows (`--model`), constructible first.
+            let path =
+                value(rest, "--model")?.ok_or("self-reconstruct candidates requires --model")?;
+            let model =
+                runtime::agent::read_world_model(&path).map_err(|e| format!("{path}: {e}"))?;
+            let limit = value(rest, "--limit")?
+                .map_or(Ok(usize::MAX), |l| l.parse::<usize>())
+                .map_err(|e| format!("--limit: {e}"))?;
+            let all = runtime::self_reconstruction::candidates(&model);
+            let constructible = all.iter().filter(|c| c.constructible).count();
+            let out = serde_json::json!({
+                "schema": runtime::self_reconstruction::CANDIDATES_SCHEMA,
+                "revision": model.revision,
+                "types": all.len(),
+                "constructible": constructible,
+                "candidates": all.into_iter().take(limit).collect::<Vec<_>>(),
+            });
+            println!("{}", json(&out)?);
+        }
+        [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "roots" => {
+            // G153: the design roots of a target (its SYMBOL and its methods), by what it is.
+            let atlas = value(rest, "--atlas")?.ok_or("self-reconstruct roots requires --atlas")?;
+            let path = value(rest, "--path")?.ok_or("self-reconstruct roots requires --path")?;
+            let name = value(rest, "--type")?.ok_or("self-reconstruct roots requires --type")?;
+            let (container, _) =
+                runtime::design::read_container(&atlas).map_err(|e| format!("{atlas}: {e}"))?;
+            let roots =
+                runtime::self_reconstruction::target_roots(&container.typed_records, &path, &name);
+            println!("{}", roots.join(","));
+        }
+        [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "attempt" => {
+            // G153 (ADR 0069): one SH1 shadow reconstruction of `--type` in `--path` from the
+            // verified container `--atlas` over `--design` (and `--comparison`): the module, the
+            // shadow and the report go to `--out-dir`. Exits RECONSTRUCTION_INVALID when the
+            // module or the report breaks the construction input boundary.
+            let atlas =
+                value(rest, "--atlas")?.ok_or("self-reconstruct attempt requires --atlas")?;
+            let path = value(rest, "--path")?.ok_or("self-reconstruct attempt requires --path")?;
+            let name = value(rest, "--type")?.ok_or("self-reconstruct attempt requires --type")?;
+            let design_path =
+                value(rest, "--design")?.ok_or("self-reconstruct attempt requires --design")?;
+            let out_dir =
+                value(rest, "--out-dir")?.ok_or("self-reconstruct attempt requires --out-dir")?;
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let design = runtime::design::read_design(&design_path)
+                .map_err(|e| format!("{design_path}: {e}"))?;
+            let comparison = match value(rest, "--comparison")? {
+                Some(p) => {
+                    Some(runtime::design::read_comparison(&p).map_err(|e| format!("{p}: {e}"))?)
+                }
+                None => None,
+            };
+            let (container, container_root) =
+                runtime::design::read_container(&atlas).map_err(|e| format!("{atlas}: {e}"))?;
+            if design.parent_root != container_root {
+                return Err(format!(
+                    "RECONSTRUCTION_INVALID: the design is over {}, the container is {container_root}",
+                    design.parent_root
+                ));
+            }
+            let (module, emission, report) =
+                runtime::self_reconstruction::attempt(&runtime::self_reconstruction::Attempt {
+                    root: std::path::Path::new(&root),
+                    container: &container,
+                    container_root: &container_root,
+                    path: &path,
+                    type_name: &name,
+                    design_id: &design.design_id,
+                    design_state: design.state,
+                    comparison_id: comparison.as_ref().map(|c| c.comparison_id.as_str()),
+                })?;
+            let violations = runtime::self_reconstruction::validate(&container, &module, &report);
+            std::fs::create_dir_all(&out_dir).map_err(|e| format!("{out_dir}: {e}"))?;
+            let write = |file: &str, text: String| {
+                std::fs::write(format!("{out_dir}/{file}"), text)
+                    .map_err(|e| format!("{out_dir}/{file}: {e}"))
+            };
+            write("module.json", json(&module)? + "\n")?;
+            write("report.json", json(&report)? + "\n")?;
+            write("shadow.rs.txt", emission.source.clone())?;
+            println!(
+                "{}",
+                json(&serde_json::json!({
+                    "verdict": report.verdict,
+                    "emitted": emission.emitted,
+                    "omitted": emission.omitted,
+                    "gaps": report.gaps.len(),
+                    "checks": report.checks.len(),
+                    "violations": violations,
+                }))?
+            );
+            if !violations.is_empty() {
+                return Err("RECONSTRUCTION_INVALID".into());
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "design" && sub == "propose" => {
             // G148 (ADR 0064): a VALIDATED SelectedDesign over a verified census container, its
             // roots resolving there and its report admitting the container's candidate. Exits

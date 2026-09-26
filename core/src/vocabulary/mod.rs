@@ -104,6 +104,11 @@ pub const CARRIERS: &[Carrier] = &[
         "one verification evidence item's result",
     ),
     carrier(
+        "ReconstructionVerdict",
+        CarrierRole::Verdict,
+        "a self-reconstruction attempt: equivalent, gapped, failed or mismatched (G153)",
+    ),
+    carrier(
         "ReportVerdict",
         CarrierRole::Verdict,
         "a verification report admissible or blocked",

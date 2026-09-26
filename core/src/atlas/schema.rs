@@ -138,6 +138,8 @@ pub const EFFECT: u16 = 119;
 pub const OWNERSHIP: u16 = 120;
 pub const CONCURRENCY: u16 = 121;
 pub const PERSISTENCE: u16 = 122;
+/// G153 (ADR 0069): the declared shape of a type, variant or field definition.
+pub const DECLARATION: u16 = 123;
 /// Record kinds at and above this one are only ever embedded in a `RECORD` field.
 pub const FIRST_EMBEDDED_KIND: u16 = 100;
 
@@ -313,6 +315,17 @@ pub const SECTIONS: &[SectionDef] = &[
                 ],
             ),
             typed(
+                "declaration",
+                DECLARATION,
+                &[
+                    req("item", 1, WIRE_LOCAL_INDEX),
+                    req("visibility", 2, WIRE_LOCAL_INDEX),
+                    strings("derives", 3),
+                    strings("attributes", 4),
+                    opt("shape", 5, WIRE_LOCAL_INDEX),
+                ],
+            ),
+            typed(
                 "type-identity",
                 TYPE_IDENTITY,
                 &[
@@ -335,6 +348,7 @@ pub const SECTIONS: &[SectionDef] = &[
                     req("role", 5, WIRE_LOCAL_INDEX),
                     req("path", 6, WIRE_LOCAL_INDEX),
                     maybe("documentation", 7, DOCUMENTATION),
+                    maybe("declaration", 8, DECLARATION),
                 ],
             ),
             typed(

@@ -566,6 +566,7 @@ impl<'a> Context<'a> {
             role: SymbolRole::Definition,
             path: self.input.artifact_path.clone(),
             documentation: None,
+            declaration: None,
         };
         let generics = node
             .child_by_field_name("type_parameters")
@@ -764,6 +765,7 @@ impl<'a> Context<'a> {
                 role: SymbolRole::Definition,
                 path: self.input.artifact_path.clone(),
                 documentation: None,
+                declaration: None,
             },
             span,
             generated: true,
@@ -937,6 +939,7 @@ impl<'a> Context<'a> {
             role,
             path: self.input.artifact_path.clone(),
             documentation: None,
+            declaration: None,
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let summary = format!("parsed {} `{name}`", role.as_str());

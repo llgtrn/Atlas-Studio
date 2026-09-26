@@ -11,6 +11,7 @@ pub mod certificate;
 pub mod closure;
 pub mod composition;
 pub mod constraint;
+pub mod construction;
 pub mod design;
 pub mod donor;
 pub mod evidence;
@@ -79,14 +80,15 @@ pub use schema::{
 pub use semantic::{
     CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
-    DataFlowResolution, DiagnosticCode, Documentation, EffectCategory, EffectIdentity,
-    ExtractionDiagnostic, ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity,
-    FunctionOwner, FunctionParameter, FunctionSignature, OwnershipIdentity, OwnershipKind,
-    OwnershipResolution, PersistenceIdentity, PersistenceKind, PersistenceResolution, PlaceRef,
-    SemanticDimension, SemanticObligationRecord, SemanticObservation, SemanticRecordHeader,
-    SemanticRecordId, SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution,
-    SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole, std_path_concurrency,
-    std_path_effects, std_path_persistence,
+    DataFlowResolution, Declaration, DeclaredItem, DiagnosticCode, Documentation, EffectCategory,
+    EffectIdentity, ExtractionDiagnostic, ExtractorIdentity, FieldShape, FunctionDeclarationKind,
+    FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature, OwnershipIdentity,
+    OwnershipKind, OwnershipResolution, PersistenceIdentity, PersistenceKind,
+    PersistenceResolution, PlaceRef, SemanticDimension, SemanticObligationRecord,
+    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope,
+    StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity, SymbolRole,
+    TypeIdentity, ValueIdentity, ValueRole, std_path_concurrency, std_path_effects,
+    std_path_persistence,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

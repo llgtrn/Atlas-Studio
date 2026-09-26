@@ -713,6 +713,43 @@ impl<'a> ExtractionContext<'a> {
         span: atlas_core::SourceSpan,
         documentation: Option<Documentation>,
     ) {
+        self.emit_declared_symbol(scope, name, role, span, documentation, None);
+    }
+
+    /// A struct or variant field's definition with its documentation and declared shape (G153).
+    fn emit_field_symbol(
+        &mut self,
+        scope: &SemanticScope,
+        name: &str,
+        field: &syn::Field,
+        span: atlas_core::SourceSpan,
+    ) {
+        let declaration = spelling::declaration(
+            atlas_core::DeclaredItem::Field,
+            Some(&field.vis),
+            &field.attrs,
+            None,
+        );
+        self.emit_declared_symbol(
+            scope,
+            name,
+            SymbolRole::Definition,
+            span,
+            spelling::documentation(&field.attrs),
+            Some(declaration),
+        );
+    }
+
+    /// `emit_documented_symbol` with the declared shape of a type, variant or field (G153).
+    fn emit_declared_symbol(
+        &mut self,
+        scope: &SemanticScope,
+        name: &str,
+        role: SymbolRole,
+        span: atlas_core::SourceSpan,
+        documentation: Option<Documentation>,
+        declaration: Option<atlas_core::Declaration>,
+    ) {
         let dimension = SemanticDimension::Symbol;
         if !self.wants(dimension) {
             return;
@@ -725,6 +762,7 @@ impl<'a> ExtractionContext<'a> {
             role,
             path: self.input.artifact_path.clone(),
             documentation,
+            declaration,
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
@@ -841,6 +879,7 @@ impl<'a> ExtractionContext<'a> {
                 role,
                 path: self.input.artifact_path.clone(),
                 documentation: None,
+                declaration: None,
             },
             span,
             generated: false,
@@ -1598,7 +1637,20 @@ impl<'a> ExtractionContext<'a> {
     fn handle_struct(&mut self, item: &syn::ItemStruct, scope: &SemanticScope) {
         let span = self.span_of(item);
         let name = item.ident.to_string();
-        self.emit_symbol(scope, &name, SymbolRole::Definition, span);
+        let declaration = spelling::declaration(
+            atlas_core::DeclaredItem::Struct,
+            Some(&item.vis),
+            &item.attrs,
+            Some(spelling::field_shape(&item.fields)),
+        );
+        self.emit_declared_symbol(
+            scope,
+            &name,
+            SymbolRole::Definition,
+            span,
+            spelling::documentation(&item.attrs),
+            Some(declaration),
+        );
         let nested = nested_scope(scope, &name);
         for (index, field) in item.fields.iter().enumerate() {
             let field_name = field
@@ -1607,7 +1659,7 @@ impl<'a> ExtractionContext<'a> {
                 .map(ToString::to_string)
                 .unwrap_or_else(|| index.to_string());
             let field_span = self.span_of(field);
-            self.emit_symbol(&nested, &field_name, SymbolRole::Definition, field_span);
+            self.emit_field_symbol(&nested, &field_name, field, field_span);
             let type_name = spelling::type_spelling(&field.ty);
             let type_span = self.span_of(&field.ty);
             self.emit_type_identity(&nested, &type_name, Some(type_span));
@@ -1617,12 +1669,38 @@ impl<'a> ExtractionContext<'a> {
     fn handle_enum(&mut self, item: &syn::ItemEnum, scope: &SemanticScope) {
         let span = self.span_of(item);
         let name = item.ident.to_string();
-        self.emit_symbol(scope, &name, SymbolRole::Definition, span);
+        let declaration = spelling::declaration(
+            atlas_core::DeclaredItem::Enum,
+            Some(&item.vis),
+            &item.attrs,
+            None,
+        );
+        self.emit_declared_symbol(
+            scope,
+            &name,
+            SymbolRole::Definition,
+            span,
+            spelling::documentation(&item.attrs),
+            Some(declaration),
+        );
         let nested = nested_scope(scope, &name);
         for variant in &item.variants {
             let variant_span = self.span_of(variant);
             let variant_name = variant.ident.to_string();
-            self.emit_symbol(&nested, &variant_name, SymbolRole::Definition, variant_span);
+            let declaration = spelling::declaration(
+                atlas_core::DeclaredItem::Variant,
+                None,
+                &variant.attrs,
+                Some(spelling::field_shape(&variant.fields)),
+            );
+            self.emit_declared_symbol(
+                &nested,
+                &variant_name,
+                SymbolRole::Definition,
+                variant_span,
+                spelling::documentation(&variant.attrs),
+                Some(declaration),
+            );
             // Fields are scoped under the variant, not the enum itself: unlike a struct (one
             // field namespace per declaration), two variants of the same enum can each declare a
             // field with the same name (e.g. `Active { id: u64 }` / `Inactive { id: u64 }`), and
@@ -1635,12 +1713,7 @@ impl<'a> ExtractionContext<'a> {
                     .map(ToString::to_string)
                     .unwrap_or_else(|| index.to_string());
                 let field_span = self.span_of(field);
-                self.emit_symbol(
-                    &variant_scope,
-                    &field_name,
-                    SymbolRole::Definition,
-                    field_span,
-                );
+                self.emit_field_symbol(&variant_scope, &field_name, field, field_span);
                 let type_name = spelling::type_spelling(&field.ty);
                 let type_span = self.span_of(&field.ty);
                 self.emit_type_identity(&nested, &type_name, Some(type_span));

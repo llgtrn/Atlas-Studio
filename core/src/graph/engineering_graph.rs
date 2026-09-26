@@ -2085,6 +2085,7 @@ mod tests {
             name: "known".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         crate::semantic::SemanticObservation::Symbol(SemanticRecordHeader {
@@ -2137,6 +2138,7 @@ mod tests {
                 name: "get".into(),
                 role: SymbolRole::Definition,
                 documentation: None,
+                declaration: None,
             },
             span: crate::language::adl::SourceSpan {
                 path: "src/lib.rs".into(),
@@ -2916,6 +2918,7 @@ mod tests {
                 name: "helper".into(),
                 role: SymbolRole::Definition,
                 documentation: None,
+                declaration: None,
             },
             span: crate::language::adl::SourceSpan {
                 path: "src/lib.rs".into(),
@@ -3011,6 +3014,7 @@ mod tests {
                 name: "helper".into(),
                 role: SymbolRole::Definition,
                 documentation: None,
+                declaration: None,
             },
             span: crate::language::adl::SourceSpan {
                 path: "src/lib.rs".into(),

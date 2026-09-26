@@ -252,6 +252,7 @@ mod signature {
                     name: name.into(),
                     role: SymbolRole::Definition,
                     documentation: None,
+                    declaration: None,
                 },
                 span: SourceSpan {
                     path: path.into(),

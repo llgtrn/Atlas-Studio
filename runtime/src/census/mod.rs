@@ -832,6 +832,7 @@ mod tests {
             name: "known".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         let evidence_id = EvidenceId::new("evidence:known-symbol".to_owned());
@@ -1092,6 +1093,7 @@ mod tests {
             name: "known".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());
@@ -1173,6 +1175,7 @@ mod tests {
                 name: "get".into(),
                 role: SymbolRole::Definition,
                 documentation: None,
+                declaration: None,
             },
             span: atlas_core::SourceSpan {
                 path: artifact_path.into(),

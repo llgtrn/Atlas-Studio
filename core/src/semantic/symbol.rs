@@ -47,6 +47,45 @@ pub struct SymbolIdentity {
     /// current module from inside its file.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub documentation: Option<Documentation>,
+    /// G153 (ADR 0069): the declared shape of a type, variant or field definition, as its author
+    /// wrote it. DECLARED, and never part of its identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declaration: Option<Declaration>,
+}
+
+crate::vocabulary_enum! {
+    /// What kind of item a definition is.
+    pub enum DeclaredItem {
+        Enum => "ENUM",
+        Struct => "STRUCT",
+        Union => "UNION",
+        Variant => "VARIANT",
+        Field => "FIELD",
+    }
+}
+
+crate::vocabulary_enum! {
+    /// How a struct or variant carries its fields.
+    pub enum FieldShape {
+        Unit => "UNIT",
+        Tuple => "TUPLE",
+        Named => "NAMED",
+    }
+}
+
+/// G153 (ADR 0069): what a construction backend needs to rebuild a declaration and the census
+/// did not carry before: the item kind, its visibility, derived capabilities and attributes, and
+/// the shape of its fields. Attributes are spelled as written, minus documentation and derives.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Declaration {
+    pub item: DeclaredItem,
+    pub visibility: String,
+    /// Derive paths in declaration order.
+    pub derives: Vec<String>,
+    /// Outer attributes other than `doc` and `derive`, in declaration order.
+    pub attributes: Vec<String>,
+    /// For a struct or variant; `None` for an enum or a field.
+    pub shape: Option<FieldShape>,
 }
 
 /// Rustdoc's summary of a doc comment (its first paragraph, lines joined by one space) and how
@@ -102,6 +141,7 @@ mod tests {
             name: "report".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         assert_ne!(
             symbol("core/src/visual/mod.rs").identity_key(),
@@ -125,6 +165,7 @@ mod tests {
             name: "run".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let b = SymbolIdentity {
             scope: SemanticScope::new(["core", "engine"]),
@@ -143,6 +184,7 @@ mod tests {
             name: "run".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let b = SymbolIdentity {
             role: SymbolRole::Reference,
@@ -161,6 +203,7 @@ mod tests {
             name: "run".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let b = a.clone();
         assert_eq!(a.identity_key(), b.identity_key());

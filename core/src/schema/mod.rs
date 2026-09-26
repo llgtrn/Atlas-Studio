@@ -557,6 +557,7 @@ mod tests {
             name: "known".into(),
             role: SymbolRole::Definition,
             documentation: None,
+            declaration: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
         SemanticObservation::Symbol(SemanticRecordHeader {

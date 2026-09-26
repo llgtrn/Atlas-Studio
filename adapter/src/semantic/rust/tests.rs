@@ -7467,3 +7467,73 @@ fn g146_data_flow_uses_carry_the_field_chain_they_read() {
         ]
     );
 }
+
+/// G153 (ADR 0069): a type, variant and field definition carries its declared shape -- item kind,
+/// visibility, derives, other attributes and field shape -- and the shape never changes its
+/// identity: the record id is the same with or without it.
+#[test]
+fn a_declaration_is_recorded_on_definitions_and_never_changes_their_identity() {
+    let batch = extract_all(
+        "src/lib.rs",
+        "/// Kinds.\n#[derive(Debug, Clone)]\n#[repr(u8)]\npub(crate) enum E {\n    /// First.\n    #[default]\n    A,\n    B(u8),\n    C { x: u8 },\n}\n\npub struct S(pub u8);\n",
+    );
+    let e = find_symbol(&batch, &[], "E").unwrap();
+    let declared = e.declaration.as_ref().unwrap();
+    assert_eq!(declared.item, atlas_core::DeclaredItem::Enum);
+    assert_eq!(declared.visibility, "pub(crate)");
+    assert_eq!(declared.derives, ["Debug", "Clone"]);
+    assert_eq!(declared.attributes, ["repr(u8)"]);
+    assert_eq!(declared.shape, None);
+    assert_eq!(e.documentation.as_ref().unwrap().summary, "Kinds.");
+    let shape = |name: &str| {
+        let variant = find_symbol(&batch, &["E"], name).unwrap();
+        let d = variant.declaration.as_ref().unwrap();
+        assert_eq!(d.item, atlas_core::DeclaredItem::Variant);
+        (d.shape, d.attributes.clone())
+    };
+    assert_eq!(
+        shape("A"),
+        (
+            Some(atlas_core::FieldShape::Unit),
+            vec!["default".to_string()]
+        )
+    );
+    assert_eq!(shape("B").0, Some(atlas_core::FieldShape::Tuple));
+    assert_eq!(shape("C").0, Some(atlas_core::FieldShape::Named));
+    assert_eq!(
+        find_symbol(&batch, &["E"], "A")
+            .unwrap()
+            .documentation
+            .as_ref()
+            .unwrap()
+            .summary,
+        "First."
+    );
+    let x = find_symbol(&batch, &["E", "C"], "x").unwrap();
+    assert_eq!(
+        x.declaration.as_ref().unwrap().item,
+        atlas_core::DeclaredItem::Field
+    );
+    let s = find_symbol(&batch, &[], "S")
+        .unwrap()
+        .declaration
+        .as_ref()
+        .unwrap();
+    assert_eq!(
+        (s.item, s.shape),
+        (
+            atlas_core::DeclaredItem::Struct,
+            Some(atlas_core::FieldShape::Tuple)
+        )
+    );
+    let field = find_symbol(&batch, &["S"], "0")
+        .unwrap()
+        .declaration
+        .as_ref()
+        .unwrap();
+    assert_eq!(field.visibility, "pub");
+    let mut bare = e.clone();
+    bare.declaration = None;
+    bare.documentation = None;
+    assert_eq!(bare.identity_key(), e.identity_key());
+}

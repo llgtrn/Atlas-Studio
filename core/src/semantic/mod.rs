@@ -40,7 +40,9 @@ pub use persistence::{
 };
 pub use place::PlaceRef;
 pub use state::{StateAccessIdentity, StateAccessKind, StateResolution};
-pub use symbol::{Documentation, SymbolIdentity, SymbolRole};
+pub use symbol::{
+    Declaration, DeclaredItem, Documentation, FieldShape, SymbolIdentity, SymbolRole,
+};
 pub use types::TypeIdentity;
 
 use crate::identity::{EvidenceId, RepositoryId, stable_id};
@@ -272,6 +274,7 @@ mod tests {
                 name: "run".into(),
                 role: SymbolRole::Definition,
                 documentation: None,
+                declaration: None,
             },
             scope: SemanticScope::new(["core", "lib"]),
             repository: RepositoryId::new("atlas-studio"),
