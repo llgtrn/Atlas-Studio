@@ -13,7 +13,9 @@
 //! - **Specifiers** ([`resolve_specifier`]): a relative specifier names a file by the first
 //!   existing candidate in a fixed order (the path itself, `.js` spelled for a `.ts` source, the
 //!   script extensions, then `index` files); a bare specifier names a workspace package only when
-//!   an inventoried `package.json` declares exactly that `name` and a `source` entry that exists.
+//!   an inventoried `package.json` declares exactly that `name` and a `source` entry that exists,
+//!   or (G160) compiled entries its sibling `tsconfig.json` maps back to one source through the
+//!   declared `outDir` -> `rootDir`.
 //!   Anything else -- a registry package, a subpath, a non-script file -- is outside.
 //! - **Bindings** ([`resolve_imports`]): an imported name follows exports, re-exports and star
 //!   exports to the module-level function that defines it. Two star exports providing the same
@@ -257,20 +259,94 @@ fn join(dir: &str, relative: &str) -> Option<String> {
 
 const SCRIPT_EXTENSIONS: [&str; 8] = ["ts", "tsx", "js", "jsx", "mts", "mjs", "cts", "cjs"];
 
-/// The workspace packages among inventoried `package.json` files, given as (manifest path,
-/// declared `name`, declared `source` entry): package name -> entry file. A name declared by two
-/// manifests names nothing.
-pub fn workspace_packages(declared: &[(String, String, String)]) -> BTreeMap<String, String> {
-    let mut by_name: BTreeMap<&str, Vec<String>> = BTreeMap::new();
-    for (path, name, source) in declared {
-        if let Some(entry) = join(dir_of(path), source) {
-            by_name.entry(name).or_default().push(entry);
-        }
+/// What one inventoried `package.json` and the `tsconfig.json` beside it declare about the
+/// package's entry (G158 `source`; G160 compiled outputs mapped back through the compiler's
+/// declared `outDir` -> `rootDir`).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct PackageDeclaration {
+    /// The manifest's repository-relative path.
+    pub manifest: String,
+    pub name: String,
+    /// The `source` field, when declared.
+    pub source: Option<String>,
+    /// The compiled entries the manifest declares (`types`, `module`, `main`, the `.` export).
+    pub outputs: Vec<String>,
+    /// `compilerOptions.rootDir` and `outDir` of the sibling `tsconfig.json`, when declared.
+    pub root_dir: Option<String>,
+    pub out_dir: Option<String>,
+}
+
+/// The source extensions a compiled entry's extension is emitted from.
+fn emitted_from(output: &str) -> Option<(&str, &'static [&'static str])> {
+    [
+        (".d.ts", &["ts", "tsx"][..]),
+        (".d.mts", &["mts"][..]),
+        (".d.cts", &["cts"][..]),
+        (".js", &["ts", "tsx"][..]),
+        (".mjs", &["mts"][..]),
+        (".cjs", &["cts"][..]),
+    ]
+    .into_iter()
+    .find_map(|(extension, sources)| output.strip_suffix(extension).map(|stem| (stem, sources)))
+}
+
+fn trimmed(path: &str) -> &str {
+    path.trim_start_matches("./").trim_end_matches('/')
+}
+
+/// The source file a package's entry is: its declared `source`, or (G160) the one existing file
+/// every compiled entry under the declared `outDir` is emitted from, found under the declared
+/// `rootDir`. Nothing is guessed: without both directories, or when the entries disagree, the
+/// package has no entry.
+pub fn package_entry(declaration: &PackageDeclaration, files: &BTreeSet<String>) -> Option<String> {
+    let dir = dir_of(&declaration.manifest);
+    if let Some(source) = &declaration.source {
+        return join(dir, source);
+    }
+    let (root, out) = (
+        trimmed(declaration.root_dir.as_deref()?),
+        trimmed(declaration.out_dir.as_deref()?),
+    );
+    let mut entries = BTreeSet::new();
+    for output in &declaration.outputs {
+        let Some(rest) = trimmed(output)
+            .strip_prefix(out)
+            .and_then(|r| r.strip_prefix('/'))
+        else {
+            continue;
+        };
+        let Some((stem, sources)) = emitted_from(rest) else {
+            continue;
+        };
+        let found = sources.iter().find_map(|extension| {
+            let candidate = join(dir, &format!("{root}/{stem}.{extension}"))?;
+            files.contains(&candidate).then_some(candidate)
+        });
+        entries.insert(found?);
+    }
+    match entries.len() {
+        1 => entries.into_iter().next(),
+        _ => None,
+    }
+}
+
+/// The workspace packages among inventoried manifests: package name -> entry file. A name
+/// declared by two manifests names nothing.
+pub fn workspace_packages(
+    declarations: &[PackageDeclaration],
+    files: &BTreeSet<String>,
+) -> BTreeMap<String, String> {
+    let mut by_name: BTreeMap<&str, Vec<Option<String>>> = BTreeMap::new();
+    for declaration in declarations {
+        by_name
+            .entry(&declaration.name)
+            .or_default()
+            .push(package_entry(declaration, files));
     }
     by_name
         .into_iter()
         .filter_map(|(name, entries)| match entries.as_slice() {
-            [entry] => Some((name.to_owned(), entry.clone())),
+            [Some(entry)] => Some((name.to_owned(), entry.clone())),
             _ => None,
         })
         .collect()

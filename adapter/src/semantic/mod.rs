@@ -28,6 +28,6 @@ pub use rust::resolve::{
 };
 pub use typescript::TypeScriptSemanticExtractor;
 pub use typescript::modules::{
-    ImportBinding, ModuleFacts, module_facts, resolve_imports, resolve_specifier,
-    workspace_packages,
+    ImportBinding, ModuleFacts, PackageDeclaration, module_facts, package_entry, resolve_imports,
+    resolve_specifier, workspace_packages,
 };

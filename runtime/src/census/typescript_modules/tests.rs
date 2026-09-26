@@ -53,7 +53,23 @@ fn imported_callees_resolve_across_files_and_workspace_packages() {
         ),
         (
             "packages/react/src/Edge.tsx",
-            "import { getPath } from '@x/system';\nimport { memo } from 'react';\nimport * as sys from '@x/system';\nexport const Edge = memo(() => {\n  const p = getPath(1);\n  sys.getPath(2);\n  return p;\n});\n",
+            "import { getPath } from '@x/system';\nimport { memo } from 'react';\nimport * as sys from '@x/system';\nexport const Edge = memo(() => {\n  const p = getPath(1);\n  sys.getPath(2);\n  return p;\n});\nimport { score } from '@x/shared';\nexport function rate() {\n  return score();\n}\n",
+            "typescript",
+        ),
+        // G160: a package declaring only compiled entries, mapped back through its tsconfig.
+        (
+            "packages/shared/package.json",
+            "{ \"name\": \"@x/shared\", \"main\": \"dist/index.js\", \"types\": \"dist/index.d.ts\", \"exports\": { \".\": { \"types\": \"./dist/index.d.ts\", \"default\": \"./dist/index.js\" }, \"./helpers\": \"./dist/helpers.js\" } }",
+            "json",
+        ),
+        (
+            "packages/shared/tsconfig.json",
+            "{\n  // emitted to dist\n  \"compilerOptions\": {\n    \"rootDir\": \"src\", /* sources */\n    \"outDir\": \"dist\",\n  },\n}\n",
+            "json",
+        ),
+        (
+            "packages/shared/src/index.ts",
+            "export function score() {\n  return 1;\n}\n",
             "typescript",
         ),
         (
@@ -89,17 +105,19 @@ fn imported_callees_resolve_across_files_and_workspace_packages() {
         assert_eq!(resource.status, EpistemicStatus::Unsupported);
     }
     let linked = resolve_typescript_modules(&inventory, &batches);
-    assert_eq!(linked.len(), 5, "one batch per TypeScript artifact");
-    let definition = batches
-        .iter()
-        .flat_map(|b| &b.observations)
-        .find_map(|o| match o {
-            SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == "getPath" => {
-                Some(h.record_id.clone())
-            }
-            _ => None,
-        })
-        .unwrap();
+    assert_eq!(linked.len(), 6, "one batch per TypeScript artifact");
+    let definition_of = |name: &str| {
+        batches
+            .iter()
+            .flat_map(|b| &b.observations)
+            .find_map(|o| match o {
+                SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == name => {
+                    Some(h.record_id.clone())
+                }
+                _ => None,
+            })
+            .unwrap()
+    };
     let resolved: Vec<(String, usize, String)> = linked
         .iter()
         .flat_map(|b| &b.observations)
@@ -108,7 +126,8 @@ fn imported_callees_resolve_across_files_and_workspace_packages() {
                 assert_eq!(h.status, EpistemicStatus::Derived);
                 assert_eq!(h.extractor.id, TYPESCRIPT_MODULE_RESOLUTION_ID);
                 assert_eq!(h.subject.dispatch, CallDispatchKind::StaticResolved);
-                assert_eq!(h.subject.callees, std::slice::from_ref(&definition));
+                let spelling = h.subject.callee_spelling.clone().unwrap();
+                assert_eq!(h.subject.callees, [definition_of(&spelling)]);
                 Some((
                     h.subject.span.path.clone(),
                     h.subject.span.line,
@@ -120,11 +139,18 @@ fn imported_callees_resolve_across_files_and_workspace_packages() {
         .collect();
     assert_eq!(
         resolved,
-        [(
-            "packages/react/src/Edge.tsx".to_owned(),
-            5,
-            "getPath".to_owned()
-        )],
+        [
+            (
+                "packages/react/src/Edge.tsx".to_owned(),
+                5,
+                "getPath".to_owned()
+            ),
+            (
+                "packages/react/src/Edge.tsx".to_owned(),
+                11,
+                "score".to_owned()
+            ),
+        ],
         "the namespace member call and the call of a parameter named like the import stay unresolved"
     );
     // The claim observed is the syntactic extractor's own record.

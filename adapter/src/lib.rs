@@ -14,10 +14,11 @@ pub use semantic::rust::RUST_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::typescript::TYPESCRIPT_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::{
     CrateInput, DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, FnTarget,
-    ImportBinding, ModuleFacts, ObligationResult, PathCallOutcome, PathCallResolution,
-    ReleaseResolution, SemanticExtractor, StaticUnsupportedExtractor, WorkspaceResolution,
-    extractors_for_language, join_path, module_facts, resolve_imports, resolve_path_calls,
-    resolve_specifier, resolve_workspace, semantic_extractors, workspace_packages,
+    ImportBinding, ModuleFacts, ObligationResult, PackageDeclaration, PathCallOutcome,
+    PathCallResolution, ReleaseResolution, SemanticExtractor, StaticUnsupportedExtractor,
+    WorkspaceResolution, extractors_for_language, join_path, module_facts, resolve_imports,
+    resolve_path_calls, resolve_specifier, resolve_workspace, semantic_extractors,
+    workspace_packages,
 };
 pub use source::{
     IncludedFragment, SourceFrontend, SourceFrontendMatch, inventory_declared_source,
