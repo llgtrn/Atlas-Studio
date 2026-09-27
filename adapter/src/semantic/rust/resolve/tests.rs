@@ -1271,3 +1271,38 @@ fn a_bounded_macro_name_and_the_first_open_cause_are_reported() {
         )]
     );
 }
+
+/// G170 (replay R11): a glob import is judged against settled scopes, so a glob whose prefix a
+/// named import binds reads that prefix's names instead of opening its module for good: an enum's
+/// variants through the parent's import, and a module renamed by an import in the same module. A
+/// glob whose prefix never resolves still opens its scope.
+#[test]
+fn a_glob_through_a_named_import_reads_settled_scopes() {
+    let lib = "mod expectation;\nmod helpers {\n    pub fn assist() {}\n}\nuse crate::expectation::Expectation;\n";
+    let expectation = "use super::Expectation::*;\nuse super::helpers as tools;\nuse tools::*;\npub(crate) enum Expectation<'a> {\n    NoExpectation,\n    ExpectHasType(&'a u8),\n}\nfn t() {\n    ExpectHasType(&1);\n    assist();\n    elsewhere();\n}\nmod unresolved {\n    use super::Missing::*;\n    fn t() {\n        anything();\n    }\n}\n";
+    let workspace = resolve_workspace(
+        &one_crate("src/lib.rs"),
+        &sources(&[("src/lib.rs", lib), ("src/expectation.rs", expectation)]),
+    );
+    assert_eq!(
+        outcomes(&workspace.calls, "src/expectation.rs"),
+        [
+            ("ExpectHasType".into(), "unresolved:constructor".into()),
+            ("assist".into(), "src/lib.rs:3:assist".into()),
+            ("elsewhere".into(), "unresolved:external".into()),
+            ("anything".into(), "unresolved:open-scope".into()),
+        ]
+    );
+    let causes: Vec<(&str, &str)> = workspace
+        .withheld
+        .iter()
+        .map(|w| (w.callee.as_str(), w.cause.as_str()))
+        .collect();
+    assert_eq!(
+        causes,
+        [(
+            "anything",
+            "glob import `super::Missing::*` does not resolve"
+        )]
+    );
+}

@@ -1860,7 +1860,16 @@ impl DefMap {
                         self.modules[id].shadow = shadow;
                     }
                 }
-                if let Some(cause) = opened[id].take()
+            }
+            // G170 (replay R11): opening is permanent, so an import's cause is taken only from a
+            // round computed on settled scopes. An earlier round can miss a name a named import
+            // binds later (`use super::Enum::*` through the parent's `use crate::m::Enum`), and
+            // opening then would withhold every glob-provided name for good.
+            if changed {
+                continue;
+            }
+            for (id, cause) in opened.into_iter().enumerate() {
+                if let Some(cause) = cause
                     && !self.modules[id].open
                 {
                     changed = true;
