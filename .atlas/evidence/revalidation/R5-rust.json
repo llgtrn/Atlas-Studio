@@ -1,0 +1,99 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R5",
+ "generation": "G170",
+ "donor": "rust",
+ "historical_decision": {
+  "generation": "G73",
+  "terminal_state": "EXTERNAL_BOUNDARY",
+  "detail": "rustc_resolve / rustc_hir_typeck / borrow-checker internals REFERENCE_ONLY behind the ORACLE boundary (far too large to absorb; the oracle exposes their results); revalidated at G121 (R1) for a corrected reason: the resolution core is bounded but its implementation is inseparable from rustc's type inference",
+  "evidence": ".atlas/evidence/campaign/14-rust.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED (since G150), rank 1 after rust-analyzer's R4",
+  "reason": "its decision depended on DEBT-CALL and DEBT-TYPE, advanced since R1 by typed local methods, trait-bound dispatch, signature-typed lets and guarded autoref, field and call-result receivers, bounded item-macro names, applied-type impl shapes, import-cycle convergence, Cargo-true and coherence bindings, and (this generation) import opening judged on settled scopes"
+ },
+ "question": "with every Rust capability gained since R1, how much of rustc's method-resolution module does Atlas now resolve on the exact source that decided G73 -- and does the EXTERNAL_BOUNDARY verdict hold?",
+ "materialization": {
+  "pinned_commit": "d287eb7a292caa8abbe12051dce2ee707fe03200",
+  "remote": "https://github.com/rust-lang/rust.git",
+  "mode": "SPARSE_SHALLOW",
+  "path": ".atlas/.cache/donors/rust-d287eb7a",
+  "note": "the exact G73 pin (2026-09-20), re-materialized after replay R11's fresh pin was deleted: partial clone --depth 1 --filter=blob:none, sparse cone compiler/rustc_hir_typeck; 62,950 tracked files and 39 rs sources in the crate, as in R1; MIT OR Apache-2.0 at the pin"
+ },
+ "engines": {
+  "historical": "Atlas E17, the G169 tree (ff1968ec65), before this generation's change",
+  "current": "Atlas E18, the G170 tree (import opening on settled scopes, ADR 0084)",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over compiler/rustc_hir_typeck at the pin",
+  "historical_records": {
+   "CALL": 16740,
+   "CONTROL_FLOW": 7783,
+   "DATA_FLOW": 37612,
+   "EFFECT": 148,
+   "FUNCTION_IDENTITY": 1995,
+   "FUNCTION_SIGNATURE": 1042,
+   "OWNERSHIP": 10067,
+   "STATE": 1223,
+   "SYMBOL": 3175,
+   "TYPE": 2560
+  },
+  "current_records": {
+   "CALL": 16740,
+   "CONTROL_FLOW": 7783,
+   "DATA_FLOW": 37612,
+   "EFFECT": 148,
+   "FUNCTION_IDENTITY": 1995,
+   "FUNCTION_SIGNATURE": 1042,
+   "OWNERSHIP": 10067,
+   "STATE": 1223,
+   "SYMBOL": 3175,
+   "TYPE": 2560
+  },
+  "historical_total": 82345,
+  "current_total": 82345,
+  "mechanism_slices": {
+   "compiler/rustc_hir_typeck/src/method (method resolution, REFERENCE_ONLY)": {
+    "functions": 438,
+    "E17_resolved_callee_edges": 201,
+    "E17_unresolved": 2750,
+    "E18_resolved_callee_edges": 201,
+    "E18_unresolved": 2750
+   }
+  },
+  "crate": {
+   "E17": {
+    "functions": 1995,
+    "invokes": 1609,
+    "open_scope_components": 13,
+    "withheld_path_calls": 510
+   },
+   "E18": {
+    "functions": 1995,
+    "invokes": 1609,
+    "open_scope_components": 12,
+    "withheld_path_calls": 501
+   }
+  }
+ },
+ "mechanism_through_atlas": "at the G73 pin Atlas resolves 201 callee edges out of rustc's method module against 2,750 call sites it leaves unresolved, identically at E17 and E18; E18 lifts one false open scope (expectation.rs, 9 constructor calls); the residual is method calls on receivers whose types come from rustc's type inference or from the rustc_* crates outside the crate -- the part G73 left to the oracle; precision on this crate is measured by replay R11 at the fresh pin against rust-analyzer's SCIP index (1,566 of 1,566 function-level call edges confirmed at E17 and E18)",
+ "semantic_delta": [
+  "SETTLED_IMPORT_OPENING"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: method resolution stays EXTERNAL_BOUNDARY (REFERENCE_ONLY behind the oracle) -- on the exact G73 source 2,750 call sites in the method module stay unresolved at E18, while every call edge Atlas does claim on this crate is confirmed by the oracle (R11); the one falsification the replay found, a module opened before its imports settled, is fixed in E18",
+ "follow_up": "NA-CALL-TYPE-RESIDUAL",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G170 REVALIDATED at E18"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/rust-d287eb7a (from the repository root)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and replay R11",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

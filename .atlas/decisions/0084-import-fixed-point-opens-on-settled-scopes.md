@@ -32,4 +32,5 @@ The same happens to `use tools::*` after `use super::helpers as tools;` in the s
 - **Falsification:** a regression test covers an enum's variants through the parent's named import, a module renamed by an import in the same module, and a glob that never resolves. 2 mutants were killed:
   - causes applied every round, the E17 behaviour, which fails the new test;
   - causes never applied, which fails 4 existing open-scope tests.
+- **On Atlas itself:** measured with the E17 and E18 binaries over the same tree. Two test modules were open only because of round order (`core/src/census/delta.rs`, `core/src/language/adl/mod.rs`), and E18 lifts both. INVOKES rise 5,090 → 5,093; the 3 new edges were each read against the source, and no edge is lost. The G170 self-recensus is PROVEN.
 - **Capability epoch E18.** The processed replays' triggers name receiver typing, macro-expanded items, dispatch and resource shapes, not import-order opening, so every verdict stays CURRENT.

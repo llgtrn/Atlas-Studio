@@ -1,0 +1,42 @@
+{
+  "objective": "FULL_OSS_REPLAY R11 rust-lang/rust: a glob import opens its module only against settled scopes (capability epoch E18, ADR 0084); every call edge Atlas claims on rustc_hir_typeck confirmed by rust-analyzer's index",
+  "changed_paths": [
+    "adapter/src/semantic/rust/resolve.rs",
+    "adapter/src/semantic/rust/resolve/tests.rs",
+    "core/src/census/delta.rs",
+    "core/src/language/adl/mod.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:ENCLOSES",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "-diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+    "CREATED adapter semantic/rust/resolve/tests/a_glob_through_a_named_import_reads_settled_scopes()."
+  ],
+  "adl_changes": [],
+  "dependency_changes": []
+}

@@ -1,0 +1,167 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G170",
+  "base_revision": "ff1968ec652e287f022017cfda12fa22950973ae",
+  "candidate_revision": "eb43fa15913c5a12d1832e537c9dcb852535c707",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:ee1f0434106459f0a3ea1820ffcede7e00a8b6b97a8ae9c5ac6de082a8988ca7",
+  "after_census_digest": "blake3-256:af8df6709ba1120a70bfc785e56960da0e51742014e6020db1cff3a0709039ee",
+  "replay_digest": "blake3-256:af8df6709ba1120a70bfc785e56960da0e51742014e6020db1cff3a0709039ee",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/census/delta.rs",
+      "core/src/language/adl/mod.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 2,
+      "fact:FunctionSignature|OBSERVED": 1,
+      "fact:Symbol|OBSERVED": 2,
+      "record:CALL|DERIVED": 7,
+      "record:CALL|OBSERVED": 18,
+      "record:CONTROL_FLOW|INFERRED": 2,
+      "record:CONTROL_FLOW|OBSERVED": 4,
+      "record:DATA_FLOW|OBSERVED": 19,
+      "record:EFFECT|INFERRED": 2,
+      "record:FUNCTION_IDENTITY|OBSERVED": 2,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 1,
+      "record:OWNERSHIP|OBSERVED": 6,
+      "record:SYMBOL|OBSERVED": 2
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 84,
+    "graph_nodes": 67
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_glob_through_a_named_import_reads_settled_scopes()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2241,
+    "total_after": 2241
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R11 rust-lang/rust: a glob import opens its module only against settled scopes (capability epoch E18, ADR 0084); every call edge Atlas claims on rustc_hir_typeck confirmed by rust-analyzer's index",
+    "changed_paths": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/census/delta.rs",
+      "core/src/language/adl/mod.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "-diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+      "CREATED adapter semantic/rust/resolve/tests/a_glob_through_a_named_import_reads_settled_scopes()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path core/src/census/delta.rs",
+    "path core/src/language/adl/mod.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total -diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_glob_through_a_named_import_reads_settled_scopes()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

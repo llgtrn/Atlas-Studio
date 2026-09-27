@@ -1,0 +1,218 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R11",
+ "generation": "G170",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "rust-lang/rust",
+  "remote": "https://github.com/rust-lang/rust.git",
+  "pin": "75a75c3e0a67d3fa3d03982775f5bb0356e7b510",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-26, 'Auto merge of #163386'); the G73 pin d287eb7a292c is history, revalidated separately at that exact pin (revalidation R5)",
+  "license": "MIT OR Apache-2.0 (LICENSE-MIT, LICENSE-APACHE and COPYRIGHT at the pin: 'The Rust Project is dual-licensed under Apache 2.0 and MIT terms')",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle; nothing of rustc's source is in Atlas)",
+  "selection": "rank 1 of RECURSIVE-DONOR-REVALIDATION once rust-analyzer was REVALIDATED at G168 (REVALIDATION_REQUIRED since G150: its G73 EXTERNAL_BOUNDARY verdict and the G121 R1 revalidation rested on DEBT-CALL and DEBT-TYPE, advanced since by typed receivers, trait-bound dispatch, fields, generic-trait refusal and Cargo-true bindings); the compiler whose method resolution Atlas keeps REFERENCE_ONLY faces the strongest Atlas (E17)",
+  "dependency_class": "MECHANISM_INTERNAL (one crate of the compiler workspace; its 30-odd rustc_* dependencies are not materialized, so every path into them is external to this census and to the oracle alike)",
+  "materialization": "partial clone --depth 1 --filter=blob:none, sparse cone compiler/rustc_hir_typeck plus root files, at .atlas/.cache/donors/rust (63,223 tracked files, 39 rs sources in the crate, 15 MB on disk) -- the dependency-relevant scope of R1"
+ },
+ "epochs": {
+  "before": "E17",
+  "after": "E18 (G170: a glob import opens its module only for a cause found in a round of the import fixed point computed on settled scopes, ADR 0084)"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence at both epochs; E18 changes which modules are open, not the ladder"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (1,992 functions, under 5 s)",
+   "agent trace --from compiler/rustc_hir_typeck/src/method/mod.rs --to compiler/rustc_hir_typeck/src/method/probe.rs",
+   "component withheld notes for expr.rs, lib.rs, expectation.rs, fn_ctxt/arg_matrix.rs",
+   "census CALL records at unresolved self-call sites (arg_matrix.rs:336, probe.rs:1082, writeback.rs:576)"
+  ],
+  "atlas_knew": {
+   "functions": 1992,
+   "call_records": 16738,
+   "invokes": 1607,
+   "supplies_data": 1610,
+   "dispatches_to": 39,
+   "state_flow": 35,
+   "encloses": 951,
+   "unresolved_call_sites": 12790,
+   "open_scope_components": 13,
+   "withheld_path_calls": 511
+  },
+  "challenge": "how does method lookup (method/mod.rs) reach the method probe (method/probe.rs) -- which path does Atlas observe, and is every step a call the compiler makes?",
+  "answer": "E17 and E18 alike: PATH_OBSERVED, DERIVED, one step -- FnCtxt::lookup_probe_for_diagnostic (mod.rs:300) INVOKES FnCtxt::probe_for_name (probe.rs:334); the oracle confirms it and the three other mod.rs -> probe_for_name edges Atlas holds (method_exists_for_diagnostic, lookup_probe, resolve_fully_qualified_call); the one mod.rs -> probe.rs edge Atlas lacks, lookup_method -> Pick::differs_from, is a method call on a let-bound Pick that Atlas reports unresolved by name"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 (1159e78 2025-09-14) scip over a scratch copy of the crate described by a rust-project.json (sysroot of the pinned 1.90.0 toolchain, edition 2024, display_name and version so that symbols are global, no dependencies): 39 documents, 2.2 s, 1.4 MB index; compared at function level -- a SCIP reference to a crate function spelled as a call, owned by the innermost fn item containing it (1,041 fn items from a syn 2.0.117 parse in a scratch tool, no parse failure), against Atlas INVOKES with closures rolled up to their fn item; an Atlas function is mapped to the fn item whose name line lies within 80 lines of its start (its doc comment)",
+  "summary": {
+   "N": {
+    "atlas_edges": 1566,
+    "oracle_edges": 1877,
+    "agree": 1566,
+    "atlas_only": 0,
+    "oracle_only": 311,
+    "precision": 1.0,
+    "recall": 0.8343,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 309,
+     "ATLAS_SILENT": 2
+    }
+   },
+   "N_plus_1": {
+    "atlas_edges": 1566,
+    "oracle_edges": 1877,
+    "agree": 1566,
+    "atlas_only": 0,
+    "oracle_only": 311,
+    "precision": 1.0,
+    "recall": 0.8343,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 309,
+     "ATLAS_SILENT": 2
+    }
+   }
+  },
+  "mapping_note": "a first join with a 12-line doc window left 42 Atlas edges unmapped and 44 oracle edges silent, all of them functions under long doc comments; the 80-line window maps all but 3 Atlas edges into has_significant_drop_outside_of_captures (upvar.rs), whose doc comment runs 95 lines -- the 2 oracle edges reported silent are exactly two of those 3",
+  "classifications": [
+   {
+    "class": "DONOR_CORRECT",
+    "n": 9,
+    "what": "path calls in expectation.rs withheld at E17 because 'glob import super::Expectation::* does not resolve'; the oracle binds every such name to expectation/Expectation#<Variant># -- the glob resolves through the crate root's named import of the enum, which the import fixed point had not applied in the round that opened the module for good",
+    "fixed_in": "E18 (all 9 now reported as constructor calls, not open-scope)"
+   },
+   {
+    "class": "ATLAS_CORRECT (differential mapping)",
+    "n": 2,
+    "what": "compute_2229_migrations_for_drop -> has_significant_drop_outside_of_captures and its recursive call: Atlas holds both edges; the callee's 95-line doc comment defeats the attribution window"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n": 309,
+    "what": "oracle call edges Atlas reports unresolved by callee name, by receiver: 121 on a local or parameter, 87 on a field of self (self.fcx, self.cx), 61 on self, 38 on a call result or a deref, 3 on a longer chain, 1 path; sampled causes -- the method probe's autoref step refused behind unseen external imports in scope (self.eliminate_satisfied from a by-value self, self.has_applicable_self from &mut self; the G167 external-declaration boundary), receivers whose types live in the unmaterialized rustc_* crates (TyCtxt, InferCtxt), and modules opened by external globs (rustc_errors::codes::*) or dependency item macros (rustc_index::newtype_index!)"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n": 0,
+    "what": "none once the two mapping artifacts are attributed"
+   }
+  ],
+  "cases": [
+   {
+    "question": "does use super::Expectation::* resolve?",
+    "ground_truth": "yes: Expectation is an enum defined in expectation.rs and imported into the crate root by use crate::expectation::Expectation; SCIP binds ExpectHasType, NoExpectation, ExpectCastableToType, ExpectRvalueLikeUnsized at 20 reference sites to its variants",
+    "atlas_n": "glob import `super::Expectation::*` does not resolve: the module is open and 9 path calls are withheld",
+    "atlas_n_plus_1": "resolved: the 9 calls are variant constructors (unresolved: constructor), expectation.rs is no longer an open scope",
+    "classification_n": "DONOR_CORRECT (fixed in E18)",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   },
+   {
+    "question": "which method does self.eliminate_satisfied() in ArgMatrix::find_errors(mut self) call?",
+    "ground_truth": "ArgMatrix::eliminate_satisfied(&mut self), reached by the probe's autoref step from a by-value receiver",
+    "atlas_n": "unresolved by name: the autoref step is refused while imports from crates outside the census are in scope (a trait method of an unseen crate could be picked first)",
+    "atlas_n_plus_1": "unchanged",
+    "classification_n": "ATLAS_UNKNOWN (sound; NA-CALL-TYPE-RESIDUAL)",
+    "classification_n_plus_1": "ATLAS_UNKNOWN (sound)"
+   },
+   {
+    "question": "does Atlas withhold expr.rs's path calls for a true reason?",
+    "ground_truth": "expr.rs glob-imports rustc_errors::codes::*, a crate outside this census whose names Atlas cannot know",
+    "atlas_n": "48 path calls withheld, cause named",
+    "atlas_n_plus_1": "unchanged",
+    "classification_n": "ATLAS_CORRECT",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of rustc is absorbed: its crate, indexed by rust-analyzer, falsified one Atlas behavior -- a module opened in an import round computed before the scopes it read had settled -- fixed with an Atlas-native rule (causes judged only at a settled round of the fixed point); rustc's name resolution itself (rustc_resolve's indeterminate imports) was not read",
+  "change": "adapter semantic::rust::resolve::resolve_imports: a round's glob-import open causes are applied only when no module's scope or shadow set changed in that round (or in a merged oscillation); opening a module starts another round (ADR 0084)",
+  "falsification": "regression test a_glob_through_a_named_import_reads_settled_scopes (an enum's variants through the parent's named import, a module renamed by an import in the same module, a glob that never resolves); 2 mutants killed: causes applied every round (the E17 behaviour) fails the new test, causes never applied fails 4 open-scope tests"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "75a75c3e0a67 (compiler/rustc_hir_typeck)",
+  "N": {
+   "functions": 1992,
+   "invokes": 1607,
+   "supplies_data": 1610,
+   "dispatches_to": 39,
+   "encloses": 951,
+   "unresolved": 12790,
+   "call_records": 16738,
+   "open_scope_components": 13,
+   "withheld_path_calls": 511,
+   "oracle_agree": 1566,
+   "precision": 1.0,
+   "recall": 0.8343
+  },
+  "N_plus_1": {
+   "functions": 1992,
+   "invokes": 1607,
+   "supplies_data": 1610,
+   "dispatches_to": 39,
+   "encloses": 951,
+   "unresolved": 12790,
+   "call_records": 16738,
+   "open_scope_components": 12,
+   "withheld_path_calls": 502,
+   "oracle_agree": 1566,
+   "precision": 1.0,
+   "recall": 0.8343
+  },
+  "edge_delta": {
+   "gained_confirmed": 0,
+   "gained_unconfirmed": 0,
+   "lost_wrong": 0,
+   "lost_confirmed": 0,
+   "reclassified": {
+    "open-scope -> constructor": 9
+   }
+  },
+  "what_atlas_n_saw": "every one of its 1,566 function-level call edges confirmed by the oracle; 83.4% of the oracle's call edges",
+  "what_atlas_n_missed": "that expectation.rs is not an open scope: its glob of an enum's variants resolves through the crate root's import",
+  "what_atlas_n_plus_1_sees": "the same 1,566 confirmed edges and no wrong one; expectation.rs's 9 constructor calls correctly classified; open scopes 13 -> 12, withheld path calls 511 -> 502, each remaining cause true (external globs and dependency item macros)",
+  "still_unknown": "309 oracle call edges reported unresolved by name (method calls on receivers typed through the unmaterialized rustc_* crates or behind the autoref boundary); 502 path calls in 12 modules opened by external globs or dependency item macros",
+  "magnitude": "small on the donor (no edge moved; 9 calls reclassified, one false open-scope cause gone); a latent fixed-point order defect in the resolver that any crate importing an enum or module by name before globbing it could hit"
+ },
+ "manual_reads": [
+  {
+   "what": "compiler/rustc_hir_typeck/src/expectation.rs 1-30, 113-118; lib.rs 42-70 (imports)",
+   "why": "falsify the withheld glob: where Expectation is defined and how the root imports it",
+   "gap": "glob judged before the root's named import was applied (fixed in E18)"
+  },
+  {
+   "what": "fn_ctxt/arg_matrix.rs 108, 150, 317-337; method/probe.rs 803, 1082, 2559",
+   "why": "ground truth for the unresolved self calls",
+   "gap": "the autoref step behind unseen external imports (NA-CALL-TYPE-RESIDUAL)"
+  },
+  {
+   "what": "expr.rs 40-50, 1575-1592; expectation.rs 113-118",
+   "why": "check expected.only_has_type(self): a by-value Expectation receiver in a module opened by rustc_errors::codes::*",
+   "gap": "external glob (true)"
+  },
+  {
+   "what": "method/mod.rs 91, 159-300, 497; probe.rs 334, 1845-1867",
+   "why": "ground truth for the challenge edges",
+   "gap": "lookup_method -> Pick::differs_from unresolved (method on a let-bound result)"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R5 (evidence/revalidation/R5-rust.json): rank 1, REVALIDATION_REQUIRED since G150; carried out at the exact G73 pin d287eb7a292c, re-materialized after this replay's pin was deleted, censused by E17 and E18 and deleted again",
+  "historical_decision": "G73 EXTERNAL_BOUNDARY (ORACLE): rustc_resolve, rustc_hir_typeck and borrow-checker internals REFERENCE_ONLY; revalidated at G121 (R1) for a corrected reason",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: on the exact G73 source Atlas resolves 201 callee edges out of the method module against 2,750 unresolved call sites at E17 and E18 alike; every call edge Atlas claims on the crate is confirmed by the language server's index (this replay, 1,566 of 1,566); E18 lifts one false open scope there too (withheld path calls 510 -> 501)"
+ },
+ "decision": {
+  "donor": "EXTERNAL_BOUNDARY at E18 (ORACLE): rustc's method resolution and type inference stay REFERENCE_ONLY behind the oracle; Atlas's own path resolution, falsified on the crate by the language server's index, is confirmed on every edge it claims",
+  "capability_delta": "CAPABILITY_ADVANCED (E17 -> E18)",
+  "trigger": "CURRENT; re-opened by receiver typing across crates Atlas does not materialize, by the method probe's autoref step decided beside external imports, or by dependency macro expansion bounding macro-opened scopes (NA-CALL-TYPE-RESIDUAL): re-census the same pin against the language server index of the crate"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/rust from the repository root, after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it (a first attempt was refused by the session's safety check because the shell's working directory had drifted inside the checkout)",
+  "scratch_deleted": "the oracle's crate copy and its rust-project.json, the 394 MB systemize document, the SCIP index, fn extents and census models (scratch, outside the repository)",
+  "runtime_dependency": "none: Atlas does not depend on rustc's source; the toolchain's rust-analyzer is a test-time oracle only",
+  "evidence_retained": "this record and revalidation R5; no rustc text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

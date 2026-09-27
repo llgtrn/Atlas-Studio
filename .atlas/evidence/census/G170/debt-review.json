@@ -1,0 +1,14 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G170",
+ "trigger": "review cadence: DEBT-PERSISTENCE, last advanced at G144 and last reviewed at G157, stale for more than 12 generations, fell due at G170",
+ "method": "re-read against the code at eb43fa15 (the G170 change): the persistence engines (resolved std paths G125, declared std receivers G144, the spelling engine), the G169 owning-wrapper rules in adapter::semantic::rust::resolve, and the persistence records of the G170 self-census",
+ "reviews": [
+  {
+   "debt": "DEBT-PERSISTENCE",
+   "verdict": "CONFIRMED",
+   "finding": "durable sites still come from resolved std paths (G125) and declared std receivers (G144), with the spelling engine's INFERRED guesses beside them; G169's owning wrappers made a buffered writer the holder of its file for RESOURCE release, not a durability record, and flush or sync_all on a receiver Atlas does not type stays unresolved; NA-CALL-TYPE-RESIDUAL",
+   "correction": {}
+  }
+ ]
+}

@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-CALL-TYPE-RESIDUAL"
+next_native_attack = "NA-PRINCIPAL-AUTHENTICATION"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -757,14 +757,19 @@ objective = "NA-RESOURCE-RESIDUAL step one (DEBT-RESOURCE; done: a temporary onl
 [[planned_generation]]
 id = "G170"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R11 rust-lang/rust (QUEUED): rank 1 of the recursive revalidation after R10, its method-resolution verdict (REFERENCE_ONLY since G73, revalidated R1 at G121) facing the strongest Atlas (E16) through a dependency-relevant sparse materialization of compiler/rustc_hir_typeck; R10 measured the dominant residual on real Rust as method calls on untyped receivers (28,573 of rust-analyzer's index edges unresolved by name); a fresh pin, license verified at it"
+objective = "FULL_OSS_REPLAY R11 rust-lang/rust at 75a75c3e0a67 (done: rust-analyzer's SCIP index of compiler/rustc_hir_typeck confirmed all 1,566 of Atlas's function-level call edges, recall 83.4%, and falsified one behavior -- a glob import opened its module for good in an import round computed before a named import had bound its prefix (use super::Expectation::*), withholding 9 constructor calls; capability epoch E18 judges opening only on settled scopes: open scopes 13 -> 12, withheld path calls 511 -> 502, no edge moved; revalidation R5 at the exact G73 pin REVALIDATED EXTERNAL_BOUNDARY (2,750 method-module call sites stay unresolved); source extinct; ADR 0084)"
 
 [[planned_generation]]
 id = "G171"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order; DEBT-RESOURCE advanced at G169): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE) -- replay R10 measured the residual on real Rust as method calls on untyped receivers, among them fields of parameters whose type lives in another workspace crate; G167 measured the external-declaration boundary (NA-DEPENDENCY-DECLARATIONS)"
+objective = "native attack queue head (pressure map, largest summed staleness over open debts, 44): NA-PRINCIPAL-AUTHENTICATION (DEBT-IDENTITY_AUTHORITY, DEBT-SELECTED_DESIGN) -- principals authenticated beyond a declared registry and authority events bound to admissions as well as selections, so the SELECTED design the seal gate requires rests on an authenticated principal; NA-CALL-TYPE-RESIDUAL (pressure 42) stays next behind it, the pressure map having moved off DEBT-CALL once it advanced at G170"
 
 [[planned_generation]]
-id = "G172+"
+id = "G172"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R12 rust-lang/miri (QUEUED): rank 1 of the recursive revalidation after R11, its G76 REFERENCE_ONLY verdict (DEBT-VERIFICATION_EVIDENCE, DEBT-OWNERSHIP, DEBT-CONCURRENCY) facing the strongest Atlas (E18) at a fresh pin, its license verified at it; rustc MIR, already Atlas's resource oracle (G169), is the interpreter's own input"
+
+[[planned_generation]]
+id = "G173+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

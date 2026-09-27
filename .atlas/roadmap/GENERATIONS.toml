@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G169"
+current_generation = "G170"
 
 [[generation]]
 id = "G35"
@@ -3972,3 +3972,47 @@ after = 15
 key = "composed:relation:INVOKES"
 before = 5132
 after = 5151
+
+[[generation]]
+id = "G170"
+kind = "REPLAY"
+base_commit = "708de56bb35b2e8c1d809701099d249c30bead7a"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R11 and recursive revalidation R5: the compiler whose method resolution Atlas keeps behind the oracle boundary, facing the strongest Atlas (E17); DEBT-CALL advanced"
+objective = "replay rust-lang/rust at a fresh exact pin through a sparse materialization of compiler/rustc_hir_typeck: Atlas_N first, a falsifiable question about how method lookup reaches the probe, rust-analyzer's SCIP index of the crate as the oracle at function level, a bounded Atlas-native fix for what it falsifies, the same pin at N+1, the G73 verdict revalidated at its exact pin, the sources extinct"
+writer = "coordinator (sole writer)"
+replay = "rust-lang/rust"
+pinned_commit = "75a75c3e0a67d3fa3d03982775f5bb0356e7b510"
+source_path = ".atlas/.cache/donors/rust"
+epoch_before = "E17"
+epoch_after = "E18"
+mission = ".atlas/evidence/replay/R11-rust.json"
+evidence = ".atlas/evidence/replay/R11-rust.json"
+self_recensus = ".atlas/evidence/census/G170/recensus.json"
+
+[generation.verification]
+pre_census = "G169 post digest"
+atlas_first = "the crate censused (1,992 functions, 1,607 INVOKES, 12,790 unresolved call sites, 13 open scopes withholding 511 path calls); the trace from method/mod.rs to method/probe.rs answered with one DERIVED step, lookup_probe_for_diagnostic -> probe_for_name; the withheld notes named expectation.rs's glob of super::Expectation::* as unresolvable"
+change = "adapter resolve: a round's glob-import open causes are applied only when no module's scope or shadow set changed in that round, or in a merged oscillation; opening a module starts another round (ADR 0084)"
+oracle = "rust-analyzer 1.90.0 SCIP of a scratch copy of the crate, compared at function level (syn extents from a scratch tool): all 1,566 Atlas edges confirmed at E17 and at E18, recall 83.4%, none wrong; the 9 expectation.rs calls the oracle binds to the enum's variants are constructors at E18, no longer withheld; 309 oracle edges stay unresolved by name, 2 more are a doc-comment mapping artifact"
+falsification = "regression test of an enum's variants through a parent's named import, a module renamed in the same module and a glob that never resolves; 2 mutants killed (causes applied every round, causes never applied)"
+boundary = "method calls on receivers typed through the unmaterialized rustc_* crates or behind the autoref step beside unseen external imports (309 oracle edges); 502 path calls in 12 modules opened by external globs or dependency item macros; rustc_resolve itself was not read"
+debts = "DEBT-CALL last advance G170; capability epoch E18; revalidation R5 REVALIDATED (the G73 EXTERNAL_BOUNDARY verdict holds at its exact pin, 2,750 method-module call sites unresolved); the earlier processed replays re-checked CURRENT at E18; next replay rust-lang/miri G172; native head NA-PRINCIPAL-AUTHENTICATION planned G171 (the pressure map moved off DEBT-CALL once it advanced)"
+review = "DEBT-PERSISTENCE reviewed at its cadence (last reviewed G157), CONFIRMED (evidence/census/G170/debt-review.json)"
+proof = "PROVEN (post af8df670...): the new resolver fixture explained as unresolved by design; on Atlas itself two test modules no longer open, 3 INVOKES gained and none lost (E17 and E18 binaries over the same tree); the pinned clones, the SCIP index and the scratch oracle tools deleted before the recensus"
+
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5151
+after = 5157
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 7178
+after = 7185
+
+[[generation.metric]]
+key = "diagnostic:IncompleteAnalysis"
+before = 1864
+after = 1862
