@@ -14,13 +14,19 @@
 //! - the integrity report must carry the verdict the policy requires, for the container's
 //!   revision and census digest;
 //! - the design must be SELECTED by an authority event, rest on a comparison, carry its own
-//!   identity, and select roots in this container.
+//!   identity, and select roots in this container;
+//! - G171 (ADR 0085): its authority event must carry selection authority under the declared
+//!   principal registry -- a declared principal the mode admits, signed under one of its declared
+//!   keys (`design::authority_violations`). The gate once asked only whether an event existed, so a
+//!   provider's or an undeclared principal's event could have sealed a candidate.
 //!
 //! An ELIGIBLE decision yields a [`SealRecord`]: what the SEALED container (M9) carries and its
 //! reader re-checks. A NOT_ELIGIBLE decision yields every reason, typed.
 
 use super::{ScopeVerdict, SealPolicy, evaluate_certificate, policy_identity, validate_policy};
-use crate::design::{DesignState, SelectedDesign, design_identity};
+use crate::design::{
+    DesignState, PrincipalRegistry, SelectedDesign, authority_violations, design_identity,
+};
 use crate::identity::IntegrityDigest;
 use crate::integrity::IntegrityReport;
 use crate::verification::{ReportVerdict, VerificationReport};
@@ -44,6 +50,7 @@ crate::vocabulary_enum! {
         DesignAbsent => "DESIGN_ABSENT",
         DesignNotSelected => "DESIGN_NOT_SELECTED",
         DesignWithoutAuthority => "DESIGN_WITHOUT_AUTHORITY",
+        DesignAuthorityRefused => "DESIGN_AUTHORITY_REFUSED",
         DesignWithoutComparison => "DESIGN_WITHOUT_COMPARISON",
         DesignIdentityMismatch => "DESIGN_IDENTITY_MISMATCH",
         DesignCandidateMismatch => "DESIGN_CANDIDATE_MISMATCH",
@@ -77,6 +84,8 @@ pub struct GateInputs<'a> {
     pub verification: &'a VerificationReport,
     pub integrity: &'a IntegrityReport,
     pub design: Option<&'a SelectedDesign>,
+    /// The declared principals and their keys (G171).
+    pub registry: &'a PrincipalRegistry,
 }
 
 /// What a SEALED container carries: the identities the seal was decided on, and the certificate
@@ -138,6 +147,7 @@ pub fn gate(inputs: &GateInputs) -> SealEligibility {
         verification,
         integrity,
         design,
+        registry,
     } = *inputs;
     let mut reasons: Vec<(IneligibleReason, String)> = Vec::new();
     for problem in validate_policy(policy) {
@@ -240,6 +250,12 @@ pub fn gate(inputs: &GateInputs) -> SealEligibility {
             }
             if design.authority_event.is_none() {
                 reasons.push((R::DesignWithoutAuthority, "no authority event".into()));
+            } else {
+                let refused = authority_violations(design, registry);
+                if !refused.is_empty() {
+                    let codes: Vec<&str> = refused.iter().map(|v| v.code.as_str()).collect();
+                    reasons.push((R::DesignAuthorityRefused, codes.join(", ")));
+                }
             }
             if design.comparison.is_none() {
                 reasons.push((R::DesignWithoutComparison, "no design comparison".into()));

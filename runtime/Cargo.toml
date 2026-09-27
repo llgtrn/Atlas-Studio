@@ -14,3 +14,8 @@ atlas_core = { package = "core", path = "../core" }
 adapter = { path = "../adapter" }
 serde.workspace = true
 serde_json.workspace = true
+
+# Test-only: tests sign authority events as a principal would, outside Atlas (ADR 0085). Atlas
+# itself only verifies signatures, natively, and never signs.
+[dev-dependencies]
+ed25519-compact = { version = "=2.6.0", default-features = false }

@@ -8,6 +8,7 @@
 
 use crate::design::{invalid, read_container, read_design, read_json, read_report};
 use atlas_core::atlas::{SEALED, seal_binding, write};
+use atlas_core::design::PrincipalRegistry;
 use atlas_core::integrity::IntegrityReport;
 use atlas_core::seal::{
     BlockerKind, CertificateBinding, DECLARED_SEAL_POLICY_PATH, Disposition, GateInputs,
@@ -125,6 +126,7 @@ pub fn gate_container(
     integrity: impl AsRef<Path>,
     design: Option<&Path>,
     policy: &SealPolicy,
+    registry: &PrincipalRegistry,
 ) -> io::Result<SealEligibility> {
     let (atlas, root_id) = read_container(container)?;
     if atlas.seal.is_some() {
@@ -147,6 +149,7 @@ pub fn gate_container(
         verification: &verification,
         integrity: &integrity,
         design: design.as_ref(),
+        registry,
     }))
 }
 
@@ -241,8 +244,9 @@ mod tests {
     fn a_container_every_input_admits_is_gated_sealed_and_read_back_sealed() {
         use atlas_core::atlas::{CensusAtlas, CertificateRecord, RootManifest, UNSEALED};
         use atlas_core::design::{
-            AuthorityEvent, AuthorityMode, DesignState, Principal, PrincipalKind, SelectedDesign,
-            container_candidate, design_identity, event_identity,
+            AuthorityEvent, AuthorityMode, DesignState, EventSignature, Principal, PrincipalKey,
+            PrincipalKind, SelectedDesign, container_candidate, design_identity, event_identity,
+            signing_message,
         };
         use atlas_core::integrity::{ImpactClosureRef, IntegrityVerdict};
         let dir = std::env::temp_dir().join(format!("atlas-seal-{}", std::process::id()));
@@ -340,15 +344,47 @@ mod tests {
             design_id: design.design_id.clone(),
             generation: "G161".into(),
             statement: "test fixture".into(),
+            signature: None,
         };
         event.event_id = event_identity(&event);
+        // G171: the fixture principal signs, as a principal would, outside Atlas.
+        let key = ed25519_compact::KeyPair::from_seed(ed25519_compact::Seed::new([11; 32]));
+        let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+        event.signature = Some(EventSignature {
+            public_key: hex(&key.pk[..]),
+            signature: hex(&key.sk.sign(signing_message(&event).as_bytes(), None)[..]),
+        });
+        let registry = PrincipalRegistry {
+            principals: vec![event.principal.clone()],
+            keys: vec![PrincipalKey {
+                principal: event.principal.id.clone(),
+                algorithm: "ed25519".into(),
+                public_key: hex(&key.pk[..]),
+            }],
+            ..PrincipalRegistry::empty()
+        };
+        let unsigned = {
+            let mut d = design.clone();
+            let mut e = event.clone();
+            e.signature = None;
+            d.authority_event = Some(e);
+            d
+        };
         design.authority_event = Some(event);
         let design_path = dir.join("design.json");
         std::fs::write(&design_path, serde_json::to_string(&design).unwrap()).unwrap();
         let policy = self_scope_policy();
 
         // Without a design: NOT_ELIGIBLE, and nothing can be sealed with that decision.
-        let refused = gate_container(&container, &verification, &integrity, None, &policy).unwrap();
+        let refused = gate_container(
+            &container,
+            &verification,
+            &integrity,
+            None,
+            &policy,
+            &registry,
+        )
+        .unwrap();
         assert_eq!(refused.verdict, ScopeVerdict::NotEligible);
         let reasons: Vec<IneligibleReason> = refused.reasons.iter().map(|(r, _)| *r).collect();
         assert_eq!(reasons, [IneligibleReason::DesignAbsent]);
@@ -363,6 +399,7 @@ mod tests {
             &integrity,
             Some(design_path.as_path()),
             &policy,
+            &registry,
         )
         .unwrap();
         assert_eq!(
@@ -378,7 +415,29 @@ mod tests {
         assert_eq!(read_back.manifest.seal, SEALED);
         assert_eq!(read_back.seal, eligible.record);
         // A sealed container is not gated or sealed again.
-        assert!(gate_container(&sealed, &verification, &integrity, None, &policy).is_err());
+        assert!(
+            gate_container(&sealed, &verification, &integrity, None, &policy, &registry).is_err()
+        );
+        // G171: the same design with its event unsigned, or judged against an empty registry,
+        // does not seal.
+        let unsigned_path = dir.join("unsigned.json");
+        std::fs::write(&unsigned_path, serde_json::to_string(&unsigned).unwrap()).unwrap();
+        for (path, registry) in [
+            (unsigned_path.as_path(), &registry),
+            (design_path.as_path(), &PrincipalRegistry::empty()),
+        ] {
+            let e = gate_container(
+                &container,
+                &verification,
+                &integrity,
+                Some(path),
+                &policy,
+                registry,
+            )
+            .unwrap();
+            let reasons: Vec<IneligibleReason> = e.reasons.iter().map(|(r, _)| *r).collect();
+            assert_eq!(reasons, [IneligibleReason::DesignAuthorityRefused]);
+        }
         assert!(seal_container(&sealed, &eligible, dir.join("twice.atlas")).is_err());
         // A decision for another container does not seal this one: the writer refuses it.
         let mut other = atlas.clone();

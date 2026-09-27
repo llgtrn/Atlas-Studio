@@ -1,0 +1,67 @@
+{
+ "schema": "atlas.evidence.verification.v1",
+ "generation": "G171",
+ "attack": "NA-PRINCIPAL-AUTHENTICATION",
+ "debts": [
+  "DEBT-IDENTITY_AUTHORITY",
+  "DEBT-SELECTED_DESIGN"
+ ],
+ "decision": ".atlas/decisions/0085-authenticated-principals-and-gate-authority.md",
+ "falsifications": [
+  {
+   "what": "the seal gate (G161) required only that a SELECTED design's authority event exist; runtime::seal::gate_container never validated it against the principal registry",
+   "demonstrated_by": "core seal::gate::tests::a_design_without_selection_authority_does_not_seal: a provider's event, an undeclared principal's, an unsigned one, a signed-then-edited one and one under an undeclared key -- each ELIGIBLE with the authority check removed (mutant M1), each NOT_ELIGIBLE with DESIGN_AUTHORITY_REFUSED now",
+   "impact": "none recorded: no design has ever been SELECTED (the registry ships empty), so no seal rests on it",
+   "fixed_by": "design::authority_violations, asked by design::validate and by the gate (GateInputs.registry)"
+  },
+  {
+   "what": "a declared principal was a name, not an authentication: any writer of a design file could put a declared principal's name on its event",
+   "fixed_by": "registry keys, event signatures over signing_message, native strict Ed25519 verification"
+  }
+ ],
+ "oracles": {
+  "sha512": "FIPS 180-4 examples (empty, abc, the 896-bit message) and a 1,280-byte input; expected digests from Python hashlib",
+  "ed25519_vectors": "RFC 8032 section 7.1 TESTs 1-3; OpenSSL 3.0.13 reproduced TESTs 2 and 3 from their secret keys (pkeyutl -sign -rawin), ed25519-compact 2.6.0 reproduced TEST 1",
+  "ed25519_constants": "d, sqrt(-1) and (2^512 - 1) mod L from Python big integers",
+  "differential": "24 keys and messages signed by ed25519-compact 2.6.0 (test-only dev-dependency, default features off, no dependencies): Atlas verifies every valid signature and agrees with it on each tampered one",
+  "interop": "an event prepared by `atlas-systemizer design event` and signed by OpenSSL (seed 0x42 repeated) authenticates in Atlas and fails once its generation changes (core design::tests::an_event_signed_by_an_independent_tool_authenticates)"
+ },
+ "refusals_tested": [
+  "AUTHORITY_EVENT_UNSIGNED",
+  "SIGNATURE_MALFORMED",
+  "SIGNING_KEY_UNDECLARED (a stranger's key; the key declared for another principal; another algorithm)",
+  "SIGNATURE_INVALID (another key's signature under the declared key; signed then edited; a flipped bit)",
+  "S + L (non-reduced S)",
+  "the identity as key or R",
+  "a universal forgery A = R = identity, S = 0",
+  "a small-order key with an honest-looking R",
+  "a small-order R under an honest key",
+  "non-canonical y (y + p)",
+  "a y with no curve point"
+ ],
+ "mutants": {
+  "killed": 8,
+  "list": [
+   "M1 the gate ignores authority",
+   "M2 an undeclared key accepted",
+   "M3 any algorithm accepted",
+   "M4 an unsigned event accepted",
+   "M5 S not reduced",
+   "M6 small-order refusal removed (A and R)",
+   "M6b small-order key accepted",
+   "M6c small-order R accepted"
+  ],
+  "note": "M6b and M6c survived the first test set (the combined forgery tripped the other check); one forgery per point was added and both are killed"
+ },
+ "boundary": {
+  "signing": "absent from Atlas: a principal signs outside Atlas with its own tool; Atlas never creates, declares, holds or asks for a key",
+  "registry": "ships empty; nothing is SELECTED until the owner declares a principal and a key and signs",
+  "open": [
+   "authority bound to admissions (AdmissionTransaction)",
+   "key rotation, revocation and signing-time bounds",
+   "the POLICY_AUTO envelope",
+   "DecisionProposal and ProviderReceipt lineage"
+  ]
+ },
+ "oracle_choice": "ed25519-dalek 2.2.0 was tried first and refused by the repository's own Cargo oracle test (adapter dependency::cargo_oracle): curve25519-dalek locks fiat-crypto behind a custom cfg no host build downloads, so `cargo metadata --offline` failed; ed25519-compact has no dependencies"
+}

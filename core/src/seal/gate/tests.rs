@@ -3,7 +3,8 @@ use super::super::{
 };
 use super::*;
 use crate::design::{
-    AuthorityEvent, AuthorityMode, Principal, PrincipalKind, SelectedDesign, event_identity,
+    AuthorityEvent, AuthorityMode, EventSignature, Principal, PrincipalKey, PrincipalKind,
+    PrincipalRegistry, SelectedDesign, event_identity, signing_message,
 };
 use crate::integrity::{ImpactClosureRef, IntegrityVerdict};
 use crate::verification::VerificationPolicy;
@@ -134,10 +135,44 @@ fn design() -> SelectedDesign {
         design_id: design.design_id.clone(),
         generation: "G161".into(),
         statement: "test fixture".into(),
+        signature: None,
     };
     event.event_id = event_identity(&event);
+    sign(&mut event, &principal_key());
     design.authority_event = Some(event);
     design
+}
+
+/// The fixture principal's key; only tests sign, through the test-only implementation.
+fn principal_key() -> ed25519_compact::KeyPair {
+    ed25519_compact::KeyPair::from_seed(ed25519_compact::Seed::new([9; 32]))
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+fn sign(event: &mut AuthorityEvent, key: &ed25519_compact::KeyPair) {
+    event.signature = Some(EventSignature {
+        public_key: hex(&key.pk[..]),
+        signature: hex(&key.sk.sign(signing_message(event).as_bytes(), None)[..]),
+    });
+}
+
+/// The fixture principal, declared with its key.
+fn registry() -> PrincipalRegistry {
+    PrincipalRegistry {
+        principals: vec![Principal {
+            id: "fixture-principal".into(),
+            kind: PrincipalKind::Human,
+        }],
+        keys: vec![PrincipalKey {
+            principal: "fixture-principal".into(),
+            algorithm: "ed25519".into(),
+            public_key: hex(&principal_key().pk[..]),
+        }],
+        ..PrincipalRegistry::empty()
+    }
 }
 
 fn decide(
@@ -155,6 +190,7 @@ fn decide(
         verification,
         integrity,
         design,
+        registry: &registry(),
     })
 }
 
@@ -200,6 +236,58 @@ type Mutation<'a> = dyn Fn(
         &mut IntegrityReport,
         &mut Option<SelectedDesign>,
     ) + 'a;
+
+/// G171 falsification: the gate once asked only whether an authority event existed, so a
+/// design "selected" by a provider, by an undeclared principal, or by an unsigned or forged event
+/// was ELIGIBLE. Each is now refused with DESIGN_AUTHORITY_REFUSED and the design's own codes.
+#[test]
+fn a_design_without_selection_authority_does_not_seal() {
+    let reselect = |edit: &dyn Fn(&mut AuthorityEvent)| {
+        let mut d = design();
+        let mut event = d.authority_event.take().unwrap();
+        edit(&mut event);
+        event.event_id = event_identity(&event);
+        d.authority_event = Some(event);
+        d
+    };
+    let refused = |d: &SelectedDesign| {
+        let e = decide(
+            &policy(),
+            &container(),
+            &certificate(),
+            &verification(),
+            &integrity(),
+            Some(d),
+        );
+        assert_eq!(e.verdict, ScopeVerdict::NotEligible);
+        assert!(e.record.is_none());
+        assert_eq!(reasons(&e), [IneligibleReason::DesignAuthorityRefused]);
+        e.reasons[0].1.clone()
+    };
+    let provider = reselect(&|event| {
+        event.principal.kind = PrincipalKind::Provider;
+        sign(event, &principal_key());
+    });
+    assert!(refused(&provider).contains("PRINCIPAL_IS_PROVIDER"));
+    let stranger = reselect(&|event| {
+        event.principal.id = "stranger".into();
+        sign(event, &principal_key());
+    });
+    let codes = refused(&stranger);
+    assert!(codes.contains("PRINCIPAL_UNREGISTERED") && codes.contains("SIGNING_KEY_UNDECLARED"));
+    let unsigned = reselect(&|event| event.signature = None);
+    assert_eq!(refused(&unsigned), "AUTHORITY_EVENT_UNSIGNED");
+    // Signed, then the statement edited: the identity moves and the signature no longer covers it.
+    let forged = reselect(&|event| event.statement = "a different decision".into());
+    assert_eq!(refused(&forged), "SIGNATURE_INVALID");
+    let other_key = reselect(&|event| {
+        sign(
+            event,
+            &ed25519_compact::KeyPair::from_seed(ed25519_compact::Seed::new([3; 32])),
+        )
+    });
+    assert_eq!(refused(&other_key), "SIGNING_KEY_UNDECLARED");
+}
 
 #[test]
 fn every_input_that_does_not_admit_the_candidate_refuses_the_seal() {
@@ -299,7 +387,8 @@ fn every_input_that_does_not_admit_the_candidate_refuses_the_seal() {
     );
     assert_eq!(
         case(&|_, _, _, _, d| d.as_mut().unwrap().design_id = "design:forged".into()),
-        [R::DesignIdentityMismatch]
+        // G171: the signed event still selects the original identity, so its authority is refused.
+        [R::DesignAuthorityRefused, R::DesignIdentityMismatch]
     );
     let mut other_root = base_design.clone();
     other_root.parent_root = "blake3-256:another-root".into();

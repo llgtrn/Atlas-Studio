@@ -81,6 +81,7 @@ name = "core"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "ed25519-compact",
  "serde",
  "serde_json",
 ]
@@ -93,6 +94,12 @@ checksum = "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "ed25519-compact"
+version = "2.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1454db4f2edb7f0e8fe0c5b375b0c978fc63244cc9f010d160e417eb10139aa8"
 
 [[package]]
 name = "equivalent"
@@ -193,6 +200,7 @@ version = "0.1.0"
 dependencies = [
  "adapter",
  "core",
+ "ed25519-compact",
  "serde",
  "serde_json",
 ]

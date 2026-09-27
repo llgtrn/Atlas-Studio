@@ -322,12 +322,16 @@ fn run(args: &[String]) -> Result<(), String> {
                     runtime::seal::declared_policy(&root).map_err(|e| format!("{root}: {e}"))?
                 }
             };
+            // G171: the design's authority is judged against the repository's declared principals.
+            let registry =
+                runtime::design::read_registry(&root).map_err(|e| format!("{root}: {e}"))?;
             let eligibility = runtime::seal::gate_container(
                 &atlas,
                 &verification,
                 &integrity,
                 design.as_deref().map(std::path::Path::new),
                 &policy,
+                &registry,
             )
             .map_err(|e| format!("{atlas}: {e}"))?;
             let text = json(&eligibility)? + "\n";
@@ -631,6 +635,31 @@ fn run(args: &[String]) -> Result<(), String> {
                 Err(violations) => {
                     return Err(format!("COMPARISON_REFUSED: {}", json(&violations)?));
                 }
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "design" && sub == "event" => {
+            // G171 (ADR 0085): the unsigned selection event a declared HUMAN principal signs, and
+            // the exact message to sign. The principal signs outside Atlas (for example
+            // `openssl pkeyutl -sign -rawin`) and puts `public_key` and `signature` (lowercase
+            // hex) in the event's `signature`; Atlas never holds or asks for a private key.
+            let design_path = value(rest, "--design")?.ok_or("design event requires --design")?;
+            let principal =
+                value(rest, "--principal")?.ok_or("design event requires --principal")?;
+            let generation =
+                value(rest, "--generation")?.ok_or("design event requires --generation")?;
+            let statement =
+                value(rest, "--statement")?.ok_or("design event requires --statement")?;
+            let design = runtime::design::read_design(&design_path)
+                .map_err(|e| format!("{design_path}: {e}"))?;
+            let (event, message) =
+                runtime::design::unsigned_event(&design, &principal, &generation, &statement);
+            let text = json(&serde_json::json!({
+                "event": event,
+                "signing_message": message,
+            }))? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
             }
         }
         [cmd, sub, rest @ ..] if cmd == "design" && sub == "check" => {

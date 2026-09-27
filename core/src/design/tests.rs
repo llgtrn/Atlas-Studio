@@ -116,18 +116,47 @@ fn selected_by(mut design: SelectedDesign, principal: Principal) -> SelectedDesi
         design_id: design.design_id.clone(),
         generation: "G148".into(),
         statement: "select the container codec".into(),
+        signature: None,
     };
     event.event_id = event_identity(&event);
+    sign(&mut event, &principal_key());
     design.authority_event = Some(event);
     design
+}
+
+/// The test principals' signing key. Signing happens only in tests, through the independent
+/// test-only implementation: Atlas itself never signs.
+fn principal_key() -> ed25519_compact::KeyPair {
+    ed25519_compact::KeyPair::from_seed(ed25519_compact::Seed::new([7; 32]))
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+fn sign(event: &mut AuthorityEvent, key: &ed25519_compact::KeyPair) {
+    event.signature = Some(EventSignature {
+        public_key: hex(&key.pk[..]),
+        signature: hex(&key.sk.sign(signing_message(event).as_bytes(), None)[..]),
+    });
 }
 
 fn codes(violations: &[DesignViolation]) -> Vec<&str> {
     violations.iter().map(|v| v.code.as_str()).collect()
 }
 
+/// Declares `principals`, each with the test principal key.
 fn registry(principals: Vec<Principal>) -> PrincipalRegistry {
+    let public_key = hex(&principal_key().pk[..]);
     PrincipalRegistry {
+        keys: principals
+            .iter()
+            .map(|p| PrincipalKey {
+                principal: p.id.clone(),
+                algorithm: "ed25519".into(),
+                public_key: public_key.clone(),
+            })
+            .collect(),
         principals,
         ..PrincipalRegistry::empty()
     }
@@ -236,7 +265,7 @@ fn only_a_registered_human_selects_and_the_event_commits_to_one_design() {
             Some(&ok),
             &PrincipalRegistry::empty()
         )),
-        ["PRINCIPAL_UNREGISTERED"]
+        ["PRINCIPAL_UNREGISTERED", "SIGNING_KEY_UNDECLARED"]
     );
     // No event at all -- even with a single candidate.
     let mut no_event = design.clone();
@@ -295,6 +324,7 @@ fn only_a_registered_human_selects_and_the_event_commits_to_one_design() {
     let event = other.authority_event.as_mut().unwrap();
     event.design_id = "blake3-256:other".into();
     event.event_id = event_identity(event);
+    sign(event, &principal_key());
     assert_eq!(
         codes(&validate(&other, &c, ROOT_ID, Some(&ok), &owner)),
         ["AUTHORITY_EVENT_OTHER_DESIGN"]
@@ -303,12 +333,15 @@ fn only_a_registered_human_selects_and_the_event_commits_to_one_design() {
     let event = mode.authority_event.as_mut().unwrap();
     event.mode = AuthorityMode::Hybrid;
     event.event_id = event_identity(event);
+    sign(event, &principal_key());
     assert_eq!(
         codes(&validate(&mode, &c, ROOT_ID, Some(&ok), &owner)),
         ["AUTHORITY_MODE_MISMATCH"]
     );
     let mut edited = design.clone();
-    edited.authority_event.as_mut().unwrap().statement = "something else".into();
+    let event = edited.authority_event.as_mut().unwrap();
+    event.statement = "something else".into();
+    sign(event, &principal_key());
     assert_eq!(
         codes(&validate(&edited, &c, ROOT_ID, Some(&ok), &owner)),
         ["AUTHORITY_EVENT_ID_MISMATCH"]
@@ -608,4 +641,130 @@ mod comparison {
         let violations = validate(&design, &c, ROOT_ID, Some(&ok), &registry(vec![human()]));
         assert_eq!(codes(&violations), ["COMPARISON_MISSING"]);
     }
+}
+
+/// G171: a declared principal is also an authenticated one. Its event must be signed, under a key
+/// the registry declares for that principal, over the event's own signing message.
+#[test]
+fn a_selection_is_signed_under_a_key_declared_for_its_principal() {
+    let c = container();
+    let ok = report(&container_candidate(&c), ReportVerdict::Admissible);
+    let owner = registry(vec![human()]);
+    let design = selected_by(validated(&c), human());
+    assert_eq!(validate(&design, &c, ROOT_ID, Some(&ok), &owner), []);
+    let with = |edit: &dyn Fn(&mut AuthorityEvent)| {
+        let mut d = design.clone();
+        edit(d.authority_event.as_mut().unwrap());
+        codes(&validate(&d, &c, ROOT_ID, Some(&ok), &owner))
+            .into_iter()
+            .map(String::from)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(with(&|e| e.signature = None), ["AUTHORITY_EVENT_UNSIGNED"]);
+    // A valid signature under a key nobody declared.
+    let stranger = ed25519_compact::KeyPair::from_seed(ed25519_compact::Seed::new([5; 32]));
+    assert_eq!(with(&|e| sign(e, &stranger)), ["SIGNING_KEY_UNDECLARED"]);
+    // The declared key claimed, the signature made with another.
+    assert_eq!(
+        with(&|e| {
+            sign(e, &stranger);
+            e.signature.as_mut().unwrap().public_key = hex(&principal_key().pk[..]);
+        }),
+        ["SIGNATURE_INVALID"]
+    );
+    // Signed, then edited (its identity recomputed): the signature covers the old identity.
+    assert_eq!(
+        with(&|e| {
+            e.statement = "select something else".into();
+            e.event_id = event_identity(e);
+        }),
+        ["SIGNATURE_INVALID"]
+    );
+    // One flipped signature bit.
+    assert_eq!(
+        with(&|e| {
+            let s = &mut e.signature.as_mut().unwrap().signature;
+            let flipped = if s.ends_with('0') { '1' } else { '0' };
+            s.pop();
+            s.push(flipped);
+        }),
+        ["SIGNATURE_INVALID"]
+    );
+    assert_eq!(
+        with(&|e| e
+            .signature
+            .as_mut()
+            .unwrap()
+            .signature
+            .make_ascii_uppercase()),
+        ["SIGNATURE_MALFORMED"]
+    );
+    // The key is declared, but for another principal.
+    let mut elsewhere = owner.clone();
+    elsewhere.keys[0].principal = "someone-else".into();
+    assert_eq!(
+        codes(&validate(&design, &c, ROOT_ID, Some(&ok), &elsewhere)),
+        ["SIGNING_KEY_UNDECLARED"]
+    );
+    // A key of another algorithm never authenticates.
+    let mut rsa = owner.clone();
+    rsa.keys[0].algorithm = "rsa".into();
+    assert_eq!(
+        codes(&validate(&design, &c, ROOT_ID, Some(&ok), &rsa)),
+        ["SIGNING_KEY_UNDECLARED"]
+    );
+    // The signature is outside the event identity, and a registry without keys still reads.
+    let event = design.authority_event.as_ref().unwrap();
+    let mut unsigned = event.clone();
+    unsigned.signature = None;
+    assert_eq!(event_identity(&unsigned), event.event_id);
+    let old: PrincipalRegistry = serde_json::from_str(
+        r#"{"schema":"atlas.principal-registry.v1","principals":[],"note":"n"}"#,
+    )
+    .unwrap();
+    assert!(old.keys.is_empty());
+}
+
+/// G171 interop: an event prepared by `atlas-systemizer design event` and signed by OpenSSL 3.0
+/// (`openssl pkeyutl -sign -rawin`, seed 0x42 repeated), an independent signer, authenticates --
+/// and stops authenticating once any field its identity covers changes.
+#[test]
+fn an_event_signed_by_an_independent_tool_authenticates() {
+    let owner = Principal {
+        id: "owner@example.invalid".into(),
+        kind: PrincipalKind::Human,
+    };
+    let public_key = "2152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12";
+    let mut event = AuthorityEvent {
+        event_id: String::new(),
+        principal: owner.clone(),
+        mode: AuthorityMode::HumanRequired,
+        design_id: "blake3-256:fixture-design".into(),
+        generation: "G171".into(),
+        statement: "interop fixture".into(),
+        signature: Some(EventSignature {
+            public_key: public_key.into(),
+            signature: "7f14efba8e8950c55406ed0d3f3cf660e51fac4d488f63cff1b84880f006f1e84bc4a6e8e2f7fe419e985fc1ff54b60026bb22414ee55fed72085e816799b10a".into(),
+        }),
+    };
+    event.event_id = event_identity(&event);
+    assert_eq!(
+        event.event_id,
+        "blake3-256:1a9be7714e86b604638bf6c62de104d5859147a4d19948c8f31df42f9de2f732"
+    );
+    let registry = PrincipalRegistry {
+        principals: vec![owner],
+        keys: vec![PrincipalKey {
+            principal: "owner@example.invalid".into(),
+            algorithm: "ed25519".into(),
+            public_key: public_key.into(),
+        }],
+        ..PrincipalRegistry::empty()
+    };
+    let mut out = Vec::new();
+    authenticate(&event, &registry, &mut out);
+    assert_eq!(out, []);
+    event.generation = "G172".into();
+    authenticate(&event, &registry, &mut out);
+    assert_eq!(codes(&out), ["SIGNATURE_INVALID"]);
 }

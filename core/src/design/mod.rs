@@ -12,6 +12,11 @@
 //!
 //! The principal registry is declared by the repository owner; a provider never adds itself, and
 //! an empty registry means nothing may be selected.
+//!
+//! G171 (ADR 0085): a principal is authenticated, not only declared. The registry declares each
+//! principal's Ed25519 public keys, and a selection event carries a signature over its identity
+//! (`signing_message`) that must verify under one of its principal's declared keys. The principal
+//! signs outside Atlas with its own tool; Atlas only verifies, and never holds a private key.
 
 use crate::atlas::CensusAtlas;
 use crate::identity::IntegrityDigest;
@@ -77,11 +82,25 @@ pub struct Principal {
     pub kind: PrincipalKind,
 }
 
+/// A public key a principal signs its authority events with (G171).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PrincipalKey {
+    /// The declared principal's `id`.
+    pub principal: String,
+    /// Only `ed25519` is accepted.
+    pub algorithm: String,
+    /// The 32-byte public key, lowercase hex.
+    pub public_key: String,
+}
+
 /// The declared principals; only they may author authority events.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PrincipalRegistry {
     pub schema: String,
     pub principals: Vec<Principal>,
+    /// G171: the keys each principal signs with; a principal without a key cannot select.
+    #[serde(default)]
+    pub keys: Vec<PrincipalKey>,
     pub note: String,
 }
 
@@ -90,6 +109,7 @@ impl PrincipalRegistry {
         Self {
             schema: REGISTRY_SCHEMA_VERSION.into(),
             principals: Vec::new(),
+            keys: Vec::new(),
             note: "principals are declared by the repository owner; a provider never adds itself"
                 .into(),
         }
@@ -120,6 +140,19 @@ pub struct AuthorityEvent {
     pub design_id: String,
     pub generation: String,
     pub statement: String,
+    /// G171: the principal's signature over `signing_message` -- outside the event identity, so
+    /// the identity it signs is fixed before it is signed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signature: Option<EventSignature>,
+}
+
+/// An Ed25519 signature over an event's `signing_message`, and the key it claims to verify under.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct EventSignature {
+    /// The 32-byte public key, lowercase hex; it must be declared for the event's principal.
+    pub public_key: String,
+    /// The 64-byte signature, lowercase hex.
+    pub signature: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -202,6 +235,26 @@ pub fn event_identity(event: &AuthorityEvent) -> String {
     IntegrityDigest::of_bytes(text.as_bytes())
         .as_str()
         .to_owned()
+}
+
+/// The exact bytes a principal signs to authenticate `event`: its recomputed identity under a
+/// signature domain, so any change to a field the identity covers breaks the signature.
+pub fn signing_message(event: &AuthorityEvent) -> String {
+    format!(
+        "atlas.authority-event.signature.v1\n{}\n",
+        event_identity(event)
+    )
+}
+
+fn decode_hex<const N: usize>(text: &str) -> Option<[u8; N]> {
+    if text.len() != 2 * N || !text.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
+        return None;
+    }
+    let mut out = [0u8; N];
+    for (i, byte) in out.iter_mut().enumerate() {
+        *byte = u8::from_str_radix(&text[2 * i..2 * i + 2], 16).ok()?;
+    }
+    Some(out)
 }
 
 /// Why a design is not accepted.
@@ -322,16 +375,79 @@ pub fn validate(
                 "a SELECTED design cites the comparison of its candidates",
             ));
         }
-        match &design.authority_event {
-            None => out.push(violation(
-                "AUTHORITY_EVENT_MISSING",
-                "a SELECTED design needs a selection authority event",
-            )),
-            Some(event) => authority(design, event, registry, &mut out),
+        out.extend(authority_violations(design, registry));
+    }
+    out.sort();
+    out
+}
+
+/// Every reason `design`'s selection event does not carry selection authority under `registry`:
+/// the event must select this design under its mode with a verifying identity, come from a
+/// declared principal whose kind the mode admits, and be signed under one of that principal's
+/// declared keys (G171). Empty means the event is authoritative; a design without an event has
+/// none. The seal gate asks the same question (G171: it once asked only whether an event existed).
+pub fn authority_violations(
+    design: &SelectedDesign,
+    registry: &PrincipalRegistry,
+) -> Vec<DesignViolation> {
+    let mut out = Vec::new();
+    match &design.authority_event {
+        None => out.push(violation(
+            "AUTHORITY_EVENT_MISSING",
+            "a SELECTED design needs a selection authority event",
+        )),
+        Some(event) => {
+            authority(design, event, registry, &mut out);
+            authenticate(event, registry, &mut out);
         }
     }
     out.sort();
     out
+}
+
+/// G171: the event is signed under a key the registry declares for its principal.
+fn authenticate(
+    event: &AuthorityEvent,
+    registry: &PrincipalRegistry,
+    out: &mut Vec<DesignViolation>,
+) {
+    let Some(signed) = &event.signature else {
+        out.push(violation(
+            "AUTHORITY_EVENT_UNSIGNED",
+            "a selection event is signed by its principal",
+        ));
+        return;
+    };
+    let (Some(key), Some(signature)) = (
+        decode_hex::<32>(&signed.public_key),
+        decode_hex::<64>(&signed.signature),
+    ) else {
+        out.push(violation(
+            "SIGNATURE_MALFORMED",
+            "a 32-byte key and a 64-byte signature, lowercase hex",
+        ));
+        return;
+    };
+    let declared = registry.keys.iter().any(|k| {
+        k.principal == event.principal.id
+            && k.algorithm == "ed25519"
+            && k.public_key == signed.public_key
+    });
+    if !declared {
+        out.push(violation(
+            "SIGNING_KEY_UNDECLARED",
+            format!(
+                "{} is not a declared key of {}",
+                signed.public_key, event.principal.id
+            ),
+        ));
+    }
+    if !crate::identity::ed25519::verify(&key, signing_message(event).as_bytes(), &signature) {
+        out.push(violation(
+            "SIGNATURE_INVALID",
+            "the signature does not verify over the event's signing message",
+        ));
+    }
 }
 
 fn authority(

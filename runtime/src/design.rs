@@ -8,9 +8,10 @@
 
 use atlas_core::atlas::{CensusAtlas, read};
 use atlas_core::design::{
-    AuthorityMode, DESIGN_SCHEMA_VERSION, DesignBinding, DesignState, DesignVerdict,
-    DesignViolation, PRINCIPAL_REGISTRY_PATH, PrincipalRegistry, SelectedDesign, SemanticRoot,
-    container_candidate, design_identity, validate,
+    AuthorityEvent, AuthorityMode, DESIGN_SCHEMA_VERSION, DesignBinding, DesignState,
+    DesignVerdict, DesignViolation, PRINCIPAL_REGISTRY_PATH, Principal, PrincipalKind,
+    PrincipalRegistry, SelectedDesign, SemanticRoot, container_candidate, design_identity,
+    event_identity, signing_message, validate,
 };
 use atlas_core::verification::VerificationReport;
 use std::{fs, io, path::Path};
@@ -71,6 +72,32 @@ pub fn read_registry(root: impl AsRef<Path>) -> io::Result<PrincipalRegistry> {
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(PrincipalRegistry::empty()),
         Err(e) => Err(e),
     }
+}
+
+/// G171 (ADR 0085): the unsigned selection event a HUMAN principal would sign for `design`, and
+/// the exact message to sign. Atlas prepares and verifies; the principal signs outside Atlas with
+/// its own key and pastes the signature into the event -- Atlas never holds or asks for a key.
+pub fn unsigned_event(
+    design: &SelectedDesign,
+    principal: &str,
+    generation: &str,
+    statement: &str,
+) -> (AuthorityEvent, String) {
+    let mut event = AuthorityEvent {
+        event_id: String::new(),
+        principal: Principal {
+            id: principal.into(),
+            kind: PrincipalKind::Human,
+        },
+        mode: design.authority_mode,
+        design_id: design.design_id.clone(),
+        generation: generation.into(),
+        statement: statement.into(),
+        signature: None,
+    };
+    event.event_id = event_identity(&event);
+    let message = signing_message(&event);
+    (event, message)
 }
 
 /// What a caller asks a design to select.
@@ -377,6 +404,7 @@ mod tests {
             design_id: selected.design_id.clone(),
             generation: "G148".into(),
             statement: "select".into(),
+            signature: None,
         };
         event.event_id = event_identity(&event);
         selected.authority_event = Some(event);
@@ -386,6 +414,7 @@ mod tests {
         assert_eq!(
             codes,
             [
+                "AUTHORITY_EVENT_UNSIGNED",
                 "COMPARISON_MISSING",
                 "PRINCIPAL_IS_PROVIDER",
                 "PRINCIPAL_UNREGISTERED"
@@ -455,6 +484,7 @@ mod tests {
             design_id: selected.design_id.clone(),
             generation: "G150".into(),
             statement: "select".into(),
+            signature: None,
         };
         event.event_id = event_identity(&event);
         selected.authority_event = Some(event);
@@ -470,7 +500,11 @@ mod tests {
         );
         assert_eq!(
             codes(with.unwrap()),
-            ["PRINCIPAL_IS_PROVIDER", "PRINCIPAL_UNREGISTERED"]
+            [
+                "AUTHORITY_EVENT_UNSIGNED",
+                "PRINCIPAL_IS_PROVIDER",
+                "PRINCIPAL_UNREGISTERED"
+            ]
         );
         let without = check(&selected, &container, Some(&report), &registry, None);
         assert!(codes(without.unwrap()).contains(&"COMPARISON_UNAVAILABLE".to_owned()));

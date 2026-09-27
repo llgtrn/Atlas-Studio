@@ -480,8 +480,16 @@ If that question cannot be answered from the selected design record and its refe
 
 The registry ships empty: nothing is SELECTED until the repository owner declares a principal.
 
+**Authentication (G171, ADR 0085):**
+- The registry declares each principal's Ed25519 public keys (`keys`).
+- A SELECTED design's event carries a `signature` over `signing_message` (its recomputed identity under a signature domain). It must verify under a key declared for the event's principal. Otherwise the event is refused: AUTHORITY_EVENT_UNSIGNED, SIGNATURE_MALFORMED, SIGNING_KEY_UNDECLARED or SIGNATURE_INVALID.
+- Verification is native to Atlas (`identity::ed25519`, strict RFC 8032).
+- The principal signs outside Atlas. `atlas-systemizer design event` prints the unsigned event and the exact message to sign. Atlas never holds or asks for a private key.
+- The seal gate asks the same authority question (`design::authority_violations`). It refuses any design whose event does not carry selection authority, with DESIGN_AUTHORITY_REFUSED.
+
 **Deferred:**
-- principal authentication beyond the declared registry;
+- authority events bound to admissions (AdmissionTransaction), as well as to selections;
+- key rotation and revocation;
 - the policy envelope;
 - DecisionProposal and ProviderReceipt lineage;
 - the seal-time embedding of the design in its container.

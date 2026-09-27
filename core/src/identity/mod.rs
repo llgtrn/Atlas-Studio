@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub mod blake3;
+pub mod ed25519;
+pub mod sha512;
 
 pub fn stable_id(prefix: &str, identity: &str) -> String {
     let mut hash = 0xcbf29ce484222325_u64;
