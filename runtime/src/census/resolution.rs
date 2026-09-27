@@ -619,7 +619,9 @@ pub fn resolve_rust_path_calls(
         };
         debug_assert!(subject.is_well_formed());
         let status = match release.release {
-            atlas_core::ResourceRelease::ScopeEnd => EpistemicStatus::Inferred,
+            atlas_core::ResourceRelease::ScopeEnd | atlas_core::ResourceRelease::StatementEnd => {
+                EpistemicStatus::Inferred
+            }
             atlas_core::ResourceRelease::ExplicitDrop | atlas_core::ResourceRelease::Join => {
                 EpistemicStatus::Derived
             }
@@ -762,7 +764,7 @@ pub fn resolve_rust_path_calls(
         };
         let resource_scope = if reached {
             format!(
-                "{RUST_PATH_RESOLUTION_ID} derives resource acquisitions for calls resolved to a standard-library path the declared std-path resource table names (files, sockets, std lock guards on receivers whose std type is known, threads), and releases for a holder bound once by a `let` and never moved: at its block's end (INFERRED), at a resolved `drop` or `join` statement (DERIVED) ({path}); temporaries, moved holders, fields and statics, non-std resources, FFI acquire/release pairs and macro arguments are outside it"
+                "{RUST_PATH_RESOLUTION_ID} derives resource acquisitions for calls resolved to a standard-library path the declared std-path resource table names (files, sockets, std lock guards on receivers whose std type is known, threads), and releases for a holder bound once by a `let` and never moved -- followed through a `let` that takes it into an owning std reader or writer wrapper (G169) -- at its block's end (INFERRED), at a resolved `drop` or `join` statement (DERIVED), and for a temporary only borrowed by its statement's methods at that statement's `;` (INFERRED, G169) ({path}); holders moved elsewhere, temporaries in conditions, tails and macro arguments, fields and statics, non-std resources and FFI acquire/release pairs are outside it"
             )
         } else {
             format!(

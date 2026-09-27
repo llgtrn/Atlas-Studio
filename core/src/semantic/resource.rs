@@ -67,6 +67,10 @@ vocabulary_enum! {
         ExplicitDrop => "EXPLICIT_DROP",
         /// `holder.join()` resolved to `std::thread::JoinHandle::join` (DERIVED).
         Join => "JOIN",
+        /// G169 (ADR 0083): a temporary is dropped at the end of the statement that created it,
+        /// the `;` of an expression or `let` statement (INFERRED: the methods it is borrowed by
+        /// are told from by-value ones by name).
+        StatementEnd => "STATEMENT_END",
     }
 }
 
@@ -156,9 +160,11 @@ impl ResourceIdentity {
                 self.acquired_at.is_some()
                     && !self.holder.is_empty()
                     && match self.release {
-                        Some(ResourceRelease::ScopeEnd | ResourceRelease::ExplicitDrop) => {
-                            self.kind.released_by_drop()
-                        }
+                        Some(
+                            ResourceRelease::ScopeEnd
+                            | ResourceRelease::ExplicitDrop
+                            | ResourceRelease::StatementEnd,
+                        ) => self.kind.released_by_drop(),
                         Some(ResourceRelease::Join) => self.kind == ResourceKind::Thread,
                         None => false,
                     }

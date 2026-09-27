@@ -928,8 +928,8 @@ fn let_bound_resources_are_released_where_their_holder_gives_them_back() {
     // `expect`) and never moved is released at its block's end; a resolved `drop` or `join`
     // statement of that block releases it there; a thread is never released by a drop; every
     // move -- passed, returned, captured by a `move` closure, named in a non-formatting macro,
-    // consumed by a by-value method (`take`, `into_*`), released inside a branch -- leaves the
-    // release unclaimed.
+    // consumed by a by-value method (`into_*`), released inside a branch -- leaves the release
+    // unclaimed (G169: a `let` taking it into an owning adapter such as `take` hands it on).
     let lib = "\
 use std::fs::File;
 use std::sync::Mutex;
@@ -998,10 +998,22 @@ fn moved(p: &str, m: &Mutex<u8>, c: bool) -> std::io::Result<File> {
                 "LOCK_GUARD EXPLICIT_DROP".to_owned(),
                 line("drop(guard)"),
             ),
+            // G169: a guard used as a temporary is dropped at its statement's end.
+            (
+                format!("(temporary)@{}", line("m.lock().unwrap().push(1)")),
+                "LOCK_GUARD STATEMENT_END".to_owned(),
+                line("m.lock().unwrap().push(1)"),
+            ),
             (
                 format!("handle@{}", line("let handle")),
                 "THREAD JOIN".to_owned(),
                 line("handle.join()"),
+            ),
+            // G169: `take` hands the file to the let-bound adapter, which drops it.
+            (
+                format!("_reader@{}", line("let limited")),
+                "FILE SCOPE_END".to_owned(),
+                end_of("let limited"),
             ),
         ]
     );
@@ -1019,6 +1031,124 @@ fn moved(p: &str, m: &Mutex<u8>, c: bool) -> std::io::Result<File> {
             "{callee} -> {outcome} in {got:?}"
         );
     }
+}
+
+/// G169 (ADR 0083): the release points G157 left unknown on Atlas itself, each placed where
+/// rustc's MIR drops the resource: a file taken into a let-bound owning wrapper is released with
+/// the wrapper, a holder moved into one by a later `let` is followed to it, and a resource used
+/// only as the receiver of a borrowing method is a temporary dropped at its statement's `;`.
+#[test]
+fn wrapped_moved_on_and_temporary_resources_are_released_where_mir_drops_them() {
+    let lib = "\
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Read, Write};
+use std::sync::Mutex;
+fn keep(_r: BufReader<File>) {}
+fn wrapped(p: &str) -> std::io::Result<u64> {
+    let reader = BufReader::new(File::open(p)?);
+    let n = reader.capacity() as u64;
+    Ok(n)
+}
+fn inner(p: &str) -> std::io::Result<()> {
+    {
+        let mut writer = BufWriter::with_capacity(8, File::create(p)?);
+        writer.flush()?;
+    }
+    Ok(())
+}
+fn handed_on(p: &str) -> std::io::Result<usize> {
+    let file = File::open(p)?;
+    let _m = file.metadata()?;
+    let mut limited = file.take(4);
+    let mut v = Vec::new();
+    limited.read_to_end(&mut v)?;
+    Ok(v.len())
+}
+fn temporaries(p: &str, m: &Mutex<Vec<u8>>) -> std::io::Result<u64> {
+    File::open(p)?.sync_all()?;
+    let len = File::open(p)?.metadata()?.len();
+    m.lock().unwrap().push(m.lock().unwrap().len() as u8);
+    Ok(len)
+}
+fn refused(p: &str, m: &Mutex<Vec<u8>>, o: &Mutex<Option<u8>>, c: bool) -> std::io::Result<()> {
+    let wrapped = BufReader::new(File::open(p)?);
+    keep(wrapped);
+    let _raw = File::open(p)?.into_inner();
+    let _held = &File::open(p)?;
+    if m.lock().unwrap().is_empty() {
+        println!(\"{}\", c);
+    }
+    let _ = (|| m.lock().unwrap().len())();
+    let _x = if m.lock().unwrap().is_empty() { 1 } else { 2 };
+    let _v = o.lock().unwrap().take();
+    println!(\"{:?}\", File::open(p)?.metadata()?);
+    Ok(())
+}
+";
+    let resolution = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    let line = |needle: &str| line_of(lib, needle);
+    let end_of = |needle: &str| {
+        lib.lines()
+            .enumerate()
+            .skip(line(needle))
+            .find(|(_, l)| l.trim() == "}")
+            .map(|(i, _)| i + 1)
+            .unwrap()
+    };
+    let statement = |needle: &str| {
+        (
+            format!("(temporary)@{}", line(needle)),
+            "FILE STATEMENT_END".to_owned(),
+            line(needle),
+        )
+    };
+    let guard = |needle: &str| {
+        (
+            format!("(temporary)@{}", line(needle)),
+            "LOCK_GUARD STATEMENT_END".to_owned(),
+            line(needle),
+        )
+    };
+    let mut got = releases(&resolution, "src/lib.rs");
+    got.sort();
+    let mut want = vec![
+        (
+            format!("reader@{}", line("let reader")),
+            "FILE SCOPE_END".to_owned(),
+            end_of("let reader"),
+        ),
+        (
+            format!("writer@{}", line("let mut writer")),
+            "FILE SCOPE_END".to_owned(),
+            end_of("let mut writer"),
+        ),
+        (
+            format!("limited@{}", line("let file")),
+            "FILE SCOPE_END".to_owned(),
+            end_of("let file"),
+        ),
+        statement("File::open(p)?.sync_all()?;"),
+        statement("let len = File::open(p)?"),
+        guard("m.lock().unwrap().push(m.lock()"),
+        guard("m.lock().unwrap().push(m.lock()"),
+    ];
+    want.sort();
+    // A temporary is released at its statement's `;`, the column rustc's MIR drops it at.
+    let sync = line("File::open(p)?.sync_all()?;");
+    let semi = lib.lines().nth(sync - 1).unwrap().find(';').unwrap();
+    assert!(
+        resolution
+            .releases
+            .iter()
+            .any(|r| r.line == sync && r.column == semi),
+        "{:?}",
+        resolution.releases
+    );
+    // Refused: a wrapper moved into a callee, a by-value `into_*`, a borrow the `let` may extend,
+    // an `if` condition (a temporary scope of its own: MIR drops the guard before the branches),
+    // `Option::take` reached through a guard (no owning adapter: the guard is a temporary of a
+    // method named like a by-value one), a closure body's tail, and a macro argument.
+    assert_eq!(got, want);
 }
 
 /// G162 (replay R7, zed's `language` crate): a module re-exports `crate::Registry` by name while

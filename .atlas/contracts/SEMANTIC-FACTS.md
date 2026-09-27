@@ -206,7 +206,8 @@ Represents durable read/write/commit/rollback/checkpoint/recovery relationships 
 Represents the acquisition and release of handles, locks, threads and other resources (G157, ADR 0072).
 
 - An acquisition names the function, the kind (FILE, SOCKET, LOCK_GUARD, THREAD) and the acquiring call.
-- A release additionally names the acquisition it gives back, the local holding it, and how it happens (SCOPE_END, EXPLICIT_DROP, JOIN).
+- A release additionally names the acquisition it gives back, the local holding it, and how it happens (SCOPE_END, EXPLICIT_DROP, JOIN, STATEMENT_END).
+- G169 (ADR 0083): the holder may be a `let` that took the resource by value into an owning std reader or writer wrapper (`BufReader`, `BufWriter`, `LineWriter`, `Read::take`, `bytes`, `chain`). A temporary only borrowed by its statement's methods is released at that statement's `;` (STATEMENT_END, holder `(temporary)`). Every such point is where rustc's MIR drops it.
 - A release the kind's semantics forbid is malformed. A dropped thread handle detaches; it does not release.
 - An acquisition without a release record has an unknown release point, never "no release".
 

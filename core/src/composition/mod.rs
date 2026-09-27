@@ -1847,10 +1847,12 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
             question_class: "what resource lifetime crosses this boundary?".into(),
             missing: "acquisitions are censused only at calls resolved to the declared std-path \
                       resource table, and releases only for a let-bound holder never moved \
-                      (G157): temporaries, moved holders, fields and statics, non-std resources \
-                      (tempfile, async runtimes' files), FFI pairs and calls withheld in open \
-                      scopes keep an unknown lifetime; magnitude counts acquisitions with no \
-                      recorded release in their function"
+                      (G157), followed into an owning std reader or writer wrapper, and for a \
+                      temporary only borrowed by its statement (G169): holders moved elsewhere, \
+                      temporaries in conditions, tails and macro arguments, fields and statics, \
+                      detached threads, non-std resources (tempfile, async runtimes' files), FFI \
+                      pairs and calls withheld in open scopes keep an unknown lifetime; magnitude \
+                      counts acquisitions with no recorded release in their function"
                 .into(),
             magnitude: unreleased_acquisitions,
             debt: "DEBT-RESOURCE".into(),

@@ -281,6 +281,25 @@ fn consumes_receiver(method: &str) -> bool {
         || method.starts_with("into_")
 }
 
+/// G169 (ADR 0083): the std constructors that take a reader or writer by value and own it, so
+/// that dropping what they return drops it.
+const OWNING_WRAPPERS: &[&str] = &[
+    "std::io::BufReader::new",
+    "std::io::BufReader::with_capacity",
+    "std::io::BufWriter::new",
+    "std::io::BufWriter::with_capacity",
+    "std::io::LineWriter::new",
+    "std::io::LineWriter::with_capacity",
+];
+
+/// G169: the resources an owning reader or writer wrapper can hold: files and sockets.
+fn owned_by_wrapping(kind: atlas_core::ResourceKind) -> bool {
+    matches!(
+        kind,
+        atlas_core::ResourceKind::File | atlas_core::ResourceKind::Socket
+    )
+}
+
 /// G157: the uses of a resource holder after its `let`, in the block it lives in.
 struct HolderUses<'w, 'a> {
     walker: &'w CallWalker<'a>,
@@ -3188,38 +3207,14 @@ impl CallWalker<'_> {
             {
                 continue;
             }
-            let Some((acquired, kind)) = self.acquisition(&init.expr) else {
+            let Some((acquired, kind)) = self.owned_acquisition(&init.expr) else {
                 continue;
             };
-            let mut uses = HolderUses {
-                walker: self,
-                name: &name,
-                after: start(local.semi_token.span),
-                until,
-                depth: 0,
-                moved: false,
-                taking: false,
-                released: Vec::new(),
-            };
-            for stmt in &holder_block.stmts {
-                uses.visit_stmt(stmt);
-            }
-            if uses.moved {
+            let after = start(local.semi_token.span);
+            let Some((name, how, at)) =
+                self.follow_holder(holder_block, &counts, name, after, until, kind)
+            else {
                 continue;
-            }
-            let (how, at) = match uses.released.as_slice() {
-                [] if kind.released_by_drop() && until != FN_END => {
-                    (atlas_core::ResourceRelease::ScopeEnd, until)
-                }
-                [(atlas_core::ResourceRelease::ExplicitDrop, at)] if kind.released_by_drop() => {
-                    (atlas_core::ResourceRelease::ExplicitDrop, *at)
-                }
-                [(atlas_core::ResourceRelease::Join, at)]
-                    if kind == atlas_core::ResourceKind::Thread =>
-                {
-                    (atlas_core::ResourceRelease::Join, *at)
-                }
-                _ => continue,
             };
             out.push(ReleaseResolution {
                 path: self.file.to_owned(),
@@ -3231,7 +3226,241 @@ impl CallWalker<'_> {
                 release: how,
             });
         }
+        out.extend(self.statement_releases(block));
         out
+    }
+
+    /// Where a holder bound once by a `let` gives its resource back, following it through a
+    /// `let` that takes it into an owning std wrapper or adapter (G169: `let reader =
+    /// BufReader::new(file)`, `let limited = file.take(n)`): the holder that finally gives it
+    /// back, how, and where. `None` when it is moved anywhere else or released conditionally.
+    fn follow_holder(
+        &self,
+        block: &syn::Block,
+        counts: &BindingCounts,
+        mut name: String,
+        mut after: (usize, usize),
+        until: (usize, usize),
+        kind: atlas_core::ResourceKind,
+    ) -> Option<(String, atlas_core::ResourceRelease, (usize, usize))> {
+        loop {
+            // A later `let` of this block whose whole initializer wraps the holder by value.
+            let transfer = block.stmts.iter().find_map(|stmt| {
+                let syn::Stmt::Local(local) = stmt else {
+                    return None;
+                };
+                let syn::Pat::Ident(ident) = &local.pat else {
+                    return None;
+                };
+                let init = local.init.as_ref()?;
+                let next = ident.ident.to_string();
+                if start(local.let_token.span) <= after
+                    || ident.by_ref.is_some()
+                    || ident.subpat.is_some()
+                    || init.diverge.is_some()
+                    || counts.0.get(&next) != Some(&1)
+                    || !owned_by_wrapping(kind)
+                {
+                    return None;
+                }
+                match self.owned_inner(&init.expr)? {
+                    syn::Expr::Path(path) if path.qself.is_none() && path.path.is_ident(&name) => {
+                        Some((
+                            next,
+                            start(local.let_token.span),
+                            start(local.semi_token.span),
+                        ))
+                    }
+                    _ => None,
+                }
+            });
+            let mut uses = HolderUses {
+                walker: self,
+                name: &name,
+                after,
+                until: transfer.as_ref().map_or(until, |t| t.1),
+                depth: 0,
+                moved: false,
+                taking: false,
+                released: Vec::new(),
+            };
+            for stmt in &block.stmts {
+                uses.visit_stmt(stmt);
+            }
+            if uses.moved {
+                return None;
+            }
+            let released = uses.released;
+            match (transfer, released.as_slice()) {
+                (Some((next, _, semi)), []) => {
+                    name = next;
+                    after = semi;
+                }
+                (Some(_), _) => return None,
+                (None, []) if kind.released_by_drop() && until != FN_END => {
+                    return Some((name, atlas_core::ResourceRelease::ScopeEnd, until));
+                }
+                (None, [(atlas_core::ResourceRelease::ExplicitDrop, at)])
+                    if kind.released_by_drop() =>
+                {
+                    return Some((name, atlas_core::ResourceRelease::ExplicitDrop, *at));
+                }
+                (None, [(atlas_core::ResourceRelease::Join, at)])
+                    if kind == atlas_core::ResourceKind::Thread =>
+                {
+                    return Some((name, atlas_core::ResourceRelease::Join, *at));
+                }
+                _ => return None,
+            }
+        }
+    }
+
+    /// G169 (ADR 0083): resources acquired as temporaries. An acquisition that is only the
+    /// receiver of a method borrowing it, in an expression or `let` statement, is dropped at that
+    /// statement's `;` (STATEMENT_END); a spawned thread's handle joined there is given back at
+    /// the join (JOIN). Nested blocks, closures and the conditions of `if`, `match` and loops are
+    /// left alone: their temporaries live by other rules.
+    fn statement_releases(&self, block: &syn::Block) -> Vec<ReleaseResolution> {
+        struct Statements<'b>(Vec<&'b syn::Stmt>);
+        impl<'b> Visit<'b> for Statements<'b> {
+            fn visit_stmt(&mut self, stmt: &'b syn::Stmt) {
+                self.0.push(stmt);
+                syn::visit::visit_stmt(self, stmt);
+            }
+            fn visit_item(&mut self, _: &'b syn::Item) {}
+        }
+        /// An acquired temporary: where it was acquired, its kind, and the join releasing it.
+        type Temporary = (
+            (usize, usize),
+            atlas_core::ResourceKind,
+            Option<(usize, usize)>,
+        );
+        struct Temporaries<'w, 'a> {
+            walker: &'w CallWalker<'a>,
+            found: Vec<Temporary>,
+        }
+        impl<'ast> Visit<'ast> for Temporaries<'_, '_> {
+            fn visit_expr(&mut self, expr: &'ast syn::Expr) {
+                match expr {
+                    syn::Expr::Closure(_)
+                    | syn::Expr::Block(_)
+                    | syn::Expr::Async(_)
+                    | syn::Expr::Unsafe(_)
+                    | syn::Expr::Const(_)
+                    | syn::Expr::TryBlock(_)
+                    | syn::Expr::If(_)
+                    | syn::Expr::Match(_)
+                    | syn::Expr::While(_)
+                    | syn::Expr::ForLoop(_)
+                    | syn::Expr::Loop(_)
+                    | syn::Expr::Macro(_) => {}
+                    syn::Expr::MethodCall(call) => {
+                        let method = call.method.to_string();
+                        if !matches!(method.as_str(), "unwrap" | "expect")
+                            && let Some((at, kind)) = self.walker.acquisition(&call.receiver)
+                        {
+                            let joined = matches!(
+                                self.walker.method_outcome(call),
+                                Some((_, PathCallOutcome::External(std)))
+                                    if std == "std::thread::JoinHandle::join"
+                            );
+                            if joined && kind == atlas_core::ResourceKind::Thread {
+                                self.found.push((at, kind, Some(start(call.method.span()))));
+                            } else if kind.released_by_drop() && !consumes_receiver(&method) {
+                                self.found.push((at, kind, None));
+                            }
+                        }
+                        syn::visit::visit_expr_method_call(self, call);
+                    }
+                    _ => syn::visit::visit_expr(self, expr),
+                }
+            }
+        }
+        let mut statements = Statements(Vec::new());
+        statements.visit_block(block);
+        let mut out = Vec::new();
+        for stmt in statements.0 {
+            let (expr, end) = match stmt {
+                syn::Stmt::Expr(expr, Some(semi)) => (expr, start(semi.span)),
+                syn::Stmt::Local(local) => match &local.init {
+                    // A borrow, struct, tuple or array initializer may extend its temporaries.
+                    Some(init)
+                        if init.diverge.is_none()
+                            && !matches!(
+                                init.expr.as_ref(),
+                                syn::Expr::Reference(_)
+                                    | syn::Expr::Struct(_)
+                                    | syn::Expr::Tuple(_)
+                                    | syn::Expr::Array(_)
+                            ) =>
+                    {
+                        (init.expr.as_ref(), start(local.semi_token.span))
+                    }
+                    _ => continue,
+                },
+                _ => continue,
+            };
+            let mut temporaries = Temporaries {
+                walker: self,
+                found: Vec::new(),
+            };
+            temporaries.visit_expr(expr);
+            for (acquired, kind, joined) in temporaries.found {
+                let (release, at) = match joined {
+                    Some(at) => (atlas_core::ResourceRelease::Join, at),
+                    None => (atlas_core::ResourceRelease::StatementEnd, end),
+                };
+                out.push(ReleaseResolution {
+                    path: self.file.to_owned(),
+                    acquired,
+                    holder: "(temporary)".into(),
+                    line: at.0,
+                    column: at.1,
+                    kind,
+                    release,
+                });
+            }
+        }
+        out
+    }
+
+    /// G169: the resource an owning std wrapper or adapter takes by value, if `expr` is one: the
+    /// owned (last) argument of `BufReader::new`, `BufWriter::new`, `LineWriter::new` or their
+    /// `with_capacity`, or the receiver of `Read::take`, `bytes` or `chain`.
+    fn owned_inner<'e>(&self, expr: &'e syn::Expr) -> Option<&'e syn::Expr> {
+        match expr {
+            syn::Expr::Paren(inner) => self.owned_inner(&inner.expr),
+            syn::Expr::Call(call) => {
+                let syn::Expr::Path(path) = call.func.as_ref() else {
+                    return None;
+                };
+                match self.resolve_call(path) {
+                    PathCallOutcome::External(std) if OWNING_WRAPPERS.contains(&std.as_str()) => {
+                        call.args.last()
+                    }
+                    _ => None,
+                }
+            }
+            syn::Expr::MethodCall(call)
+                if matches!(call.method.to_string().as_str(), "take" | "bytes" | "chain") =>
+            {
+                Some(&call.receiver)
+            }
+            _ => None,
+        }
+    }
+
+    /// G169: an acquisition, possibly taken by value into owning std wrappers and adapters of a
+    /// file or socket (`BufReader::new(File::open(p)?)`): dropping the wrapper drops it.
+    fn owned_acquisition(
+        &self,
+        expr: &syn::Expr,
+    ) -> Option<((usize, usize), atlas_core::ResourceKind)> {
+        if let Some(found) = self.acquisition(expr) {
+            return Some(found);
+        }
+        let (at, kind) = self.owned_acquisition(self.owned_inner(expr)?)?;
+        owned_by_wrapping(kind).then_some((at, kind))
     }
 
     /// The acquiring call under `?`, `.unwrap()` and `.expect(..)`: its position (where its

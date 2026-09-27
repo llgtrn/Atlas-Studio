@@ -1,0 +1,310 @@
+{
+ "schema": "atlas.evidence.resource-mir-oracle.v1",
+ "generation": "G169",
+ "attack": "NA-RESOURCE-RESIDUAL",
+ "decision": ".atlas/decisions/0083-resource-temporaries-and-owning-wrappers.md",
+ "oracle": "rustc 1.90.0 MIR with source spans (RUSTC_BOOTSTRAP=1 cargo rustc -- -Zunpretty=mir -Zmir-include-spans), lib and test profiles: a release claim is CONFIRMED when a normal-path drop terminator (or, for EXPLICIT_DROP, a std::mem::drop call) of a local whose type owns the resource sits at the claimed line and column; a test-time instrument, never a census input",
+ "atlas_self": {
+  "acquisitions": 8,
+  "releases_E16": 2,
+  "releases_E17": 7,
+  "claims_E17": [
+   {
+    "path": "adapter/src/source/mod.rs",
+    "line": 696,
+    "column0": 8,
+    "kind": "FILE",
+    "release": "EXPLICIT_DROP",
+    "holder": "file",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 9,
+      "type": "std::fs::File"
+     }
+    ]
+   },
+   {
+    "path": "runtime/src/atlas.rs",
+    "line": 254,
+    "column0": 4,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "file",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 5,
+      "type": "std::fs::File"
+     },
+     {
+      "column1": 5,
+      "type": "std::fs::File"
+     }
+    ]
+   },
+   {
+    "path": "adapter/src/source/mod.rs",
+    "line": 127,
+    "column0": 0,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "reader",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 1,
+      "type": "std::io::Take<std::fs::File>"
+     },
+     {
+      "column1": 1,
+      "type": "std::io::Take<std::fs::File>"
+     }
+    ]
+   },
+   {
+    "path": "runtime/src/weights.rs",
+    "line": 60,
+    "column0": 4,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "writer",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 5,
+      "type": "std::io::BufWriter<std::fs::File>"
+     },
+     {
+      "column1": 5,
+      "type": "std::io::BufReader<std::fs::File>"
+     }
+    ]
+   },
+   {
+    "path": "runtime/src/weights.rs",
+    "line": 23,
+    "column0": 0,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "reader",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 1,
+      "type": "std::io::BufReader<std::fs::File>"
+     }
+    ]
+   },
+   {
+    "path": "runtime/src/atlas.rs",
+    "line": 257,
+    "column0": 39,
+    "kind": "FILE",
+    "release": "STATEMENT_END",
+    "holder": "(temporary)",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 40,
+      "type": "std::fs::File"
+     },
+     {
+      "column1": 40,
+      "type": "std::fs::File"
+     }
+    ]
+   },
+   {
+    "path": "runtime/src/weights.rs",
+    "line": 60,
+    "column0": 4,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "payload",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 5,
+      "type": "std::io::BufWriter<std::fs::File>"
+     },
+     {
+      "column1": 5,
+      "type": "std::io::BufReader<std::fs::File>"
+     }
+    ]
+   }
+  ],
+  "unreleased_E17": [
+   {
+    "function": "drain",
+    "path": "runtime/src/sandbox.rs",
+    "line": 91,
+    "kind": "THREAD",
+    "why": "the JoinHandle is dropped, which detaches the thread: no release (ADR 0072)"
+   }
+  ]
+ },
+ "fixture": {
+  "source": "the resolver test wrapped_moved_on_and_temporary_resources_are_released_where_mir_drops_them, made compilable (into_raw_fd for the by-value case), edition 2024",
+  "claims_E16": 0,
+  "claims_E17": [
+   {
+    "path": "src/lib.rs",
+    "line": 29,
+    "column0": 46,
+    "kind": "FILE",
+    "release": "STATEMENT_END",
+    "holder": "(temporary)",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 47,
+      "type": "std::fs::File"
+     },
+     {
+      "column1": 47,
+      "type": "std::fs::File"
+     }
+    ]
+   },
+   {
+    "path": "src/lib.rs",
+    "line": 11,
+    "column0": 0,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "reader",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 1,
+      "type": "std::io::BufReader<std::fs::File>"
+     }
+    ]
+   },
+   {
+    "path": "src/lib.rs",
+    "line": 16,
+    "column0": 4,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "writer",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 5,
+      "type": "std::io::BufWriter<std::fs::File>"
+     },
+     {
+      "column1": 5,
+      "type": "std::io::BufWriter<std::fs::File>"
+     }
+    ]
+   },
+   {
+    "path": "src/lib.rs",
+    "line": 26,
+    "column0": 0,
+    "kind": "FILE",
+    "release": "SCOPE_END",
+    "holder": "limited",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 1,
+      "type": "std::io::Take<std::fs::File>"
+     },
+     {
+      "column1": 1,
+      "type": "std::io::Take<std::fs::File>"
+     }
+    ]
+   },
+   {
+    "path": "src/lib.rs",
+    "line": 30,
+    "column0": 57,
+    "kind": "LOCK_GUARD",
+    "release": "STATEMENT_END",
+    "holder": "(temporary)",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 58,
+      "type": "std::sync::MutexGuard<'_, std::vec::Vec<u8>>"
+     },
+     {
+      "column1": 58,
+      "type": "std::sync::MutexGuard<'_, std::vec::Vec<u8>>"
+     }
+    ]
+   },
+   {
+    "path": "src/lib.rs",
+    "line": 30,
+    "column0": 57,
+    "kind": "LOCK_GUARD",
+    "release": "STATEMENT_END",
+    "holder": "(temporary)",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 58,
+      "type": "std::sync::MutexGuard<'_, std::vec::Vec<u8>>"
+     },
+     {
+      "column1": 58,
+      "type": "std::sync::MutexGuard<'_, std::vec::Vec<u8>>"
+     }
+    ]
+   },
+   {
+    "path": "src/lib.rs",
+    "line": 28,
+    "column0": 30,
+    "kind": "FILE",
+    "release": "STATEMENT_END",
+    "holder": "(temporary)",
+    "verdict": "CONFIRMED",
+    "mir_drops": [
+     {
+      "column1": 31,
+      "type": "std::fs::File"
+     },
+     {
+      "column1": 31,
+      "type": "std::fs::File"
+     }
+    ]
+   }
+  ],
+  "refusals_checked_against_mir": [
+   {
+    "case": "let _x = if m.lock().unwrap().is_empty() { 1 } else { 2 };",
+    "mir": "guard dropped at 42:44, after the condition and before the branches -- a STATEMENT_END claim would be wrong"
+   },
+   {
+    "case": "let _v = o.lock().unwrap().take();",
+    "mir": "guard dropped at the statement's ; (43:38); refused because take is a by-value name, so UNKNOWN rather than a wrong holder claim"
+   },
+   {
+    "case": "let wrapped = BufReader::new(File::open(p)?); keep(wrapped);",
+    "mir": "the wrapper is moved into keep, which drops it"
+   }
+  ]
+ },
+ "falsification": {
+  "mutants_killed": [
+   "consuming methods claimed",
+   "if conditions entered",
+   "no hand-on",
+   "wrappers not followed",
+   "release at the acquisition",
+   "wrappers of guards accepted"
+  ],
+  "equivalent": [
+   "a release before a hand-on accepted (unreachable in compiling code)"
+  ]
+ }
+}
