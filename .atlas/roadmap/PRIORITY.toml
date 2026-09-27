@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-RESOURCE-RESIDUAL"
+next_native_attack = "NA-CALL-TYPE-RESIDUAL"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -752,7 +752,7 @@ objective = "FULL_OSS_REPLAY R10 rust-lang/rust-analyzer at 86493cee4d89 (done: 
 [[planned_generation]]
 id = "G169"
 priority = "P0"
-objective = "native attack queue head (pressure map, dependency and construction-reachability order; DEBT-CALL advanced at G168, so the map moved on): NA-RESOURCE-RESIDUAL (DEBT-RESOURCE, DEBT-OWNERSHIP) -- the release points the first resource profile leaves unknown: temporary guards, holders moved into a callee, releases reconciled against OWNERSHIP moves, FFI acquire/release pairs and child processes"
+objective = "NA-RESOURCE-RESIDUAL step one (DEBT-RESOURCE; done: a temporary only borrowed by its statement is released at the statement end, an owning std reader or writer wrapper carries its resource, and a holder handed on by a later let is followed; Atlas on itself 2 -> 7 releases of 8 acquisitions, all 7 where rustc MIR drops the resource, the eighth a detached thread; capability epoch E17; the residual -- OWNERSHIP reconciliation, moved holders, fields, FFI pairs, child processes -- stays queued; ADR 0083)"
 
 [[planned_generation]]
 id = "G170"
@@ -760,6 +760,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY R11 rust-lang/rust (QUEUED): rank 1 of the recursive revalidation after R10, its method-resolution verdict (REFERENCE_ONLY since G73, revalidated R1 at G121) facing the strongest Atlas (E16) through a dependency-relevant sparse materialization of compiler/rustc_hir_typeck; R10 measured the dominant residual on real Rust as method calls on untyped receivers (28,573 of rust-analyzer's index edges unresolved by name); a fresh pin, license verified at it"
 
 [[planned_generation]]
-id = "G171+"
+id = "G171"
+priority = "P0"
+objective = "native attack queue head (pressure map, dependency and construction-reachability order; DEBT-RESOURCE advanced at G169): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE) -- replay R10 measured the residual on real Rust as method calls on untyped receivers, among them fields of parameters whose type lives in another workspace crate; G167 measured the external-declaration boundary (NA-DEPENDENCY-DECLARATIONS)"
+
+[[planned_generation]]
+id = "G172+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

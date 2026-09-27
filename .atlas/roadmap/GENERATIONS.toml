@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G168"
+current_generation = "G169"
 
 [[generation]]
 id = "G35"
@@ -3940,3 +3940,35 @@ after = 6202
 key = "composed:relation:INVOKES"
 before = 5117
 after = 5132
+
+[[generation]]
+id = "G169"
+kind = "NATIVE_ATTACK"
+base_commit = "c525c9b94819cd3f47241a7b2505ba7696ffc5a3"
+priority = "P0"
+serves = "DEBT-RESOURCE: the native queue head the pressure map selected after replay R10, between replays R10 and R11"
+objective = "NA-RESOURCE-RESIDUAL step one: the release points the first resource profile left unknown on Atlas itself, each placed where rustc's MIR drops the resource"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/verification/G169-resource-mir-oracle.json"
+self_recensus = ".atlas/evidence/census/G169/recensus.json"
+
+[generation.verification]
+pre_census = "G168 post digest"
+atlas_first = "Atlas's own world model: 8 acquisitions and 2 releases; the 6 without a release read against the source -- 3 files taken into BufReader or BufWriter, 1 file handed on by take, 1 statement temporary, 1 detached thread"
+change = "adapter resolve: owning std wrappers (BufReader, BufWriter, LineWriter and their with_capacity forms; Read take, bytes, chain) make a let the holder of the resource they take; a holder handed on by a later let is followed; an acquisition only borrowed by its statement's methods is released at the statement's semicolon; core ResourceRelease gains STATEMENT_END (INFERRED); the obligation diagnostic and GAP-RESOURCE say what stays outside (ADR 0083)"
+oracle = "rustc 1.90.0 MIR with source spans: Atlas on itself 2 -> 7 releases, all 7 at the line and column where MIR drops the resource (lib and test profiles); a fixture crate compiled by rustc: 7 claims, all confirmed, and its refusals checked in MIR (an if condition's guard drops before the branches)"
+falsification = "6 mutants killed (consuming methods claimed, if conditions entered, no hand-on, wrappers not followed, the release at the acquisition, wrappers of guards accepted); one mutant unreachable in compiling code"
+boundary = "temporaries in conditions, tails and macro arguments; holders moved into callees or stored; fields and statics; detached threads; non-std resources; FFI pairs; child processes; no reconciliation with OWNERSHIP moves; the MIR oracle is a test-time instrument, never a census input"
+debts = "DEBT-RESOURCE last advance G169; capability epoch E17; NA-RESOURCE-RESIDUAL stays queued for OWNERSHIP reconciliation, moved holders, fields, FFI pairs and child processes; the processed replays re-checked CURRENT at E17; next replay rust-lang/rust G170"
+review = "no debt review due at G169"
+proof = "PROVEN (post ee1f0434...): the new resolver fixture explained as unresolved by design"
+
+[[generation.metric]]
+key = "records:RESOURCE|atlas.resolution.rust-paths"
+before = 10
+after = 15
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5132
+after = 5151

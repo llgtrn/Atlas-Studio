@@ -1,0 +1,319 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G169",
+  "base_revision": "ad96f3cf4e1769fa677f3664ab214907aaed9074",
+  "candidate_revision": "ff1968ec652e287f022017cfda12fa22950973ae",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:5f2203b4c82c9a22aab5487cdac8b160fc1a9c6763cc4ee6f55e0ccb44366454",
+  "after_census_digest": "blake3-256:ee1f0434106459f0a3ea1820ffcede7e00a8b6b97a8ae9c5ac6de082a8988ca7",
+  "replay_digest": "blake3-256:ee1f0434106459f0a3ea1820ffcede7e00a8b6b97a8ae9c5ac6de082a8988ca7",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/resource.rs",
+      "runtime/src/census/resolution.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/resource.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/weights.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 18,
+      "fact:FunctionSignature|OBSERVED": 9,
+      "fact:Symbol|OBSERVED": 25,
+      "fact:Type|DERIVED": 1,
+      "fact:Type|OBSERVED": 17,
+      "record:CALL|DERIVED": 22,
+      "record:CALL|OBSERVED": 112,
+      "record:CONTROL_FLOW|INFERRED": 2,
+      "record:CONTROL_FLOW|OBSERVED": 58,
+      "record:DATA_FLOW|OBSERVED": 268,
+      "record:EFFECT|INFERRED": 2,
+      "record:FUNCTION_IDENTITY|OBSERVED": 18,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 9,
+      "record:OWNERSHIP|OBSERVED": 79,
+      "record:RESOURCE|INFERRED": 5,
+      "record:SYMBOL|OBSERVED": 25,
+      "record:TYPE|DERIVED": 1,
+      "record:TYPE|OBSERVED": 17
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 891,
+    "graph_nodes": 658
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/resource/`impl:ResourceIdentity`/is_well_formed()."
+      ],
+      "after": [
+        "core semantic/resource/`impl:ResourceIdentity`/is_well_formed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'ast> for Temporaries<'_, '_>`/visit_expr()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'b> for Statements<'b>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'b> for Statements<'b>`/visit_stmt()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/follow_holder()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/owned_acquisition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/owned_inner()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/statement_releases()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/owned_by_wrapping()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/wrapped_moved_on_and_temporary_resources_are_released_where_mir_drops_them()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2241,
+    "total_after": 2241
+  },
+  "intent": {
+    "objective": "NA-RESOURCE-RESIDUAL step one: a temporary only borrowed by its statement is released at the statement end, an owning std reader or writer wrapper carries its resource, and a holder handed on by a later let is followed to it (capability epoch E17, ADR 0083); every release where rustc MIR drops it",
+    "changed_paths": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/composition/mod.rs",
+      "core/src/semantic/resource.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/weights.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:RESOURCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases().",
+      "CHANGED adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core semantic/resource/`impl:ResourceIdentity`/is_well_formed().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'ast> for Temporaries<'_, '_>`/visit_expr().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'b> for Statements<'b>`/visit_item().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'b> for Statements<'b>`/visit_stmt().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/follow_holder().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/owned_acquisition().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/owned_inner().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/statement_releases().",
+      "CREATED adapter semantic/rust/resolve/owned_by_wrapping().",
+      "CREATED adapter semantic/rust/resolve/tests/wrapped_moved_on_and_temporary_resources_are_released_where_mir_drops_them()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/source/mod.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/semantic/resource.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/weights.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:RESOURCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resource_releases().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/let_bound_resources_are_released_where_their_holder_gives_them_back().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core semantic/resource/`impl:ResourceIdentity`/is_well_formed().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'ast> for Temporaries<'_, '_>`/visit_expr().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'b> for Statements<'b>`/visit_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/`impl:Visit<'b> for Statements<'b>`/visit_stmt().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/follow_holder().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/owned_acquisition().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/owned_inner().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/statement_releases().",
+    "entity CREATED adapter semantic/rust/resolve/owned_by_wrapping().",
+    "entity CREATED adapter semantic/rust/resolve/tests/wrapped_moved_on_and_temporary_resources_are_released_where_mir_drops_them()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
