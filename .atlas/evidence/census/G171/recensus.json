@@ -1,0 +1,1018 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G171",
+  "base_revision": "7d20ff5df84618677ae2eec3c2c7d2910ba5013c",
+  "candidate_revision": "80a1a3bc4a1186cacb7ebca2ba5d141e0fd9b948",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:3cde015ca110112b006f09aab7e39a8f2d50d836910adc9bb7e25ab22513cb00",
+  "after_census_digest": "blake3-256:a1f538d9f7e863f510d23ae841abb00265ca08ff1a32aaa3257c89318efc117a",
+  "replay_digest": "blake3-256:a1f538d9f7e863f510d23ae841abb00265ca08ff1a32aaa3257c89318efc117a",
+  "inventory_delta": {
+    "created": [
+      "core/src/identity/ed25519.rs",
+      "core/src/identity/ed25519/tests.rs",
+      "core/src/identity/sha512.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/Cargo.toml",
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "core/src/identity/mod.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "runtime/Cargo.toml",
+      "runtime/src/design.rs",
+      "runtime/src/seal.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "core/src/identity/mod.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "runtime/src/design.rs",
+      "runtime/src/seal.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 95,
+      "fact:FunctionSignature|OBSERVED": 56,
+      "fact:SemanticObligation|OBSERVED": 15,
+      "fact:SemanticObligation|UNKNOWN": 39,
+      "fact:SemanticObligation|UNSUPPORTED": 3,
+      "fact:SourceArtifact|OBSERVED": 6,
+      "fact:Symbol|OBSERVED": 132,
+      "fact:Type|DERIVED": 36,
+      "fact:Type|OBSERVED": 56,
+      "record:CALL|DERIVED": 171,
+      "record:CALL|OBSERVED": 618,
+      "record:CONTROL_FLOW|INFERRED": 60,
+      "record:CONTROL_FLOW|OBSERVED": 197,
+      "record:DATA_FLOW|OBSERVED": 1458,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 61,
+      "record:FUNCTION_IDENTITY|OBSERVED": 95,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 56,
+      "record:OWNERSHIP|OBSERVED": 381,
+      "record:PERSISTENCE|DERIVED": 1,
+      "record:STATE|OBSERVED": 4,
+      "record:SYMBOL|OBSERVED": 132,
+      "record:TYPE|DERIVED": 36,
+      "record:TYPE|OBSERVED": 56
+    }
+  },
+  "dependency_delta": {
+    "added": [
+      "core -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]",
+      "runtime -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]"
+    ],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 4792,
+    "graph_nodes": 3408
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 3,
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 6,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:EFFECT|UNKNOWN": 6,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:PERSISTENCE|UNKNOWN": 6,
+    "obligation:RESOURCE|UNKNOWN": 3,
+    "obligation:RESOURCE|UNSUPPORTED": 3,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:SYMBOL|OBSERVED": 3,
+    "obligation:TYPE|OBSERVED": 3,
+    "obligation:TYPE|UNKNOWN": 3
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/`impl:PrincipalRegistry`/empty()."
+      ],
+      "after": [
+        "core design/`impl:PrincipalRegistry`/empty()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design()."
+      ],
+      "after": [
+        "core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/tests/registry()."
+      ],
+      "after": [
+        "core design/tests/registry()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/tests/selected_by()."
+      ],
+      "after": [
+        "core design/tests/selected_by()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core design/validate()."
+      ],
+      "after": [
+        "core design/validate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/gate()."
+      ],
+      "after": [
+        "core seal/gate/gate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/decide()."
+      ],
+      "after": [
+        "core seal/gate/tests/decide()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/design()."
+      ],
+      "after": [
+        "core seal/gate/tests/design()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal()."
+      ],
+      "after": [
+        "core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it()."
+      ],
+      "after": [
+        "runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime design/tests/candidates_are_proposed_together_compared_and_a_selection_is_checked_against_the_comparison()."
+      ],
+      "after": [
+        "runtime design/tests/candidates_are_proposed_together_compared_and_a_selection_is_checked_against_the_comparison()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime seal/gate_container()."
+      ],
+      "after": [
+        "runtime seal/gate_container()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+      ],
+      "after": [
+        "runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/authenticate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/authority_violations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/decode_hex()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/signing_message()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/a_selection_is_signed_under_a_key_declared_for_its_principal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/an_event_signed_by_an_independent_tool_authenticates()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/hex()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/principal_key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core design/tests/sign()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/add()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/carried()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/equals()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/from_bytes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/from_u64()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/invert()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/is_negative()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/is_zero()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/mul()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/neg()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/pow()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/square()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/sub()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Fe`/to_bytes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Point`/add()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Point`/compress()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Point`/decompress()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Point`/is_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Point`/is_small_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/`impl:Point`/times()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/curve_d()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/exponent()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/is_reduced()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/reduce_wide()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/sqrt_minus_one()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/any_change_to_key_message_or_signature_fails()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/bytes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/curve_constants_are_the_published_ones()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/field_encoding_is_canonical()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/malleated_and_small_order_inputs_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/message()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/rfc_8032_vectors_verify()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/scalars_reduce_mod_l()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/tests/verification_agrees_with_an_independent_implementation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/ed25519/verify()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/sha512/compress()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/sha512/hash()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/sha512/hash_parts()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/sha512/tests/fips_vectors_match()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/sha512/tests/hex()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core identity/sha512/tests/parts_are_concatenated()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/a_design_without_selection_authority_does_not_seal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/hex()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/principal_key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/registry()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/sign()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime design/unsigned_event()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/identity/ed25519.rs: 0 -> 14",
+      "core/src/identity/ed25519/tests.rs: 0 -> 14",
+      "core/src/identity/sha512.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2241,
+    "total_after": 2283
+  },
+  "intent": {
+    "objective": "NA-PRINCIPAL-AUTHENTICATION: principals authenticated by signature under declared keys, and the seal gate asks for selection authority (ADR 0085)",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/Cargo.toml",
+      "core/src/design/mod.rs",
+      "core/src/design/tests.rs",
+      "core/src/identity/ed25519.rs",
+      "core/src/identity/ed25519/tests.rs",
+      "core/src/identity/mod.rs",
+      "core/src/identity/sha512.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "runtime/Cargo.toml",
+      "runtime/src/design.rs",
+      "runtime/src/seal.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [
+      "+core -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]",
+      "+runtime -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]"
+    ],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/identity/ed25519.rs: the new verification primitives and design fixtures of G171 (Ed25519, SHA-512, signed events) whose calls are unresolved by design",
+      "core/src/identity/ed25519/tests.rs: the new verification primitives and design fixtures of G171 (Ed25519, SHA-512, signed events) whose calls are unresolved by design",
+      "core/src/identity/sha512.rs: the new verification primitives and design fixtures of G171 (Ed25519, SHA-512, signed events) whose calls are unresolved by design"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CHANGED core design/`impl:PrincipalRegistry`/empty().",
+      "CHANGED core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design().",
+      "CHANGED core design/tests/registry().",
+      "CHANGED core design/tests/selected_by().",
+      "CHANGED core design/validate().",
+      "CHANGED core seal/gate/gate().",
+      "CHANGED core seal/gate/tests/decide().",
+      "CHANGED core seal/gate/tests/design().",
+      "CHANGED core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal().",
+      "CHANGED runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it().",
+      "CHANGED runtime design/tests/candidates_are_proposed_together_compared_and_a_selection_is_checked_against_the_comparison().",
+      "CHANGED runtime seal/gate_container().",
+      "CHANGED runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed().",
+      "CREATED core design/authenticate().",
+      "CREATED core design/authority_violations().",
+      "CREATED core design/decode_hex().",
+      "CREATED core design/signing_message().",
+      "CREATED core design/tests/a_selection_is_signed_under_a_key_declared_for_its_principal().",
+      "CREATED core design/tests/an_event_signed_by_an_independent_tool_authenticates().",
+      "CREATED core design/tests/hex().",
+      "CREATED core design/tests/principal_key().",
+      "CREATED core design/tests/sign().",
+      "CREATED core identity/ed25519/`impl:Fe`/add().",
+      "CREATED core identity/ed25519/`impl:Fe`/carried().",
+      "CREATED core identity/ed25519/`impl:Fe`/equals().",
+      "CREATED core identity/ed25519/`impl:Fe`/from_bytes().",
+      "CREATED core identity/ed25519/`impl:Fe`/from_u64().",
+      "CREATED core identity/ed25519/`impl:Fe`/invert().",
+      "CREATED core identity/ed25519/`impl:Fe`/is_negative().",
+      "CREATED core identity/ed25519/`impl:Fe`/is_zero().",
+      "CREATED core identity/ed25519/`impl:Fe`/mul().",
+      "CREATED core identity/ed25519/`impl:Fe`/neg().",
+      "CREATED core identity/ed25519/`impl:Fe`/pow().",
+      "CREATED core identity/ed25519/`impl:Fe`/square().",
+      "CREATED core identity/ed25519/`impl:Fe`/sub().",
+      "CREATED core identity/ed25519/`impl:Fe`/to_bytes().",
+      "CREATED core identity/ed25519/`impl:Point`/add().",
+      "CREATED core identity/ed25519/`impl:Point`/compress().",
+      "CREATED core identity/ed25519/`impl:Point`/decompress().",
+      "CREATED core identity/ed25519/`impl:Point`/is_identity().",
+      "CREATED core identity/ed25519/`impl:Point`/is_small_order().",
+      "CREATED core identity/ed25519/`impl:Point`/times().",
+      "CREATED core identity/ed25519/curve_d().",
+      "CREATED core identity/ed25519/exponent().",
+      "CREATED core identity/ed25519/is_reduced().",
+      "CREATED core identity/ed25519/reduce_wide().",
+      "CREATED core identity/ed25519/sqrt_minus_one().",
+      "CREATED core identity/ed25519/tests/any_change_to_key_message_or_signature_fails().",
+      "CREATED core identity/ed25519/tests/bytes().",
+      "CREATED core identity/ed25519/tests/curve_constants_are_the_published_ones().",
+      "CREATED core identity/ed25519/tests/field_encoding_is_canonical().",
+      "CREATED core identity/ed25519/tests/malleated_and_small_order_inputs_are_refused().",
+      "CREATED core identity/ed25519/tests/message().",
+      "CREATED core identity/ed25519/tests/rfc_8032_vectors_verify().",
+      "CREATED core identity/ed25519/tests/scalars_reduce_mod_l().",
+      "CREATED core identity/ed25519/tests/verification_agrees_with_an_independent_implementation().",
+      "CREATED core identity/ed25519/verify().",
+      "CREATED core identity/sha512/compress().",
+      "CREATED core identity/sha512/hash().",
+      "CREATED core identity/sha512/hash_parts().",
+      "CREATED core identity/sha512/tests/fips_vectors_match().",
+      "CREATED core identity/sha512/tests/hex().",
+      "CREATED core identity/sha512/tests/parts_are_concatenated().",
+      "CREATED core seal/gate/tests/a_design_without_selection_authority_does_not_seal().",
+      "CREATED core seal/gate/tests/hex().",
+      "CREATED core seal/gate/tests/principal_key().",
+      "CREATED core seal/gate/tests/registry().",
+      "CREATED core seal/gate/tests/sign().",
+      "CREATED runtime design/unsigned_event()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/Cargo.toml",
+    "path core/src/design/mod.rs",
+    "path core/src/design/tests.rs",
+    "path core/src/identity/ed25519.rs",
+    "path core/src/identity/ed25519/tests.rs",
+    "path core/src/identity/mod.rs",
+    "path core/src/identity/sha512.rs",
+    "path core/src/seal/gate.rs",
+    "path core/src/seal/gate/tests.rs",
+    "path runtime/Cargo.toml",
+    "path runtime/src/design.rs",
+    "path runtime/src/seal.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "dependency +core -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]",
+    "dependency +runtime -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]",
+    "entity CHANGED `apps/cli` run().",
+    "entity CHANGED core design/`impl:PrincipalRegistry`/empty().",
+    "entity CHANGED core design/tests/only_a_registered_human_selects_and_the_event_commits_to_one_design().",
+    "entity CHANGED core design/tests/registry().",
+    "entity CHANGED core design/tests/selected_by().",
+    "entity CHANGED core design/validate().",
+    "entity CHANGED core seal/gate/gate().",
+    "entity CHANGED core seal/gate/tests/decide().",
+    "entity CHANGED core seal/gate/tests/design().",
+    "entity CHANGED core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal().",
+    "entity CHANGED runtime design/tests/a_design_is_proposed_and_checked_against_the_verified_container_and_nobody_selects_it().",
+    "entity CHANGED runtime design/tests/candidates_are_proposed_together_compared_and_a_selection_is_checked_against_the_comparison().",
+    "entity CHANGED runtime seal/gate_container().",
+    "entity CHANGED runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed().",
+    "entity CREATED core design/authenticate().",
+    "entity CREATED core design/authority_violations().",
+    "entity CREATED core design/decode_hex().",
+    "entity CREATED core design/signing_message().",
+    "entity CREATED core design/tests/a_selection_is_signed_under_a_key_declared_for_its_principal().",
+    "entity CREATED core design/tests/an_event_signed_by_an_independent_tool_authenticates().",
+    "entity CREATED core design/tests/hex().",
+    "entity CREATED core design/tests/principal_key().",
+    "entity CREATED core design/tests/sign().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/add().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/carried().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/equals().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/from_bytes().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/from_u64().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/invert().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/is_negative().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/is_zero().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/mul().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/neg().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/pow().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/square().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/sub().",
+    "entity CREATED core identity/ed25519/`impl:Fe`/to_bytes().",
+    "entity CREATED core identity/ed25519/`impl:Point`/add().",
+    "entity CREATED core identity/ed25519/`impl:Point`/compress().",
+    "entity CREATED core identity/ed25519/`impl:Point`/decompress().",
+    "entity CREATED core identity/ed25519/`impl:Point`/is_identity().",
+    "entity CREATED core identity/ed25519/`impl:Point`/is_small_order().",
+    "entity CREATED core identity/ed25519/`impl:Point`/times().",
+    "entity CREATED core identity/ed25519/curve_d().",
+    "entity CREATED core identity/ed25519/exponent().",
+    "entity CREATED core identity/ed25519/is_reduced().",
+    "entity CREATED core identity/ed25519/reduce_wide().",
+    "entity CREATED core identity/ed25519/sqrt_minus_one().",
+    "entity CREATED core identity/ed25519/tests/any_change_to_key_message_or_signature_fails().",
+    "entity CREATED core identity/ed25519/tests/bytes().",
+    "entity CREATED core identity/ed25519/tests/curve_constants_are_the_published_ones().",
+    "entity CREATED core identity/ed25519/tests/field_encoding_is_canonical().",
+    "entity CREATED core identity/ed25519/tests/malleated_and_small_order_inputs_are_refused().",
+    "entity CREATED core identity/ed25519/tests/message().",
+    "entity CREATED core identity/ed25519/tests/rfc_8032_vectors_verify().",
+    "entity CREATED core identity/ed25519/tests/scalars_reduce_mod_l().",
+    "entity CREATED core identity/ed25519/tests/verification_agrees_with_an_independent_implementation().",
+    "entity CREATED core identity/ed25519/verify().",
+    "entity CREATED core identity/sha512/compress().",
+    "entity CREATED core identity/sha512/hash().",
+    "entity CREATED core identity/sha512/hash_parts().",
+    "entity CREATED core identity/sha512/tests/fips_vectors_match().",
+    "entity CREATED core identity/sha512/tests/hex().",
+    "entity CREATED core identity/sha512/tests/parts_are_concatenated().",
+    "entity CREATED core seal/gate/tests/a_design_without_selection_authority_does_not_seal().",
+    "entity CREATED core seal/gate/tests/hex().",
+    "entity CREATED core seal/gate/tests/principal_key().",
+    "entity CREATED core seal/gate/tests/registry().",
+    "entity CREATED core seal/gate/tests/sign().",
+    "entity CREATED runtime design/unsigned_event()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

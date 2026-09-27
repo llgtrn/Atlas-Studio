@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G170"
+current_generation = "G171"
 
 [[generation]]
 id = "G35"
@@ -4016,3 +4016,35 @@ after = 7185
 key = "diagnostic:IncompleteAnalysis"
 before = 1864
 after = 1862
+
+[[generation]]
+id = "G171"
+kind = "NATIVE_ATTACK"
+base_commit = "bfefd35bc77b40626b907d0a78fa6111d204a729"
+priority = "P0"
+serves = "DEBT-IDENTITY_AUTHORITY and DEBT-SELECTED_DESIGN: the native queue head the pressure map selected after replay R11 (pressure 44), between replays R11 and R12"
+objective = "NA-PRINCIPAL-AUTHENTICATION: principals authenticated beyond a declared registry, so the SELECTED design the seal gate requires rests on an authenticated principal"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/verification/G171-principal-authentication.json"
+self_recensus = ".atlas/evidence/census/G171/recensus.json"
+
+[generation.verification]
+pre_census = "G170 post digest"
+atlas_first = "the design and seal code read against the debt: a principal in .atlas/declared/principals.json was a name any design writer could put on an event, and runtime::seal::gate_container never validated the design it gated -- the gate asked only whether an authority event existed"
+change = "core identity sha512 and ed25519 (native FIPS 180-4 SHA-512 and strict RFC 8032 verification; no signing); design PrincipalRegistry.keys, AuthorityEvent.signature over signing_message, authority_violations shared by validate and the seal gate (GateInputs.registry, DESIGN_AUTHORITY_REFUSED); runtime and CLI pass the declared registry to the gate; `design event` prints the unsigned event and its signing message (ADR 0085)"
+oracle = "RFC 8032 TESTs 1-3 (OpenSSL 3.0 reproduced TESTs 2 and 3, ed25519-compact TEST 1); FIPS 180-4 SHA-512 examples (Python hashlib); curve constants and a 512-bit reduction from Python big integers; a 24-case differential against ed25519-compact on valid and tampered signatures; an event prepared by `design event` and signed by OpenSSL authenticates and fails once edited"
+falsification = "the seal gate made a provider's, an undeclared principal's, an unsigned, an edited and a foreign-key event ELIGIBLE -- each now NOT_ELIGIBLE with DESIGN_AUTHORITY_REFUSED; 8 mutants killed (gate ignoring authority, undeclared key, any algorithm, unsigned accepted, S unreduced, small-order refusal removed for A and R together and for each alone -- the last two survived until a forgery per point was added)"
+boundary = "Atlas verifies and never signs or holds a key; the registry stays empty until the owner declares a principal and a key; authority for admissions, key rotation and revocation, the POLICY_AUTO envelope and DecisionProposal lineage stay open (NA-ADMISSION-AUTHORITY); ed25519-dalek was refused as the test oracle by Atlas's own Cargo oracle (a cfg-gated lock entry no host build downloads), ed25519-compact has no dependencies"
+debts = "DEBT-IDENTITY_AUTHORITY and DEBT-SELECTED_DESIGN last advance G171; NA-ADMISSION-AUTHORITY queued for the residual; no capability epoch moves (census records unchanged), so no replay verdict is affected; next replay rust-lang/miri G172; native head NA-CALL-TYPE-RESIDUAL planned G173 (pressure 46)"
+proof = "PROVEN (post a1f538d9...): the new verification primitives and signed design fixtures explained as unresolved by design; Atlas on itself 6,222 -> 6,317 functions and 5,157 -> 5,268 INVOKES, all in the new primitives and tests"
+
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6222
+after = 6317
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5157
+after = 5268
