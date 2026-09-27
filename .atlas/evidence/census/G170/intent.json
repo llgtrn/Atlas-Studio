@@ -19,6 +19,7 @@
     "+entities",
     "+evidence",
     "+facts",
+    "+graph_bindings",
     "+graph_edges",
     "+graph_nodes",
     "+normalized_facts",

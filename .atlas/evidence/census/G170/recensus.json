@@ -2,11 +2,11 @@
   "schema": "atlas.self-recensus-report.v1",
   "generation": "G170",
   "base_revision": "ff1968ec652e287f022017cfda12fa22950973ae",
-  "candidate_revision": "eb43fa15913c5a12d1832e537c9dcb852535c707",
+  "candidate_revision": "7d20ff5df84618677ae2eec3c2c7d2910ba5013c",
   "candidate_dirty": true,
   "before_census_digest": "blake3-256:ee1f0434106459f0a3ea1820ffcede7e00a8b6b97a8ae9c5ac6de082a8988ca7",
-  "after_census_digest": "blake3-256:af8df6709ba1120a70bfc785e56960da0e51742014e6020db1cff3a0709039ee",
-  "replay_digest": "blake3-256:af8df6709ba1120a70bfc785e56960da0e51742014e6020db1cff3a0709039ee",
+  "after_census_digest": "blake3-256:3cde015ca110112b006f09aab7e39a8f2d50d836910adc9bb7e25ab22513cb00",
+  "replay_digest": "blake3-256:3cde015ca110112b006f09aab7e39a8f2d50d836910adc9bb7e25ab22513cb00",
   "inventory_delta": {
     "created": [],
     "modified": [
@@ -47,7 +47,8 @@
     "Closed"
   ],
   "graph_delta": {
-    "graph_edges": 84,
+    "graph_bindings": 2,
+    "graph_edges": 86,
     "graph_nodes": 67
   },
   "obligation_delta": {},
@@ -103,6 +104,7 @@
       "+entities",
       "+evidence",
       "+facts",
+      "+graph_bindings",
       "+graph_edges",
       "+graph_nodes",
       "+normalized_facts",
@@ -144,6 +146,7 @@
     "total +entities",
     "total +evidence",
     "total +facts",
+    "total +graph_bindings",
     "total +graph_edges",
     "total +graph_nodes",
     "total +normalized_facts",

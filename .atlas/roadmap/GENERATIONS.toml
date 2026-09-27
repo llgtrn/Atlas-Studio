@@ -3999,7 +3999,7 @@ falsification = "regression test of an enum's variants through a parent's named 
 boundary = "method calls on receivers typed through the unmaterialized rustc_* crates or behind the autoref step beside unseen external imports (309 oracle edges); 502 path calls in 12 modules opened by external globs or dependency item macros; rustc_resolve itself was not read"
 debts = "DEBT-CALL last advance G170; capability epoch E18; revalidation R5 REVALIDATED (the G73 EXTERNAL_BOUNDARY verdict holds at its exact pin, 2,750 method-module call sites unresolved); the earlier processed replays re-checked CURRENT at E18; next replay rust-lang/miri G172; native head NA-PRINCIPAL-AUTHENTICATION planned G171 (the pressure map moved off DEBT-CALL once it advanced)"
 review = "DEBT-PERSISTENCE reviewed at its cadence (last reviewed G157), CONFIRMED (evidence/census/G170/debt-review.json)"
-proof = "PROVEN (post af8df670...): the new resolver fixture explained as unresolved by design; on Atlas itself two test modules no longer open, 3 INVOKES gained and none lost (E17 and E18 binaries over the same tree); the pinned clones, the SCIP index and the scratch oracle tools deleted before the recensus"
+proof = "PROVEN (post 3cde015c..., re-proven on the committed tree after the ADR and evidence were completed): the new resolver fixture explained as unresolved by design; on Atlas itself two test modules no longer open, 3 INVOKES gained and none lost (E17 and E18 binaries over the same tree); the pinned clones, the SCIP index and the scratch oracle tools deleted before the recensus"
 
 
 [[generation.metric]]
