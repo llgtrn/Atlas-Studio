@@ -102,8 +102,10 @@ fn target_path(dir: &str, relative: &str) -> Option<String> {
 /// G168 (FULL_OSS_REPLAY R10, ADR 0082): a dependency binds the library whose package directory
 /// its declaration names, as Cargo resolves it: its own `path`, or the `[workspace.dependencies]`
 /// entry it inherits, or a `[patch]` redirecting its package; a version, git or registry
-/// requirement binds no workspace library, whatever its name. Only an inherited entry whose
-/// workspace root manifest is not in view still binds by package name.
+/// requirement binds no workspace library, whatever its name. G178 (review 4): an inherited entry
+/// whose workspace root manifest is not in view binds nothing (whether that root renames the
+/// package is unknown), nor does an entry the manifest reading could not read, an empty `path`,
+/// or two entries sharing a key or an extern name that bind differently; each name stays declared.
 pub fn crate_targets(
     manifests: &BTreeMap<String, String>,
     sources: &BTreeMap<String, String>,
@@ -167,16 +169,27 @@ pub fn crate_targets_locked(
     let mut libs: BTreeMap<String, usize> = BTreeMap::new();
     let mut libs_by_dir: BTreeMap<String, usize> = BTreeMap::new();
     let mut kinds: Vec<(usize, bool)> = Vec::new(); // (package index, is build script)
+    // G178 (review 2): each library's crate name (`[lib] name`, else the package's).
+    let lib_name = |targets: &adapter::ManifestTargets| {
+        (targets.lib_name.as_deref())
+            .unwrap_or(&targets.package)
+            .replace('-', "_")
+    };
+    let mut lib_names: BTreeMap<usize, String> = BTreeMap::new();
+    let mut lib_packages: BTreeMap<usize, &str> = BTreeMap::new();
     for (index, package) in packages.iter().enumerate() {
         if let Some(root) =
             (package.targets.lib.as_deref()).and_then(|l| target_path(&package.dir, l))
         {
             libs.insert(package.targets.package.clone(), crates.len());
+            lib_names.insert(crates.len(), lib_name(&package.targets));
+            lib_packages.insert(crates.len(), &package.targets.package);
             libs_by_dir.insert(package.dir.clone(), crates.len());
             crates.push(CrateInput {
                 root,
                 externs: BTreeMap::new(),
                 foreign: BTreeMap::new(),
+                declared: BTreeSet::new(),
             });
             kinds.push((index, false));
         }
@@ -187,6 +200,7 @@ pub fn crate_targets_locked(
                 root,
                 externs: BTreeMap::new(),
                 foreign: BTreeMap::new(),
+                declared: BTreeSet::new(),
             });
             kinds.push((index, false));
         }
@@ -197,6 +211,7 @@ pub fn crate_targets_locked(
                 root,
                 externs: BTreeMap::new(),
                 foreign: BTreeMap::new(),
+                declared: BTreeSet::new(),
             });
             kinds.push((index, true));
         }
@@ -205,72 +220,158 @@ pub fn crate_targets_locked(
         let dir = &packages[package_index].dir;
         let package = &packages[package_index].targets;
         let workspace = workspace_of(dir);
+        // G178 (review 4): an empty path is the package's own directory only by accident of
+        // joining; it never binds (defense in depth behind the manifest reading).
         let at = |base: &str, relative: &str| {
-            target_path(base, relative).and_then(|d| libs_by_dir.get(&d).copied())
+            (!relative.is_empty())
+                .then(|| target_path(base, relative))
+                .flatten()
+                .and_then(|d| libs_by_dir.get(&d).copied())
         };
         let patched = |name: &str| workspace.and_then(|(root, w)| at(root, w.patches.get(name)?));
-        let mut externs = BTreeMap::new();
-        let mut foreign = BTreeMap::new();
-        for (key, crate_name, role, source) in &package.dependencies {
+        let mut declared = BTreeSet::new();
+        // G178 (review 4): what each dependency key would bind, as (extern name and library,
+        // registry package); a key whose entries disagree binds nothing.
+        type Outcome = (Option<(String, usize)>, Option<String>);
+        let mut outcomes: BTreeMap<String, BTreeSet<Outcome>> = BTreeMap::new();
+        for (key, crate_name, role, source, has_package) in &package.dependencies {
             let wanted = if is_build {
                 *role == atlas_core::DependencyRole::Build
             } else {
                 *role != atlas_core::DependencyRole::Build
             };
+            if !wanted {
+                continue;
+            }
+            // The library an entry binds, and whether it renames its package -- has a `package`
+            // field, here or (inherited) in its `[workspace.dependencies]` entry (G178 review 3).
             let bound = match source {
-                adapter::DeclaredSource::Path(path) => at(dir, path),
+                adapter::DeclaredSource::Path(path) => at(dir, path).map(|lib| (lib, *has_package)),
                 adapter::DeclaredSource::Workspace => match workspace {
                     Some((root, w)) => match w.dependencies.get(key) {
-                        Some((_, Some(path))) => at(root, path),
-                        Some((name, None)) => patched(name),
+                        Some((_, Some(path), inherited)) => {
+                            at(root, path).map(|lib| (lib, *inherited))
+                        }
+                        Some((name, None, inherited)) => patched(name).map(|lib| (lib, *inherited)),
                         None => None,
                     },
-                    None => libs.get(crate_name).copied(),
+                    // G178 (review 4): the root is not in view, so whether it renames the
+                    // package is unknown: nothing binds (a same-named library's name is declared).
+                    None => {
+                        if let Some(&lib) = libs.get(crate_name) {
+                            declared.insert(lib_names[&lib].clone());
+                        }
+                        None
+                    }
                 },
-                adapter::DeclaredSource::Elsewhere => patched(crate_name),
+                adapter::DeclaredSource::Elsewhere => {
+                    patched(crate_name).map(|lib| (lib, *has_package))
+                }
+                adapter::DeclaredSource::Unknown => None,
             };
-            if let (true, Some(lib)) = (wanted, bound) {
-                externs.insert(key.replace('-', "_"), lib);
+            let key_name = key.replace('-', "_");
+            // G178 (review 3): the name Cargo passes as `--extern`: a renamed dependency's key,
+            // else its library's crate name (`[lib] name`, `-` as `_`) -- package `core` with
+            // `[lib] name = "kernel"` declared as `core = { path = ".." }` is `kernel::`, and
+            // `core::` stays libcore. An unrenamed key naming another package is a Cargo error.
+            let passed = bound.and_then(|(lib, renamed)| {
+                if renamed {
+                    Some((key_name.clone(), lib))
+                } else {
+                    (lib_packages[&lib] == key).then(|| (lib_names[&lib].clone(), lib))
+                }
+            });
+            // G178 (review 2): whatever its source or lock state, a dependency the target may
+            // use puts the name Cargo passes for it in the extern prelude, contents unknown: its
+            // key, unless it binds a workspace library whose name is known (both, when it is
+            // bound under no name). A library or binary stands for its test build too, so its
+            // dev dependencies count (for its plain build they only withhold).
+            //
+            // Residue (a name read as absent that rustc would bind): an unrenamed registry or
+            // git dependency whose `[lib] name` differs from its key (its library name is not
+            // read here), and a crate passed by `--extern` outside Cargo.
+            match &passed {
+                Some((name, _)) => declared.insert(name.clone()),
+                None => declared.insert(key_name.clone()),
+            };
+            if let (None, Some((lib, _))) = (&passed, bound) {
+                declared.insert(lib_names[&lib].clone());
             }
             let registry = match source {
-                adapter::DeclaredSource::Path(_) => None,
+                adapter::DeclaredSource::Path(_) | adapter::DeclaredSource::Unknown => None,
                 adapter::DeclaredSource::Workspace => workspace
                     .map(|(_, w)| w)
                     .or(root_workspace)
                     .and_then(|w| match w.dependencies.get(key) {
-                        Some((name, None)) => Some(name.clone()),
+                        Some((name, None, inherited)) => Some((name.clone(), *inherited)),
                         _ => None,
                     }),
-                adapter::DeclaredSource::Elsewhere => Some(crate_name.clone()),
+                adapter::DeclaredSource::Elsewhere => Some((crate_name.clone(), *has_package)),
             };
-            if let (true, None, Some(registry)) = (wanted, bound, registry)
-                && locked.direct_dependency(&package.package, &registry)
-                && named_by_key(locked, key, &registry)
-            {
-                foreign.insert(key.replace('-', "_"), registry);
+            let foreign = match (bound, registry) {
+                (None, Some((registry, by_key)))
+                    if locked.direct_dependency(&package.package, &registry)
+                        && named_by_key(locked, key, &registry, by_key) =>
+                {
+                    Some(registry)
+                }
+                _ => None,
+            };
+            outcomes
+                .entry(key_name)
+                .or_default()
+                .insert((passed, foreign));
+        }
+        let mut externs = BTreeMap::new();
+        let mut foreign = BTreeMap::new();
+        let mut libraries: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
+        for (key_name, outcome) in outcomes {
+            let mut outcome = outcome.into_iter();
+            let (Some((passed, registry)), None) = (outcome.next(), outcome.next()) else {
+                continue;
+            };
+            if let Some((name, lib)) = passed {
+                libraries.entry(name).or_default().insert(lib);
+            }
+            if let Some(registry) = registry {
+                foreign.insert(key_name, registry);
             }
         }
-        // A binary (never the library itself or its build script) sees its own package's library.
+        // Two keys passing one name for different libraries bind neither.
+        for (name, libs) in libraries {
+            if let [lib] = Vec::from_iter(libs)[..] {
+                externs.insert(name, lib);
+            }
+        }
+        // A binary (never the library itself or its build script) sees its own package's library,
+        // by its crate name (G178 review 3: `[lib] name`, not the package's).
         if !is_build
             && let Some(&lib) = libs.get(&package.package)
             && lib != krate
         {
-            externs.insert(package.package.replace('-', "_"), lib);
+            externs.insert(lib_names[&lib].clone(), lib);
+            declared.insert(lib_names[&lib].clone());
         }
         crates[krate].externs = externs;
         crates[krate].foreign = foreign;
+        crates[krate].declared = declared;
     }
     crates
 }
 
 /// G177 (review): whether Cargo passes a registry dependency declared under `key` as
-/// `--extern key`. A renamed one is; an unrenamed one is named after its library (`[lib] name`),
-/// so it counts only when every locked package of that name has the key as its library name
-/// (a `package` field naming the key itself cannot be told apart from no rename, so a library
-/// name that differs leaves it out). A library name that is not read keeps the key only when
-/// the package's answers are UNKNOWN anyway: its closure is, and so is every item of it.
-fn named_by_key(locked: &adapter::LockedTraitMethods, key: &str, package: &str) -> bool {
-    if key != package {
+/// `--extern key`. A renamed one is (G178 review 3: any `package` field, even one naming the key
+/// itself); an unrenamed one is named after its library (`[lib] name`), so it counts only when
+/// every locked package of that name has the key as its library name. A library name that is not
+/// read keeps the key only when the package's answers are UNKNOWN anyway: its closure is, and so
+/// is every item of it.
+fn named_by_key(
+    locked: &adapter::LockedTraitMethods,
+    key: &str,
+    package: &str,
+    renamed: bool,
+) -> bool {
+    if renamed || key != package {
         return true;
     }
     let name = key.replace('-', "_");

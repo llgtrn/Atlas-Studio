@@ -10,6 +10,7 @@ fn sources(files: &[(&str, &str)]) -> BTreeMap<String, String> {
 fn one_crate(root: &str) -> Vec<CrateInput> {
     vec![CrateInput {
         root: root.into(),
+        declared: BTreeSet::new(),
         externs: BTreeMap::new(),
         foreign: BTreeMap::new(),
     }]
@@ -249,11 +250,13 @@ fn workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items() 
     let crates = vec![
         CrateInput {
             root: "core/src/lib.rs".into(),
+            declared: BTreeSet::new(),
             externs: BTreeMap::new(),
             foreign: BTreeMap::new(),
         },
         CrateInput {
             root: "app/src/main.rs".into(),
+            declared: BTreeSet::new(),
             externs: BTreeMap::from([("atlas_core".to_owned(), 0)]),
             foreign: BTreeMap::new(),
         },
@@ -531,6 +534,7 @@ fn a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_
     let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n    fn eat(&self) {}\n}\nmod ext {\n    use dep::Thing;\n    use ser::Other;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n        s.eat();\n    }\n}\nmod elsewhere {\n    use unlocked::Thing;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod a {\n    pub use dep::Same;\n}\nmod b {\n    pub use ser::Same;\n}\nmod both {\n    use super::a::*;\n    use super::b::*;\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod through {\n    use super::a::*;\n    fn k() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
     let crates = vec![CrateInput {
         root: "src/lib.rs".into(),
+        declared: BTreeSet::new(),
         externs: BTreeMap::new(),
         foreign: BTreeMap::from([
             ("dep".to_owned(), "dep".to_owned()),
@@ -582,6 +586,7 @@ fn a_registry_import_of_a_known_item_withholds_autoref_only_when_that_item_may_d
     let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n    fn serialize(&self) {}\n}\nmod ext {\n    use dep::Trait;\n    use dep::Plain;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n        s.serialize();\n    }\n}\nmod opaque {\n    use dep::Opaque;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod nested {\n    use dep::inner::Trait;\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod a {\n    pub use dep::Trait as Same;\n}\nmod b {\n    pub use dep::Plain as Same;\n}\nmod both {\n    use super::a::*;\n    use super::b::*;\n    fn k() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod known {\n    use lacking::Unread;\n    fn m() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
     let crates = vec![CrateInput {
         root: "src/lib.rs".into(),
+        declared: BTreeSet::new(),
         externs: BTreeMap::new(),
         foreign: BTreeMap::from([
             ("dep".to_owned(), "dep".to_owned()),
@@ -627,6 +632,7 @@ fn a_crate_root_extern_crate_decides_a_registry_name_in_every_module() {
     let lib = "extern crate c as b;\npub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n}\nmod sub {\n    use b::T;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod rooted {\n    use ::b::T;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
     let crates = vec![CrateInput {
         root: "src/lib.rs".into(),
+        declared: BTreeSet::new(),
         externs: BTreeMap::new(),
         foreign: BTreeMap::from([
             ("b".to_owned(), "b".to_owned()),
@@ -1553,6 +1559,8 @@ fn alternating_scopes_merge_to_their_agreement_and_unknown() {
         vis: Vis::Public,
         origin: Origin::Named,
         certain: true,
+        unsure: false,
+        merged: None,
     };
     let mut a = Scope::default();
     let mut b = Scope::default();
@@ -1662,6 +1670,124 @@ fn a_certain_name_survives_a_glob_of_an_open_module() {
     );
 }
 
+/// G178 (replay R15, egraphs-good/egglog): a module brings one item by two globs, a private
+/// `use crate::*` and a public `pub use expr::*`, while the crate root globs that module. The
+/// binding kept the visibility of the glob applied first, so the re-export was public exactly
+/// when the root did not yet hold the name: each hop of that two-module cycle takes one round, so
+/// the name flipped with period 4, past the G162 period-2 merge, and every module of the
+/// workspace was opened. Rust keeps the wider visibility, in either order.
+#[test]
+fn one_item_through_two_globs_keeps_the_wider_visibility() {
+    let lib = "mod ast;\nuse crate::ast::*;\npub fn entry() {\n    helper();\n    std::fs::read(\"x\").ok();\n}\n";
+    let run = |first: &str, second: &str| {
+        let ast = format!("{first};\n{second};\nmod expr {{\n    pub fn helper() {{}}\n}}\n");
+        resolve_workspace(
+            &one_crate("src/lib.rs"),
+            &sources(&[("src/lib.rs", lib), ("src/ast.rs", &ast)]),
+        )
+    };
+    let want = [
+        ("helper".to_owned(), "src/ast.rs:4:helper".to_owned()),
+        ("std::fs::read".into(), "external:std::fs::read".into()),
+    ];
+    for vis in ["pub", "pub(crate)", "pub(super)"] {
+        let re_export = format!("{vis} use expr::*");
+        for (first, second) in [
+            ("use crate::*", re_export.as_str()),
+            (re_export.as_str(), "use crate::*"),
+        ] {
+            let workspace = run(first, second);
+            assert_eq!(
+                outcomes(&workspace.calls, "src/lib.rs"),
+                want,
+                "{first}; {second}"
+            );
+            assert_eq!(workspace.withheld, [], "{first}; {second}");
+        }
+    }
+    // Control: through private globs alone the root never sees `helper`.
+    assert_eq!(
+        outcomes(&run("use crate::*", "use expr::*").calls, "src/lib.rs"),
+        [
+            ("helper".to_owned(), "unresolved:external".to_owned()),
+            ("std::fs::read".into(), "external:std::fs::read".into()),
+        ]
+    );
+}
+
+/// G178 (replay R15, egglog's proc-macro crate): `use quote::quote;` read its own binding as the
+/// first segment of its path, so the registry path it binds grew by a segment every round
+/// (`quote::quote::quote..`, G177) and the fixed point was never reached; `use alloc::alloc;`
+/// grew a standard path the same way. Rust resolves an import's path without the import itself:
+/// through the scope's other bindings (an item, another import of the name, a glob), else the
+/// outer scopes and the extern prelude. `rustc` 1.90 compiles every module here but `two`, which
+/// it refuses ("cannot determine resolution for the import"), and `opened`.
+#[test]
+fn an_import_never_resolves_its_path_through_its_own_binding() {
+    let lib = "extern crate alloc;\npub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n}\nmod sub {\n    use alloc::alloc;\n    fn f() -> usize {\n        alloc::Layout::new::<u64>().size()\n    }\n}\nmod reg {\n    use dep::dep;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod m {\n    pub mod x {\n        pub fn f() {}\n        pub struct T;\n    }\n}\nmod named {\n    use crate::m::x;\n    use x::f as x;\n    fn t() {\n        x();\n        x::f();\n    }\n    fn u() {\n        use x::f as x;\n        x();\n    }\n}\nmod globbed {\n    use crate::m::*;\n    use x::f as x;\n    fn t() {\n        x();\n    }\n}\nmod item {\n    mod x {\n        pub fn x() {}\n    }\n    use x::x;\n    fn t() {\n        x();\n    }\n}\nmod two {\n    use crate::m::*;\n    use x::f as x;\n    use x::T as x;\n    fn t() {\n        x();\n    }\n}\nmod opened {\n    make_items!();\n    use alloc::alloc;\n    use crate::m::*;\n    use x::f as x;\n    fn f() {\n        alloc::Layout::new::<u64>();\n        x();\n    }\n}\n";
+    let crates = vec![CrateInput {
+        root: "src/lib.rs".into(),
+        declared: BTreeSet::new(),
+        externs: BTreeMap::new(),
+        foreign: BTreeMap::from([("dep".to_owned(), "dep".to_owned())]),
+    }];
+    // `dep`'s closure is UNKNOWN, and its item `dep` declares no `look`: the claim stands only
+    // if the import binds the item at `dep::dep`.
+    let locked =
+        LockedTraitMethods::stated(&[("dep", None)]).with_items("dep", &[("dep", Some(&[]))]);
+    let workspace = resolve_workspace_with(&crates, &sources(&[("src/lib.rs", lib)]), &locked);
+    let f = "src/lib.rs:22:f";
+    assert_eq!(
+        outcomes(&workspace.calls, "src/lib.rs"),
+        [
+            (
+                "alloc::Layout::new".to_owned(),
+                "external:alloc::alloc::Layout::new".to_owned()
+            ),
+            ("super::S::new".into(), "src/lib.rs:4:new".into()),
+            ("s.look".into(), "src/lib.rs:5:look".into()),
+            // Through another import of the name, from a block through its module, through a
+            // glob, and through an item.
+            ("x".into(), f.into()),
+            ("x::f".into(), f.into()),
+            ("x".into(), f.into()),
+            ("x".into(), f.into()),
+            ("x".into(), "src/lib.rs:47:x".into()),
+            // Two imports of `x` that each start with `x`: rustc cannot determine either.
+            ("x".into(), "unresolved:unresolved-import".into()),
+            // An item macro may define `alloc` over the extern prelude, and `x` over the glob's.
+            (
+                "alloc::Layout::new".into(),
+                "unresolved:unresolved-prefix".into()
+            ),
+            ("x".into(), "unresolved:unresolved-import".into()),
+        ]
+    );
+    assert_eq!(workspace.withheld, []);
+}
+
+/// G178: an input that still reaches no fixed point -- two imports that each name the other's
+/// crate, which rustc cannot resolve either ("cannot determine resolution for the import") --
+/// trusts no import at all. A named import's binding is then only its last round's, a standard
+/// path one segment longer every round, and it was claimed. (`self` imports name modules, so
+/// they bind for certain; two plain imports of items outside the workspace now settle, each
+/// either its item or the crate of its name.)
+#[test]
+fn without_a_fixed_point_no_named_import_is_trusted() {
+    let lib = "mod m {\n    use core::a::{self as alloc};\n    use alloc::b::{self as core};\n    fn t() {\n        alloc::f();\n        own();\n    }\n    fn own() {}\n}\n";
+    let workspace = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    assert_eq!(
+        outcomes(&workspace.calls, "src/lib.rs"),
+        [
+            (
+                "alloc::f".to_owned(),
+                "unresolved:unresolved-import".to_owned()
+            ),
+            ("own".into(), "src/lib.rs:8:own".into()),
+        ]
+    );
+}
+
 #[test]
 fn an_unresolved_or_ambiguous_import_withholds_autoref() {
     // G173 (found reviewing the G142 guard): a named import this pass cannot resolve (here from
@@ -1699,6 +1825,7 @@ fn review_findings_withhold_autoref() {
     let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n    fn add(&self, _o: S) {}\n}\nmod underscore {\n    use dep::Ext as _;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod ops {\n    use std::ops::Add;\n    impl Add for super::S { type Output = u8; fn add(self, _o: super::S) -> u8 { 1 } }\n    fn g() {\n        let s = super::S::new();\n        s.add(super::S::new());\n    }\n}\nmod attr {\n    #[easy_ext::ext(Ext)]\n    impl<T> T { fn look(self) {} }\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod derived {\n    #[derive(gen::Ext)]\n    pub struct Z;\n    fn k() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod importer {\n    use crate::attr::Ext;\n    fn m() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod known {\n    use dep::Ext as _;\n    #[derive(Debug, Clone, serde::Serialize)]\n    pub struct Plain;\n    fn n() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
     let crates = vec![CrateInput {
         root: "src/lib.rs".into(),
+        declared: BTreeSet::new(),
         externs: BTreeMap::new(),
         foreign: BTreeMap::from([("dep".to_owned(), "dep".to_owned())]),
     }];
@@ -1869,4 +1996,425 @@ fn a_local_binding_shadows_a_function_only_where_it_is_in_scope() {
             ("value".into(), "unresolved:local-binding".into()),
         ]
     );
+}
+
+#[test]
+fn an_extern_crate_item_binds_the_crate_it_names() {
+    // G178: `extern crate self as n;` binds `n` to the crate root -- as an item of the root, which
+    // `use crate::*` imports, and in every module's extern prelude -- so `n::x` is the crate's
+    // own `x` (checked with rustc 1.90, edition 2021). The item was read as an external root:
+    // `n::sort::S::new` in the root, and in every module a glob of the root reaches, was external.
+    let lib = "extern crate self as n;\npub mod prelude;\npub mod sort;\nuse prelude::*;\n#[derive(Default)]\npub struct EGraph;\nimpl EGraph {\n    pub fn default() -> Self { EGraph }\n}\nfn root() {\n    n::sort::S::new();\n    crate::n::sort::S::new();\n}\nmod inner {\n    extern crate self as m;\n    fn g() {\n        m::sort::S::new();\n    }\n}\n";
+    let prelude = "use crate::*;\npub use n::{EGraph};\npub use n::sort::S;\nfn f() {\n    n::sort::S::new();\n    EGraph::default();\n}\nmod tests {\n    use super::*;\n    fn t() {\n        EGraph::default();\n        n::sort::S::new();\n        S::new();\n    }\n}\n";
+    let sort = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n}\n";
+    let results = resolve(
+        &[
+            ("src/lib.rs", lib),
+            ("src/prelude.rs", prelude),
+            ("src/sort.rs", sort),
+        ],
+        "src/lib.rs",
+    );
+    let new = || "src/sort.rs:3:new".to_owned();
+    let default = || "src/lib.rs:8:default".to_owned();
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("n::sort::S::new".into(), new()),
+            ("crate::n::sort::S::new".into(), new()),
+            ("m::sort::S::new".into(), new()),
+        ]
+    );
+    assert_eq!(
+        outcomes(&results, "src/prelude.rs"),
+        [
+            ("n::sort::S::new".into(), new()),
+            ("EGraph::default".into(), default()),
+            ("EGraph::default".into(), default()),
+            ("n::sort::S::new".into(), new()),
+            ("S::new".into(), new()),
+        ]
+    );
+    // `extern crate b as other;` naming a workspace crate binds `other` to that crate, in the
+    // module and through a glob of it.
+    let crates = vec![
+        CrateInput {
+            root: "a/src/lib.rs".into(),
+            declared: BTreeSet::new(),
+            externs: BTreeMap::from([("b".to_owned(), 1)]),
+            foreign: BTreeMap::new(),
+        },
+        CrateInput {
+            root: "b/src/lib.rs".into(),
+            declared: BTreeSet::new(),
+            externs: BTreeMap::new(),
+            foreign: BTreeMap::new(),
+        },
+    ];
+    let a = "extern crate b as other;\nfn f() {\n    other::g();\n}\nmod sub {\n    use crate::*;\n    fn h() {\n        other::g();\n    }\n}\n";
+    let workspace = resolve_workspace(
+        &crates,
+        &sources(&[("a/src/lib.rs", a), ("b/src/lib.rs", "pub fn g() {}\n")]),
+    );
+    assert_eq!(
+        outcomes(&workspace.calls, "a/src/lib.rs"),
+        [
+            ("other::g".into(), "b/src/lib.rs:1:g".into()),
+            ("other::g".into(), "b/src/lib.rs:1:g".into()),
+        ]
+    );
+    // Under `cfg`, the item may be absent and `n` the dependency of that name; beside another
+    // item of the name, either may be meant (each `cfg` fixture compiles with rustc 1.90): the
+    // call is withheld, never claimed external.
+    let sort_mod = "pub mod sort {\n    pub struct S;\n    impl S {\n        pub fn new() -> Self { S }\n    }\n}\n";
+    let body = "fn f() {\n    n::sort::S::new();\n}\nmod sub {\n    use crate::*;\n    fn g() {\n        n::sort::S::new();\n    }\n}\n";
+    for items in [
+        "#[cfg(unix)]\nextern crate self as n;\n",
+        "#[cfg(unix)]\nextern crate self as n;\n#[cfg(not(unix))]\nextern crate other as n;\n",
+        "#[cfg(unix)]\nextern crate self as n;\n#[cfg(not(unix))]\nmod n {}\n",
+        // Beside an item of another kind, the name stays ambiguous, as two items make any name.
+        "extern crate self as n;\n#[cfg(windows)]\nmod n {}\n",
+        // An attribute that may be a procedural macro may erase the other item.
+        "extern crate self as n;\n#[pm::erase]\nextern crate other as n;\n",
+    ] {
+        let lib = format!("{items}{sort_mod}{body}");
+        let results = resolve(&[("src/lib.rs", &lib)], "src/lib.rs");
+        let withheld = (
+            "n::sort::S::new".to_owned(),
+            "unresolved:unresolved-prefix".to_owned(),
+        );
+        assert_eq!(
+            outcomes(&results, "src/lib.rs"),
+            [withheld.clone(), withheld],
+            "{items}"
+        );
+    }
+}
+
+/// G178 (review P3): a glob import binds each name at the narrower of its own visibility and the
+/// name's where it reads it. `pub use self::q::*` of a `pub(super) fn drop` in `q` bound it
+/// publicly, so a module globbing `a` called `a::q::drop` where rustc calls the prelude's
+/// `std::mem::drop`; a variant is as visible as its enum. `rustc` 1.90 (editions 2021 and 2024)
+/// compiles this file, and the `let` types pin each `drop` it picks.
+#[test]
+fn a_glob_re_export_is_no_wider_than_what_it_reads() {
+    let lib = "mod a {\n    mod q {\n        pub(super) fn drop<T>(_: T) -> u32 { 0 }\n    }\n    pub use self::q::*;\n    pub fn use_it() { let _: u32 = drop(1); }\n}\npub mod c {\n    use crate::a::*;\n    pub fn g() { let _: () = drop(1u8); }\n    pub fn k() { crate::a::use_it() }\n}\nmod a2 {\n    mod q {\n        pub(crate) fn drop<T>(_: T) -> u32 { 0 }\n    }\n    pub use self::q::*;\n}\npub mod c2 {\n    use crate::a2::*;\n    pub fn g() { let _: u32 = drop(1u8); }\n}\n#[allow(non_camel_case_types, dead_code)]\nmod m {\n    enum E { drop(u8) }\n    pub use self::E::*;\n}\npub mod d {\n    use crate::m::*;\n    pub fn g() { let _: () = drop(1u8); }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let q = || "src/lib.rs:3:drop".to_owned();
+    let std = || "external:std::mem::drop".to_owned();
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("drop".to_owned(), q()),
+            ("drop".into(), std()),
+            ("crate::a::use_it".into(), "src/lib.rs:6:use_it".into()),
+            // `pub(crate)` beside `pub use`: visible to the whole crate.
+            ("drop".into(), "src/lib.rs:15:drop".into()),
+            ("drop".into(), std()),
+        ]
+    );
+}
+
+/// G178 (review P2): `pub(in path)` is visible within the module `path` names, not the whole
+/// crate: a module globbing `a` called `a::drop` for the prelude's `std::mem::drop`. The path is
+/// read from `crate`, `self` or `super` (edition 2018 on), else from the crate root (edition
+/// 2015). `rustc` 1.90 compiles the first file (editions 2021 and 2024) and the second (edition
+/// 2015); the `let` types pin each `drop` it picks.
+#[test]
+fn a_restricted_visibility_is_the_module_its_path_names() {
+    let lib = "mod a {\n    pub(in crate::a) fn drop<T>(_: T) -> u32 { 0 }\n    pub fn use_it() { let _: u32 = drop(1); }\n    pub mod inner {\n        use super::*;\n        pub fn h() { let _: u32 = drop(2); }\n    }\n}\npub mod c {\n    use crate::a::*;\n    pub fn g() { let _: () = drop(1u8); }\n}\nmod x {\n    pub mod y {\n        pub(in super::super::x) fn drop<T>(_: T) -> u32 { 0 }\n    }\n    pub use self::y::*;\n    pub fn inside() { let _: u32 = drop(3); }\n}\npub mod z {\n    use crate::x::*;\n    pub fn g() { let _: () = drop(4u8); }\n}\nmod w {\n    pub(in crate) fn drop<T>(_: T) -> u32 { 0 }\n}\npub mod v {\n    use crate::w::*;\n    pub fn g() { let _: u32 = drop(5u8); }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let std = || "external:std::mem::drop".to_owned();
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("drop".to_owned(), "src/lib.rs:2:drop".to_owned()),
+            ("drop".into(), "src/lib.rs:2:drop".into()),
+            ("drop".into(), std()),
+            ("drop".into(), "src/lib.rs:15:drop".into()),
+            ("drop".into(), std()),
+            // `pub(in crate)` is `pub(crate)`.
+            ("drop".into(), "src/lib.rs:25:drop".into()),
+        ]
+    );
+    let results = resolve(
+        &[(
+            "src/lib.rs",
+            "mod a {\n    pub(in a) fn drop<T>(_: T) -> u32 { 0 }\n    pub fn use_it() { let _: u32 = drop(1); }\n}\npub mod c {\n    use super::a::*;\n    pub fn g() { let _: () = drop(1u8); }\n}\n",
+        )],
+        "src/lib.rs",
+    );
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("drop".to_owned(), "src/lib.rs:2:drop".to_owned()),
+            ("drop".into(), std()),
+        ]
+    );
+}
+
+/// G178 (review H2): an import that starts with the name it binds (`use x::x;`) reads the other
+/// bindings of that name alone. It applied every other import into a scratch scope, cloning each
+/// glob's whole module, per such import and round: 500 of them beside 20 globs of 1,000 functions
+/// took 57 times as long as 500 imports that do not (13.8 s against 0.24 s). A glob still
+/// provides the name when the module it reads lets the importer see it; a private one does not.
+#[test]
+fn an_own_named_import_reads_only_the_bindings_of_its_name() {
+    // `use x{i}::x{i};` in `m` beside ten globs of 1,000 functions each, 200 times; `x{i}` a
+    // module of `m` or one a glob brings. The control imports `y{i}`.
+    let run = |own_named: bool, globbed: bool| {
+        let mut lib = String::new();
+        for k in 0..10 {
+            lib.push_str(&format!("pub mod big{k} {{\n"));
+            for i in 0..1000 {
+                lib.push_str(&format!("    pub fn f{k}_{i}() {{}}\n"));
+            }
+            lib.push_str("}\n");
+        }
+        let modules: String = (0..200)
+            .map(|i| format!("    pub mod x{i} {{\n        pub fn x{i}() {{}}\n        pub fn y{i}() {{}}\n    }}\n"))
+            .collect();
+        if globbed {
+            lib.push_str(&format!("pub mod xs {{\n{modules}}}\n"));
+        }
+        lib.push_str("pub mod m {\n");
+        for k in 0..10 {
+            lib.push_str(&format!("    use crate::big{k}::*;\n"));
+        }
+        if globbed {
+            lib.push_str("    use crate::xs::*;\n");
+        } else {
+            lib.push_str(&modules);
+        }
+        for i in 0..200 {
+            let name = if own_named { "x" } else { "y" };
+            lib.push_str(&format!("    use x{i}::{name}{i};\n"));
+        }
+        lib.push_str("    fn g() {\n        x1();\n        f3_7();\n    }\n}\n");
+        let start = std::time::Instant::now();
+        let workspace =
+            resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", &lib)]));
+        let calls = outcomes(&workspace.calls, "src/lib.rs");
+        (
+            start.elapsed(),
+            calls.into_iter().map(|(_, to)| to).collect::<Vec<_>>(),
+        )
+    };
+    // The best of three runs each, within 8 times the control: measured at most 1.4 times under
+    // load, and 30 times (13.8 s against 0.24 s at 500 imports) without the fix.
+    let best = |own_named: bool, globbed: bool| {
+        let runs = [(); 3].map(|_| run(own_named, globbed));
+        let fastest = runs.iter().map(|(time, _)| *time).min();
+        (fastest.expect("three runs"), runs[0].1.clone())
+    };
+    for globbed in [false, true] {
+        let (control, calls) = best(false, globbed);
+        assert_eq!(calls[0], "unresolved:external");
+        let (own, calls) = best(true, globbed);
+        let x1 = if globbed { 10027 } else { 10037 };
+        assert_eq!(
+            calls,
+            [format!("src/lib.rs:{x1}:x1"), "src/lib.rs:3015:f3_7".into()]
+        );
+        assert!(own < control * 8, "{own:?} against {control:?}");
+    }
+    // Through a glob: `x` is `m::x`, a module the glob of `m` brings; the private `m::alloc` is
+    // not brought, and `alloc` is then the extern prelude's (`rustc` 1.90 compiles this file).
+    let lib = "extern crate alloc;\nmod m {\n    pub mod x {\n        pub fn f() {}\n    }\n    #[allow(dead_code)]\n    mod alloc {\n        pub fn f() {}\n    }\n}\nmod seen {\n    use crate::m::*;\n    use x::f as x;\n    pub fn t() {\n        x();\n    }\n}\nmod unseen {\n    use crate::m::*;\n    use alloc::alloc;\n    pub fn t() {\n        alloc::Layout::new::<u8>();\n    }\n}\npub fn g() {\n    seen::t();\n    unseen::t();\n}\n";
+    assert_eq!(
+        outcomes(&resolve(&[("src/lib.rs", lib)], "src/lib.rs"), "src/lib.rs"),
+        [
+            ("x".to_owned(), "src/lib.rs:4:f".to_owned()),
+            (
+                "alloc::Layout::new".into(),
+                "external:alloc::alloc::Layout::new".into()
+            ),
+            ("seen::t".into(), "src/lib.rs:14:t".into()),
+            ("unseen::t".into(), "src/lib.rs:21:t".into()),
+        ]
+    );
+}
+
+/// G178 (review H1, alloc): `use alloc::alloc::{alloc, dealloc, Layout};` imports the function
+/// `alloc`, which rustc binds in the value namespace alone: `alloc::..` beside it is still the
+/// crate. Bound in both namespaces, it made `Layout` `alloc::alloc::alloc::alloc::Layout` and
+/// `Vec` `alloc::alloc::alloc::vec::Vec`. `rustc` 1.90 compiles this file (editions 2021 and
+/// 2024).
+#[test]
+fn an_imported_standard_function_leaves_the_crate_of_its_name() {
+    let lib = "extern crate alloc;\nmod raw {\n    use alloc::alloc::{alloc, dealloc, Layout};\n    use alloc::vec::Vec;\n    pub unsafe fn f() {\n        let l = Layout::new::<u64>();\n        let p = alloc(l);\n        dealloc(p, l);\n        let _v: Vec<u8> = Vec::new();\n    }\n}\npub fn g() {\n    unsafe { raw::f() }\n}\n";
+    assert_eq!(
+        outcomes(&resolve(&[("src/lib.rs", lib)], "src/lib.rs"), "src/lib.rs"),
+        [
+            (
+                "Layout::new".to_owned(),
+                "external:alloc::alloc::Layout::new".to_owned()
+            ),
+            ("alloc".into(), "external:alloc::alloc::alloc".into()),
+            ("dealloc".into(), "external:alloc::alloc::dealloc".into()),
+            ("Vec::new".into(), "external:alloc::vec::Vec::new".into()),
+            ("raw::f".into(), "src/lib.rs:5:f".into()),
+        ]
+    );
+    // A glob that brings the item a named import names brings it only where the import binds
+    // it: the import stands, whatever their visibilities (`rustc` 1.90 compiles this file).
+    let lib = "mod parent {\n    pub use std::collections::HashMap;\n    pub mod child {\n        pub use super::*;\n        use std::collections::HashMap;\n        pub fn t() {\n            HashMap::<u8, u8>::new();\n        }\n    }\n}\npub fn g() {\n    parent::child::t()\n}\n";
+    assert_eq!(
+        outcomes(&resolve(&[("src/lib.rs", lib)], "src/lib.rs"), "src/lib.rs"),
+        [
+            (
+                "HashMap::new".to_owned(),
+                "external:std::collections::HashMap::new".to_owned()
+            ),
+            ("parent::child::t".into(), "src/lib.rs:6:t".into()),
+        ]
+    );
+}
+
+/// G178 (review H1): an import of an item outside the workspace binds its name only in the
+/// namespaces the item has, which this pass does not see. Where the item is a function, a path
+/// through the name reads past the import: a glob's binding of it, an outer scope's, the extern
+/// prelude's crate. Built against a `dep` whose `thing` is a function, `rustc` 1.90 calls
+/// `p::thing::f` and the module `thing::f` here; against one whose `thing` is a module,
+/// `dep::thing::f` twice -- so both are withheld. With no other binding of the name (`HashMap`)
+/// the item is the only reading; with two outside the workspace, the call is external either
+/// way, but the registry path through `anyhow::anyhow` (a macro) is not claimed.
+#[test]
+fn an_imported_item_outside_may_leave_its_name_to_what_it_shadows() {
+    let lib = format!(
+        "{}{}",
+        "mod p {\n    pub mod thing {\n        pub fn f() -> &'static str { \"p::thing::f\" }\n    }\n}\nmod q {\n    use crate::p::*;\n    use dep::thing;\n    pub fn h() -> &'static str {\n        thing::f()\n    }\n}\nmod thing {\n    pub fn f() -> &'static str { \"thing::f\" }\n}\nfn block() -> &'static str {\n    use dep::thing;\n    thing::f()\n}\n",
+        "mod errors {\n    use anyhow::{anyhow, Context};\n    use std::collections::HashMap;\n    fn e() {\n        anyhow::Error::msg(\"x\");\n        HashMap::<u8, u8>::new();\n    }\n}\n"
+    );
+    let crates = vec![CrateInput {
+        root: "src/lib.rs".into(),
+        declared: BTreeSet::new(),
+        externs: BTreeMap::new(),
+        foreign: BTreeMap::from([
+            ("anyhow".to_owned(), "anyhow".to_owned()),
+            ("dep".to_owned(), "dep".to_owned()),
+        ]),
+    }];
+    let files = sources(&[("src/lib.rs", &lib)]);
+    let workspace = resolve_workspace(&crates, &files);
+    assert_eq!(
+        outcomes(&workspace.calls, "src/lib.rs"),
+        [
+            (
+                "thing::f".to_owned(),
+                "unresolved:unresolved-import".to_owned()
+            ),
+            ("thing::f".into(), "unresolved:unresolved-import".into()),
+            ("anyhow::Error::msg".into(), "unresolved:external".into()),
+            (
+                "HashMap::new".into(),
+                "external:std::collections::HashMap::new".into()
+            ),
+        ]
+    );
+    let mut map = DefMap::default();
+    map.collect_crate(0, &crates[0], &files, &mut BTreeMap::new());
+    map.bind_extern_crates(&crates);
+    map.resolve_macro_calls();
+    map.resolve_imports(&crates);
+    let errors = map
+        .modules
+        .iter()
+        .find(|m| m.name == "errors")
+        .expect("mod errors");
+    let registry = |path: Option<&[&str]>| {
+        Some(Registry {
+            package: "anyhow".into(),
+            path: path.map(|path| path.iter().map(|s| s.to_string()).collect()),
+        })
+    };
+    assert_eq!(
+        errors.scope.types["anyhow"].def,
+        Def::External(Vec::new(), registry(Some(&["anyhow"])))
+    );
+    assert!(errors.scope.types["anyhow"].unsure);
+    // `anyhow::Context` or `anyhow::anyhow::Context`: the package, at no known path.
+    assert_eq!(
+        errors.scope.types["Context"].def,
+        Def::External(Vec::new(), registry(None))
+    );
+}
+
+/// G178 (review 2): `use std::iter::zip;` binds only the function; beside a `zip` dependency,
+/// `zip::open()` is that crate's, and `use zip::Ext;` its trait, whose `look` (by value, before
+/// the inherent `&self` one) rustc 1.90 calls. A git or path dependency, or a registry one no
+/// lockfile confirms, is still in the extern prelude: both calls are withheld, never claimed as
+/// `std::iter::zip::open` or the inherent method. With no `zip` crate the function stands.
+#[test]
+fn a_declared_dependency_no_lockfile_confirms_still_takes_its_name() {
+    let lib = "use std::iter::zip;\nuse zip::Ext;\npub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) -> u8 { 2 }\n}\nfn f() {\n    let s = S::new();\n    s.look();\n    zip::open();\n    zip([1], [2]);\n}\n";
+    let run = |lib: &str, declared: &[&str]| {
+        let crates = vec![CrateInput {
+            root: "src/lib.rs".into(),
+            externs: BTreeMap::new(),
+            foreign: BTreeMap::new(),
+            declared: declared.iter().map(|name| (*name).to_owned()).collect(),
+        }];
+        let files = sources(&[("src/lib.rs", lib)]);
+        outcomes(&resolve_path_calls(&crates, &files), "src/lib.rs")
+    };
+    let pair = |from: &str, to: &str| (from.to_owned(), to.to_owned());
+    assert_eq!(
+        run(lib, &["zip"]),
+        [
+            pair("S::new", "src/lib.rs:5:new"),
+            pair("s.look", "unresolved:receiver-form-differs"),
+            pair("zip::open", "unresolved:external"),
+            pair("zip", "external:std::iter::zip"),
+        ]
+    );
+    // Another declared name leaves `zip` to the function.
+    let control = "use std::iter::zip;\nfn f() {\n    zip([1], [2]);\n}\n";
+    for declared in [&[][..], &["zip"], &["other"]] {
+        assert_eq!(
+            run(control, declared),
+            [pair("zip", "external:std::iter::zip")]
+        );
+    }
+}
+
+/// G178 (review 2): an import of an item outside the workspace merged with globs of its name
+/// reads alike whatever the order of the imports. rustc 1.90 calls `std::mem::take` here (the
+/// function binds only the value namespace, where it shadows both globs); not knowing the
+/// namespaces of `take`, the pass may not claim it -- but a second glob bringing the same
+/// `std::mem::swap` made the name ambiguous only when it came after the merge.
+#[test]
+fn an_unsure_import_merges_with_globs_in_any_order() {
+    let modules = "mod m1 {\n    pub use std::mem::swap;\n}\nmod m2 {\n    pub use std::mem::swap;\n}\nmod m3 {\n    pub use std::mem::replace as swap;\n}\n";
+    let call = "fn f() {\n    swap();\n}\n";
+    let orders = |named: &str, globs: [&str; 2]| {
+        [
+            [named, globs[0], globs[1]],
+            [globs[0], named, globs[1]],
+            [globs[0], globs[1], named],
+            [globs[1], globs[0], named],
+        ]
+        .map(|imports| {
+            let lib = format!("{modules}{}{call}", imports.concat());
+            let calls = outcomes(
+                &resolve(&[("src/lib.rs", &lib)], "src/lib.rs"),
+                "src/lib.rs",
+            );
+            calls.into_iter().map(|(_, to)| to).collect::<Vec<_>>()
+        })
+    };
+    let take = "use std::mem::take as swap;\n";
+    // Two globs of one item: either it or `take`, both outside the workspace.
+    assert_eq!(
+        orders(take, ["use m1::*;\n", "use m2::*;\n"]),
+        [(); 4].map(|_| vec!["unresolved:external".to_owned()])
+    );
+    // Two globs of two items: those two are ambiguous, and the name unknown -- also where the
+    // import names the item one glob brings (rustc: `std::mem::swap`).
+    for named in [take, "use std::mem::swap;\n"] {
+        assert_eq!(
+            orders(named, ["use m1::*;\n", "use m3::*;\n"]),
+            [(); 4].map(|_| vec!["unresolved:unresolved-import".to_owned()])
+        );
+    }
 }

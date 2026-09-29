@@ -322,7 +322,13 @@ fn expand_glob_members(root: &Path, members: Vec<String>) -> Vec<String> {
 struct ManifestDependencyEntry {
     /// The table key: the extern name source code spells (`atlas_core`).
     key: String,
-    resolved_name: String,
+    /// G178 (review 4): `None` when the entry's `package` field is not a string this reader can
+    /// read -- the package it names is then unknown.
+    resolved_name: Option<String>,
+    /// G178 (review 3): whether the entry has a `package` field at all. Cargo then passes the
+    /// dependency as `--extern <key>`, even when `package` repeats the key; without one it passes
+    /// the library's own crate name (`[lib] name`).
+    renamed: bool,
     optional: bool,
     source: DeclaredSource,
 }
@@ -341,191 +347,658 @@ pub enum DeclaredSource {
     Workspace,
     /// A version, git or registry requirement.
     Elsewhere,
+    /// G178 (review 4): an entry this reader cannot read with certainty -- a `path`, `package` or
+    /// `workspace` field that is not the string or boolean Cargo requires, a value it cannot
+    /// parse, a key given twice, a table nested in the entry, or `workspace` beside `path`. It
+    /// binds nothing; its key stays declared.
+    Unknown,
 }
 
-/// The source an entry's value (an inline table, a bare version string, or a dotted table's body)
-/// declares; `inherited` when the key itself was spelled `name.workspace`.
-fn declared_source(value: &str, inherited: bool) -> DeclaredSource {
-    if inherited || bool_field_anywhere(value, "workspace") == Some(true) {
-        DeclaredSource::Workspace
-    } else if let Some(path) = quoted_field_anywhere(value, "path") {
-        DeclaredSource::Path(path)
-    } else {
-        DeclaredSource::Elsewhere
+/// A TOML value, as far as this reader needs one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Value {
+    Str(String),
+    Bool(bool),
+    /// An inline table's fields, by (dotted) key. In [`Manifest::values`] only a marker that a
+    /// table starts at that path, its fields following as values of their own.
+    Table(Vec<(Vec<String>, Value)>),
+    /// An array, number or date: read to its end, its contents never needed.
+    Other,
+    /// A value this reader could not read: malformed, or a construct it does not know.
+    Unreadable,
+}
+
+/// What a key given more than once reads as: TOML forbids it, so nothing about it is certain.
+static UNREADABLE: Value = Value::Unreadable;
+
+/// Arrays and inline tables nested deeper than this are not read (the value is unreadable).
+const MAX_NESTING: usize = 64;
+
+/// G178 (review 4): a cursor over TOML text, reading it as TOML does -- every string kind (basic,
+/// literal, and their `"""`/`'''` multi-line forms, escapes included), arrays and inline tables
+/// spanning lines, comments -- so no line inside a string or a value is ever taken for a header or
+/// a key of its own. The reader stops only at ASCII bytes, so every slice is at a char boundary.
+struct Reader<'a> {
+    text: &'a str,
+    at: usize,
+}
+
+impl<'a> Reader<'a> {
+    fn new(text: &'a str) -> Self {
+        Self { text, at: 0 }
     }
-}
 
-/// Net count of `{`/`}` in `text` -- used to detect and join an inline table value that spans
-/// more than one physical line (e.g. `foo = { version = "1",\n features = ["x"] }`). Adequate for
-/// this bounded shape: a Cargo dependency-table value never itself contains a literal brace inside
-/// a string (versions/features never do), so counting raw characters cannot be fooled here the way
-/// it could be for arbitrary TOML.
-fn brace_depth(text: &str) -> i32 {
-    text.chars()
-        .map(|c| match c {
-            '{' => 1,
-            '}' => -1,
-            _ => 0,
-        })
-        .sum()
-}
+    fn byte(&self) -> Option<u8> {
+        self.text.as_bytes().get(self.at).copied()
+    }
 
-fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
-    let mut entries = Vec::new();
-    let lines: Vec<&str> = section.lines().collect();
-    let mut index = 0;
-    while index < lines.len() {
-        let trimmed = lines[index].trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            index += 1;
-            continue;
+    fn starts(&self, prefix: &[u8]) -> bool {
+        (self.text.as_bytes().get(self.at..)).is_some_and(|rest| rest.starts_with(prefix))
+    }
+
+    fn eat(&mut self, byte: u8) -> bool {
+        let found = self.byte() == Some(byte);
+        if found {
+            self.at += 1;
         }
-        let Some(eq_pos) = trimmed.find('=') else {
-            index += 1;
-            continue;
-        };
-        let full_key = trimmed[..eq_pos].trim();
-        let key = full_key.split('.').next().unwrap_or_default().trim();
-        let inherited = full_key
-            .split('.')
-            .nth(1)
-            .is_some_and(|field| field.trim() == "workspace");
-        if key.is_empty() {
-            index += 1;
-            continue;
+        found
+    }
+
+    /// Spaces and tabs.
+    fn blank(&mut self) {
+        while matches!(self.byte(), Some(b' ' | b'\t')) {
+            self.at += 1;
         }
-        let mut value = trimmed[eq_pos + 1..].trim().to_owned();
-        // An inline table opened here but not closed on the same line spans further physical
-        // lines; join them so `quoted_field_anywhere`/`bool_field_anywhere` see the whole table,
-        // not just its first fragment (a bare `package = "..."` or `optional = true` on a later
-        // line would otherwise be silently missed).
-        let mut depth = brace_depth(&value);
-        while depth > 0 {
-            index += 1;
-            let Some(&next) = lines.get(index) else {
-                break;
-            };
-            value.push(' ');
-            value.push_str(next.trim());
-            depth += brace_depth(next.trim());
-        }
-        let resolved_name =
-            quoted_field_anywhere(&value, "package").unwrap_or_else(|| key.to_owned());
-        let optional = bool_field_anywhere(&value, "optional").unwrap_or(false);
-        let dotted_path = full_key
-            .split('.')
-            .nth(1)
-            .is_some_and(|field| field.trim() == "path");
-        let source = if dotted_path {
-            DeclaredSource::Path(value.trim().trim_matches('"').to_owned())
+    }
+
+    fn newline(&mut self) -> bool {
+        let width = if self.starts(b"\n") {
+            1
+        } else if self.starts(b"\r\n") {
+            2
         } else {
-            declared_source(&value, inherited && value.trim() == "true")
+            return false;
         };
-        entries.push(ManifestDependencyEntry {
-            key: key.to_owned(),
-            resolved_name,
-            optional,
-            source,
-        });
-        index += 1;
+        self.at += width;
+        true
     }
-    entries
+
+    fn comment(&mut self) {
+        if self.byte() == Some(b'#') {
+            while self.byte().is_some_and(|b| b != b'\n') {
+                self.at += 1;
+            }
+        }
+    }
+
+    /// Blanks, comments and newlines: what separates statements, array elements and (TOML 1.1)
+    /// inline table fields.
+    fn gap(&mut self) {
+        loop {
+            self.blank();
+            self.comment();
+            if !self.newline() {
+                break;
+            }
+        }
+    }
+
+    /// The rest of a line: blanks and a comment, then a newline or the end of the text.
+    fn line_end(&mut self) -> bool {
+        self.blank();
+        self.comment();
+        self.newline() || self.byte().is_none()
+    }
+
+    /// Past the next newline (or to the end of the text).
+    fn skip_line(&mut self) {
+        while let Some(b) = self.byte() {
+            self.at += 1;
+            if b == b'\n' {
+                break;
+            }
+        }
+    }
+
+    /// A dotted key (`a.b`, `"a-b" . 'c'`), each part unquoted, and the blanks after it.
+    fn key(&mut self) -> Option<Vec<String>> {
+        let mut path = Vec::new();
+        loop {
+            self.blank();
+            let part = match self.byte()? {
+                b'"' if !self.starts(b"\"\"\"") => {
+                    self.at += 1;
+                    self.basic(false)?
+                }
+                b'\'' if !self.starts(b"'''") => {
+                    self.at += 1;
+                    self.literal(false)?
+                }
+                _ => {
+                    let start = self.at;
+                    while (self.byte())
+                        .is_some_and(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+                    {
+                        self.at += 1;
+                    }
+                    if self.at == start {
+                        return None;
+                    }
+                    self.text[start..self.at].to_owned()
+                }
+            };
+            path.push(part);
+            self.blank();
+            if !self.eat(b'.') {
+                return Some(path);
+            }
+        }
+    }
+
+    /// A table header line (`[a.b]`, or `[[a]]` for an array of tables), from its `[`.
+    fn header(&mut self) -> Option<TableHeader> {
+        if !self.eat(b'[') {
+            return None;
+        }
+        let array = self.eat(b'[');
+        let path = self.key()?;
+        if !self.eat(b']') || (array && !self.eat(b']')) || !self.line_end() {
+            return None;
+        }
+        Some(TableHeader { array, path })
+    }
+
+    /// `key = value` through the end of its line (a value may span several).
+    fn key_value(&mut self) -> Option<(Vec<String>, Value)> {
+        let key = self.key()?;
+        if !self.eat(b'=') {
+            return None;
+        }
+        self.blank();
+        let value = self.value(0)?;
+        self.line_end().then_some((key, value))
+    }
+
+    fn value(&mut self, depth: usize) -> Option<Value> {
+        if depth > MAX_NESTING {
+            return None;
+        }
+        match self.byte()? {
+            quote @ (b'"' | b'\'') => {
+                let multi = self.starts(&[quote; 3]);
+                self.at += if multi { 3 } else { 1 };
+                let text = if quote == b'"' {
+                    self.basic(multi)?
+                } else {
+                    self.literal(multi)?
+                };
+                Some(Value::Str(text))
+            }
+            b'{' => {
+                self.at += 1;
+                let mut fields = Vec::new();
+                loop {
+                    self.gap();
+                    if self.eat(b'}') {
+                        return Some(Value::Table(fields));
+                    }
+                    let key = self.key()?;
+                    if !self.eat(b'=') {
+                        return None;
+                    }
+                    self.blank();
+                    fields.push((key, self.value(depth + 1)?));
+                    self.gap();
+                    if !self.eat(b',') {
+                        return self.eat(b'}').then_some(Value::Table(fields));
+                    }
+                }
+            }
+            b'[' => {
+                self.at += 1;
+                loop {
+                    self.gap();
+                    if self.eat(b']') {
+                        return Some(Value::Other);
+                    }
+                    self.value(depth + 1)?;
+                    self.gap();
+                    if !self.eat(b',') {
+                        return self.eat(b']').then_some(Value::Other);
+                    }
+                }
+            }
+            _ => {
+                let bare = |b: u8| b.is_ascii_alphanumeric() || b"+-._:".contains(&b);
+                let start = self.at;
+                while self.byte().is_some_and(bare) {
+                    self.at += 1;
+                }
+                // A date and a time may be separated by one space.
+                if self.at - start == 10
+                    && self.byte() == Some(b' ')
+                    && (self.text.as_bytes().get(self.at + 1)).is_some_and(u8::is_ascii_digit)
+                {
+                    self.at += 1;
+                    while self.byte().is_some_and(bare) {
+                        self.at += 1;
+                    }
+                }
+                match &self.text[start..self.at] {
+                    "" => None,
+                    "true" => Some(Value::Bool(true)),
+                    "false" => Some(Value::Bool(false)),
+                    _ => Some(Value::Other),
+                }
+            }
+        }
+    }
+
+    /// A basic string's text after its opening `"` (or `"""`), through its closing delimiter.
+    /// A multi-line one drops a newline right after its opening delimiter, and a backslash ending
+    /// a line drops every blank and newline after it.
+    fn basic(&mut self, multi: bool) -> Option<String> {
+        let mut out = String::new();
+        if multi {
+            self.newline();
+        }
+        loop {
+            let start = self.at;
+            while self
+                .byte()
+                .is_some_and(|b| !matches!(b, b'"' | b'\\' | b'\n' | b'\r'))
+            {
+                self.at += 1;
+            }
+            out.push_str(&self.text[start..self.at]);
+            match self.byte()? {
+                b'"' if multi && self.starts(b"\"\"\"") => {
+                    self.at += 3;
+                    // A closing delimiter may follow up to two quotes of the text itself.
+                    for _ in 0..2 {
+                        if self.eat(b'"') {
+                            out.push('"');
+                        }
+                    }
+                    return Some(out);
+                }
+                b'"' if multi => {
+                    self.at += 1;
+                    out.push('"');
+                }
+                b'"' => {
+                    self.at += 1;
+                    return Some(out);
+                }
+                // A newline (`\r\n` too) reads as `\n`; a lone `\r` is not TOML.
+                b'\n' | b'\r' if multi && self.newline() => out.push('\n'),
+                b'\n' | b'\r' => return None,
+                _ => {
+                    self.at += 1;
+                    self.escape(multi, &mut out)?;
+                }
+            }
+        }
+    }
+
+    /// One escape, after its backslash. G178 (review 4): TOML 1.1's `\e` and `\xHH` too (Cargo
+    /// reads them); an escape TOML does not define leaves the string unreadable.
+    fn escape(&mut self, multi: bool, out: &mut String) -> Option<()> {
+        let c = match self.byte()? {
+            b'b' => '\u{8}',
+            b't' => '\t',
+            b'n' => '\n',
+            b'f' => '\u{c}',
+            b'r' => '\r',
+            b'e' => '\u{1b}',
+            b'"' => '"',
+            b'\\' => '\\',
+            b'x' => return self.hex(2).map(|c| out.push(c)),
+            b'u' => return self.hex(4).map(|c| out.push(c)),
+            b'U' => return self.hex(8).map(|c| out.push(c)),
+            b' ' | b'\t' | b'\r' | b'\n' if multi => {
+                self.blank();
+                if !self.newline() {
+                    return None;
+                }
+                loop {
+                    self.blank();
+                    if !self.newline() {
+                        return Some(());
+                    }
+                }
+            }
+            _ => return None,
+        };
+        self.at += 1;
+        out.push(c);
+        Some(())
+    }
+
+    /// The char `digits` hex digits after an escape's letter spell.
+    fn hex(&mut self, digits: usize) -> Option<char> {
+        let start = self.at + 1;
+        let hex = self.text.as_bytes().get(start..start + digits)?;
+        if !hex.iter().all(u8::is_ascii_hexdigit) {
+            return None;
+        }
+        self.at = start + digits;
+        char::from_u32(u32::from_str_radix(&self.text[start..self.at], 16).ok()?)
+    }
+
+    /// A literal string's text after its opening `'` (or `'''`), through its closing delimiter.
+    fn literal(&mut self, multi: bool) -> Option<String> {
+        if multi {
+            self.newline();
+        }
+        let start = self.at;
+        loop {
+            match self.byte()? {
+                b'\'' if multi && self.starts(b"'''") => {
+                    let mut end = self.at;
+                    self.at += 3;
+                    for _ in 0..2 {
+                        if self.eat(b'\'') {
+                            end += 1;
+                        }
+                    }
+                    return Some(self.text[start..end].replace("\r\n", "\n"));
+                }
+                b'\'' if !multi => {
+                    self.at += 1;
+                    return Some(self.text[start..self.at - 1].to_owned());
+                }
+                b'\n' if !multi => return None,
+                b'\r' if !(multi && self.starts(b"\r\n")) => return None,
+                _ => self.at += 1,
+            }
+        }
+    }
+
+    /// Past a statement this reader could not read: through the newline that ends it outside any
+    /// string, array or inline table (or to the end of the text).
+    fn skip_statement(&mut self) {
+        let mut depth = 0usize;
+        while let Some(b) = self.byte() {
+            match b {
+                b'\n' if depth == 0 => {
+                    self.at += 1;
+                    return;
+                }
+                b'#' => self.comment(),
+                b'"' | b'\'' => self.skip_string(b),
+                b'[' | b'{' => {
+                    depth += 1;
+                    self.at += 1;
+                }
+                b']' | b'}' => {
+                    depth = depth.saturating_sub(1);
+                    self.at += 1;
+                }
+                _ => self.at += 1,
+            }
+        }
+    }
+
+    /// Past one string of any kind, from its opening quote; a single-line one ends at a newline.
+    fn skip_string(&mut self, quote: u8) {
+        let multi = self.starts(&[quote; 3]);
+        self.at += if multi { 3 } else { 1 };
+        while let Some(b) = self.byte() {
+            if b == b'\\' && quote == b'"' {
+                self.at = (self.at + 2).min(self.text.len());
+            } else if b == b'\n' && !multi {
+                return;
+            } else if b == quote && (!multi || self.starts(&[quote; 3])) {
+                self.at += if multi { 3 } else { 1 };
+                while multi && self.byte() == Some(quote) {
+                    self.at += 1;
+                }
+                return;
+            } else {
+                self.at += 1;
+            }
+        }
+    }
 }
 
-/// Like `quoted_field`, but `key = "value"` may appear anywhere in `text` (inside a `{ ... }`
-/// inline table), not only as the whole line.
-fn quoted_field_anywhere(text: &str, key: &str) -> Option<String> {
-    let needle = format!("{key} = \"");
-    let start = text.find(&needle)? + needle.len();
-    let end = text[start..].find('"')? + start;
-    Some(text[start..end].to_owned())
+/// A manifest table header (`[a.b]`, or `[[a]]` for an array of tables): its dotted key, each
+/// part unquoted. G178 (review 3): spaces inside the brackets and around dots, and a trailing
+/// `# comment`, are TOML too; `[dependencies] # x` dropped the whole table.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct TableHeader {
+    array: bool,
+    path: Vec<String>,
 }
 
-/// Like `quoted_field_anywhere`, but for a bare `key = true`/`key = false` (inline-table booleans
-/// are never quoted in TOML).
-fn bool_field_anywhere(text: &str, key: &str) -> Option<bool> {
-    if text.contains(&format!("{key} = true")) {
-        Some(true)
-    } else if text.contains(&format!("{key} = false")) {
-        Some(false)
+impl TableHeader {
+    fn parse(line: &str) -> Option<Self> {
+        Reader::new(line.trim_start()).header()
+    }
+
+    /// Whether this is the plain table `[path]`.
+    fn is(&self, path: &[&str]) -> bool {
+        !self.array && self.path == path
+    }
+}
+
+/// G178 (review 4): a manifest read as TOML, as far as this reader needs it: every table header,
+/// and every value with its full key path -- its header's path, then its own (dotted) key, then
+/// an inline table's keys -- so `dependencies.zip = {..}` before any header, `[target.'cfg(unix)']`
+/// with `dependencies.zip = {..}`, `[dependencies] zip = {..}` and `[dependencies.zip]` all read
+/// as the same entry.
+struct Manifest {
+    /// Each table header in order; the first stands for the root table (what comes before any
+    /// header). `None` for a header this reader cannot read: the values under it are dropped.
+    headers: Vec<Option<TableHeader>>,
+    /// (header index, full key path, value). A table -- a header, or an inline table -- is a
+    /// `Value::Table` marker at its own path, its fields following as values of their own.
+    values: Vec<(usize, Vec<String>, Value)>,
+}
+
+impl Manifest {
+    fn read(text: &str) -> Self {
+        // G178 (review 4): a leading byte order mark is not part of the first line.
+        let text = text.strip_prefix('\u{feff}').unwrap_or(text);
+        let mut reader = Reader::new(text);
+        let root = TableHeader {
+            array: false,
+            path: Vec::new(),
+        };
+        let mut manifest = Self {
+            headers: vec![Some(root)],
+            values: Vec::new(),
+        };
+        loop {
+            reader.gap();
+            let start = reader.at;
+            match reader.byte() {
+                None => break,
+                Some(b'[') => {
+                    let header = reader.header();
+                    if header.is_none() {
+                        reader.at = start;
+                        reader.skip_line();
+                    }
+                    let index = manifest.headers.len();
+                    if let Some(header) = &header {
+                        let marker = Value::Table(Vec::new());
+                        manifest.values.push((index, header.path.clone(), marker));
+                    }
+                    manifest.headers.push(header);
+                }
+                Some(_) => {
+                    let index = manifest.headers.len() - 1;
+                    let (key, value) = match reader.key_value() {
+                        Some((key, value)) => (Some(key), value),
+                        None => {
+                            // The value is unreadable; its key, if that much reads, still is.
+                            reader.at = start;
+                            let key = reader.key().filter(|_| reader.byte() == Some(b'='));
+                            reader.at = start;
+                            reader.skip_statement();
+                            (key, Value::Unreadable)
+                        }
+                    };
+                    if let (Some(header), Some(key)) = (&manifest.headers[index], key) {
+                        let mut path = header.path.clone();
+                        path.extend(key);
+                        flatten(index, path, value, &mut manifest.values);
+                    }
+                }
+            }
+        }
+        manifest
+    }
+
+    /// Every value outside arrays of tables (`[[bin]]`), with its full key path.
+    fn tables(&self) -> impl Iterator<Item = (&[String], &Value)> {
+        (self.values.iter())
+            .filter(|(header, _, _)| self.headers[*header].as_ref().is_some_and(|h| !h.array))
+            .map(|(_, path, value)| (path.as_slice(), value))
+    }
+
+    /// The value at `path` (outside arrays of tables); [`UNREADABLE`] when it is given twice.
+    fn one(&self, path: &[&str]) -> Option<&Value> {
+        let mut found = self
+            .tables()
+            .filter(|(key, _)| *key == path)
+            .map(|(_, v)| v);
+        match (found.next(), found.next()) {
+            (Some(value), None) => Some(value),
+            (Some(_), Some(_)) => Some(&UNREADABLE),
+            (None, _) => None,
+        }
+    }
+
+    /// Whether any value's key path starts with `table` (a `[table]` header, a `[table.x]` one,
+    /// or a dotted `table.x = ..` key).
+    fn has(&self, table: &str) -> bool {
+        (self.values.iter()).any(|(_, path, _)| path.first().is_some_and(|p| p == table))
+    }
+
+    /// Every dependency entry of the tables `table_of` places (the length of the table's own key
+    /// path, and what it says about the table), in the order their keys first appear: the
+    /// entry's key follows the table's path, then its field's.
+    fn dependency_entries<T: Clone>(
+        &self,
+        table_of: impl Fn(&[String]) -> Option<(usize, T)>,
+    ) -> Vec<(T, ManifestDependencyEntry)> {
+        type Fields<'v> = Vec<(&'v [String], &'v Value)>;
+        let mut entries: Vec<(&[String], T, Fields)> = Vec::new();
+        for (path, value) in self.tables() {
+            let Some((table, facts)) = table_of(path) else {
+                continue;
+            };
+            let (key, field) = (&path[..=table], &path[table + 1..]);
+            match entries.iter_mut().find(|(k, _, _)| *k == key) {
+                Some((_, _, fields)) => fields.push((field, value)),
+                None => entries.push((key, facts, vec![(field, value)])),
+            }
+        }
+        (entries.into_iter())
+            .map(|(key, facts, fields)| (facts, dependency_entry(&key[key.len() - 1], &fields)))
+            .collect()
+    }
+}
+
+/// Appends `value` at `path`, and an inline table's fields each at its own full path.
+fn flatten(
+    header: usize,
+    path: Vec<String>,
+    value: Value,
+    values: &mut Vec<(usize, Vec<String>, Value)>,
+) {
+    if let Value::Table(fields) = value {
+        values.push((header, path.clone(), Value::Table(Vec::new())));
+        for (key, value) in fields {
+            let mut field = path.clone();
+            field.extend(key);
+            flatten(header, field, value, values);
+        }
     } else {
-        None
+        values.push((header, path, value));
     }
 }
 
-/// Every top-level `[section header]` in `manifest`, paired with its body text (up to the next
-/// section header or end of file).
-fn manifest_sections(manifest: &str) -> Vec<(&str, String)> {
-    let lines: Vec<&str> = manifest.lines().collect();
-    let mut sections = Vec::new();
-    let mut index = 0;
-    while index < lines.len() {
-        let trimmed = lines[index].trim();
-        if !trimmed.starts_with('[') {
-            index += 1;
-            continue;
+/// One dependency entry named `key` from its values, each by its path inside the entry (the
+/// empty path for the entry's own value: a version string, or a table marker).
+fn dependency_entry(key: &str, fields: &[(&[String], &Value)]) -> ManifestDependencyEntry {
+    let field = |name: &str| {
+        (fields.iter())
+            .find(|(path, _)| path.len() == 1 && path[0] == name)
+            .map(|(_, value)| *value)
+    };
+    let whole: Vec<&Value> = (fields.iter())
+        .filter(|(path, _)| path.is_empty())
+        .map(|(_, value)| *value)
+        .collect();
+    let package = field("package");
+    let resolved_name = match package {
+        None => Some(key.to_owned()),
+        Some(Value::Str(package)) => Some(package.clone()),
+        Some(_) => None,
+    };
+    // G178 (review 4): nothing about an entry is certain when a key of it is given twice (a TOML
+    // error; also how a table read where there is none would show), a value of it is unreadable,
+    // a table is nested in it, or the package it names is unknown.
+    let distinct: BTreeSet<&[String]> = fields.iter().map(|(path, _)| *path).collect();
+    let certain = distinct.len() == fields.len()
+        && resolved_name.is_some()
+        && (fields.iter()).all(|(path, value)| match (path, value) {
+            (_, Value::Unreadable) => false,
+            ([], _) => true,
+            ([_], value) => !matches!(value, Value::Table(_)),
+            _ => false,
+        });
+    let table = matches!(whole.as_slice(), [] | [Value::Table(_)]);
+    let source = match (field("workspace"), field("path")) {
+        _ if !certain => DeclaredSource::Unknown,
+        _ if matches!(whole.as_slice(), [Value::Str(_)]) && fields.len() == 1 => {
+            DeclaredSource::Elsewhere
         }
-        let start = index + 1;
-        let end = lines[start..]
-            .iter()
-            .position(|line| line.trim_start().starts_with('['))
-            .map(|offset| start + offset)
-            .unwrap_or(lines.len());
-        sections.push((trimmed, lines[start..end].join("\n")));
-        index = end;
+        _ if !table => DeclaredSource::Unknown,
+        (None, None) => DeclaredSource::Elsewhere,
+        (Some(Value::Bool(true)), None) => DeclaredSource::Workspace,
+        (None, Some(Value::Str(path))) => DeclaredSource::Path(path.clone()),
+        _ => DeclaredSource::Unknown,
+    };
+    ManifestDependencyEntry {
+        key: key.to_owned(),
+        resolved_name,
+        renamed: package.is_some(),
+        optional: field("optional") == Some(&Value::Bool(true)),
+        source,
     }
-    sections
 }
 
-/// Classifies a manifest section header into its `(DependencyRole, is_target_conditional)` facts,
-/// if it is a dependency table at all. Role and target-conditionality are orthogonal: a bare
-/// `[build-dependencies]` table is `(Build, false)`; the identical table nested under
-/// `[target.'cfg(...)'.build-dependencies]` (any target-selector spelling -- the selector
-/// expression itself is not yet parsed/represented, an explicit, documented gap) is `(Build,
-/// true)` -- the role is preserved, never overwritten, by target-conditionality.
-fn dependency_section_role(header: &str) -> Option<(DependencyRole, bool)> {
-    match header {
-        "[dependencies]" => Some((DependencyRole::Runtime, false)),
-        "[dev-dependencies]" => Some((DependencyRole::Dev, false)),
-        "[build-dependencies]" => Some((DependencyRole::Build, false)),
-        _ if header.starts_with("[target.") && header.ends_with(".dependencies]") => {
-            Some((DependencyRole::Runtime, true))
-        }
-        _ if header.starts_with("[target.") && header.ends_with(".dev-dependencies]") => {
-            Some((DependencyRole::Dev, true))
-        }
-        _ if header.starts_with("[target.") && header.ends_with(".build-dependencies]") => {
-            Some((DependencyRole::Build, true))
-        }
+/// The role of a dependency table named `name` (Cargo still reads the pre-2024 `dev_dependencies`
+/// and `build_dependencies` spellings).
+fn table_role(name: &str) -> Option<DependencyRole> {
+    match name {
+        "dependencies" => Some(DependencyRole::Runtime),
+        "dev-dependencies" | "dev_dependencies" => Some(DependencyRole::Dev),
+        "build-dependencies" | "build_dependencies" => Some(DependencyRole::Build),
         _ => None,
     }
 }
 
-/// Classifies a dotted single-dependency table header (`[dependencies.serde]`,
-/// `[dev-dependencies.wasmtime]`, `[build-dependencies.cc]`) into its own `(crate_key,
-/// DependencyRole)`, the alternative TOML spelling of one `crate = { ... }` table-array entry.
-/// Real, not hypothetical: `.atlas/temporary/donors/wasmtime/Cargo.toml` declares
-/// `[dev-dependencies.wasmtime]` this way. Deliberately does not recognize the target-conditional
-/// combination (`[target.'cfg(...)'.dependencies.NAME]`) -- no real donor manifest in this
-/// repository's own corpus uses that combined form, and guessing its shape without evidence would
-/// risk fabricating a parse rule this bootstrap cannot verify; a future generation should add it
-/// if and when real input demonstrates the need, matching this file's own evidence-before-code
-/// discipline.
-fn dotted_dependency_header(header: &str) -> Option<(&str, DependencyRole)> {
-    for (prefix, role) in [
-        ("[dependencies.", DependencyRole::Runtime),
-        ("[dev-dependencies.", DependencyRole::Dev),
-        ("[build-dependencies.", DependencyRole::Build),
-    ] {
-        if let Some(key) = header
-            .strip_prefix(prefix)
-            .and_then(|rest| rest.strip_suffix(']'))
-            && !key.is_empty()
-        {
-            return Some((key, role));
-        }
+/// Places a key path in a package's dependency tables: the length of the table's own path and
+/// its `(DependencyRole, is_target_conditional)` facts. Role and target-conditionality are
+/// orthogonal: a bare `[build-dependencies]` table is `(Build, false)`; the identical table
+/// nested under `[target.'cfg(...)'.build-dependencies]` (any target-selector spelling -- the
+/// selector expression itself is not yet parsed/represented, an explicit, documented gap) is
+/// `(Build, true)` -- the role is preserved, never overwritten, by target-conditionality. The
+/// path may come from a header (`[dependencies.serde]`, `[target.'cfg(unix)'.dependencies.NAME]`
+/// -- the form Cargo itself writes into every published manifest; real, not hypothetical:
+/// `.atlas/temporary/donors/wasmtime/Cargo.toml` declares `[dev-dependencies.wasmtime]`), a
+/// dotted key, or both.
+fn dependency_table(path: &[String]) -> Option<(usize, (DependencyRole, bool))> {
+    match path {
+        [target, _, table, _, ..] if target == "target" => Some((3, (table_role(table)?, true))),
+        [table, _, ..] => Some((1, (table_role(table)?, false))),
+        _ => None,
     }
-    None
 }
 
 /// `(crate_name, DependencyRole, DependencyActivation)` for every dependency this manifest text
@@ -535,38 +1008,29 @@ fn dotted_dependency_header(header: &str) -> Option<(&str, DependencyRole)> {
 /// collapsed into an `Optional`-only fact that discards `Dev`. Neither `optional` nor
 /// `target_conditional` means "active in this admitted context" -- Cargo only actually activates
 /// an optional dependency when the enabling feature is selected, a fact this bootstrap does not
-/// yet model as its own resolution context; here they mean only "declared" that way.
+/// yet model as its own resolution context; here they mean only "declared" that way. An entry
+/// whose package name is unreadable is left out.
 fn manifest_dependency_roles(
     manifest: &str,
 ) -> Vec<(String, DependencyRole, DependencyActivation)> {
-    let mut result = Vec::new();
-    for (header, body) in manifest_sections(manifest) {
-        if let Some((role, target_conditional)) = dependency_section_role(header) {
-            for entry in manifest_dependency_entries(&body) {
-                let activation = DependencyActivation {
-                    optional: entry.optional,
-                    target_conditional,
-                };
-                result.push((entry.resolved_name, role, activation));
-            }
-            continue;
-        }
-        if let Some((key, role)) = dotted_dependency_header(header) {
-            let resolved_name =
-                quoted_field_anywhere(&body, "package").unwrap_or_else(|| key.to_owned());
-            let optional = bool_field_anywhere(&body, "optional").unwrap_or(false);
-            result.push((
-                resolved_name,
-                role,
-                DependencyActivation {
-                    optional,
-                    target_conditional: false,
-                },
-            ));
-        }
-    }
-    result
+    (Manifest::read(manifest)
+        .dependency_entries(dependency_table)
+        .into_iter())
+    .filter_map(|((role, target_conditional), entry)| {
+        let activation = DependencyActivation {
+            optional: entry.optional,
+            target_conditional,
+        };
+        Some((entry.resolved_name?, role, activation))
+    })
+    .collect()
 }
+
+/// One dependency a manifest declares for its targets: its extern key (`atlas_core`), the
+/// package it names (`core`), its role, the source it declares (G168), and whether it has a
+/// `package` field (G178 review 3: Cargo then passes it as `--extern <key>`, else by its
+/// library's crate name).
+pub type ManifestDependency = (String, String, DependencyRole, DeclaredSource, bool);
 
 /// The compilation targets of one package manifest and the dependencies they may name, as Rust
 /// name resolution sees them (G75): the library, binaries and build script with their root files
@@ -577,96 +1041,115 @@ fn manifest_dependency_roles(
 pub struct ManifestTargets {
     pub package: String,
     pub lib: Option<String>,
+    /// G178 (review 2): the library's crate name, when `[lib] name` sets one.
+    pub lib_name: Option<String>,
     pub bins: Vec<String>,
     pub build: Option<String>,
-    pub dependencies: Vec<(String, String, DependencyRole, DeclaredSource)>,
+    pub dependencies: Vec<ManifestDependency>,
 }
 
 /// Reads [`ManifestTargets`] from a package manifest; target paths are relative to its directory.
-/// `None` for a manifest without a `[package]` (a virtual workspace root).
+/// `None` for a manifest without a `[package]` (a virtual workspace root), or whose package name
+/// is not a string this reader can read. G178 (review 4): a `[lib]` `path` or `name`, or a
+/// `build`, that it cannot read makes no such target -- nothing binds to it -- and an entry whose
+/// package is unknown keeps its key there, with an [`DeclaredSource::Unknown`] source.
 pub fn manifest_targets(manifest: &str, exists: impl Fn(&str) -> bool) -> Option<ManifestTargets> {
-    let mut targets = ManifestTargets::default();
-    let mut has_package = false;
-    let field =
-        |body: &str, key: &str| body.lines().find_map(|line| quoted_field(line.trim(), key));
-    for (header, body) in manifest_sections(manifest) {
-        match header {
-            "[package]" => {
-                has_package = true;
-                targets.package = field(&body, "name").unwrap_or_default();
-                targets.build = field(&body, "build");
-            }
-            "[lib]" => targets.lib = field(&body, "path"),
-            "[[bin]]" => {
-                if let Some(path) = field(&body, "path") {
-                    targets.bins.push(path);
-                }
-            }
-            _ => {}
-        }
-        if let Some((role, _)) = dependency_section_role(header) {
-            for entry in manifest_dependency_entries(&body) {
-                targets
-                    .dependencies
-                    .push((entry.key, entry.resolved_name, role, entry.source));
-            }
-        } else if let Some((key, role)) = dotted_dependency_header(header) {
-            let resolved =
-                quoted_field_anywhere(&body, "package").unwrap_or_else(|| key.to_owned());
-            let source = declared_source(&body, false);
-            targets
-                .dependencies
-                .push((key.to_owned(), resolved, role, source));
-        }
-    }
-    if !has_package {
+    let manifest = Manifest::read(manifest);
+    if !manifest.has("package") {
         return None;
     }
-    if targets.lib.is_none() && exists("src/lib.rs") {
-        targets.lib = Some("src/lib.rs".into());
+    let Some(Value::Str(package)) = manifest.one(&["package", "name"]) else {
+        return None;
+    };
+    let string = |path: &[&str]| match manifest.one(path) {
+        None => Ok(None),
+        Some(Value::Str(value)) => Ok(Some(value.clone())),
+        Some(_) => Err(()),
+    };
+    let mut targets = ManifestTargets {
+        package: package.clone(),
+        ..ManifestTargets::default()
+    };
+    if let (Ok(lib), Ok(lib_name)) = (string(&["lib", "path"]), string(&["lib", "name"])) {
+        targets.lib = lib.or_else(|| exists("src/lib.rs").then(|| "src/lib.rs".into()));
+        targets.lib_name = lib_name;
+    }
+    targets.build = match manifest.one(&["package", "build"]) {
+        Some(Value::Str(build)) => Some(build.clone()),
+        None | Some(Value::Bool(true)) if exists("build.rs") => Some("build.rs".into()),
+        _ => None,
+    };
+    for (header, path, value) in &manifest.values {
+        if let (Some(Some(h)), Value::Str(bin)) = (manifest.headers.get(*header), value)
+            && h.array
+            && h.path == ["bin"]
+            && *path == ["bin", "path"]
+        {
+            targets.bins.push(bin.clone());
+        }
     }
     if targets.bins.is_empty() && exists("src/main.rs") {
         targets.bins.push("src/main.rs".into());
     }
-    if targets.build.is_none() && exists("build.rs") {
-        targets.build = Some("build.rs".into());
+    for ((role, _), entry) in manifest.dependency_entries(dependency_table) {
+        let package = (entry.resolved_name).unwrap_or_else(|| entry.key.clone());
+        (targets.dependencies).push((entry.key, package, role, entry.source, entry.renamed));
     }
     Some(targets)
 }
 
 /// G168: what a workspace root manifest decides for its members' dependencies: each
-/// `[workspace.dependencies]` entry's package name and directory (`None` for a version, git or
-/// registry entry), and each `[patch.<source>]` entry redirecting a package name to a directory.
-/// Paths are relative to the root manifest's directory.
+/// `[workspace.dependencies]` entry's package name, directory (`None` for a version, git or
+/// registry entry) and whether it has a `package` field (G178 review 3), and each
+/// `[patch.<source>]` entry redirecting a package name to a directory. Paths are relative to the
+/// root manifest's directory. G178 (review 4): an entry this reader cannot read with certainty is
+/// left out (an inherited entry it names then binds nothing), and a patch it cannot read, or two
+/// patches of one package to different directories, redirect to the empty path (which binds
+/// nothing).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct WorkspaceDependencies {
-    pub dependencies: BTreeMap<String, (String, Option<String>)>,
+    pub dependencies: BTreeMap<String, (String, Option<String>, bool)>,
     pub patches: BTreeMap<String, String>,
 }
 
 /// Reads [`WorkspaceDependencies`]; `None` for a manifest without a `[workspace]` table.
 pub fn workspace_dependencies(manifest: &str) -> Option<WorkspaceDependencies> {
-    let sections = manifest_sections(manifest);
-    if !sections.iter().any(|(header, _)| *header == "[workspace]") {
+    let manifest = Manifest::read(manifest);
+    if !manifest.has("workspace") {
         return None;
     }
     let mut workspace = WorkspaceDependencies::default();
-    for (header, body) in &sections {
-        if *header == "[workspace.dependencies]" {
-            for entry in manifest_dependency_entries(body) {
-                let path = match entry.source {
-                    DeclaredSource::Path(path) => Some(path),
-                    _ => None,
-                };
-                workspace
-                    .dependencies
-                    .insert(entry.key, (entry.resolved_name, path));
-            }
-        } else if header.starts_with("[patch.") {
-            for entry in manifest_dependency_entries(body) {
-                if let DeclaredSource::Path(path) = entry.source {
-                    workspace.patches.insert(entry.resolved_name, path);
-                }
+    let inherited = |path: &[String]| match path {
+        [root, table, _, ..] if root == "workspace" && table == "dependencies" => Some((2, ())),
+        _ => None,
+    };
+    for (_, entry) in manifest.dependency_entries(inherited) {
+        let path = match entry.source {
+            DeclaredSource::Path(path) => Some(path),
+            DeclaredSource::Elsewhere => None,
+            DeclaredSource::Workspace | DeclaredSource::Unknown => continue,
+        };
+        if let Some(name) = entry.resolved_name {
+            (workspace.dependencies).insert(entry.key, (name, path, entry.renamed));
+        }
+    }
+    let patch = |path: &[String]| match path {
+        [patch, _, _, ..] if patch == "patch" => Some((2, ())),
+        _ => None,
+    };
+    for (_, entry) in manifest.dependency_entries(patch) {
+        let path = match entry.source {
+            DeclaredSource::Path(path) => path,
+            DeclaredSource::Elsewhere => continue,
+            DeclaredSource::Workspace | DeclaredSource::Unknown => String::new(),
+        };
+        if let Some(name) = entry.resolved_name {
+            let redirect = workspace
+                .patches
+                .entry(name)
+                .or_insert_with(|| path.clone());
+            if *redirect != path {
+                redirect.clear();
             }
         }
     }
@@ -783,7 +1266,8 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
         // indistinguishable from a genuine external-to-external edge this parser structurally
         // cannot evidence, even though the manifest that DOES evidence it was already sitting in
         // `root_manifest`, read moments earlier.
-        if root_manifest.lines().any(|line| line.trim() == "[package]")
+        if (root_manifest.lines())
+            .any(|line| TableHeader::parse(line).is_some_and(|h| h.is(&["package"])))
             && let Some(root_name) = root_manifest
                 .lines()
                 .find_map(|line| quoted_field(line.trim(), "name"))
@@ -1411,6 +1895,435 @@ embed-resource = "1"
                 ("bar".to_owned(), DependencyRole::Runtime, ALWAYS),
             ]
         );
+    }
+
+    #[test]
+    fn every_toml_spelling_of_a_dependency_table_declares_its_entries() {
+        // G178 (review 3): a table dropped here reads its dependencies as undeclared, and
+        // `use std::iter::zip;` beside a `zip` dependency then claimed `std::iter::zip::open`.
+        // Cargo reads each of these: a header's trailing comment and inner spaces, quoted keys,
+        // unspaced `=`, a key spread over dotted lines, and target-specific dotted tables.
+        let manifest = concat!(
+            "[ package ] # the package\n",
+            "name='tool' # its name\n",
+            "[ lib ]\n",
+            "name = \"kernel#1\"\n",
+            "[dependencies] # runtime\n",
+            "\"bar-baz\" = \"1\" # was path = \"../bar\"\n",
+            "'lit'={package=\"real\",path='../real'}\n",
+            "dotted.package = \"other\"\n",
+            "dotted.path = \"../other\"\n",
+            "[ target . 'cfg(unix)' . dev-dependencies ]\n",
+            "zip = { git = \"https://example.invalid/zip#main\" }\n",
+            "[target.\"cfg(windows)\".dependencies.\"win-api\"] # dotted\n",
+            "version = \"0.3\" # not local, path = \"../win\"\n",
+            "[build_dependencies]\n",
+            "cc = { workspace=true, optional=true }\n",
+        );
+        let targets = manifest_targets(manifest, |_| false).unwrap();
+        assert_eq!(targets.package, "tool");
+        assert_eq!(targets.lib_name.as_deref(), Some("kernel#1"));
+        let (runtime, dev, build) = (
+            DependencyRole::Runtime,
+            DependencyRole::Dev,
+            DependencyRole::Build,
+        );
+        let path = |p: &str| DeclaredSource::Path(p.to_owned());
+        let dep = |key: &str, package: &str, role, source, renamed| {
+            (key.to_owned(), package.to_owned(), role, source, renamed)
+        };
+        assert_eq!(
+            targets.dependencies,
+            vec![
+                dep(
+                    "bar-baz",
+                    "bar-baz",
+                    runtime,
+                    DeclaredSource::Elsewhere,
+                    false
+                ),
+                dep("lit", "real", runtime, path("../real"), true),
+                dep("dotted", "other", runtime, path("../other"), true),
+                dep("zip", "zip", dev, DeclaredSource::Elsewhere, false),
+                dep(
+                    "win-api",
+                    "win-api",
+                    runtime,
+                    DeclaredSource::Elsewhere,
+                    false
+                ),
+                dep("cc", "cc", build, DeclaredSource::Workspace, false),
+            ]
+        );
+        let roles = manifest_dependency_roles(manifest);
+        let names: Vec<(&str, DependencyRole, bool, bool)> = (roles.iter())
+            .map(|(name, role, a)| (name.as_str(), *role, a.optional, a.target_conditional))
+            .collect();
+        assert_eq!(
+            names,
+            vec![
+                ("bar-baz", runtime, false, false),
+                ("real", runtime, false, false),
+                ("other", runtime, false, false),
+                ("zip", dev, false, true),
+                ("win-api", runtime, false, true),
+                ("cc", build, true, false),
+            ]
+        );
+        // A `package` field naming the key itself is still a rename (Cargo passes the key).
+        let same = manifest_targets(
+            "[package]\nname = \"t\"\n[dependencies]\ncore = { package = \"core\", path = \"../core\" }\n",
+            |_| false,
+        )
+        .unwrap();
+        assert_eq!(
+            same.dependencies,
+            vec![dep("core", "core", runtime, path("../core"), true)]
+        );
+    }
+
+    #[test]
+    fn a_workspace_root_reads_renames_and_dotted_patches() {
+        let workspace = workspace_dependencies(concat!(
+            "[ workspace ] # root\n",
+            "[workspace.dependencies]\n",
+            "same = { package = \"same\", path = \"same\" }\n",
+            "plain = { path = \"plain\" }\n",
+            "[patch.crates-io.\"la-arena\"]\n",
+            "path = \"lib/la-arena\"\n",
+        ))
+        .unwrap();
+        assert_eq!(
+            workspace.dependencies,
+            BTreeMap::from([
+                (
+                    "plain".to_owned(),
+                    ("plain".to_owned(), Some("plain".to_owned()), false)
+                ),
+                (
+                    "same".to_owned(),
+                    ("same".to_owned(), Some("same".to_owned()), true)
+                ),
+            ])
+        );
+        assert_eq!(
+            workspace.patches,
+            BTreeMap::from([("la-arena".to_owned(), "lib/la-arena".to_owned())])
+        );
+    }
+
+    // --- G178 (review 4): the manifest read as TOML reads it -------------------------------------
+
+    fn deps(manifest: &str) -> Vec<ManifestDependency> {
+        manifest_targets(manifest, |_| false).unwrap().dependencies
+    }
+
+    fn dep(
+        key: &str,
+        package: &str,
+        role: DependencyRole,
+        source: DeclaredSource,
+        renamed: bool,
+    ) -> ManifestDependency {
+        (key.to_owned(), package.to_owned(), role, source, renamed)
+    }
+
+    fn path(p: &str) -> DeclaredSource {
+        DeclaredSource::Path(p.to_owned())
+    }
+
+    #[test]
+    fn multi_line_and_escaped_strings_read_their_text() {
+        // H1: `'''../zip'''` read as `""` bound `zip` to the package's own directory (its own
+        // library), and `zip::open()` to its own `open`. Cargo reads both multi-line kinds, drops
+        // a newline right after the opening delimiter, joins a line ending in a backslash, and
+        // (TOML 1.1) reads `\x2f` and `\e`; an escape TOML does not define reads nothing.
+        let manifest = concat!(
+            "[package]\n",
+            "name = \"\"\"\nm\"\"\"\n",
+            "[dependencies]\n",
+            "zip = { path = '''../zip''', package = \"zip\" }\n",
+            "tri = { path = \"\"\"../tri\"\"\", package = 'tri' }\n",
+            "split = { path = '''\n../split''', package = \"split\" }\n",
+            "joined = { path = \"\"\"../\\\n      joined\"\"\" }\n",
+            "quotes = { path = \"\"\"../q\"uote\"\"\"\"\" }\n",
+            "lit = { path = '''../it's''''' }\n",
+            "escapes = { path = \"..\\x2fesc\\e\\u00e9\" }\n",
+            "bad = { path = \"..\\q\" }\n",
+            "open = { path = '''../never\n",
+            "after = { path = \"../after\" }\n",
+        );
+        let runtime = DependencyRole::Runtime;
+        let targets = manifest_targets(manifest, |_| false).unwrap();
+        assert_eq!(targets.package, "m");
+        assert_eq!(
+            targets.dependencies,
+            vec![
+                dep("zip", "zip", runtime, path("../zip"), true),
+                dep("tri", "tri", runtime, path("../tri"), true),
+                dep("split", "split", runtime, path("../split"), true),
+                dep("joined", "joined", runtime, path("../joined"), false),
+                dep("quotes", "quotes", runtime, path("../q\"uote\"\""), false),
+                dep("lit", "lit", runtime, path("../it's''"), false),
+                dep("escapes", "escapes", runtime, path("../esc\u{1b}é"), false),
+                dep("bad", "bad", runtime, DeclaredSource::Unknown, false),
+                dep("open", "open", runtime, DeclaredSource::Unknown, false),
+            ]
+        );
+        // CRLF line endings: a newline in a multi-line string reads as `\n`.
+        let crlf = "[package]\r\nname = 'm'\r\n[dependencies]\r\nzip = { path = '''\r\n../zip''' }\r\nnl = { path = \"\"\"../a\r\nb\"\"\" }\r\n";
+        assert_eq!(
+            deps(crlf),
+            vec![
+                dep("zip", "zip", runtime, path("../zip"), false),
+                dep("nl", "nl", runtime, path("../a\nb"), false),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_header_inside_a_multi_line_string_is_text_and_a_key_given_twice_reads_nothing() {
+        // H2: a `[dependencies.zip]` line inside a `'''` string read as a real table overrode the
+        // real `zip`, and a `[`-line inside a string ended a section early.
+        let manifest = concat!(
+            "[package]\n",
+            "name = \"m\"\n",
+            "description = \"\"\"\n[dependencies]\nnope = { path = \"../evil\" }\n\"\"\"\n",
+            "[dependencies]\n",
+            "zip = { path = \"../zip\" }\n",
+            "git-dep = { git = '''\n[not-a-header]''' }\n",
+            "after = { path = \"../after\" }\n",
+            "[package.metadata.notes]\n",
+            "text = '''\n[dependencies.zip]\npath = \"../evil\"\npackage = \"evil\"\n'''\n",
+        );
+        let runtime = DependencyRole::Runtime;
+        assert_eq!(
+            deps(manifest),
+            vec![
+                dep("zip", "zip", runtime, path("../zip"), false),
+                dep(
+                    "git-dep",
+                    "git-dep",
+                    runtime,
+                    DeclaredSource::Elsewhere,
+                    false
+                ),
+                dep("after", "after", runtime, path("../after"), false),
+            ]
+        );
+        // A statement that does not read is skipped as TOML reads it, its multi-line strings too.
+        let unread = concat!(
+            "[package]\nname = \"m\"\n[package.metadata]\n",
+            "notes = '''\n[dependencies.zip]\npath = \"../evil\"\n''' not TOML\n",
+            "[dependencies]\nzip = { path = \"../zip\" }\n",
+        );
+        assert_eq!(
+            deps(unread),
+            vec![dep("zip", "zip", runtime, path("../zip"), false)]
+        );
+        // A key given twice is a TOML error (and how a table read where there is none shows):
+        // the entry reads as unknown, whichever spelling came first.
+        for twice in [
+            "[dependencies]\nzip = { path = \"../zip\" }\n[dependencies.zip]\npath = \"../evil\"\n",
+            "[dependencies.zip]\npath = \"../evil\"\n[dependencies]\nzip = { path = \"../zip\" }\n",
+            "[dependencies]\nzip.path = \"../zip\"\nzip.path = \"../evil\"\n",
+            "[dependencies]\nzip = \"1\"\nzip.path = \"../evil\"\n",
+        ] {
+            let manifest = format!("[package]\nname = \"m\"\n{twice}");
+            assert_eq!(
+                deps(&manifest),
+                vec![dep("zip", "zip", runtime, DeclaredSource::Unknown, false)],
+                "{twice}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_entry_whose_fields_are_not_what_cargo_requires_reads_as_unknown() {
+        let runtime = DependencyRole::Runtime;
+        for (value, renamed) in [
+            ("{ path = 1 }", false),
+            ("{ path = [\"../zip\"] }", false),
+            ("{ path = \"../zip\", package = true }", true),
+            ("{ workspace = false }", false),
+            ("{ workspace = true, path = \"../zip\" }", false),
+            ("{ path = { x = \"../zip\" } }", false),
+            ("{ path = \"../zip\", features = {} }", false),
+            ("1", false),
+            ("true", false),
+        ] {
+            let manifest = format!("[package]\nname = \"m\"\n[dependencies]\nzip = {value}\n");
+            assert_eq!(
+                deps(&manifest),
+                vec![dep("zip", "zip", runtime, DeclaredSource::Unknown, renamed)],
+                "{value}"
+            );
+        }
+        // A package name that is not a string is unknown: the census leaves the entry out.
+        let manifest = "[dependencies]\nzip = { path = \"../zip\", package = 1 }\nok = \"1\"\n";
+        assert_eq!(
+            manifest_dependency_roles(manifest),
+            vec![("ok".to_owned(), runtime, ALWAYS)]
+        );
+        // A `[lib]` name or path, or a `build`, that does not read makes no such target.
+        let unread = "[package]\nname = \"m\"\nbuild = 1\n[lib]\nname = \"k\\q\"\n";
+        let targets = manifest_targets(unread, |_| true).unwrap();
+        assert_eq!(
+            (targets.lib, targets.lib_name, targets.build),
+            (None, None, None)
+        );
+        let no_build = "[package]\nname = \"m\"\nbuild = false\n";
+        assert_eq!(manifest_targets(no_build, |_| true).unwrap().build, None);
+        assert_eq!(manifest_targets("[package]\nname = 1\n", |_| true), None);
+    }
+
+    #[test]
+    fn braces_and_brackets_inside_strings_do_not_open_values() {
+        // H3: the `{` inside `"../we{ird"` left the inline table open, swallowing `zip`.
+        let manifest = concat!(
+            "[package]\n",
+            "name = \"m\"\n",
+            "[dependencies]\n",
+            "weird = { path = \"../we{ird\" }\n",
+            "zip = { path = \"../zip\" }\n",
+            "arr = { version = \"1\", features = [\"a]\", '{', # ] } comment\n",
+            "  \"b\",\n",
+            "] }\n",
+            "last = { path = '../l}a{st' }\n",
+        );
+        let runtime = DependencyRole::Runtime;
+        assert_eq!(
+            deps(manifest),
+            vec![
+                dep("weird", "weird", runtime, path("../we{ird"), false),
+                dep("zip", "zip", runtime, path("../zip"), false),
+                dep("arr", "arr", runtime, DeclaredSource::Elsewhere, false),
+                dep("last", "last", runtime, path("../l}a{st"), false),
+            ]
+        );
+        // A statement that does not read is skipped as TOML reads it, its quoted braces too.
+        let unread = concat!(
+            "[package]\nname = \"m\"\n[dependencies]\n",
+            "weird = { path = \"../we{ird\" } not TOML\n",
+            "zip = { path = \"../zip\" }\n",
+        );
+        assert_eq!(
+            deps(unread),
+            vec![
+                dep("weird", "weird", runtime, DeclaredSource::Unknown, false),
+                dep("zip", "zip", runtime, path("../zip"), false),
+            ]
+        );
+    }
+
+    #[test]
+    fn dotted_keys_before_any_header_and_under_target_headers_are_dependencies() {
+        // H4: the full key path is the header's then the key's: `dependencies.zip = {..}` at the
+        // root, and `[target.'cfg(unix)']` with `dependencies.nix = {..}`, were dropped.
+        let manifest = concat!(
+            "dependencies.zip = { path = \"../zip\" }\n",
+            "dev-dependencies.tool.path = \"../tool\"\n",
+            "[package]\n",
+            "name = \"m\"\n",
+            "[target.'cfg(unix)']\n",
+            "dependencies.nix = { path = \"../nix\", package = \"nix2\" }\n",
+            "build-dependencies = { cc = \"1\" }\n",
+            "[target.\"cfg(windows)\".dependencies]\n",
+            "win.path = \"../win\"\n",
+        );
+        let (runtime, dev, build) = (
+            DependencyRole::Runtime,
+            DependencyRole::Dev,
+            DependencyRole::Build,
+        );
+        assert_eq!(
+            deps(manifest),
+            vec![
+                dep("zip", "zip", runtime, path("../zip"), false),
+                dep("tool", "tool", dev, path("../tool"), false),
+                dep("nix", "nix2", runtime, path("../nix"), true),
+                dep("cc", "cc", build, DeclaredSource::Elsewhere, false),
+                dep("win", "win", runtime, path("../win"), false),
+            ]
+        );
+        let roles: Vec<(String, bool)> = (manifest_dependency_roles(manifest).into_iter())
+            .map(|(name, _, activation)| (name, activation.target_conditional))
+            .collect();
+        let expected = [
+            ("zip", false),
+            ("tool", false),
+            ("nix2", true),
+            ("cc", true),
+            ("win", true),
+        ];
+        assert_eq!(roles, expected.map(|(n, t)| (n.to_owned(), t)).to_vec());
+        // `[workspace.dependencies.NAME]` tables and dotted workspace keys read too.
+        let workspace = workspace_dependencies(concat!(
+            "workspace.members = [\"a\"]\n",
+            "workspace.dependencies.dotted = { path = \"dotted\" }\n",
+            "[workspace.dependencies.zip]\n",
+            "path = \"zip\"\n",
+            "package = \"zip2\"\n",
+            "[workspace.dependencies.bad]\n",
+            "path = 1\n",
+        ))
+        .unwrap();
+        assert_eq!(
+            workspace.dependencies,
+            BTreeMap::from([
+                (
+                    "dotted".to_owned(),
+                    ("dotted".to_owned(), Some("dotted".to_owned()), false)
+                ),
+                (
+                    "zip".to_owned(),
+                    ("zip2".to_owned(), Some("zip".to_owned()), true)
+                ),
+            ])
+        );
+        // A patch that does not read, or two patches of one package to different directories,
+        // redirect to the empty path (which binds nothing).
+        let patches = workspace_dependencies(concat!(
+            "[workspace]\n",
+            "[patch.crates-io]\n",
+            "a = { path = \"a\" }\n",
+            "b = { path = 1 }\n",
+            "[patch.'https://example.invalid/r']\n",
+            "a = { path = \"elsewhere\" }\n",
+            "c = { path = \"c\" }\n",
+        ))
+        .unwrap()
+        .patches;
+        assert_eq!(
+            patches,
+            BTreeMap::from([
+                ("a".to_owned(), String::new()),
+                ("b".to_owned(), String::new()),
+                ("c".to_owned(), "c".to_owned()),
+            ])
+        );
+    }
+
+    #[test]
+    fn a_leading_byte_order_mark_hides_no_header() {
+        // H5: `\u{feff}[dependencies]` was no header, so `zip` was never declared.
+        let manifest =
+            "\u{feff}[dependencies]\nzip = { path = \"../zip\" }\n[package]\nname = \"m\"\n";
+        assert_eq!(
+            deps(manifest),
+            vec![dep(
+                "zip",
+                "zip",
+                DependencyRole::Runtime,
+                path("../zip"),
+                false
+            )]
+        );
+        assert_eq!(
+            manifest_dependency_roles(manifest),
+            vec![("zip".to_owned(), DependencyRole::Runtime, ALWAYS)]
+        );
+        assert!(workspace_dependencies("\u{feff}[workspace]\n").is_some());
     }
 
     // --- 3. workspace members array --------------------------------------------------------------

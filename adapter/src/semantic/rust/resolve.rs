@@ -54,6 +54,12 @@ pub struct CrateInput {
     /// records for this target's package (`serde` -> `serde`, a renamed `ser` -> `serde`). A name
     /// absent here is an external root whose package is unknown.
     pub foreign: BTreeMap<String, String>,
+    /// G178 (review 2): every extern-prelude name the manifests declare for this target, whatever
+    /// its source (registry, git, path, workspace) and whether or not a lockfile confirms it: each
+    /// applicable dependency's key (`-` as `_`), the library name of a workspace dependency, and a
+    /// binary's own package library. A crate of such a name may be in the extern prelude, with
+    /// contents this pass does not know; it only ever withholds (G178, `known_extern`).
+    pub declared: BTreeSet<String>,
 }
 
 /// A function definition a call resolved to, located the way the syntactic extractor locates its
@@ -189,6 +195,7 @@ fn resolve_on_this_stack(
     for (index, krate) in crates.iter().enumerate() {
         map.collect_crate(index, krate, sources, &mut parsed);
     }
+    map.bind_extern_crates(crates);
     map.resolve_macro_calls();
     map.resolve_imports(crates);
     map.resolve_impls(crates);
@@ -637,6 +644,16 @@ struct Entry {
     /// importer being opened by another glob: two globs binding a used name to different items is
     /// an error in Rust (E0659), so an unseen glob cannot silently rebind it.
     certain: bool,
+    /// G178 (review H1): bound by an import of an item outside the workspace, whose namespaces
+    /// this pass does not see. rustc binds an import only in the namespaces its item has, so the
+    /// item may bind nothing here: a lookup then reads the name past this binding -- a glob's
+    /// binding of it, an outer scope, the extern prelude (`use alloc::alloc::{alloc, Layout}`
+    /// binds the function `alloc`, and `alloc::..` stays the crate).
+    unsure: bool,
+    /// G178 (review 2): for a binding merged from `unsure` named imports and globs of one name
+    /// (see [`DefMap::bind`]), those two sides -- each as its own imports alone bind it -- so a
+    /// binding applied later joins its own side and the merge is redone, whatever the order.
+    merged: Option<Box<(Entry, Entry)>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -696,12 +713,15 @@ impl Scope {
                     };
                 }
                 existing.certain &= entry.certain;
+                existing.unsure &= entry.unsure;
             }
             Some(existing) if entry.origin == existing.origin && existing.def != entry.def => {
                 existing.def = Def::Ambiguous;
             }
+            // One item, which one of the two bindings may know to be in this namespace.
             Some(existing) if entry.origin == existing.origin => {
                 existing.certain &= entry.certain;
+                existing.unsure &= entry.unsure;
             }
             Some(_) => {}
         }
@@ -986,10 +1006,11 @@ struct DefMap {
     /// closures declare.
     foreign: BTreeMap<usize, BTreeMap<String, String>>,
     locked: LockedTraitMethods,
-    /// G177 (review): each crate root's `extern crate target as name;` items, by `name`: the
-    /// crate `name` means in every module's extern prelude, `None` when that is unknown (two
-    /// items, or one under `cfg` or an attribute that may be a procedural macro).
-    root_externs: BTreeMap<usize, BTreeMap<String, Option<String>>>,
+    /// G177 (review): each module's `extern crate target as name;` items, by `name`: the crate
+    /// `name` means there (G178) and, for a crate root's, in every module's extern prelude;
+    /// `None` when that is unknown (two items, or one under `cfg` or an attribute that may be a
+    /// procedural macro).
+    extern_items: BTreeMap<ModId, BTreeMap<String, Option<String>>>,
 }
 
 /// G145: a workspace `macro_rules!` definition and the names its expansions may define.
@@ -1399,6 +1420,8 @@ fn merge_alternating(a: &Scope, b: &Scope) -> Scope {
                         vis: base.vis.clone(),
                         origin: base.origin,
                         certain: false,
+                        unsure: false,
+                        merged: None,
                     }
                 }
             };
@@ -1493,6 +1516,161 @@ impl DefMap {
         }
     }
 
+    /// G178: whether `wide` lets every scope `narrow` lets see the name. An import's visibility
+    /// is public, its crate, or an enclosing module of the import, so two of one scope compare.
+    fn covers(&self, wide: &Vis, narrow: &Vis) -> bool {
+        match (wide, narrow) {
+            (Vis::Public, _) => true,
+            (_, Vis::Public) => false,
+            (Vis::Crate(krate), Vis::Crate(other)) => krate == other,
+            (Vis::Crate(krate), Vis::Within(owner)) => self.modules[*owner].krate == *krate,
+            (Vis::Within(_), Vis::Crate(_)) => false,
+            (Vis::Within(owner), Vis::Within(inner)) => self.is_within(*inner, *owner),
+        }
+    }
+
+    /// G178 (review P3): the narrower of two visibilities that both let `from` see a name, as a
+    /// glob import binds each name it brings at the narrower of its own and the name's there.
+    /// They always compare: each is public, `from`'s crate, or a module enclosing `from`, and two
+    /// modules enclosing `from` enclose one another.
+    fn narrower(&self, a: &Vis, b: &Vis) -> Vis {
+        if self.covers(a, b) { b } else { a }.clone()
+    }
+
+    /// The entry a glob `import` in `id` brings for `name`, bound as `entry` in the module
+    /// `target` it reads: none when `id` cannot see it there. G178 (review P3): at the narrower of
+    /// the import's and the binding's visibility (rustc's glob re-export; a named one wider than
+    /// its item is refused, E0364/E0365). At the import's alone, `pub use self::q::*` made a
+    /// `pub(super) fn drop` of `q` visible to every module globbing its parent, over the prelude.
+    fn glob_entry(
+        &self,
+        id: ModId,
+        import: &Import,
+        target: ModId,
+        name: &str,
+        entry: &Entry,
+    ) -> Option<Entry> {
+        self.visible(&entry.vis, id).then(|| Entry {
+            def: entry.def.clone(),
+            vis: self.narrower(&import.vis, &entry.vis),
+            origin: Origin::Glob,
+            // Through a glob only from a module that is not open: a glob-glob clash reached
+            // through a re-export chain may be only a lint (`ambiguous_glob_imports`), not an
+            // error.
+            certain: entry.origin != Origin::Glob
+                || !(self.modules[target].open || self.uncertain_entry(target, name, entry)),
+            unsure: entry.unsure,
+            merged: None,
+        })
+    }
+
+    /// The entry a glob `import` of the enum `ty` brings for each variant: a variant is as
+    /// visible as its enum (G178, review P3), unknown enums' as their scope's private items.
+    fn variant_entry(&self, import: &Import, ty: TypeId) -> Entry {
+        let def = &self.types[ty];
+        let vis = match self.modules[def.scope].items.types.get(&def.name) {
+            Some(item) if item.def == Def::Type(ty) => item.vis.clone(),
+            _ => Vis::Within(def.scope),
+        };
+        Entry {
+            def: Def::Ctor,
+            vis: self.narrower(&import.vis, &vis),
+            origin: Origin::Glob,
+            certain: true,
+            unsure: false,
+            merged: None,
+        }
+    }
+
+    /// G178 (replay R15): `Scope::insert`, keeping the wider visibility when two bindings of one
+    /// origin meet, as rustc keeps the more visible of two glob bindings of one item. The first
+    /// one applied used to win, so a `pub use expr::*` beside a `use crate::*` bringing the same
+    /// item was public only while the crate root lacked it, and a cycle through the root flipped.
+    ///
+    /// G178 (review H1): an import of an item outside the workspace (`Entry::unsure`) beside a
+    /// glob binding of its name: rustc's import shadows the glob only in the namespaces its item
+    /// has, so the name is either binding. Bound as a glob (displaced by a named import, uncertain
+    /// where the glob is), to `either` of the two; seen by other modules at two visibilities, it
+    /// is unknown to them all.
+    ///
+    /// G178 (review 2): the merge keeps its two sides (`Entry::merged`). A later glob joins the
+    /// glob side, a later such import the named one, and the merge is redone: compared with the
+    /// merged definition, a second glob bringing the same item made the name ambiguous, so
+    /// `use std::mem::take as swap;` beside two globs bringing `std::mem::swap` read differently
+    /// by the order of the three imports.
+    fn bind(&self, into: &mut Scope, ns: Ns, name: &str, entry: Entry) {
+        let unsure_named = |e: &Entry| e.origin == Origin::Named && e.unsure;
+        if let Some(existing) = into.ns(ns).get(name) {
+            let (named, glob) = match existing.merged.as_deref() {
+                Some((named, glob)) => (Some(named.clone()), Some(glob.clone())),
+                None if unsure_named(existing) => (Some(existing.clone()), None),
+                None if existing.origin == Origin::Glob => (None, Some(existing.clone())),
+                None => (None, None),
+            };
+            let sides = match (named, glob) {
+                (named, Some(glob)) if unsure_named(&entry) => {
+                    Some((self.joined(ns, name, named, entry.clone()), glob))
+                }
+                (Some(named), glob) if entry.origin == Origin::Glob => {
+                    Some((named, self.joined(ns, name, glob, entry.clone())))
+                }
+                _ => None,
+            };
+            if let Some((named, glob)) = sides {
+                into.ns_mut(ns)
+                    .insert(name.to_owned(), self.merge_sides(named, glob));
+                return;
+            }
+        }
+        let (origin, vis) = (entry.origin, entry.vis.clone());
+        into.insert(ns, name, entry);
+        if let Some(bound) = into.ns_mut(ns).get_mut(name) {
+            // Displaced or joined by a binding of another kind, the sides no longer describe it.
+            bound.merged = None;
+            if bound.origin == origin && !self.covers(&bound.vis, &vis) {
+                bound.vis = vis;
+            }
+        }
+    }
+
+    /// One side of a merged binding (`side`, if any) with `entry` bound beside it.
+    fn joined(&self, ns: Ns, name: &str, side: Option<Entry>, entry: Entry) -> Entry {
+        let Some(side) = side else {
+            return entry;
+        };
+        let mut scope = Scope::default();
+        scope.ns_mut(ns).insert(name.to_owned(), side);
+        self.bind(&mut scope, ns, name, entry);
+        scope.ns_mut(ns).remove(name).expect("the name just bound")
+    }
+
+    /// The binding of a name that `unsure` named imports bind to `named` and globs to `glob`.
+    fn merge_sides(&self, named: Entry, glob: Entry) -> Entry {
+        let sides = Some(Box::new((named.clone(), glob.clone())));
+        // One item the glob brings too: only in the namespaces the import binds it in.
+        if one_item(&named.def, &glob.def) {
+            return Entry {
+                merged: sides,
+                ..named
+            };
+        }
+        let (def, vis) = if named.vis == glob.vis {
+            (either(named.def, glob.def), glob.vis)
+        } else if self.covers(&named.vis, &glob.vis) {
+            (Def::Unknown(true), named.vis)
+        } else {
+            (Def::Unknown(true), glob.vis)
+        };
+        Entry {
+            def,
+            vis,
+            origin: Origin::Glob,
+            certain: glob.certain,
+            unsure: glob.unsure,
+            merged: sides,
+        }
+    }
+
     fn vis(&self, vis: &syn::Visibility, owner: ModId) -> Vis {
         match vis {
             syn::Visibility::Public(_) => Vis::Public,
@@ -1505,10 +1683,59 @@ impl DefMap {
                     let module = self.module_of(owner);
                     Vis::Within(self.modules[module].parent.unwrap_or(module))
                 } else {
-                    // `pub(crate)` and `pub(in path)` (approximated by the whole crate).
-                    Vis::Crate(self.modules[owner].krate)
+                    // `pub(crate)` and `pub(in path)`.
+                    self.restricted_to(path, owner)
                 }
             }
+        }
+    }
+
+    /// G178 (review P2): `pub(in path)` on an item of `owner`: visible within the module `path`
+    /// names, which must be an ancestor (E0742). Edition 2018 on requires `path` to start with
+    /// `crate`, `self` or `super`; a path without is edition 2015's, relative to the crate root.
+    /// Read as the whole crate, `pub(in crate::a) fn drop` hid the prelude's `drop` from every
+    /// module that glob-imports `a`'s parent. A path naming no ancestor this pass sees (no
+    /// compiling crate has one) leaves the item private to its module, never wider.
+    fn restricted_to(&self, path: &syn::Path, owner: ModId) -> Vis {
+        let krate = self.modules[owner].krate;
+        let module = self.module_of(owner);
+        let mut segments = path.segments.iter().map(|s| s.ident.to_string());
+        let mut at = match segments.clone().next().as_deref() {
+            Some("crate") => {
+                segments.next();
+                Some(self.crate_roots[&krate])
+            }
+            Some("self") => {
+                segments.next();
+                Some(module)
+            }
+            Some("super") => {
+                segments.next();
+                self.modules[module].parent
+            }
+            _ => Some(self.crate_roots[&krate]),
+        };
+        for segment in segments {
+            at = at.and_then(|current| {
+                if segment == "super" {
+                    return self.modules[current].parent;
+                }
+                // The child of `current` named `segment` on `owner`'s chain of modules.
+                let mut cursor = Some(module);
+                while let Some(id) = cursor {
+                    let parent = self.modules[id].parent;
+                    if parent == Some(current) && self.modules[id].name == segment {
+                        return Some(id);
+                    }
+                    cursor = parent;
+                }
+                None
+            });
+        }
+        match at {
+            Some(root) if root == self.crate_roots[&krate] => Vis::Crate(krate),
+            Some(ancestor) if self.is_within(module, ancestor) => Vis::Within(ancestor),
+            _ => Vis::Within(module),
         }
     }
 
@@ -1844,22 +2071,20 @@ impl DefMap {
                         .map_or_else(|| item.ident.to_string(), |(_, rename)| rename.to_string());
                     let krate = self.modules[module].krate;
                     let def = self.external_root(krate, &item.ident.to_string());
-                    if self.crate_roots.get(&krate) == Some(&module) {
-                        // Under `cfg`, or rewritten (or erased) by a procedural attribute, the
-                        // item may not be what decides `name`.
-                        let uncertain = item.attrs.iter().any(|a| {
-                            a.path().is_ident("cfg")
-                                || a.path().is_ident("cfg_attr")
-                                || expanding_attribute(&a.meta).is_some()
-                        });
-                        let target = (!uncertain).then(|| item.ident.to_string());
-                        self.root_externs
-                            .entry(krate)
-                            .or_default()
-                            .entry(name.clone())
-                            .and_modify(|seen| *seen = None)
-                            .or_insert(target);
-                    }
+                    // Under `cfg`, or rewritten (or erased) by a procedural attribute, the item
+                    // may not be what decides `name`.
+                    let uncertain = item.attrs.iter().any(|a| {
+                        a.path().is_ident("cfg")
+                            || a.path().is_ident("cfg_attr")
+                            || expanding_attribute(&a.meta).is_some()
+                    });
+                    let target = (!uncertain).then(|| item.ident.to_string());
+                    self.extern_items
+                        .entry(module)
+                        .or_default()
+                        .entry(name.clone())
+                        .and_modify(|seen| *seen = None)
+                        .or_insert(target);
                     self.add_item(module, Ns::Types, &name, def, &item.vis);
                 }
                 syn::Item::Impl(item) => self.collect_impl(module, file, item),
@@ -2098,8 +2323,31 @@ impl DefMap {
                 vis,
                 origin: Origin::Item,
                 certain: true,
+                unsure: false,
+                merged: None,
             },
         );
+    }
+
+    /// G178: an `extern crate target as name;` item binds `name` in its module to the crate
+    /// `target` names, as the extern prelude does (`extern_crate`): this crate's root for `self`,
+    /// a workspace crate it depends on, else an external root; unknown under `cfg` or a possibly
+    /// procedural attribute, or beside another such item of the name. Read as an external root,
+    /// `extern crate self as n;` made `n::x` external in the crate root and in every module that
+    /// imports `n` from it (`use crate::*`).
+    fn bind_extern_crates(&mut self, crates: &[CrateInput]) {
+        for (module, names) in self.extern_items.clone() {
+            let krate = self.modules[module].krate;
+            for (name, target) in names {
+                let def = self.crate_named(crates, krate, target.as_deref());
+                // Beside an item of another kind, the name stays ambiguous.
+                if let Some(entry) = self.modules[module].items.types.get_mut(&name)
+                    && matches!(entry.def, Def::External(..))
+                {
+                    entry.def = def;
+                }
+            }
+        }
     }
 
     /// The fixed point: every iteration recomputes every scope from its items plus its imports,
@@ -2260,7 +2508,18 @@ impl DefMap {
                 return;
             }
         }
-        // No fixed point within the bound: nothing imported may be trusted.
+        // No fixed point within the bound: nothing imported may be trusted. G178: that includes a
+        // named import, whose binding is only its last round's (a path that grows every round).
+        for module in &mut self.modules {
+            for ns in [Ns::Types, Ns::Values] {
+                for entry in module.scope.ns_mut(ns).values_mut() {
+                    if entry.origin != Origin::Item {
+                        entry.def = Def::Unknown(true);
+                        entry.certain = false;
+                    }
+                }
+            }
+        }
         for id in 0..self.modules.len() {
             self.modules[id].items_open = true;
             self.open_with(id, || {
@@ -2278,14 +2537,7 @@ impl DefMap {
         opened: &mut Option<String>,
         shadow: &mut BTreeSet<String>,
     ) {
-        let whole_is_prefix = import.name.is_none() || import.self_import;
-        let Some(prefix) = self.resolve_prefix(
-            crates,
-            id,
-            &import.segments,
-            import.leading_colon,
-            whole_is_prefix,
-        ) else {
+        let Some(prefix) = self.import_prefix(crates, id, import) else {
             match &import.name {
                 None => {
                     opened.get_or_insert_with(|| {
@@ -2298,7 +2550,8 @@ impl DefMap {
                 }
                 Some(name) => {
                     for ns in [Ns::Types, Ns::Values] {
-                        into.insert(
+                        self.bind(
+                            into,
                             ns,
                             name,
                             Entry {
@@ -2306,6 +2559,8 @@ impl DefMap {
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
                                 certain: true,
+                                unsure: false,
+                                merged: None,
                             },
                         );
                     }
@@ -2330,22 +2585,8 @@ impl DefMap {
                 shadow.extend(self.modules[target].shadow.iter().cloned());
                 for ns in [Ns::Types, Ns::Values] {
                     for (name, entry) in self.modules[target].scope.ns(ns) {
-                        if self.visible(&entry.vis, id) {
-                            into.insert(
-                                ns,
-                                name,
-                                Entry {
-                                    def: entry.def.clone(),
-                                    vis: import.vis.clone(),
-                                    origin: Origin::Glob,
-                                    // Through a glob only from a module that is not open:
-                                    // a glob-glob clash reached through a re-export chain may be
-                                    // only a lint (`ambiguous_glob_imports`), not an error.
-                                    certain: entry.origin != Origin::Glob
-                                        || !(self.modules[target].open
-                                            || self.uncertain_entry(target, name, entry)),
-                                },
-                            );
+                        if let Some(entry) = self.glob_entry(id, import, target, name, entry) {
+                            self.bind(into, ns, name, entry);
                         }
                     }
                 }
@@ -2353,16 +2594,7 @@ impl DefMap {
             (None, Def::Type(ty)) => {
                 for variant in &self.types[ty].variants {
                     for ns in [Ns::Types, Ns::Values] {
-                        into.insert(
-                            ns,
-                            variant,
-                            Entry {
-                                def: Def::Ctor,
-                                vis: import.vis.clone(),
-                                origin: Origin::Glob,
-                                certain: true,
-                            },
-                        );
+                        self.bind(into, ns, variant, self.variant_entry(import, ty));
                     }
                 }
             }
@@ -2376,7 +2608,8 @@ impl DefMap {
                 });
             }
             (Some(name), Def::External(path, package)) if import.self_import => {
-                into.insert(
+                self.bind(
+                    into,
                     Ns::Types,
                     name,
                     Entry {
@@ -2384,11 +2617,14 @@ impl DefMap {
                         vis: import.vis.clone(),
                         origin: Origin::Named,
                         certain: true,
+                        unsure: false,
+                        merged: None,
                     },
                 );
             }
             (Some(name), Def::Module(target)) if import.self_import => {
-                into.insert(
+                self.bind(
+                    into,
                     Ns::Types,
                     name,
                     Entry {
@@ -2396,6 +2632,8 @@ impl DefMap {
                         vis: import.vis.clone(),
                         origin: Origin::Named,
                         certain: true,
+                        unsure: false,
+                        merged: None,
                     },
                 );
             }
@@ -2412,17 +2650,28 @@ impl DefMap {
                             .ns(ns)
                             .get(last)
                             .filter(|entry| self.visible(&entry.vis, id))
-                            .map(|entry| entry.def.clone()),
-                        Def::Type(ty) if self.types[*ty].variants.contains(last) => Some(Def::Ctor),
-                        Def::External(path, registry) => Some(Def::External(
-                            extend(path, last),
-                            registry.as_ref().map(|r| r.child(last)),
-                        )),
+                            .map(|entry| (entry.def.clone(), entry.unsure)),
+                        Def::Type(ty) if self.types[*ty].variants.contains(last) => {
+                            Some((Def::Ctor, false))
+                        }
+                        // G178 (review H1): in the namespaces the item may have; in its one
+                        // where the standard library's is known.
+                        Def::External(path, registry) => {
+                            let item = extend(path, last);
+                            match std_crate_named(&item) {
+                                Some(only) if only != ns => None,
+                                known => Some((
+                                    Def::External(item, registry.as_ref().map(|r| r.child(last))),
+                                    known.is_none(),
+                                )),
+                            }
+                        }
                         _ => None,
                     };
-                    if let Some(def) = def {
+                    if let Some((def, unsure)) = def {
                         bound = true;
-                        into.insert(
+                        self.bind(
+                            into,
                             ns,
                             name,
                             Entry {
@@ -2430,6 +2679,8 @@ impl DefMap {
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
                                 certain: true,
+                                unsure,
+                                merged: None,
                             },
                         );
                     }
@@ -2445,7 +2696,8 @@ impl DefMap {
                         _ => true,
                     };
                     for ns in [Ns::Types, Ns::Values] {
-                        into.insert(
+                        self.bind(
+                            into,
                             ns,
                             name,
                             Entry {
@@ -2453,6 +2705,8 @@ impl DefMap {
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
                                 certain: true,
+                                unsure: false,
+                                merged: None,
                             },
                         );
                     }
@@ -2477,7 +2731,12 @@ impl DefMap {
             &segments[..segments.len().saturating_sub(1)]
         };
         let (first, rest) = prefix.split_first()?;
-        let mut def = self.resolve_first_type_segment(crates, scope, first, leading_colon)?;
+        let def = self.resolve_first_type_segment(crates, scope, first, leading_colon)?;
+        self.resolve_rest(scope, def, rest)
+    }
+
+    /// The segments after a path's first, from what the first resolves to.
+    fn resolve_rest(&self, scope: ModId, mut def: Def, rest: &[String]) -> Option<Def> {
         for segment in rest {
             def = match def {
                 Def::Module(module) if segment == "super" => {
@@ -2503,6 +2762,88 @@ impl DefMap {
         Some(def)
     }
 
+    /// G178 (replay R15): the prefix of `import`, resolved as Rust resolves an import's path --
+    /// without the import itself. `use quote::quote;` names the crate `quote`: its first segment
+    /// is looked up among the scope's other bindings of that name (an item, another named import,
+    /// a glob) and only then in the outer scopes and the extern prelude. Read through its own
+    /// binding, its path grew by a segment every round and the fixed point was never reached.
+    fn import_prefix(&self, crates: &[CrateInput], id: ModId, import: &Import) -> Option<Def> {
+        let whole_is_prefix = import.name.is_none() || import.self_import;
+        let prefix = if whole_is_prefix {
+            &import.segments[..]
+        } else {
+            &import.segments[..import.segments.len().saturating_sub(1)]
+        };
+        let (first, rest) = prefix.split_first()?;
+        if !own_named(import) {
+            return self.resolve_prefix(
+                crates,
+                id,
+                &import.segments,
+                import.leading_colon,
+                whole_is_prefix,
+            );
+        }
+        let module = &self.modules[id];
+        // G178 (review H2): only the bindings of `first` matter, so only they are computed --
+        // applying every other import cloned each glob's whole module, per own-named import and
+        // round (57x on 500 such imports beside 20 globs of 1,000 names).
+        let mut others = Scope::default();
+        if let Some(item) = module.items.types.get(first) {
+            // An item outranks every import of its name.
+            others.insert(Ns::Types, first, item.clone());
+        } else {
+            for other in &module.imports {
+                if std::ptr::eq(other, import) {
+                    continue;
+                }
+                match &other.name {
+                    Some(name) if name != first => {}
+                    // Another import of the name that also starts with it cannot be read without
+                    // this one: it binds nothing this pass may trust.
+                    Some(_) if own_named(other) => self.bind(
+                        &mut others,
+                        Ns::Types,
+                        first,
+                        Entry {
+                            def: Def::Unknown(true),
+                            vis: other.vis.clone(),
+                            origin: Origin::Named,
+                            certain: true,
+                            unsure: false,
+                            merged: None,
+                        },
+                    ),
+                    Some(_) => self.apply_import(
+                        crates,
+                        id,
+                        other,
+                        &mut others,
+                        &mut None,
+                        &mut BTreeSet::new(),
+                    ),
+                    // A glob, read for `first` alone, as `apply_import` reads it for every name.
+                    None => match self.import_prefix(crates, id, other) {
+                        Some(Def::Module(target)) => {
+                            if let Some(entry) = (self.modules[target].scope.types.get(first))
+                                .and_then(|entry| self.glob_entry(id, other, target, first, entry))
+                            {
+                                self.bind(&mut others, Ns::Types, first, entry);
+                            }
+                        }
+                        Some(Def::Type(ty)) if self.types[ty].variants.contains(first) => {
+                            self.bind(&mut others, Ns::Types, first, self.variant_entry(other, ty));
+                        }
+                        _ => {}
+                    },
+                }
+            }
+        }
+        let lookup = self.lookup_from(id, Ns::Types, first, others.types.get(first));
+        let def = self.type_root(crates, module.krate, first, lookup)?;
+        self.resolve_rest(id, def, rest)
+    }
+
     fn resolve_first_type_segment(
         &self,
         crates: &[CrateInput],
@@ -2520,11 +2861,58 @@ impl DefMap {
             "super" => return self.modules[self.module_of(scope)].parent.map(Def::Module),
             _ => {}
         }
-        match self.lexical_lookup(scope, Ns::Types, first) {
+        self.type_root(
+            crates,
+            krate,
+            first,
+            self.lexical_lookup(scope, Ns::Types, first),
+        )
+    }
+
+    /// What a path's first segment `name`, looked up in the types namespace, names: an unbound
+    /// one is a crate of the extern prelude. G178 (review H1): one bound only by imports of items
+    /// outside the workspace names those items where they are modules or types, else the extern
+    /// prelude's crate of that name -- either, when there is one.
+    fn type_root(
+        &self,
+        crates: &[CrateInput],
+        krate: usize,
+        name: &str,
+        lookup: Lookup,
+    ) -> Option<Def> {
+        match lookup {
             Lookup::Found(def) => Some(def),
             Lookup::Open => None,
-            Lookup::Missing => Some(self.extern_crate(crates, krate, first)),
+            Lookup::Missing => Some(self.extern_crate(crates, krate, name)),
+            Lookup::Unsure(def) => Some(match self.known_extern(crates, krate, name) {
+                Some(other) => either(def, other),
+                None => def,
+            }),
         }
+    }
+
+    /// G178 (review H1): the crate `name` names in `krate`'s extern prelude, when this pass knows
+    /// the prelude may have one: `std`, `core` and `proc_macro` (which it may), a crate-root
+    /// `extern crate`, a workspace or locked registry dependency, and (review 2) any dependency
+    /// a manifest declares for the target -- a git, path or unlocked registry crate, external at
+    /// an unknown path. `use std::iter::zip;` binds only the function, so beside a `zip`
+    /// dependency `zip::open()` is that crate's; read as `std::iter::zip::open` it was a wrong
+    /// claim.
+    ///
+    /// Residue (still read as absent, so a name bound only by imports of outside items resolves
+    /// through them): an unrenamed registry or git dependency whose `[lib] name` differs from its
+    /// key (its library name is not read), and a crate passed by `--extern` outside Cargo.
+    fn known_extern(&self, crates: &[CrateInput], krate: usize, name: &str) -> Option<Def> {
+        let declared = self
+            .extern_items
+            .get(&self.crate_roots[&krate])
+            .is_some_and(|names| names.contains_key(name));
+        (matches!(name, "std" | "core" | "proc_macro")
+            || declared
+            || crates[krate].externs.contains_key(name)
+            || crates[krate].foreign.contains_key(name)
+            || crates[krate].declared.contains(name))
+        .then(|| self.extern_crate(crates, krate, name))
     }
 
     /// A name no scope defines: a workspace crate from the extern prelude, else something outside
@@ -2533,16 +2921,23 @@ impl DefMap {
         // G177 (review): a crate-root `extern crate target as name;` decides `name` for every
         // module, over the dependency of that name.
         match self
-            .root_externs
-            .get(&krate)
+            .extern_items
+            .get(&self.crate_roots[&krate])
             .and_then(|names| names.get(name))
         {
-            Some(Some(target)) if target == "self" => return Def::Module(self.crate_roots[&krate]),
-            Some(Some(target)) => return self.dependency(crates, krate, target),
-            Some(None) => return Def::Unknown(true),
-            None => {}
+            Some(target) => self.crate_named(crates, krate, target.as_deref()),
+            None => self.dependency(crates, krate, name),
         }
-        self.dependency(crates, krate, name)
+    }
+
+    /// The crate an `extern crate target` item of `krate` names: its own root for `self`, else
+    /// the dependency `target`; unknown when the item's target is (`None`).
+    fn crate_named(&self, crates: &[CrateInput], krate: usize, target: Option<&str>) -> Def {
+        match target {
+            Some("self") => Def::Module(self.crate_roots[&krate]),
+            Some(target) => self.dependency(crates, krate, target),
+            None => Def::Unknown(true),
+        }
     }
 
     /// The crate `--extern name` passes: a workspace crate, else an external root.
@@ -2572,23 +2967,29 @@ impl DefMap {
         }
     }
 
-    fn lexical_lookup(&self, mut scope: ModId, ns: Ns, name: &str) -> Lookup {
-        loop {
-            let module = &self.modules[scope];
-            if let Some(entry) = module.scope.ns(ns).get(name) {
-                // A glob-provided name in an open scope may be shadowed by one we cannot see.
-                if self.uncertain_entry(scope, name, entry) {
-                    return Lookup::Open;
-                }
-                return Lookup::Found(entry.def.clone());
-            }
-            if self.uncertain(scope, name) {
-                return Lookup::Open;
-            }
-            match module.lexical_parent {
-                Some(parent) => scope = parent,
-                None => return Lookup::Missing,
-            }
+    fn lexical_lookup(&self, scope: ModId, ns: Ns, name: &str) -> Lookup {
+        self.lookup_from(scope, ns, name, self.modules[scope].scope.ns(ns).get(name))
+    }
+
+    /// The lookup of `name` from `scope`, whose binding of it is `bound`, outward.
+    fn lookup_from(&self, scope: ModId, ns: Ns, name: &str, bound: Option<&Entry>) -> Lookup {
+        let past = || match self.modules[scope].lexical_parent {
+            Some(parent) => self.lexical_lookup(parent, ns, name),
+            None => Lookup::Missing,
+        };
+        match bound {
+            // A glob-provided name in an open scope may be shadowed by one we cannot see.
+            Some(entry) if self.uncertain_entry(scope, name, entry) => Lookup::Open,
+            Some(entry) if !entry.unsure => Lookup::Found(entry.def.clone()),
+            // G178 (review H1): where the item binds nothing in `ns`, rustc reads past it.
+            Some(entry) => match past() {
+                Lookup::Found(def) => Lookup::Found(either(entry.def.clone(), def)),
+                Lookup::Unsure(def) => Lookup::Unsure(either(entry.def.clone(), def)),
+                Lookup::Missing => Lookup::Unsure(entry.def.clone()),
+                Lookup::Open => Lookup::Open,
+            },
+            None if self.uncertain(scope, name) => Lookup::Open,
+            None => past(),
         }
     }
 
@@ -2622,7 +3023,7 @@ impl DefMap {
         }
         let def = if segments.len() == 1 && !leading_colon {
             match self.lexical_lookup(scope, Ns::Types, &segments[0]) {
-                Lookup::Found(def) => def,
+                Lookup::Found(def) | Lookup::Unsure(def) => def,
                 _ => return None,
             }
         } else {
@@ -3012,6 +3413,12 @@ enum Lookup {
     Missing,
     /// The scope may define the name through something this pass cannot see.
     Open,
+    /// G178 (review H1): bound only by imports of items outside the workspace that may bind
+    /// nothing in the namespace, past which no scope binds the name: it is those items, or what
+    /// the preludes bind. A path's first segment reads the extern prelude (`type_root`); a type
+    /// or value name takes the items (a value-only import beside a prelude type or value of its
+    /// name, `use x::Vec` naming a function, is left out).
+    Unsure(Def),
 }
 
 fn flatten_use(
@@ -3482,8 +3889,12 @@ impl CallWalker<'_> {
             }
             match self.map.lexical_lookup(self.scope(), Ns::Types, name) {
                 Lookup::Found(Def::Type(ty)) => self.map.canonical_of_type(self.crates, ty, 0)?,
-                Lookup::Found(Def::External(path, _)) if !path.is_empty() => path.join("::"),
-                Lookup::Found(_) | Lookup::Open => return None,
+                Lookup::Found(Def::External(path, _)) | Lookup::Unsure(Def::External(path, _))
+                    if !path.is_empty() =>
+                {
+                    path.join("::")
+                }
+                Lookup::Found(_) | Lookup::Unsure(_) | Lookup::Open => return None,
                 Lookup::Missing if is_primitive(name) => name.clone(),
                 Lookup::Missing => prelude_type(name)?.to_owned(),
             }
@@ -4461,7 +4872,7 @@ impl CallWalker<'_> {
                 return PathCallOutcome::Unresolved("local-binding");
             }
             return match self.map.lexical_lookup(scope, Ns::Values, &segments[0]) {
-                Lookup::Found(def) => outcome_of(def),
+                Lookup::Found(def) | Lookup::Unsure(def) => outcome_of(def),
                 Lookup::Open => PathCallOutcome::Unresolved("open-scope"),
                 // G157: `drop` is the prelude's `std::mem::drop` when no scope defines it.
                 Lookup::Missing if segments[0] == "drop" => {
@@ -4538,6 +4949,70 @@ impl CallWalker<'_> {
             _ => PathCallOutcome::Unresolved("not-a-path-prefix"),
         }
     }
+}
+
+/// G178 (review H1): the standard paths that end in a standard crate's name (`std`, `core`,
+/// `alloc`), with the one namespace each item has (checked with rustc 1.90). An import of one
+/// binds its name in that namespace alone, leaving the crate of that name in the extern prelude
+/// the other's: `use alloc::alloc::{alloc, Layout};` binds the function, and `alloc::alloc::..`
+/// beside it is the crate's module. A path absent here may be in either namespace.
+const STD_CRATE_NAMED: [(&str, Ns); 5] = [
+    ("alloc::alloc", Ns::Types),
+    ("alloc::alloc::alloc", Ns::Values),
+    ("core::alloc", Ns::Types),
+    ("std::alloc", Ns::Types),
+    ("std::alloc::alloc", Ns::Values),
+];
+
+/// The one namespace of the standard item at `path`, when [`STD_CRATE_NAMED`] declares it.
+fn std_crate_named(path: &[String]) -> Option<Ns> {
+    let path = path.join("::");
+    STD_CRATE_NAMED
+        .iter()
+        .find(|(item, _)| *item == path)
+        .map(|(_, ns)| *ns)
+}
+
+/// G178 (review H1): what a name is when rustc binds it to `a` or to `b` and this pass cannot
+/// tell which: one definition is itself; two items outside the workspace are outside it still,
+/// on their path or package where both agree (a path through a registry crate is its package's
+/// only while both spell it); anything else is unknown.
+fn either(a: Def, b: Def) -> Def {
+    match (a, b) {
+        (a, b) if a == b => a,
+        (Def::External(p, r), Def::External(q, s)) => {
+            let registry = match (r, s) {
+                (Some(r), Some(s)) if r.package == s.package => Some(Registry {
+                    path: r.path.filter(|path| s.path.as_ref() == Some(path)),
+                    package: r.package,
+                }),
+                _ => None,
+            };
+            Def::External(if p == q { p } else { Vec::new() }, registry)
+        }
+        _ => Def::Unknown(true),
+    }
+}
+
+/// Whether `a` and `b` are one item: equal, and not an item outside the workspace at an unknown
+/// path (two of those may be any two items).
+fn one_item(a: &Def, b: &Def) -> bool {
+    a == b
+        && match a {
+            Def::External(path, registry) => {
+                !path.is_empty() || registry.as_ref().is_some_and(|r| r.path.is_some())
+            }
+            _ => true,
+        }
+}
+
+/// G178: whether `import` binds the name its path starts with (`use quote::quote;`).
+fn own_named(import: &Import) -> bool {
+    !import.leading_colon
+        && import
+            .name
+            .as_ref()
+            .is_some_and(|name| import.segments.first() == Some(name))
 }
 
 /// `path` followed by `segment`; an unknown (empty) path stays unknown.

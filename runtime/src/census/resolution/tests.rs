@@ -81,6 +81,325 @@ fn an_unrenamed_registry_dependency_is_named_after_its_library() {
 }
 
 #[test]
+fn every_declared_dependency_names_the_extern_prelude_whatever_its_source() {
+    // G178 (review 2): a git, path or unlocked registry dependency is in the target's extern
+    // prelude too, contents unknown: its key (`-` as `_`), an unrenamed workspace library's own
+    // name, and a binary's own library by its `[lib] name`. Dev dependencies count for the
+    // library and binaries (their test builds), build dependencies for the build script alone.
+    let manifests = map(&[
+        (
+            "core/Cargo.toml",
+            "[package]\nname = \"core\"\n\n[lib]\nname = \"kernel\"\n",
+        ),
+        (
+            "app/Cargo.toml",
+            "[package]\nname = \"atlas-app\"\n\n[lib]\nname = \"app_lib\"\n\n[dependencies]\nlocal = { package = \"core\", path = \"../core\" }\nzip = { git = \"https://example.invalid/zip\" }\next-lib = { path = \"../../elsewhere\" }\nquote = \"1\"\n\n[dev-dependencies]\nproptest = \"1\"\n\n[build-dependencies]\ncc = \"1\"\n",
+        ),
+        (
+            "tool/Cargo.toml",
+            "[package]\nname = \"tool\"\n\n[dependencies]\ncore = { path = \"../core\" }\n",
+        ),
+    ]);
+    let sources = map(&[
+        ("core/src/lib.rs", ""),
+        ("app/src/lib.rs", ""),
+        ("app/src/main.rs", ""),
+        ("app/build.rs", ""),
+        ("tool/src/main.rs", ""),
+    ]);
+    let described: Vec<(String, Vec<String>)> = crate_targets(&manifests, &sources)
+        .into_iter()
+        .map(|c| (c.root, c.declared.into_iter().collect()))
+        .collect();
+    let names = |n: &[&str]| n.iter().map(|n| (*n).to_owned()).collect::<Vec<_>>();
+    let library = ["ext_lib", "local", "proptest", "quote", "zip"];
+    assert_eq!(
+        described,
+        vec![
+            ("app/src/lib.rs".to_owned(), names(&library)),
+            ("core/src/lib.rs".to_owned(), Vec::new()),
+            (
+                "app/src/main.rs".to_owned(),
+                names(&["app_lib", "ext_lib", "local", "proptest", "quote", "zip"])
+            ),
+            ("app/build.rs".to_owned(), names(&["cc"])),
+            ("tool/src/main.rs".to_owned(), names(&["kernel"])),
+        ]
+    );
+}
+
+#[test]
+fn cargo_passes_an_unrenamed_workspace_library_by_its_crate_name() {
+    // G178 (review 3), checked with Cargo: package `core` with `[lib] name = "kernel"`, declared
+    // by `tool` as `core = { path = "../core" }`, is `--extern kernel`: `kernel::mem::swap` is
+    // the workspace fn and `core::mem::swap` stays libcore. Package `app`'s binary sees its own
+    // library as `applib` (`app::` is E0433). A `package` field -- even one naming the key --
+    // renames: Cargo passes the key. An inherited entry takes the root's rename; when the root
+    // is not in view, only a key that is the library's own name is sure. An unrenamed key naming
+    // another package (`other = { path = "../core" }`) is a Cargo error: nothing binds.
+    let manifests = map(&[
+        (
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"core\", \"tool\", \"app\", \"ren\", \"ws\"]\n\n[workspace.dependencies]\ncore = { path = \"core\" }\nsame = { package = \"core\", path = \"core\" }\n",
+        ),
+        (
+            "core/Cargo.toml",
+            "[package]\nname = \"core\"\n\n[lib]\nname = \"kernel\"\n",
+        ),
+        (
+            "tool/Cargo.toml",
+            "[package]\nname = \"tool\"\n\n[dependencies]\ncore = { path = \"../core\" }\n",
+        ),
+        (
+            "app/Cargo.toml",
+            "[package]\nname = \"app\"\n\n[lib]\nname = \"applib\"\n",
+        ),
+        (
+            "ren/Cargo.toml",
+            "[package]\nname = \"ren\"\n\n[dependencies]\ncore = { package = \"core\", path = \"../core\" }\n",
+        ),
+        (
+            "ws/Cargo.toml",
+            "[package]\nname = \"ws\"\n\n[dependencies]\ncore.workspace = true\nsame.workspace = true\n",
+        ),
+        (
+            "bad/Cargo.toml",
+            "[package]\nname = \"bad\"\n\n[dependencies]\nother = { path = \"../core\" }\n",
+        ),
+    ]);
+    let tool = "fn main() {\n    let (mut a, mut b) = (1u8, 2u8);\n    core::mem::swap(&mut a, &mut b);\n    kernel::mem::swap(&mut a, &mut b);\n}\n";
+    let sources = map(&[
+        (
+            "core/src/lib.rs",
+            "pub mod mem {\n    pub fn swap(_a: &mut u8, _b: &mut u8) {}\n}\n",
+        ),
+        ("tool/src/main.rs", tool),
+        ("app/src/lib.rs", "pub fn hello() {}\n"),
+        (
+            "app/src/main.rs",
+            "fn main() {\n    app::hello();\n    applib::hello();\n}\n",
+        ),
+        ("ren/src/main.rs", ""),
+        ("ws/src/main.rs", ""),
+        ("bad/src/main.rs", ""),
+    ]);
+    let crates = crate_targets(&manifests, &sources);
+    let described: Vec<(String, Vec<String>, Vec<String>)> = (crates.iter())
+        .map(|c| {
+            let externs = c
+                .externs
+                .iter()
+                .map(|(name, &lib)| format!("{name}={}", crates[lib].root));
+            (
+                c.root.clone(),
+                externs.collect(),
+                c.declared.iter().cloned().collect(),
+            )
+        })
+        .collect();
+    let v = |n: &[&str]| n.iter().map(|n| (*n).to_owned()).collect::<Vec<_>>();
+    assert_eq!(
+        described,
+        vec![
+            ("app/src/lib.rs".to_owned(), v(&[]), v(&[])),
+            ("core/src/lib.rs".to_owned(), v(&[]), v(&[])),
+            (
+                "app/src/main.rs".to_owned(),
+                v(&["applib=app/src/lib.rs"]),
+                v(&["applib"])
+            ),
+            (
+                "bad/src/main.rs".to_owned(),
+                v(&[]),
+                v(&["kernel", "other"])
+            ),
+            (
+                "ren/src/main.rs".to_owned(),
+                v(&["core=core/src/lib.rs"]),
+                v(&["core"])
+            ),
+            (
+                "tool/src/main.rs".to_owned(),
+                v(&["kernel=core/src/lib.rs"]),
+                v(&["kernel"])
+            ),
+            (
+                "ws/src/main.rs".to_owned(),
+                v(&["kernel=core/src/lib.rs", "same=core/src/lib.rs"]),
+                v(&["kernel", "same"])
+            ),
+        ]
+    );
+    // Without the root manifest in view, `core.workspace = true` may be renamed or not: neither
+    // name binds the library, and both are declared.
+    let mut far = manifests.clone();
+    far.remove("Cargo.toml");
+    far.insert(
+        "ws/Cargo.toml".into(),
+        "[package]\nname = \"ws\"\n\n[dependencies]\ncore.workspace = true\n".into(),
+    );
+    let ws = crate_targets(&far, &sources)
+        .into_iter()
+        .find(|c| c.root == "ws/src/main.rs")
+        .unwrap();
+    assert!(ws.externs.is_empty(), "{:?}", ws.externs);
+    assert_eq!(
+        ws.declared,
+        BTreeSet::from(["core".into(), "kernel".into()])
+    );
+    let calls = adapter::resolve_path_calls(&crates, &sources);
+    let outcome = |path: &str| -> Vec<(String, String)> {
+        (calls.iter())
+            .filter(|call| call.path == path)
+            .map(|call| {
+                let outcome = match &call.outcome {
+                    adapter::PathCallOutcome::Resolved(t) => format!("{}:{}", t.path, t.name),
+                    adapter::PathCallOutcome::External(path) => format!("external:{path}"),
+                    other => format!("{other:?}").chars().take(12).collect(),
+                };
+                (call.callee.clone(), outcome)
+            })
+            .collect()
+    };
+    let pairs = |p: &[(&str, &str)]| -> Vec<(String, String)> {
+        p.iter()
+            .map(|(k, v)| ((*k).to_owned(), (*v).to_owned()))
+            .collect()
+    };
+    assert_eq!(
+        outcome("tool/src/main.rs"),
+        pairs(&[
+            ("core::mem::swap", "external:core::mem::swap"),
+            ("kernel::mem::swap", "core/src/lib.rs:swap"),
+        ])
+    );
+    let app = outcome("app/src/main.rs");
+    assert_eq!(
+        app[1],
+        (
+            "applib::hello".to_owned(),
+            "app/src/lib.rs:hello".to_owned()
+        )
+    );
+    assert!(!app[0].1.starts_with("app/"), "{app:?}");
+}
+
+#[test]
+fn a_dependency_table_in_any_toml_spelling_is_declared() {
+    // G178 (review 3): `use std::iter::zip;` beside a `zip` dependency the manifest reading
+    // dropped (a header comment, spaces in the brackets, a quoted key) claimed
+    // `std::iter::zip::open`; each spelling declares it, so the call is withheld.
+    let lib = "use std::iter::zip;\npub fn f() {\n    zip::open();\n    bar_baz::g();\n}\n";
+    for dependencies in [
+        "[dependencies] # runtime\nzip = { git = \"https://example.invalid/zip\" }\n\"bar-baz\" = \"1\"\n",
+        "[ dependencies ]\n\"zip\" = \"1\"\n'bar-baz' = \"1\"\n",
+        "[dependencies.zip] # dotted\ngit = \"https://example.invalid/zip\"\n[target.'cfg(unix)'.dependencies.\"bar-baz\"]\nversion = \"1\"\n",
+    ] {
+        let manifests = map(&[(
+            "app/Cargo.toml",
+            &format!("[package]\nname = \"app\"\n\n{dependencies}"),
+        )]);
+        let sources = map(&[("app/src/lib.rs", lib)]);
+        let crates = crate_targets(&manifests, &sources);
+        let declared: Vec<&str> = crates[0].declared.iter().map(String::as_str).collect();
+        assert_eq!(declared, ["bar_baz", "zip"], "{dependencies}");
+        let calls = adapter::resolve_path_calls(&crates, &sources);
+        assert_eq!(calls.len(), 2);
+        for call in &calls {
+            assert!(
+                !matches!(&call.outcome, adapter::PathCallOutcome::External(path) if path.starts_with("std")),
+                "{dependencies}: {call:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn a_multi_line_path_binds_its_directory_and_an_empty_path_binds_nothing() {
+    // G178 (review 4), H1: `'''../zip'''` read as `""` joined to the package's own directory, so
+    // `zip` bound the package's own library and `zip::open()` claimed its own `open`. Cargo
+    // binds `../zip`; an empty path (which never names another package) binds nothing, its name
+    // only declared.
+    let lib = "pub fn open() {}\npub fn f() {\n    zip::open();\n    own::open();\n}\n";
+    let manifests = map(&[
+        (
+            "app/Cargo.toml",
+            "[package]\nname = \"app\"\n[dependencies]\nzip = { path = '''../zip''', package = \"zip\" }\nown = { path = \"\", package = \"app\" }\n",
+        ),
+        ("zip/Cargo.toml", "[package]\nname = \"zip\"\n"),
+    ]);
+    let sources = map(&[
+        ("app/src/lib.rs", lib),
+        ("zip/src/lib.rs", "pub fn open() {}\n"),
+    ]);
+    let crates = crate_targets(&manifests, &sources);
+    let app = &crates[0];
+    assert_eq!(app.root, "app/src/lib.rs");
+    let externs: Vec<(&str, &str)> = (app.externs.iter())
+        .map(|(name, &lib)| (name.as_str(), crates[lib].root.as_str()))
+        .collect();
+    assert_eq!(externs, [("zip", "zip/src/lib.rs")]);
+    assert_eq!(app.declared, BTreeSet::from(["own".into(), "zip".into()]));
+    let calls = adapter::resolve_path_calls(&crates, &sources);
+    let outcomes: Vec<(&str, String)> = (calls.iter())
+        .filter(|call| call.path == "app/src/lib.rs")
+        .map(|call| {
+            let outcome = match &call.outcome {
+                adapter::PathCallOutcome::Resolved(t) => format!("{}:{}", t.path, t.name),
+                other => format!("{other:?}").chars().take(8).collect(),
+            };
+            (call.callee.as_str(), outcome)
+        })
+        .collect();
+    assert_eq!(outcomes[0], ("zip::open", "zip/src/lib.rs:open".to_owned()));
+    assert_eq!(outcomes[1].0, "own::open");
+    assert!(!outcomes[1].1.starts_with("app/"), "{outcomes:?}");
+}
+
+#[test]
+fn entries_sharing_a_key_or_a_name_that_bind_differently_bind_neither() {
+    // G178 (review 4), H2: two entries of one key (a table read where there is none, or Cargo's
+    // "different source paths depending on the build target" error), or two keys passing one
+    // extern name, that bind different libraries: neither binds, both names stay declared.
+    // Entries that agree still bind.
+    let manifests = map(&[
+        (
+            "app/Cargo.toml",
+            "[package]\nname = \"app\"\n[dependencies]\nzip = { path = \"../zip\" }\nsame = { path = \"../same\" }\np1 = { path = \"../p1\" }\np2 = { path = \"../p2\" }\n[target.'cfg(unix)'.dependencies]\nzip = { path = \"../evil\", package = \"zip\" }\n[dev-dependencies]\nsame = { path = \"../same\" }\n",
+        ),
+        ("zip/Cargo.toml", "[package]\nname = \"zip\"\n"),
+        ("evil/Cargo.toml", "[package]\nname = \"zip\"\n"),
+        ("same/Cargo.toml", "[package]\nname = \"same\"\n"),
+        (
+            "p1/Cargo.toml",
+            "[package]\nname = \"p1\"\n[lib]\nname = \"shared\"\n",
+        ),
+        (
+            "p2/Cargo.toml",
+            "[package]\nname = \"p2\"\n[lib]\nname = \"shared\"\n",
+        ),
+    ]);
+    let sources = map(&[
+        ("app/src/lib.rs", ""),
+        ("zip/src/lib.rs", ""),
+        ("evil/src/lib.rs", ""),
+        ("same/src/lib.rs", ""),
+        ("p1/src/lib.rs", ""),
+        ("p2/src/lib.rs", ""),
+    ]);
+    let crates = crate_targets(&manifests, &sources);
+    let app = crates.iter().find(|c| c.root == "app/src/lib.rs").unwrap();
+    let externs: Vec<(&str, &str)> = (app.externs.iter())
+        .map(|(name, &lib)| (name.as_str(), crates[lib].root.as_str()))
+        .collect();
+    assert_eq!(externs, [("same", "same/src/lib.rs")]);
+    assert_eq!(
+        app.declared,
+        BTreeSet::from(["same".into(), "shared".into(), "zip".into()])
+    );
+}
+
+#[test]
 fn registry_dependencies_map_to_the_packages_the_lockfile_confirms() {
     // G173: each target's registry extern names, to the package its manifest declares (a rename,
     // an entry inherited from a root manifest not in view), kept only when the lockfile records
@@ -221,7 +540,7 @@ fn crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_n
         ),
         (
             "crates/app/Cargo.toml",
-            "[package]\nname = \"app\"\n\n[dependencies]\nide.workspace = true\nlsp-server.workspace = true\nrenamed = { workspace = true }\nla-arena = \"0.3\"\nline-index = \"0.1\"\nlocal = { path = \"../../lib/line-index\" }\n",
+            "[package]\nname = \"app\"\n\n[dependencies]\nide.workspace = true\nlsp-server.workspace = true\nrenamed = { workspace = true }\nla-arena = \"0.3\"\nline-index = \"0.1\"\nlocal = { package = \"line-index\", path = \"../../lib/line-index\" }\n",
         ),
     ]);
     let sources = map(&[
@@ -251,7 +570,10 @@ fn crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_n
             ("renamed", "lib/text-size/src/lib.rs"),
         ]
     );
-    // With no workspace root manifest in view, an inherited entry still binds by package name.
+    // G178 (review 4): with no workspace root manifest in view, an inherited entry binds
+    // nothing, even when a library of its key's name is in view: the unseen root may declare
+    // `b = { package = "c", path = ".." }`, and Cargo then passes `c`'s library as `b`. The name
+    // stays declared, so `b::` is withheld, never bound to the wrong crate.
     let orphan = map(&[
         (
             "a/Cargo.toml",
@@ -261,7 +583,8 @@ fn crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_n
     ]);
     let crates = crate_targets(&orphan, &map(&[("a/src/lib.rs", ""), ("b/src/lib.rs", "")]));
     let a = crates.iter().find(|c| c.root == "a/src/lib.rs").unwrap();
-    assert_eq!(a.externs.keys().collect::<Vec<_>>(), ["b"]);
+    assert!(a.externs.is_empty(), "{:?}", a.externs);
+    assert_eq!(a.declared, BTreeSet::from(["b".to_owned()]));
 }
 
 /// G164 (replay R8, crubit): a manifest may keep its targets outside its own directory

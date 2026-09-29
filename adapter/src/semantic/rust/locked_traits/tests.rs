@@ -1161,6 +1161,28 @@ mod per_item {
     }
 
     #[test]
+    fn a_dependency_entry_the_manifest_reading_cannot_read_names_no_package() {
+        // G178 (review 4): `b`'s `package` field is no string, so the package it names is
+        // unknown: `b::T` (and anything else passed as `b`) is never read from package `b`.
+        let registry = Registry::new();
+        let a = "[package]\nname = \"a\"\nversion = \"1.0.0\"\nedition = \"2021\"\n\
+                 [dependencies]\nb = { version = \"1\", package = 1 }\nc = \"1\"\n";
+        registry
+            .package(
+                "a",
+                &[
+                    ("Cargo.toml", a),
+                    ("src/lib.rs", "pub use b::T;\npub use c::T as C;\n"),
+                ],
+            )
+            .package("b", &[("src/lib.rs", NAMED)])
+            .package("c", &[("src/lib.rs", NAMED)]);
+        let table = read(&registry, &[("a", &["b", "c"]), ("b", &[]), ("c", &[])]);
+        assert_eq!(item(&table, "a", "T"), None);
+        assert_eq!(item(&table, "a", "C"), names(&["name"]));
+    }
+
+    #[test]
     fn the_digest_moves_with_the_per_item_reading() {
         let registry = Registry::new();
         let before = facade(&registry, FACADE).digest;

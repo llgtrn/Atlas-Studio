@@ -42,7 +42,9 @@
 //! is read through its package's module tree even where the closure is UNKNOWN.
 
 use super::{MAX_STRUCTURAL_RECURSION_RISK, max_structural_recursion_risk};
-use crate::dependency::cargo::{LockPackage, parse_cargo_lock, resolve_dependency_ref};
+use crate::dependency::cargo::{
+    DeclaredSource, LockPackage, parse_cargo_lock, resolve_dependency_ref,
+};
 use atlas_core::{DependencyRole, IntegrityDigest};
 use items::ItemTree;
 use proc_macro2::{Delimiter, TokenStream, TokenTree};
@@ -459,8 +461,14 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
                         dependency_keys[index] = targets
                             .dependencies
                             .iter()
-                            .filter(|(_, _, role, _)| *role == DependencyRole::Runtime)
-                            .map(|(key, package, _, _)| (key.clone(), package.clone()))
+                            .filter(|(_, _, role, ..)| *role == DependencyRole::Runtime)
+                            // G178 (review 4): an entry the manifest reading could not read
+                            // names no package; the empty name matches none, so its key binds
+                            // nothing (nor does any other entry passing the same name).
+                            .map(|(key, package, _, source, _)| match source {
+                                DeclaredSource::Unknown => (key.clone(), String::new()),
+                                _ => (key.clone(), package.clone()),
+                            })
                             .collect();
                         match items::build(lib, &sources) {
                             Ok((modules, prelude)) => ItemTree {
@@ -1077,7 +1085,9 @@ fn impossible_features(
     let dependencies: BTreeMap<&str, &str> = targets
         .dependencies
         .iter()
-        .map(|(key, package, _, _)| (key.as_str(), package.as_str()))
+        // G178 (review 4): an entry the manifest reading could not read blocks no feature.
+        .filter(|(_, _, _, source, _)| *source != DeclaredSource::Unknown)
+        .map(|(key, package, ..)| (key.as_str(), package.as_str()))
         .collect();
     let features = feature_table(manifest);
     let mut names: BTreeSet<String> = features.keys().cloned().collect();
