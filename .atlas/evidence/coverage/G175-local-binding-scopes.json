@@ -1,0 +1,60 @@
+{
+ "schema": "atlas.evidence.coverage.v1",
+ "generation": "G175",
+ "attack": "NA-CALL-TYPE-RESIDUAL (NA-LOCAL-BINDING-SCOPES)",
+ "decision": ".atlas/decisions/0089-a-local-shadows-a-function-only-where-it-is-in-scope.md",
+ "method": "the G174 resolver and the G175 resolver run over one snapshot of HEAD 6a3e8984 (169 tracked source and manifest files, no .atlas), their path-call outcomes compared, and every outcome checked against rust-analyzer 1.90.0's SCIP index of that snapshot (a cargo workspace, the standard library loaded); the index is a test-time oracle only, never a census input",
+ "residual_before": {
+  "oracle_confirmed_workspace_calls_unresolved": 796,
+  "by_outcome": {
+   "receiver-form-differs": 457,
+   "local-binding": 169,
+   "method-not-inherent": 150,
+   "open-scope": 7,
+   "withheld: item-position macro may define EdgeKind": 5,
+   "unresolved-import": 3,
+   "withheld: external glob std::cmp::Ordering::*": 2,
+   "trait-method": 1,
+   "ambiguous": 1,
+   "unresolved-prefix": 1
+  },
+  "receiver_form_differs_detail": "431 are `&self` methods whose autoref step the G142 guard refused: nearly every core module imports serde::{Deserialize, Serialize} and serde's lock closure is UNKNOWN (G173, its build-script include); serde's root binds both names by a named `pub use serde_core::{..}` inside its zero-argument local crate_root!(), so the names are certain and the per-item step (NA-DEPENDENCY-DECLARATIONS) can read them",
+  "local_binding_detail": "147 of 169 are value(rest, \"--out\") calls in apps/cli/src/main.rs, refused because some other statement of the same function binds a local named value"
+ },
+ "resolved_path_calls": {
+  "N": 9214,
+  "N_plus_1": 9383,
+  "gained": 169,
+  "withdrawn": 0,
+  "retargeted": 0
+ },
+ "oracle": {
+  "N": {
+   "confirmed": 9210,
+   "no_occurrence": 4
+  },
+  "N_plus_1": {
+   "confirmed": 9379,
+   "no_occurrence": 4
+  },
+  "no_occurrence_note": "core/src/quantity/mod.rs lines 1212, 1227, 1230, 1232: the test helper q on lines holding a multi-byte ±, read correct",
+  "wrong": 0
+ },
+ "residual_after": {
+  "oracle_confirmed_workspace_calls_unresolved": 627,
+  "local-binding": 0,
+  "receiver-form-differs": 457,
+  "method-not-inherent": 150
+ },
+ "review": "an independent adversarial review found two regressions (call-site spans on the G174 marker attributes collapsed a closure or arm scope; lets inside blocks in pattern types were placed outside their block), both fixed with regression tests; one older hole recorded and queued (a statement macro expanding to a block item, NA-BLOCK-MACRO-ITEMS)",
+ "tests": [
+  "a_local_binding_shadows_a_function_only_where_it_is_in_scope",
+  "a_standard_macro_left_opaque_for_its_captures_binds_no_local",
+  "scopes_hold_over_expanded_macro_bodies_and_blocks_in_pattern_types"
+ ],
+ "mutants": {
+  "killed": 32,
+  "equivalent": 1,
+  "equivalent_note": "the conditional marker's span: a conditional argument always sits inside the expanded tuple whose own marker opens every joined span"
+ }
+}

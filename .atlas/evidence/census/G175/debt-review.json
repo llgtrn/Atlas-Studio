@@ -1,0 +1,14 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G175",
+ "trigger": "review cadence: DEBT-IMPACT_CLOSURE, stale for at least 13 generations since its last advance and its last review, fell due at G175",
+ "method": "re-read against the code at G175 (core composition closure, the agent impact lens, the recensus prove path the self-proof runs) and the generations G162-G174",
+ "reviews": [
+  {
+   "debt": "DEBT-IMPACT_CLOSURE",
+   "verdict": "CONFIRMED",
+   "finding": "the impact closure is still composed and checked against the full-recompute diff by core::composition::closure::impact_closure (G129), seeded by changed files or functions, and still has no consumer: recensus and admission recompute in full -- the G175 self-proof ran a full census of the repository; the INVOKES edges G174 and G175 add widen closures without changing that; NA-CLOSURE-CONSUMER and NA-HUNK-SEEDS unchanged",
+   "correction": {}
+  }
+ ]
+}

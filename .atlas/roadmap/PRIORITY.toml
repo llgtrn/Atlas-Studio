@@ -782,7 +782,7 @@ objective = "FULL_OSS_REPLAY R13 immunant/c2rust at 7fe0cf95d0ff (done: rust-ana
 [[planned_generation]]
 id = "G175"
 priority = "P0"
-objective = "native attack queue head (pressure map, 81): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE, DEBT-EFFECT, DEBT-CONCURRENCY) -- after E21 the residual on Atlas is method calls on receivers Atlas does not type and the imports it still cannot see into (serde's build-script include, macro_export names); NA-DEPENDENCY-DECLARATIONS (items through re-exports), NA-MACRO-EXPORT-NAMES and NA-WORKSPACE-MACRO-ARGUMENTS are its bounded next steps"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done: the residual measured on Atlas against rust-analyzer's index -- 796 oracle-confirmed calls unresolved, 457 receiver-form-differs (431 beside serde imports), 169 local-binding, 150 trait-impl methods on self; a local now shadows a same-named function only where one of its bindings is in scope by the reference's lexical rules, and opaque statement macros bind what they spell: 9,214 -> 9,383 resolved path calls, none withdrawn, all confirmed or read correct; three older holes and an independent review's two regressions closed; 32 mutants killed; capability epoch E22; ADR 0089)"
 
 [[planned_generation]]
 id = "G176"
@@ -790,6 +790,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY rust-lang/rust (R11 REVALIDATION_REQUIRED since E20: the method probe autoref step is now decided beside external imports): re-census the same rustc_hir_typeck pin against the language server index of the crate, then the next NEVER_REPLAYED donor by revalidation rank"
 
 [[planned_generation]]
-id = "G176+"
+id = "G177"
+priority = "P0"
+objective = "native attack queue head (pressure map, 85): NA-CALL-TYPE-RESIDUAL -- its largest measured residual on Atlas, 431 autoref refusals beside use serde::{Deserialize, Serialize}, taken by NA-DEPENDENCY-DECLARATIONS step two (a named re-export read through a zero-argument local macro_rules crate root, per item, to the trait declaration); then NA-TRAIT-IMPL-RECEIVERS (150 trait-impl methods on self) and NA-BLOCK-MACRO-ITEMS"
+
+[[planned_generation]]
+id = "G178+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

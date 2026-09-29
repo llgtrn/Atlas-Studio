@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G174"
+current_generation = "G175"
 
 [[generation]]
 id = "G35"
@@ -4179,3 +4179,37 @@ after = 560
 key = "diagnostic:IncompleteAnalysis"
 before = 1928
 after = 1929
+
+[[generation]]
+id = "G175"
+kind = "NATIVE_ATTACK"
+base_commit = "6a3e898425e198881520d6e17506216ef8f07861"
+priority = "P0"
+serves = "DEBT-CALL: the native queue head the pressure map selected after replay R13 (pressure 81), its residual measured on Atlas first, between replays R13 and R14"
+objective = "NA-CALL-TYPE-RESIDUAL: measure the residual against rust-analyzer's index and remove its most precise bounded class -- a local shadowing a same-named function wherever the function binds it, instead of where the binding is in scope"
+writer = "coordinator (sole writer); one implementation lane and one read-only adversarial review lane"
+evidence = ".atlas/evidence/coverage/G175-local-binding-scopes.json"
+self_recensus = ".atlas/evidence/census/G175/recensus.json"
+epoch_before = "E21"
+epoch_after = "E22"
+
+[generation.verification]
+pre_census = "G174 post digest"
+atlas_first = "the resolver's outcomes over a snapshot of HEAD joined to rust-analyzer's index: 796 oracle-confirmed workspace calls unresolved -- 457 receiver-form-differs (431 autoref refusals beside serde imports, serde's closure UNKNOWN), 169 local-binding (147 value(..) calls in apps/cli/src/main.rs), 150 trait-impl methods on self, 20 others"
+change = "adapter resolve: FnCtx.locals becomes Locals, the scope ranges LocalScopes computes by the reference's rules (let from its `;` to its block end, if/while-let and let chains through the guarded block, arms over guard and body, for bodies, closure and fn parameters, blocks inside types); an opaque statement macro binds what it spells to its block end unless still read as a standard macro (DefMap.crate_macros); Bindings strips r# and reads pattern macros; the G174 marker attributes take source spans (ADR 0089)"
+oracle = "rust-analyzer 1.90.0 SCIP index of the snapshot; the G174 and G175 resolvers over the same snapshot: 9,214 -> 9,383 resolved path calls, none withdrawn, none retargeted; 9,379 confirmed, 4 on lines with a multi-byte character read correct; no oracle-confirmed call left local-binding"
+falsification = "three older holes found and closed (a macro_rules statement binding a spelled name, a raw binding, a pattern macro); an independent adversarial review found two regressions reproduced on rustc 1.90.0 -- call-site spans on the G174 marker attributes collapsed a closure or arm scope, and lets in blocks inside pattern types were placed outside their block -- both closed; 3 regression tests (37 expectations checked against rustc); 32 mutants killed, 1 equivalent"
+boundary = "a function-like procedural macro emitting an unspelled let, and a statement macro expanding to a block item (NA-BLOCK-MACRO-ITEMS), stay open, both older than this change; the largest residual is now the 431 autoref refusals beside serde imports (NA-DEPENDENCY-DECLARATIONS step two), then 150 trait-impl methods on self (NA-TRAIT-IMPL-RECEIVERS)"
+debts = "DEBT-CALL last advance G175; capability epoch E22 fires no processed replay's trigger; NA-LOCAL-BINDING-SCOPES done; NA-BLOCK-MACRO-ITEMS queued; NA-DEPENDENCY-DECLARATIONS carries the measured serde residual; next replay rust-lang/rust (R11 REVALIDATION_REQUIRED since E20) G176; native head NA-CALL-TYPE-RESIDUAL planned G177 (pressure 85)"
+review = "DEBT-IMPACT_CLOSURE reviewed at its cadence, CONFIRMED -- the closure is composed and checked but still has no consumer; the self-proof recomputes in full (evidence/census/G175/debt-review.json)"
+proof = "PROVEN (post 6bc2b739...): the calls a local no longer hides reach the item lookup, those meeting an open scope or an external receiver explained as unresolved with their cause"
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 9212
+after = 9426
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 6146
+after = 6210

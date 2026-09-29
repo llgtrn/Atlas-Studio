@@ -1,0 +1,512 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G175",
+  "base_revision": "aa325ecc93a1160abfd731a614f8d82db9021e5e",
+  "candidate_revision": "a88b5842c394e7149ae7c1e12a2cd8dd44a262a2",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:f0c5468001a4a8650388866bea5f4fede880075664e58279a877188af5d450a6",
+  "after_census_digest": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+  "replay_digest": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "apps/cli/src/main.rs",
+      "core/src/composition/lens.rs",
+      "core/src/donor/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/physical/mod.rs",
+      "core/src/seal/gate/tests.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/verification.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 27,
+      "fact:FunctionSignature|OBSERVED": 23,
+      "fact:Symbol|OBSERVED": 36,
+      "fact:Type|DERIVED": 8,
+      "fact:Type|OBSERVED": 38,
+      "record:CALL|DERIVED": 214,
+      "record:CALL|OBSERVED": 203,
+      "record:CONTROL_FLOW|INFERRED": 3,
+      "record:CONTROL_FLOW|OBSERVED": 41,
+      "record:DATA_FLOW|OBSERVED": 262,
+      "record:EFFECT|INFERRED": 3,
+      "record:FUNCTION_IDENTITY|OBSERVED": 27,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 23,
+      "record:OWNERSHIP|OBSERVED": 76,
+      "record:STATE|OBSERVED": 2,
+      "record:SYMBOL|OBSERVED": 36,
+      "record:TYPE|DERIVED": 8,
+      "record:TYPE|OBSERVED": 38
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1175,
+    "graph_nodes": 797
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_pat_ident()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_pat_ident()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_async()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_async()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_closure()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_closure()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/evaluation()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/evaluation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/a_standard_macro_name_the_crate_may_rebind_stays_opaque()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_standard_macro_name_the_crate_may_rebind_stays_opaque()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/crate_macros_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/bind()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/block_end()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/condition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/opaque()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Locals`/in_scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_arm()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_block()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_closure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_for_loop()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_if()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_let()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_while()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_local()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_stmt_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/end()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_local_binding_shadows_a_function_only_where_it_is_in_scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_standard_macro_left_opaque_for_its_captures_binds_no_local()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/scopes_hold_over_expanded_macro_bodies_and_blocks_in_pattern_types()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2312,
+    "total_after": 2312
+  },
+  "intent": {
+    "objective": "NA-CALL-TYPE-RESIDUAL: a local shadows a same-named function only where one of its bindings is in scope (lexical scope ranges replace the function-wide set); opaque statement macros bind what they spell (ADR 0089, capability epoch E22)",
+    "changed_paths": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "apps/cli/src/main.rs",
+      "core/src/composition/lens.rs",
+      "core/src/donor/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/physical/mod.rs",
+      "core/src/seal/gate/tests.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/verification.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_pat_ident().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_async().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_closure().",
+      "CHANGED adapter semantic/rust/resolve/evaluation().",
+      "CHANGED adapter semantic/rust/resolve/tests/a_standard_macro_name_the_crate_may_rebind_stays_opaque().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/crate_macros_of().",
+      "CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/bind().",
+      "CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/block_end().",
+      "CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/condition().",
+      "CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/new().",
+      "CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/opaque().",
+      "CREATED adapter semantic/rust/resolve/`impl:Locals`/in_scope().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_macro().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_arm().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_block().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_closure().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_for_loop().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_if().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_let().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_while().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_item().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_local().",
+      "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_stmt_macro().",
+      "CREATED adapter semantic/rust/resolve/end().",
+      "CREATED adapter semantic/rust/resolve/tests/a_local_binding_shadows_a_function_only_where_it_is_in_scope().",
+      "CREATED adapter semantic/rust/resolve/tests/a_standard_macro_left_opaque_for_its_captures_binds_no_local().",
+      "CREATED adapter semantic/rust/resolve/tests/scopes_hold_over_expanded_macro_bodies_and_blocks_in_pattern_types()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path apps/cli/src/main.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/donor/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/seal/gate/tests.rs",
+    "path core/src/visual/mod.rs",
+    "path core/src/visual/search.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/verification.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_pat_ident().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_async().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_closure().",
+    "entity CHANGED adapter semantic/rust/resolve/evaluation().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/a_standard_macro_name_the_crate_may_rebind_stays_opaque().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/crate_macros_of().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/bind().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/block_end().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/condition().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/new().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:LocalScopes<'s>`/opaque().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Locals`/in_scope().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_macro().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_arm().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_block().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_closure().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_for_loop().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_if().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_let().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_expr_while().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_local().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for LocalScopes<'_>`/visit_stmt_macro().",
+    "entity CREATED adapter semantic/rust/resolve/end().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_local_binding_shadows_a_function_only_where_it_is_in_scope().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_standard_macro_left_opaque_for_its_captures_binds_no_local().",
+    "entity CREATED adapter semantic/rust/resolve/tests/scopes_hold_over_expanded_macro_bodies_and_blocks_in_pattern_types()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
