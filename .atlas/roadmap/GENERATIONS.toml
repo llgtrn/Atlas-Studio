@@ -11,6 +11,15 @@
 #   G_n -> parallel observe/census/falsify -> deterministic join -> decide -> absorb -> falsify
 #       -> verify -> extinction evaluation -> physical extinction if eligible -> recensus
 #       -> generation evidence -> G_n+1
+#
+# From G179 (ADR 0092, PRIORITY.toml [generation_lanes]) every generation also carries lane = HARDENING
+# or CREATION (correctness_blocker = <RESIDUALS.toml id> when a HARDENING generation closes a known-wrong
+# claim out of turn), a [generation.value] table (new_capability, vertical_stage,
+# construction_nodes_completed, new_capabilities, maturity_steps, capability_delta,
+# wrong_claims_removed, wall_clock_s, machine_s, proof_s, review_s, residuals_deferred,
+# correctness_critical, frontier_rate, frontier_class) and, when it grew beyond its objective,
+# [[generation.expansion]] entries (finding, justification, residual_instead). Entries before G179
+# are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
 current_generation = "G178"

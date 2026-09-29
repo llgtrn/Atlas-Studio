@@ -1,0 +1,175 @@
+# The residual ledger (G179, ADR 0092). A residual is a known gap a generation recorded instead of
+# fixing: a claim withheld, an input read as absent, a case outside the model. Each carries its exact
+# reproduction, a severity and whether it can make Atlas assert something false. A HARDENING
+# generation may run outside the lane cadence only to close an OPEN residual whose
+# can_create_false_claim is true (GENERATIONS.toml correctness_blocker = <id>). attack, when present,
+# names the queued native attack that closes the residual: a false-claim residual naming the HARDENING
+# queue head brings it out of LANE_DEFERRED into the next CREATION slot as its correctness blocker.
+#
+#   pressure = severity weight (LOW 1, MEDIUM 3, HIGH 9) x (false_claim_multiplier if
+#              can_create_false_claim else 1)
+#
+# false_claim_condition is present exactly when can_create_false_claim is true: the exact condition
+# under which the claim would be false, and why it does not hold on the current tree.
+# runtime tests (essential_complexity::residuals_carry_reproduction_severity_and_pressure) recompute
+# the pressure and check every field. Scratch reproductions named below were run at G179 with the
+# E24 release binary (atlas-systemizer agent model) and cargo 1.90.0.
+
+schema = "atlas.residuals.v1"
+canonical = true
+established_in = "G179"
+decision = ".atlas/decisions/0092-correctness-must-enable-construction.md"
+severities = ["LOW", "MEDIUM", "HIGH"]
+severity_weight_low = 1
+severity_weight_medium = 3
+severity_weight_high = 9
+false_claim_multiplier = 3
+statuses = ["OPEN", "CLOSED"]
+
+[[residual]]
+id = "RES-G178-IMPORT-ORDER"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (Scope::insert, Entry::unsure)"
+reproduction = "one scope binds the same external item twice by name, once certain and once unsure (Entry::unsure); Scope::insert keeps the first binding and ANDs the flags, so the claim or a withhold depends on which import it applies first (ADR 0091 Consequences). Never a wrong claim. At G179 the module-level pair use crate::m::zip; beside use std::iter::zip; withholds zip::g() in both orders (scratch policy/rep3, app certain_first and unsure_first), so the order-dependent pair is narrower than that"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census whose withheld path calls name a same-named certain and unsure import pair in one scope"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-SELF-PREFIXED-IMPORT"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (own_named, import_prefix)"
+reproduction = "mod m { pub mod x { pub fn f() {} } } mod named { use crate::m::x; use self::x::f as x; pub fn t() { x(); } } -- cargo build accepts it and rustc binds x() to m::x::f; Atlas E24 leaves x() unresolved, because own_named skips an import whose path starts with self:: and the import then reads its own binding (scratch policy/rep1)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census withholding a call through a self::-prefixed import that names another import of its own name"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-CFG-ATTR-MACRO-USE-EXTERN-CRATE"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (bind_extern_crates)"
+reproduction = "a workspace crate app depending on the workspace crate helper (pub fn f() {}), whose root reads #[cfg_attr(all(), macro_use)] extern crate helper; mod cfgd { pub fn t() { helper::f(); } } -- rustc binds helper::f(); Atlas E24 reads the extern crate item as Unknown (a possibly procedural attribute) and withholds the call; without the attribute the edge resolves (scratch policy/rep3)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census withholding calls behind a cfg_attr(.., macro_use) extern crate"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-CFG-EXTERN-CRATE"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (bind_extern_crates)"
+reproduction = "the same workspace with #[cfg(all())] extern crate helper; at the crate root -- rustc binds helper::f(); Atlas E24 reads an un-renamed extern crate under cfg as Unknown and withholds the call; the plain extern crate helper; resolves it (scratch policy/rep3)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census withholding calls behind a cfg'd un-renamed extern crate"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-EDITION-2015"
+found_in = "G178"
+source = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml (NA-EDITION-2015)"
+subsystem = "adapter semantic::rust::resolve (path resolution per edition)"
+reproduction = "a workspace crate with edition = 2015 in its manifest and mod a { pub fn f() {} } mod b { use a::f; pub fn t() { f(); } } -- rustc 1.90.0 builds it and binds f() to a::f (2015 paths are crate-relative); Atlas E24 reads every crate as 2018 or newer and leaves f() unresolved (scratch policy/rep3, crate old)"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "NA-EDITION-2015 selected, or a replay whose donor holds 2015-edition crates"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-NONCONVERGENCE-OPENS-WORKSPACE"
+found_in = "G178"
+source = ".atlas/evidence/replay/R15-egglog.json"
+subsystem = "adapter semantic::rust::resolve (import fixed point, 64-round fallback)"
+reproduction = "a workspace whose import fixed point does not settle within 64 rounds in one crate: the fallback makes every non-item entry Unknown in every module of every crate, because the resolver iterates the workspace as one state. At E23 egglog at 90635860 withheld 2,310 path calls in 102 components this way; E24 settles egglog, and no input known at G179 still fails to converge"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "any census or replay whose withheld notes name imports reach no fixed point within 64 rounds"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-LIB-NAME-DIFFERS-FROM-KEY"
+found_in = "G178"
+source = "adapter/src/semantic/rust/resolve.rs (known_extern), runtime/src/census/resolution.rs"
+subsystem = "runtime census::resolution (declared dependency names), adapter semantic::rust::resolve"
+reproduction = "a crate declaring an unrenamed registry or git dependency zipper whose package sets [lib] name = zip, with use std::iter::zip; and a call zip::open() -- rustc binds zip::open to the dependency (the function import binds only the value namespace, so zip:: reaches the extern prelude); Atlas puts the key zipper, not zip, in the declared names, so zip reads as absent and the unsure import is trusted. At G179 a git fixture of that shape (scratch policy/rep2, zipper at file://) left zip::open and s.look() unresolved in the agent model, which cannot show path-level external claims"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "an unrenamed registry or git dependency whose [lib] name differs from its key, beside an unsure import of the library name: the call is claimed as the imported item's path (std::iter::zip::open) where rustc calls the dependency. It does not hold on the current tree: Atlas has no git dependency, and cargo metadata at G179 shows no direct dependency of a workspace member whose library name differs from its key"
+reopen_trigger = "a workspace in census scope gains a registry or git dependency whose library name differs from its key, or a replay's donor has one"
+attack = "NA-DEPENDENCY-DECLARATIONS"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G178-EXTERN-OUTSIDE-CARGO"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (known_extern)"
+reproduction = "the same source as RES-G178-LIB-NAME-DIFFERS-FROM-KEY compiled by rustc directly with --extern zip=libzip.rlib and no manifest entry: Atlas reads only Cargo manifests, so zip is absent and the unsure use std::iter::zip; import is trusted for zip::open()"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a crate built outside Cargo (rustc invoked by Bazel, Buck or a script) that receives a crate by --extern under a name an unsure import also binds: Atlas claims the imported path. It does not hold on the current tree: Atlas and every processed replay are Cargo workspaces, and the census reads their dependencies from Cargo manifests and the lockfile"
+reopen_trigger = "a census or replay of a workspace built without Cargo"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-WORKSPACE-TRUE-BESIDE-PATH"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter dependency::cargo (native TOML reader, dependency entries)"
+reproduction = "[dependencies] zip = { workspace = true, path = '../zip' } -- Cargo ignores the path and takes the workspace entry; Atlas reads the entry as declared with an unknown source (DeclaredSource::Unknown, test an_entry_whose_fields_are_not_what_cargo_requires_reads_as_unknown), so zip binds nothing and imports beside it are withheld"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a census or replay whose manifests carry workspace = true beside path"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-CENSUS-CONSUMER-NAMES-BY-LINES"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter dependency::cargo (dependency census consumer names)"
+reproduction = "a workspace member whose [package] name is written as a multi-line or literal string, or as a dotted package.name key: the dependency census reads the consumer's own name by lines (adapter/src/dependency/cargo.rs, consumer_name) and may label its edges with a misread name. Evidence labels only; no resolution reads them"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a dependency census whose consumer names disagree with cargo metadata"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-LOCKED-TRAITS-LIB-NAME-BY-LINES"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::locked_traits (manifest_field)"
+reproduction = "a locked registry package whose Cargo.toml gives [lib] name in a form the line reader misreads -- a name = line inside a multi-line string of the [lib] table, a dotted lib.name key, a header with a trailing comment: manifest_field returns another value or none. None is safe (named_by_key keeps the key only when the package is UNKNOWN anyway); a wrong value can make named_by_key take the key for the library name"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a locked registry package whose manifest Cargo did not normalize (published before cargo package rewrote manifests, or uploaded by another tool) and whose [lib] name the line reader misreads to another value: the autoref guard may read that package's items under the wrong name and trust a method claim. It does not hold on the current tree: the line reader and tomllib agree on [lib] name for all 33 registry manifests Atlas locks (G179)"
+reopen_trigger = "a lock closure in census scope gains a registry manifest that is not in Cargo's normalized form"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-TOML-1-1-SYNTAX"
+found_in = "G178"
+source = "adapter/src/dependency/cargo.rs (native TOML reader)"
+subsystem = "adapter dependency::cargo (native TOML reader)"
+reproduction = "a manifest spelling the native reader accepts as TOML 1.1 but Cargo 1.90.0 rejects would bind dependencies Cargo never reads. No such spelling is known: at G179 cargo 1.90.0 metadata accepted an inline table spread over lines, a trailing comma in an inline table, the escapes \\e and \\x2f and a time without seconds (scratch policy/t11); the G178 differential ran against tomllib, which reads TOML 1.0 and rejects all four, so a differential against cargo itself is the open step"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the pinned toolchain moves to a Cargo that reads TOML 1.1, or a census input whose manifest Cargo rejects"
+status = "OPEN"
+pressure = 1

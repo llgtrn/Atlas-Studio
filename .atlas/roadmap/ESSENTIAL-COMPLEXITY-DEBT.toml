@@ -961,7 +961,7 @@ blocking_priorities = ["P2"]
 blocking_exit_criteria = ["E_atlasx_production_validation", "MIN_ATLASX"]
 blocking_milestones = ["M10", "M11", "M12", "M13", "MIN_ATLASX"]
 blocked_by = ["DEBT-SEAL_GATE", "DEBT-SELECTED_DESIGN", "DEBT-INTEGRITY_ENVELOPE"]
-next_attack = "NA-ATLASX-CODEC, then NA-ATLASX-MATERIALIZE"
+next_attack = "NA-ATLASX-PRECONDITION (M10, the CREATION lane selection), then NA-ATLASX-CODEC (M12) and NA-ATLASX-MATERIALIZE (M11, M13)"
 attack_type = "NATIVE_IMPLEMENTATION"
 native_or_external = "NATIVE"
 success_condition = "validator accepts the materialized .atlasx and rejects a tampered one"
@@ -1990,17 +1990,21 @@ source = "measured:admitted continuous telemetry sources"
 threshold = 1
 current = "0 (no telemetry)"
 
-# The ordered native_attack_queue. Position 1 is the next generation (PRIORITY.toml next_native_attack).
-# bounded = the attack fits one generation. Selection after an audit (Rule B): the bounded attack with
-# the largest summed stale_generations over its OPEN debts (pressure) -- recorded in the pressure map.
+# The ordered native_attack_queue. Position 1 is the HARDENING lane head (PRIORITY.toml next_native_attack):
+# LANE_DEFERRED unless an OPEN false-claim residual names it (RESIDUALS.toml attack), then planned in the
+# next CREATION slot as its correctness blocker (ADR 0092). bounded = the attack fits one generation. Selection
+# after an audit (Rule B): the bounded HARDENING attack with the largest summed stale_generations over its
+# OPEN debts (pressure). lane = CREATION (G179, ADR 0092): the attack builds construction_node; the
+# CREATION lane is selected by vertical value ([creation_selection]); both recorded in the pressure map.
 [[native_attack]]
 position = 1
 id = "NA-CALL-TYPE-RESIDUAL"
 priority = "P0"
 debts = ["DEBT-CALL", "DEBT-TYPE", "DEBT-PERSISTENCE", "DEBT-EFFECT", "DEBT-CONCURRENCY"]
 objective = "method-call resolution through inferred receiver types (untyped lets, fields, chains, trait objects); closes the resolution engine's TYPE obligations and the method-level persistence sites (sync_all, flush)"
-planned_generation = "G179"
+planned_generation = "LANE_DEFERRED"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
 position = 2
@@ -2010,6 +2014,7 @@ debts = ["DEBT-MULTI_ENGINE", "DEBT-SYMBOL", "DEBT-CONTROL_FLOW", "DEBT-DATA_FLO
 objective = "second engine or ORACLE boundary (SCIP for SYMBOL; rustc MIR for flow and ownership) per single-engine dimension"
 planned_generation = "queued"
 bounded = false
+lane = "HARDENING"
 
 [[native_attack]]
 position = 3
@@ -2019,6 +2024,7 @@ debts = ["DEBT-EPISTEMIC_UNIFICATION"]
 objective = "the donor ledger lifecycles typed and the vocabulary map test extended to enum payloads and function returns"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
 position = 4
@@ -2028,6 +2034,7 @@ debts = ["DEBT-CAUSALITY"]
 objective = "a counterfactual record (a world model under a stated intervention) so a causal relation can be claimed with evidence; graph cardinality checked against the declared schema"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
 position = 5
@@ -2037,6 +2044,7 @@ debts = ["DEBT-ADL_BEYOND_DEPENDENCIES"]
 objective = "lower external packages and program-state writers from census into ADL and reconcile them, as G137 did for effect envelopes"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
 position = 6
@@ -2046,294 +2054,344 @@ debts = ["DEBT-INTEGRITY_ENVELOPE"]
 objective = "state, persistence and concurrency boundaries lowered into the integrity envelope once declarable, and the report bound to the incremental impact closure instead of a full recompute"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
 position = 7
-id = "NA-ATLASX-CODEC"
+id = "NA-ATLASX-PRECONDITION"
 priority = "P2"
 debts = ["DEBT-ATLASX"]
-objective = "M12: .atlasx object codec"
-planned_generation = "queued"
+objective = "M10, smallest slice: core::atlasx::precondition, one gate admitting a parent for AtlasX only when it reads back as a SEALED census container whose seal record binds it (seal::check_record), whose integrity envelope is the one the record names (M5) and whose design identity verifies, every refusal a typed reason; falsified on the G161 fixture -- its sealed container admitted, the unsealed self-scope container refused NOT_SEALED, a tampered seal record, envelope or design each refused -- with mutants killed"
+planned_generation = "G179"
 bounded = true
+lane = "CREATION"
+construction_node = "M10"
 
 [[native_attack]]
 position = 8
-id = "NA-ATLASX-MATERIALIZE"
+id = "NA-ATLASX-CODEC"
 priority = "P2"
 debts = ["DEBT-ATLASX"]
-objective = "M10/M11/M13: precondition gate, materializer, validator -> MIN_ATLASX"
+objective = "M12, smallest slice: the .atlasx object codec for one object kind (a header and one typed record section) encoded canonically, addressed by its BLAKE3 digest (E9) and read back; falsified by a fixture round-trip byte for byte, a flipped byte refused by its digest and an undeclared field refused (ATLASX-FORMAT)"
 planned_generation = "queued"
-bounded = false
+bounded = true
+lane = "CREATION"
+construction_node = "M12"
 
 [[native_attack]]
 position = 9
+id = "NA-ATLASX-MATERIALIZE"
+priority = "P2"
+debts = ["DEBT-ATLASX"]
+objective = "M11 then M13: materializer and validator over an admitted SEALED parent -> MIN_ATLASX (M10 is NA-ATLASX-PRECONDITION since G179)"
+planned_generation = "queued"
+bounded = false
+lane = "CREATION"
+construction_node = "M11"
+
+[[native_attack]]
+position = 10
 id = "NA-SANDBOX-FS-CONFINEMENT"
 priority = "P6"
 debts = ["DEBT-SANDBOXED_EXECUTION", "DEBT-VERIFICATION_EVIDENCE"]
 objective = "filesystem confinement for the sandbox (reads outside declared inputs refused) without unsafe code in Atlas, plus toolchain identity per run, so the verification evidence the seal gate reads is produced confined rather than with ambient authority"
 planned_generation = "queued"
 bounded = true
+lane = "CREATION"
+construction_node = "M16"
 
 [[native_attack]]
-position = 10
+position = 11
 id = "NA-DELEGATED-BACKEND"
 priority = "P6"
 debts = ["DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER"]
 objective = "M15: phase-1 delegated backend from .atlasx with lineage and toolchain identity"
 planned_generation = "queued"
 bounded = true
+lane = "CREATION"
+construction_node = "M15"
 
 [[native_attack]]
-position = 11
+position = 12
 id = "NA-FIRST-ARTIFACT"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_IDENTITY", "DEBT-PROVENANCE"]
 objective = "M17: constructed-artifact identity, evidence and recensus -> FIRST_ARTIFACT"
 planned_generation = "queued"
 bounded = true
+lane = "CREATION"
+construction_node = "M17"
 
 [[native_attack]]
-position = 12
+position = 13
 id = "NA-TRANSFORMATION"
 priority = "P6"
 debts = ["DEBT-TRANSFORMATION"]
 objective = "first verified transformation applied and proven by self-recensus"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 13
+position = 14
 id = "NA-QUANTIFIED-STATE"
 priority = "P2"
 debts = ["DEBT-CONSTRAINT_REASONING"]
 objective = "census-quantified invariants over state writes and types (forbid write to <state>), and an independent check of the verdicts"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 14
+position = 15
 id = "NA-QUANTITY-KINDS"
 priority = "P2"
 debts = ["DEBT-QUANTITY_UNITS"]
 objective = "the kind lattice beyond energy, torque, frequency and activity (power, heat flow, plane and solid angle), kinds carried by derived products, and the physical and product requirement verdicts entering the census as constraint results beside the derived quantities they judge"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 15
+position = 16
 id = "NA-BOUNDED-SIMULATION"
 priority = "P0"
 debts = ["DEBT-SIMULATION", "DEBT-UNCERTAINTY"]
 objective = "interval or sampled simulation runs so uncertain inputs bound the predictions instead of making them UNKNOWN"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 16
+position = 17
 id = "NA-MULTILANGUAGE"
 priority = "P0"
 debts = ["DEBT-MULTILANGUAGE"]
 objective = "the second language beyond its bounded first profile and its module linking: member and this calls, namespace imports and JSX component uses, types and data flow for TypeScript/JavaScript, a Svelte frontend (replay R5: 128 files L0), and the self census scope over tools/"
 planned_generation = "queued"
 bounded = false
+lane = "HARDENING"
 
 [[native_attack]]
-position = 17
+position = 18
 id = "NA-CLOSURE-CONSUMER"
 priority = "P4"
 debts = ["DEBT-IMPACT_CLOSURE"]
 objective = "the first consumer: recensus or admission skips work outside the closure with the full-recompute oracle kept as its check; re-export and mod-item edges carried; salsa's early cutoff studied (replay R4): a recomputed function whose records are unchanged stops propagation"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 18
+position = 19
 id = "NA-CAPABILITY-REALIZATION"
 priority = "P0"
 debts = ["DEBT-SEMANTIC-COMPOSITION"]
 objective = "the functions realizing a declared capability, from its declared path and glob (GAP-CAPABILITY-REALIZATION)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 19
+position = 20
 id = "NA-DESIGN-CANDIDATE-GENERATION"
 priority = "P2"
 debts = ["DEBT-DESIGN_GENERATION"]
 objective = "candidate designs generated rather than authored: alternative realizations of one capability found from the composed world model and the impact closure, with capability and performance measures beside the G150 count measures"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 20
+position = 21
 id = "NA-DEPENDENCY-DECLARATIONS"
 priority = "P0"
 debts = ["DEBT-CALL", "DEBT-DEPENDENCY"]
 objective = "the locked dependencies' declarations beyond the per-item step of G177: git and path sources (the workspace path crates of the rustc_hir_typeck replay, R14), names reached only through globs or dependency macros with parameters, value-namespace names beside unseen traits, and standard-library re-exports through core and alloc"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 21
+position = 22
 id = "NA-WORKSPACE-MACRO-ARGUMENTS"
 priority = "P0"
 debts = ["DEBT-CALL"]
 objective = "calls inside a workspace macro_rules invocation resolved where its transcriber places an argument fragment in an expression position (c2rust's match_or!, replay R13), std macros beyond the G119 list (matches!), and the crate-wide shadowing set for the per-file syntactic extractor, which since G119 claims call sites inside a bare standard name another file's macro_rules rebinds"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 22
+position = 23
 id = "NA-BLOCK-MACRO-ITEMS"
 priority = "P0"
 debts = ["DEBT-CALL"]
 objective = "a statement or tail macro inside a block that may expand to an item (fn, const, static) bounded like G145 bounds item macros at module level -- its names from the invocation's tokens and a crate macro_rules transcriber, or the block left open -- so a call in that block never names an outer item the expansion shadows (found by the G175 review, older than it)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 23
+position = 24
 id = "NA-MACRO-EXPORT-NAMES"
 priority = "P0"
 debts = ["DEBT-CALL"]
 objective = "a macro_export macro invoked by its bare name from another module of its crate bounded like a textual one (G145 leaves core::weights open for vocabulary_enum, so imports of its names withhold autoref claims since G173)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 24
+position = 25
 id = "NA-TRAIT-IMPL-RECEIVERS"
 priority = "P0"
 debts = ["DEBT-CALL"]
 objective = "trait-impl methods on receivers of a known concrete type (a unit-struct value, a typed local): the one workspace impl of a trait in scope that provides the method, withheld when an inherent method or another trait could come first (replay R1: 130 GitNexus-reached tests)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 25
+position = 26
 id = "NA-VERIFICATION-REUSE"
 priority = "P4"
 debts = ["DEBT-IMPACT_CLOSURE"]
 objective = "the closure consumer applied to proof obligations: a gate result (a test binary's outcome, a crate's census, an oracle index) reused only when the content digest of its declared input closure -- sources read, toolchain and tool versions, configuration, fixtures -- equals the one it was produced under, anything whose closure cannot be enumerated recomputed, the clean-HEAD evidence always recomputed in full and every reuse itself recorded; measured at G178: three full-suite runs of 769-942 s, the runtime census tests inside each about 540 s, all recomputed though only the adapter changed and Atlas's own model stayed byte-identical (evidence/verification/G178-verification-cost.json)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 26
+position = 27
 id = "NA-HUNK-SEEDS"
 priority = "P4"
 debts = ["DEBT-IMPACT_CLOSURE"]
 objective = "impact closure seeded by the functions whose span a diff hunk touches rather than every function of a changed file, with the full-recompute oracle kept as the check (replay R1: 81 seeds where GitNexus named 2)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 27
+position = 28
 id = "NA-EXECUTION-FLOWS"
 priority = "P0"
 debts = ["DEBT-SEMANTIC-COMPOSITION"]
 objective = "execution flows: bounded call trees from composed entry points, so which process crosses a function is answerable (replay R1: GitNexus reports 725 flows, Atlas none)"
 planned_generation = "queued"
 bounded = true
-
-[[native_attack]]
-position = 28
-id = "NA-SELF-RECONSTRUCTION-BODIES"
-priority = "P6"
-debts = ["DEBT-CONSTRUCTION_IR"]
-objective = "bounded lowerable body semantics for SELF_RECONSTRUCTION: HIR body nodes lifted from census records for pure, call-closed bodies (constants, variant paths, comparisons, matches over unit variants), so an SH1 shadow reconstructs a type's methods as well as its declaration; the SR1 BODY_UNOBSERVED gap on MaterializationMode::is_local is its falsification target"
-planned_generation = "queued"
-bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
 position = 29
+id = "NA-SELF-RECONSTRUCTION-BODIES"
+priority = "P6"
+debts = ["DEBT-CONSTRUCTION_IR"]
+objective = "M14, smallest slice: bounded lowerable body semantics for SELF_RECONSTRUCTION -- HIR body nodes lifted from census records for pure, call-closed bodies (constants, variant paths, comparisons, matches over unit variants), carried by the construction IR and emitted by the Rust backend, so an SH1 shadow reconstructs a type's methods as well as its declaration; falsified by SR1 on MaterializationMode::is_local (its BODY_UNOBSERVED gap closed, the shadow method passing the original tests) while a body outside the subset keeps its gap"
+planned_generation = "queued"
+bounded = true
+lane = "CREATION"
+construction_node = "M14"
+
+[[native_attack]]
+position = 30
 id = "NA-TARGET-PROFILE"
 priority = "P6"
 debts = ["DEBT-TARGET_PROFILE"]
 objective = "a typed TargetProfile (family, architecture, ABI, capabilities, packaging) and a compatibility check of a selected design's required capabilities against it; the first profile is the host's Rust target that FIRST_ARTIFACT builds for"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 30
+position = 31
 id = "NA-ARTIFACT-SEMANTICS-IMAGE"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
 objective = "the first non-code adapter: image headers read natively (dimensions, color type, bit depth, alpha) as typed records with the payload digest preserved, lifting the image class from L0 to L3 under the shared contract"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 31
+position = 32
 id = "NA-WEIGHT-CENSUS-RECORDS"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
 objective = "weights stage W2: the physical weight census (atlas.weight-census.v1, G163) enters the self census as a typed record family with an inventory class and a measured support level, payloads referenced by digest and range, never carried"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 32
+position = 33
 id = "NA-WEIGHT-ROLES"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
 objective = "weights stage W3: semantic tensor roles (embedding, projections, norm scales, quantization scales) decided from structural evidence -- shape families, tying, declared graph metadata -- with tensor names as hints only, every undecided role UNKNOWN"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 33
+position = 34
 id = "NA-WEIGHT-TRANSFORMS"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
 objective = "weights stage W4: mechanical transforms with typed preservation -- dtype casts, quantization retaining a residual (REVERSIBLE_WITH_RETAINED) or declared LOSSY, sharding and merging -- each verified by re-census; general transformation stays NA-TRANSFORMATION"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 34
+position = 35
 id = "NA-WEIGHT-FORMATS"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
 objective = "weights stage W5: GGUF, ONNX initializers, PyTorch zip archives (data records only, never unpickled) and MLX censused into the one physical record, each after its donor replay (llama.cpp, onnx, pytorch, mlx)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 35
+position = 36
 id = "NA-ADMISSION-AUTHORITY"
 priority = "P2"
 debts = ["DEBT-IDENTITY_AUTHORITY", "DEBT-SELECTED_DESIGN"]
 objective = "authority events bound to admissions of self-source as well as to selections, and key rotation and revocation for declared principals, so an admission rests on an authenticated principal as a selection now does"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 36
+position = 37
 id = "NA-RESOURCE-RESIDUAL"
 priority = "P0"
 debts = ["DEBT-RESOURCE", "DEBT-OWNERSHIP"]
 objective = "the release points G169 still leaves unknown: releases reconciled against OWNERSHIP move records (a MIR-checked move instead of the syntactic one), holders moved into a callee followed to its release, fields and statics, acquire/release pairs across FFI (replay R3: ts_parser_new / ts_parser_delete; replay R8: crubit entry points), and child processes (replay R8: a spawned tool piped through a joined writer thread)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 37
+position = 38
 id = "NA-ATLAS-DESIGN-SECTION"
 priority = "P2"
 debts = ["DEBT-ATLAS_COMPLETENESS", "DEBT-SEAL_GATE"]
 objective = "the .atlas DESIGN section: the validated SelectedDesign, the comparison it rests on and its authority event carried by the census container field by field and read back, so a sealed container carries the design its seal names and its reader checks the seal against it (G161 binds the design by identity only), and section compression once the container exceeds its declared size bound"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 [[native_attack]]
-position = 38
+position = 39
 id = "NA-EDITION-2015"
 priority = "P0"
 debts = ["DEBT-CALL"]
 objective = "paths in a 2015-edition crate are crate-relative (use a::f names crate::a::f) and extern crates enter only by extern crate; the resolver reads every crate as 2018 or later, so such calls stay unresolved (found by the G178 review; withheld, not wrong)"
 planned_generation = "queued"
 bounded = true
+lane = "HARDENING"
 
 # Completed native attacks.
 [[native_attack_done]]
@@ -2693,7 +2751,9 @@ result = "declared std-path concurrency table; the resolution engine derives THR
 # Exit criterion E as a finite dependency graph (G116 construction lane). EXISTS nodes are in
 # production code; MISSING nodes name the debt that owns them. `requires` edges point at nodes
 # that must exist first. Critical path: E1 M1 M7 M8 M9 M10 M11 M13 MIN_ATLASX M15 M16 M17
-# FIRST_ARTIFACT; M2->M4 and M5->M6 feed M8. First missing node on it: M8 (M1 exists since G147, M7 since G148, M3 and M4 since G149).
+# FIRST_ARTIFACT; M2->M4 and M5->M6 feed M8; M14 feeds M15 (G179). First missing node on it: M10 (M1 exists
+# since G147, M7 since G148, M3 and M4 since G149, M8 and M9 since G161 -- recorded only at G179, when the
+# ledger was checked against core/src/seal/gate.rs and core/src/atlas).
 [[construction_node]]
 id = "E1"
 name = "census typed semantics"
@@ -2807,16 +2867,20 @@ note = "G148 (ADR 0064): core::design SelectedDesign with a digest identity and 
 [[construction_node]]
 id = "M8"
 name = "seal eligibility gate"
-status = "MISSING"
+status = "EXISTS"
 debt = "DEBT-SEAL_GATE"
 requires = ["M7", "M2", "M3", "M4", "M6"]
+established_in = "G161"
+note = "G161 (ADR 0076): core::seal::gate joins the seal policy, the container own certificate (verdict recomputed), an ADMISSIBLE verification report, the required integrity verdict and a SELECTED design; ELIGIBLE yields a SealRecord, NOT_ELIGIBLE every typed IneligibleReason; the ledger kept it MISSING until G179"
 
 [[construction_node]]
 id = "M9"
 name = "seal gate and SEALED encoder/reader"
-status = "MISSING"
+status = "EXISTS"
 debt = "DEBT-SEAL_GATE"
 requires = ["M8", "M1"]
+established_in = "G161"
+note = "G161 (ADR 0076): core::atlas writes and reads the SEALED census container (header flag SEALED, SEALED_CENSUS_CONTAINER, format minor 2, section 18 seal-record) only with a record binding its certificate, census digest and revision (seal::check_record on both sides); the ledger kept it MISSING until G179"
 
 [[construction_node]]
 id = "M10"
@@ -2865,7 +2929,8 @@ id = "M15"
 name = "phase-1 delegated backend"
 status = "MISSING"
 debt = "DEBT-COMPILER_LOWERING"
-requires = ["MIN_ATLASX"]
+requires = ["MIN_ATLASX", "M14"]
+note = "G179: requires M14 because the first scope is code-bearing (the host Rust target, NA-TARGET-PROFILE) and the delegated phase-1 backend closes its loop by compile and test (COMPILER-IR-PIPELINE, Delegated Phase 1 backend), while the HIR verifier rejects a missing body for a required executable function (COMPILER-IR-SCHEMAS); an architecture-only first scope (a DEBT-ATLASX known unknown) would remove the edge"
 
 [[construction_node]]
 id = "M16"

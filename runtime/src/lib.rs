@@ -2332,6 +2332,260 @@ mod tests {
                 .collect()
         }
 
+        const PRIORITY: &str = ".atlas/roadmap/PRIORITY.toml";
+        const RESIDUALS: &str = ".atlas/roadmap/RESIDUALS.toml";
+        /// ADR 0092: the HARDENING queue head's planned_generation while no false-claim residual
+        /// names it -- the lanes leave native hardening no slot of its own.
+        const LANE_DEFERRED: &str = "LANE_DEFERRED";
+        /// Planned objectives a correctness blocker may be planned behind: replays and
+        /// interleaving generations, never CREATION or another native attack.
+        const REPLAY_OR_INTERLEAVING: [&str; 4] = [
+            "FULL_OSS_REPLAY",
+            "HISTORICAL_DONOR_REVALIDATION",
+            "AGENT_MISSION",
+            "DEBT_TRIGGERED_DONOR_ATTACK",
+        ];
+
+        /// A generation block's own fields, before its first sub-table.
+        fn own(block: &str) -> &str {
+            block.split("\n[").next().unwrap_or(block)
+        }
+
+        /// A `[name]` sub-table of a generation block, cut at the next table header.
+        fn sub_table<'a>(block: &'a str, name: &str) -> Option<&'a str> {
+            let body = block.split(&format!("\n[{name}]\n")).nth(1)?;
+            Some(body.split("\n[").next().unwrap_or(body))
+        }
+
+        /// `G181` -> 181; `G181+` and `pre-G57` are not numbered.
+        fn numbered(id: &str) -> Option<i64> {
+            id.strip_prefix('G')?.parse().ok()
+        }
+
+        fn real(block: &str, name: &str) -> f64 {
+            raw(block, name)
+                .and_then(|v| v.trim().parse().ok())
+                .unwrap_or_else(|| panic!("missing number `{name}` in:\n{block}"))
+        }
+
+        /// A single-line list of integers.
+        fn numbers(block: &str, name: &str) -> Vec<i64> {
+            let value = raw(block, name)
+                .unwrap_or_else(|| panic!("missing list `{name}` in:\n{block}"))
+                .trim();
+            let inner = value
+                .strip_prefix('[')
+                .and_then(|v| v.strip_suffix(']'))
+                .unwrap_or_else(|| panic!("`{name}` must be a single-line list"));
+            inner
+                .split(',')
+                .filter(|v| !v.trim().is_empty())
+                .map(|v| v.trim().parse().expect("an integer"))
+                .collect()
+        }
+
+        /// PRIORITY.toml's numbered planned generations: number -> objective.
+        fn planned_generations() -> BTreeMap<i64, String> {
+            blocks(&read(PRIORITY), "planned_generation")
+                .iter()
+                .filter_map(|b| Some((numbered(&string(b, "id")?)?, string(b, "objective")?)))
+                .collect()
+        }
+
+        /// RESIDUALS.toml ids that are OPEN and can create a false claim.
+        fn open_false_claim_residuals() -> BTreeSet<String> {
+            blocks(&read(RESIDUALS), "residual")
+                .into_iter()
+                .filter(|r| text(r, "status") == "OPEN" && flag(r, "can_create_false_claim"))
+                .map(|r| text(r, "id"))
+                .collect()
+        }
+
+        struct Node {
+            exists: bool,
+            requires: Vec<String>,
+            debt: Option<String>,
+        }
+
+        fn construction_nodes(ledger: &Ledger) -> BTreeMap<String, Node> {
+            blocks(&ledger.text, "construction_node")
+                .into_iter()
+                .map(|b| {
+                    let status = text(b, "status");
+                    assert!(
+                        status == "EXISTS" || status == "MISSING",
+                        "{}: construction status {status}",
+                        text(b, "id")
+                    );
+                    let node = Node {
+                        exists: status == "EXISTS",
+                        requires: list(b, "requires"),
+                        debt: string(b, "debt"),
+                    };
+                    (text(b, "id"), node)
+                })
+                .collect()
+        }
+
+        /// ADR 0092: a node's vertical value is 1 + the number of MISSING nodes that transitively
+        /// require it.
+        fn vertical_values(nodes: &BTreeMap<String, Node>) -> BTreeMap<String, i64> {
+            let closure = |start: &str| {
+                let mut seen = BTreeSet::new();
+                let mut todo = nodes[start].requires.clone();
+                while let Some(next) = todo.pop() {
+                    if seen.insert(next.clone()) {
+                        todo.extend(nodes[&next].requires.iter().cloned());
+                    }
+                }
+                seen
+            };
+            let missing: Vec<BTreeSet<String>> = nodes
+                .iter()
+                .filter(|(_, n)| !n.exists)
+                .map(|(id, _)| closure(id))
+                .collect();
+            nodes
+                .keys()
+                .map(|id| {
+                    let above = missing.iter().filter(|c| c.contains(id)).count() as i64;
+                    (id.clone(), 1 + above)
+                })
+                .collect()
+        }
+
+        /// One generation, done or planned, as the replay cadence (ADR 0067) and the lane cadence
+        /// (ADR 0092) see it.
+        struct Turn {
+            id: String,
+            replay: bool,
+            creation: bool,
+            blocker: Option<String>,
+            prerequisite: bool,
+            lane_policy: bool,
+        }
+
+        #[derive(Clone, Default)]
+        struct Cadence {
+            non_replay: i64,
+            hardening: i64,
+            replays: i64,
+        }
+
+        impl Cadence {
+            /// ADR 0067, unchanged by ADR 0092: no more than `allowed` non-replay generations
+            /// between replays, unless one names the donor it prepares. CREATION and a
+            /// correctness blocker are non-replay generations like any other.
+            fn replay(&mut self, turn: &Turn, allowed: i64) -> Result<(), String> {
+                if turn.replay {
+                    self.non_replay = 0;
+                    self.replays += 1;
+                    return Ok(());
+                }
+                if turn.prerequisite {
+                    return Ok(());
+                }
+                self.non_replay += 1;
+                if self.non_replay > allowed {
+                    return Err(format!(
+                        "{}: more than {allowed} non-replay generations without a replay",
+                        turn.id
+                    ));
+                }
+                Ok(())
+            }
+
+            /// ADR 0092: no more than `max` HARDENING generations in a row; CREATION and a
+            /// correctness blocker (which takes CREATION's slot) restart the run.
+            fn lane(&mut self, turn: &Turn, max: i64) -> Result<(), String> {
+                if turn.creation || turn.blocker.is_some() {
+                    self.hardening = 0;
+                    return Ok(());
+                }
+                self.hardening += 1;
+                if self.hardening > max {
+                    return Err(format!(
+                        "{}: more than {max} consecutive HARDENING generations without a correctness_blocker",
+                        turn.id
+                    ));
+                }
+                Ok(())
+            }
+        }
+
+        struct Cadences {
+            replay_start: i64,
+            allowed: i64,
+            lane_start: i64,
+            max_hardening: i64,
+        }
+
+        impl Cadences {
+            fn load() -> Self {
+                let (replay, _) = replay_ledger();
+                let priority = read(PRIORITY);
+                let lanes = table(&priority, "generation_lanes");
+                Cadences {
+                    replay_start: generation(&text(&replay, "campaign_start")),
+                    allowed: number(&replay, "max_non_replay_between"),
+                    lane_start: generation(&text(lanes, "policy_start")),
+                    max_hardening: number(lanes, "max_consecutive_hardening"),
+                }
+            }
+
+            fn turn(&self, id: &str, block: &str) -> Turn {
+                let fields = own(block);
+                let lane_policy = generation(id) >= self.lane_start;
+                Turn {
+                    id: id.to_owned(),
+                    replay: text(fields, "kind") == "REPLAY",
+                    creation: lane_policy && text(fields, "lane") == "CREATION",
+                    blocker: string(fields, "correctness_blocker"),
+                    prerequisite: string(fields, "replay_prerequisite").is_some(),
+                    lane_policy,
+                }
+            }
+
+            /// A planned generation, classified by its objective's prefix.
+            fn planned_turn(&self, number: i64, objective: &str) -> Turn {
+                Turn {
+                    id: format!("planned G{number}"),
+                    replay: objective.starts_with("FULL_OSS_REPLAY"),
+                    creation: number >= self.lane_start && objective.starts_with("CREATION"),
+                    blocker: objective
+                        .strip_prefix("CORRECTNESS_BLOCKER ")
+                        .and_then(|rest| rest.split([' ', ':']).next())
+                        .map(str::to_owned),
+                    prerequisite: false,
+                    lane_policy: number >= self.lane_start,
+                }
+            }
+
+            /// Both cadences over the ledger; `check_replay` / `check_lane` panic on a violation.
+            fn walk(&self, check_replay: bool, check_lane: bool) -> Cadence {
+                let mut cadence = Cadence::default();
+                for (id, block) in ledger_generations() {
+                    if generation(&id) < self.replay_start.min(self.lane_start) {
+                        continue;
+                    }
+                    let turn = self.turn(&id, &block);
+                    if generation(&id) >= self.replay_start {
+                        let result = cadence.replay(&turn, self.allowed);
+                        if check_replay {
+                            result.unwrap_or_else(|e| panic!("{e}"));
+                        }
+                    }
+                    if turn.lane_policy {
+                        let result = cadence.lane(&turn, self.max_hardening);
+                        if check_lane {
+                            result.unwrap_or_else(|e| panic!("{e}"));
+                        }
+                    }
+                }
+                cadence
+            }
+        }
+
         /// The ledger head, which the GENERATIONS.toml header's `current_generation` must name.
         fn current_generation() -> i64 {
             let ledger = read(".atlas/roadmap/GENERATIONS.toml");
@@ -3083,29 +3337,61 @@ mod tests {
                 string(head, "id"),
                 "PRIORITY.toml next_native_attack must be the queue head"
             );
-            // Rule B: the head is the next generation -- or the one after it when PRIORITY.toml
-            // plans exactly the next one as an interleaving generation: a
-            // HISTORICAL_DONOR_REVALIDATION (G121+), an AGENT_MISSION or a
-            // DEBT_TRIGGERED_DONOR_ATTACK (G122+, ADR 0044).
-            let current = current_generation();
-            let planned = generation(&text(head, "planned_generation"));
-            let interleaving_next = blocks(&priority, "planned_generation").iter().any(|b| {
-                string(b, "id") == Some(format!("G{}", current + 1))
-                    && string(b, "objective").is_some_and(|o| {
-                        [
-                            "HISTORICAL_DONOR_REVALIDATION",
-                            "AGENT_MISSION",
-                            "DEBT_TRIGGERED_DONOR_ATTACK",
-                            "FULL_OSS_REPLAY",
-                        ]
-                        .iter()
-                        .any(|class| o.starts_with(class))
-                    })
-            });
-            assert!(
-                planned == current + 1 || (planned == current + 2 && interleaving_next),
-                "the queue head is planned for the next native generation (G{planned} at G{current})"
+            // Rule B under the lanes (ADR 0092): the head is the HARDENING lane's, still selected
+            // by pressure. Both cadences leave native hardening no slot of its own, so it runs
+            // only as a correctness blocker: the head is LANE_DEFERRED unless an OPEN residual
+            // that can create a false claim names it (`attack`). Then PRIORITY.toml plans it in
+            // the next CREATION slot as CORRECTNESS_BLOCKER <residual>, with only replays or
+            // interleaving generations planned before it.
+            assert_eq!(
+                text(head, "lane"),
+                "HARDENING",
+                "the queue head is a HARDENING attack"
             );
+            let head_id = text(head, "id");
+            let blocking: BTreeSet<String> = blocks(&read(RESIDUALS), "residual")
+                .into_iter()
+                .filter(|r| {
+                    text(r, "status") == "OPEN"
+                        && flag(r, "can_create_false_claim")
+                        && string(r, "attack").as_deref() == Some(head_id.as_str())
+                })
+                .map(|r| text(r, "id"))
+                .collect();
+            let planned_at = text(head, "planned_generation");
+            if blocking.is_empty() {
+                assert_eq!(
+                    planned_at, LANE_DEFERRED,
+                    "no false-claim residual names {head_id}: the queue head waits as {LANE_DEFERRED}"
+                );
+            } else {
+                let current = current_generation();
+                let planned = generation(&planned_at);
+                assert!(planned > current, "{head_id} is planned in the past");
+                let plan = planned_generations();
+                for slot in current + 1..planned {
+                    let objective = plan.get(&slot).unwrap_or_else(|| {
+                        panic!("G{slot}, before the blocker G{planned}, is not planned")
+                    });
+                    assert!(
+                        REPLAY_OR_INTERLEAVING
+                            .iter()
+                            .any(|class| objective.starts_with(class)),
+                        "G{slot} is a CREATION or native slot before the blocker G{planned}"
+                    );
+                }
+                let objective = plan
+                    .get(&planned)
+                    .unwrap_or_else(|| panic!("PRIORITY.toml does not plan G{planned}"));
+                let residual = objective
+                    .strip_prefix("CORRECTNESS_BLOCKER ")
+                    .and_then(|rest| rest.split([' ', ':']).next())
+                    .unwrap_or_default();
+                assert!(
+                    blocking.contains(residual) && objective.contains(&head_id),
+                    "PRIORITY.toml plans G{planned} as CORRECTNESS_BLOCKER <residual naming {head_id}>"
+                );
+            }
             // Dependency order before pressure (tightened G124): the head's primary debt is not
             // blocked by another open debt -- nor (G145) confined to construction nodes whose
             // requirements are missing -- and among such bounded attacks the head carries the
@@ -3143,7 +3429,10 @@ mod tests {
                 "the queue head waits on a missing prerequisite"
             );
             for attack in &attacks {
-                if flag(attack, "bounded") && unblocked_primary(attack) {
+                if text(attack, "lane") == "HARDENING"
+                    && flag(attack, "bounded")
+                    && unblocked_primary(attack)
+                {
                     assert!(
                         pressure(attack) <= pressure(head),
                         "{} outweighs the queue head {}",
@@ -4266,44 +4555,32 @@ mod tests {
 
         /// ADR 0067: from the campaign start, no more than `max_non_replay_between` generations
         /// pass without a REPLAY, unless a generation names the materialized donor it serves as
-        /// a prerequisite.
+        /// a prerequisite. ADR 0092 leaves it as it was: CREATION and a correctness blocker count
+        /// as non-replay generations, and no lane is an exception.
         #[test]
         fn replay_cadence_is_machine_enforced() {
-            let (ledger, _) = replay_ledger();
-            let start = generation(&text(&ledger, "campaign_start"));
-            let allowed = number(&ledger, "max_non_replay_between");
-            let mut run = 0;
-            let mut replays = 0;
-            for (id, block) in ledger_generations() {
-                if generation(&id) < start {
-                    continue;
-                }
-                if text(&block, "kind") == "REPLAY" {
-                    run = 0;
-                    replays += 1;
-                } else if string(&block, "replay_prerequisite").is_none() {
-                    run += 1;
-                    assert!(
-                        run <= allowed,
-                        "{id}: more than {allowed} non-replay generations without a replay"
-                    );
-                }
-            }
-            if current_generation() >= start {
-                assert!(replays > 0, "the campaign start generation is a replay");
-            }
-            // The plan keeps the cadence: after a non-replay generation, the next is a replay.
-            if run >= allowed {
-                let priority = read(".atlas/roadmap/PRIORITY.toml");
-                let next = format!("G{}", current_generation() + 1);
+            let cadences = Cadences::load();
+            let cadence = cadences.walk(true, false);
+            if current_generation() >= cadences.replay_start {
                 assert!(
-                    blocks(&priority, "planned_generation").iter().any(|b| {
-                        string(b, "id") == Some(next.clone())
-                            && string(b, "objective")
-                                .is_some_and(|o| o.starts_with("FULL_OSS_REPLAY"))
-                    }),
-                    "{next} must be planned as a FULL_OSS_REPLAY generation"
+                    cadence.replays > 0,
+                    "the campaign start generation is a replay"
                 );
+            }
+            // The plan keeps the cadence: when the next generation must fill a replay slot, it is
+            // planned, and stepping it keeps the cadence.
+            if cadence.non_replay >= cadences.allowed {
+                let next = current_generation() + 1;
+                let objective = planned_generations().remove(&next).unwrap_or_else(|| {
+                    panic!("G{next} must be planned to keep the replay cadence")
+                });
+                let turn = cadences.planned_turn(next, &objective);
+                cadence
+                    .clone()
+                    .replay(&turn, cadences.allowed)
+                    .unwrap_or_else(|_| {
+                        panic!("G{next} must be planned as a FULL_OSS_REPLAY generation")
+                    });
             }
         }
 
@@ -4354,13 +4631,33 @@ mod tests {
             }
         }
 
+        /// The map restates the ledger and recomputes each pressure (ADR 0092): stale generations x
+        /// (1 + debts it blocks) + vertical_weight x vertical_value, ranked by pressure, ties by id.
         #[test]
         fn pressure_map_restates_the_ledger() {
             let ledger = Ledger::load();
             let debts = ledger.debts();
             let pressure = read(PRESSURE);
+            let header = pressure.split("\n[[").next().unwrap();
+            let weight = number(header, "vertical_weight");
+            let nodes = construction_nodes(&ledger);
+            let vertical = vertical_values(&nodes);
+            let debt_vertical = |debt: &str| {
+                nodes
+                    .iter()
+                    .filter(|(_, n)| !n.exists && n.debt.as_deref() == Some(debt))
+                    .map(|(id, _)| vertical[id])
+                    .max()
+                    .unwrap_or(0)
+            };
+            let blocks_debts = |debt: &str| {
+                debts
+                    .values()
+                    .filter(|b| list(b, "blocked_by").iter().any(|x| x == debt))
+                    .count() as i64
+            };
             let mut seen = BTreeSet::new();
-            let mut previous = i64::MAX;
+            let mut previous = (i64::MAX, String::new());
             for (index, block) in blocks(&pressure, "pressure").iter().enumerate() {
                 assert_eq!(number(block, "rank"), index as i64 + 1);
                 let id = text(block, "debt");
@@ -4393,9 +4690,24 @@ mod tests {
                     list(debt, "donors_examined"),
                     "{id}"
                 );
+                assert_eq!(number(block, "blocks_debts"), blocks_debts(&id), "{id}");
+                assert_eq!(
+                    number(block, "vertical_value"),
+                    debt_vertical(&id),
+                    "{id}: vertical_value"
+                );
                 let score = number(block, "pressure");
-                assert!(score <= previous, "pressure ranks descend");
-                previous = score;
+                assert_eq!(
+                    score,
+                    number(debt, "stale_generations") * (1 + blocks_debts(&id))
+                        + weight * debt_vertical(&id),
+                    "{id}: pressure = stale x (1 + blocks) + vertical_weight x vertical_value"
+                );
+                assert!(
+                    score < previous.0 || (score == previous.0 && id > previous.1),
+                    "{id}: pressure ranks descend, ties by id"
+                );
+                previous = (score, id.clone());
                 seen.insert(id);
             }
             let open: BTreeSet<String> = debts
@@ -4404,6 +4716,377 @@ mod tests {
                 .map(|(id, _)| id.clone())
                 .collect();
             assert_eq!(seen, open, "every non-closed debt is on the pressure map");
+        }
+
+        /// ADR 0092: correctness must enable construction. From the lane policy every generation
+        /// names its lane; no more than max_consecutive_hardening HARDENING generations run in a
+        /// row unless one closes a known-wrong claim (correctness_blocker); the plan schedules
+        /// CREATION when the run is full, and the numbered planned generations keep both this
+        /// cadence and the replay cadence.
+        #[test]
+        fn creation_lane_is_never_starved() {
+            let priority = read(PRIORITY);
+            let lanes = table(&priority, "generation_lanes");
+            let names = list(lanes, "lanes");
+            assert_eq!(names, ["HARDENING", "CREATION"]);
+            let classes = list(table(&priority, "agent_worn"), "generation_classes");
+            assert!(
+                classes.iter().any(|c| c == "CREATION"),
+                "CREATION is a class"
+            );
+            assert!(
+                !list(table(&priority, "agent_worn"), "interleaving_classes")
+                    .iter()
+                    .any(|c| c == "CREATION"),
+                "CREATION never counts as interleaving"
+            );
+            let cadences = Cadences::load();
+            let blockers = open_false_claim_residuals();
+            for (id, block) in ledger_generations() {
+                if generation(&id) < cadences.lane_start {
+                    continue;
+                }
+                let fields = own(&block);
+                let lane = text(fields, "lane");
+                assert!(names.contains(&lane), "{id}: lane {lane}");
+                assert_eq!(
+                    text(fields, "kind") == "CREATION",
+                    lane == "CREATION",
+                    "{id}: kind CREATION is exactly lane CREATION"
+                );
+                if let Some(blocker) = string(fields, "correctness_blocker") {
+                    assert_eq!(lane, "HARDENING", "{id}: a correctness blocker hardens");
+                    assert!(
+                        blockers.contains(&blocker),
+                        "{id}: correctness_blocker {blocker} is not an OPEN residual that can create a false claim"
+                    );
+                }
+            }
+            let mut cadence = cadences.walk(false, true);
+            let current = current_generation();
+            let plan = planned_generations();
+            if cadence.hardening == cadences.max_hardening {
+                assert!(
+                    plan.get(&(current + 1))
+                        .is_some_and(|o| o.starts_with("CREATION")),
+                    "G{} must be planned as CREATION",
+                    current + 1
+                );
+            }
+            // The plan keeps both cadences, generation by generation, while it is numbered.
+            let mut next = current + 1;
+            while let Some(objective) = plan.get(&next) {
+                let turn = cadences.planned_turn(next, objective);
+                if let Some(blocker) = &turn.blocker {
+                    assert!(blockers.contains(blocker), "planned G{next}: {blocker}");
+                }
+                if next >= cadences.replay_start {
+                    cadence
+                        .replay(&turn, cadences.allowed)
+                        .unwrap_or_else(|e| panic!("{e}"));
+                }
+                if turn.lane_policy {
+                    cadence
+                        .lane(&turn, cadences.max_hardening)
+                        .unwrap_or_else(|e| panic!("{e}"));
+                }
+                next += 1;
+            }
+            assert!(
+                next > current + 1,
+                "PRIORITY.toml does not plan the next generation"
+            );
+        }
+
+        /// ADR 0092: the CREATION lane is selected by vertical value. Among CREATION attacks whose
+        /// construction node is MISSING and reachable, score = vertical_value x vertical_weight +
+        /// the summed stale_generations of the attack's debts; the highest wins, ties by id, and
+        /// the next CREATION generation PRIORITY.toml plans names the winner.
+        #[test]
+        fn creation_selection_follows_vertical_value() {
+            let ledger = Ledger::load();
+            let debts = ledger.debts();
+            let nodes = construction_nodes(&ledger);
+            let vertical = vertical_values(&nodes);
+            let pressure = read(PRESSURE);
+            let weight = number(pressure.split("\n[[").next().unwrap(), "vertical_weight");
+            let candidates: BTreeMap<String, &str> = blocks(&pressure, "creation_candidate")
+                .into_iter()
+                .map(|b| (text(b, "attack"), b))
+                .collect();
+            let mut ranked = Vec::new();
+            let mut creation = BTreeSet::new();
+            for attack in blocks(&ledger.text, "native_attack") {
+                let id = text(attack, "id");
+                let node = string(attack, "construction_node");
+                match text(attack, "lane").as_str() {
+                    "HARDENING" => {
+                        assert!(node.is_none(), "{id}: a HARDENING attack builds no node")
+                    }
+                    "CREATION" => {
+                        let node =
+                            node.unwrap_or_else(|| panic!("{id}: names no construction_node"));
+                        let target = nodes
+                            .get(&node)
+                            .unwrap_or_else(|| panic!("{id}: unknown node {node}"));
+                        assert!(!target.exists, "{id}: {node} already exists");
+                        assert!(
+                            target
+                                .debt
+                                .as_ref()
+                                .is_some_and(|d| list(attack, "debts").contains(d)),
+                            "{id}: {node}'s debt is not among the attack's debts"
+                        );
+                        let reachable = target.requires.iter().all(|r| nodes[r].exists);
+                        let stale: i64 = list(attack, "debts")
+                            .iter()
+                            .map(|d| number(debts[d], "stale_generations"))
+                            .sum();
+                        let score = vertical[&node] * weight + stale;
+                        let candidate = candidates
+                            .get(&id)
+                            .unwrap_or_else(|| panic!("{id}: no [[creation_candidate]]"));
+                        assert_eq!(text(candidate, "construction_node"), node, "{id}");
+                        assert_eq!(number(candidate, "vertical_value"), vertical[&node], "{id}");
+                        assert_eq!(number(candidate, "stale_generations"), stale, "{id}");
+                        assert_eq!(flag(candidate, "reachable"), reachable, "{id}");
+                        assert_eq!(number(candidate, "score"), score, "{id}");
+                        if reachable {
+                            ranked.push((-score, id.clone(), node));
+                        }
+                        creation.insert(id);
+                    }
+                    other => panic!("{id}: lane {other}"),
+                }
+            }
+            assert_eq!(
+                candidates.keys().cloned().collect::<BTreeSet<_>>(),
+                creation,
+                "one [[creation_candidate]] per CREATION attack"
+            );
+            ranked.sort();
+            let selection = table(&pressure, "creation_selection");
+            assert!(!ranked.is_empty(), "no reachable CREATION attack");
+            let ids: Vec<String> = ranked.iter().map(|(_, id, _)| id.clone()).collect();
+            assert_eq!(list(selection, "candidates"), ids, "creation candidates");
+            let scores: Vec<i64> = ranked.iter().map(|(s, _, _)| -s).collect();
+            assert_eq!(numbers(selection, "candidate_scores"), scores);
+            let (score, selected, node) = &ranked[0];
+            assert_eq!(&text(selection, "selected_creation_attack"), selected);
+            assert_eq!(&text(selection, "selected_node"), node);
+            assert_eq!(number(selection, "score"), -score);
+            // The next CREATION generation PRIORITY.toml plans names the winner, and the queue
+            // plans the winner for it.
+            let current = current_generation();
+            let (next, objective) = planned_generations()
+                .into_iter()
+                .find(|(n, o)| *n > current && o.starts_with("CREATION"))
+                .expect("PRIORITY.toml plans a CREATION generation");
+            assert!(
+                objective.contains(selected.as_str()),
+                "G{next} (the next CREATION generation) must name {selected}"
+            );
+            let attack = blocks(&ledger.text, "native_attack")
+                .into_iter()
+                .find(|b| text(b, "id") == *selected)
+                .unwrap();
+            assert_eq!(text(attack, "planned_generation"), format!("G{next}"));
+        }
+
+        /// ADR 0092: every residual carries its exact reproduction, a severity and whether it can
+        /// create a false claim (with the condition, exactly when it can); its pressure is
+        /// recomputed; a correctness blocker names an OPEN residual that can create a false claim.
+        #[test]
+        fn residuals_carry_reproduction_severity_and_pressure() {
+            let residuals = read(RESIDUALS);
+            let header = residuals.split("\n[[").next().unwrap();
+            assert_eq!(text(header, "schema"), "atlas.residuals.v1");
+            assert!(flag(header, "canonical"));
+            let severities = list(header, "severities");
+            assert_eq!(severities, ["LOW", "MEDIUM", "HIGH"]);
+            let statuses = list(header, "statuses");
+            let multiplier = number(header, "false_claim_multiplier");
+            let current = current_generation();
+            let attacks: BTreeSet<String> = blocks(&Ledger::load().text, "native_attack")
+                .into_iter()
+                .map(|b| text(b, "id"))
+                .collect();
+            let mut ids = BTreeSet::new();
+            for block in blocks(&residuals, "residual") {
+                let id = text(block, "id");
+                assert!(id.starts_with("RES-"), "{id}");
+                assert!(ids.insert(id.clone()), "{id} twice");
+                let found = generation(&text(block, "found_in"));
+                assert!(found > 0 && found <= current, "{id}: found_in");
+                for field in ["reproduction", "subsystem", "reopen_trigger", "source"] {
+                    assert!(!is_vague(&text(block, field)), "{id}: vague {field}");
+                }
+                let severity = text(block, "severity");
+                assert!(severities.contains(&severity), "{id}: severity {severity}");
+                let status = text(block, "status");
+                assert!(statuses.contains(&status), "{id}: status {status}");
+                if let Some(attack) = string(block, "attack") {
+                    assert!(
+                        attacks.contains(&attack),
+                        "{id}: attack {attack} is not in the native attack queue"
+                    );
+                }
+                let false_claim = flag(block, "can_create_false_claim");
+                let condition = string(block, "false_claim_condition");
+                assert_eq!(
+                    condition.is_some(),
+                    false_claim,
+                    "{id}: false_claim_condition exactly when can_create_false_claim"
+                );
+                if let Some(condition) = condition {
+                    assert!(
+                        !condition.trim().is_empty(),
+                        "{id}: empty false_claim_condition"
+                    );
+                }
+                let weight = number(
+                    header,
+                    &format!("severity_weight_{}", severity.to_ascii_lowercase()),
+                );
+                assert_eq!(
+                    number(block, "pressure"),
+                    weight * if false_claim { multiplier } else { 1 },
+                    "{id}: pressure = severity weight x (multiplier if it can create a false claim)"
+                );
+            }
+            assert!(!ids.is_empty(), "the residual ledger is empty");
+            let blockers = open_false_claim_residuals();
+            for (id, block) in ledger_generations() {
+                if let Some(blocker) = string(own(&block), "correctness_blocker") {
+                    assert!(
+                        blockers.contains(&blocker),
+                        "{id}: correctness_blocker {blocker} is not an OPEN residual that can create a false claim"
+                    );
+                }
+            }
+        }
+
+        /// ADR 0092: the value metric. Every generation from the lane policy carries
+        /// [generation.value]; its capability_delta, frontier_rate and frontier_class are
+        /// recomputed from its inputs, as they are for the measured G178 baseline, and every
+        /// [[generation.expansion]] names an allowed justification.
+        #[test]
+        fn generation_value_is_recomputed_from_its_inputs() {
+            let priority = read(PRIORITY);
+            let lanes = table(&priority, "generation_lanes");
+            let stages = list(lanes, "vertical_stages");
+            let justifications = list(lanes, "expansion_justifications");
+            let (node_w, capability_w, maturity_w) = (
+                number(lanes, "node_weight"),
+                number(lanes, "capability_weight"),
+                number(lanes, "maturity_weight"),
+            );
+            let low = real(lanes, "low_frontier_rate");
+            let start = generation(&text(lanes, "policy_start"));
+            let ledger = Ledger::load();
+            let nodes = construction_nodes(&ledger);
+            let residuals = read(RESIDUALS);
+            let residual_ids: BTreeSet<String> = blocks(&residuals, "residual")
+                .into_iter()
+                .map(|r| text(r, "id"))
+                .collect();
+            let check = |label: &str, value: &str, lane: &str| {
+                let capability = string(value, "new_capability")
+                    .unwrap_or_else(|| panic!("{label}: missing new_capability"));
+                let stage = text(value, "vertical_stage");
+                assert!(stages.contains(&stage), "{label}: vertical_stage {stage}");
+                if lane == "CREATION" {
+                    assert!(
+                        !capability.trim().is_empty(),
+                        "{label}: CREATION names its capability"
+                    );
+                    assert_ne!(stage, "NONE", "{label}: CREATION names its vertical stage");
+                }
+                let completed = list(value, "construction_nodes_completed");
+                for node in &completed {
+                    let exists = nodes.get(node).map(|n| n.exists);
+                    assert_eq!(exists, Some(true), "{label}: completed node {node}");
+                }
+                let inputs = [
+                    "wrong_claims_removed",
+                    "new_capabilities",
+                    "maturity_steps",
+                    "residuals_deferred",
+                    "machine_s",
+                    "proof_s",
+                    "review_s",
+                ];
+                for field in inputs {
+                    assert!(number(value, field) >= 0, "{label}: negative {field}");
+                }
+                let delta = node_w * completed.len() as i64
+                    + capability_w * number(value, "new_capabilities")
+                    + maturity_w * number(value, "maturity_steps");
+                assert_eq!(
+                    number(value, "capability_delta"),
+                    delta,
+                    "{label}: capability_delta"
+                );
+                let wall = number(value, "wall_clock_s");
+                assert!(
+                    wall > 0
+                        && number(value, "machine_s")
+                            + number(value, "proof_s")
+                            + number(value, "review_s")
+                            <= wall,
+                    "{label}: machine, proof and review time fit in the wall clock"
+                );
+                let rate = (delta as f64 * 3600.0 / wall as f64 * 100.0).round() / 100.0;
+                assert!(
+                    (real(value, "frontier_rate") - rate).abs() < 1e-9,
+                    "{label}: frontier_rate is {rate}"
+                );
+                let critical = flag(value, "correctness_critical");
+                let class = if rate < low && !critical {
+                    "LOW_FRONTIER_PROGRESS"
+                } else {
+                    "FRONTIER_PROGRESS"
+                };
+                assert_eq!(
+                    text(value, "frontier_class"),
+                    class,
+                    "{label}: frontier_class"
+                );
+            };
+            let baseline = table(&priority, "generation_lanes.baseline");
+            let base = text(baseline, "generation");
+            check(&base, baseline, &text(baseline, "lane"));
+            let deferred = blocks(&residuals, "residual")
+                .into_iter()
+                .filter(|r| text(r, "found_in") == base)
+                .count() as i64;
+            assert_eq!(
+                number(baseline, "residuals_deferred"),
+                deferred,
+                "{base}: residuals_deferred counts its residuals"
+            );
+            for (id, block) in ledger_generations() {
+                if generation(&id) < start {
+                    continue;
+                }
+                let value = sub_table(&block, "generation.value")
+                    .unwrap_or_else(|| panic!("{id}: missing [generation.value]"));
+                check(&id, value, &text(own(&block), "lane"));
+                for expansion in blocks(&block, "generation.expansion") {
+                    text(expansion, "finding");
+                    let why = text(expansion, "justification");
+                    assert!(
+                        justifications.contains(&why),
+                        "{id}: expansion justified by {why}"
+                    );
+                    if let Some(residual) = string(expansion, "residual_instead") {
+                        assert!(
+                            residual_ids.contains(&residual),
+                            "{id}: unknown residual {residual}"
+                        );
+                    }
+                }
+            }
         }
 
         #[test]

@@ -108,7 +108,7 @@ next_native_attack = "NA-CALL-TYPE-RESIDUAL"
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
 interface_generation = "G122"
-generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY", "SELF_RECONSTRUCTION"]
+generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY", "SELF_RECONSTRUCTION", "CREATION"]
 # G151 (ADR 0067): REPLAY is the FULL_OSS_REPLAY lane (roadmap/FULL-OSS-REPLAY.toml); every replay is an
 # Agent-Worn mission, and no more than one non-replay generation passes between replays.
 full_oss_replay = ".atlas/roadmap/FULL-OSS-REPLAY.toml"
@@ -122,6 +122,61 @@ max_consecutive_interleaving = 2
 agent_mission_every = 5
 rule = "the pressure-selected queue head is planned for the next generation, or the one after it when exactly one interleaving generation is planned first; no more than two consecutive interleaving generations; an AGENT_MISSION at least every five generations after the interface exists"
 frontier_addition_requires = "a first-50 dependency needs it, or a missing foundational mechanism has no representative donor; recorded explicitly"
+
+# G179 (ADR 0092): correctness must enable construction, not permanently replace it. From policy_start
+# every GENERATIONS.toml entry carries lane, a [generation.value] table and, when the generation grew
+# beyond its objective, [[generation.expansion]] entries; runtime tests (essential_complexity) enforce
+# the lanes, the plan, the value metric and the residual ledger. CREATION is not an interleaving class.
+[generation_lanes]
+decision = ".atlas/decisions/0092-correctness-must-enable-construction.md"
+established_in = "G179"
+policy_start = "G179"
+lanes = ["HARDENING", "CREATION"]
+hardening = "donor or replay-driven falsification of existing capabilities, native hardening attacks and revalidations: every kind except CREATION"
+creation = "one new vertical capability toward ADL, design, .atlas, construction, .atlasx, executable or product and self-reconstruction (kind CREATION): the smallest real slice that moves one construction node to EXISTS"
+max_consecutive_hardening = 1
+rule = "from policy_start no more than max_consecutive_hardening HARDENING generations in a row, so CREATION comes at least every other generation; kind CREATION is exactly lane CREATION"
+correctness_exemption = "the only exemption: a HARDENING generation carrying correctness_blocker = <residual id>, naming an OPEN residual of RESIDUALS.toml with can_create_false_claim = true (a known-wrong claim blocking correctness), takes the slot a CREATION generation would have and the run restarts after it (REPLAY, NATIVE blocker, REPLAY, CREATION)"
+cadence_interplay = "the replay cadence (ADR 0067, FULL-OSS-REPLAY.toml max_non_replay_between = 1) is an owner gate and stays exactly as it was: CREATION and a correctness blocker are non-replay generations. With max_consecutive_hardening = 1 the two cadences give REPLAY, CREATION, REPLAY, CREATION: replays keep every other generation and native resolver hardening pauses unless a false-claim residual blocks correctness; reopening regular native slots needs a new policy decision, not drift"
+hardening_head_deferred = "the HARDENING queue head is still selected by pressure and named by next_native_attack; its planned_generation is LANE_DEFERRED unless an OPEN residual with can_create_false_claim = true names it (attack = <its id>), and then it is planned in the next CREATION slot as CORRECTNESS_BLOCKER <residual id>"
+plan_rule = "when the HARDENING run at the ledger head equals max_consecutive_hardening, the next generation is planned as CREATION; the numbered planned generations after the head keep both cadences; the next CREATION generation names the pressure map's selected_creation_attack"
+creation_selection = ".atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml [creation_selection]"
+residuals = ".atlas/roadmap/RESIDUALS.toml"
+complexity_budget = "a donor exposes A, A exposes B, B exposes C, D, E and F: fix everything required to eliminate the current tree's known-wrong claims and record the rest as residuals (RESIDUALS.toml); a generation may expand beyond its objective only when the new issue can falsify the current tree's claimed truth or invalidate the current generation's evidence, each expansion recorded as [[generation.expansion]] with its justification"
+expansion_justifications = ["FALSIFIES_CURRENT_TRUTH", "INVALIDATES_GENERATION_EVIDENCE"]
+vertical_stages = ["ADL", "DESIGN", "ATLAS", "CONSTRUCTION", "ATLASX", "EXECUTABLE", "SELF_RECONSTRUCTION", "NONE"]
+value_rubric = "capability_delta = node_weight x len(construction_nodes_completed) + capability_weight x new_capabilities (a capability epoch, or a new native user-visible command or record) + maturity_weight x maturity_steps (debt maturity levels gained); new_capability may be empty only for HARDENING"
+node_weight = 3
+capability_weight = 2
+maturity_weight = 1
+frontier_rate = "round(capability_delta x 3600 / wall_clock_s, 2): capability delta per wall-clock hour"
+low_frontier_rate = 0.5
+frontier_class_rule = "LOW_FRONTIER_PROGRESS when frontier_rate < low_frontier_rate and the generation is not correctness_critical, else FRONTIER_PROGRESS"
+
+# The last generation before the policy, measured (not G178's ledger entry, which stays as written).
+[generation_lanes.baseline]
+generation = "G178"
+evidence = ".atlas/evidence/verification/G178-verification-cost.json"
+lane = "HARDENING"
+new_capability = "capability epoch E24: the import fixed point converges wherever rustc's does (ADR 0091)"
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 2
+wrong_claims_removed = 4
+wrong_claims_counted = "the WRONG classes ADR 0091 names that the E23 base tree held: the non-converged fallback trusting a self-grown import path, extern crate self bound as an external root, a value-only std import beside an unconfirmed dependency, workspace dependencies keyed by manifest key; two WRONG classes introduced and removed inside G178 (an external import bound in both namespaces, a triple-quoted path read as empty) are not counted"
+wall_clock_s = 21705
+machine_s = 294
+proof_s = 2269
+review_s = 4090
+fix_s = 11843
+lost_s = 3209
+residuals_deferred = 12
+correctness_critical = true
+frontier_rate = 0.33
+frontier_class = "FRONTIER_PROGRESS"
+note = "0.33 capability delta per hour is below low_frontier_rate; FRONTIER_PROGRESS only because WRONG claims were removed (correctness_critical)"
 
 # What a closed census of a selected scope requires. FULL_CENSUS_CLOSED is never claimed without
 # every element; the reconciliation certificate (P0) is what asserts it.
@@ -801,8 +856,8 @@ objective = "FULL_OSS_REPLAY egraphs-good/egglog (done: R15 at 90635860, also th
 
 [[planned_generation]]
 id = "G179"
-priority = "P0"
-objective = "native attack queue head (pressure map, 93): NA-CALL-TYPE-RESIDUAL -- after E23 the residual on Atlas is 150 trait-impl methods on self (NA-TRAIT-IMPL-RECEIVERS) and 90 autoref refusals under another guard rule (40 in composition/lens.rs), measured again against rust-analyzer's index first"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-PRECONDITION (M10, pressure map [creation_selection], score 230) -- core::atlasx::precondition admits a parent for AtlasX only when it reads back SEALED with a seal record binding it, the integrity envelope the record names and a verifying design, every refusal typed; falsified on the G161 sealed fixture (admitted) and the unsealed self-scope container (NOT_SEALED), a tampered record, envelope or design each refused; mutants killed"
 
 [[planned_generation]]
 id = "G180"
@@ -810,6 +865,21 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY rust-lang/datafrog (QUEUED): rank 4 of the recursive revalidation (ranks 1 to 3 replayed, triggers CURRENT), revalidated at G121 and G136 but never replayed in this lane, facing the strongest Atlas (E24) at a fresh pin, its license verified at it"
 
 [[planned_generation]]
-id = "G181+"
+id = "G181"
+priority = "P2"
+objective = "CREATION: the next [creation_selection] candidate, re-selected after G179 -- forecast NA-ATLASX-CODEC (M12, score 220): one .atlasx object kind encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a byte-identical fixture round-trip, a flipped byte refused by its digest and an undeclared field refused"
+
+[[planned_generation]]
+id = "G182"
 priority = "P0"
-objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
+objective = "FULL_OSS_REPLAY the replay ledger's next target after datafrog (FULL-OSS-REPLAY.toml next_replay, re-decided after G180; by RECURSIVE-DONOR-REVALIDATION's ranking today differential-dataflow, the rank after datafrog), facing the epoch G180 leaves"
+
+[[planned_generation]]
+id = "G183"
+priority = "P2"
+objective = "CREATION: the [creation_selection] winner after G181 (forecast NA-SELF-RECONSTRUCTION-BODIES, M14, or the next AtlasX node M10 and M12 leave reachable)"
+
+[[planned_generation]]
+id = "G184+"
+priority = "P0"
+objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
