@@ -220,7 +220,7 @@ impl SemanticExtractor for RustSemanticExtractor {
                     }
                     match syn::parse_file(&input.source_text) {
                         Ok(file) => {
-                            ctx.shadowed_macros = macros::local_macro_names(&file);
+                            ctx.shadowed_macros = macros::shadowing_macro_names([&file]);
                             ctx.opaque_macro_sites =
                                 Some(macros::opaque_sites(&file, &ctx.shadowed_macros));
                             let root_scope = SemanticScope::new(Vec::<String>::new());

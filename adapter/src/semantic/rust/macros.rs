@@ -120,20 +120,71 @@ fn std_macro_name(mac: &syn::Macro) -> Option<String> {
     }
 }
 
-/// The names of the `macro_rules!` a file defines (shadowing the standard macros there).
-pub(super) fn local_macro_names(file: &syn::File) -> BTreeSet<String> {
-    struct Definitions(BTreeSet<String>);
-    impl<'ast> Visit<'ast> for Definitions {
+/// G174 (review of ADR 0088): the entry of a shadowing set that stands for every bare name --
+/// a `#[macro_use] extern crate` brings in macros whose names this pass does not read. It is not
+/// an identifier, so no macro is named by it.
+pub(super) const EVERY_BARE_NAME: &str = "*";
+
+/// The macro names that may shadow a standard macro's bare name in `files` (G174, review of ADR
+/// 0088): every `macro_rules!` they define (textual scope reaches child modules and, through
+/// `#[macro_use] mod`, parents), every name a `use` binds -- its last segment or its rename --
+/// except a standard macro imported from `std`, `core` or `alloc` under its own name, and
+/// [`EVERY_BARE_NAME`] when an `extern crate` other than those carries `#[macro_use]`. A bare
+/// invocation of a name in the set is left opaque; a path-qualified `std::`/`core::`/`alloc::`
+/// form still names the standard macro only if its name is not in the set either.
+pub(super) fn shadowing_macro_names<'a>(
+    files: impl IntoIterator<Item = &'a syn::File>,
+) -> BTreeSet<String> {
+    struct Bindings(BTreeSet<String>);
+    fn use_tree(tree: &syn::UseTree, root: Option<&str>, out: &mut BTreeSet<String>) {
+        let standard = |root: Option<&str>| matches!(root, Some("std" | "core" | "alloc"));
+        match tree {
+            syn::UseTree::Path(path) => {
+                let segment = path.ident.to_string();
+                use_tree(&path.tree, Some(root.unwrap_or(&segment)), out);
+            }
+            syn::UseTree::Name(name) => {
+                if !standard(root) {
+                    out.insert(name.ident.to_string());
+                }
+            }
+            syn::UseTree::Rename(rename) => {
+                if !standard(root) || rename.ident != rename.rename {
+                    out.insert(rename.rename.to_string());
+                }
+            }
+            syn::UseTree::Group(group) => {
+                for tree in &group.items {
+                    use_tree(tree, root, out);
+                }
+            }
+            syn::UseTree::Glob(_) => {}
+        }
+    }
+    impl<'ast> Visit<'ast> for Bindings {
         fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
             if let Some(ident) = &item.ident {
                 self.0.insert(ident.to_string());
             }
             syn::visit::visit_item_macro(self, item);
         }
+        fn visit_item_use(&mut self, item: &'ast syn::ItemUse) {
+            use_tree(&item.tree, None, &mut self.0);
+        }
+        fn visit_item_extern_crate(&mut self, item: &'ast syn::ItemExternCrate) {
+            let name = item.ident.to_string();
+            if item.attrs.iter().any(|a| a.path().is_ident("macro_use"))
+                && !["std", "core", "alloc"].contains(&name.as_str())
+            {
+                self.0.insert(EVERY_BARE_NAME.to_owned());
+            }
+        }
     }
-    let mut definitions = Definitions(BTreeSet::new());
-    definitions.visit_file(file);
-    definitions.0
+    let mut bindings = Bindings(BTreeSet::new());
+    for file in files {
+        bindings.visit_file(file);
+    }
+    bindings.0
 }
 
 /// How a recovered macro argument is used by the standard macro's documented expansion (G120).
@@ -177,7 +228,8 @@ pub(super) const ASSERT_MACROS: &[&str] = &[
 /// standard macro, shadowed locally, or not parseable as its documented input).
 pub(super) fn recover(mac: &syn::Macro, shadowed: &BTreeSet<String>) -> Option<Recovered> {
     let name = std_macro_name(mac)?;
-    if shadowed.contains(&name) {
+    let bare = mac.path.segments.len() == 1;
+    if shadowed.contains(&name) || (bare && shadowed.contains(EVERY_BARE_NAME)) {
         return None;
     }
     if INERT_MACROS.contains(&name.as_str()) {

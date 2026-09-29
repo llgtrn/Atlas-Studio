@@ -18,7 +18,7 @@ serde = { workspace = true }
 # here only enables additional features on an already-resolved dependency graph, it does not add a
 # new crate. Chosen over regex/ad-hoc parsing per `.atlas/contracts/SEMANTIC-EXTRACTION.md`: a real
 # AST is required, and `syn` is the de facto standard one for Rust source.
-syn = { version = "3.0.6", features = ["full", "visit"] }
+syn = { version = "3.0.6", features = ["full", "visit", "visit-mut"] }
 quote = "1.0.47"
 proc-macro2 = { version = "1.0.107", features = ["span-locations"] }
 # G152 (ADR 0068): syntax substrate for the TypeScript/JavaScript extractor

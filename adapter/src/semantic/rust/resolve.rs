@@ -273,6 +273,110 @@ fn lets_of(block: &syn::Block) -> Vec<(&syn::Local, &syn::Block, (usize, usize))
     lets.found
 }
 
+/// G174 (replay R13, ADR 0088): every standard macro invocation the syntactic extractor recovers
+/// (G119: its documented input parsed as evaluated expressions) is rewritten, in this pass's own
+/// copy of the file, into the evaluation it performs: a tuple of its arguments -- by value where
+/// the expansion moves or copies them (`assert!` conditions, `vec!` and `dbg!` elements, a moved
+/// `panic!` payload), `&arg` where it formats or compares them, `&mut target` for a `write!`
+/// destination; the format string evaluates nothing. Every pass of the resolver -- bindings,
+/// block scopes, typed locals, resource holders, calls -- then sees the same arguments the
+/// extractor claims calls in, at their own source positions. A bare name the crate may bind to
+/// another macro (`shadowed`: see `macros::shadowing_macro_names`), and every other macro, is left
+/// alone (opaque). An argument evaluated only on some paths -- the message of a failing `assert*!`,
+/// every argument of `debug_assert*!` (compiled out without debug assertions) -- is marked
+/// conditional (see [`conditional`]).
+fn expand_standard_macros(file: &mut syn::File, shadowed: &BTreeSet<String>) {
+    use syn::visit_mut::VisitMut;
+    struct Expand(BTreeSet<String>);
+    impl VisitMut for Expand {
+        fn visit_expr_mut(&mut self, expr: &mut syn::Expr) {
+            if let syn::Expr::Macro(invocation) = expr
+                && let Some(evaluation) = evaluation(&invocation.mac, &self.0)
+            {
+                *expr = evaluation;
+            }
+            syn::visit_mut::visit_expr_mut(self, expr);
+        }
+        fn visit_stmt_mut(&mut self, stmt: &mut syn::Stmt) {
+            if let syn::Stmt::Macro(invocation) = stmt
+                && let Some(evaluation) = evaluation(&invocation.mac, &self.0)
+            {
+                let semi = invocation.semi_token;
+                *stmt = syn::Stmt::Expr(evaluation, semi);
+            }
+            syn::visit_mut::visit_stmt_mut(self, stmt);
+        }
+    }
+    Expand(shadowed.clone()).visit_file_mut(file);
+}
+
+/// The evaluation a recovered standard macro performs (see [`expand_standard_macros`]).
+fn evaluation(mac: &syn::Macro, shadowed: &BTreeSet<String>) -> Option<syn::Expr> {
+    use super::macros::ArgumentRole;
+    let recovered = super::macros::recover(mac, shadowed)?;
+    // An implicit capture (`{x}`) has no expression of its own to place: the invocation stays
+    // opaque, as before.
+    if !recovered.captures.is_empty() {
+        return None;
+    }
+    let debug = recovered.name.starts_with("debug_assert");
+    let asserting = super::macros::ASSERT_MACROS.contains(&recovered.name.as_str());
+    let mut elems = syn::punctuated::Punctuated::new();
+    for (argument, role) in recovered.arguments {
+        let argument = if debug || (asserting && role == ArgumentRole::Formatted) {
+            syn::Expr::Paren(syn::ExprParen {
+                attrs: vec![syn::parse_quote!(#[atlas_conditional])],
+                paren_token: syn::token::Paren {
+                    span: *mac.delimiter.span(),
+                },
+                expr: Box::new(argument),
+            })
+        } else {
+            argument
+        };
+        let by_reference = |argument: syn::Expr, mutable: bool| {
+            let span = argument.span();
+            syn::Expr::Reference(syn::ExprReference {
+                attrs: Vec::new(),
+                and_token: syn::Token![&](span),
+                mutability: mutable.then(|| syn::Token![mut](span)),
+                expr: Box::new(argument),
+            })
+        };
+        match role {
+            ArgumentRole::Evaluated => elems.push(argument),
+            ArgumentRole::Formatted | ArgumentRole::Compared => {
+                elems.push(by_reference(argument, false))
+            }
+            ArgumentRole::WriteTarget => elems.push(by_reference(argument, true)),
+            ArgumentRole::FormatString => {}
+        }
+    }
+    Some(syn::Expr::Tuple(syn::ExprTuple {
+        attrs: vec![syn::parse_quote!(#[atlas_expanded_macro])],
+        paren_token: syn::token::Paren {
+            span: *mac.delimiter.span(),
+        },
+        elems,
+    }))
+}
+
+/// Whether `expr` is the evaluation [`expand_standard_macros`] put in place of an invocation. The
+/// temporary-release analysis keeps it opaque, as it kept the invocation: the expansion drops
+/// its temporaries by the macro's own rules (`format_args!` inside std, for instance), not at
+/// the source statement's `;`.
+fn expanded_macro(expr: &syn::Expr) -> bool {
+    matches!(expr, syn::Expr::Tuple(tuple)
+        if tuple.attrs.iter().any(|a| a.path().is_ident("atlas_expanded_macro")))
+}
+
+/// Whether `expr` is a macro argument [`expand_standard_macros`] marked as evaluated only on some
+/// paths: a release there is conditional, like one inside a nested block.
+fn conditional(expr: &syn::Expr) -> bool {
+    matches!(expr, syn::Expr::Paren(paren)
+        if paren.attrs.iter().any(|a| a.path().is_ident("atlas_conditional")))
+}
+
 /// Formatting and assertion macros take their arguments by reference.
 const BORROWING_MACROS: &[&str] = &[
     "assert",
@@ -366,6 +470,20 @@ impl<'ast> Visit<'ast> for HolderUses<'_, '_> {
             return;
         }
         match expr {
+            _ if conditional(expr) => {
+                self.depth += 1;
+                syn::visit::visit_expr(self, expr);
+                self.depth -= 1;
+            }
+            // The right operand of `&&` and `||` runs only on some paths.
+            syn::Expr::Binary(binary)
+                if matches!(binary.op, syn::BinOp::And(_) | syn::BinOp::Or(_)) =>
+            {
+                self.visit_expr(&binary.left);
+                self.depth += 1;
+                self.visit_expr(&binary.right);
+                self.depth -= 1;
+            }
             syn::Expr::Reference(r) if self.is_holder(&r.expr) => {}
             syn::Expr::Field(f) if self.is_holder(&f.base) => {}
             syn::Expr::Unary(u)
@@ -803,6 +921,9 @@ fn without_lifetimes(arguments: &syn::PathArguments) -> syn::PathArguments {
 
 #[derive(Default)]
 struct DefMap {
+    /// G174: the macro names that may shadow a standard macro in the crate being collected, or
+    /// `None` while its files are only being discovered (nothing is expanded then).
+    shadowed_macros: Option<BTreeSet<String>>,
     modules: Vec<Module>,
     types: Vec<TypeDef>,
     impls: Vec<ImplDef>,
@@ -1364,7 +1485,30 @@ impl DefMap {
         self.crate_packages.insert(krate, package);
         // A crate root is a "mod-rs" file: its children live next to it.
         let dir = dir_of(&input.root).to_owned();
+        // G174 (review of ADR 0088): a macro any file of the crate defines or imports may be
+        // what a bare standard name means anywhere in it (textual scope reaches child modules,
+        // `#[macro_use] mod` reaches parents), so the crate's files are discovered first,
+        // unexpanded, and the names they bind decide which invocations expand.
+        let mut discovered = BTreeMap::new();
+        let mut discovery = DefMap::default();
+        discovery.collect_crate_files(krate, input, &dir, sources, &mut discovered);
+        self.shadowed_macros = Some(super::macros::shadowing_macro_names(discovered.values()));
         self.collect_file(root, &input.root, &dir, sources, parsed);
+        self.shadowed_macros = None;
+    }
+
+    /// The files of a crate as [`Self::collect_crate`] reaches them, parsed but not expanded.
+    fn collect_crate_files(
+        &mut self,
+        krate: usize,
+        input: &CrateInput,
+        dir: &str,
+        sources: &BTreeMap<String, String>,
+        parsed: &mut BTreeMap<String, syn::File>,
+    ) {
+        let root = self.new_module(krate, None, None);
+        self.crate_roots.insert(krate, root);
+        self.collect_file(root, &input.root, dir, sources, parsed);
     }
 
     fn collect_file(
@@ -1381,6 +1525,12 @@ impl DefMap {
                 super::max_structural_recursion_risk(text) <= super::MAX_STRUCTURAL_RECURSION_RISK
             })
             .and_then(|text| syn::parse_file(text).ok())
+            .map(|mut ast| {
+                if let Some(shadowed) = &self.shadowed_macros {
+                    expand_standard_macros(&mut ast, shadowed);
+                }
+                ast
+            })
         else {
             self.open_with(module, || {
                 format!("module file `{file}` is missing, does not parse, or is refused by the recursion pre-scan")
@@ -3565,6 +3715,7 @@ impl CallWalker<'_> {
                     | syn::Expr::ForLoop(_)
                     | syn::Expr::Loop(_)
                     | syn::Expr::Macro(_) => {}
+                    _ if expanded_macro(expr) => {}
                     syn::Expr::MethodCall(call) => {
                         let method = call.method.to_string();
                         if !matches!(method.as_str(), "unwrap" | "expect")

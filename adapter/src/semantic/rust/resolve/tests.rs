@@ -1091,6 +1091,154 @@ fn moved(p: &str, m: &Mutex<u8>, c: bool) -> std::io::Result<File> {
     }
 }
 
+/// G174 (ADR 0088): a resource holder named in a standard macro's arguments is moved or
+/// borrowed as the expansion does it: `write!` borrows its destination mutably (method-call
+/// autoref of `write_fmt`), `assert_eq!` compares through references, and `vec!`/`dbg!` take their
+/// elements by value.
+#[test]
+fn standard_macro_arguments_move_or_borrow_holders_as_their_expansion_does() {
+    let lib = "\
+use std::fs::File;
+use std::io::Write;
+fn written(p: &str) -> std::io::Result<()> {
+    let mut out = File::create(p)?;
+    write!(out, \"x\")?;
+    Ok(())
+}
+fn compared(p: &str, q: &str) -> std::io::Result<()> {
+    let left = File::open(p)?;
+    let right = File::open(q)?;
+    assert_eq!(left.metadata()?.len(), right.metadata()?.len());
+    Ok(())
+}
+fn collected(p: &str) -> std::io::Result<()> {
+    let taken = File::open(p)?;
+    let _all = vec![taken];
+    let shown = File::open(p)?;
+    dbg!(shown);
+    Ok(())
+}
+";
+    let resolution = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    let line = |needle: &str| line_of(lib, needle);
+    assert_eq!(
+        releases(&resolution, "src/lib.rs"),
+        [
+            (
+                format!("out@{}", line("let mut out")),
+                "FILE SCOPE_END".to_owned(),
+                line("let mut out") + 3,
+            ),
+            (
+                format!("left@{}", line("let left")),
+                "FILE SCOPE_END".to_owned(),
+                line("let left") + 4,
+            ),
+            (
+                format!("right@{}", line("let right")),
+                "FILE SCOPE_END".to_owned(),
+                line("let right") + 3,
+            ),
+            // `taken` and `shown` are moved into the expansion: their releases stay unclaimed.
+        ]
+    );
+}
+
+/// G174 (review of ADR 0088): an argument evaluated only on some paths never releases a holder
+/// where it is written -- an `assert*!` message runs only when the assertion fails, every
+/// `debug_assert*!` argument is compiled out without debug assertions, and the right operand of
+/// `&&`/`||` runs only when the left one does not decide. rustc 1.90.0's MIR runs each `join` and
+/// `drop` below on one branch only; on the other the holder is dropped at its scope's end.
+#[test]
+fn a_release_inside_a_conditionally_evaluated_argument_is_never_claimed() {
+    let lib = "\
+use std::fs::File;
+use std::thread;
+fn message(ok: bool) {
+    let h = thread::spawn(|| {});
+    assert!(ok, \"{:?}\", h.join());
+}
+fn compared(p: &str, ok: bool) -> std::io::Result<()> {
+    let f = File::open(p)?;
+    assert_eq!(ok, true, \"{:?}\", drop(f));
+    Ok(())
+}
+fn debug_only() {
+    let h = thread::spawn(|| {});
+    debug_assert!(h.join().is_ok());
+}
+fn short_circuit(a: bool) {
+    let h = thread::spawn(|| {});
+    let _ = a || h.join().is_ok();
+}
+fn always(p: &str) -> std::io::Result<()> {
+    let h = thread::spawn(|| {});
+    assert!(h.join().is_ok(), \"joined\");
+    let g = File::open(p)?;
+    assert_eq!(g.metadata()?.len(), 0, \"{:?}\", g);
+    Ok(())
+}
+";
+    let resolution = resolve_workspace(&one_crate("src/lib.rs"), &sources(&[("src/lib.rs", lib)]));
+    let line = |needle: &str| line_of(lib, needle);
+    assert_eq!(
+        releases(&resolution, "src/lib.rs"),
+        [
+            // `message`, `compared`, `debug_only`, `short_circuit`: a release on one path only
+            // leaves the holder's release unclaimed. An assertion's condition always runs.
+            (
+                format!("h@{}", line("    assert!(h.join()") - 1),
+                "THREAD JOIN".to_owned(),
+                line("    assert!(h.join()"),
+            ),
+            (
+                format!("g@{}", line("let g")),
+                "FILE SCOPE_END".to_owned(),
+                line("let g") + 3,
+            ),
+        ]
+    );
+}
+
+/// G174 (review of ADR 0088): a bare standard macro name the crate may bind to another macro --
+/// imported by `use`, a `std` macro renamed, a `macro_rules!` of another file whose textual scope
+/// reaches this one, or anything a `#[macro_use] extern crate` brings in -- is left opaque. In each
+/// case below rustc reports `helper` never used: the macro discards its input.
+#[test]
+fn a_standard_macro_name_the_crate_may_rebind_stays_opaque() {
+    let lib = "mod m;\n#[macro_use]\nmod n;\nuse m::dbg;\nfn helper() -> u8 { 0 }\nfn f() {\n    dbg!(helper());\n    let _ = vec![helper()];\n    let _ = std::format!(\"{}\", helper());\n}\n";
+    let m = "macro_rules! dbg {\n    ($($t:tt)*) => { () };\n}\npub(crate) use dbg;\n";
+    let n = "macro_rules! vec {\n    ($($t:tt)*) => { 0u8 };\n}\n";
+    let results = resolve(
+        &[("src/lib.rs", lib), ("src/m.rs", m), ("src/n.rs", n)],
+        "src/lib.rs",
+    );
+    // Only the path-qualified `std::format!` is the standard macro.
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [("helper".into(), "src/lib.rs:5:helper".into())]
+    );
+    let renamed = "use std::vec as println;\nuse std::format as dbg;\nuse other::assert;\nfn helper() -> u8 { 0 }\nfn f() {\n    println!(helper());\n    let _ = dbg!(\"{}\", helper());\n    assert!(helper() == 0);\n    let _ = format!(\"{}\", helper());\n}\n";
+    let results = resolve(&[("src/lib.rs", renamed)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [("helper".into(), "src/lib.rs:4:helper".into())]
+    );
+    let imported = "#[macro_use]\nextern crate log;\nfn helper() -> u8 { 0 }\nfn f() {\n    let _ = vec![helper()];\n    let _ = std::vec![helper()];\n}\n";
+    let results = resolve(&[("src/lib.rs", imported)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [("helper".into(), "src/lib.rs:3:helper".into())]
+    );
+    // A standard macro imported from `std` under its own name is still the standard macro.
+    let own = "use std::vec;\nfn helper() -> u8 { 0 }\nfn f() {\n    let _ = vec![helper()];\n}\n";
+    let results = resolve(&[("src/lib.rs", own)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [("helper".into(), "src/lib.rs:2:helper".into())]
+    );
+}
+
 /// G169 (ADR 0083): the release points G157 left unknown on Atlas itself, each placed where
 /// rustc's MIR drops the resource: a file taken into a let-bound owning wrapper is released with
 /// the wrapper, a holder moved into one by a later `let` is followed to it, and a resource used
@@ -1465,4 +1613,37 @@ fn review_findings_withhold_autoref() {
     let known = run(&LockedTraitMethods::stated(&[("dep", Some(&[]))]));
     assert_eq!(known[0], "s.look src/lib.rs:4:look");
     assert_eq!(known[5], "s.look src/lib.rs:4:look");
+}
+
+#[test]
+fn standard_macro_arguments_resolve_where_the_expansion_evaluates_them() {
+    // G174 (replay R13, ADR 0088): the arguments of a recovered standard macro are resolved like
+    // any other expression -- calls, typed receivers, block items and closures inside them, and
+    // the bindings in scope around them. Implicit captures, a macro the file defines itself and
+    // any other macro stay opaque: nothing inside them is claimed.
+    let lib = "pub struct S;\nimpl S {\n    fn by_ref(&self) -> bool { true }\n}\nfn helper() -> u8 { 0 }\nfn other() -> u8 { 1 }\nfn uses(s: &S, out: &mut String) {\n    assert!(s.by_ref());\n    assert_eq!(helper(), other(), \"{}\", helper());\n    let v = vec![helper(); other() as usize];\n    let w = format!(\"{:?}\", s.by_ref());\n    let _ = write!(out, \"{}\", other());\n    let c = vec![|| other()];\n}\nfn block_item() {\n    assert!({\n        fn helper() -> bool { true }\n        helper()\n    });\n}\nfn shadowed() {\n    let helper = || 2u8;\n    debug_assert_ne!(helper(), 3);\n}\nfn opaque(v: u8) {\n    println!(\"{v} {}\", helper());\n    unknown!(helper());\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("s.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            ("helper".into(), "src/lib.rs:5:helper".into()),
+            ("other".into(), "src/lib.rs:6:other".into()),
+            ("helper".into(), "src/lib.rs:5:helper".into()),
+            ("helper".into(), "src/lib.rs:5:helper".into()),
+            ("other".into(), "src/lib.rs:6:other".into()),
+            ("s.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            ("other".into(), "src/lib.rs:6:other".into()),
+            ("other".into(), "src/lib.rs:6:other".into()),
+            ("helper".into(), "src/lib.rs:17:helper".into()),
+            ("helper".into(), "unresolved:local-binding".into()),
+        ]
+    );
+    // A `vec!` the file defines itself is its own macro: its input is not an expression list.
+    let local = "macro_rules! vec {\n    ($($e:expr),*) => { 0 };\n}\nfn helper() {}\nfn f() {\n    let _ = vec![helper()];\n    let _ = format!(\"{}\", helper());\n}\n";
+    let results = resolve(&[("src/lib.rs", local)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [("helper".into(), "src/lib.rs:4:helper".into())]
+    );
 }
