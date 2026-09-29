@@ -13,6 +13,74 @@ fn map(entries: &[(&str, &str)]) -> BTreeMap<String, String> {
 }
 
 #[test]
+fn an_unrenamed_registry_dependency_is_named_after_its_library() {
+    // G177 (review): Cargo passes an unrenamed dependency as `--extern <library name>`. `alpha`'s
+    // library is `beta` and `gamma`'s is `alpha`, so `use alpha::T` names `gamma`: neither key
+    // may carry its package. `plain` (library name = key), a renamed `ren`, and `absent` (its
+    // sources not extracted, so every answer about it is UNKNOWN) keep theirs.
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let registry = std::env::temp_dir().join(format!("atlas-lib-names-{nonce}"));
+    let index = registry.join("index.crates.io-0000000000000000");
+    for (package, manifest) in [
+        (
+            "alpha",
+            "[package]\nname = \"alpha\"\nversion = \"1.0.0\"\n[lib]\nname = \"beta\"\n",
+        ),
+        (
+            "gamma",
+            "[package]\nname = \"gamma\"\nversion = \"1.0.0\"\n[lib]\nname = \"alpha\"\n",
+        ),
+        (
+            "plain",
+            "[package]\nname = \"plain\"\nversion = \"1.0.0\"\n",
+        ),
+        (
+            "renamed",
+            "[package]\nname = \"renamed\"\nversion = \"1.0.0\"\n[lib]\nname = \"other\"\n",
+        ),
+    ] {
+        let dir = index.join(format!("{package}-1.0.0"));
+        fs::create_dir_all(dir.join("src")).unwrap();
+        fs::write(dir.join("Cargo.toml"), manifest).unwrap();
+        fs::write(dir.join("src/lib.rs"), "pub trait T {}\n").unwrap();
+        fs::write(dir.join(".cargo-ok"), "").unwrap();
+    }
+    let registry_package = |name: &str| {
+        format!(
+            "\n[[package]]\nname = \"{name}\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n"
+        )
+    };
+    let mut lock = String::from(
+        "version = 4\n\n[[package]]\nname = \"app\"\nversion = \"0.1.0\"\ndependencies = [\"absent\", \"alpha\", \"gamma\", \"plain\", \"renamed\"]\n",
+    );
+    for name in ["absent", "alpha", "gamma", "plain", "renamed"] {
+        lock.push_str(&registry_package(name));
+    }
+    let locked = adapter::read_locked_trait_methods(&lock, &registry);
+    let manifests = map(&[(
+        "app/Cargo.toml",
+        "[package]\nname = \"app\"\n\n[dependencies]\nalpha = \"1\"\ngamma = \"1\"\nplain = \"1\"\nren = { package = \"renamed\", version = \"1\" }\nabsent = \"1\"\n",
+    )]);
+    let sources = map(&[("app/src/lib.rs", "")]);
+    let crates = crate_targets_locked(&manifests, &sources, &locked, None);
+    let foreign: Vec<(String, String)> = crates[0]
+        .foreign
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+    assert_eq!(
+        foreign,
+        map(&[("absent", "absent"), ("plain", "plain"), ("ren", "renamed")])
+            .into_iter()
+            .collect::<Vec<_>>()
+    );
+    fs::remove_dir_all(&registry).unwrap();
+}
+
+#[test]
 fn registry_dependencies_map_to_the_packages_the_lockfile_confirms() {
     // G173: each target's registry extern names, to the package its manifest declares (a rename,
     // an entry inherited from a root manifest not in view), kept only when the lockfile records

@@ -37,10 +37,14 @@
 //! Standard-library traits a dependency re-exports are the traits a direct `std` import names:
 //! the guard withholds a claim when a workspace impl of any trait on the receiver defines the
 //! name, and for the blanket and by-value std methods it knows, either way.
+//!
+//! G177: the same sources also answer per item (see [`items`]): an import names one item, which
+//! is read through its package's module tree even where the closure is UNKNOWN.
 
 use super::{MAX_STRUCTURAL_RECURSION_RISK, max_structural_recursion_risk};
-use crate::dependency::cargo::{parse_cargo_lock, resolve_dependency_ref};
-use atlas_core::IntegrityDigest;
+use crate::dependency::cargo::{LockPackage, parse_cargo_lock, resolve_dependency_ref};
+use atlas_core::{DependencyRole, IntegrityDigest};
+use items::ItemTree;
 use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use quote::ToTokens;
 use std::{
@@ -218,6 +222,13 @@ pub struct LockedTraitMethods {
     pub readings: Vec<PackageReading>,
     /// BLAKE3 over the lockfile, every file read, and every answer: what the table rests on.
     pub digest: Option<IntegrityDigest>,
+    /// G177: every locked package's module tree for the per-item reading, and each package
+    /// name's indices into it.
+    trees: Vec<ItemTree>,
+    tree_indices: BTreeMap<String, Vec<usize>>,
+    /// Each locked package's library name (`[lib] name`, else its package name, `-` as `_`),
+    /// `None` when its manifest is not read.
+    lib_names: Vec<Option<String>>,
 }
 
 impl LockedTraitMethods {
@@ -242,6 +253,49 @@ impl LockedTraitMethods {
                 })
                 .collect(),
             ..Self::default()
+        }
+    }
+
+    /// A table stating, beside [`Self::stated`], the items at the root of `package`: each a
+    /// trait with its own methods, or `None` for an item this reading cannot decide.
+    #[cfg(test)]
+    pub(crate) fn with_items(mut self, package: &str, items: &[(&str, Option<&[&str]>)]) -> Self {
+        self.tree_indices
+            .entry(package.to_owned())
+            .or_default()
+            .push(self.trees.len());
+        self.trees.push(ItemTree::stated(items));
+        self.lib_names.push(None);
+        self
+    }
+
+    /// G177: the method names the item at `path` below `package`'s root can bring into scope as
+    /// a trait -- its own, none when it is no trait -- over every locked package of that name;
+    /// `None` when any of them is UNKNOWN or none is read.
+    pub fn item_methods(&self, package: &str, path: &[String]) -> Option<BTreeSet<String>> {
+        let indices = self.tree_indices.get(package)?;
+        let reading = items::Reading { trees: &self.trees };
+        let mut names = BTreeSet::new();
+        for &tree in indices {
+            names.extend(reading.methods(tree, path)?);
+        }
+        Some(names)
+    }
+
+    /// G177 (review): the library names of every locked package named `package`: the name Cargo
+    /// passes to `--extern` for an unrenamed dependency. `None` when any of them is not read or
+    /// none is locked.
+    pub fn library_names(&self, package: &str) -> Option<BTreeSet<String>> {
+        let indices = self.tree_indices.get(package)?;
+        indices.iter().map(|&i| self.lib_names[i].clone()).collect()
+    }
+
+    /// G177: whether importing the item at `path` below `package`'s root cannot bring a trait
+    /// method `name` into scope: by the item itself, else (UNKNOWN) by the closure's union.
+    pub fn item_lacks(&self, package: &str, path: &[String], name: &str) -> bool {
+        match self.item_methods(package, path) {
+            Some(names) => !names.contains(name.strip_prefix("r#").unwrap_or(name)),
+            None => self.lacks(package, name),
         }
     }
 
@@ -318,8 +372,15 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
         .any(|l| l.trim_start().starts_with("replace = "));
     let mut facts: Vec<PackageFacts> = Vec::with_capacity(packages.len());
     let mut readings = Vec::new();
+    let mut trees = Vec::with_capacity(packages.len());
+    // G177 (review): each package's library name, and the normal dependencies each tree's
+    // extern prelude is built from once every library name is known.
+    let mut lib_names: Vec<Option<String>> = vec![None; packages.len()];
+    let mut dependency_keys: Vec<Vec<(String, String)>> = vec![Vec::new(); packages.len()];
     for (index, package) in packages.iter().enumerate() {
         let mut package_facts = PackageFacts::default();
+        // G177: the per-item reading needs the one extraction, every file of it read.
+        let mut tree = ItemTree::unread("sources not read".into());
         // Only crates.io, whose extraction directories are named after its index; a `[replace]`
         // entry (deprecated) redirects a package this reading does not follow.
         let registry = package
@@ -338,6 +399,7 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
             if dirs.is_empty() {
                 package_facts.refuse(|| "sources not extracted under the registry".into());
             }
+            let single = dirs.len() == 1;
             for dir in dirs {
                 let manifest = fs::read_to_string(dir.join("Cargo.toml")).unwrap_or_default();
                 let targets = crate::manifest_targets(&manifest, |p| dir.join(p).is_file());
@@ -348,7 +410,12 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
                 if let Some(targets) = &targets {
                     package_facts.impossible = impossible_features(&manifest, targets, &locked);
                 }
-                let lib = targets.and_then(|targets| targets.lib);
+                let lib = targets.as_ref().and_then(|targets| targets.lib.clone());
+                lib_names[index] = Some(
+                    manifest_field(&manifest, "[lib]", &["name"])
+                        .unwrap_or_else(|| package.name.clone())
+                        .replace('-', "_"),
+                );
                 if !lib
                     .as_deref()
                     .is_some_and(|lib| stays_inside("Cargo.toml", lib))
@@ -358,10 +425,13 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
                 // A library rooted at the package root reaches `tests/` by plain `mod` paths.
                 let skip_own_targets = lib.as_deref().is_some_and(|lib| lib.contains('/'));
                 let mut files = Vec::new();
+                let mut unread = None;
                 if let Err(reason) = rust_files(&dir, &dir, skip_own_targets, &mut files) {
+                    unread = Some(reason.clone());
                     package_facts.refuse(|| reason);
                 }
                 files.sort();
+                let mut parsed = BTreeMap::new();
                 for (relative, text) in files {
                     digest_input.push_str(&format!(
                         "file {} {} {relative} {}\n",
@@ -369,10 +439,47 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
                         package.version,
                         IntegrityDigest::of_bytes(text.as_bytes())
                     ));
-                    read_file(&relative, &text, &mut package_facts);
+                    match read_file(&relative, &text, &mut package_facts) {
+                        Some(file) => {
+                            parsed.insert(relative, file);
+                        }
+                        None => {
+                            unread.get_or_insert_with(|| format!("{relative} is not read"));
+                        }
+                    }
                 }
+                tree = match (unread, &lib, &targets, &deps[index]) {
+                    (None, Some(lib), Some(targets), Ok(_)) if single => {
+                        let sources = items::Sources {
+                            dir: &dir,
+                            files: &parsed,
+                            impossible: &package_facts.impossible,
+                            package: index,
+                        };
+                        dependency_keys[index] = targets
+                            .dependencies
+                            .iter()
+                            .filter(|(_, _, role, _)| *role == DependencyRole::Runtime)
+                            .map(|(key, package, _, _)| (key.clone(), package.clone()))
+                            .collect();
+                        match items::build(lib, &sources) {
+                            Ok((modules, prelude)) => ItemTree {
+                                modules,
+                                prelude,
+                                externs: BTreeMap::new(),
+                                proc_macro: lib_proc_macro(&manifest),
+                                edition_2015: edition_2015(&manifest),
+                                unread: None,
+                            },
+                            Err(reason) => ItemTree::unread(reason),
+                        }
+                    }
+                    (Some(reason), ..) => ItemTree::unread(reason),
+                    _ => ItemTree::unread("no single library target with a resolved lock".into()),
+                };
             }
         }
+        trees.push(tree);
         readings.push(PackageReading {
             name: package.name.clone(),
             version: package.version.clone(),
@@ -428,12 +535,98 @@ fn read_on_this_stack(lock: &str, registry_src: &Path) -> LockedTraitMethods {
             Err(reason) => digest_input.push_str(&format!("closure {name} UNKNOWN {reason}\n")),
         }
     }
+    let mut tree_indices: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+    for (index, package) in packages.iter().enumerate() {
+        if let (None, Ok(direct)) = (&trees[index].unread, &deps[index]) {
+            trees[index].externs = externs(&dependency_keys[index], direct, &packages, &lib_names);
+        }
+        digest_input.push_str(&format!(
+            "items {} {} {:?} {}\n",
+            package.name,
+            package.version,
+            lib_names[index],
+            IntegrityDigest::of_bytes(format!("{:?}", trees[index]).as_bytes())
+        ));
+        tree_indices
+            .entry(package.name.clone())
+            .or_default()
+            .push(index);
+    }
     LockedTraitMethods {
         closures,
         members,
         readings,
         digest: Some(IntegrityDigest::of_bytes(digest_input.as_bytes())),
+        trees,
+        tree_indices,
+        lib_names,
     }
+}
+
+/// G177: a package's extern-prelude names for its locked normal dependencies (the manifest key,
+/// so a rename), each to the one direct lock dependency of that package name. An unrenamed
+/// dependency is named after its library (`[lib] name`), so one whose library name is not its
+/// key is left out (G177 review).
+fn externs(
+    dependencies: &[(String, String)],
+    direct: &[usize],
+    packages: &[LockPackage],
+    lib_names: &[Option<String>],
+) -> BTreeMap<String, usize> {
+    let mut names: BTreeMap<String, Option<usize>> = BTreeMap::new();
+    for (key, package) in dependencies {
+        let name = key.replace('-', "_");
+        let locked: Vec<usize> = direct
+            .iter()
+            .copied()
+            .filter(|&d| packages[d].name == *package)
+            .collect();
+        let found = match locked.as_slice() {
+            [only] if key != package || lib_names[*only].as_ref().is_none_or(|l| *l == name) => {
+                Some(*only)
+            }
+            _ => None,
+        };
+        let slot = names.entry(name).or_insert(found);
+        if *slot != found {
+            *slot = None;
+        }
+    }
+    names
+        .into_iter()
+        .filter_map(|(name, index)| Some((name, index?)))
+        .collect()
+}
+
+/// G177: `proc-macro = true` in the `[lib]` table: the crate exports only macros.
+fn lib_proc_macro(manifest: &str) -> bool {
+    manifest_field(manifest, "[lib]", &["proc-macro", "proc_macro"]).as_deref() == Some("true")
+}
+
+/// G177: the library's edition is 2015 (the default when neither `[lib]` nor `[package]` says).
+fn edition_2015(manifest: &str) -> bool {
+    let edition = manifest_field(manifest, "[lib]", &["edition"])
+        .or_else(|| manifest_field(manifest, "[package]", &["edition"]));
+    edition.is_none_or(|e| e == "2015")
+}
+
+/// The unquoted value of the first `key = value` in the `table` section.
+fn manifest_field(manifest: &str, table: &str, keys: &[&str]) -> Option<String> {
+    let mut inside = false;
+    for line in manifest.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            inside = line == table;
+            continue;
+        }
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        if inside && keys.contains(&key.trim()) {
+            return Some(value.trim().trim_matches('"').to_owned());
+        }
+    }
+    None
 }
 
 /// The union of trait method names over `root`'s closure, or `None` when any package in it is
@@ -616,18 +809,19 @@ fn rust_files(
     Ok(())
 }
 
-fn read_file(relative: &str, text: &str, facts: &mut PackageFacts) {
+/// Reads one file into `facts`; the parsed file, unless it is refused.
+fn read_file(relative: &str, text: &str, facts: &mut PackageFacts) -> Option<syn::File> {
     facts.file = relative.to_owned();
     let risk = max_structural_recursion_risk(text);
     if risk > MAX_STRUCTURAL_RECURSION_RISK {
         facts.refuse(|| format!("{relative} refused by the recursion pre-scan ({risk})"));
-        return;
+        return None;
     }
     let file = match syn::parse_file(text) {
         Ok(file) => file,
         Err(error) => {
             facts.refuse(|| format!("{relative} does not parse: {error}"));
-            return;
+            return None;
         }
     };
     for attr in &file.attrs {
@@ -636,6 +830,7 @@ fn read_file(relative: &str, text: &str, facts: &mut PackageFacts) {
     module_items(&file.items, facts);
     let mut definitions = MacroRules { facts };
     definitions.visit_file(&file);
+    Some(file)
 }
 
 /// Every `macro_rules!` definition, at any depth (a `#[macro_export]` one in a block is exported).
@@ -1456,6 +1651,8 @@ fn trait_body(stream: TokenStream, completed: bool, facts: &mut PackageFacts) {
 fn unraw(name: &str) -> String {
     name.strip_prefix("r#").unwrap_or(name).to_owned()
 }
+
+mod items;
 
 #[cfg(test)]
 mod tests;

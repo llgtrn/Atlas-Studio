@@ -574,6 +574,119 @@ fn a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_
 }
 
 #[test]
+fn a_registry_import_of_a_known_item_withholds_autoref_only_when_that_item_may_declare_the_name() {
+    // G177: `use dep::Trait` brings `Trait` alone into scope. Where the per-item reading knows
+    // it, its own methods decide, though `dep`'s closure is UNKNOWN (serde's build-script
+    // include); an item it cannot decide, a path through a module it does not see, or one binding
+    // spelled by two paths falls back to the closure.
+    let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n    fn serialize(&self) {}\n}\nmod ext {\n    use dep::Trait;\n    use dep::Plain;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n        s.serialize();\n    }\n}\nmod opaque {\n    use dep::Opaque;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod nested {\n    use dep::inner::Trait;\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod a {\n    pub use dep::Trait as Same;\n}\nmod b {\n    pub use dep::Plain as Same;\n}\nmod both {\n    use super::a::*;\n    use super::b::*;\n    fn k() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod known {\n    use lacking::Unread;\n    fn m() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
+    let crates = vec![CrateInput {
+        root: "src/lib.rs".into(),
+        externs: BTreeMap::new(),
+        foreign: BTreeMap::from([
+            ("dep".to_owned(), "dep".to_owned()),
+            ("lacking".to_owned(), "lacking".to_owned()),
+        ]),
+    }];
+    let locked = LockedTraitMethods::stated(&[("dep", None), ("lacking", Some(&[]))]).with_items(
+        "dep",
+        &[
+            ("Trait", Some(&["serialize"])),
+            ("Plain", Some(&[])),
+            ("Opaque", None),
+        ],
+    );
+    let workspace = resolve_workspace_with(&crates, &sources(&[("src/lib.rs", lib)]), &locked);
+    let got: Vec<(String, String)> = outcomes(&workspace.calls, "src/lib.rs")
+        .into_iter()
+        .filter(|(callee, _)| callee.starts_with("s."))
+        .collect();
+    let expect: Vec<(String, String)> = [
+        // `Trait` declares `serialize`, not `look`; `Plain` is no trait.
+        ("s.look", "src/lib.rs:4:look"),
+        ("s.serialize", "unresolved:receiver-form-differs"),
+        // `Opaque` is undecided and `dep`'s closure UNKNOWN.
+        ("s.look", "unresolved:receiver-form-differs"),
+        // `dep::inner` binds nothing this reading sees.
+        ("s.look", "unresolved:receiver-form-differs"),
+        // One binding through two paths: the item is unknown, and so is the closure.
+        ("s.look", "unresolved:receiver-form-differs"),
+        // No per-item reading: the closure, which lacks `look`, decides.
+        ("s.look", "src/lib.rs:4:look"),
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(got, expect);
+}
+
+#[test]
+fn a_crate_root_extern_crate_decides_a_registry_name_in_every_module() {
+    // G177 review: `extern crate c as b;` at the crate root puts `b` in every module's extern
+    // prelude, over the dependency `b`: `use b::T` in a child module is `c::T`.
+    let lib = "extern crate c as b;\npub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n}\nmod sub {\n    use b::T;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod rooted {\n    use ::b::T;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
+    let crates = vec![CrateInput {
+        root: "src/lib.rs".into(),
+        externs: BTreeMap::new(),
+        foreign: BTreeMap::from([
+            ("b".to_owned(), "b".to_owned()),
+            ("c".to_owned(), "c".to_owned()),
+        ]),
+    }];
+    let table = |b: &'static [&'static str], c: &'static [&'static str]| {
+        LockedTraitMethods::stated(&[("b", None), ("c", None)])
+            .with_items("b", &[("T", Some(b))])
+            .with_items("c", &[("T", Some(c))])
+    };
+    let run = |lib: &str, locked: &LockedTraitMethods| -> Vec<(String, String)> {
+        let workspace = resolve_workspace_with(&crates, &sources(&[("src/lib.rs", lib)]), locked);
+        outcomes(&workspace.calls, "src/lib.rs")
+            .into_iter()
+            .filter(|(callee, _)| callee.starts_with("s."))
+            .collect()
+    };
+    let withheld = (
+        "s.look".to_owned(),
+        "unresolved:receiver-form-differs".to_owned(),
+    );
+    let claimed = ("s.look".to_owned(), "src/lib.rs:5:look".to_owned());
+    // `c::T` declares `look`, `b::T` does not.
+    let c_looks = table(&[], &["look"]);
+    assert_eq!(run(lib, &c_looks), vec![withheld.clone(), withheld.clone()]);
+    // Without the item, `b` is the dependency.
+    let plain = lib.replace("extern crate c as b;\n", "\n");
+    assert_eq!(
+        run(&plain, &c_looks),
+        vec![claimed.clone(), claimed.clone()]
+    );
+    // `b::T` declares `look`, `c::T` does not: through the item, `c`; under `cfg`, either.
+    let b_looks = table(&["look"], &[]);
+    assert_eq!(run(lib, &b_looks), vec![claimed.clone(), claimed]);
+    // One attribute line above the item: `look` is then on line 6.
+    let attributed = |attribute: &str| {
+        lib.replace(
+            "extern crate c as b;",
+            &format!("{attribute}\nextern crate c as b;"),
+        )
+    };
+    // Under `cfg`, or under an attribute that may be a procedural macro (which may erase or
+    // rewrite the item, leaving `b` the dependency), either crate may be meant.
+    for attribute in ["#[cfg(unix)]", "#[pm::erase]", "#[erase]"] {
+        assert_eq!(
+            run(&attributed(attribute), &b_looks),
+            vec![withheld.clone(), withheld.clone()],
+            "{attribute}"
+        );
+    }
+    // An inert attribute leaves the item deciding.
+    let claimed = ("s.look".to_owned(), "src/lib.rs:6:look".to_owned());
+    assert_eq!(
+        run(&attributed("#[allow(unused_extern_crates)]"), &b_looks),
+        vec![claimed.clone(), claimed]
+    );
+}
+
+#[test]
 fn field_and_call_result_receivers_are_typed_forward() {
     // G143: a receiver's type follows its expression -- a field a non-generic struct declares
     // (`T`, `&T`, `&mut T`), the result of a resolved call whose callee declares a plain output,

@@ -245,6 +245,7 @@ pub fn crate_targets_locked(
             };
             if let (true, None, Some(registry)) = (wanted, bound, registry)
                 && locked.direct_dependency(&package.package, &registry)
+                && named_by_key(locked, key, &registry)
             {
                 foreign.insert(key.replace('-', "_"), registry);
             }
@@ -260,6 +261,23 @@ pub fn crate_targets_locked(
         crates[krate].foreign = foreign;
     }
     crates
+}
+
+/// G177 (review): whether Cargo passes a registry dependency declared under `key` as
+/// `--extern key`. A renamed one is; an unrenamed one is named after its library (`[lib] name`),
+/// so it counts only when every locked package of that name has the key as its library name
+/// (a `package` field naming the key itself cannot be told apart from no rename, so a library
+/// name that differs leaves it out). A library name that is not read keeps the key only when
+/// the package's answers are UNKNOWN anyway: its closure is, and so is every item of it.
+fn named_by_key(locked: &adapter::LockedTraitMethods, key: &str, package: &str) -> bool {
+    if key != package {
+        return true;
+    }
+    let name = key.replace('-', "_");
+    match locked.library_names(package) {
+        Some(libraries) => libraries.iter().all(|library| *library == name),
+        None => locked.unknown(package).is_some(),
+    }
 }
 
 /// The resolution engine's batches: one per Rust artifact (a file no crate root reaches says it

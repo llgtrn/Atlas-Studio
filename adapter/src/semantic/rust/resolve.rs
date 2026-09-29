@@ -582,12 +582,33 @@ enum Def {
     Value,
     /// Outside the workspace, with its path when it is rooted at a standard crate (else empty),
     /// and (G173) the locked registry package it is rooted at, when known.
-    External(Vec<String>, Option<String>),
+    External(Vec<String>, Option<Registry>),
     Ambiguous,
     /// A named import this pass could not resolve: it still binds its name, so a lookup must not
     /// fall through to an outer scope's definition of the same name. G173: `true` when it may be
     /// a trait (its target is unknown, open, or holds an item macro that may emit one).
     Unknown(bool),
+}
+
+/// G173: the locked registry package an external path is rooted at. G177: with the path below
+/// that crate's root while every segment is spelled, which the autoref guard reads per item.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Registry {
+    package: String,
+    path: Option<Vec<String>>,
+}
+
+impl Registry {
+    fn child(&self, segment: &str) -> Self {
+        Self {
+            package: self.package.clone(),
+            path: self.path.as_ref().map(|path| {
+                let mut path = path.clone();
+                path.push(segment.to_owned());
+                path
+            }),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -655,13 +676,24 @@ impl Scope {
             }
             Some(existing) if entry.origin > existing.origin => *existing = entry,
             // G173: the same external path reached through two packages (`serde::Serialize` and
-            // `serde_core::Serialize`) stays one binding, whose package is then unknown.
+            // `serde_core::Serialize`) stays one binding, whose package is then unknown. G177:
+            // through one package by two paths, the item is unknown.
             Some(existing)
                 if entry.origin == existing.origin
                     && matches!((&existing.def, &entry.def), (Def::External(a, p), Def::External(b, q)) if a == b && p != q) =>
             {
-                if let Def::External(_, package) = &mut existing.def {
-                    *package = None;
+                if let (Def::External(_, mine), Def::External(_, theirs)) =
+                    (&mut existing.def, &entry.def)
+                {
+                    *mine = match (mine.take(), theirs) {
+                        (Some(mine), Some(theirs)) if mine.package == theirs.package => {
+                            Some(Registry {
+                                package: mine.package,
+                                path: None,
+                            })
+                        }
+                        _ => None,
+                    };
                 }
                 existing.certain &= entry.certain;
             }
@@ -954,6 +986,10 @@ struct DefMap {
     /// closures declare.
     foreign: BTreeMap<usize, BTreeMap<String, String>>,
     locked: LockedTraitMethods,
+    /// G177 (review): each crate root's `extern crate target as name;` items, by `name`: the
+    /// crate `name` means in every module's extern prelude, `None` when that is unknown (two
+    /// items, or one under `cfg` or an attribute that may be a procedural macro).
+    root_externs: BTreeMap<usize, BTreeMap<String, Option<String>>>,
 }
 
 /// G145: a workspace `macro_rules!` definition and the names its expansions may define.
@@ -1808,6 +1844,22 @@ impl DefMap {
                         .map_or_else(|| item.ident.to_string(), |(_, rename)| rename.to_string());
                     let krate = self.modules[module].krate;
                     let def = self.external_root(krate, &item.ident.to_string());
+                    if self.crate_roots.get(&krate) == Some(&module) {
+                        // Under `cfg`, or rewritten (or erased) by a procedural attribute, the
+                        // item may not be what decides `name`.
+                        let uncertain = item.attrs.iter().any(|a| {
+                            a.path().is_ident("cfg")
+                                || a.path().is_ident("cfg_attr")
+                                || expanding_attribute(&a.meta).is_some()
+                        });
+                        let target = (!uncertain).then(|| item.ident.to_string());
+                        self.root_externs
+                            .entry(krate)
+                            .or_default()
+                            .entry(name.clone())
+                            .and_modify(|seen| *seen = None)
+                            .or_insert(target);
+                    }
                     self.add_item(module, Ns::Types, &name, def, &item.vis);
                 }
                 syn::Item::Impl(item) => self.collect_impl(module, file, item),
@@ -2362,9 +2414,10 @@ impl DefMap {
                             .filter(|entry| self.visible(&entry.vis, id))
                             .map(|entry| entry.def.clone()),
                         Def::Type(ty) if self.types[*ty].variants.contains(last) => Some(Def::Ctor),
-                        Def::External(path, package) => {
-                            Some(Def::External(extend(path, last), package.clone()))
-                        }
+                        Def::External(path, registry) => Some(Def::External(
+                            extend(path, last),
+                            registry.as_ref().map(|r| r.child(last)),
+                        )),
                         _ => None,
                     };
                     if let Some(def) = def {
@@ -2440,7 +2493,9 @@ impl DefMap {
                         _ => return None,
                     }
                 }
-                Def::External(path, package) => Def::External(extend(&path, segment), package),
+                Def::External(path, registry) => {
+                    Def::External(extend(&path, segment), registry.map(|r| r.child(segment)))
+                }
                 // `Enum::Variant::..` and associated types are not modules.
                 _ => return None,
             };
@@ -2475,6 +2530,23 @@ impl DefMap {
     /// A name no scope defines: a workspace crate from the extern prelude, else something outside
     /// the workspace (a registry dependency, `std`, a prelude type) -- external either way.
     fn extern_crate(&self, crates: &[CrateInput], krate: usize, name: &str) -> Def {
+        // G177 (review): a crate-root `extern crate target as name;` decides `name` for every
+        // module, over the dependency of that name.
+        match self
+            .root_externs
+            .get(&krate)
+            .and_then(|names| names.get(name))
+        {
+            Some(Some(target)) if target == "self" => return Def::Module(self.crate_roots[&krate]),
+            Some(Some(target)) => return self.dependency(crates, krate, target),
+            Some(None) => return Def::Unknown(true),
+            None => {}
+        }
+        self.dependency(crates, krate, name)
+    }
+
+    /// The crate `--extern name` passes: a workspace crate, else an external root.
+    fn dependency(&self, crates: &[CrateInput], krate: usize, name: &str) -> Def {
         match crates[krate].externs.get(name) {
             Some(index) => Def::Module(self.crate_roots[index]),
             None => self.external_root(krate, name),
@@ -2488,8 +2560,15 @@ impl DefMap {
         if matches!(name, "std" | "core" | "alloc") {
             Def::External(vec![name.to_owned()], None)
         } else {
-            let package = self.foreign.get(&krate).and_then(|f| f.get(name)).cloned();
-            Def::External(Vec::new(), package)
+            let registry = self
+                .foreign
+                .get(&krate)
+                .and_then(|f| f.get(name))
+                .map(|package| Registry {
+                    package: package.clone(),
+                    path: Some(Vec::new()),
+                });
+            Def::External(Vec::new(), registry)
         }
     }
 
@@ -2829,10 +2908,14 @@ impl DefMap {
             // G173: a registry import may bring a trait of its package's locked closure into
             // scope; a closure whose traits declare no method `name` cannot supply one. A name
             // this pass could not resolve, or that two globs bind differently, may be any trait.
+            // G177: an import of a known item brings that item alone, whatever the closure holds.
             let foreign_trait = |entry: &Entry| match &entry.def {
-                Def::External(path, package) if path.is_empty() => !package
-                    .as_deref()
-                    .is_some_and(|p| self.locked.lacks(p, name)),
+                Def::External(path, registry) if path.is_empty() => {
+                    !registry.as_ref().is_some_and(|r| match &r.path {
+                        Some(item) => self.locked.item_lacks(&r.package, item, name),
+                        None => self.locked.lacks(&r.package, name),
+                    })
+                }
                 Def::Unknown(may_be_trait) => *may_be_trait,
                 Def::Ambiguous => true,
                 _ => false,

@@ -636,3 +636,537 @@ mod review_holes {
         assert!(!t.lacks("user", "name_j"), "{:?}", t.unknown("user"));
     }
 }
+
+/// G177: the per-item reading, over fixture packages with their own manifests.
+mod per_item {
+    use super::*;
+
+    /// A manifest: `edition`, each `(key, package)` normal dependency, a procedural macro crate.
+    fn manifest(name: &str, edition: &str, deps: &[(&str, &str)], proc_macro: bool) -> String {
+        let mut text = format!("[package]\nname = \"{name}\"\nversion = \"1.0.0\"\n");
+        if !edition.is_empty() {
+            text.push_str(&format!("edition = \"{edition}\"\n"));
+        }
+        if proc_macro {
+            text.push_str("\n[lib]\nproc-macro = true\n");
+        }
+        for (key, package) in deps {
+            text.push_str(&format!(
+                "\n[dependencies.{key}]\nversion = \"1\"\npackage = \"{package}\"\n"
+            ));
+        }
+        text
+    }
+
+    fn item(table: &LockedTraitMethods, package: &str, path: &str) -> Option<Vec<String>> {
+        let path: Vec<String> = path
+            .split("::")
+            .filter(|s| !s.is_empty())
+            .map(str::to_owned)
+            .collect();
+        table
+            .item_methods(package, &path)
+            .map(|names| names.into_iter().collect())
+    }
+
+    fn names(list: &[&str]) -> Option<Vec<String>> {
+        Some(list.iter().map(|n| n.to_string()).collect())
+    }
+
+    /// A serde-like facade: a build-script `include!` beside a local zero-parameter `crate_root!`
+    /// re-exporting the core package's traits, and a derive crate's macros of the same names.
+    const FACADE: &str = "#![cfg_attr(not(feature = \"std\"), no_std)]\n\
+        macro_rules! crate_root {\n    () => {\n        mod lib {}\n        \
+        pub use core_pkg::{ser, Serialize, Serializer};\n        \
+        macro_rules! tri { ($e:expr) => { $e }; }\n        \
+        include!(concat!(env!(\"OUT_DIR\"), \"/private.rs\"));\n    };\n}\n\
+        crate_root!();\n\
+        #[cfg(feature = \"derive_pkg\")]\npub use derive_pkg::{Deserialize, Serialize};\n\
+        pub use core_pkg::*;\npub struct Plain;\npub enum Kind { A }\npub mod module {}\n\
+        pub type Alias = Plain;\npub fn only_a_function() {}\n\
+        pub use core_pkg::ser::Serialize as Renamed;\n";
+
+    /// The core package: its root re-exports through a `#[macro_use] mod` defined elsewhere.
+    const CORE: &[(&str, &str)] = &[
+        (
+            "src/lib.rs",
+            "#[macro_use]\nmod crate_root;\ncrate_root!();\npub use crate::ser::*;\n",
+        ),
+        (
+            "src/crate_root.rs",
+            "macro_rules! crate_root {\n    () => {\n        pub mod ser;\n        \
+             pub use crate::ser::{Serialize, Serializer};\n        \
+             include!(concat!(env!(\"OUT_DIR\"), \"/private.rs\"));\n    };\n}\n",
+        ),
+        (
+            "src/ser/mod.rs",
+            "pub trait Sup { fn sup(self); }\n\
+             #[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = \"x\"))]\n\
+             pub trait Serialize: Sup {\n    fn serialize(&self);\n    #[doc(hidden)]\n    \
+             fn r#type(&self) {}\n    type Out;\n    const C: u8;\n}\n\
+             pub struct Serializer;\npub trait Globbed { fn globbed(self); }\n\
+             pub trait WithMacro { fn a(&self); more!(); }\n\
+             pub trait WithAttribute { #[generate] fn a(&self); }\n",
+        ),
+    ];
+
+    fn facade(registry: &Registry, facade: &str) -> LockedTraitMethods {
+        let core_manifest = manifest("core_pkg", "2021", &[], false);
+        let mut core = CORE.to_vec();
+        core.push(("Cargo.toml", &core_manifest));
+        let derives = manifest("derive_pkg", "2021", &[], true);
+        let facade_manifest = manifest(
+            "facade",
+            "2021",
+            &[("core_pkg", "core_pkg"), ("derive_pkg", "derive_pkg")],
+            false,
+        );
+        registry
+            .package(
+                "facade",
+                &[("Cargo.toml", &facade_manifest), ("src/lib.rs", facade)],
+            )
+            .package("core_pkg", &core)
+            .package(
+                "derive_pkg",
+                &[("Cargo.toml", &derives), ("src/lib.rs", PROC_MACROS)],
+            );
+        read(
+            registry,
+            &[
+                ("facade", &["core_pkg", "derive_pkg"]),
+                ("core_pkg", &[]),
+                ("derive_pkg", &[]),
+            ],
+        )
+    }
+
+    #[test]
+    fn a_named_re_export_reaches_the_trait_whatever_an_include_adds_beside_it() {
+        let registry = Registry::new();
+        let table = facade(&registry, FACADE);
+        // The closures hold a build-script include: UNKNOWN.
+        assert!(!table.lacks("facade", "look"));
+        assert!(!table.lacks("core_pkg", "look"));
+        // `facade::Serialize` is `core_pkg::ser::Serialize`, whatever the include adds and though
+        // the derive crate's `Serialize` is re-exported too (macros only). Its own methods only.
+        assert_eq!(
+            item(&table, "facade", "Serialize"),
+            names(&["serialize", "type"])
+        );
+        assert_eq!(
+            item(&table, "facade", "ser::Serialize"),
+            names(&["serialize", "type"])
+        );
+        assert_eq!(
+            item(&table, "facade", "Renamed"),
+            names(&["serialize", "type"])
+        );
+        assert_eq!(
+            item(&table, "core_pkg", "Serialize"),
+            names(&["serialize", "type"])
+        );
+        // A supertrait answers for itself; it is not in scope through its subtrait.
+        assert_eq!(item(&table, "core_pkg", "ser::Sup"), names(&["sup"]));
+        assert!(table.item_lacks("facade", &["Serialize".into()], "sup"));
+        assert!(table.item_lacks("facade", &["Serialize".into()], "look"));
+        assert!(!table.item_lacks("facade", &["Serialize".into()], "serialize"));
+        assert!(!table.item_lacks("facade", &["Serialize".into()], "r#type"));
+        // Items that are no trait: none.
+        for path in [
+            "Serializer",
+            "Plain",
+            "Kind",
+            "module",
+            "Alias",
+            "ser",
+            "ser::Serializer",
+            "Kind::A",
+        ] {
+            assert_eq!(item(&table, "facade", path), names(&[]), "{path}");
+        }
+        assert_eq!(item(&table, "core_pkg", ""), names(&[]));
+        // Only a glob binds `Globbed` at either root; only the value namespace holds
+        // `only_a_function` (an unseen `trait only_a_function` would compile beside it); a
+        // trait body holding a macro or a procedural attribute; a derive crate's name alone.
+        for (package, path) in [
+            ("facade", "Globbed"),
+            ("core_pkg", "Globbed"),
+            ("facade", "only_a_function"),
+            ("facade", "Deserialize"),
+            ("facade", "Nowhere"),
+            ("core_pkg", "ser::WithMacro"),
+            ("core_pkg", "ser::WithAttribute"),
+            ("facade", "lib::Anything"),
+        ] {
+            assert_eq!(item(&table, package, path), None, "{package}::{path}");
+        }
+        assert_eq!(
+            item(&table, "core_pkg", "ser::Globbed"),
+            names(&["globbed"])
+        );
+        // An UNKNOWN item falls back to the closure.
+        assert!(!table.item_lacks("facade", &["Globbed".into()], "look"));
+        // A package not locked, or not extracted, is UNKNOWN.
+        assert_eq!(item(&table, "absent", "Serialize"), None);
+        let unextracted = read_locked_trait_methods(
+            &lock(&[
+                ("facade", &["core_pkg", "derive_pkg"]),
+                ("core_pkg", &[]),
+                ("derive_pkg", &[]),
+            ]),
+            &registry.root.join("elsewhere"),
+        );
+        assert_eq!(item(&unextracted, "facade", "Serialize"), None);
+        assert!(!unextracted.item_lacks("facade", &["Serialize".into()], "look"));
+    }
+
+    #[test]
+    fn only_a_single_empty_rule_invoked_empty_is_expanded() {
+        let registry = Registry::new();
+        let table = facade(
+            &registry,
+            "macro_rules! named { ($n:ident) => { pub trait $n { fn a(&self); } }; }\n\
+             named!(Param);\n\
+             macro_rules! two { () => { pub trait Two { fn two(&self); } }; ($x:tt) => {}; }\n\
+             two!();\n\
+             macro_rules! any { ($($x:tt)*) => { pub trait Any { fn any(&self); } }; }\n\
+             any!();\n\
+             macro_rules! one { () => { pub trait One { fn one(&self); } }; }\n\
+             one!();\n\
+             macro_rules! nested { () => { one_more!(); }; }\n\
+             macro_rules! one_more { () => { pub trait Nested { fn nested(&self); } }; }\n\
+             nested!();\n",
+        );
+        assert_eq!(item(&table, "facade", "Param"), None);
+        assert_eq!(item(&table, "facade", "Two"), None);
+        assert_eq!(item(&table, "facade", "Any"), None);
+        assert_eq!(item(&table, "facade", "One"), names(&["one"]));
+        assert_eq!(item(&table, "facade", "Nested"), names(&["nested"]));
+    }
+
+    #[test]
+    fn a_macro_use_definition_is_in_scope_only_after_its_module() {
+        let registry = Registry::new();
+        let dep = manifest("dep", "2021", &[], false);
+        registry.package(
+            "dep",
+            &[
+                ("Cargo.toml", &dep),
+                (
+                    "src/lib.rs",
+                    "early!();\nmod plain;\nplain_only!();\n\
+                     macro_rules! shadowed { () => { pub trait Shadowed { fn local(&self); } }; }\n\
+                     #[macro_use]\nmod defs;\nshadowed!();\nlate!();\n\
+                     mod child { in_child!(); }\npub use child::Child;\n",
+                ),
+                (
+                    "src/defs.rs",
+                    "macro_rules! early { () => { pub trait Early { fn e(&self); } }; }\n\
+                     macro_rules! shadowed { () => { pub struct Shadowed; }; }\n\
+                     macro_rules! late { () => { pub trait Late { fn late(&self); } }; }\n\
+                     macro_rules! in_child { () => { pub trait Child { fn child(&self); } }; }\n",
+                ),
+                (
+                    "src/plain.rs",
+                    "macro_rules! plain_only { () => { pub trait Plain { fn p(&self); } }; }\n",
+                ),
+            ],
+        );
+        let table = read(&registry, &[("dep", &[])]);
+        // Invoked before its `#[macro_use]` module: not this definition.
+        assert_eq!(item(&table, "dep", "Early"), None);
+        // The later definition shadows the local one.
+        assert_eq!(item(&table, "dep", "Shadowed"), names(&[]));
+        assert_eq!(item(&table, "dep", "Late"), names(&["late"]));
+        // A child module sees the textual scope before it.
+        assert_eq!(item(&table, "dep", "Child"), names(&["child"]));
+        // Without `#[macro_use]` a module's definitions end with it.
+        assert_eq!(item(&table, "dep", "Plain"), None);
+    }
+
+    #[test]
+    fn cfg_alternatives_answer_their_union_or_unknown() {
+        let registry = Registry::new();
+        let table = facade(
+            &registry,
+            "#[cfg(docsrs)]\n#[macro_use]\n#[path = \"core/crate_root.rs\"]\nmod crate_root;\n\
+             #[cfg(not(docsrs))]\nmacro_rules! crate_root { () => { pub use core_pkg::Serialize; }; }\n\
+             crate_root!();\n\
+             #[cfg(unix)]\npub use core_pkg::ser::Sup as OnlyUnix;\n\
+             #[cfg(any(feature = \"gone\", unix))]\npub struct Both;\n\
+             #[cfg(not(any(feature = \"gone\", unix)))]\npub trait Both { fn both(self); }\n",
+        );
+        registry.package(
+            "facade",
+            &[
+                (
+                    "src/core/crate_root.rs",
+                    "macro_rules! crate_root { () => {\n\
+                     #[cfg_attr(all(docsrs, if_docsrs), path = \"core/ser.rs\")]\npub mod ser;\n\
+                     pub use crate::ser::Serialize;\n}; }\n",
+                ),
+                (
+                    "src/core/ser.rs",
+                    "pub trait Serialize { fn serialize(&self); fn documented(&self); }\n",
+                ),
+            ],
+        );
+        let table = {
+            let _ = table;
+            read(
+                &registry,
+                &[
+                    ("facade", &["core_pkg", "derive_pkg"]),
+                    ("core_pkg", &[]),
+                    ("derive_pkg", &[]),
+                ],
+            )
+        };
+        // Under `docsrs` the facade's own trait (its `ser` file exists only under `if_docsrs`:
+        // without it that build does not compile), else the core package's: the union.
+        assert_eq!(
+            item(&table, "facade", "Serialize"),
+            names(&["documented", "serialize", "type"])
+        );
+        // Bound only under `unix`: elsewhere a glob or an unseen item may bind it.
+        assert_eq!(item(&table, "facade", "OnlyUnix"), None);
+        // One alternative a trait, the other not: the trait's methods.
+        assert_eq!(item(&table, "facade", "Both"), names(&["both"]));
+    }
+
+    #[test]
+    fn a_renamed_dependency_is_followed_by_its_key() {
+        let registry = Registry::new();
+        let facade_manifest = manifest("facade", "2021", &[("renamed", "core_pkg")], false);
+        let core_manifest = manifest("core_pkg", "2021", &[], false);
+        let mut core = CORE.to_vec();
+        core.push(("Cargo.toml", &core_manifest));
+        registry
+            .package(
+                "facade",
+                &[
+                    ("Cargo.toml", &facade_manifest),
+                    (
+                        "src/lib.rs",
+                        "pub use renamed::ser::Serialize;\npub use core_pkg::ser::Sup;\n\
+                         pub use ::renamed::ser::Sup as Rooted;\n",
+                    ),
+                ],
+            )
+            .package("core_pkg", &core);
+        let table = read(&registry, &[("facade", &["core_pkg"]), ("core_pkg", &[])]);
+        assert_eq!(
+            item(&table, "facade", "Serialize"),
+            names(&["serialize", "type"])
+        );
+        assert_eq!(item(&table, "facade", "Rooted"), names(&["sup"]));
+        // `core_pkg` is not an extern name of the facade: its dependency is renamed.
+        assert_eq!(item(&table, "facade", "Sup"), None);
+        // A 2015 package's paths start at its crate root, where `extern crate` binds the crate.
+        let registry = Registry::new();
+        let old = manifest("facade", "", &[("renamed", "core_pkg")], false);
+        let mut core = CORE.to_vec();
+        core.push(("Cargo.toml", &core_manifest));
+        registry
+            .package(
+                "facade",
+                &[
+                    ("Cargo.toml", &old),
+                    (
+                        "src/lib.rs",
+                        "extern crate renamed as core_pkg;\npub use core_pkg::ser::Serialize;\n\
+                         mod inner { pub use core_pkg::ser::Sup; pub use helpers::Local; }\n\
+                         pub use inner::Sup;\npub use inner::Local as Relative;\n\
+                         pub mod helpers { pub trait Local { fn local(&self); } }\n",
+                    ),
+                ],
+            )
+            .package("core_pkg", &core);
+        let table = read(&registry, &[("facade", &["core_pkg"]), ("core_pkg", &[])]);
+        assert_eq!(
+            item(&table, "facade", "Serialize"),
+            names(&["serialize", "type"])
+        );
+        assert_eq!(item(&table, "facade", "Sup"), names(&["sup"]));
+        // A plain path in a 2015 module starts at the crate root, not the extern prelude.
+        assert_eq!(item(&table, "facade", "Relative"), names(&["local"]));
+    }
+
+    /// G177 review: each hole the independent review reproduced on rustc, in isolation.
+    const NAMED: &str = "pub trait T { fn name(self); }\nimpl<X> T for X { fn name(self) {} }\n";
+
+    #[test]
+    fn a_features_atoms_are_its_own_packages() {
+        // `a` with `x` and `b` without is a build: `a::T` is `b`'s by-value trait.
+        let registry = Registry::new();
+        let features = |name: &str, deps: &str| {
+            format!(
+                "[package]\nname = \"{name}\"\nversion = \"1.0.0\"\nedition = \"2021\"\n\
+                 [features]\nx = []\n{deps}"
+            )
+        };
+        let a = features("a", "[dependencies.b]\nversion = \"1\"\n");
+        let b = features("b", "");
+        let b_lib = format!(
+            "#[cfg(feature = \"x\")]\npub trait T {{}}\n#[cfg(not(feature = \"x\"))]\n{NAMED}"
+        );
+        registry
+            .package(
+                "a",
+                &[
+                    ("Cargo.toml", &a),
+                    (
+                        "src/lib.rs",
+                        "#[cfg(feature = \"x\")]\npub use b::T;\n\
+                         #[cfg(not(feature = \"x\"))]\npub trait T {}\n",
+                    ),
+                ],
+            )
+            .package("b", &[("Cargo.toml", &b), ("src/lib.rs", &b_lib)]);
+        let table = read(&registry, &[("a", &["b"]), ("b", &[])]);
+        assert_eq!(item(&table, "a", "T"), names(&["name"]));
+        assert!(!table.item_lacks("a", &["T".into()], "name"));
+    }
+
+    #[test]
+    fn a_macro_use_module_this_reading_does_not_walk_may_shadow_a_macro() {
+        let registry = Registry::new();
+        let dep = manifest("dep", "2021", &[], false);
+        let shadow = format!(
+            "macro_rules! m {{ () => {{ {} }}; }}\n",
+            NAMED.replace('\n', " ")
+        );
+        registry.package(
+            "dep",
+            &[
+                ("Cargo.toml", &dep),
+                (
+                    "src/lib.rs",
+                    "macro_rules! m { () => { pub trait T {} }; }\n\
+                     #[cfg_attr(unix, path = \"x_unix.rs\")]\n\
+                     #[cfg_attr(not(unix), path = \"x_other.rs\")]\n#[macro_use]\nmod x;\nm! {}\n",
+                ),
+                ("src/x_unix.rs", &shadow),
+                ("src/x_other.rs", &shadow),
+            ],
+        );
+        let table = read(&registry, &[("dep", &[])]);
+        assert_eq!(item(&table, "dep", "T"), None);
+        // Without `#[macro_use]` the unwalked module's macros end with it.
+        let registry = Registry::new();
+        registry.package(
+            "dep",
+            &[
+                ("Cargo.toml", &dep),
+                (
+                    "src/lib.rs",
+                    "macro_rules! m { () => { pub trait T {} }; }\n\
+                     #[cfg_attr(unix, path = \"x_unix.rs\")]\n\
+                     #[cfg_attr(not(unix), path = \"x_other.rs\")]\nmod x;\nm! {}\n",
+                ),
+                ("src/x_unix.rs", &shadow),
+                ("src/x_other.rs", &shadow),
+            ],
+        );
+        let table = read(&registry, &[("dep", &[])]);
+        assert_eq!(item(&table, "dep", "T"), names(&[]));
+    }
+
+    #[test]
+    fn a_crate_root_extern_crate_decides_its_name_in_every_module() {
+        let registry = Registry::new();
+        let a = manifest("a", "2021", &[("b", "b"), ("c", "c")], false);
+        registry
+            .package(
+                "a",
+                &[
+                    ("Cargo.toml", &a),
+                    (
+                        "src/lib.rs",
+                        "extern crate c as b;\npub mod sub { pub use b::T; }\n\
+                         pub mod rooted { pub use ::b::T; }\n",
+                    ),
+                ],
+            )
+            .package("b", &[("src/lib.rs", "pub trait T {}\n")])
+            .package("c", &[("src/lib.rs", NAMED)]);
+        let lock = [("a", &["b", "c"][..]), ("b", &[]), ("c", &[])];
+        let table = read(&registry, &lock);
+        assert_eq!(item(&table, "a", "sub::T"), names(&["name"]));
+        assert_eq!(item(&table, "a", "rooted::T"), names(&["name"]));
+        // `extern crate self as b` names the crate itself.
+        registry.package(
+            "a",
+            &[(
+                "src/lib.rs",
+                &format!("extern crate self as b;\n{NAMED}pub mod sub {{ pub use b::T as U; }}\n"),
+            )],
+        );
+        let table = read(&registry, &lock);
+        assert_eq!(item(&table, "a", "sub::U"), names(&["name"]));
+        // Under `cfg`, both crates may be meant.
+        registry.package(
+            "a",
+            &[(
+                "src/lib.rs",
+                "#[cfg(unix)]\nextern crate c as b;\npub mod sub { pub use b::T; }\n",
+            )],
+        );
+        let table = read(&registry, &lock);
+        assert_eq!(item(&table, "a", "sub::T"), names(&["name"]));
+    }
+
+    #[test]
+    fn an_unrenamed_dependency_is_named_after_its_library() {
+        let registry = Registry::new();
+        let p = manifest(
+            "p",
+            "2021",
+            &[("alpha", "alpha"), ("gamma", "gamma")],
+            false,
+        );
+        let lib = |name: &str, lib: &str| {
+            format!("[package]\nname = \"{name}\"\nversion = \"1.0.0\"\n[lib]\nname = \"{lib}\"\n")
+        };
+        registry
+            .package(
+                "p",
+                &[
+                    ("Cargo.toml", &p),
+                    ("src/lib.rs", "pub use alpha::T;\npub use beta::T as B;\n"),
+                ],
+            )
+            .package(
+                "alpha",
+                &[
+                    ("Cargo.toml", &lib("alpha", "beta")),
+                    ("src/lib.rs", "pub trait T {}\n"),
+                ],
+            )
+            .package(
+                "gamma",
+                &[
+                    ("Cargo.toml", &lib("gamma", "alpha")),
+                    ("src/lib.rs", NAMED),
+                ],
+            );
+        let table = read(
+            &registry,
+            &[("p", &["alpha", "gamma"]), ("alpha", &[]), ("gamma", &[])],
+        );
+        // Cargo passes `--extern alpha=<gamma>` and `--extern beta=<alpha>`: neither key names it.
+        assert_eq!(item(&table, "p", "T"), None);
+        assert_eq!(item(&table, "p", "B"), None);
+    }
+
+    #[test]
+    fn the_digest_moves_with_the_per_item_reading() {
+        let registry = Registry::new();
+        let before = facade(&registry, FACADE).digest;
+        let unchanged = facade(&registry, FACADE).digest;
+        assert_eq!(before, unchanged);
+        let after = facade(&registry, &FACADE.replace("Renamed", "Other")).digest;
+        assert_ne!(before, after);
+    }
+}
