@@ -1,0 +1,222 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R12",
+ "generation": "G172",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "rust-lang/miri",
+  "remote": "https://github.com/rust-lang/miri.git",
+  "pin": "c8c5364581b00a65613f17df2d953db80111bb74",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-26, 'Merge pull request #5349'); the G76 pins (2812a5914, c63eee41f54d) are history, the exact decision pin revalidated separately (revalidation R6)",
+  "license": "MIT OR Apache-2.0 (Cargo.toml license field; LICENSE-MIT and LICENSE-APACHE at the pin)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over a scratch copy of src/; nothing of Miri is in Atlas)",
+  "selection": "rank 1 of RECURSIVE-DONOR-REVALIDATION once rust is REVALIDATED (REVALIDATION_REQUIRED since G150, priority 680; its G76 REFERENCE_ONLY decision rested on DEBT-VERIFICATION_EVIDENCE, DEBT-OWNERSHIP and DEBT-CONCURRENCY, advanced since by resolved concurrency, role-aware macro arguments, closure and async block regions and std receivers)",
+  "dependency_class": "MECHANISM_INTERNAL (the miri crate over rustc's private crates -- rustc_middle, rustc_const_eval, rustc_abi -- which are external to the census and to the oracle alike)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/miri (2,602 tracked files, 1,449 rs: 142 in src/, 1,204 UI test programs in tests/; 20 MB), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E18",
+  "after": "E19 (G172: a module opened only by a glob keeps its certain glob-provided names, ADR 0086)"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence at both epochs; E19 changes which glob-provided names an open module trusts"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (7,723 functions, 22 s)",
+   "component withheld notes (100 open modules, 2,385 withheld path calls)",
+   "agent trace --from src/shims/unix/foreign_items.rs --to src/shims/unix/fs.rs"
+  ],
+  "atlas_knew": {
+   "functions": 7723,
+   "src_functions": 2389,
+   "call_records": 42707,
+   "invokes": 898,
+   "dispatches_to": 214,
+   "unresolved_call_sites": 40431,
+   "concurrency_records": 490,
+   "effect_records": 4777,
+   "resources": 15,
+   "open_scope_components": 100,
+   "withheld_path_calls": 2385,
+   "unrecognized_source_files": 1093
+  },
+  "challenge": "how does a program's `open` foreign call reach Miri's Unix file shim (shims/unix/fs.rs `open`) -- which path does Atlas observe?",
+  "answer": "E18 and E19 alike: NO_PATH_OBSERVED, UNKNOWN. The true path is emulate_foreign_item_inner (foreign_items.rs:111) -> `this.open(path_raw, flag, varargs)` -> EvalContextExt::open (fs.rs:404), where `this` is `self.eval_context_mut()`, of the external type InterpCx<MiriMachine>; an unseen inherent method of that type could win the method probe over Miri's extension traits, so Atlas leaves the call unresolved by name (the G167 external-declaration boundary) -- the oracle holds 26 foreign_items -> fs edges, all through such `this.` calls"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 scip over a scratch copy of src/ described by a rust-project.json (sysroot of the pinned toolchain, edition 2024, display_name and version, no dependencies, no cfg features): 123 documents, 6.9 s, 4.9 MB; compared at function level against Atlas INVOKES with both endpoints in src/ (1,810 fn items from a syn 2.0.117 parse, none failed)",
+  "summary": {
+   "N": {
+    "atlas_edges": 558,
+    "oracle_edges": 2727,
+    "agree": 550,
+    "atlas_only": 8,
+    "oracle_only": 2177,
+    "precision": 0.9857,
+    "recall": 0.2017,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 2171,
+     "ATLAS_SILENT": 6
+    },
+    "unmapped": {
+     "file_not_indexed_by_oracle": 79
+    }
+   },
+   "N_plus_1": {
+    "atlas_edges": 667,
+    "oracle_edges": 2727,
+    "agree": 655,
+    "atlas_only": 12,
+    "oracle_only": 2072,
+    "precision": 0.982,
+    "recall": 0.2402,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 2066,
+     "ATLAS_SILENT": 6
+    },
+    "unmapped": {
+     "file_not_indexed_by_oracle": 92
+    }
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT (oracle blind)",
+    "n_N": 8,
+    "n_N_plus_1": 12,
+    "what": "6 calls through impls of external rustc traits the dependency-free oracle cannot resolve (MiriAllocBytes::from_bytes and zeroed via AllocBytes, ThreadId::new via Idx; 4 of them new at E19), 4 in #[cfg(feature = \"stack-cache\")] code the oracle's project does not enable, 2 UniValMap::default through a std Default impl where SCIP names the trait declaration -- each read against the source"
+   },
+   {
+    "class": "ATLAS_CORRECT (unindexed by the oracle)",
+    "n_N_plus_1_new": 13,
+    "what": "new E19 edges in the cfg-gated genmc modules the oracle's project does not index (BorTag::default, AtomicReadOrd::to_genmc on typed parameters, ThreadManager::active_thread, split_memory_orderings) -- each read against the source"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n_N": 2171,
+    "n_N_plus_1": 2066,
+    "what": "oracle edges Atlas reports unresolved by name, by receiver at E19: 1,220 `this.` (the interpreter context, an external type), 469 `self.`, 126 on a local or parameter, 119 on a field, 78 paths, 60 other"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n": 6,
+    "what": "oracle call edges with no Atlas record at either epoch (calls inside macro invocations and doc-comment attribution)"
+   },
+   {
+    "class": "DONOR_CORRECT (withheld, not wrong)",
+    "n": 105,
+    "what": "oracle-confirmed call edges E18 withheld as open-scope because `use crate::*` read a crate root opened by its external glob, though the root binds each name by an item or a named re-export; resolved at E19"
+   }
+  ],
+  "cases": [
+   {
+    "question": "does `use crate::*` in a module of a crate whose root globs an external crate make every glob-provided name unknowable?",
+    "ground_truth": "no: a name the root binds by an item or a named import is the root's (named shadows glob), and another glob binding it differently would be an ambiguity error (E0659)",
+    "atlas_n": "yes: 2,106 path calls in 90 modules withheld",
+    "atlas_n_plus_1": "the certain names resolve (withheld 2,385 -> 1,767); root names bound only through its external glob stay withheld",
+    "classification_n": "DONOR_CORRECT (over-conservative, fixed in E19)",
+    "classification_n_plus_1": "ATLAS_CORRECT"
+   },
+   {
+    "question": "does `use TerminationInfo::*` inside a block of diagnostics.rs resolve?",
+    "ground_truth": "it does in rustc, but the enclosing function globs InterpErrorKind::* and UndefinedBehaviorInfo::* (external enums) first, whose variants Atlas cannot see and could shadow `TerminationInfo` in that block",
+    "atlas_n": "withheld (does not resolve)",
+    "atlas_n_plus_1": "withheld",
+    "classification_n": "ATLAS_CORRECT (sound)",
+    "classification_n_plus_1": "ATLAS_CORRECT (sound)"
+   },
+   {
+    "question": "how does emulate_foreign_item_inner reach the fs shims?",
+    "ground_truth": "26 `this.` calls into shims/unix/fs.rs",
+    "atlas_n": "NO_PATH_OBSERVED, UNKNOWN",
+    "atlas_n_plus_1": "unchanged",
+    "classification_n": "ATLAS_UNKNOWN (sound; NA-CALL-TYPE-RESIDUAL)",
+    "classification_n_plus_1": "ATLAS_UNKNOWN (sound)"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of Miri is absorbed: its crate, indexed by rust-analyzer, falsified one over-conservative Atlas rule; the fix follows Rust's own shadowing and ambiguity rules (named shadows glob; glob-glob is an error when used; only an item may shadow a glob), not any Miri code",
+  "change": "adapter semantic::rust::resolve: Module::items_open (open before import resolution, or with no fixed point), Entry::certain (a glob name its source binds by an item or named import, or by a certain glob of a module not open), uncertain_entry replacing the four glob-in-uncertain-module checks (ADR 0086)",
+  "falsification": "regression test a_certain_name_survives_a_glob_of_an_open_module (the miri shape) and the reworked an_open_scope_never_falls_through_and_trusts_only_its_certain_globs; 4 mutants killed (nothing certain; certainty through an open source -- the first version of the change, caught by the test; items_open ignored; items_open never set)"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "c8c5364581b0 (the whole repository)",
+  "N": {
+   "functions": 7723,
+   "invokes": 898,
+   "dispatches_to": 214,
+   "unresolved": 40431,
+   "withheld_path_calls": 2385,
+   "open_scope_components": 100,
+   "src_oracle_agree": 550,
+   "src_atlas_edges": 558
+  },
+  "N_plus_1": {
+   "functions": 7723,
+   "invokes": 1029,
+   "dispatches_to": 214,
+   "unresolved": 40285,
+   "withheld_path_calls": 1767,
+   "open_scope_components": 99,
+   "src_oracle_agree": 655,
+   "src_atlas_edges": 667
+  },
+  "edge_delta": {
+   "invokes_gained": 130,
+   "invokes_lost": 0,
+   "function_level_gained": 122,
+   "gained_oracle_confirmed": 105,
+   "gained_correct_by_reading": 17,
+   "gained_wrong": 0,
+   "lost": 0
+  },
+  "what_atlas_n_saw": "98.6% of its function-level edges confirmed by the oracle, the rest correct by reading; 20.2% of the oracle's call edges",
+  "what_atlas_n_missed": "that a name the crate root binds itself is certain through `use crate::*` even though the root globs an external crate",
+  "what_atlas_n_plus_1_sees": "105 more oracle-confirmed edges and 17 more correct by reading, none lost, none wrong; recall 20.2% -> 24.0%",
+  "still_unknown": "the interpreter-context method calls (`this.`, 1,220 oracle edges) and every name that reaches a module only through an external glob",
+  "magnitude": "moderate on the donor (+122 correct function-level edges, withheld calls -26%); general: every Rust crate whose root globs an external crate and whose modules glob the root"
+ },
+ "manual_reads": [
+  {
+   "what": "src/lib.rs 90-160 (the external glob and the named re-exports); src/concurrency/genmc/helper.rs 1-10, 115-135; src/diagnostics.rs 1-20, 60-75, 105-120, 245-262",
+   "why": "falsify the withheld globs",
+   "gap": "glob-opened importers distrusted certain names (fixed in E19); block globs of external enums (sound)"
+  },
+  {
+   "what": "src/alloc/alloc_bytes.rs 30-140, src/alloc_addresses/mod.rs 147-227, src/concurrency/thread.rs 58-66 and 505-530, src/borrow_tracker/stacked_borrows/stack.rs (cfg stack-cache), src/borrow_tracker/tree_borrows/unimap.rs 80-90",
+   "why": "adjudicate the 12 edges the oracle lacks",
+   "gap": "none: each is a real call the oracle cannot see"
+  },
+  {
+   "what": "src/concurrency/genmc/{helper,mod,shims}.rs at the new edges",
+   "why": "adjudicate the 13 new edges into modules the oracle does not index",
+   "gap": "none"
+  },
+  {
+   "what": "src/shims/unix/foreign_items.rs 349-356, src/shims/unix/fs.rs 395-410",
+   "why": "ground truth for the challenge",
+   "gap": "the external-declaration boundary (NA-CALL-TYPE-RESIDUAL)"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R6 (evidence/revalidation/R6-miri.json): rank 1, REVALIDATION_REQUIRED since G150; carried out at the exact G76 pin c63eee41f54d, re-materialized after this replay's pin was deleted, censused by E18 and E19 and deleted again",
+  "historical_decision": "G76 REFERENCE_ONLY: the MIR interpreter and its UB checkers (no unsafe code in Atlas; nightly-only) and the foreign-function shim table (a cross-check for a std-path effect table)",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: Atlas's own crates still contain no unsafe code outside test-fixture text and its toolchain is stable 1.90.0, so the interpreter still has no target and cannot run; the shim table stays a cross-check -- on the exact G76 source Atlas resolves 183 call edges in src/shims against 8,152 unresolved call sites at E19 (134 at E18)"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY at E19 (the MIR interpreter, its UB checkers and the shim table); Atlas's path resolution, falsified on Miri by its own language-server index, is confirmed or read correct on every edge it claims",
+  "capability_delta": "CAPABILITY_ADVANCED (E18 -> E19)",
+  "trigger": "CURRENT; re-opened by unsafe code entering Atlas, a nightly toolchain with Miri in the pin, or the method probe resolving calls on external types through declared extension traits (NA-CALL-TYPE-RESIDUAL): re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/miri and later .atlas/.cache/donors/miri-c63eee41, each after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracle's copy of src/, the SCIP index, fn extents, census models and differentials (scratch, outside the repository)",
+  "runtime_dependency": "none: Atlas does not depend on Miri; the toolchain's rust-analyzer is a test-time oracle only",
+  "evidence_retained": "this record and revalidation R6; no Miri text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

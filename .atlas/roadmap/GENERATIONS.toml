@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G171"
+current_generation = "G172"
 
 [[generation]]
 id = "G35"
@@ -4048,3 +4048,42 @@ after = 6317
 key = "composed:relation:INVOKES"
 before = 5157
 after = 5268
+
+[[generation]]
+id = "G172"
+kind = "REPLAY"
+base_commit = "292879ec42a0aa211c626a251fe9f19ee8e63798"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R12 and recursive revalidation R6: the interpreter whose MIR checking and shim table Atlas keeps REFERENCE_ONLY, facing the strongest Atlas (E18); DEBT-CALL advanced"
+objective = "replay rust-lang/miri at a fresh exact pin: Atlas_N first on the whole repository, a falsifiable question about how a program's open call reaches the Unix file shim, rust-analyzer's SCIP index of the miri crate as the oracle at function level, a bounded Atlas-native fix for what it falsifies, the same pin at N+1, the G76 verdict revalidated at its exact pin, the sources extinct"
+writer = "coordinator (sole writer)"
+replay = "rust-lang/miri"
+pinned_commit = "c8c5364581b00a65613f17df2d953db80111bb74"
+source_path = ".atlas/.cache/donors/miri"
+epoch_before = "E18"
+epoch_after = "E19"
+mission = ".atlas/evidence/replay/R12-miri.json"
+evidence = ".atlas/evidence/replay/R12-miri.json"
+self_recensus = ".atlas/evidence/census/G172/recensus.json"
+
+[generation.verification]
+pre_census = "G171 post digest"
+atlas_first = "the repository censused (7,723 functions, 898 INVOKES, 40,431 unresolved call sites, 100 open modules withholding 2,385 path calls); the trace from the Unix foreign-item dispatcher to the fs shims answered NO_PATH_OBSERVED, UNKNOWN; the withheld notes showed 2,106 calls in 90 modules withheld only because `use crate::*` read a root opened by its external glob"
+change = "adapter resolve: Module::items_open (open before import resolution, or with no fixed point); Entry::certain (a glob name its source binds by an item or named import, or by a certain glob of a module not open); uncertain_entry replaces the four glob-in-uncertain-module checks (ADR 0086)"
+oracle = "rust-analyzer 1.90.0 SCIP of a scratch copy of src/, compared at function level (syn extents from a scratch tool): 550 of 558 Atlas edges confirmed at E18, 655 of 667 at E19; the other 12 read correct in the source (external-trait impls, cfg-gated code, a std Default impl); 13 new edges into modules the oracle does not index read correct; none lost, none wrong; recall 20.2% -> 24.0%"
+falsification = "regression test of the miri shape and the reworked open-scope test; 4 mutants killed (nothing certain; certainty through an open source -- the first version of the change, caught by the test; items_open ignored; items_open never set)"
+boundary = "this.method() on the external interpreter context (1,220 oracle edges; an unseen inherent method could win the probe, the G167 boundary, NA-CALL-TYPE-RESIDUAL); names that reach a module only through an external glob; block globs of external enums; 1,093 files without a frontend"
+debts = "DEBT-CALL last advance G172; capability epoch E19; revalidation R6 REVALIDATED (the G76 REFERENCE_ONLY verdict holds at its exact pin: no unsafe code in Atlas, a stable toolchain); the earlier processed replays re-checked CURRENT at E19; next replay immunant/c2rust G174; native head NA-CALL-TYPE-RESIDUAL planned G173 (pressure 73, DEBT-EFFECT and DEBT-CONCURRENCY now linked to it)"
+review = "DEBT-CONTROL_FLOW, DEBT-DATA_FLOW, DEBT-STATE, DEBT-EFFECT, DEBT-OWNERSHIP and DEBT-CONCURRENCY reviewed at their cadence, all CONFIRMED (evidence/census/G172/debt-review.json)"
+proof = "PROVEN (post 5659fec3...): the new resolver fixtures explained as unresolved by design; on Atlas itself E19 adds 10 INVOKES and loses none (E18 and E19 binaries over the same tree), each read correct -- test modules reaching their parent through use super::* where the parent is open only by a glob; the pinned clones, the SCIP index and the scratch oracle tools deleted before the recensus"
+
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5268
+after = 5281
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 7356
+after = 7368

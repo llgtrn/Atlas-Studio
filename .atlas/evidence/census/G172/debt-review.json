@@ -1,0 +1,44 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G172",
+ "trigger": "review cadence: DEBT-CONTROL_FLOW, DEBT-DATA_FLOW, DEBT-STATE, DEBT-EFFECT, DEBT-OWNERSHIP and DEBT-CONCURRENCY, each stale for more than 12 generations since its last advance and its last review, fell due at G172",
+ "method": "re-read against the code at 7bcdb466 (the G172 change) and the generations G157-G171 that touched each capability (resources and MIR as a test-time oracle, async regions, seal gate, weights, principal authentication), plus the miri census of this replay",
+ "reviews": [
+  {
+   "debt": "DEBT-CONTROL_FLOW",
+   "verdict": "CONFIRMED",
+   "finding": "control flow still has one engine, the syntactic block walker (closure and async block regions since G133 and G159); rustc MIR entered only as a test-time oracle for RESOURCE release points (G169), never reconciled against CONTROL_FLOW records; no split below statement level; NA-SECOND-ENGINE unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-DATA_FLOW",
+   "verdict": "CONFIRMED",
+   "finding": "data flow is unchanged since field projections (G146): intraprocedural, syntactic, no alias or field-sensitive flow and no argument-to-parameter binding (GAP-ARGUMENT-BINDING, 5,434 on miri at G172); the replays since measured calls, not flows; NA-SECOND-ENGINE unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-STATE",
+   "verdict": "CONFIRMED",
+   "finding": "STATE records still come from the syntactic walker; interior mutability behind method calls and write! targets stay unclaimed -- on miri, whose machine state lives behind RefCell and method calls on the interpreter context, STATE records 487 against 7,723 functions; NA-SECOND-ENGINE unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-EFFECT",
+   "verdict": "CONFIRMED",
+   "finding": "effects come from resolved std paths (G77, G91) and declared std receivers (G144), async regions since G159; method-level effects still need receiver types, and on miri the effectful shims sit behind this.method() calls on the external interpreter context that Atlas leaves unresolved (the G167 external-declaration boundary); NA-CALL-TYPE-RESIDUAL unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-OWNERSHIP",
+   "verdict": "CONFIRMED",
+   "finding": "ownership records are still the syntactic borrow and move claims; G169 used rustc MIR drop sites as a test-time oracle for RESOURCE releases, which shows a MIR engine is feasible for ownership, but no MIR engine runs in the census; auto-ref and reborrows stay unclaimed; NA-SECOND-ENGINE unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-CONCURRENCY",
+   "verdict": "CONFIRMED",
+   "finding": "concurrency sites come from resolved std paths and declared std receivers (G117, G144) and async block regions (G159); thread handles are RESOURCE acquisitions since G157; on miri, whose data-race detector and pthread shims model concurrency for the interpreted program rather than performing it, 490 CONCURRENCY records stay unchanged across E18 and E19; scoped spawns on untyped closure parameters remain; NA-CALL-TYPE-RESIDUAL unchanged",
+   "correction": {}
+  }
+ ]
+}

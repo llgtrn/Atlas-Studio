@@ -1,0 +1,116 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R6",
+ "generation": "G172",
+ "donor": "miri",
+ "historical_decision": {
+  "generation": "G76",
+  "terminal_state": "REFERENCE_ONLY",
+  "detail": "the MIR interpreter and its UB checkers REFERENCE_ONLY (no unsafe code in Atlas; nightly-only, so not even usable as an oracle under the pinned toolchain); the foreign-function shim table REFERENCE_ONLY as a cross-check for a future std-path effect table (G77 built that table from resolved std paths)",
+  "evidence": ".atlas/evidence/campaign/15-miri.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED (since G150), rank 1 after rust's R5",
+  "reason": "its decision depended on DEBT-VERIFICATION_EVIDENCE, DEBT-OWNERSHIP and DEBT-CONCURRENCY, advanced since by resolved concurrency (G117), role-aware macro arguments (G120), closure regions (G133), std receivers (G144) and async block regions (G159)"
+ },
+ "question": "with every capability gained since G76, does Atlas now have a target for the MIR interpreter, a way to run it, or a use for the shim table beyond a cross-check -- on the exact source that decided it?",
+ "materialization": {
+  "pinned_commit": "c63eee41f54d6a4b414af7b22ab717063da0c50a",
+  "remote": "https://github.com/rust-lang/miri.git",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/miri-c63eee41",
+  "note": "the exact G76 pin (2026-09-20), re-materialized after replay R12's fresh pin was deleted; 2,593 tracked files (the G76 record counted 2,593); MIT OR Apache-2.0 at the pin"
+ },
+ "engines": {
+  "historical": "Atlas E18, the G171 tree (292879ec42a0) before this generation's change",
+  "current": "Atlas E19, the G172 tree (certain names survive a glob of an open module, ADR 0086)",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole repository at the pin",
+  "historical_records": {
+   "CALL": 42518,
+   "CONCURRENCY": 490,
+   "CONTROL_FLOW": 20135,
+   "DATA_FLOW": 84581,
+   "EFFECT": 4757,
+   "FUNCTION_IDENTITY": 7696,
+   "FUNCTION_SIGNATURE": 5964,
+   "OWNERSHIP": 22684,
+   "PERSISTENCE": 24,
+   "RESOURCE": 15,
+   "STATE": 485,
+   "SYMBOL": 12357,
+   "TYPE": 8033
+  },
+  "current_records": {
+   "CALL": 42664,
+   "CONCURRENCY": 490,
+   "CONTROL_FLOW": 20135,
+   "DATA_FLOW": 84581,
+   "EFFECT": 4757,
+   "FUNCTION_IDENTITY": 7696,
+   "FUNCTION_SIGNATURE": 5964,
+   "OWNERSHIP": 22684,
+   "PERSISTENCE": 24,
+   "RESOURCE": 15,
+   "STATE": 485,
+   "SYMBOL": 12357,
+   "TYPE": 8152
+  },
+  "historical_total": 209739,
+  "current_total": 210004,
+  "mechanism_slices": {
+   "src/shims (the foreign-function shim table, REFERENCE_ONLY)": {
+    "functions": 760,
+    "E18_resolved_callee_edges": 134,
+    "E18_unresolved": 8208,
+    "E19_resolved_callee_edges": 183,
+    "E19_unresolved": 8152
+   }
+  },
+  "repository": {
+   "E18": {
+    "functions": 7696,
+    "invokes": 899,
+    "open_scope_components": 100,
+    "withheld_path_calls": 2369,
+    "concurrency_records": 490
+   },
+   "E19": {
+    "functions": 7696,
+    "invokes": 1030,
+    "open_scope_components": 99,
+    "withheld_path_calls": 1756,
+    "concurrency_records": 490
+   }
+  }
+ },
+ "premises_rechecked": {
+  "unsafe_in_atlas": "none in core, runtime, adapter or apps outside test-fixture raw strings (4 occurrences, each inside an r#\"...\"# fixture)",
+  "toolchain": "rust-toolchain.toml pins stable 1.90.0 with rustfmt and clippy; Miri remains a nightly-only component"
+ },
+ "mechanism_through_atlas": "at the G76 pin Atlas resolves 183 call edges inside the shim table at E19 (134 at E18) against 8,152 call sites it leaves unresolved -- almost all `this.` calls on the interpreter context, an external type; the interpreter itself still has no target in Atlas and cannot run under its toolchain",
+ "semantic_delta": [
+  "RESOLVED_CONCURRENCY",
+  "ROLE_AWARE_MACRO_ARGUMENTS",
+  "CLOSURE_REGIONS",
+  "STD_RECEIVERS",
+  "ASYNC_BLOCK_REGIONS"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: the MIR interpreter and its UB checkers stay REFERENCE_ONLY (Atlas still has no unsafe code and a stable toolchain); the shim table stays a cross-check for the std-path effect table -- on the exact G76 source 8,152 shim call sites stay unresolved at E19 while 183 call edges there resolve; the replay's one falsification, glob-opened modules distrusting certain names, is fixed in E19",
+ "follow_up": "NA-CALL-TYPE-RESIDUAL",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G172 REVALIDATED at E19"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/miri-c63eee41 (from the repository root, path resolved and asserted under .atlas/.cache/donors/)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and replay R12",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ },
+ "engine_change_this_generation": "CERTAIN_GLOB_NAMES (G172, DEBT-CALL): the E18 -> E19 difference in the shim slice"
+}
