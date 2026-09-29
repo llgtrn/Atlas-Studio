@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G177"
+current_generation = "G178"
 
 [[generation]]
 id = "G35"
@@ -4275,3 +4275,41 @@ after = 10042
 key = "composed:relation:INVOKES"
 before = 6210
 after = 6593
+
+[[generation]]
+id = "G178"
+kind = "REPLAY"
+base_commit = "54d2e5b346fcdc1eb6ba1661e42194698675e958"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R15: rank 3 of the recursive revalidation, the e-graph engine egglog (REVALIDATION_REQUIRED since G150, its G82 decision resting on DEBT-TYPE and DEBT-DESIGN_GENERATION), facing E23 at a fresh pin that is also its decision pin; DEBT-CALL re-measured"
+objective = "census egglog at 90635860 with E23 against rust-analyzer's SCIP index of its eight crates with the standard library loaded; decide whether REFERENCE_ONLY holds; fix natively what the index falsifies; revalidation R8 at the same pin; extinction"
+writer = "coordinator (sole writer); implementation lanes and read-only adversarial review lanes (four passes)"
+replay = "egraphs-good/egglog"
+pinned_commit = "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
+source_path = ".atlas/.cache/donors/egglog"
+epoch_before = "E23"
+epoch_after = "E24"
+mission = ".atlas/evidence/replay/R15-egglog.json"
+evidence = ".atlas/evidence/replay/R15-egglog.json"
+self_recensus = ".atlas/evidence/census/G178/recensus.json"
+
+[generation.verification]
+pre_census = "G177 post digest"
+atlas_first = "E23 withheld 2,310 path calls in 102 components of every crate: the import fixed point never settled (a period-4 visibility oscillation in src/ast, a registry path growing through use quote::quote), so the fallback opened every module; the planner trace tree_decompose_and_plan -> decompose_into_bags answered NO_PATH_OBSERVED, UNKNOWN"
+change = "adapter resolve: same-origin bindings keep the wider visibility, an import never reads its own binding, the fallback trusts no import, extern crate items name their crate, an external import may bind nothing in a namespace (withheld beside any declared dependency of its name), glob and pub(in path) visibility exact; adapter dependency::cargo: a native TOML reader that binds nothing it cannot read; runtime: extern names as Cargo passes them (ADR 0091)"
+oracle = "rust-analyzer 1.90.0 SCIP of the eight crates with sysroot_src: function level 1,490 of 1,491 -> 1,702 of 1,703 edges confirmed (recall 27.99% -> 31.97%), the other read correct under cfg(feature = bin); 244 of 250 newly resolved call sites confirmed, the six others read correct; 322 of 417 new external paths confirmed external, the rest the trait-path convention or argument occurrences; Atlas's own model byte-identical"
+falsification = "the non-converging fixed point and, once it settled, extern crate self bound as an external root (WRONG claims the open scopes had hidden); four independent review passes then closed eleven more holes -- an external import bound in both namespaces, a quadratic lookup, glob and restricted visibilities too wide, a value-only import beside an unconfirmed dependency, merge order, dependencies keyed by manifest key, manifest spellings the line reader dropped or misread (the last pass by differential against tomllib over 636 registry manifests and 12,088 generated ones: 0 wrong, dropped or extra entries after the fix); 88 mutants killed"
+boundary = "59 components still open for derive and attribute macros and dependency item macros; macro-generated calls (add_primitive!); type aliases; 2015-edition paths (NA-EDITION-2015); a non-converging input still opens the whole workspace"
+debts = "DEBT-CALL and DEBT-DEPENDENCY last advance G178; capability epoch E24 fires no processed replay's trigger; egglog REFERENCE_ONLY revalidated (R8) and its trigger CURRENT; NA-EDITION-2015 queued; DEBT-DATA_FLOW escalated to BLOCK_NEW_DONOR_PROGRESS by staleness (32 generations); next native head NA-CALL-TYPE-RESIDUAL G179 (pressure 93), next replay rust-lang/datafrog G180"
+review = "DEBT-QUANTITY_UNITS reviewed at its cadence, CONFIRMED -- four kinds, core/src/quantity unchanged since G165 (evidence/census/G178/debt-review.json)"
+proof = "PROVEN (post 7928b607...): the source added this generation censused; the resolver and reader changes leave Atlas's own call edges unchanged; the clone, the oracle copies, the index and the models deleted before the recensus"
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 10042
+after = 10310
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 6593
+after = 6770

@@ -1,0 +1,1430 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G178",
+  "base_revision": "083618b83e8a637e319ef48b789728b548cced0b",
+  "candidate_revision": "969e6b4f1941ae1dac87fab1b1fa0b81e728d19e",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:236e7a4127c7b9c8605383ad63433c5ef1fd9697e3f8bb372830f0f249cb7fdc",
+  "after_census_digest": "blake3-256:7928b607ac4c092b6175027cf1cdf28f3bc3efefb9028f0d1cd5da12bd31343b",
+  "replay_digest": "blake3-256:7928b607ac4c092b6175027cf1cdf28f3bc3efefb9028f0d1cd5da12bd31343b",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/locked_traits/tests.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/locked_traits/tests.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 168,
+      "fact:FunctionSignature|OBSERVED": 70,
+      "fact:SemanticObligation|OBSERVED": -2,
+      "fact:SemanticObligation|UNKNOWN": 2,
+      "fact:Symbol|OBSERVED": 200,
+      "fact:Type|DERIVED": 31,
+      "fact:Type|OBSERVED": 64,
+      "record:CALL|DERIVED": 268,
+      "record:CALL|OBSERVED": 947,
+      "record:CONTROL_FLOW|INFERRED": 75,
+      "record:CONTROL_FLOW|OBSERVED": 332,
+      "record:DATA_FLOW|OBSERVED": 1931,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 75,
+      "record:FUNCTION_IDENTITY|OBSERVED": 168,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 70,
+      "record:OWNERSHIP|OBSERVED": 564,
+      "record:STATE|OBSERVED": 106,
+      "record:SYMBOL|OBSERVED": 200,
+      "record:TYPE|DERIVED": 31,
+      "record:TYPE|OBSERVED": 64
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 6804,
+    "graph_nodes": 4961
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": -2,
+    "obligation:CALL|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/census_cargo_workspace()."
+      ],
+      "after": [
+        "adapter dependency/cargo/census_cargo_workspace()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/manifest_dependency_roles()."
+      ],
+      "after": [
+        "adapter dependency/cargo/manifest_dependency_roles()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/manifest_targets()."
+      ],
+      "after": [
+        "adapter dependency/cargo/manifest_targets()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/workspace_dependencies()."
+      ],
+      "after": [
+        "adapter dependency/cargo/workspace_dependencies()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/locked_traits/impossible_features()."
+      ],
+      "after": [
+        "adapter semantic/rust/locked_traits/impossible_features()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/locked_traits/read_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/locked_traits/read_on_this_stack()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/add_item()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/add_item()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/extern_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/extern_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_first_type_segment()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_first_type_segment()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_type_path()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_type_path()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/vis()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/vis()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Scope`/insert()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Scope`/insert()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/merge_alternating()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/merge_alternating()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/a_crate_root_extern_crate_decides_a_registry_name_in_every_module()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_crate_root_extern_crate_decides_a_registry_name_in_every_module()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/a_registry_import_of_a_known_item_withholds_autoref_only_when_that_item_may_declare_the_name()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_registry_import_of_a_known_item_withholds_autoref_only_when_that_item_may_declare_the_name()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/one_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/one_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/review_findings_withhold_autoref()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/review_findings_withhold_autoref()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/crate_targets_locked()."
+      ],
+      "after": [
+        "runtime census/resolution/crate_targets_locked()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/named_by_key()."
+      ],
+      "after": [
+        "runtime census/resolution/named_by_key()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/tests/crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_name()."
+      ],
+      "after": [
+        "runtime census/resolution/tests/crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_name()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/bool_field_anywhere()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/brace_depth()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/declared_source()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/dependency_section_role()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/dotted_dependency_header()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/manifest_dependency_entries()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/manifest_sections()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter dependency/cargo/quoted_field_anywhere()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Manifest`/dependency_entries()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Manifest`/has()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Manifest`/one()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Manifest`/read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Manifest`/tables()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/basic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/blank()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/byte()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/comment()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/eat()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/escape()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/gap()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/header()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/hex()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/key_value()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/line_end()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/literal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/newline()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/skip_line()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/skip_statement()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/skip_string()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/starts()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:Reader<'a>`/value()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:TableHeader`/is()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/`impl:TableHeader`/parse()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/dependency_entry()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/dependency_table()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/flatten()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/table_role()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/a_header_inside_a_multi_line_string_is_text_and_a_key_given_twice_reads_nothing()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/a_leading_byte_order_mark_hides_no_header()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/a_workspace_root_reads_renames_and_dotted_patches()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/an_entry_whose_fields_are_not_what_cargo_requires_reads_as_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/braces_and_brackets_inside_strings_do_not_open_values()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/dep()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/deps()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/dotted_keys_before_any_header_and_under_target_headers_are_dependencies()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/every_toml_spelling_of_a_dependency_table_declares_its_entries()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/multi_line_and_escaped_strings_read_their_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/tests/path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/per_item/a_dependency_entry_the_manifest_reading_cannot_read_names_no_package()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/bind()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/bind_extern_crates()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/covers()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/crate_named()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/glob_entry()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/import_prefix()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/joined()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/known_extern()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/lookup_from()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/merge_sides()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/narrower()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_rest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/restricted_to()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/type_root()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/variant_entry()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/either()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/one_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/own_named()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/std_crate_named()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_declared_dependency_no_lockfile_confirms_still_takes_its_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_glob_re_export_is_no_wider_than_what_it_reads()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_restricted_visibility_is_the_module_its_path_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_extern_crate_item_binds_the_crate_it_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_import_never_resolves_its_path_through_its_own_binding()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_imported_item_outside_may_leave_its_name_to_what_it_shadows()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_imported_standard_function_leaves_the_crate_of_its_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_own_named_import_reads_only_the_bindings_of_its_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_unsure_import_merges_with_globs_in_any_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/one_item_through_two_globs_keeps_the_wider_visibility()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/without_a_fixed_point_no_named_import_is_trusted()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/a_dependency_table_in_any_toml_spelling_is_declared()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/a_multi_line_path_binds_its_directory_and_an_empty_path_binds_nothing()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/cargo_passes_an_unrenamed_workspace_library_by_its_crate_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/entries_sharing_a_key_or_a_name_that_bind_differently_bind_neither()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/every_declared_dependency_names_the_extern_prelude_whatever_its_source()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/src/dependency/cargo.rs: 14 -> 15",
+      "runtime/src/census/resolution/tests.rs: 14 -> 15"
+    ],
+    "decreased": [],
+    "total_before": 2327,
+    "total_after": 2329
+  },
+  "intent": {
+    "objective": "imports settle as rustc binds them: the import fixed point converges wherever rustc's does, extern crate items name their crate, an external import may bind nothing in a namespace, a dependency is known by the name Cargo passes (ADR 0091)",
+    "changed_paths": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/locked_traits/tests.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:STATE_FLOW",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "-obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/src/dependency/cargo.rs: the new manifest reader and resolver rules are explained as unresolved by design where they withhold; Atlas's own model is byte-identical",
+      "runtime/src/census/resolution/tests.rs: the new manifest reader and resolver rules are explained as unresolved by design where they withhold; Atlas's own model is byte-identical"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter dependency/cargo/census_cargo_workspace().",
+      "CHANGED adapter dependency/cargo/manifest_dependency_roles().",
+      "CHANGED adapter dependency/cargo/manifest_targets().",
+      "CHANGED adapter dependency/cargo/workspace_dependencies().",
+      "CHANGED adapter semantic/rust/locked_traits/impossible_features().",
+      "CHANGED adapter semantic/rust/locked_traits/read_on_this_stack().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/add_item().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/extern_crate().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_first_type_segment().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_type_path().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/vis().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Scope`/insert().",
+      "CHANGED adapter semantic/rust/resolve/merge_alternating().",
+      "CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+      "CHANGED adapter semantic/rust/resolve/tests/a_crate_root_extern_crate_decides_a_registry_name_in_every_module().",
+      "CHANGED adapter semantic/rust/resolve/tests/a_registry_import_of_a_known_item_withholds_autoref_only_when_that_item_may_declare_the_name().",
+      "CHANGED adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name().",
+      "CHANGED adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown().",
+      "CHANGED adapter semantic/rust/resolve/tests/one_crate().",
+      "CHANGED adapter semantic/rust/resolve/tests/review_findings_withhold_autoref().",
+      "CHANGED adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items().",
+      "CHANGED runtime census/resolution/crate_targets_locked().",
+      "CHANGED runtime census/resolution/named_by_key().",
+      "CHANGED runtime census/resolution/tests/crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_name().",
+      "DELETED adapter dependency/cargo/bool_field_anywhere().",
+      "DELETED adapter dependency/cargo/brace_depth().",
+      "DELETED adapter dependency/cargo/declared_source().",
+      "DELETED adapter dependency/cargo/dependency_section_role().",
+      "DELETED adapter dependency/cargo/dotted_dependency_header().",
+      "DELETED adapter dependency/cargo/manifest_dependency_entries().",
+      "DELETED adapter dependency/cargo/manifest_sections().",
+      "DELETED adapter dependency/cargo/quoted_field_anywhere().",
+      "CREATED adapter dependency/cargo/`impl:Manifest`/dependency_entries().",
+      "CREATED adapter dependency/cargo/`impl:Manifest`/has().",
+      "CREATED adapter dependency/cargo/`impl:Manifest`/one().",
+      "CREATED adapter dependency/cargo/`impl:Manifest`/read().",
+      "CREATED adapter dependency/cargo/`impl:Manifest`/tables().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/basic().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/blank().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/byte().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/comment().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/eat().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/escape().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/gap().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/header().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/hex().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/key().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/key_value().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/line_end().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/literal().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/new().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/newline().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/skip_line().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/skip_statement().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/skip_string().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/starts().",
+      "CREATED adapter dependency/cargo/`impl:Reader<'a>`/value().",
+      "CREATED adapter dependency/cargo/`impl:TableHeader`/is().",
+      "CREATED adapter dependency/cargo/`impl:TableHeader`/parse().",
+      "CREATED adapter dependency/cargo/dependency_entry().",
+      "CREATED adapter dependency/cargo/dependency_table().",
+      "CREATED adapter dependency/cargo/flatten().",
+      "CREATED adapter dependency/cargo/table_role().",
+      "CREATED adapter dependency/cargo/tests/a_header_inside_a_multi_line_string_is_text_and_a_key_given_twice_reads_nothing().",
+      "CREATED adapter dependency/cargo/tests/a_leading_byte_order_mark_hides_no_header().",
+      "CREATED adapter dependency/cargo/tests/a_workspace_root_reads_renames_and_dotted_patches().",
+      "CREATED adapter dependency/cargo/tests/an_entry_whose_fields_are_not_what_cargo_requires_reads_as_unknown().",
+      "CREATED adapter dependency/cargo/tests/braces_and_brackets_inside_strings_do_not_open_values().",
+      "CREATED adapter dependency/cargo/tests/dep().",
+      "CREATED adapter dependency/cargo/tests/deps().",
+      "CREATED adapter dependency/cargo/tests/dotted_keys_before_any_header_and_under_target_headers_are_dependencies().",
+      "CREATED adapter dependency/cargo/tests/every_toml_spelling_of_a_dependency_table_declares_its_entries().",
+      "CREATED adapter dependency/cargo/tests/multi_line_and_escaped_strings_read_their_text().",
+      "CREATED adapter dependency/cargo/tests/path().",
+      "CREATED adapter semantic/rust/locked_traits/tests/per_item/a_dependency_entry_the_manifest_reading_cannot_read_names_no_package().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/bind().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/bind_extern_crates().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/covers().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/crate_named().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/glob_entry().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/import_prefix().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/joined().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/known_extern().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/lookup_from().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/merge_sides().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/narrower().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_rest().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/restricted_to().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/type_root().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/variant_entry().",
+      "CREATED adapter semantic/rust/resolve/either().",
+      "CREATED adapter semantic/rust/resolve/one_item().",
+      "CREATED adapter semantic/rust/resolve/own_named().",
+      "CREATED adapter semantic/rust/resolve/std_crate_named().",
+      "CREATED adapter semantic/rust/resolve/tests/a_declared_dependency_no_lockfile_confirms_still_takes_its_name().",
+      "CREATED adapter semantic/rust/resolve/tests/a_glob_re_export_is_no_wider_than_what_it_reads().",
+      "CREATED adapter semantic/rust/resolve/tests/a_restricted_visibility_is_the_module_its_path_names().",
+      "CREATED adapter semantic/rust/resolve/tests/an_extern_crate_item_binds_the_crate_it_names().",
+      "CREATED adapter semantic/rust/resolve/tests/an_import_never_resolves_its_path_through_its_own_binding().",
+      "CREATED adapter semantic/rust/resolve/tests/an_imported_item_outside_may_leave_its_name_to_what_it_shadows().",
+      "CREATED adapter semantic/rust/resolve/tests/an_imported_standard_function_leaves_the_crate_of_its_name().",
+      "CREATED adapter semantic/rust/resolve/tests/an_own_named_import_reads_only_the_bindings_of_its_name().",
+      "CREATED adapter semantic/rust/resolve/tests/an_unsure_import_merges_with_globs_in_any_order().",
+      "CREATED adapter semantic/rust/resolve/tests/one_item_through_two_globs_keeps_the_wider_visibility().",
+      "CREATED adapter semantic/rust/resolve/tests/without_a_fixed_point_no_named_import_is_trusted().",
+      "CREATED runtime census/resolution/tests/a_dependency_table_in_any_toml_spelling_is_declared().",
+      "CREATED runtime census/resolution/tests/a_multi_line_path_binds_its_directory_and_an_empty_path_binds_nothing().",
+      "CREATED runtime census/resolution/tests/cargo_passes_an_unrenamed_workspace_library_by_its_crate_name().",
+      "CREATED runtime census/resolution/tests/entries_sharing_a_key_or_a_name_that_bind_differently_bind_neither().",
+      "CREATED runtime census/resolution/tests/every_declared_dependency_names_the_extern_prelude_whatever_its_source()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/dependency/cargo.rs",
+    "path adapter/src/semantic/rust/locked_traits.rs",
+    "path adapter/src/semantic/rust/locked_traits/tests.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/census/resolution/tests.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:STATE_FLOW",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total -obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED adapter dependency/cargo/census_cargo_workspace().",
+    "entity CHANGED adapter dependency/cargo/manifest_dependency_roles().",
+    "entity CHANGED adapter dependency/cargo/manifest_targets().",
+    "entity CHANGED adapter dependency/cargo/workspace_dependencies().",
+    "entity CHANGED adapter semantic/rust/locked_traits/impossible_features().",
+    "entity CHANGED adapter semantic/rust/locked_traits/read_on_this_stack().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/add_item().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/extern_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_first_type_segment().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_type_path().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/vis().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Scope`/insert().",
+    "entity CHANGED adapter semantic/rust/resolve/merge_alternating().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/a_crate_root_extern_crate_decides_a_registry_name_in_every_module().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/a_registry_import_of_a_known_item_withholds_autoref_only_when_that_item_may_declare_the_name().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/one_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/review_findings_withhold_autoref().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items().",
+    "entity CHANGED runtime census/resolution/crate_targets_locked().",
+    "entity CHANGED runtime census/resolution/named_by_key().",
+    "entity CHANGED runtime census/resolution/tests/crate_targets_bind_the_package_a_declaration_names_not_a_member_of_the_same_name().",
+    "entity DELETED adapter dependency/cargo/bool_field_anywhere().",
+    "entity DELETED adapter dependency/cargo/brace_depth().",
+    "entity DELETED adapter dependency/cargo/declared_source().",
+    "entity DELETED adapter dependency/cargo/dependency_section_role().",
+    "entity DELETED adapter dependency/cargo/dotted_dependency_header().",
+    "entity DELETED adapter dependency/cargo/manifest_dependency_entries().",
+    "entity DELETED adapter dependency/cargo/manifest_sections().",
+    "entity DELETED adapter dependency/cargo/quoted_field_anywhere().",
+    "entity CREATED adapter dependency/cargo/`impl:Manifest`/dependency_entries().",
+    "entity CREATED adapter dependency/cargo/`impl:Manifest`/has().",
+    "entity CREATED adapter dependency/cargo/`impl:Manifest`/one().",
+    "entity CREATED adapter dependency/cargo/`impl:Manifest`/read().",
+    "entity CREATED adapter dependency/cargo/`impl:Manifest`/tables().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/basic().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/blank().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/byte().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/comment().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/eat().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/escape().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/gap().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/header().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/hex().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/key().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/key_value().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/line_end().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/literal().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/new().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/newline().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/skip_line().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/skip_statement().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/skip_string().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/starts().",
+    "entity CREATED adapter dependency/cargo/`impl:Reader<'a>`/value().",
+    "entity CREATED adapter dependency/cargo/`impl:TableHeader`/is().",
+    "entity CREATED adapter dependency/cargo/`impl:TableHeader`/parse().",
+    "entity CREATED adapter dependency/cargo/dependency_entry().",
+    "entity CREATED adapter dependency/cargo/dependency_table().",
+    "entity CREATED adapter dependency/cargo/flatten().",
+    "entity CREATED adapter dependency/cargo/table_role().",
+    "entity CREATED adapter dependency/cargo/tests/a_header_inside_a_multi_line_string_is_text_and_a_key_given_twice_reads_nothing().",
+    "entity CREATED adapter dependency/cargo/tests/a_leading_byte_order_mark_hides_no_header().",
+    "entity CREATED adapter dependency/cargo/tests/a_workspace_root_reads_renames_and_dotted_patches().",
+    "entity CREATED adapter dependency/cargo/tests/an_entry_whose_fields_are_not_what_cargo_requires_reads_as_unknown().",
+    "entity CREATED adapter dependency/cargo/tests/braces_and_brackets_inside_strings_do_not_open_values().",
+    "entity CREATED adapter dependency/cargo/tests/dep().",
+    "entity CREATED adapter dependency/cargo/tests/deps().",
+    "entity CREATED adapter dependency/cargo/tests/dotted_keys_before_any_header_and_under_target_headers_are_dependencies().",
+    "entity CREATED adapter dependency/cargo/tests/every_toml_spelling_of_a_dependency_table_declares_its_entries().",
+    "entity CREATED adapter dependency/cargo/tests/multi_line_and_escaped_strings_read_their_text().",
+    "entity CREATED adapter dependency/cargo/tests/path().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/per_item/a_dependency_entry_the_manifest_reading_cannot_read_names_no_package().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/bind().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/bind_extern_crates().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/covers().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/crate_named().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/glob_entry().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/import_prefix().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/joined().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/known_extern().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/lookup_from().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/merge_sides().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/narrower().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_rest().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/restricted_to().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/type_root().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/variant_entry().",
+    "entity CREATED adapter semantic/rust/resolve/either().",
+    "entity CREATED adapter semantic/rust/resolve/one_item().",
+    "entity CREATED adapter semantic/rust/resolve/own_named().",
+    "entity CREATED adapter semantic/rust/resolve/std_crate_named().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_declared_dependency_no_lockfile_confirms_still_takes_its_name().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_glob_re_export_is_no_wider_than_what_it_reads().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_restricted_visibility_is_the_module_its_path_names().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_extern_crate_item_binds_the_crate_it_names().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_import_never_resolves_its_path_through_its_own_binding().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_imported_item_outside_may_leave_its_name_to_what_it_shadows().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_imported_standard_function_leaves_the_crate_of_its_name().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_own_named_import_reads_only_the_bindings_of_its_name().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_unsure_import_merges_with_globs_in_any_order().",
+    "entity CREATED adapter semantic/rust/resolve/tests/one_item_through_two_globs_keeps_the_wider_visibility().",
+    "entity CREATED adapter semantic/rust/resolve/tests/without_a_fixed_point_no_named_import_is_trusted().",
+    "entity CREATED runtime census/resolution/tests/a_dependency_table_in_any_toml_spelling_is_declared().",
+    "entity CREATED runtime census/resolution/tests/a_multi_line_path_binds_its_directory_and_an_empty_path_binds_nothing().",
+    "entity CREATED runtime census/resolution/tests/cargo_passes_an_unrenamed_workspace_library_by_its_crate_name().",
+    "entity CREATED runtime census/resolution/tests/entries_sharing_a_key_or_a_name_that_bind_differently_bind_neither().",
+    "entity CREATED runtime census/resolution/tests/every_declared_dependency_names_the_extern_prelude_whatever_its_source()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

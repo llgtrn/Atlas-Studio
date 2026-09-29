@@ -1,0 +1,14 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G178",
+ "trigger": "review cadence: DEBT-QUANTITY_UNITS, stale for at least 13 generations since its last advance and its last review, fell due at G178",
+ "method": "re-read against core/src/quantity (unchanged since G165, git log) and its QuantityKind enumeration",
+ "reviews": [
+  {
+   "debt": "DEBT-QUANTITY_UNITS",
+   "verdict": "CONFIRMED",
+   "finding": "the quantity core still carries exact rationals, dimensions, exact intervals and four kinds beside UNSPECIFIED (energy, torque, frequency, activity; core/src/quantity/mod.rs QuantityKind) and core/src/quantity is unchanged since G165, which brought the physical and product models' derived values into the census with their lineage; power, heat flow, plane and solid angle and kinds of derived products are still absent, so NA-QUANTITY-KINDS stays the next attack",
+   "correction": {}
+  }
+ ]
+}

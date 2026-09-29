@@ -1,0 +1,238 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R15",
+ "generation": "G178",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "egraphs-good/egglog",
+  "remote": "https://github.com/egraphs-good/egglog.git",
+  "pin": "90635860397ce710f8c0a4eeb04154a8ebc3ac05",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-29), which is also the G82 decision pin: the replay and revalidation R8 share one materialization",
+  "license": "MIT (LICENSE at the pin; Cargo.toml license fields)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over scratch copies of the eight workspace crates; nothing of egglog is in Atlas)",
+  "selection": "rank 3 of RECURSIVE-DONOR-REVALIDATION (REVALIDATION_REQUIRED since G150, priority 553; its G82 decision rested on DEBT-TYPE and DEBT-DESIGN_GENERATION, advanced since by canonical type identity, declared shapes, design candidates and item macro names); ranks 1 and 2 were replayed at R10 and R11/R14 with triggers CURRENT",
+  "dependency_class": "MECHANISM_INTERNAL (equality saturation over a relational database: e-graph union-find, free-join query plans, rule scheduling, extraction; the egglog language front end)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/egglog (569 files, 12 MB, 147 .rs), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E23",
+  "after": "E24 (G178: imports settle as rustc binds them, ADR 0091)"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence at both epochs; the egglog programs (.egg) and other non-Rust files are unrecognized source (GAP-UNRECOGNIZED-SOURCE 394 files at both epochs)"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (4,744 functions, 12 s)",
+   "component withheld notes (102 open-scope components, 2,310 withheld path calls, 1,289 of them caused by 'imports reach no fixed point within 64 rounds')",
+   "agent trace --from tree_decompose_and_plan (core-relations/src/free_join/plan.rs:1102) --to decompose_into_bags (plan.rs:541)"
+  ],
+  "atlas_knew": {
+   "functions": 4744,
+   "invokes": 1586,
+   "dispatches_to": 582,
+   "call_records": 24681,
+   "unresolved_call_sites": 20291,
+   "effect_records": 1139,
+   "concurrency_records": 86,
+   "resources": 2,
+   "open_scope_components": 102,
+   "withheld_path_calls": 2310,
+   "unrecognized_source_files": 394
+  },
+  "challenge": "does the free-join planner decompose a query into bags before planning each one -- which path does Atlas observe from tree_decompose_and_plan to decompose_into_bags?",
+  "answer": "E23: NO_PATH_OBSERVED, UNKNOWN (the origin has 19 unresolved call sites: the import fixed point never settled, so every module of every crate was open and its path calls withheld). E24: PATH_OBSERVED, DERIVED, one INVOKES step citing plan.rs:1129"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 scip over scratch copies of the eight workspace crates (egglog, core-relations, egglog-bridge, egglog-ast, egglog-reports, numeric-id, union-find, concurrency) described by one rust-project.json naming the pinned toolchain's sysroot and sysroot_src, edition 2024, no cfg features; compared at function level against Atlas INVOKES with both endpoints in the indexed crates (fn items from a syn parse), and site by site for every changed call",
+  "summary": {
+   "egglog workspace": {
+    "N": {
+     "atlas_edges": 1491,
+     "oracle_edges": 5324,
+     "agree": 1490,
+     "atlas_only": 1,
+     "oracle_only": 3834,
+     "precision": 0.9993,
+     "recall": 0.2799,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 3796,
+      "ATLAS_SILENT": 38
+     }
+    },
+    "N_plus_1": {
+     "atlas_edges": 1703,
+     "oracle_edges": 5324,
+     "agree": 1702,
+     "atlas_only": 1,
+     "oracle_only": 3622,
+     "precision": 0.9994,
+     "recall": 0.3197,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 3585,
+      "ATLAS_SILENT": 37
+     }
+    }
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT (cfg the oracle does not see)",
+    "n": 1,
+    "what": "src/lib.rs:554 with_proofs_enabled -> with_term_encoding_enabled under cfg(feature = \"bin\"), read against the source"
+   },
+   {
+    "class": "ATLAS_CORRECT (checker window)",
+    "n": 4,
+    "what": "prelude::rule and prelude::rust_rule calls: the fn line sits more than 40 lines below the item start (long doc comments); the index names the same fn"
+   },
+   {
+    "class": "ATLAS_CORRECT (cfg the oracle does not see)",
+    "n": 2,
+    "what": "src/cli.rs tests (should_eval, welcome_prompt) under cfg(feature = \"bin\")"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n_N_plus_1": 3585,
+    "what": "oracle edges Atlas reports unresolved by name: 59 components still open for derive or attribute macros and dependency item macros (and globs of them), receivers of external types, trait dispatch, constructors, type aliases the resolver does not follow (egglog::sort::S)"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n_N_plus_1": 37,
+    "what": "oracle call edges with no Atlas record: calls inside workspace macro_rules and procedural macros (add_primitive!), operator calls"
+   },
+   {
+    "class": "DONOR_CORRECT (withheld, not wrong)",
+    "n": 0,
+    "what": "none"
+   }
+  ],
+  "cases": [
+   {
+    "question": "why was every module of every crate open?",
+    "answer": "the import fixed point never settled: a period-4 oscillation from order-dependent visibility (src/ast/mod.rs `use crate::*;` then `pub use expr::*;`) and a registry path growing one segment per round (`use quote::quote;` resolving its first segment through itself); the resolver iterates the workspace as one state, so the 64-round fallback opened all of it"
+   },
+   {
+    "question": "what did settling expose?",
+    "answer": "calls of the crate's own EGraph claimed external: `extern crate self as egglog;` bound its item to an external root, and `use crate::*; pub use egglog::{EGraph, ..};` passed that on. Fixed in the same epoch; then two review passes found five more holes (four WRONG-claim classes, one 57x slowdown), all closed (ADR 0091)"
+   },
+   {
+    "question": "are the new external paths right?",
+    "answer": "417 open-scope calls became external paths; 322 are confirmed external by the index; the rest are the trait-path convention (`Default::default` names core's trait method, the index names the impl) or standard calls where the index's first occurrence is a workspace symbol among the arguments; none names workspace code"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of egglog is absorbed: its workspace, indexed by rust-analyzer, exposed that Atlas's import fixed point could fail to converge on code rustc accepts; the fix follows rustc's own name-resolution rules (try_define keeps the more visible of two bindings of one item; ignore_import; extern crate items; the namespaces an import binds), not any egglog code",
+  "change": "adapter semantic::rust::resolve: DefMap::covers/bind (same-origin bindings keep the wider visibility, merged unsure bindings keep both sides), import_prefix/own_named (an import never reads its own binding, one name looked up), the fallback distrusts named imports, extern_items/bind_extern_crates/crate_named (an extern crate item names its crate), Entry.unsure and either (an external import may bind nothing in a namespace), STD_CRATE_NAMED, restricted_to (pub(in path)), glob visibility the narrower of import and item; CrateInput.declared and runtime crate_targets_locked (every declared dependency name); adapter dependency::cargo ManifestTargets.lib_name; adapter dependency::cargo: a native TOML reader (every string kind, full key paths, unreadable entries declared but unbound); runtime: an extern name is the one Cargo passes (the library's crate name unless renamed), an empty path, an unseen workspace root or conflicting entries bind nothing",
+  "falsification": "regression tests one_item_through_two_globs_keeps_the_wider_visibility, an_import_never_resolves_its_path_through_its_own_binding, without_a_fixed_point_no_named_import_is_trusted, an_extern_crate_item_binds_the_crate_it_names, one per review hole, and every_declared_dependency_names_the_extern_prelude_whatever_its_source; 88 mutants killed",
+  "review": "four independent adversarial passes, each reproduced on rustc 1.90.0 or Cargo: (1) an external import bound in both namespaces rooted alloc:: paths at the function (WRONG), a quadratic self-excluding lookup (57x), glob re-exports and pub(in path) read too wide (older); (2) a value-only std import beside a dependency the lockfile does not confirm claimed the std path and a workspace method (older, WRONG), and an order-dependent merge; (3) workspace dependencies keyed by manifest key instead of library name (older, WRONG) and manifest spellings that dropped dependencies; (4) by differential against tomllib over 636 registry manifests and generated corpora, a triple-quoted path read as empty (introduced by the third fix, WRONG) and five older reader holes -- the line reader replaced by a native TOML reader, then 0 wrong, dropped or extra entries over 12,734 manifests"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "90635860397c (the whole repository)",
+  "N": {
+   "functions": 4744,
+   "invokes": 1586,
+   "dispatches_to": 582,
+   "call_records": 24681,
+   "withheld_path_calls": 2310,
+   "open_scope_components": 102,
+   "effect_records": 1139,
+   "unresolved": 20291
+  },
+  "N_plus_1": {
+   "functions": 4744,
+   "invokes": 1812,
+   "dispatches_to": 582,
+   "call_records": 24931,
+   "unresolved": 20041,
+   "withheld_path_calls": 1497,
+   "open_scope_components": 59,
+   "effect_records": 1142,
+   "concurrency_records": 87,
+   "resources": 3
+  },
+  "path_calls": {
+   "resolved_gained_sites": 250,
+   "resolved_gained_confirmed": 244,
+   "external_gained": 417,
+   "external_withdrawn": 13,
+   "withdrawn_cause": "11 standard calls through named imports in modules the settled fixed point leaves open (claimed before only because the non-converged state was read at round 64), withheld not retargeted; 2 GenericActions calls wrongly claimed external before this epoch"
+  },
+  "edge_delta": {
+   "invokes_gained": 226,
+   "invokes_lost": 0,
+   "function_level_gained": 212,
+   "gained_oracle_confirmed": 212,
+   "gained_wrong": 0,
+   "lost": 0
+  },
+  "withheld_delta": "withheld path calls 2,310 -> 1,497; open-scope components 102 -> 59: no scope is open for non-convergence any more",
+  "what_atlas_n_saw": "99.93% of its function-level edges confirmed by the oracle, the rest correct by reading; 27.99% of the oracle's call edges",
+  "what_atlas_n_missed": "every path call in every module of every crate whose resolution depended on an import, withheld because the import fixed point never settled",
+  "what_atlas_n_plus_1_sees": "212 more oracle-agreed function edges, none lost, none wrong; recall 27.99% -> 31.97%; the planner path from tree_decompose_and_plan to decompose_into_bags",
+  "still_unknown": "derive- and attribute-opened modules, dependency item macros, add_primitive! and other macro-generated calls, receivers of external types, type aliases",
+  "magnitude": "medium on the donor (+226 INVOKES, -813 withheld); none on Atlas itself, whose import graph already converged",
+  "final_binary_check": "the census of the pin was repeated with the binary of every later fix layer (the donor re-fetched at the same pin for 2-3 s each time and deleted again); each model is byte-identical to the N+1 model above"
+ },
+ "atlas_self": {
+  "method": "the E23 binary and the E24 binary over the same tree",
+  "N": {
+   "invokes": "identical"
+  },
+  "N_plus_1": {
+   "invokes": "identical"
+  },
+  "gained": 0,
+  "withdrawn": 0,
+  "retargeted": 0,
+  "wrong": 0,
+  "note": "byte-identical models: every registry dependency of Atlas is locked, it has no git dependency and no extern crate, and its import fixed point already converged"
+ },
+ "manual_reads": [
+  {
+   "what": "src/ast/mod.rs imports; src/lib.rs 1-70",
+   "why": "the period-4 oscillation and the crate-root imports",
+   "gap": "order-dependent visibility (fixed in E24)"
+  },
+  {
+   "what": "src/sort/add_primitive (use quote::quote)",
+   "why": "the growing path",
+   "gap": "an import resolving through itself (fixed in E24)"
+  },
+  {
+   "what": "src/lib.rs:20-26; src/prelude.rs 150-165, 1010-1025",
+   "why": "calls of EGraph claimed external",
+   "gap": "extern crate self item bound externally (fixed in E24)"
+  },
+  {
+   "what": "src/prelude.rs 384-448, 519-593; src/cli.rs 361-470",
+   "why": "the six gained sites the checker did not confirm",
+   "gap": "none: doc comments beyond the checker window, cfg(feature = \"bin\")"
+  },
+  {
+   "what": "core-relations/src/free_join/plan.rs 1100-1175",
+   "why": "ground truth for the challenge",
+   "gap": "none after E24"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R8 (evidence/revalidation/R8-egglog.json): rank 3, REVALIDATION_REQUIRED since G150; carried out at the exact G82 pin 90635860, the same materialization as this replay, censused by E23 and E24",
+  "historical_decision": "G82 REFERENCE_ONLY: equality saturation, e-class analysis, cost-based extraction and the egglog language",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: Atlas still asserts no non-structural equalities (types are canonical by resolution since G83, and the self-scope certificate has 0 conflict candidates), and its decision layer (G148-G150) compares authored candidates by explicit criteria with no rewrite system to saturate; on the exact G82 source Atlas's view of the engine gains 226 INVOKES at E24"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY at E24 (equality saturation, e-class analysis, cost-based extraction, the egglog language); Atlas's path resolution, falsified on egglog by its own language-server index, is confirmed or read correct on every edge it claims",
+  "capability_delta": "CAPABILITY_ADVANCED (E23 -> E24)",
+  "trigger": "CURRENT; re-opened by generated design candidates (DEBT-DESIGN_GENERATION: alternatives Atlas must rank or saturate), non-structural equalities asserted by rules, or dependency macro expansion bounding macro-opened scopes (add_primitive!, derives): re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/egglog, after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracle's crate copies, the SCIP index, fn extents, census models, differentials, site tables and the review fixtures (scratch, outside the repository)",
+  "runtime_dependency": "none: Atlas does not depend on egglog; the toolchain's rust-analyzer is a test-time oracle only",
+  "evidence_retained": "this record and revalidation R8; no egglog text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

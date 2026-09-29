@@ -797,7 +797,7 @@ objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-DEPENDENCY; done as NA-DEPEN
 [[planned_generation]]
 id = "G178"
 priority = "P0"
-objective = "FULL_OSS_REPLAY egraphs-good/egglog (QUEUED): rank 3 of the recursive revalidation (ranks 1 and 2 replayed, triggers CURRENT), its G82 decision (DEBT-TYPE, DEBT-DESIGN_GENERATION) facing the strongest Atlas (E22) at a fresh pin, its license verified at it"
+objective = "FULL_OSS_REPLAY egraphs-good/egglog (done: R15 at 90635860, also the G82 pin; the import fixed point never settled on it and opened every module -- fixed with rustc's own binding rules, then four review passes closed eleven holes incl. a native TOML manifest reader; 1,586 -> 1,812 INVOKES on the donor, none lost, recall 27.99% -> 31.97% against its SCIP index; Atlas's own model byte-identical; REFERENCE_ONLY revalidated (R8); capability epoch E24; ADR 0091)"
 
 [[planned_generation]]
 id = "G179"
@@ -805,6 +805,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, 93): NA-CALL-TYPE-RESIDUAL -- after E23 the residual on Atlas is 150 trait-impl methods on self (NA-TRAIT-IMPL-RECEIVERS) and 90 autoref refusals under another guard rule (40 in composition/lens.rs), measured again against rust-analyzer's index first"
 
 [[planned_generation]]
-id = "G180+"
+id = "G180"
+priority = "P0"
+objective = "FULL_OSS_REPLAY rust-lang/datafrog (QUEUED): rank 4 of the recursive revalidation (ranks 1 to 3 replayed, triggers CURRENT), revalidated at G121 and G136 but never replayed in this lane, facing the strongest Atlas (E24) at a fresh pin, its license verified at it"
+
+[[planned_generation]]
+id = "G181+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

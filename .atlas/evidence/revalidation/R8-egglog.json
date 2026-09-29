@@ -1,0 +1,121 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R8",
+ "generation": "G178",
+ "donor": "egglog",
+ "historical_decision": {
+  "generation": "G82",
+  "terminal_state": "REFERENCE_ONLY",
+  "detail": "equality saturation, e-class analysis, cost-based extraction and the egglog language REFERENCE_ONLY: 0 normalization conflicts in the self-scope certificate, type equivalence built bottom-up by resolution (the G83 candidate), no decision workload for e-class alternative ranking",
+  "evidence": ".atlas/evidence/campaign/19-egglog.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED (since G150), rank 3",
+  "reason": "its decision depended on DEBT-TYPE and DEBT-DESIGN_GENERATION, materially advanced since its last census (canonical type identity, declared shapes, design candidates, item macro names), and the donor is Rust source the new capability can observe"
+ },
+ "question": "with every capability gained since G82, does Atlas now have a workload for equality saturation -- non-structural equalities to propagate, conflicts to reconcile, or design alternatives to rank -- on the exact source that decided it?",
+ "materialization": {
+  "pinned_commit": "90635860397ce710f8c0a4eeb04154a8ebc3ac05",
+  "remote": "https://github.com/egraphs-good/egglog.git",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/egglog",
+  "note": "the exact G82 pin, which is also the upstream master head at execution: one materialization served replay R15 and this revalidation; 569 tracked files, 147 rs, MIT at the pin"
+ },
+ "engines": {
+  "historical": "Atlas E23, the G177 tree (54d2e5b346)",
+  "current": "Atlas E24, the G178 tree (imports settle as rustc binds them, ADR 0091)",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole repository at the pin",
+  "historical_records": {
+   "CALL": 24681,
+   "CONCURRENCY": 86,
+   "CONTROL_FLOW": 10682,
+   "DATA_FLOW": 47651,
+   "EFFECT": 1139,
+   "FUNCTION_IDENTITY": 4744,
+   "FUNCTION_SIGNATURE": 3097,
+   "OWNERSHIP": 11124,
+   "PERSISTENCE": 4,
+   "RESOURCE": 2,
+   "STATE": 1100,
+   "SYMBOL": 7738,
+   "TYPE": 6958
+  },
+  "current_records": {
+   "CALL": 24931,
+   "CONCURRENCY": 87,
+   "CONTROL_FLOW": 10682,
+   "DATA_FLOW": 47651,
+   "EFFECT": 1142,
+   "FUNCTION_IDENTITY": 4744,
+   "FUNCTION_SIGNATURE": 3097,
+   "OWNERSHIP": 11124,
+   "PERSISTENCE": 5,
+   "RESOURCE": 3,
+   "STATE": 1100,
+   "SYMBOL": 7738,
+   "TYPE": 7148
+  },
+  "historical_total": 119006,
+  "current_total": 119452,
+  "mechanism_slices": {
+   "INVOKES by crate (E23 -> E24)": {
+    "egglog (the language front end, typechecking, scheduler, extraction, proofs)": "653 -> 760",
+    "core-relations (the relational database: free-join plans, hash indexes, union-find tables)": "632 -> 693",
+    "concurrency": "142 -> 183",
+    "egglog-bridge (rules and union-find over core-relations)": "114 -> 118",
+    "numeric-id": "20 -> 21",
+    "union-find": "18 -> 18",
+    "egglog-ast": "1 -> 13",
+    "egglog-reports": "6 -> 6"
+   }
+  },
+  "repository": {
+   "E23": {
+    "functions": 4744,
+    "invokes": 1586,
+    "withheld_path_calls": 2310,
+    "open_scope_components": 102,
+    "unresolved_call_sites": 20291
+   },
+   "E24": {
+    "functions": 4744,
+    "invokes": 1812,
+    "withheld_path_calls": 1497,
+    "open_scope_components": 59,
+    "unresolved_call_sites": 20041
+   }
+  }
+ },
+ "premises_rechecked": {
+  "normalization_conflicts": "0: the self-scope certificate of G177 holds no conflict candidate between its two CALL and two EFFECT engines -- nothing to reconcile by equivalence",
+  "type_equivalence": "handled by resolution: canonical type identity (G83) builds canonical(Vec<X>) = Vec + canonical(X), congruence by construction; no equality is asserted non-structurally",
+  "decision_layer": "exists since G148-G150 (SelectedDesign, seal policy, candidate designs compared by explicit criteria), but its candidates are authored and ranked by stated criteria; there is no rewrite system or generated alternative set to saturate or extract from",
+  "toolchain": "egglog builds on stable Rust; nothing in Atlas would call it"
+ },
+ "mechanism_through_atlas": "at the G82 pin Atlas's Rust view of the engine gains 226 INVOKES at E24 (1,586 -> 1,812): the free-join planner, hash indexes and the language front end, all previously behind open scopes; the planner's decomposition path (tree_decompose_and_plan -> decompose_into_bags) is now observed",
+ "semantic_delta": [
+  "CANONICAL_TYPE_IDENTITY",
+  "DECLARED_SHAPES",
+  "DESIGN_CANDIDATES",
+  "ITEM_MACRO_NAMES",
+  "IMPORT_FIXED_POINT_CONVERGENCE"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: every G82 surface stays REFERENCE_ONLY -- Atlas asserts no non-structural equalities, has no reconciliation conflicts, and its decision layer ranks authored candidates, so equality saturation still has no workload; on the exact G82 source its view gains 226 call relations at E24; the replay's falsification, an import fixed point that never settled on code rustc accepts, is fixed in E24",
+ "follow_up": "DEBT-DESIGN_GENERATION: generated design alternatives would re-open this verdict",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G178 REVALIDATED at E24 (replay R15, revalidation R8)"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/egglog (from the repository root, path resolved and asserted under .atlas/.cache/donors/, working directory outside it; the one materialization shared with replay R15)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and replay R15",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ },
+ "engine_change_this_generation": "IMPORT_FIXED_POINT_CONVERGENCE (G178, DEBT-CALL): the E23 -> E24 difference in every slice"
+}
