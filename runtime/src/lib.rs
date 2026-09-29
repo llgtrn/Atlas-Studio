@@ -2,6 +2,7 @@
 
 pub mod agent;
 pub mod atlas;
+pub mod atlasx;
 pub mod census;
 pub mod certificate;
 pub mod design;

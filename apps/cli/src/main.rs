@@ -363,6 +363,33 @@ fn run(args: &[String]) -> Result<(), String> {
                 json(&serde_json::json!({ "path": out, "root_id": root }))?
             );
         }
+        [cmd, sub, rest @ ..] if cmd == "atlasx" && sub == "precondition" => {
+            // G179 (M10, ADR 0093): whether `--atlas` is admitted as an AtlasX parent -- a SEALED
+            // container whose seal record binds it, with the integrity envelope `--envelope` and
+            // the SelectedDesign `--design` its record names; exits ATLASX_PRECONDITION_REFUSED
+            // with every typed reason.
+            let atlas = value(rest, "--atlas")?.ok_or("atlasx precondition requires --atlas")?;
+            let envelope =
+                value(rest, "--envelope")?.ok_or("atlasx precondition requires --envelope")?;
+            let design = value(rest, "--design")?;
+            let verdict = runtime::atlasx::precondition(
+                &atlas,
+                &envelope,
+                design.as_deref().map(std::path::Path::new),
+            )
+            .map_err(|e| e.to_string())?;
+            let text = json(&verdict)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if verdict.verdict != runtime::atlasx::PreconditionVerdict::Admitted {
+                return Err(format!(
+                    "ATLASX_PRECONDITION_REFUSED: {} reasons",
+                    verdict.reasons.len()
+                ));
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "weights" && sub == "census" => {
             // G163 (ADR 0078): the physical census of a SafeTensors weight container -- storage
             // facts and payload digests; semantic roles stay UNKNOWN.
@@ -1197,7 +1224,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }
@@ -1466,5 +1493,263 @@ mod tests {
         let err = run(&["check".to_owned(), "--root".to_owned()])
             .expect_err("a --root flag with no following value must never succeed silently");
         assert_eq!(err, "--root requires a value");
+    }
+
+    /// G179 (M10, ADR 0093): the G161 fixture end to end through the CLI -- `seal gate` decides
+    /// ELIGIBLE, `atlas seal` writes the sealed container, and `atlasx precondition` admits it
+    /// with the envelope and design its record names; the unsealed container is refused
+    /// NOT_SEALED and the command exits non-zero. The design is selected by a test-fixture
+    /// principal declared in a scratch root, never a recorded selection.
+    #[test]
+    fn atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed() {
+        // Through the runtime's re-exports: the CLI depends on Core only through Runtime.
+        use runtime::atlasx::inputs::{
+            AuthorityEvent, AuthorityMode, CensusAtlas, CertificateRecord, DesignState,
+            ENVELOPE_SCHEMA_VERSION, EnvelopeInvariant, EnvelopeStatus, EventSignature,
+            ImpactClosureRef, IntegrityEnvelope, IntegrityReport, IntegrityVerdict, InvariantClass,
+            Principal, PrincipalKey, PrincipalKind, PrincipalRegistry, REPORT_SCHEMA_VERSION,
+            RootManifest, SelectedDesign, Strength, UNSEALED, VerificationPolicy, ViolationAction,
+            container_candidate, design_identity, envelope_identity, event_identity, read,
+            signing_message, write,
+        };
+        let dir = std::env::temp_dir().join(format!("atlas-cli-atlasx-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join(".atlas/declared")).unwrap();
+        let path = |name: &str| dir.join(name).to_string_lossy().into_owned();
+        let write_json = |name: &str, value: &serde_json::Value| {
+            fs::write(dir.join(name), value.to_string()).unwrap();
+        };
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let mut atlas = CensusAtlas {
+            manifest: RootManifest {
+                genome_schema: "atlas.genome.v1".into(),
+                genome_hash: [7; 32],
+                census_digest: [9; 32],
+                revision: format!("git:{sha}"),
+                certificate_id: "census-certificate:fixture".into(),
+                seal: UNSEALED.into(),
+                tool: "test".into(),
+                mode: "THIN".into(),
+            },
+            facts: Vec::new(),
+            obligations: Vec::new(),
+            nodes: Vec::new(),
+            edges: Vec::new(),
+            certificate: CertificateRecord {
+                certificate_id: "census-certificate:fixture".into(),
+                state: "CLOSED".into(),
+                blockers: vec!["ATLAS_ROOT_UNSEALED: the fixture container".into()],
+            },
+            typed_records: Vec::new(),
+            evidence: Vec::new(),
+            diagnostics: Vec::new(),
+            seal: None,
+        };
+        atlas.canonicalize();
+        let bytes = write(&atlas).unwrap();
+        fs::write(dir.join("unsealed.atlas"), &bytes).unwrap();
+        let (_, root) = read(&bytes).unwrap();
+        let candidate = container_candidate(&atlas);
+        let mut envelope = IntegrityEnvelope {
+            schema_version: ENVELOPE_SCHEMA_VERSION.into(),
+            envelope_id: String::new(),
+            subject_ref: "system:Fixture".into(),
+            genome_ref: "atlas.genome.v1".into(),
+            selected_design_ref: None,
+            blueprint_revision_ref: None,
+            status: EnvelopeStatus::Active,
+            elements: Vec::new(),
+            invariants: vec![EnvelopeInvariant {
+                invariant_id: "invariant:fixture".into(),
+                kind: InvariantClass::DependencyDirection,
+                strength: Strength::Hard,
+                subject_refs: vec!["Core".into(), "Runtime".into()],
+                statement: "forall f: function in Core forbid call to Runtime".into(),
+                rule_ref: None,
+                falsification_conditions: Vec::new(),
+                violation_action: ViolationAction::Reject,
+                evidence_refs: Vec::new(),
+            }],
+            provenance_refs: Vec::new(),
+            notes: Vec::new(),
+        };
+        envelope.envelope_id = envelope_identity(&envelope);
+        write_json("envelope.json", &serde_json::to_value(&envelope).unwrap());
+        write_json(
+            "verification.json",
+            &serde_json::json!({
+                "schema": "atlas.verification-report.v1",
+                "policy": VerificationPolicy::library_package(),
+                "candidate": candidate,
+                "outcomes": [], "coverage": {}, "failures": [],
+                "verdict": "ADMISSIBLE", "blockers": []
+            }),
+        );
+        let integrity = IntegrityReport {
+            schema_version: REPORT_SCHEMA_VERSION.into(),
+            report_id: "report:fixture".into(),
+            candidate_ref: format!("revision:{sha}"),
+            materialization_ref: None,
+            envelope_ref: envelope.envelope_id.clone(),
+            observed_architecture_root: candidate.clone(),
+            impact_closure: ImpactClosureRef {
+                closed: true,
+                affected_semantic_refs: Vec::new(),
+                affected_invariant_refs: Vec::new(),
+                closure_root: None,
+            },
+            evaluations: Vec::new(),
+            hard_violation_count: 0,
+            required_unknown_count: 0,
+            load_bearing_equivalence_closed: true,
+            blueprint_revision_ref: None,
+            verdict: IntegrityVerdict::Eligible,
+            evidence_refs: Vec::new(),
+        };
+        write_json("integrity.json", &serde_json::to_value(&integrity).unwrap());
+        let mut design = SelectedDesign {
+            schema: "atlas.selected-design.v1".into(),
+            design_id: String::new(),
+            parent_root: root.as_str().to_owned(),
+            candidate,
+            scope: runtime::seal::SELF_SCOPE.into(),
+            target_kind: "LIBRARY_PACKAGE".into(),
+            variant: "default".into(),
+            state: DesignState::Selected,
+            roots: Vec::new(),
+            bindings: Vec::new(),
+            candidate_set: Vec::new(),
+            evidence_refs: Vec::new(),
+            authority_mode: AuthorityMode::HumanRequired,
+            authority_event: None,
+            rationale: "test fixture".into(),
+            supersedes: None,
+            comparison: Some("comparison:fixture".into()),
+        };
+        design.design_id = design_identity(&design);
+        let principal = Principal {
+            id: "fixture-principal".into(),
+            kind: PrincipalKind::Human,
+        };
+        let mut event = AuthorityEvent {
+            event_id: String::new(),
+            principal: principal.clone(),
+            mode: AuthorityMode::HumanRequired,
+            design_id: design.design_id.clone(),
+            generation: "G179".into(),
+            statement: "test fixture".into(),
+            signature: None,
+        };
+        event.event_id = event_identity(&event);
+        let key = ed25519_compact::KeyPair::from_seed(ed25519_compact::Seed::new([11; 32]));
+        let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+        event.signature = Some(EventSignature {
+            public_key: hex(&key.pk[..]),
+            signature: hex(&key.sk.sign(signing_message(&event).as_bytes(), None)[..]),
+        });
+        design.authority_event = Some(event);
+        write_json("design.json", &serde_json::to_value(&design).unwrap());
+        let registry = PrincipalRegistry {
+            principals: vec![principal.clone()],
+            keys: vec![PrincipalKey {
+                principal: principal.id,
+                algorithm: "ed25519".into(),
+                public_key: hex(&key.pk[..]),
+            }],
+            ..PrincipalRegistry::empty()
+        };
+        write_json(
+            ".atlas/declared/principals.json",
+            &serde_json::to_value(&registry).unwrap(),
+        );
+        write_json(
+            "policy.json",
+            &serde_json::to_value(runtime::seal::self_scope_policy()).unwrap(),
+        );
+        let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();
+        run(&args(&[
+            "seal",
+            "gate",
+            "--root",
+            &path(""),
+            "--atlas",
+            &path("unsealed.atlas"),
+            "--verification",
+            &path("verification.json"),
+            "--integrity",
+            &path("integrity.json"),
+            "--design",
+            &path("design.json"),
+            "--policy",
+            &path("policy.json"),
+            "--out",
+            &path("eligibility.json"),
+        ]))
+        .expect("the fixture is ELIGIBLE");
+        run(&args(&[
+            "atlas",
+            "seal",
+            "--atlas",
+            &path("unsealed.atlas"),
+            "--eligibility",
+            &path("eligibility.json"),
+            "--out",
+            &path("sealed.atlas"),
+        ]))
+        .expect("the ELIGIBLE fixture is sealed");
+        let precondition = |parent: &str, out: &str| {
+            run(&args(&[
+                "atlasx",
+                "precondition",
+                "--atlas",
+                &path(parent),
+                "--envelope",
+                &path("envelope.json"),
+                "--design",
+                &path("design.json"),
+                "--out",
+                &path(out),
+            ]))
+        };
+        let read_out = |out: &str| -> serde_json::Value {
+            serde_json::from_str(&fs::read_to_string(dir.join(out)).unwrap()).unwrap()
+        };
+
+        precondition("sealed.atlas", "admitted.json").expect("the sealed fixture is admitted");
+        let admitted = read_out("admitted.json");
+        assert_eq!(admitted["verdict"], "ADMITTED", "{admitted:#}");
+        assert_eq!(admitted["reasons"], serde_json::json!([]));
+        let (sealed, sealed_root) =
+            runtime::design::read_container(dir.join("sealed.atlas")).unwrap();
+        let record = sealed.seal.expect("sealed");
+        assert_eq!(admitted["admitted"]["parent_root"], sealed_root);
+        assert_eq!(admitted["admitted"]["seal_id"], record.seal_id);
+        assert_eq!(admitted["admitted"]["envelope_id"], envelope.envelope_id);
+        assert_eq!(admitted["admitted"]["design_id"], design.design_id);
+
+        let err = precondition("unsealed.atlas", "refused.json")
+            .expect_err("an unsealed parent is refused");
+        assert_eq!(err, "ATLASX_PRECONDITION_REFUSED: 1 reasons");
+        let refused = read_out("refused.json");
+        assert_eq!(refused["verdict"], "REFUSED");
+        assert_eq!(refused["reasons"][0][0], "NOT_SEALED");
+        assert_eq!(refused["admitted"], serde_json::Value::Null);
+
+        // Undecodable bytes are a typed refusal; a missing file is an error naming it.
+        fs::write(dir.join("garbage.atlas"), b"not a container").unwrap();
+        let err = precondition("garbage.atlas", "garbage.json").expect_err("refused");
+        assert_eq!(err, "ATLASX_PRECONDITION_REFUSED: 1 reasons");
+        assert_eq!(read_out("garbage.json")["reasons"][0][0], "UNREADABLE");
+        let err = precondition("missing.atlas", "missing.json").expect_err("no such file");
+        assert!(err.contains("missing.atlas"), "{err}");
+        let err = run(&args(&[
+            "atlasx",
+            "precondition",
+            "--atlas",
+            &path("sealed.atlas"),
+        ]))
+        .expect_err("the envelope is an explicit input");
+        assert_eq!(err, "atlasx precondition requires --envelope");
+        fs::remove_dir_all(&dir).ok();
     }
 }

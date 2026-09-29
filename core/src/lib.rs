@@ -5,6 +5,7 @@
 //! `runtime`, or application crates.
 
 pub mod atlas;
+pub mod atlasx;
 pub mod capability;
 pub mod census;
 pub mod certificate;

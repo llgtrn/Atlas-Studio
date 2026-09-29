@@ -93,6 +93,8 @@ Before materialization:
 11. load the exact pinned ArchitecturalIntegrityEnvelope and sealed integrity evidence;
 12. compute materialization-critical architectural impact from selected bindings/profile/closure expansion and fail closed if a HARD invariant would be violated.
 
+Implementation status (G179, ADR 0093): `atlas_core::atlasx::precondition` (`atlas-systemizer atlasx precondition`) implements steps 1, 2, 7 and 11 and the seal-identity part of step 5. It admits a parent only when the parent reads back SEALED, its seal record binds it, the integrity envelope is the one the record names and verifies, and the SelectedDesign is the one the record names, verifies and is SELECTED. Every refusal is a typed reason. Every verdict lists the steps it does not verify yet (3, the rest of 5, 6, 8, 9, 12, and the design's selection authority).
+
 Materialization MUST fail closed on required integrity/schema/selection errors. Architectural integrity is included in this fail-closed rule; materialization cannot use a profile or binding to bypass an invariant that was required at seal.
 
 ## Selection closure

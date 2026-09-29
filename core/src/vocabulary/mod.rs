@@ -184,6 +184,16 @@ pub const CARRIERS: &[Carrier] = &[
         "a certificate eligible or not under a scope's seal policy (G149)",
     ),
     carrier(
+        "PreconditionVerdict",
+        CarrierRole::Verdict,
+        "a parent admitted or refused for AtlasX by the precondition gate (G179, M10)",
+    ),
+    carrier(
+        "PreconditionRefusal",
+        CarrierRole::Verdict,
+        "why the AtlasX precondition gate refuses a parent: unreadable, not sealed, an unbound seal record, an envelope or design that does not verify or is not the one the seal names (G179)",
+    ),
+    carrier(
         "Enforcement",
         CarrierRole::Enforcement,
         "an isolation property applied or not, with why",

@@ -16,3 +16,8 @@ serde_json.workspace = true
 [[bin]]
 name = "atlas-systemizer"
 path = "src/main.rs"
+
+# Test-only: the end-to-end tests sign a fixture principal's selection event, as a principal
+# would outside Atlas (ADR 0085). Core is reached only through Runtime's re-exports.
+[dev-dependencies]
+ed25519-compact = { version = "=2.6.0", default-features = false }
