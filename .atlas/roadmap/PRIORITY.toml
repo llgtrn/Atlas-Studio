@@ -777,12 +777,17 @@ objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done as NA-DEPENDENCY-DECLARATION
 [[planned_generation]]
 id = "G174"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R13 immunant/c2rust (QUEUED): rank 1 of the recursive revalidation after R12, its G114 decision (DEBT-MULTILANGUAGE, DEBT-TRANSFORMATION) facing the strongest Atlas (E20) at a fresh pin, its license verified at it"
+objective = "FULL_OSS_REPLAY R13 immunant/c2rust at 7fe0cf95d0ff (done: rust-analyzer's SCIP index of c2rust-transpile and c2rust-refactor, with the standard library loaded, confirmed every function-level call edge Atlas claims or left it read correct, and falsified the resolver's blindness to calls inside standard macro arguments; capability epoch E21 reads each recovered invocation as the evaluation it performs -- transpile 1,191 of 1,228 and refactor 2,031 of 2,035 confirmed, none lost, none wrong, and on Atlas itself 7,644 -> 9,182 resolved path calls all confirmed or read correct; an independent review's two holes closed (conditional arguments, rebound macro names); revalidation R7 at the exact G114 pin REVALIDATED REFERENCE_ONLY; sources extinct; ADR 0088)"
 
 [[planned_generation]]
 id = "G175"
 priority = "P0"
-objective = "native attack queue head (pressure map, 77): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE, DEBT-EFFECT, DEBT-CONCURRENCY) -- after E20 the residual on Atlas is method calls on receivers Atlas does not type and the imports it still cannot see into (serde's build-script include, macro_export names); NA-DEPENDENCY-DECLARATIONS (items through re-exports) and NA-MACRO-EXPORT-NAMES are its bounded next steps"
+objective = "native attack queue head (pressure map, 81): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE, DEBT-EFFECT, DEBT-CONCURRENCY) -- after E21 the residual on Atlas is method calls on receivers Atlas does not type and the imports it still cannot see into (serde's build-script include, macro_export names); NA-DEPENDENCY-DECLARATIONS (items through re-exports), NA-MACRO-EXPORT-NAMES and NA-WORKSPACE-MACRO-ARGUMENTS are its bounded next steps"
+
+[[planned_generation]]
+id = "G176"
+priority = "P0"
+objective = "FULL_OSS_REPLAY rust-lang/rust (R11 REVALIDATION_REQUIRED since E20: the method probe autoref step is now decided beside external imports): re-census the same rustc_hir_typeck pin against the language server index of the crate, then the next NEVER_REPLAYED donor by revalidation rank"
 
 [[planned_generation]]
 id = "G176+"

@@ -1,0 +1,260 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R13",
+ "generation": "G174",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "immunant/c2rust",
+  "remote": "https://github.com/immunant/c2rust.git",
+  "pin": "7fe0cf95d0ff1414b6aa93b17ca328f56b4c450f",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-29); the G114 decision pin 1d37ebbf4d50 is history, revalidated separately at that exact commit (revalidation R7)",
+  "license": "BSD-3-Clause (LICENSE at the pin; one crate MIT OR Apache-2.0 by its Cargo.toml license field)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over scratch copies of c2rust-transpile and c2rust-refactor; nothing of c2rust is in Atlas)",
+  "selection": "rank 1 of RECURSIVE-DONOR-REVALIDATION after miri's R6 (REVALIDATION_REQUIRED since G150, priority 552; its G114 REFERENCE_ONLY decision rested on DEBT-MULTILANGUAGE and DEBT-TRANSFORMATION, advanced since by foreign functions, compiled package entries, TypeScript module linking and the TypeScript/JavaScript profile)",
+  "dependency_class": "MECHANISM_INTERNAL (a C-to-Rust translator over clang's AST export, a refactoring tool over rustc's private crates, pointer-permission analyses; its own toolchain is nightly-2023-04-15)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/c2rust (21 MB), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E20",
+  "after": "E21 (G174: standard macro arguments reach every resolver pass, ADR 0088)"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence at both epochs; C and C++ (238 .c, 34 .h and the clang exporter) remain unrecognized source (GAP-UNRECOGNIZED-SOURCE 864 files at both epochs)"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (9,451 functions, 17 s)",
+   "component withheld notes (106 open-scope components, 2,427 withheld path calls)",
+   "agent trace --from PointerTable::index (c2rust-analyze/src/pointer_id.rs:450) --to PointerId::is_none (pointer_id.rs:38)"
+  ],
+  "atlas_knew": {
+   "functions": 9451,
+   "invokes": 5208,
+   "dispatches_to": 555,
+   "call_records": 50379,
+   "unresolved_call_sites": 35059,
+   "effect_records": 1761,
+   "concurrency_records": 18,
+   "resources": 15,
+   "open_scope_components": 106,
+   "withheld_path_calls": 2427,
+   "unrecognized_source_files": 864
+  },
+  "challenge": "does the pointer table's index operator check its id against PointerId::NONE -- which path does Atlas observe from PointerTable::index to PointerId::is_none?",
+  "answer": "E20: NO_PATH_OBSERVED, UNKNOWN (the origin has 1 unresolved call site). The call is `debug_assert!(!id.is_none())` on a typed parameter: the syntactic extractor claimed its site since G119, but the resolver never walked macro arguments. E21: PATH_OBSERVED, DERIVED, one INVOKES step citing that site"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 scip over scratch copies of c2rust-transpile/src and c2rust-refactor/src, each described by a rust-project.json naming the pinned toolchain's sysroot AND sysroot_src (edition 2021, no dependencies, no cfg features); compared at function level against Atlas INVOKES with both endpoints in the crate (fn items from a syn parse). The first pass of this replay used the recipe of R10 to R12, which names no sysroot_src: rust-analyzer then loads no standard library and indexes nothing inside a standard macro, so its call edges were understated and Atlas's recall overstated (transpile 72.3%, refactor 64.5% then); the figures below use the corrected recipe (ADR 0088)",
+  "summary": {
+   "c2rust-transpile": {
+    "N": {
+     "atlas_edges": 1215,
+     "oracle_edges": 2005,
+     "agree": 1178,
+     "atlas_only": 37,
+     "oracle_only": 827,
+     "precision": 0.9695,
+     "recall": 0.5875,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 779,
+      "ATLAS_SILENT": 48
+     }
+    },
+    "N_plus_1": {
+     "atlas_edges": 1228,
+     "oracle_edges": 2005,
+     "agree": 1191,
+     "atlas_only": 37,
+     "oracle_only": 814,
+     "precision": 0.9699,
+     "recall": 0.594,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 766,
+      "ATLAS_SILENT": 48
+     }
+    }
+   },
+   "c2rust-refactor": {
+    "N": {
+     "atlas_edges": 2016,
+     "oracle_edges": 3313,
+     "agree": 2012,
+     "atlas_only": 4,
+     "oracle_only": 1301,
+     "precision": 0.998,
+     "recall": 0.6073,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 1259,
+      "ATLAS_SILENT": 42
+     }
+    },
+    "N_plus_1": {
+     "atlas_edges": 2035,
+     "oracle_edges": 3313,
+     "agree": 2031,
+     "atlas_only": 4,
+     "oracle_only": 1282,
+     "precision": 0.998,
+     "recall": 0.613,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 1240,
+      "ATLAS_SILENT": 42
+     }
+    }
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT (oracle names the trait)",
+    "n": 36,
+    "what": "c2rust-transpile cfg/structures.rs: `S::mk_loop`, `S::mk_exit`, `S::empty` and their siblings through `type S = StructuredAST<..>` (a local alias) reach the one impl of StructuredStatement for StructuredAST; the index names the trait declaration, Atlas the impl method -- each read against the source; they also appear on the oracle side as ATLAS_SILENT with the trait's line"
+   },
+   {
+    "class": "ATLAS_CORRECT (oracle conflates nested functions)",
+    "n": 5,
+    "what": "two nested `fn in_range` in c_ast/mod.rs share one SCIP symbol; nested functions and local impls in c2rust-refactor (walk_vars, try_assign, SpanMap default, rewrite_seq_comma_sep's ast) get local or conflated symbols -- each read against the source"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n_N_plus_1": 2006,
+    "what": "oracle edges Atlas reports unresolved by name: receivers of external types (syn, rustc_ast), external crate-root globs (`syn::*`, `rustc_ast::*`), the autoref guard beside registry imports whose closure the machine had not extracted, derive- or attribute-opened modules (clap Parser, enum_dispatch)"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n_N_plus_1": 90,
+    "what": "oracle call edges with no Atlas record: the trait-named mirror of the 36 above, calls inside workspace macro_rules (c2rust's match_or!, 28), `matches!` (outside the G119 list), Index operator calls (`table[id]`), and log's expect!"
+   },
+   {
+    "class": "DONOR_CORRECT (withheld, not wrong)",
+    "n": 0,
+    "what": "none"
+   }
+  ],
+  "cases": [
+   {
+    "question": "does Atlas resolve calls written inside assert!, assert_eq!, vec!, format!, write! and debug_assert!?",
+    "answer": "not at E20: the resolver skipped every macro invocation, so a call site the extractor claimed there stayed unresolved; at E21 the arguments are resolved in place -- 32 more oracle-agreed function edges across the two crates, 100 more INVOKES over the repository, none lost"
+   },
+   {
+    "question": "is the oracle a fair judge of calls inside standard macros?",
+    "answer": "only with the standard library loaded: without sysroot_src it records no occurrence inside `vec!` (iterators.rs:512 `vec![VisitNode::new(root)]` had none); with it, the occurrence and its target appear"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of c2rust is absorbed: its crates, indexed by rust-analyzer, exposed the class (calls inside standard macro arguments never reach the resolver); the fix follows the documented expansions of the standard macros (how each argument is evaluated -- by value, through format_args!'s shared reference, compared by reference, autoref'd as write_fmt's receiver) and rustc's MIR for where their temporaries drop, not any c2rust code",
+  "change": "adapter semantic::rust::resolve: expand_standard_macros / evaluation (each recovered standard macro becomes the tuple of its evaluated arguments, marked; conditional arguments marked), expanded_macro (the G169 temporaries keep it opaque), conditional (holder analysis enters conditional arguments and the right operand of &&/|| one level deeper), DefMap::collect_crate discovers the crate's files first; adapter semantic::rust::macros::shadowing_macro_names (macro_rules names, use-bound names, #[macro_use] extern crate) replaces local_macro_names for the resolver and every extractor walker",
+  "falsification": "regression tests standard_macro_arguments_resolve_where_the_expansion_evaluates_them, standard_macro_arguments_move_or_borrow_holders_as_their_expansion_does, a_release_inside_a_conditionally_evaluated_argument_is_never_claimed, a_standard_macro_name_the_crate_may_rebind_stays_opaque; 21 mutants killed",
+  "review": "an independent adversarial review of the first version found two holes, each reproduced against rustc 1.90.0's MIR and closed: (H1) a join or drop in an assert! message or any debug_assert! argument was claimed as the holder's release -- it runs only when the assertion fails, or not at all without debug assertions (with the older short-circuit shape `a || h.join().is_ok()`); (H2) a bare dbg!/vec!/println! bound to another macro by `use`, a std rename or another file's macro_rules was expanded as the standard one"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "7fe0cf95d0ff (the whole repository)",
+  "N": {
+   "functions": 9451,
+   "invokes": 5208,
+   "dispatches_to": 555,
+   "call_records": 50379,
+   "unresolved": 35059,
+   "withheld_path_calls": 2427,
+   "open_scope_components": 106,
+   "effect_records": 1761
+  },
+  "N_plus_1": {
+   "functions": 9451,
+   "invokes": 5308,
+   "dispatches_to": 555,
+   "call_records": 50754,
+   "unresolved": 34650,
+   "withheld_path_calls": 2505,
+   "open_scope_components": 107,
+   "effect_records": 1747
+  },
+  "path_calls": {
+   "resolved_N": 7545,
+   "resolved_N_plus_1": 7937,
+   "withdrawn": 5,
+   "withdrawn_cause": "5 resolved calls in cross-checks/rust-checks/config, a crate whose root carries #[macro_use] extern crate: every bare standard macro name there is now opaque (the macros it brings in are not read)"
+  },
+  "edge_delta": {
+   "invokes_gained": 100,
+   "invokes_lost": 0,
+   "function_level_gained_in_oracle_crates": 32,
+   "gained_oracle_confirmed": 32,
+   "gained_wrong": 0,
+   "lost": 0
+  },
+  "effect_delta": "EFFECT 1,761 -> 1,747: 14 syntactic effect claims withdrawn inside bare standard macro names in files carrying #[macro_use] extern crate (the extractor now applies the same shadowing set per file)",
+  "withheld_delta": "withheld path calls 2,427 -> 2,505 and one more open-scope component (c2rust-refactor transform/externs.rs): calls newly visible inside macro arguments whose names meet an open scope are withheld, not guessed",
+  "what_atlas_n_saw": "96.95% (transpile) and 99.8% (refactor) of its function-level edges confirmed by the oracle, the rest correct by reading; 58.75% and 60.73% of the oracle's call edges",
+  "what_atlas_n_missed": "every call written inside a standard macro's arguments (assert!, assert_eq!, vec!, format!, write!, debug_assert!) -- claimed as a site since G119, never resolved",
+  "what_atlas_n_plus_1_sees": "32 more oracle-agreed function edges in the two indexed crates (100 more INVOKES over the repository), none lost, none wrong; recall 58.75% -> 59.40% and 60.73% -> 61.30%",
+  "still_unknown": "calls inside workspace macro_rules (match_or!), matches!, operator calls, receivers of external types",
+  "magnitude": "small on the donor (+100 INVOKES; c2rust calls through macros rarely); large on test-heavy Rust: Atlas itself 7,644 -> 9,182 resolved path calls, all 1,538 confirmed by rust-analyzer's index"
+ },
+ "atlas_self": {
+  "method": "the G173 resolver and this one run over one snapshot of HEAD 0a217dec, checked against rust-analyzer 1.90.0's SCIP index of that snapshot",
+  "N": {
+   "resolved": 7644,
+   "confirmed": 7643,
+   "no_occurrence": 1
+  },
+  "N_plus_1": {
+   "resolved": 9182,
+   "confirmed": 9178,
+   "no_occurrence": 4
+  },
+  "gained": 1538,
+  "withdrawn": 0,
+  "retargeted": 0,
+  "wrong": 0,
+  "no_occurrence_note": "core/src/quantity/mod.rs lines 1212, 1227, 1230, 1232: calls of the test helper `q` on lines holding a multi-byte `±`, where the index records no occurrence at Atlas's column; each reads correct",
+  "withheld": "39 -> 63",
+  "unresolved": "2,039 -> 2,912"
+ },
+ "manual_reads": [
+  {
+   "what": "c2rust-transpile/src/cfg/structures.rs 240-400, 470-490, 1100-1240",
+   "why": "adjudicate the 37 transpile edges the oracle names differently",
+   "gap": "none: one impl of StructuredStatement, reached through a local type alias"
+  },
+  {
+   "what": "c2rust-transpile/src/c_ast/mod.rs 3270-3290, 3360-3385",
+   "why": "two nested in_range functions",
+   "gap": "none: the oracle conflates them"
+  },
+  {
+   "what": "c2rust-transpile/src/c_ast/iterators.rs 505-515; translator/pointers.rs 460-470",
+   "why": "the first new edges the old oracle could not see",
+   "gap": "the oracle recipe (sysroot_src), fixed in the measurement"
+  },
+  {
+   "what": "c2rust-analyze/src/pointer_id.rs 30-40, 440-460",
+   "why": "ground truth for the challenge",
+   "gap": "calls in standard macro arguments (fixed in E21)"
+  },
+  {
+   "what": "cross-checks/rust-checks/config/src/lib.rs 1-30, 540-570",
+   "why": "the 5 withdrawn calls",
+   "gap": "none: #[macro_use] extern crate makes every bare macro name unknowable to this pass"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R7 (evidence/revalidation/R7-c2rust.json): rank 1, REVALIDATION_REQUIRED since G150; carried out at the exact G114 pin 1d37ebbf4d50, materialized beside this replay's pin, censused by E20 and E21 and deleted",
+  "historical_decision": "G114 REFERENCE_ONLY: clang AST export and transpilation, the refactoring tool, static pointer-permission analysis, the dynamic pointer derivation graph, cross-checks",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: Atlas still has no C or C++ frontend (238 .c, 34 .h and the clang exporter unrecognized, 864 files at both epochs) and no transformation class, so neither the translator nor the refactoring tool has a target; on the exact G114 source Atlas's Rust view gains 100 INVOKES at E21 (5,203 -> 5,303), most in c2rust-analyze, pdg and the translator"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY at E21 (the C-to-Rust translator, the refactoring tool, the pointer analyses, cross-checks); Atlas's path resolution, falsified on c2rust by its own language-server index, is confirmed or read correct on every edge it claims",
+  "capability_delta": "CAPABILITY_ADVANCED (E20 -> E21)",
+  "trigger": "CURRENT; re-opened by a C or C++ frontend in Atlas (DEBT-MULTILANGUAGE), a transformation class (DEBT-TRANSFORMATION), or workspace macro_rules argument recovery (NA-WORKSPACE-MACRO-ARGUMENTS): re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/c2rust and /home/user/Atlas-Studio/.atlas/.cache/donors/c2rust-1d37ebbf, each after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracles' crate copies, SCIP indexes, fn extents, census models, differentials, the historical engine binary and the review fixtures (scratch, outside the repository)",
+  "runtime_dependency": "none: Atlas does not depend on c2rust; the toolchain's rust-analyzer is a test-time oracle only",
+  "evidence_retained": "this record and revalidation R7; no c2rust text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

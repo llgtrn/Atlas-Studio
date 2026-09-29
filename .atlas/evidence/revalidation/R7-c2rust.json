@@ -1,0 +1,120 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R7",
+ "generation": "G174",
+ "donor": "c2rust",
+ "historical_decision": {
+  "generation": "G114",
+  "terminal_state": "REFERENCE_ONLY",
+  "detail": "clang AST export and transpilation, the refactoring tool, static pointer-permission analysis, the dynamic pointer derivation graph and cross-checks REFERENCE_ONLY: semantic extraction was Rust-only (the self-census holds no C artifact) and there was no migration pipeline",
+  "evidence": ".atlas/evidence/campaign/50-c2rust.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED (since G150), rank 1 after miri's R6",
+  "reason": "its decision depended on DEBT-MULTILANGUAGE, materially advanced since its last census (foreign functions, compiled package entries, TypeScript module linking, the TypeScript/JavaScript profile), and the donor is Rust source the new capability can observe"
+ },
+ "question": "with every capability gained since G114, does Atlas now have a target for the translator or the refactoring tool -- a C frontend, a transformation class -- on the exact source that decided it?",
+ "materialization": {
+  "pinned_commit": "1d37ebbf4d505c947f20947edc264f47e33ed14b",
+  "remote": "https://github.com/immunant/c2rust.git",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/c2rust-1d37ebbf",
+  "note": "the exact G114 pin (2026-09-17, 'transpile: Add macro_expansion_text only for expressions'), materialized beside replay R13's fresh pin; 1,788 tracked files, 582 rs (the G114 record removed 1,646 files from the old working set); BSD-3-Clause at the pin"
+ },
+ "engines": {
+  "historical": "Atlas E20, the G173 tree (0a217dec93d2) before this generation's change",
+  "current": "Atlas E21, the G174 tree (standard macro arguments reach every resolver pass, ADR 0088)",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole repository at the pin",
+  "historical_records": {
+   "CALL": 50346,
+   "CONCURRENCY": 18,
+   "CONTROL_FLOW": 22316,
+   "DATA_FLOW": 94335,
+   "EFFECT": 1761,
+   "FUNCTION_IDENTITY": 9437,
+   "FUNCTION_SIGNATURE": 7066,
+   "OWNERSHIP": 25109,
+   "PERSISTENCE": 13,
+   "RESOURCE": 15,
+   "STATE": 1916,
+   "SYMBOL": 14890,
+   "TYPE": 13162
+  },
+  "current_records": {
+   "CALL": 50721,
+   "CONCURRENCY": 18,
+   "CONTROL_FLOW": 22306,
+   "DATA_FLOW": 94310,
+   "EFFECT": 1747,
+   "FUNCTION_IDENTITY": 9437,
+   "FUNCTION_SIGNATURE": 7066,
+   "OWNERSHIP": 25109,
+   "PERSISTENCE": 13,
+   "RESOURCE": 15,
+   "STATE": 1916,
+   "SYMBOL": 14890,
+   "TYPE": 13162
+  },
+  "historical_total": 240384,
+  "current_total": 240710,
+  "mechanism_slices": {
+   "INVOKES by crate (E20 -> E21)": {
+    "c2rust-ast-exporter (clang AST export; its C++ is unrecognized)": "21 -> 21",
+    "c2rust-transpile (the translator)": "1551 -> 1575",
+    "c2rust-refactor (the refactoring tool)": "2230 -> 2249",
+    "c2rust-analyze (static pointer permissions)": "765 -> 795",
+    "pdg (dynamic pointer derivation graph)": "138 -> 155",
+    "dynamic_instrumentation": "53 -> 53",
+    "cross-checks": "100 -> 102",
+    "c2rust-ast-builder": "98 -> 100"
+   }
+  },
+  "repository": {
+   "E20": {
+    "functions": 9437,
+    "invokes": 5203,
+    "withheld_path_calls": 2424,
+    "open_scope_components": 106,
+    "unresolved_call_sites": 35040
+   },
+   "E21": {
+    "functions": 9437,
+    "invokes": 5303,
+    "withheld_path_calls": 2502,
+    "open_scope_components": 107,
+    "unresolved_call_sites": 34631
+   }
+  }
+ },
+ "premises_rechecked": {
+  "c_frontend": "none: the source frontends registered are Rust, TypeScript/JavaScript and manifests; the pin's 238 .c and 34 .h files and the clang exporter's C++ are unrecognized source (GAP-UNRECOGNIZED-SOURCE 864 files at both epochs)",
+  "transformation_class": "none: Atlas describes and verifies; it constructs only SafeTensors weights (G163), no source-to-source transformation",
+  "toolchain": "c2rust pins nightly-2023-04-15 and rustc's private crates; Atlas pins stable 1.90.0"
+ },
+ "mechanism_through_atlas": "at the G114 pin Atlas's Rust view of the translator, the refactoring tool and the analyses gains 100 INVOKES at E21 (5,203 -> 5,303), most inside assertion and formatting macro arguments in c2rust-analyze and pdg; the C side the translator reads remains invisible to Atlas",
+ "semantic_delta": [
+  "FOREIGN_FUNCTIONS",
+  "COMPILED_PACKAGE_ENTRIES",
+  "TS_MODULE_LINKING",
+  "TS_JS_PROFILE",
+  "STANDARD_MACRO_ARGUMENT_RESOLUTION"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: every G114 surface stays REFERENCE_ONLY -- Atlas still has no C or C++ frontend and no transformation class; on the exact G114 source its Rust view gains 100 call relations at E21; the replay's falsification, calls in standard macro arguments never reaching the resolver, is fixed in E21",
+ "follow_up": "NA-WORKSPACE-MACRO-ARGUMENTS",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G174 REVALIDATED at E21"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/c2rust-1d37ebbf (from the repository root, path resolved and asserted under .atlas/.cache/donors/)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and replay R13",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ },
+ "engine_change_this_generation": "STANDARD_MACRO_ARGUMENT_RESOLUTION (G174, DEBT-CALL): the E20 -> E21 difference in every slice"
+}

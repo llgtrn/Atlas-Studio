@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G173"
+current_generation = "G174"
 
 [[generation]]
 id = "G35"
@@ -4131,3 +4131,51 @@ after = 7656
 key = "diagnostic:IncompleteAnalysis"
 before = 1901
 after = 1928
+
+[[generation]]
+id = "G174"
+kind = "REPLAY"
+base_commit = "0a217dec93d22cd7de0f252dc6b37f5c7820dc7b"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R13 and recursive revalidation R7: the C-to-Rust translator whose translation, refactoring and pointer analyses Atlas keeps REFERENCE_ONLY, facing the strongest Atlas (E20); DEBT-CALL advanced"
+objective = "replay immunant/c2rust at a fresh exact pin: Atlas_N first on the whole repository, a falsifiable question about how the pointer table checks its ids, rust-analyzer's SCIP index of two of its crates as the oracle at function level, a bounded Atlas-native fix for what it falsifies, the same pin at N+1, the G114 verdict revalidated at its exact pin, the sources extinct"
+writer = "coordinator (sole writer); one read-only adversarial review lane"
+replay = "immunant/c2rust"
+pinned_commit = "7fe0cf95d0ff1414b6aa93b17ca328f56b4c450f"
+source_path = ".atlas/.cache/donors/c2rust"
+epoch_before = "E20"
+epoch_after = "E21"
+mission = ".atlas/evidence/replay/R13-c2rust.json"
+evidence = ".atlas/evidence/replay/R13-c2rust.json"
+self_recensus = ".atlas/evidence/census/G174/recensus.json"
+
+[generation.verification]
+pre_census = "G173 post digest"
+atlas_first = "the repository censused (9,451 functions, 5,208 INVOKES, 35,059 unresolved call sites, 106 open modules withholding 2,427 path calls); the trace from the pointer table's index operator to PointerId::is_none answered NO_PATH_OBSERVED, UNKNOWN -- the call sits in debug_assert!, whose arguments the resolver never walked; on Atlas itself about 2,500 oracle-confirmed calls sat inside assert_eq!, assert!, vec!, format!, assert_ne! and println! unresolved"
+change = "adapter resolve: expand_standard_macros / evaluation (each recovered standard macro becomes the marked tuple of its evaluated arguments -- by value, &arg, &mut for the write! destination, the format string dropped), expanded_macro (the G169 temporaries keep it opaque), conditional (assert! messages, debug_assert! arguments and the right operand of && and || release no holder), DefMap::collect_crate discovers the crate's files first; macros::shadowing_macro_names (macro_rules, use-bound names, #[macro_use] extern crate) for the resolver and, per file, every extractor walker (ADR 0088)"
+oracle = "rust-analyzer 1.90.0 SCIP of scratch copies of c2rust-transpile and c2rust-refactor with the standard library loaded (sysroot_src; the R10-R12 recipe loaded none and indexed nothing inside a standard macro), compared at function level: transpile 1,178 of 1,215 Atlas edges confirmed at E20 and 1,191 of 1,228 at E21, refactor 2,012 of 2,016 and 2,031 of 2,035; the other 41 read correct (one impl reached through a local alias that the index names by the trait, nested functions it conflates); none lost, none wrong; recall 58.75% -> 59.40% and 60.73% -> 61.30%; on Atlas itself, the G173 and G174 resolvers over one snapshot of HEAD against its SCIP index: 7,644 -> 9,182 resolved path calls, none withdrawn, 9,178 confirmed and 4 on lines with a multi-byte character read correct"
+falsification = "four regression tests; an independent adversarial review of the first version found two holes reproduced against rustc's MIR -- a join or drop in an assert! message or debug_assert! argument claimed as a release (with the older short-circuit shape a || h.join()), and a bare dbg!, vec! or println! bound to another macro by use, a std rename or another file's macro_rules expanded as the standard one -- both closed; 21 mutants killed"
+boundary = "workspace macro_rules (match_or!) and std macros outside the recovered list (matches!) stay opaque (NA-WORKSPACE-MACRO-ARGUMENTS); every bare standard name in a crate with #[macro_use] extern crate is opaque (5 c2rust calls withdrawn); temporaries inside macro arguments get no release; C and C++ stay unrecognized (864 files)"
+debts = "DEBT-CALL and DEBT-RESOURCE last advance G174; capability epoch E21 fires no processed replay's trigger; revalidation R7 REVALIDATED (the G114 REFERENCE_ONLY verdict holds at its exact pin: no C frontend, no transformation class); NA-WORKSPACE-MACRO-ARGUMENTS queued; next replay rust-lang/rust (R11 REVALIDATION_REQUIRED since E20) G176; native head NA-CALL-TYPE-RESIDUAL planned G175 (pressure 81)"
+review = "DEBT-VERIFICATION_EVIDENCE, DEBT-SEAL_GATE and DEBT-CAUSALITY reviewed at their cadence, all CONFIRMED -- no verification policy beyond the library package, the self scope still NOT_ELIGIBLE, and relations still structural, never causal (evidence/census/G174/debt-review.json)"
+proof = "PROVEN (post f0c54680...): the calls newly visible inside standard macro arguments that meet an open scope, an external receiver or a local binding explained as unresolved or withheld with their cause; the pinned clones, the oracles' crate copies, the SCIP indexes and the review fixtures deleted before the recensus"
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5482
+after = 6146
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 7656
+after = 9212
+
+[[generation.metric]]
+key = "records:EFFECT|atlas.resolution.rust-paths"
+before = 554
+after = 560
+
+[[generation.metric]]
+key = "diagnostic:IncompleteAnalysis"
+before = 1928
+after = 1929

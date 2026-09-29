@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G174",
+ "trigger": "review cadence: DEBT-VERIFICATION_EVIDENCE, DEBT-SEAL_GATE and DEBT-CAUSALITY, each stale for at least 13 generations since its last advance and its last review, fell due at G174",
+ "method": "re-read against the code at G174 (runtime verification and sandbox, the seal gate and the G173 seal eligibility record, the relation kinds, the trace lens and the vocabulary) and the generations G161-G173 that touched each capability",
+ "reviews": [
+  {
+   "debt": "DEBT-VERIFICATION_EVIDENCE",
+   "verdict": "CONFIRMED",
+   "finding": "verification reports still come from verify_self for the one library-package policy of the self scope (its plan names one SEMANTIC and one UNIT obligation), with evidence from the recensus report and commands run outside the sandbox; the G126 sandbox still does not confine absolute-path or parent-directory reads, so no evidence is produced inside it; since G161 the seal gate consumes an admissible report, but no policy beyond the library package exists; NA-SANDBOX-FS-CONFINEMENT unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-SEAL_GATE",
+   "verdict": "CONFIRMED",
+   "finding": "the gate still joins the seal policy, the recomputed certificate, an admissible verification report, the integrity verdict and a SELECTED design (G161), and asks the same authority question as the design check since G171; the self scope stays NOT_ELIGIBLE at G173 -- certificate RECONCILED not CLOSED, COVERAGE_UNKNOWN blockers refused for CALL, CONCURRENCY, CONTROL_FLOW, DATA_FLOW, EFFECT and the other dimensions, no SELECTED design; G174 resolves more calls but leaves the CALL coverage blocker open; NA-ATLAS-DESIGN-SECTION unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-CAUSALITY",
+   "verdict": "CONFIRMED",
+   "finding": "relations are still the typed structural kinds of G135 (INVOKES, SUPPLIES_DATA, STATE_FLOW, DISPATCHES_TO, ENCLOSES) and every trace still states that no step implies causation (GAP-CAUSALITY); COUNTERFACTUAL remains a vocabulary record kind with no producer or consumer; the INVOKES edges G174 adds inside macro arguments are structural, not causal; NA-COUNTERFACTUAL-RECORD unchanged",
+   "correction": {}
+  }
+ ]
+}
