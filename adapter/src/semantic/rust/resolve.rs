@@ -35,6 +35,7 @@
 //! shaped (generics, self-type arguments) exactly like the caller's. Every other method call is
 //! left to type inference.
 
+use super::locked_traits::LockedTraitMethods;
 use std::collections::{BTreeMap, BTreeSet};
 
 use syn::spanned::Spanned;
@@ -49,6 +50,10 @@ pub struct CrateInput {
     /// crate's own `CrateInput` (`atlas_core` -> the `core` library). Every other dependency is
     /// external and resolves nothing.
     pub externs: BTreeMap<String, usize>,
+    /// G173: extern-prelude names of *registry* dependencies, to the package name the lockfile
+    /// records for this target's package (`serde` -> `serde`, a renamed `ser` -> `serde`). A name
+    /// absent here is an external root whose package is unknown.
+    pub foreign: BTreeMap<String, String>,
 }
 
 /// A function definition a call resolved to, located the way the syntactic extractor locates its
@@ -148,12 +153,23 @@ pub fn resolve_workspace(
     crates: &[CrateInput],
     sources: &BTreeMap<String, String>,
 ) -> WorkspaceResolution {
+    resolve_workspace_with(crates, sources, &LockedTraitMethods::default())
+}
+
+/// [`resolve_workspace`], with the trait method names the locked registry dependencies can
+/// declare (G173): the autoref guard trusts an import from a registry package whose locked
+/// closure declares no trait method of the called name.
+pub fn resolve_workspace_with(
+    crates: &[CrateInput],
+    sources: &BTreeMap<String, String>,
+    locked: &LockedTraitMethods,
+) -> WorkspaceResolution {
     // The same recursion discipline as the syntactic extractor: parse and walk on its large
     // dedicated stack, and never hand `syn` a file the recursion-risk pre-scan refuses.
     std::thread::scope(|scope| {
         std::thread::Builder::new()
             .stack_size(super::EXTRACTION_STACK_SIZE)
-            .spawn_scoped(scope, || resolve_on_this_stack(crates, sources))
+            .spawn_scoped(scope, || resolve_on_this_stack(crates, sources, locked))
             .expect("spawning the resolution worker thread must not fail")
             .join()
             .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
@@ -163,8 +179,12 @@ pub fn resolve_workspace(
 fn resolve_on_this_stack(
     crates: &[CrateInput],
     sources: &BTreeMap<String, String>,
+    locked: &LockedTraitMethods,
 ) -> WorkspaceResolution {
-    let mut map = DefMap::default();
+    let mut map = DefMap {
+        locked: locked.clone(),
+        ..DefMap::default()
+    };
     let mut parsed: BTreeMap<String, syn::File> = BTreeMap::new();
     for (index, krate) in crates.iter().enumerate() {
         map.collect_crate(index, krate, sources, &mut parsed);
@@ -440,12 +460,14 @@ enum Def {
     Ctor,
     /// A const/static or other non-function value.
     Value,
-    /// Outside the workspace, with its path when it is rooted at a standard crate (else empty).
-    External(Vec<String>),
+    /// Outside the workspace, with its path when it is rooted at a standard crate (else empty),
+    /// and (G173) the locked registry package it is rooted at, when known.
+    External(Vec<String>, Option<String>),
     Ambiguous,
     /// A named import this pass could not resolve: it still binds its name, so a lookup must not
-    /// fall through to an outer scope's definition of the same name.
-    Unknown,
+    /// fall through to an outer scope's definition of the same name. G173: `true` when it may be
+    /// a trait (its target is unknown, open, or holds an item macro that may emit one).
+    Unknown(bool),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -512,6 +534,17 @@ impl Scope {
                 slot.insert(name.to_owned(), entry);
             }
             Some(existing) if entry.origin > existing.origin => *existing = entry,
+            // G173: the same external path reached through two packages (`serde::Serialize` and
+            // `serde_core::Serialize`) stays one binding, whose package is then unknown.
+            Some(existing)
+                if entry.origin == existing.origin
+                    && matches!((&existing.def, &entry.def), (Def::External(a, p), Def::External(b, q)) if a == b && p != q) =>
+            {
+                if let Def::External(_, package) = &mut existing.def {
+                    *package = None;
+                }
+                existing.certain &= entry.certain;
+            }
             Some(existing) if entry.origin == existing.origin && existing.def != entry.def => {
                 existing.def = Def::Ambiguous;
             }
@@ -558,6 +591,9 @@ struct Module {
     open_cause: Option<String>,
     /// G145: the names this module's own item-position `macro_rules!` invocations may define.
     macro_names: BTreeSet<String>,
+    /// G173: one of those invocations may define a trait: its definition's transcriber or its
+    /// own tokens hold `trait` (a metavariable binds only tokens an invocation spells).
+    trait_macro: bool,
     /// G145: `macro_names` and those a glob import brings in -- a lookup of one of these names is
     /// uncertain in this module, every other name is not.
     shadow: BTreeSet<String>,
@@ -788,6 +824,10 @@ struct DefMap {
     /// G145: every workspace `macro_rules!` definition and item-position macro invocation.
     macro_defs: Vec<MacroDef>,
     macro_calls: Vec<MacroCall>,
+    /// G173: each crate's registry extern names to locked packages, and what those packages'
+    /// closures declare.
+    foreign: BTreeMap<usize, BTreeMap<String, String>>,
+    locked: LockedTraitMethods,
 }
 
 /// G145: a workspace `macro_rules!` definition and the names its expansions may define.
@@ -811,6 +851,8 @@ struct MacroNames {
     literal: BTreeSet<String>,
     from_invocation: bool,
     unbounded: bool,
+    /// G173: a transcriber spells `trait`.
+    traits: bool,
 }
 
 /// G145: an item-position macro invocation, resolved once every definition is collected.
@@ -891,6 +933,82 @@ const DERIVES: [&str; 12] = [
     "serde",
 ];
 
+/// Built-in attributes beyond `ATTRIBUTES` that never turn their item into other items.
+const INERT_BUILTINS: [&str; 24] = [
+    "automatically_derived",
+    "bench",
+    "cold",
+    "deprecated",
+    "export_name",
+    "forbid",
+    "global_allocator",
+    "ignore",
+    "link",
+    "link_name",
+    "link_section",
+    "macro_export",
+    "macro_use",
+    "no_mangle",
+    "panic_handler",
+    "path",
+    "proc_macro",
+    "proc_macro_attribute",
+    "proc_macro_derive",
+    "should_panic",
+    "target_feature",
+    "test",
+    "track_caller",
+    "used",
+];
+
+/// G173: the first attribute (or derive) of `meta` that may be a procedural macro -- outside
+/// `ATTRIBUTES`, the inert built-ins and the tool namespaces, or a derive outside `DERIVES` --
+/// looking through `cfg_attr` and `unsafe(..)`.
+fn expanding_attribute(meta: &syn::Meta) -> Option<String> {
+    use syn::punctuated::Punctuated;
+    let path = meta.path();
+    if path.segments.len() > 1 {
+        let first = path.segments[0].ident.to_string();
+        return (!["clippy", "diagnostic", "rustdoc", "rustfmt"].contains(&first.as_str())).then(
+            || {
+                path.segments
+                    .iter()
+                    .map(|s| s.ident.to_string())
+                    .collect::<Vec<_>>()
+                    .join("::")
+            },
+        );
+    }
+    let name = path.get_ident()?.to_string();
+    let nested = |skip: usize| -> Option<String> {
+        let syn::Meta::List(list) = meta else {
+            return Some(name.clone());
+        };
+        match list.parse_args_with(Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated) {
+            Ok(inner) => inner.iter().skip(skip).find_map(expanding_attribute),
+            Err(_) => Some(name.clone()),
+        }
+    };
+    match name.as_str() {
+        "cfg_attr" => nested(1),
+        "unsafe" => nested(0),
+        "derive" => {
+            let syn::Meta::List(list) = meta else {
+                return Some(name);
+            };
+            match list.parse_args_with(Punctuated::<syn::Path, syn::Token![,]>::parse_terminated) {
+                Ok(paths) => paths.iter().find_map(|p| {
+                    let last = p.segments.last()?.ident.to_string();
+                    (!DERIVES.contains(&last.as_str())).then(|| format!("derive({last})"))
+                }),
+                Err(_) => Some(name),
+            }
+        }
+        other if ATTRIBUTES.contains(&other) || INERT_BUILTINS.contains(&other) => None,
+        _ => Some(name),
+    }
+}
+
 fn ident_text(ident: &proc_macro2::Ident) -> String {
     let text = ident.to_string();
     text.strip_prefix("r#").map_or(text.clone(), str::to_owned)
@@ -969,6 +1087,7 @@ fn transcriber_names(tokens: proc_macro2::TokenStream, names: &mut MacroNames) {
                 if lifetime {
                     continue;
                 }
+                names.traits |= text == "trait";
                 if text == "use" || text == "extern" {
                     names.unbounded = true;
                 } else if ITEM_KEYWORDS.contains(&text.as_str()) && !after_dollar {
@@ -1109,7 +1228,7 @@ fn merge_alternating(a: &Scope, b: &Scope) -> Scope {
                 (p, q) => {
                     let base = p.or(q).expect("a name one of the scopes binds");
                     Entry {
-                        def: Def::Unknown,
+                        def: Def::Unknown(true),
                         vis: base.vis.clone(),
                         origin: base.origin,
                         certain: false,
@@ -1136,6 +1255,7 @@ impl DefMap {
             items_open: false,
             open_cause: None,
             macro_names: BTreeSet::new(),
+            trait_macro: false,
             shadow: BTreeSet::new(),
             name: String::new(),
         });
@@ -1234,6 +1354,7 @@ impl DefMap {
     ) {
         let root = self.new_module(krate, None, None);
         self.crate_roots.insert(krate, root);
+        self.foreign.insert(krate, input.foreign.clone());
         // The package a crate belongs to: the directory holding `src/` (or the build script).
         let package = match input.root.split_once("/src/") {
             Some((package, _)) => package.to_owned(),
@@ -1290,6 +1411,17 @@ impl DefMap {
         parsed: &mut BTreeMap<String, syn::File>,
     ) {
         for item in items {
+            // G173 (review): an attribute or derive outside the allowlists may be a procedural
+            // macro, which can emit any item -- a trait among them -- into this module.
+            if let Some(attrs) = super::locked_traits::item_attrs(item)
+                && let Some(expanding) = attrs.iter().find_map(|a| expanding_attribute(&a.meta))
+            {
+                let (line, _) = start(item.span());
+                let file = file.to_owned();
+                self.open_with(module, || {
+                    format!("the item at {file}:{line} carries `{expanding}`, which may expand to any item")
+                });
+            }
             match item {
                 syn::Item::Fn(item_fn) => {
                     let (line, column) = start(item_fn.span());
@@ -1512,7 +1644,8 @@ impl DefMap {
                         .rename
                         .as_ref()
                         .map_or_else(|| item.ident.to_string(), |(_, rename)| rename.to_string());
-                    let def = self.external_root(&item.ident.to_string());
+                    let krate = self.modules[module].krate;
+                    let def = self.external_root(krate, &item.ident.to_string());
                     self.add_item(module, Ns::Types, &name, def, &item.vis);
                 }
                 syn::Item::Impl(item) => self.collect_impl(module, file, item),
@@ -1807,13 +1940,16 @@ impl DefMap {
                 continue;
             }
             let mut names = BTreeSet::new();
+            let mut traits = call.idents.contains("trait");
             for definition in candidates {
                 names.extend(definition.names.literal.iter().cloned());
                 if definition.names.from_invocation {
                     names.extend(call.idents.iter().cloned());
                 }
+                traits |= definition.names.traits;
             }
             self.modules[call.module].macro_names.extend(names);
+            self.modules[call.module].trait_macro |= traits;
         }
     }
 
@@ -1952,7 +2088,7 @@ impl DefMap {
                             ns,
                             name,
                             Entry {
-                                def: Def::Unknown,
+                                def: Def::Unknown(true),
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
                                 certain: true,
@@ -2025,12 +2161,12 @@ impl DefMap {
                     )
                 });
             }
-            (Some(name), Def::External(path)) if import.self_import => {
+            (Some(name), Def::External(path, package)) if import.self_import => {
                 into.insert(
                     Ns::Types,
                     name,
                     Entry {
-                        def: Def::External(path),
+                        def: Def::External(path, package),
                         vis: import.vis.clone(),
                         origin: Origin::Named,
                         certain: true,
@@ -2064,7 +2200,9 @@ impl DefMap {
                             .filter(|entry| self.visible(&entry.vis, id))
                             .map(|entry| entry.def.clone()),
                         Def::Type(ty) if self.types[*ty].variants.contains(last) => Some(Def::Ctor),
-                        Def::External(path) => Some(Def::External(extend(path, last))),
+                        Def::External(path, package) => {
+                            Some(Def::External(extend(path, last), package.clone()))
+                        }
                         _ => None,
                     };
                     if let Some(def) = def {
@@ -2082,12 +2220,21 @@ impl DefMap {
                     }
                 }
                 if !bound {
+                    // G173: a settled module that binds no such name can only define it through
+                    // an item macro, and one whose tokens hold no `trait` defines no trait.
+                    let may_be_trait = match &prefix {
+                        Def::Module(target) => {
+                            let target = &self.modules[*target];
+                            target.open || target.trait_macro
+                        }
+                        _ => true,
+                    };
                     for ns in [Ns::Types, Ns::Values] {
                         into.insert(
                             ns,
                             name,
                             Entry {
-                                def: Def::Unknown,
+                                def: Def::Unknown(may_be_trait),
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
                                 certain: true,
@@ -2131,7 +2278,7 @@ impl DefMap {
                         _ => return None,
                     }
                 }
-                Def::External(path) => Def::External(extend(&path, segment)),
+                Def::External(path, package) => Def::External(extend(&path, segment), package),
                 // `Enum::Variant::..` and associated types are not modules.
                 _ => return None,
             };
@@ -2168,17 +2315,19 @@ impl DefMap {
     fn extern_crate(&self, crates: &[CrateInput], krate: usize, name: &str) -> Def {
         match crates[krate].externs.get(name) {
             Some(index) => Def::Module(self.crate_roots[index]),
-            None => self.external_root(name),
+            None => self.external_root(krate, name),
         }
     }
 
     /// An external root: a standard crate keeps its name as the start of a canonical path; any
-    /// other (a registry crate, a prelude name) is external with an unknown path.
-    fn external_root(&self, name: &str) -> Def {
+    /// other (a registry crate, a prelude name) is external with an unknown path, and with its
+    /// locked package when `krate` declares the name as a registry dependency (G173).
+    fn external_root(&self, krate: usize, name: &str) -> Def {
         if matches!(name, "std" | "core" | "alloc") {
-            Def::External(vec![name.to_owned()])
+            Def::External(vec![name.to_owned()], None)
         } else {
-            Def::External(Vec::new())
+            let package = self.foreign.get(&krate).and_then(|f| f.get(name)).cloned();
+            Def::External(Vec::new(), package)
         }
     }
 
@@ -2487,10 +2636,13 @@ impl DefMap {
         self.autoref_name_allowed(scope, name)
             && !self.impls.iter().any(|imp| {
                 imp.self_type == Some(ty)
-                    && imp
+                    && (imp
                         .trait_name
                         .as_deref()
                         .is_some_and(|t| BY_VALUE_TRAITS.contains(&t))
+                        // G173 (review): any trait impl on `ty` defining `name` (`impl Add for
+                        // S { fn add(self, ..) }`) may supply it by value first.
+                        || (imp.is_trait_impl && imp.fns.iter().any(|f| f.name == name)))
             })
     }
 
@@ -2512,13 +2664,20 @@ impl DefMap {
         let mut cursor = Some(scope);
         while let Some(id) = cursor {
             let module = &self.modules[id];
+            // G173: a registry import may bring a trait of its package's locked closure into
+            // scope; a closure whose traits declare no method `name` cannot supply one. A name
+            // this pass could not resolve, or that two globs bind differently, may be any trait.
+            let foreign_trait = |entry: &Entry| match &entry.def {
+                Def::External(path, package) if path.is_empty() => !package
+                    .as_deref()
+                    .is_some_and(|p| self.locked.lacks(p, name)),
+                Def::Unknown(may_be_trait) => *may_be_trait,
+                Def::Ambiguous => true,
+                _ => false,
+            };
             if module.open
                 || !module.shadow.is_empty()
-                || module
-                    .scope
-                    .types
-                    .values()
-                    .any(|entry| matches!(&entry.def, Def::External(path) if path.is_empty()))
+                || module.scope.types.values().any(foreign_trait)
             {
                 return false;
             }
@@ -2637,11 +2796,16 @@ fn flatten_use(
         }
         syn::UseTree::Rename(rename) => {
             let ident = rename.ident.to_string();
-            let alias = rename.rename.to_string();
-            if alias == "_" {
-                return;
-            }
+            let mut alias = rename.rename.to_string();
             let self_import = ident == "self";
+            if alias == "_" {
+                // G173: `use Tr as _` brings the trait into scope without a name. It is bound
+                // under a name no path can spell, so the autoref guard sees it (review finding).
+                if self_import {
+                    return;
+                }
+                alias = format!("_#{}::{ident}", prefix.join("::"));
+            }
             if !self_import {
                 prefix.push(ident);
             }
@@ -2900,7 +3064,7 @@ impl CallWalker<'_> {
             }
             match self.map.lexical_lookup(self.scope(), Ns::Types, name) {
                 Lookup::Found(Def::Type(ty)) => self.map.canonical_of_type(self.crates, ty, 0)?,
-                Lookup::Found(Def::External(path)) if !path.is_empty() => path.join("::"),
+                Lookup::Found(Def::External(path, _)) if !path.is_empty() => path.join("::"),
                 Lookup::Found(_) | Lookup::Open => return None,
                 Lookup::Missing if is_primitive(name) => name.clone(),
                 Lookup::Missing => prelude_type(name)?.to_owned(),
@@ -2921,14 +3085,14 @@ impl CallWalker<'_> {
                         Some(entry) if self.map.visible(&entry.vis, self.scope()) => {
                             match &entry.def {
                                 Def::Type(ty) => self.map.canonical_of_type(self.crates, *ty, 0)?,
-                                Def::External(path) if !path.is_empty() => path.join("::"),
+                                Def::External(path, _) if !path.is_empty() => path.join("::"),
                                 _ => return None,
                             }
                         }
                         _ => return None,
                     }
                 }
-                Def::External(path) if !path.is_empty() => {
+                Def::External(path, _) if !path.is_empty() => {
                     extend(&path, &last.ident.to_string()).join("::")
                 }
                 _ => return None,
@@ -3943,9 +4107,9 @@ impl CallWalker<'_> {
                     None => PathCallOutcome::Unresolved("unresolved-type"),
                 }
             }
-            Def::External(path) => external(&extend(&path, last)),
+            Def::External(path, _) => external(&extend(&path, last)),
             Def::Ambiguous => PathCallOutcome::Unresolved("ambiguous"),
-            Def::Unknown => PathCallOutcome::Unresolved("unresolved-import"),
+            Def::Unknown(_) => PathCallOutcome::Unresolved("unresolved-import"),
             _ => PathCallOutcome::Unresolved("not-a-path-prefix"),
         }
     }
@@ -3971,9 +4135,9 @@ fn outcome_of(def: Def) -> PathCallOutcome {
         Def::Fn(target) => PathCallOutcome::Resolved(target),
         Def::Ctor => PathCallOutcome::Unresolved("constructor"),
         Def::Ambiguous => PathCallOutcome::Unresolved("ambiguous"),
-        Def::External(path) => external(&path),
+        Def::External(path, _) => external(&path),
         Def::Value => PathCallOutcome::Unresolved("non-function-value"),
-        Def::Unknown => PathCallOutcome::Unresolved("unresolved-import"),
+        Def::Unknown(_) => PathCallOutcome::Unresolved("unresolved-import"),
         Def::Module(_) | Def::Type(_) => PathCallOutcome::Unresolved("not-a-value"),
     }
 }

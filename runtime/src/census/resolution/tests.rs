@@ -13,6 +13,63 @@ fn map(entries: &[(&str, &str)]) -> BTreeMap<String, String> {
 }
 
 #[test]
+fn registry_dependencies_map_to_the_packages_the_lockfile_confirms() {
+    // G173: each target's registry extern names, to the package its manifest declares (a rename,
+    // an entry inherited from a root manifest not in view), kept only when the lockfile records
+    // that package as a direct dependency of the target's package; a build script sees its own.
+    let manifests = map(&[
+        ("core/Cargo.toml", "[package]\nname = \"core\"\n"),
+        (
+            "app/Cargo.toml",
+            "[package]\nname = \"atlas-app\"\n\n[dependencies]\nlocal = { package = \"core\", path = \"../core\" }\nser = { package = \"serde\", version = \"1\" }\njson = { workspace = true }\nquote = \"1\"\n\n[build-dependencies]\ncc = \"1\"\n",
+        ),
+    ]);
+    let sources = map(&[
+        ("core/src/lib.rs", ""),
+        ("app/src/lib.rs", ""),
+        ("app/src/main.rs", ""),
+        ("app/build.rs", ""),
+    ]);
+    let lock = "version = 4\n\n[[package]]\nname = \"atlas-app\"\nversion = \"0.1.0\"\ndependencies = [\"cc\", \"core\", \"serde\", \"serde_json\"]\n\n[[package]]\nname = \"core\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n\n[[package]]\nname = \"serde_json\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n\n[[package]]\nname = \"cc\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n";
+    let locked = adapter::read_locked_trait_methods(lock, Path::new("/nonexistent-registry"));
+    let root = adapter::workspace_dependencies(
+        "[workspace]\nmembers = [\"core\", \"app\"]\n\n[workspace.dependencies]\njson = { package = \"serde_json\", version = \"1\" }\n",
+    );
+    let described = |crates: &[CrateInput]| -> Vec<(String, Vec<(String, String)>)> {
+        crates
+            .iter()
+            .map(|c| {
+                let foreign = c.foreign.iter().map(|(k, v)| (k.clone(), v.clone()));
+                (c.root.clone(), foreign.collect())
+            })
+            .collect()
+    };
+    let pairs = |p: &[(&str, &str)]| -> Vec<(String, String)> {
+        p.iter()
+            .map(|(k, v)| ((*k).to_owned(), (*v).to_owned()))
+            .collect()
+    };
+    let crates = crate_targets_locked(&manifests, &sources, &locked, root.as_ref());
+    let runtime = pairs(&[("json", "serde_json"), ("ser", "serde")]);
+    assert_eq!(
+        described(&crates),
+        vec![
+            ("app/src/lib.rs".to_owned(), runtime.clone()),
+            ("core/src/lib.rs".to_owned(), Vec::new()),
+            ("app/src/main.rs".to_owned(), runtime),
+            ("app/build.rs".to_owned(), pairs(&[("cc", "cc")])),
+        ]
+    );
+    // `quote` is declared but not locked, the path dependency is a workspace crate, and without
+    // the root manifest the inherited `json` entry names no package.
+    let crates = crate_targets_locked(&manifests, &sources, &locked, None);
+    assert_eq!(described(&crates)[0].1, pairs(&[("ser", "serde")]));
+    // Without a lockfile nothing is confirmed.
+    let crates = crate_targets(&manifests, &sources);
+    assert!(crates.iter().all(|c| c.foreign.is_empty()));
+}
+
+#[test]
 fn crate_targets_follow_manifests_renames_roles_and_own_library() {
     let manifests = map(&[
         ("Cargo.toml", "[workspace]\nmembers = [\"core\", \"app\"]\n"),

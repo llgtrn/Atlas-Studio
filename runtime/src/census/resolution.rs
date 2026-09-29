@@ -108,6 +108,25 @@ pub fn crate_targets(
     manifests: &BTreeMap<String, String>,
     sources: &BTreeMap<String, String>,
 ) -> Vec<CrateInput> {
+    crate_targets_locked(
+        manifests,
+        sources,
+        &adapter::LockedTraitMethods::default(),
+        None,
+    )
+}
+
+/// [`crate_targets`], with each target's registry dependencies (G173): its extern name to the
+/// package the lockfile records as a direct dependency of its package. A dependency inherited
+/// from a workspace root manifest not in view reads that entry from `root_workspace` (the
+/// census root's manifest, which the dependency census reads too); any name the lockfile does not
+/// confirm is left out, so its package stays unknown.
+pub fn crate_targets_locked(
+    manifests: &BTreeMap<String, String>,
+    sources: &BTreeMap<String, String>,
+    locked: &adapter::LockedTraitMethods,
+    root_workspace: Option<&adapter::WorkspaceDependencies>,
+) -> Vec<CrateInput> {
     struct Package {
         dir: String,
         targets: adapter::ManifestTargets,
@@ -157,6 +176,7 @@ pub fn crate_targets(
             crates.push(CrateInput {
                 root,
                 externs: BTreeMap::new(),
+                foreign: BTreeMap::new(),
             });
             kinds.push((index, false));
         }
@@ -166,6 +186,7 @@ pub fn crate_targets(
             crates.push(CrateInput {
                 root,
                 externs: BTreeMap::new(),
+                foreign: BTreeMap::new(),
             });
             kinds.push((index, false));
         }
@@ -175,6 +196,7 @@ pub fn crate_targets(
             crates.push(CrateInput {
                 root,
                 externs: BTreeMap::new(),
+                foreign: BTreeMap::new(),
             });
             kinds.push((index, true));
         }
@@ -188,6 +210,7 @@ pub fn crate_targets(
         };
         let patched = |name: &str| workspace.and_then(|(root, w)| at(root, w.patches.get(name)?));
         let mut externs = BTreeMap::new();
+        let mut foreign = BTreeMap::new();
         for (key, crate_name, role, source) in &package.dependencies {
             let wanted = if is_build {
                 *role == atlas_core::DependencyRole::Build
@@ -209,6 +232,22 @@ pub fn crate_targets(
             if let (true, Some(lib)) = (wanted, bound) {
                 externs.insert(key.replace('-', "_"), lib);
             }
+            let registry = match source {
+                adapter::DeclaredSource::Path(_) => None,
+                adapter::DeclaredSource::Workspace => workspace
+                    .map(|(_, w)| w)
+                    .or(root_workspace)
+                    .and_then(|w| match w.dependencies.get(key) {
+                        Some((name, None)) => Some(name.clone()),
+                        _ => None,
+                    }),
+                adapter::DeclaredSource::Elsewhere => Some(crate_name.clone()),
+            };
+            if let (true, None, Some(registry)) = (wanted, bound, registry)
+                && locked.direct_dependency(&package.package, &registry)
+            {
+                foreign.insert(key.replace('-', "_"), registry);
+            }
         }
         // A binary (never the library itself or its build script) sees its own package's library.
         if !is_build
@@ -218,6 +257,7 @@ pub fn crate_targets(
             externs.insert(package.package.replace('-', "_"), lib);
         }
         crates[krate].externs = externs;
+        crates[krate].foreign = foreign;
     }
     crates
 }
@@ -251,8 +291,21 @@ pub fn resolve_rust_path_calls(
             sources.insert(artifact.path.clone(), text);
         }
     }
-    let crates = crate_targets(&manifests, &sources);
-    let workspace = adapter::resolve_workspace(&crates, &sources);
+    // G173: the census root's lockfile, and the registry sources Cargo compiled it from.
+    let locked = fs::read_to_string(root.join("Cargo.lock"))
+        .ok()
+        .and_then(|lock| Some((lock, registry_sources()?)))
+        .map(|(lock, registry)| adapter::read_locked_trait_methods(&lock, &registry))
+        .unwrap_or_default();
+    let root_workspace = fs::read_to_string(root.join("Cargo.toml"))
+        .ok()
+        .and_then(|manifest| adapter::workspace_dependencies(&manifest));
+    let crates = crate_targets_locked(&manifests, &sources, &locked, root_workspace.as_ref());
+    let workspace = adapter::resolve_workspace_with(&crates, &sources, &locked);
+    let locked_digest = locked
+        .digest
+        .as_ref()
+        .map_or_else(|| "none".to_owned(), ToString::to_string);
     let resolutions = &workspace.calls;
 
     // The syntactic extractor's claims: CALL sites by anchor, FunctionIdentity by item start.
@@ -912,7 +965,10 @@ pub fn resolve_rust_path_calls(
             artifact: artifact.clone(),
             input_fingerprint: stable_id(
                 "resolution-input",
-                &format!("{RUST_PATH_RESOLUTION_ID}:{}:{path}", revision.value),
+                &format!(
+                    "{RUST_PATH_RESOLUTION_ID}:{}:{path}:{locked_digest}",
+                    revision.value
+                ),
             ),
             observations,
             evidence,
@@ -928,6 +984,15 @@ pub fn resolve_rust_path_calls(
         });
     }
     out
+}
+
+/// `<CARGO_HOME>/registry/src`, where Cargo extracts the registry packages it compiles:
+/// `CARGO_HOME`, else `~/.cargo`.
+fn registry_sources() -> Option<std::path::PathBuf> {
+    let home = std::env::var_os("CARGO_HOME")
+        .map(std::path::PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|h| Path::new(&h).join(".cargo")))?;
+    Some(home.join("registry").join("src"))
 }
 
 fn ids(evidence: &[Evidence]) -> Vec<EvidenceId> {

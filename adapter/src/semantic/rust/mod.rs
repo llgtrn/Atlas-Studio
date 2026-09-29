@@ -50,6 +50,7 @@ mod cfg;
 mod concurrency;
 mod dataflow;
 mod effect;
+pub mod locked_traits;
 mod macros;
 mod ownership;
 mod persistence;

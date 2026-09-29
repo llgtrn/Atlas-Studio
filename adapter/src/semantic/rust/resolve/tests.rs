@@ -11,6 +11,7 @@ fn one_crate(root: &str) -> Vec<CrateInput> {
     vec![CrateInput {
         root: root.into(),
         externs: BTreeMap::new(),
+        foreign: BTreeMap::new(),
     }]
 }
 
@@ -249,10 +250,12 @@ fn workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items() 
         CrateInput {
             root: "core/src/lib.rs".into(),
             externs: BTreeMap::new(),
+            foreign: BTreeMap::new(),
         },
         CrateInput {
             root: "app/src/main.rs".into(),
             externs: BTreeMap::from([("atlas_core".to_owned(), 0)]),
+            foreign: BTreeMap::new(),
         },
     ];
     let core = "pub mod m {\n    pub fn shared() {}\n    pub(crate) fn internal() {}\n}\npub use m::shared as reexported;\n";
@@ -517,6 +520,57 @@ fn signature_typed_lets_and_guarded_autoref_resolve_methods() {
     .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
     .collect();
     assert_eq!(got, expect);
+}
+
+#[test]
+fn a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name() {
+    // G173: `use dep::Thing` may bring a trait of `dep`'s locked closure into scope, and a
+    // by-value method of the called name in it would come before the autoref step. A closure
+    // whose traits declare no such method cannot; an unknown closure, an unlocked package, or
+    // one binding reached through two packages still withholds the claim.
+    let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n    fn eat(&self) {}\n}\nmod ext {\n    use dep::Thing;\n    use ser::Other;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n        s.eat();\n    }\n}\nmod elsewhere {\n    use unlocked::Thing;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod a {\n    pub use dep::Same;\n}\nmod b {\n    pub use ser::Same;\n}\nmod both {\n    use super::a::*;\n    use super::b::*;\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod through {\n    use super::a::*;\n    fn k() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
+    let crates = vec![CrateInput {
+        root: "src/lib.rs".into(),
+        externs: BTreeMap::new(),
+        foreign: BTreeMap::from([
+            ("dep".to_owned(), "dep".to_owned()),
+            ("ser".to_owned(), "serde-renamed".to_owned()),
+            ("unlocked".to_owned(), "unlocked".to_owned()),
+        ]),
+    }];
+    let locked = LockedTraitMethods::stated(&[
+        ("dep", Some(&["eat"])),
+        ("serde-renamed", Some(&[])),
+        ("unlocked", None),
+    ]);
+    let run = |locked: &LockedTraitMethods| -> Vec<(String, String)> {
+        let workspace = resolve_workspace_with(&crates, &sources(&[("src/lib.rs", lib)]), locked);
+        outcomes(&workspace.calls, "src/lib.rs")
+            .into_iter()
+            .filter(|(callee, _)| callee.starts_with("s."))
+            .collect()
+    };
+    let expect: Vec<(String, String)> = [
+        // `dep` and `serde-renamed` declare no `look`; `dep` declares an `eat`.
+        ("s.look", "src/lib.rs:4:look"),
+        ("s.eat", "unresolved:receiver-form-differs"),
+        // `unlocked`'s closure is unknown.
+        ("s.look", "unresolved:receiver-form-differs"),
+        // One name bound through `dep` and `ser` by two globs: its package is unknown.
+        ("s.look", "unresolved:receiver-form-differs"),
+        // A glob of a workspace module carries the binding's package.
+        ("s.look", "src/lib.rs:4:look"),
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(run(&locked), expect);
+    // Without a table, every registry import withholds the claim, as before.
+    assert!(
+        run(&LockedTraitMethods::default())
+            .iter()
+            .all(|(_, outcome)| outcome == "unresolved:receiver-form-differs")
+    );
 }
 
 #[test]
@@ -1247,9 +1301,9 @@ fn alternating_scopes_merge_to_their_agreement_and_unknown() {
     b.insert(Ns::Values, "OnlyB", entry(Def::Module(4)));
     let merged = merge_alternating(&a, &b);
     assert_eq!(merged.types["Same"].def, Def::Module(1));
-    assert_eq!(merged.types["Differs"].def, Def::Unknown);
-    assert_eq!(merged.values["OnlyA"].def, Def::Unknown);
-    assert_eq!(merged.values["OnlyB"].def, Def::Unknown);
+    assert_eq!(merged.types["Differs"].def, Def::Unknown(true));
+    assert_eq!(merged.values["OnlyA"].def, Def::Unknown(true));
+    assert_eq!(merged.values["OnlyB"].def, Def::Unknown(true));
     assert_eq!(
         merged,
         merge_alternating(&b, &a),
@@ -1343,4 +1397,72 @@ fn a_certain_name_survives_a_glob_of_an_open_module() {
             ("report".into(), "unresolved:open-scope".into()),
         ]
     );
+}
+
+#[test]
+fn an_unresolved_or_ambiguous_import_withholds_autoref() {
+    // G173 (found reviewing the G142 guard): a named import this pass cannot resolve (here from
+    // a module whose file is missing) or a name two globs bind differently may still be a trait
+    // in scope, with a by-value method that comes before the autoref step. Before this change
+    // the first two claims below were made; a plainly resolved struct import still allows one.
+    let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n}\nmod gen;\nmod user {\n    use super::gen::Tr;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod a {\n    pub use dep::X;\n}\nmod b {\n    pub struct X;\n}\nmod amb {\n    use super::a::*;\n    use super::b::*;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod plain {\n    use super::b::X;\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod ids {\n    macro_rules! id { ($n:ident) => { pub struct $n; }; }\n    id!(Key);\n}\nmod traits {\n    macro_rules! tr { ($n:ident) => { pub trait $n { fn look(self); } }; }\n    tr!(Tr);\n}\nmod keyword {\n    macro_rules! item { ($k:ident $n:ident) => { pub $k $n { fn look(self); } }; }\n    item!(trait Tr);\n}\nmod k {\n    use super::ids::Key;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod t {\n    use super::traits::Tr;\n    fn g() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod w {\n    use super::keyword::Tr;\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let got: Vec<(String, String)> = outcomes(&results, "src/lib.rs")
+        .into_iter()
+        .filter(|(callee, _)| callee == "s.look")
+        .collect();
+    let expect: Vec<(String, String)> = [
+        ("s.look", "unresolved:receiver-form-differs"),
+        ("s.look", "unresolved:receiver-form-differs"),
+        ("s.look", "src/lib.rs:4:look"),
+        // A name a settled module's item macro defines is no trait unless the macro's
+        // transcriber or its invocation spells `trait`.
+        ("s.look", "src/lib.rs:4:look"),
+        ("s.look", "unresolved:receiver-form-differs"),
+        ("s.look", "unresolved:receiver-form-differs"),
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(got, expect);
+}
+
+#[test]
+fn review_findings_withhold_autoref() {
+    // G173 review: an underscore import of a trait, a trait impl on the receiver defining the
+    // name (a std operator), a procedural attribute or derive in the calling module, and an
+    // import from such a module each may supply a by-value method first. Every claim below was
+    // made before this change.
+    let lib = "pub struct S;\nimpl S {\n    pub fn new() -> Self { S }\n    fn look(&self) {}\n    fn add(&self, _o: S) {}\n}\nmod underscore {\n    use dep::Ext as _;\n    fn f() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod ops {\n    use std::ops::Add;\n    impl Add for super::S { type Output = u8; fn add(self, _o: super::S) -> u8 { 1 } }\n    fn g() {\n        let s = super::S::new();\n        s.add(super::S::new());\n    }\n}\nmod attr {\n    #[easy_ext::ext(Ext)]\n    impl<T> T { fn look(self) {} }\n    fn h() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod derived {\n    #[derive(gen::Ext)]\n    pub struct Z;\n    fn k() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod importer {\n    use crate::attr::Ext;\n    fn m() {\n        let s = super::S::new();\n        s.look();\n    }\n}\nmod known {\n    use dep::Ext as _;\n    #[derive(Debug, Clone, serde::Serialize)]\n    pub struct Plain;\n    fn n() {\n        let s = super::S::new();\n        s.look();\n    }\n}\n";
+    let crates = vec![CrateInput {
+        root: "src/lib.rs".into(),
+        externs: BTreeMap::new(),
+        foreign: BTreeMap::from([("dep".to_owned(), "dep".to_owned())]),
+    }];
+    let run = |locked: &LockedTraitMethods| -> Vec<String> {
+        let workspace = resolve_workspace_with(&crates, &sources(&[("src/lib.rs", lib)]), locked);
+        outcomes(&workspace.calls, "src/lib.rs")
+            .into_iter()
+            .filter(|(callee, _)| callee.starts_with("s."))
+            .map(|(callee, outcome)| format!("{callee} {outcome}"))
+            .collect()
+    };
+    let withheld = "unresolved:receiver-form-differs";
+    let unknown = run(&LockedTraitMethods::stated(&[("dep", None)]));
+    assert_eq!(
+        unknown,
+        [
+            format!("s.look {withheld}"),
+            format!("s.add {withheld}"),
+            format!("s.look {withheld}"),
+            format!("s.look {withheld}"),
+            format!("s.look {withheld}"),
+            format!("s.look {withheld}"),
+        ]
+    );
+    // With `dep`'s closure known to lack `look`, the underscore import no longer withholds it,
+    // and the allowlisted derives expand to no trait.
+    let known = run(&LockedTraitMethods::stated(&[("dep", Some(&[]))]));
+    assert_eq!(known[0], "s.look src/lib.rs:4:look");
+    assert_eq!(known[5], "s.look src/lib.rs:4:look");
 }

@@ -33,12 +33,12 @@ use std::{
 };
 
 #[derive(Debug, Clone, Default)]
-struct LockPackage {
-    name: String,
-    version: String,
-    source: Option<String>,
+pub(crate) struct LockPackage {
+    pub(crate) name: String,
+    pub(crate) version: String,
+    pub(crate) source: Option<String>,
     checksum: Option<String>,
-    dependencies: Vec<LockDependencyRef>,
+    pub(crate) dependencies: Vec<LockDependencyRef>,
 }
 
 /// One `Cargo.lock` `dependencies` array entry. Cargo emits a bare `"name"` when exactly one
@@ -49,8 +49,8 @@ struct LockPackage {
 /// `text-size`); the registry copy is referenced as `"la-arena 0.3.1 (registry+...)"`, the in-tree
 /// one as bare `"la-arena 0.3.1"` (a path package has no source to write).
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct LockDependencyRef {
-    name: String,
+pub(crate) struct LockDependencyRef {
+    pub(crate) name: String,
     version: Option<String>,
     source: Option<String>,
 }
@@ -105,7 +105,7 @@ fn lock_dependency_ref(line: &str) -> Option<LockDependencyRef> {
 /// and an entry with no source among several same-version candidates names the source-less (path)
 /// one -- the only one Cargo writes without a source. Anything still not exactly one candidate is
 /// reported, never resolved by taking whichever candidate happens to come first in the lockfile.
-fn resolve_dependency_ref<'a>(
+pub(crate) fn resolve_dependency_ref<'a>(
     candidates: &[&'a LockPackage],
     reference: &LockDependencyRef,
 ) -> Result<&'a LockPackage, String> {
@@ -163,7 +163,7 @@ fn resolve_dependency_ref<'a>(
     }
 }
 
-fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
+pub(crate) fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
     let mut packages = Vec::new();
     let mut lines = text.lines().peekable();
     while let Some(line) = lines.next() {

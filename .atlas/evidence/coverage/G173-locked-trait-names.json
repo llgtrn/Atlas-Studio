@@ -1,0 +1,79 @@
+{
+ "schema": "atlas.evidence.native-attack-measurement.v1",
+ "generation": "G173",
+ "attack": "NA-CALL-TYPE-RESIDUAL (NA-DEPENDENCY-DECLARATIONS step one)",
+ "debt": "DEBT-CALL",
+ "outcome": "CAPABILITY_ADVANCED",
+ "decision": ".atlas/decisions/0087-locked-dependency-trait-names-relieve-the-autoref-guard.md",
+ "capability_epoch": "E19 -> E20",
+ "atlas_first": {
+  "question": "which of the autoref guard's refusals on Atlas come from imports it cannot see into, and can the locked dependencies' own sources answer them soundly?",
+  "method": "an instrumented guard over Atlas's workspace (reverted): each refusal with the scope entries that caused it",
+  "guard_refusals": 1443,
+  "refused_for_registry_imports_only": 1257,
+  "refused_for_shadowed_names": 158,
+  "refused_for_open_scopes": 28,
+  "blocking_imports": [
+   "syn::spanned::Spanned",
+   "syn::visit::Visit",
+   "syn::punctuated::Punctuated",
+   "serde::Serialize",
+   "serde::Deserialize",
+   "tree_sitter::Node",
+   "tree_sitter::Parser",
+   "serde_json",
+   "blake3::HasherExt",
+   "quote::ToTokens"
+  ]
+ },
+ "locked_closures_on_atlas": {
+  "lock_packages": 37,
+  "registry_closures_known": "all but serde, serde_core, serde_json and tree-sitter",
+  "unknown_because": "serde's crate root splices include!(concat!(env!(\"OUT_DIR\"), \"/private.rs\")) from its build script inside a macro_rules! transcriber; serde_json and tree-sitter lock serde"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 SCIP index of the final workspace tree (independent of Atlas)",
+  "same_sources": "the G172 resolver (worktree at a66350a7) and the G173 resolver run over one snapshot of the final sources",
+  "resolved_path_calls_g172": 7536,
+  "resolved_path_calls_g173": 7644,
+  "gained_by_relief": 115,
+  "gained_confirmed_by_oracle": 115,
+  "gained_by_file": {
+   "adapter/src/semantic/rust/mod.rs": 71,
+   "adapter/src/semantic/rust/resolve.rs": 31,
+   "adapter/src/semantic/rust/locked_traits/tests.rs": 13
+  },
+  "withdrawn_by_hardening": 7,
+  "withdrawn_confirmed_correct_by_oracle": 7,
+  "withdrawn_cause": "their scopes import names from a module G145 leaves open (core::weights: vocabulary_enum! is macro_export'ed from another module; a runtime test module likewise), so an unseen trait could supply a by-value method first: correct edges Atlas can no longer justify",
+  "withdrawn": [
+   "adapter/src/weights/safetensors.rs:101:15\thasher.update\tcore/src/identity/blake3.rs:260:update",
+   "adapter/src/weights/safetensors.rs:104:43\thasher.finalize\tcore/src/identity/blake3.rs:289:finalize",
+   "adapter/src/weights/safetensors.rs:105:9\tblake3_256().as_str\tcore/src/identity/mod.rs:137:as_str",
+   "adapter/src/weights/safetensors.rs:292:19\thasher.update\tcore/src/identity/blake3.rs:260:update",
+   "adapter/src/weights/safetensors.rs:296:57\thasher.finalize\tcore/src/identity/blake3.rs:289:finalize",
+   "adapter/src/weights/safetensors.rs:297:18\tdigest.as_str\tcore/src/identity/mod.rs:137:as_str",
+   "runtime/src/lib.rs:3850:36\tdebt_ledger.debts\truntime/src/lib.rs:2359:debts"
+  ],
+  "all_claimed_edges_confirmed": 7643,
+  "all_claimed_edges": 7644,
+  "unconfirmed_read_correct": "core/src/quantity/mod.rs:1212 q(..): the line holds a multi-byte character, so the oracle's column differs; the only q in scope is the test helper at line 1062",
+  "wrong": 0,
+  "lost_silently": 0
+ },
+ "falsifications": [
+  "G142 guard: an unresolved named import (use super::gen::Tr, gen's file missing) and a glob-ambiguous external name let the autoref claim through although either may be a trait",
+  "independent adversarial review of the first G173 version: 15 holes on stable Rust, all closed -- underscore trait imports, procedural attributes or derives on workspace items, trait impls on the receiver defining the name (std operators), a renamed keyword macro, a default or const-generic block in a trait header, a trait body from a metavariable, a macro_export defined inside a statement macro, a cfg_attr-spelled procedural export, a procedural macro invoked through a metavariable, include or path of a non-.rs file, a library at the package root reaching tests/, a target-dependency feature judged impossible, another registry's copy"
+ ],
+ "mutants": {
+  "killed": 39,
+  "survived": 0,
+  "equivalent_removed": 2
+ },
+ "boundary": "build-script outputs, procedural macros of a closure, git and path sources, and items reached only through dependency re-exports stay UNKNOWN; macro_export macros invoked by bare name from another module leave their module open (G145)",
+ "queued": [
+  "NA-DEPENDENCY-DECLARATIONS (items through re-exports)",
+  "NA-MACRO-EXPORT-NAMES"
+ ],
+ "revalidation": "E20 fires the revalidation trigger of rust-lang/rust (R11: the autoref step decided beside external imports): REVALIDATION_REQUIRED"
+}

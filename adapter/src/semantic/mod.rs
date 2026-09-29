@@ -22,9 +22,13 @@ pub use batch::{ExtractionBatch, ObligationResult};
 pub use extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, SemanticExtractor};
 pub use registry::{StaticUnsupportedExtractor, extractors_for_language, semantic_extractors};
 pub use rust::RustSemanticExtractor;
+pub use rust::locked_traits::{
+    LockedTraitMethods, PackageRead, PackageReading, read_locked_trait_methods,
+};
 pub use rust::resolve::{
     CrateInput, FnTarget, PathCallOutcome, PathCallResolution, ReleaseResolution, WithheldPath,
     WorkspaceResolution, join as join_path, resolve_path_calls, resolve_workspace,
+    resolve_workspace_with,
 };
 pub use typescript::TypeScriptSemanticExtractor;
 pub use typescript::modules::{

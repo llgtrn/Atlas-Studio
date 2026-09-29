@@ -213,6 +213,11 @@ pub const CARRIERS: &[Carrier] = &[
         CarrierRole::Outcome,
         "a path call resolved, external or unresolved with why",
     ),
+    carrier(
+        "PackageRead",
+        CarrierRole::Outcome,
+        "a locked package's sources read for trait method names, or refused with why",
+    ),
 ];
 
 /// Status-like field names whose value is text at a boundary, with where it is parsed or
