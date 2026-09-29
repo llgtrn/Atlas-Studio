@@ -1,0 +1,202 @@
+{
+ "schema": "atlas.evidence.verification-cost.v1",
+ "generation": "G178",
+ "method": "wall clock from the session's recorded tool-call and agent timestamps, subagent durations, file mtimes and rust-analyzer's own log; nothing estimated. Wall clock, not CPU time; agent rounds include their own builds and tests.",
+ "stages": [
+  {
+   "stage": "donor materialization",
+   "wall_s": 4,
+   "what": "git ls-remote + blobless depth-1 fetch of the pin (12:40:00)"
+  },
+  {
+   "stage": "census N (Atlas E23 model of egglog)",
+   "wall_s": 12,
+   "what": "agent model over 147 rs files, release binary (12:40:22 call 14 s incl. stats)"
+  },
+  {
+   "stage": "oracle/index generation",
+   "wall_s": 48,
+   "what": "rust-analyzer 1.90.0 scip over 8 crate copies: 44.2 s by its log, plus rust-project.json and function extents"
+  },
+  {
+   "stage": "differential N",
+   "wall_s": 3,
+   "what": "fdiff.py model vs scip at function level"
+  },
+  {
+   "stage": "hard investigation + first fix (Opus)",
+   "wall_s": 2154,
+   "what": "12:41:25 -> 13:17:19"
+  },
+  {
+   "stage": "N+1 census + differential + site-level oracle checks (main loop)",
+   "wall_s": 197,
+   "what": "13:19:41 -> 13:22:58, includes release rebuild 13 s"
+  },
+  {
+   "stage": "second falsification fix: extern crate self (Opus)",
+   "wall_s": 1246,
+   "what": "13:22:41 -> 13:43:27"
+  },
+  {
+   "stage": "review pass 1 (Opus)",
+   "wall_s": 1119,
+   "what": "13:43:59 -> 14:02:38; 4 holes"
+  },
+  {
+   "stage": "fix of review-1 holes, killed by container restart (lost)",
+   "wall_s": 2440,
+   "what": "14:03:15 -> 14:43:55; no result survived"
+  },
+  {
+   "stage": "fix of review-1 holes, relaunch (Opus)",
+   "wall_s": 2241,
+   "what": "14:44:58 -> 15:22:19"
+  },
+  {
+   "stage": "review pass 2 (Opus)",
+   "wall_s": 790,
+   "what": "15:22:58 -> 15:36:08; 1 hole, 1 order-dependence, timing margin"
+  },
+  {
+   "stage": "fix of review-2 holes (Opus)",
+   "wall_s": 2123,
+   "what": "15:36:36 -> ~16:12 (agent duration 2,123 s)"
+  },
+  {
+   "stage": "confirmation review of the last fix layer (Opus, isolated worktree)",
+   "wall_s": 1340,
+   "what": "isolated worktree, separate target dir; found 1 older WRONG claim (lib-name keying) and parser gaps re-opening a closed hole; its runtime tests collided with the main full suite (both OOM-killed once)"
+  },
+  {
+   "stage": "gate fmt",
+   "wall_s": 1
+  },
+  {
+   "stage": "gate clippy (warm)",
+   "wall_s": 0
+  },
+  {
+   "stage": "targeted tests (adapter semantic::rust)",
+   "wall_s": 9
+  },
+  {
+   "stage": "full suite, first attempt",
+   "wall_s": 769,
+   "what": "runtime lib test binary OOM-killed (8.3 GB) while the confirmation reviewer ran its own runtime tests (5.6 GB) in parallel under the 15 GB cgroup; 935 passed elsewhere; rerun required"
+  },
+  {
+   "stage": "docs audit",
+   "wall_s": 11
+  },
+  {
+   "stage": "fix of review-3 findings (Opus): lib-name keying + TOML manifest spellings",
+   "wall_s": 1506
+  },
+  {
+   "stage": "re-materialize donor at the pin + census with the final binary",
+   "wall_s": 17,
+   "what": "3 s fetch + 14 s census; model byte-identical to N+1, so every recorded figure stands; donor deleted again"
+  },
+  {
+   "stage": "focused confirmation of the parser layer (Opus, adapter-only in a worktree)",
+   "wall_s": 841,
+   "what": "1 new WRONG binding (triple-quoted path) and 5 older ones on rare TOML; method: tomllib differential over 636 registry manifests + generated corpora (cheaper and stronger than open-ended reading)"
+  },
+  {
+   "stage": "full gate, second attempt",
+   "wall_s": null,
+   "what": "stopped as stale after the confirmation found a new WRONG binding; fmt 1 s, clippy 0 s, targeted 11 s had passed"
+  },
+  {
+   "stage": "fix of parser holes H1-H6 (Opus) verified by the tomllib differential",
+   "wall_s": 2573
+  },
+  {
+   "stage": "re-materialize + census with the final binary",
+   "wall_s": 13,
+   "what": "2 s + 11 s; byte-identical to N+1"
+  },
+  {
+   "stage": "final full gate",
+   "wall_s": 958,
+   "what": "fmt 2 s, clippy 0 s (warm), targeted 9 s, full suite 942 s (1,159 passed), docs 5 s"
+  },
+  {
+   "stage": "self-recensus (prove.sh)",
+   "wall_s": 73
+  },
+  {
+   "stage": "ledger tests",
+   "wall_s": 28,
+   "what": "14 s, twice (one kind value corrected)"
+  },
+  {
+   "stage": "clean-HEAD evidence (evidence.sh)",
+   "wall_s": 1189
+  }
+ ],
+ "totals_s": {
+  "machine: donor, census, oracle, differential": 294,
+  "agent investigation and fix rounds": 11843,
+  "agent review rounds": 4090,
+  "lost to restart or stale runs": 3209,
+  "gates and proofs": 2269
+ },
+ "total_s": 21705,
+ "shares": {
+  "machine: donor, census, oracle, differential": 0.014,
+  "agent investigation and fix rounds": 0.546,
+  "agent review rounds": 0.188,
+  "lost to restart or stale runs": 0.148,
+  "gates and proofs": 0.105
+ },
+ "machine_verification_runs": {
+  "full_suite": [
+   {
+    "run": "first",
+    "wall_s": 769,
+    "outcome": "runtime test binary OOM-killed beside a review lane's runtime tests"
+   },
+   {
+    "run": "second",
+    "wall_s": null,
+    "outcome": "stopped stale: a confirmation pass found a new WRONG binding"
+   },
+   {
+    "run": "final",
+    "wall_s": 942,
+    "outcome": "1,159 passed"
+   }
+  ],
+  "runtime_census_tests_alone_s": [
+   540,
+   532
+  ],
+  "self_recensus_s": 73,
+  "clean_head_evidence_s": 1189,
+  "observation": "every gate run recomputed every obligation: the self-census tests re-census all of Atlas in the suite and again in the evidence run, although the change touched only the adapter's resolver and manifest reader and Atlas's own model was byte-identical before and after"
+ },
+ "findings": [
+  "machine stages of the replay (donor 2-4 s, census 11-14 s, oracle 48 s, differential 3 s) are 1.4% of the generation; re-materializing the donor at its pin to re-check a later binary costs 13-17 s, so extinction never has to wait on the last fix",
+  "the cost is the number of fix -> review cycles (four passes here) times what each fix invalidates: every fix layer made the previous full gate stale",
+  "an automated differential oracle (tomllib over 636 registry manifests and generated corpora) found in 14 minutes what reading-based review passes had missed; for parsers and resolvers a differential corpus is the cheaper and stronger check and belongs before open-ended review",
+  "parallel review is not free: two self-census test binaries (8.3 GB and 5.6 GB) do not fit the 15 GB memory cgroup together; a lane running runtime tests must not overlap the full suite",
+  "a container restart lost one 41-minute agent round; a reviewed snapshot of the tree let it restart from a known state"
+ ],
+ "proposed_attack": {
+  "id": "NA-VERIFICATION-REUSE",
+  "debt": "DEBT-IMPACT_CLOSURE",
+  "mechanism": "NA-CLOSURE-CONSUMER applied to proof obligations",
+  "rule": "a gate result (a test binary's outcome, a census of a crate, an oracle index) is reused only when the content digest of its declared input closure -- source files it reads, toolchain and tool versions, configuration, fixtures -- equals the digest it was produced under; anything whose closure cannot be enumerated is recomputed",
+  "invariants": [
+   "the final clean-HEAD evidence is always recomputed in full",
+   "a reused result names the digest it was produced under, and the reuse is itself evidence",
+   "no historical evidence is rewritten",
+   "a replay verdict stays CURRENT only when its trigger set is checked against the new epoch",
+   "reuse never narrows what is checked, only when it is recomputed"
+  ],
+  "oracle": "on recorded generations, the reused-plus-recomputed result must equal a full recompute (the NA-CLOSURE-CONSUMER oracle)",
+  "measured_opportunity_s": "up to 942 s per repeated full suite and the runtime census tests inside it (about 540 s); G178 ran the suite three times"
+ }
+}

@@ -2211,6 +2211,15 @@ bounded = true
 
 [[native_attack]]
 position = 25
+id = "NA-VERIFICATION-REUSE"
+priority = "P4"
+debts = ["DEBT-IMPACT_CLOSURE"]
+objective = "the closure consumer applied to proof obligations: a gate result (a test binary's outcome, a crate's census, an oracle index) reused only when the content digest of its declared input closure -- sources read, toolchain and tool versions, configuration, fixtures -- equals the one it was produced under, anything whose closure cannot be enumerated recomputed, the clean-HEAD evidence always recomputed in full and every reuse itself recorded; measured at G178: three full-suite runs of 769-942 s, the runtime census tests inside each about 540 s, all recomputed though only the adapter changed and Atlas's own model stayed byte-identical (evidence/verification/G178-verification-cost.json)"
+planned_generation = "queued"
+bounded = true
+
+[[native_attack]]
+position = 26
 id = "NA-HUNK-SEEDS"
 priority = "P4"
 debts = ["DEBT-IMPACT_CLOSURE"]
@@ -2219,7 +2228,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 26
+position = 27
 id = "NA-EXECUTION-FLOWS"
 priority = "P0"
 debts = ["DEBT-SEMANTIC-COMPOSITION"]
@@ -2228,7 +2237,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 27
+position = 28
 id = "NA-SELF-RECONSTRUCTION-BODIES"
 priority = "P6"
 debts = ["DEBT-CONSTRUCTION_IR"]
@@ -2237,7 +2246,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 28
+position = 29
 id = "NA-TARGET-PROFILE"
 priority = "P6"
 debts = ["DEBT-TARGET_PROFILE"]
@@ -2246,7 +2255,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 29
+position = 30
 id = "NA-ARTIFACT-SEMANTICS-IMAGE"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
@@ -2255,7 +2264,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 30
+position = 31
 id = "NA-WEIGHT-CENSUS-RECORDS"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
@@ -2264,7 +2273,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 31
+position = 32
 id = "NA-WEIGHT-ROLES"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
@@ -2273,7 +2282,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 32
+position = 33
 id = "NA-WEIGHT-TRANSFORMS"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
@@ -2282,7 +2291,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 33
+position = 34
 id = "NA-WEIGHT-FORMATS"
 priority = "P6"
 debts = ["DEBT-ARTIFACT_SEMANTICS"]
@@ -2291,7 +2300,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 34
+position = 35
 id = "NA-ADMISSION-AUTHORITY"
 priority = "P2"
 debts = ["DEBT-IDENTITY_AUTHORITY", "DEBT-SELECTED_DESIGN"]
@@ -2300,7 +2309,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 35
+position = 36
 id = "NA-RESOURCE-RESIDUAL"
 priority = "P0"
 debts = ["DEBT-RESOURCE", "DEBT-OWNERSHIP"]
@@ -2309,7 +2318,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 36
+position = 37
 id = "NA-ATLAS-DESIGN-SECTION"
 priority = "P2"
 debts = ["DEBT-ATLAS_COMPLETENESS", "DEBT-SEAL_GATE"]
@@ -2318,7 +2327,7 @@ planned_generation = "queued"
 bounded = true
 
 [[native_attack]]
-position = 37
+position = 38
 id = "NA-EDITION-2015"
 priority = "P0"
 debts = ["DEBT-CALL"]
