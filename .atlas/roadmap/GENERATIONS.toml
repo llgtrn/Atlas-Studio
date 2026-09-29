@@ -4344,7 +4344,7 @@ falsification = "32 mutants killed (30 on the core checks, 2 on the CLI exit cod
 boundary = "a SEALED container is self-certifying (RES-G179-SEAL-SELF-CERTIFYING, HIGH, to close before M11 consumes an admitted parent); the seal gate trusts the integrity report's verdict (RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT); the self scope stays unsealable (certificate RECONCILED, no SELECTED design)"
 debts = "DEBT-ATLASX M1_CONTRACT_ONLY -> M2_PARTIAL, last advance G179; M10 EXISTS; next CREATION selection NA-ATLASX-CODEC (M12) planned G181; next generation G180 FULL_OSS_REPLAY rust-lang/datafrog"
 review = "DEBT-ARTIFACT_SEMANTICS, DEBT-BACKEND_ADAPTER, DEBT-CONSTRUCTION_IR and DEBT-TYPE reviewed at their cadence, all CONFIRMED -- weights only among non-code artifacts, no backend adapter, construction IR still without bodies, types unchanged since G153 (evidence/census/G179/debt-review.json)"
-proof = "PROVEN (post 1e254431...): the new module, its fixtures and the command censused"
+proof = "PROVEN (post fc204618...): the new module, its fixtures and the command censused; re-proven after the roadmap commit changed the runtime tests (a proof taken before the last source change does not describe HEAD)"
 
 [generation.value]
 new_capability = "the AtlasX precondition gate and atlas-systemizer atlasx precondition (record atlas.atlasx-precondition.v1)"

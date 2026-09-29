@@ -1,8 +1,8 @@
 {
   "schema": "atlas.census-snapshot.v3",
-  "revision": "1e9563f5de8e48d655b0dd73e0cf604b92c3b004",
+  "revision": "28a49b5f7e0abc6724f18855f215295f5199163f",
   "dirty": true,
-  "census_digest": "blake3-256:1e2544315a557ee66cffb9dcddca5e986a7a584db9a01ac41aa795c065c2e9c3",
+  "census_digest": "blake3-256:fc204618426dd73bc89f5afc3d958a76e4d4f8339b86a0e41e90bcb93779de81",
   "artifacts": [
     {
       "path": "adapter/Cargo.toml",
@@ -7287,7 +7287,7 @@
       "path": "runtime/src/lib.rs",
       "disposition": "Parsed",
       "language": "rust",
-      "content_digest": "blake3-256:96f157cf8607a8543458ed61fdfa2a1ddf8cb03671200e33966e14d6c655daa4",
+      "content_digest": "blake3-256:3aea9a3b3658fcb3f72d16255ddc9c9791672555060d8bd6e4e2328fd214f658",
       "facts": {
         "FunctionIdentity|OBSERVED": 461,
         "FunctionSignature|OBSERVED": 153,
@@ -7335,7 +7335,7 @@
         "TYPE|UNKNOWN": 1
       },
       "unknowns": 15,
-      "semantic_digest": "blake3-256:b39b091aa5763fdfb4d940e43a4f9f8b342d9a2f4986281d6d2e4d3d1154dedd"
+      "semantic_digest": "blake3-256:eb086bbf6db7a94fc82cb035a9d4cde6bc023dfdba76b61f977febb702db51d1"
     },
     {
       "path": "runtime/src/normalize/mod.rs",
@@ -29903,7 +29903,7 @@
       "descriptor": "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
       "path": "runtime/src/lib.rs",
       "signature": "blake3-256:11bef1ea70256d0bb3f7ff39390791d7551883773af17002d04159384eb734f9",
-      "body": "blake3-256:ed1f6b63bd3f8dcf881a4d37b579c1b42f874b9fc33abd2bcc5786ba41b435ed",
+      "body": "blake3-256:ecae125404067c00479faa29dfee3e5f65a4c5b78fdcb1fe85eab6ec3b3053cb",
       "visibility": "inherited"
     },
     {

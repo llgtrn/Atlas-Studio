@@ -78,6 +78,7 @@
     "CHANGED `apps/cli` run().",
     "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
     "CHANGED runtime tests/essential_complexity/pressure_map_restates_the_ledger().",
+    "CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
     "CHANGED runtime tests/essential_complexity/replay_cadence_is_machine_enforced().",
     "CREATED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
     "CREATED core atlasx/precondition/admit().",

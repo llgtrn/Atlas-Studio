@@ -2,11 +2,11 @@
   "schema": "atlas.self-recensus-report.v1",
   "generation": "G179",
   "base_revision": "969e6b4f1941ae1dac87fab1b1fa0b81e728d19e",
-  "candidate_revision": "1e9563f5de8e48d655b0dd73e0cf604b92c3b004",
+  "candidate_revision": "28a49b5f7e0abc6724f18855f215295f5199163f",
   "candidate_dirty": true,
   "before_census_digest": "blake3-256:7928b607ac4c092b6175027cf1cdf28f3bc3efefb9028f0d1cd5da12bd31343b",
-  "after_census_digest": "blake3-256:1e2544315a557ee66cffb9dcddca5e986a7a584db9a01ac41aa795c065c2e9c3",
-  "replay_digest": "blake3-256:1e2544315a557ee66cffb9dcddca5e986a7a584db9a01ac41aa795c065c2e9c3",
+  "after_census_digest": "blake3-256:fc204618426dd73bc89f5afc3d958a76e4d4f8339b86a0e41e90bcb93779de81",
+  "replay_digest": "blake3-256:fc204618426dd73bc89f5afc3d958a76e4d4f8339b86a0e41e90bcb93779de81",
   "inventory_delta": {
     "created": [
       "core/src/atlasx/mod.rs",
@@ -123,6 +123,16 @@
       ],
       "after": [
         "runtime tests/essential_complexity/pressure_map_restates_the_ledger()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete()."
       ],
       "evidence": "body"
     },
@@ -585,6 +595,7 @@
       "CHANGED `apps/cli` run().",
       "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
       "CHANGED runtime tests/essential_complexity/pressure_map_restates_the_ledger().",
+      "CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
       "CHANGED runtime tests/essential_complexity/replay_cadence_is_machine_enforced().",
       "CREATED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
       "CREATED core atlasx/precondition/admit().",
@@ -706,6 +717,7 @@
     "entity CHANGED `apps/cli` run().",
     "entity CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
     "entity CHANGED runtime tests/essential_complexity/pressure_map_restates_the_ledger().",
+    "entity CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
     "entity CHANGED runtime tests/essential_complexity/replay_cadence_is_machine_enforced().",
     "entity CREATED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
     "entity CREATED core atlasx/precondition/admit().",
