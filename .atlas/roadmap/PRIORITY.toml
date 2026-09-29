@@ -862,7 +862,7 @@ objective = "CREATION: NA-ATLASX-PRECONDITION (done: M10 EXISTS -- core::atlasx:
 [[planned_generation]]
 id = "G180"
 priority = "P0"
-objective = "FULL_OSS_REPLAY rust-lang/datafrog (QUEUED): rank 4 of the recursive revalidation (ranks 1 to 3 replayed, triggers CURRENT), revalidated at G121 and G136 but never replayed in this lane, facing the strongest Atlas (E24) at a fresh pin, its license verified at it"
+objective = "FULL_OSS_REPLAY rust-lang/datafrog (done: R16 at edd7cfc0, which is also the G35 pin; 54 of 54 function-level edges confirmed by its SCIP index, recall 44.63%, no falsification and no change; ABSORBED and REFERENCE_ONLY revalidated (R9); LOW_FRONTIER_PROGRESS by design of a clean replay)"
 
 [[planned_generation]]
 id = "G181"
@@ -872,7 +872,7 @@ objective = "CREATION: NA-SELF-RECONSTRUCTION-BODIES (M14, [creation_selection] 
 [[planned_generation]]
 id = "G182"
 priority = "P0"
-objective = "FULL_OSS_REPLAY the replay ledger's next target after datafrog (FULL-OSS-REPLAY.toml next_replay, re-decided after G180; by RECURSIVE-DONOR-REVALIDATION's ranking today differential-dataflow, the rank after datafrog), facing the epoch G180 leaves"
+objective = "FULL_OSS_REPLAY timelydataflow/differential-dataflow (QUEUED, FULL-OSS-REPLAY.toml next_replay after R16): rank 5 of the recursive revalidation, facing the strongest Atlas at a fresh pin, its license verified at it; fix natively only what falsifies the tree (ADR 0092)"
 
 [[planned_generation]]
 id = "G183"

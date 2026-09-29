@@ -224,3 +224,27 @@ can_create_false_claim = false
 reopen_trigger = "when the design schema is made strict"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G180-GENERIC-AND-DYN-RECEIVERS"
+found_in = "G180"
+source = "adapter/src/semantic/rust/resolve.rs (method probe)"
+subsystem = "adapter semantic::rust::resolve (receiver typing)"
+reproduction = "datafrog at edd7cfc0: input1.recent() on input1: &Variable<T> (src/join.rs:51), result.merge on Relation<Tuple> (src/variable.rs:333) and variable.changed() on a Box<dyn VariableTrait> loop variable (src/iteration.rs:29) stay unresolved while rust-analyzer resolves them; the sibling input2 sites resolve"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the HARDENING lane reopens native receiver typing (NA-CALL-TYPE-RESIDUAL) by policy, or a replay's mission turns on such a receiver"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G180-EXAMPLE-CRATE-PATHS"
+found_in = "G180"
+source = "runtime/src/census/resolution.rs (crate targets), adapter/src/semantic/rust/resolve.rs"
+subsystem = "runtime census::resolution (example and test targets)"
+reproduction = "datafrog at edd7cfc0: examples/borrow_check.rs:11 use datafrog::Iteration and the calls through it stay unresolved; rust-analyzer resolves them to the library crate the example depends on"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or the self census needs calls from example or test targets into their own package's library"
+status = "OPEN"
+pressure = 1

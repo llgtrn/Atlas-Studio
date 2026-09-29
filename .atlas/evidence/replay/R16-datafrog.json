@@ -1,0 +1,193 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R16",
+ "generation": "G180",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "rust-lang/datafrog",
+  "remote": "https://github.com/rust-lang/datafrog.git",
+  "pin": "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-29) is the G35 decision pin and the R2 pin itself: the fresh pin and the historical pin are one tree",
+  "license": "Apache-2.0/MIT (Cargo.toml license field; LICENSE-APACHE and LICENSE-MIT at the pin)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over a scratch copy; nothing of datafrog is copied -- core::closure was written natively at G35 from the mechanism)",
+  "selection": "rank 4 of RECURSIVE-DONOR-REVALIDATION (REVALIDATION_REQUIRED, priority 144; revalidated at G121 and G136 but never replayed in this lane); ranks 1 to 3 replayed with triggers CURRENT",
+  "dependency_class": "MECHANISM_INTERNAL (semi-naive Datalog: Variable/Iteration stage rotation, Relation merge and gallop, leapjoin/treefrog multi-way joins, antijoin)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/datafrog (20 tracked files, 11 rs, 2,179 lines), the whole repository censused; a second fetch at .atlas/.cache/donors/datafrog-edd7cfc0 for the revalidation, identical model"
+ },
+ "epochs": {
+  "before": "E24",
+  "after": "E24 (no capability change this generation)"
+ },
+ "engines": {
+  "N": "the E24 release binary (HEAD 6a50bd1d)",
+  "N_plus_1": "the same binary: no falsification, no change"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (191 functions, 1 s)",
+   "component withheld notes (2 open-scope components: proptest! in src/test.rs, tuple_leapers! in src/treefrog.rs; 8 withheld path calls)",
+   "agent trace --from Iteration::changed --to Relation::merge",
+   "agent trace --from leapjoin --to gallop",
+   "agent trace --from Variable::from_join --to gallop (positive control)"
+  ],
+  "atlas_knew": {
+   "functions": 191,
+   "invokes": 57,
+   "dispatches_to": 45,
+   "call_records": 557,
+   "unresolved_call_sites": 427,
+   "withheld_path_calls": 8,
+   "open_scope_components": 2
+  },
+  "challenge": "does one round of the fixed point (Iteration::changed) reach the Relation merge, and does the multi-way join (leapjoin) reach the galloping search -- the two mechanisms G35 split between ABSORBED and REFERENCE_ONLY?",
+  "answer": "E24: NO_PATH_OBSERVED, UNKNOWN for both, and correctly not NO_PATH: Iteration::changed calls changed() on dyn VariableTrait and leapjoin calls for_each_count/propose/intersect on the six tuple_leapers! impls, which the census holds as open scope; absence is not claimed (3 and 11 unresolved sites at the origins). The positive control Variable::from_join -> join_into -> join_delta -> join_helper -> gallop is PATH_OBSERVED, DERIVED, four INVOKES steps, read correct"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 scip over a scratch copy at the donor's own relative paths, with sysroot and sysroot_src; three crates (the library and the examples borrow_check and graspan1, which depend on it); src/test.rs indexed; compared at function level against Atlas INVOKES",
+  "summary": {
+   "datafrog": {
+    "N": {
+     "atlas_edges": 54,
+     "oracle_edges": 121,
+     "agree": 54,
+     "atlas_only": 0,
+     "oracle_only": 67,
+     "precision": 1.0,
+     "recall": 0.4463,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 67,
+      "ATLAS_SILENT": 0
+     }
+    },
+    "N_plus_1": {
+     "atlas_edges": 54,
+     "oracle_edges": 121,
+     "agree": 54,
+     "atlas_only": 0,
+     "oracle_only": 67,
+     "precision": 1.0,
+     "recall": 0.4463,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 67,
+      "ATLAS_SILENT": 0
+     }
+    }
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_WRONG",
+    "n": 0,
+    "what": "none: every one of the 54 function-level edges Atlas claims is the index's"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n": 67,
+    "what": "every oracle edge Atlas lacks is named unresolved at its caller; 22 read in source: receivers typed only by unannotated constructor or builder chains, parameters of a generic type (&Variable<T>, Relation<Tuple>), dyn VariableTrait receivers, calls inside assert! arguments (read, not resolved as a method), mem::replace results, fully qualified <Self as Leaper<..>>::count paths, impl Leapers parameters beside the tuple_leapers! open scope, and use datafrog::.. from the examples"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n": 0,
+    "what": "none"
+   },
+   {
+    "class": "DISPATCHES_TO",
+    "n": 45,
+    "what": "no false target; the six tuple_leapers! impls of Leapers are missing (open scope), so the dispatch set of leapjoin is incomplete, not wrong"
+   }
+  ],
+  "cases": [
+   {
+    "question": "is the fresh pin different from the historical one?",
+    "answer": "no: upstream master has not moved since the G35 pin edd7cfc0, so the replay and revalidation R9 census one tree, and N and N+1 are one engine"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing to absorb or fix: the replay found no falsification",
+  "change": "none",
+  "falsification": "none: precision 1.0 at function level; every missing edge honestly withheld",
+  "review": "none required: no change to review"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "edd7cfc0f5ad (the whole repository)",
+  "N": {
+   "epoch": "E24",
+   "functions": 191,
+   "invokes": 57,
+   "dispatches_to": 45,
+   "supplies_data": 56,
+   "call_records": 557,
+   "unresolved": 427,
+   "withheld_path_calls": 8,
+   "open_scope_components": 2,
+   "oracle_agree": 54
+  },
+  "N_plus_1": {
+   "epoch": "E24",
+   "functions": 191,
+   "invokes": 57,
+   "dispatches_to": 45,
+   "supplies_data": 56,
+   "call_records": 557,
+   "unresolved": 427,
+   "withheld_path_calls": 8,
+   "open_scope_components": 2,
+   "oracle_agree": 54
+  },
+  "edge_delta": {
+   "invokes_gained": 0,
+   "invokes_lost": 0,
+   "gained_wrong": 0
+  },
+  "what_atlas_n_saw": "54 of 54 function-level edges confirmed by the index, 44.63% of its edges",
+  "what_atlas_n_missed": "receiver types of generic parameters, trait objects and builder chains; calls inside macro-generated impls",
+  "what_atlas_n_plus_1_sees": "the same: no change this generation",
+  "still_unknown": "the dyn VariableTrait dispatch of the fixed point and the tuple_leapers! impls of the multi-way join",
+  "magnitude": "none: a replay without falsification"
+ },
+ "manual_reads": [
+  {
+   "what": "src/iteration.rs 20-50, src/variable.rs 320-360",
+   "why": "ground truth for the fixed-point mission",
+   "gap": "dyn VariableTrait receiver (withheld)"
+  },
+  {
+   "what": "src/treefrog.rs 1-40, 160-180, 460-480",
+   "why": "ground truth for leapjoin and the qualified Leaper paths",
+   "gap": "tuple_leapers! impls (open scope)"
+  },
+  {
+   "what": "src/join.rs 15-60, 160-215; src/map.rs 1-20",
+   "why": "the positive control and generic receivers",
+   "gap": "generic-typed receivers (withheld)"
+  },
+  {
+   "what": "examples/borrow_check.rs 1-110, examples/graspan1.rs 40-50",
+   "why": "example crates calling the library",
+   "gap": "use datafrog:: paths and builder-chain receivers (withheld)"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R9 (evidence/revalidation/R9-datafrog.json): rank 4 at the exact G35 pin, which is also this replay's pin",
+  "historical_decision": "G35 ABSORBED the semi-naive delta-driven fixed point as core::closure; REFERENCE_ONLY leapjoin/treefrog, antijoin, Relation merge/gallop storage and map helpers (no Atlas caller)",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: Atlas still has no caller for a multi-way join, antijoin or galloping storage (its closure is one-hop rules plus a reachability walk); no datafrog dependency anywhere; the absorbed fixed point is Atlas-native"
+ },
+ "decision": {
+  "donor": "ABSORBED (fixed point) and REFERENCE_ONLY (joins) at E24: unchanged",
+  "capability_delta": "NO_CAPABILITY_DELTA (E24; no change this generation)",
+  "trigger": "CURRENT; re-opened by a consumer of multi-way joins or antijoins in Atlas (e.g. NA-CLOSURE-CONSUMER needing incremental joins), receiver typing of generic parameters and trait objects, or dependency macro expansion bounding macro-opened scopes (tuple_leapers!): re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/datafrog and /home/user/Atlas-Studio/.atlas/.cache/donors/datafrog-edd7cfc0, each after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracle copy, the SCIP index, fn extents, census models, differentials and traces (scratch, outside the repository)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and revalidation R9; no datafrog text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

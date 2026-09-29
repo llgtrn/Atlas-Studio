@@ -1,0 +1,103 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R9",
+ "generation": "G180",
+ "donor": "datafrog",
+ "historical_decision": {
+  "generation": "G35",
+  "terminal_state": "ABSORBED",
+  "detail": "semi-naive delta-driven fixed point (Variable/Iteration stage rotation) ABSORBED as core::closure; leapjoin/treefrog multi-way join, antijoin, Relation merge/gallop storage and map helpers REFERENCE_ONLY: no Atlas caller",
+  "evidence": ".atlas/evidence/revalidation/R2-datafrog.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED, rank 4 (priority 144)",
+  "reason": "its decision depended on DEBT-DEPENDENCY and DEBT-IMPACT_CLOSURE, advanced since R2 (G136) by dependency declarations, the seal policy and the impact closure's evolution"
+ },
+ "question": "with every capability gained since G136, does Atlas now have a caller for the REFERENCE_ONLY joins, or does its view of the donor's own mechanism change, on the exact G35 source?",
+ "materialization": {
+  "pinned_commit": "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0",
+  "remote": "https://github.com/rust-lang/datafrog.git",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/datafrog-edd7cfc0",
+  "note": "the exact G35 pin, which is also upstream master at execution and replay R16's pin; 20 tracked files, 11 rs; Apache-2.0/MIT"
+ },
+ "engines": {
+  "historical": "Atlas E24 at 6a50bd1d",
+  "current": "the same engine: no change this generation",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole repository at the pin",
+  "historical_records": {
+   "CALL": 557,
+   "CONTROL_FLOW": 318,
+   "DATA_FLOW": 1280,
+   "EFFECT": 27,
+   "FUNCTION_IDENTITY": 191,
+   "FUNCTION_SIGNATURE": 120,
+   "OWNERSHIP": 361,
+   "STATE": 40,
+   "SYMBOL": 264,
+   "TYPE": 249
+  },
+  "current_records": {
+   "CALL": 557,
+   "CONTROL_FLOW": 318,
+   "DATA_FLOW": 1280,
+   "EFFECT": 27,
+   "FUNCTION_IDENTITY": 191,
+   "FUNCTION_SIGNATURE": 120,
+   "OWNERSHIP": 361,
+   "STATE": 40,
+   "SYMBOL": 264,
+   "TYPE": 249
+  },
+  "historical_total": 3407,
+  "current_total": 3407,
+  "mechanism_slices": {
+   "INVOKES by file (E24)": {
+    "src/join.rs (join helpers, gallop)": "14",
+    "src/treefrog.rs (leapjoin, extend/filter leapers)": "12",
+    "src/test.rs": "10",
+    "src/variable.rs (stage rotation)": "9",
+    "src/relation.rs (merge)": "7",
+    "src/iteration.rs": "2",
+    "src/merge.rs": "2",
+    "src/map.rs": "1"
+   }
+  },
+  "repository": {
+   "E24": {
+    "functions": 191,
+    "invokes": 57,
+    "withheld_path_calls": 8,
+    "open_scope_components": 2,
+    "unresolved_call_sites": 427
+   }
+  }
+ },
+ "premises_rechecked": {
+  "multi_way_join_caller": "none: grep of Atlas's sources finds no leapjoin, antijoin, gallop or multi-way join; core/src/closure/mod.rs states the joins were deliberately not absorbed",
+  "dependency": "none: no datafrog in any Cargo.toml or Cargo.lock",
+  "fixed_point": "core::closure remains Atlas-native"
+ },
+ "mechanism_through_atlas": "at the G35 pin Atlas's view of the engine is 191 functions and 57 INVOKES at E24, every function-level edge confirmed by the language server index; the stage rotation's dyn VariableTrait dispatch and the tuple_leapers! impls stay withheld",
+ "semantic_delta": [
+  "SEAL_POLICY"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: the fixed point stays absorbed and native, the multi-way join, antijoin and galloping storage stay REFERENCE_ONLY with no Atlas caller; on the exact G35 source every call edge Atlas claims is the index's",
+ "follow_up": "NA-CLOSURE-CONSUMER",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G180 REVALIDATED at E24 (replay R16, revalidation R9)"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/datafrog-edd7cfc0 (from the repository root, path resolved and asserted under .atlas/.cache/donors/)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and replay R16",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ },
+ "engine_change_this_generation": "none"
+}

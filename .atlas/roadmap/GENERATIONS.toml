@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G179"
+current_generation = "G180"
 
 [[generation]]
 id = "G35"
@@ -4373,3 +4373,50 @@ after = 6967
 key = "composed:relation:INVOKES"
 before = 6770
 after = 6957
+
+[[generation]]
+id = "G180"
+kind = "REPLAY"
+lane = "HARDENING"
+base_commit = "6a50bd1dbf5a3869e43d20f40e2311153041ad83"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R16: rank 4 of the recursive revalidation, the Datalog engine datafrog (REVALIDATION_REQUIRED), facing E24; its upstream head is the G35 decision pin"
+objective = "census datafrog at edd7cfc0 with E24 against rust-analyzer's SCIP index of its crates with the standard library loaded; decide whether ABSORBED and REFERENCE_ONLY hold; fix natively only what falsifies the tree (ADR 0092); revalidation R9 at the same pin; extinction"
+writer = "coordinator (sole writer); one measurement lane"
+replay = "rust-lang/datafrog"
+pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+source_path = ".atlas/.cache/donors/datafrog"
+epoch_before = "E24"
+epoch_after = "E24"
+mission = ".atlas/evidence/replay/R16-datafrog.json"
+evidence = ".atlas/evidence/replay/R16-datafrog.json"
+self_recensus = ".atlas/evidence/census/G180/recensus.json"
+
+[generation.verification]
+pre_census = "G179 post digest"
+atlas_first = "191 functions, 57 INVOKES; the fixed point (Iteration::changed -> Relation::merge) and the multi-way join (leapjoin -> gallop) answer NO_PATH_OBSERVED, UNKNOWN -- correctly withheld, the real paths run through dyn VariableTrait and the tuple_leapers! impls; the control Variable::from_join -> gallop PATH_OBSERVED in four steps"
+change = "none: no falsification"
+oracle = "rust-analyzer 1.90.0 SCIP with sysroot_src over a scratch copy (library and two example crates): 54 of 54 function-level edges confirmed, recall 44.63%, no edge only Atlas holds; the 67 missing edges all named unresolved at their callers, 22 read in source"
+falsification = "none"
+boundary = "receivers of generic parameters, trait objects and builder chains (RES-G180-GENERIC-AND-DYN-RECEIVERS); use datafrog:: paths from the example crates (RES-G180-EXAMPLE-CRATE-PATHS); the tuple_leapers! impls as open scope"
+debts = "no capability epoch; datafrog ABSORBED and REFERENCE_ONLY revalidated (R9), trigger CURRENT; next replay timelydataflow/differential-dataflow G182; next generation G181 CREATION NA-SELF-RECONSTRUCTION-BODIES (M14)"
+review = "no debt review fell due"
+proof = "PROVEN (post fc204618..., unchanged): no source changed; the clones, the oracle copy and the index deleted before the recensus"
+
+[generation.value]
+new_capability = ""
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 0
+maturity_steps = 0
+capability_delta = 0
+wrong_claims_removed = 0
+wall_clock_s = 634
+machine_s = 14
+proof_s = 74
+review_s = 0
+residuals_deferred = 2
+correctness_critical = false
+frontier_rate = 0.0
+frontier_class = "LOW_FRONTIER_PROGRESS"
+note = "a replay that falsified nothing: cheap (14 s of machine stages, 74 s of proof) and honestly LOW_FRONTIER_PROGRESS; its value is the confirmation that every claimed edge holds on a fresh donor; the clean-HEAD evidence run follows the roadmap commit and is not included"

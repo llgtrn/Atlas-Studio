@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G179"
+evaluated_at = "G180"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -468,15 +468,15 @@ first_50_ordinal = 2
 language = "rust"
 language_verified = false
 historical_decision_generation = "G35"
-last_materialized_generation = "G136"
-last_deep_census_generation = "G136"
+last_materialized_generation = "G180"
+last_deep_census_generation = "G180"
 capabilities_examined = ["DEBT-DEPENDENCY", "DEBT-IMPACT_CLOSURE"]
 capabilities_available_then = []
-semantic_delta = ["SEAL_POLICY"]
-status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-DEPENDENCY, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 144
-rank = 3
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
 
 [[donor]]
 donor = "blake3"
@@ -507,7 +507,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1008
+priority = 1015
 rank = 1
 
 [[donor]]
@@ -667,7 +667,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 864
+priority = 870
 rank = 2
 
 [[donor]]
@@ -715,8 +715,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 144
-rank = 4
+priority = 145
+rank = 3
 
 [[donor]]
 donor = "buck2"
@@ -1099,8 +1099,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 141
-rank = 5
+priority = 142
+rank = 4
 
 [[donor]]
 donor = "podman"
@@ -1597,3 +1597,21 @@ evidence = ".atlas/evidence/revalidation/R8-egglog.json"
 outcome = "REVALIDATED"
 finding = "verdict holds: equality saturation, e-class analysis and extraction stay REFERENCE_ONLY -- Atlas asserts no non-structural equalities (types canonical by resolution, 0 conflict candidates) and its decision layer ranks authored candidates; on the exact G82 source its view gains 226 call relations at E24 (1,586 -> 1,812); the replay's falsification, an import fixed point that never settled, is fixed in E24"
 follow_up = "NA-DESIGN-CANDIDATE-GENERATION"
+
+[[revalidation]]
+id = "R9"
+donor = "datafrog"
+generation = "G180"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["SEAL_POLICY"]
+question = "with every capability gained since G136, does Atlas now have a caller for the REFERENCE_ONLY joins, or does its view of the donor's own mechanism change, on the exact G35 source?"
+remote = "https://github.com/rust-lang/datafrog.git"
+pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G35 pin, which is also replay R16 pin, censused by E24"
+source_path = ".atlas/.cache/donors/datafrog-edd7cfc0"
+status = "COMPLETE"
+evidence = ".atlas/evidence/revalidation/R9-datafrog.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the fixed point stays absorbed and native, the multi-way join, antijoin and galloping storage stay REFERENCE_ONLY with no Atlas caller; on the exact G35 source every call edge Atlas claims (54 of 54 at function level) is the index's"
+follow_up = "NA-CLOSURE-CONSUMER"

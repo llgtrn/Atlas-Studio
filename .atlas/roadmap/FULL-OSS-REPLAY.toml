@@ -14,22 +14,22 @@ materialization_root = ".atlas/.cache/donors"
 max_materialized = 1
 max_non_replay_between = 1
 current_epoch = "E24"
-next_replay = "rust-lang/datafrog"
-next_replay_reason = "priority after R15: no processed replay has a fired trigger at E24 (the import fixed point converging fires none: every processed trigger names another capability); ranks 1 to 3 of RECURSIVE-DONOR-REVALIDATION (rust-analyzer, rust, egglog) were replayed at R10, R11/R14 and R15 with triggers CURRENT, so rank 4, the Datalog engine datafrog (REVALIDATION_REQUIRED, priority 142; revalidated at G121 and G136 but never replayed in this lane), faces the strongest Atlas (E24) at a fresh pin; license verified at the pin when selected; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
+next_replay = "timelydataflow/differential-dataflow"
+next_replay_reason = "priority after R16: no processed replay has a fired trigger at E24 (R16 changed no capability); ranks 1 to 4 of RECURSIVE-DONOR-REVALIDATION (rust-analyzer, rust, egglog, datafrog) were replayed at R10, R11/R14, R15 and R16 with triggers CURRENT, so rank 5, the incremental dataflow engine differential-dataflow (REVALIDATION_REQUIRED), faces the strongest Atlas (E24) at a fresh pin; license verified at the pin when selected; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
 
 [counts]
 total = 166
-never_replayed = 153
+never_replayed = 152
 queued = 1
 materialized = 0
-processed = 12
+processed = 13
 capability_advanced = 12
-no_capability_delta = 0
+no_capability_delta = 1
 revalidation_required = 0
 license_review_required = 0
-source_extinct = 12
+source_extinct = 13
 blocked_on_user = 6
-remaining = 154
+remaining = 153
 
 [[epoch]]
 id = "E0"
@@ -1904,7 +1904,29 @@ historical_verdicts = ["-: EXTINCT (ingestion_status)", "-: SOURCE_DELETED (stor
 license = "RECORDED_FILES"
 historical_pins = ["edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"]
 physically_present_legacy = false
-replay_status = "QUEUED"
+replay_status = "PROCESSED"
+replay_generation = "G180"
+pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+license_status = "Apache-2.0/MIT (Cargo.toml license field; LICENSE-APACHE and LICENSE-MIT at the pin): the toolchain rust-analyzer ran as the SCIP oracle over a scratch copy, nothing copied"
+code_reuse = "NONE"
+materialization = "blobless depth-1 fetch at the current master head, which is the G35 decision pin itself (20 files), the whole repository censused; rust-analyzer SCIP of a scratch copy with the standard library loaded (sysroot_src) as the oracle"
+epoch_before = "E24"
+epoch_after = "E24"
+levels_reached = "E24: Rust L6 by presence; 191 functions, 57 INVOKES; 54 of 54 function-level edges confirmed by the index (44.63% of its edges), every missing edge named unresolved; 2 open components (proptest!, tuple_leapers!) withholding 8 path calls; no falsification"
+mission = ".atlas/evidence/replay/R16-datafrog.json"
+capability_delta = "NO_CAPABILITY_DELTA"
+n_plus_1 = ".atlas/evidence/replay/R16-datafrog.json"
+mechanisms = ["the semi-naive delta-driven fixed point (Variable/Iteration stage rotation) -- ABSORBED at G35 as core::closure", "leapjoin/treefrog multi-way joins, antijoin, Relation merge/gallop storage, map helpers -- REFERENCE_ONLY (no Atlas caller)", "SCIP emission by the language server (the oracle)"]
+gaps = ["DEBT-CALL: receivers of generic parameters (&Variable<T>, Relation<Tuple>), dyn VariableTrait trait objects and builder chains stay unresolved", "DEBT-CALL: the six tuple_leapers! impls are open scope, so the dispatch set of leapjoin is incomplete (not wrong)"]
+verdict_history = ["G35: ABSORBED (fixed point as core::closure) and REFERENCE_ONLY (joins, storage)", "G121 (R1 revalidation cycle) and G136 (R2): REVALIDATED -- no caller for the joins; the impact closure over the donor history exposed two defects fixed then", "G150: REVALIDATION_REQUIRED (capability milestones)", "E24 (G180, R16): ABSORBED and REFERENCE_ONLY re-verified -- every call edge Atlas claims confirmed by the language server index, no falsification; revalidation R9 at the same pin; nothing copied"]
+replays = ["R16 G180 E24 .atlas/evidence/replay/R16-datafrog.json (with revalidation R9)"]
+terminal_state = "ABSORBED"
+decided_at_epoch = "E24"
+trigger_status = "CURRENT"
+trigger_checked_at_epoch = "E24"
+revalidation_trigger = "a consumer of multi-way joins or antijoins in Atlas (NA-CLOSURE-CONSUMER needing incremental joins), receiver typing of generic parameters and trait objects, or dependency macro expansion bounding macro-opened scopes re-opens this verdict: re-census the same pin against its own SCIP index"
+source_path = ".atlas/.cache/donors/datafrog"
+source_extinct = true
 
 [[repository]]
 key = "rust-lang/miri"
@@ -2208,7 +2230,7 @@ historical_verdicts = ["G80: REFERENCE_ONLY (terminal_state)", "-: CLONED (inges
 license = "RECORDED_FILES"
 historical_pins = ["aa8745f93ea8abe131104fc7885ba4fd47e63902"]
 physically_present_legacy = false
-replay_status = "NEVER_REPLAYED"
+replay_status = "QUEUED"
 
 [[repository]]
 key = "tlaplus/tlaplus"
