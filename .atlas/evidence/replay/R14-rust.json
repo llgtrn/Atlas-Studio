@@ -1,0 +1,191 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R14",
+ "generation": "G176",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "rust-lang/rust",
+  "remote": "https://github.com/rust-lang/rust.git",
+  "pin": "75a75c3e0a67d3fa3d03982775f5bb0356e7b510",
+  "pin_choice": "the exact R11 pin (G170): this replay is the re-census its revalidation trigger asks for, not a fresh pin",
+  "license": "MIT OR Apache-2.0 (LICENSE-MIT, LICENSE-APACHE and COPYRIGHT at the pin, as recorded by R11)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over a scratch copy of the crate; nothing of rustc's source is in Atlas)",
+  "selection": "the one processed replay whose trigger had fired: REVALIDATION_REQUIRED since E20 (G173, the method probe's autoref step decided beside external imports), settled before a new donor; E21 (standard macro arguments) and E22 (lexical local scopes) change CALL resolution too",
+  "dependency_class": "MECHANISM_INTERNAL (one crate of the compiler workspace; its rustc_* dependencies are workspace path crates, not locked registry packages, and are not materialized)",
+  "materialization": "partial clone --depth 1 --filter=blob:none, sparse cone compiler/rustc_hir_typeck, at .atlas/.cache/donors/rust (63,223 tracked files, 15 MB on disk -- identical to R11)"
+ },
+ "epochs": {
+  "before": "E18 (the R11 decision)",
+  "after": "E22 (G175: lexical local scopes; through E19 certain glob names, E20 locked dependency trait names, E21 standard macro arguments)"
+ },
+ "engines": {
+  "historical": "Atlas E18 built from its epoch commit eb43fa15913c in an isolated worktree with its own target directory (both removed after the build); it reproduces R11's census of the pin exactly (1,992 functions, 1,607 INVOKES, 502 withheld path calls in 12 modules)",
+  "current": "Atlas E22, HEAD 06de03f2",
+  "same_source": true
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence at both epochs"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (E18 and E22, 1,992 functions, 14 s)",
+   "agent trace --from compiler/rustc_hir_typeck/src/method/mod.rs --to compiler/rustc_hir_typeck/src/method/probe.rs",
+   "resolver outcomes of every path call joined to the index"
+  ],
+  "atlas_knew": {
+   "epoch": "E22",
+   "functions": 1992,
+   "call_records": 16745,
+   "invokes": 1613,
+   "supplies_data": 1608,
+   "dispatches_to": 39,
+   "unresolved_call_sites": 12783,
+   "open_scope_components": 16,
+   "withheld_path_calls": 584
+  },
+  "challenge": "R11's question again: how does method lookup (method/mod.rs) reach the method probe (method/probe.rs), and is every step a call the compiler makes?",
+  "answer": "E18 and E22 alike: PATH_OBSERVED, DERIVED, FnCtxt::lookup_probe_for_diagnostic (mod.rs:300) INVOKES FnCtxt::probe_for_name (probe.rs:334); both epochs hold the same four mod.rs -> probe_for_name edges, all confirmed by the index"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 SCIP over a scratch copy of the crate described by a rust-project.json naming the pinned toolchain's sysroot AND sysroot_src (edition 2024, display_name and version, no dependencies): 5.1 MB (R11's recipe, without sysroot_src, loaded no standard library: 1.4 MB, and indexed nothing inside a standard macro); compared at function level with the R10 tool (1,041 fn items from a syn parse, 80-line doc window)",
+  "summary": {
+   "E18": {
+    "atlas_edges": 1566,
+    "oracle_edges": 2040,
+    "agree": 1565,
+    "atlas_only": 1,
+    "oracle_only": 475,
+    "precision": 0.9994,
+    "recall": 0.7672,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 473,
+     "ATLAS_SILENT": 2
+    }
+   },
+   "E22": {
+    "atlas_edges": 1572,
+    "oracle_edges": 2040,
+    "agree": 1571,
+    "atlas_only": 1,
+    "oracle_only": 469,
+    "precision": 0.9994,
+    "recall": 0.7701,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 467,
+     "ATLAS_SILENT": 2
+    }
+   }
+  },
+  "recall_note": "R11 recorded 1,566 of 1,877 oracle edges (83.4%) with the recipe that loaded no standard library; against the corrected oracle the same E18 engine covers 76.7%: the difference is the oracle, not Atlas",
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT (oracle blind)",
+    "n": 1,
+    "what": "expr_use_visitor.rs: ExprUseVisitor::for_clippy calls Self::new, the one inherent new of ExprUseVisitor (its generic impl); the impl's self type names the external LateContext, which the dependency-free oracle cannot resolve -- read against the source, at both epochs"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n_E22": 296,
+    "what": "oracle-confirmed calls the resolver leaves unresolved or withheld at E22, by cause: 191 receiver-form-differs (the autoref step beside imports from rustc_* crates, which are not locked registry packages, so G173's reading cannot answer for them), 99 method-not-inherent (methods reached through Deref to TypeckRootCtxt or trait impls on self), 3 ambiguous-associated (BinOpCategory::from: two From impls chosen by argument type), 1 unresolved import, 2 open scope (below)"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n": 2,
+    "what": "has_significant_drop_outside_of_captures (upvar.rs), whose 95-line doc comment exceeds the mapping window, as in R11"
+   }
+  ],
+  "cases": [
+   {
+    "question": "does the autoref relief of E20 reach rustc_hir_typeck?",
+    "answer": "no: its imports are from rustc_* crates, workspace path crates the lock does not pin as registry packages; the guard still refuses beside them (191 oracle-confirmed calls), as E20 decided for any package it cannot read"
+   },
+   {
+    "question": "is every new withheld call honest?",
+    "answer": "yes: withheld path calls 502 -> 584 and open-scope modules 12 -> 16, every new cause a G173 procedural attribute or derive (#[instrument] on module-level fns in check.rs, lib.rs and upvar.rs; derive(TypeFoldable) in closure.rs; derive(Diagnostic) on a struct inside probe_op's body in method/probe.rs, which opens that block only -- 15 calls, among them ProbeContext::new at probe.rs:573, the one E18 edge E22 withholds) or calls newly visible inside standard macro arguments meeting an external glob (rustc_errors::codes::*)"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing of rustc is absorbed; the re-census exercised E19-E22 on the crate and found no false claim and no over-refusal outside classes already recorded",
+  "change": "none (no falsification to fix)",
+  "falsification": "none this generation: every claimed edge is confirmed by the index or read correct, and every refusal names a true cause"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "75a75c3e0a67 (compiler/rustc_hir_typeck)",
+  "N": {
+   "epoch": "E18",
+   "functions": 1992,
+   "invokes": 1607,
+   "supplies_data": 1610,
+   "dispatches_to": 39,
+   "call_records": 16738,
+   "unresolved": 12790,
+   "withheld_path_calls": 502,
+   "open_scope_components": 12,
+   "oracle_agree": 1565
+  },
+  "N_plus_1": {
+   "epoch": "E22",
+   "functions": 1992,
+   "invokes": 1613,
+   "supplies_data": 1608,
+   "dispatches_to": 39,
+   "call_records": 16745,
+   "unresolved": 12783,
+   "withheld_path_calls": 584,
+   "open_scope_components": 16,
+   "oracle_agree": 1571
+  },
+  "edge_delta": {
+   "invokes_gained": 7,
+   "invokes_lost": 1,
+   "lost_cause": "ProbeContext::new in a closure of probe_op, withheld: a derive(Diagnostic) on a struct in the same body may emit an item named ProbeContext there (G173)",
+   "function_level_gained_confirmed": 6,
+   "gained_wrong": 0
+  },
+  "what_atlas_n_saw": "1,565 of 1,566 function-level edges confirmed by the corrected oracle, the last read correct",
+  "what_atlas_n_plus_1_sees": "1,571 of 1,572 confirmed and the same one read correct; 7 new INVOKES from calls inside standard macro arguments, 1 withheld with its cause",
+  "still_unknown": "the autoref step beside rustc_* imports (191), methods through Deref to TypeckRootCtxt (99), argument-typed From selection (3)",
+  "magnitude": "small on the donor: its CALL residual is the external-declaration boundary R11 recorded"
+ },
+ "manual_reads": [
+  {
+   "what": "expr_use_visitor.rs 270-310",
+   "why": "the one Atlas-only edge",
+   "gap": "none: the oracle cannot resolve the impl's external self type"
+  },
+  {
+   "what": "method/probe.rs 388-632 (probe_op), 400-412",
+   "why": "the one withdrawn edge",
+   "gap": "none: a derive inside the body may emit items into it"
+  },
+  {
+   "what": "op.rs 1226-1270",
+   "why": "ambiguous BinOpCategory::from",
+   "gap": "argument-typed selection among generic-trait impls (recorded since G168)"
+  },
+  {
+   "what": "check.rs 19, lib.rs 109, upvar.rs 2314, closure.rs 27, diagnostics.rs 21",
+   "why": "the new open-scope causes",
+   "gap": "none: module-level procedural attributes and derives"
+  }
+ ],
+ "revalidation": {
+  "record": "the R11 verdict re-censused at its exact pin (the trigger's own instruction); R5, the G73-pin revalidation, is unaffected: its question (the method module's unresolved sites) is answered again here",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: rustc's method resolution and type inference stay EXTERNAL_BOUNDARY behind the oracle; E20's autoref relief cannot reach the crate because its dependencies are workspace path crates Atlas does not materialize; every call edge Atlas claims is confirmed or read correct at E18 and E22 alike"
+ },
+ "decision": {
+  "donor": "EXTERNAL_BOUNDARY at E22 (ORACLE): unchanged",
+  "capability_delta": "CAPABILITY_ADVANCED (E18 -> E22, by generations G172-G175; none this generation)",
+  "trigger": "CURRENT; re-opened by receiver typing across crates Atlas does not materialize, reading workspace path crates' declarations for the autoref guard (NA-DEPENDENCY-DECLARATIONS for path sources), autoderef through Deref impls, or dependency macro expansion bounding macro-opened scopes: re-census the same pin against the language server index of the crate"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/rust after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracle's crate copy, the SCIP index, fn extents, both engines' models, the E18 binary and the differentials",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record, R11 and R5; no rustc text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

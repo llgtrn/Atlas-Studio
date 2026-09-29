@@ -1,0 +1,8 @@
+{
+  "objective": "replay R14 rust-lang/rust: re-census of the R11 verdict at its exact pin at E22; no Atlas change",
+  "changed_paths": [],
+  "total_changes": [],
+  "entity_changes": [],
+  "adl_changes": [],
+  "dependency_changes": []
+}

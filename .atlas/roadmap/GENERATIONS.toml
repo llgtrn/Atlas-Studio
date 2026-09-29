@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G175"
+current_generation = "G176"
 
 [[generation]]
 id = "G35"
@@ -4213,3 +4213,31 @@ after = 9426
 key = "composed:relation:INVOKES"
 before = 6146
 after = 6210
+
+[[generation]]
+id = "G176"
+kind = "REPLAY"
+base_commit = "06de03f292024824d76c7f652162bc02d13c3951"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R14: the re-census rust-lang/rust R11's fired trigger asks for (REVALIDATION_REQUIRED since E20), at its exact pin, facing E22; DEBT-CALL re-measured"
+objective = "re-census the R11 pin of compiler/rustc_hir_typeck with the decision epoch's engine rebuilt and the current one, against the crate's SCIP index with the standard library loaded; decide whether EXTERNAL_BOUNDARY holds; fix what the index falsifies; extinction"
+writer = "coordinator (sole writer)"
+replay = "rust-lang/rust"
+pinned_commit = "75a75c3e0a67d3fa3d03982775f5bb0356e7b510"
+source_path = ".atlas/.cache/donors/rust"
+epoch_before = "E18"
+epoch_after = "E22"
+mission = ".atlas/evidence/replay/R14-rust.json"
+evidence = ".atlas/evidence/replay/R14-rust.json"
+self_recensus = ".atlas/evidence/census/G176/recensus.json"
+
+[generation.verification]
+pre_census = "G175 post digest"
+atlas_first = "the E18 engine rebuilt from its epoch commit in an isolated worktree reproduced R11's census exactly (1,992 functions, 1,607 INVOKES, 502 withheld path calls in 12 modules); R11's trace from method lookup to the probe answered PATH_OBSERVED at E18 and E22 alike"
+change = "none: no falsification to fix"
+oracle = "rust-analyzer 1.90.0 SCIP of a scratch copy of the crate with sysroot_src (5.1 MB; R11's recipe loaded no standard library, 1.4 MB): E18 1,565 of 1,566 function-level edges confirmed (76.7% of 2,040 oracle edges), E22 1,571 of 1,572 (77.0%), the last -- Self::new in an impl over the external LateContext -- read correct at both; R11's 83.4% was measured against the blind recipe"
+falsification = "none: 7 INVOKES gained (calls inside standard macro arguments), 1 withheld with its true cause (a derive(Diagnostic) inside probe_op's body may emit ProbeContext there); withheld path calls 502 -> 584 and open scopes 12 -> 16, every new cause a module-level procedural attribute or derive (G173) or a macro-argument call meeting an external glob"
+boundary = "the autoref step beside rustc_* imports (191 oracle-confirmed calls): workspace path crates, not locked registry packages, so G173's reading cannot answer for them; methods through Deref to TypeckRootCtxt (99); argument-typed From selection (3)"
+debts = "DEBT-CALL unchanged (last advance G175); no capability epoch; rust-lang/rust's trigger CURRENT at E22 (re-opened by reading workspace path crates' declarations for the guard, autoderef through Deref, or dependency macro expansion); next replay egraphs-good/egglog G178; native head NA-CALL-TYPE-RESIDUAL planned G177"
+review = "DEBT-MULTI_ENGINE, DEBT-SANDBOXED_EXECUTION, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-DESIGN_GENERATION reviewed at their cadence, all CONFIRMED -- one engine for four dimensions, no filesystem confinement, no ADL derivation change since G137, designs authored not generated (evidence/census/G176/debt-review.json)"
+proof = "PROVEN (post 6bc2b739..., unchanged): the census of Atlas is identical, no source changed; the clone, the oracle copy, the index and the rebuilt engine deleted before the recensus"

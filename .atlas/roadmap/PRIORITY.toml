@@ -787,7 +787,7 @@ objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done: the residual measured on At
 [[planned_generation]]
 id = "G176"
 priority = "P0"
-objective = "FULL_OSS_REPLAY rust-lang/rust (R11 REVALIDATION_REQUIRED since E20: the method probe autoref step is now decided beside external imports): re-census the same rustc_hir_typeck pin against the language server index of the crate, then the next NEVER_REPLAYED donor by revalidation rank"
+objective = "FULL_OSS_REPLAY R14 rust-lang/rust (done: the R11 verdict re-censused at its exact pin with the E18 engine rebuilt and E22, against the crate's index with the standard library loaded -- 1,565 of 1,566 and 1,571 of 1,572 edges confirmed, the last read correct at both, no falsification; the autoref relief cannot reach the crate's unmaterialized workspace path dependencies; EXTERNAL_BOUNDARY holds, trigger CURRENT; source extinct)"
 
 [[planned_generation]]
 id = "G177"
@@ -795,6 +795,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, 85): NA-CALL-TYPE-RESIDUAL -- its largest measured residual on Atlas, 431 autoref refusals beside use serde::{Deserialize, Serialize}, taken by NA-DEPENDENCY-DECLARATIONS step two (a named re-export read through a zero-argument local macro_rules crate root, per item, to the trait declaration); then NA-TRAIT-IMPL-RECEIVERS (150 trait-impl methods on self) and NA-BLOCK-MACRO-ITEMS"
 
 [[planned_generation]]
-id = "G178+"
+id = "G178"
+priority = "P0"
+objective = "FULL_OSS_REPLAY egraphs-good/egglog (QUEUED): rank 3 of the recursive revalidation (ranks 1 and 2 replayed, triggers CURRENT), its G82 decision (DEBT-TYPE, DEBT-DESIGN_GENERATION) facing the strongest Atlas (E22) at a fresh pin, its license verified at it"
+
+[[planned_generation]]
+id = "G179+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

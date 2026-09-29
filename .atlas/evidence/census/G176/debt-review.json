@@ -1,0 +1,32 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G176",
+ "trigger": "review cadence: DEBT-MULTI_ENGINE, DEBT-SANDBOXED_EXECUTION, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-DESIGN_GENERATION, each stale for at least 13 generations since its last advance and its last review, fell due at G176",
+ "method": "re-read against the census totals of G176 (engines per dimension, ADL semantics), runtime sandbox, core design and the generations G164-G175",
+ "reviews": [
+  {
+   "debt": "DEBT-MULTI_ENGINE",
+   "verdict": "CONFIRMED",
+   "finding": "at G176 the Rust census still has one engine for CONTROL_FLOW, DATA_FLOW, OWNERSHIP and STATE (the syntactic walker) and one for RESOURCE (the path-resolution engine); CALL, CONCURRENCY, EFFECT, PERSISTENCE and TYPE have the syntactic and resolution engines, which report different claims rather than cross-checking one another; rustc MIR and rust-analyzer's index enter only as test-time oracles (G169, G174-G176); NA-SECOND-ENGINE unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-SANDBOXED_EXECUTION",
+   "verdict": "CONFIRMED",
+   "finding": "the G126 restricted-subprocess backend still stages declared inputs, closes stdin and times out, but does not confine absolute-path or parent-directory reads: Atlas carries no unsafe code, so no Landlock or mount namespace is set up; no generation since G163 changed the sandbox; NA-SANDBOX-FS-CONFINEMENT unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-ADL_BEYOND_DEPENDENCIES",
+   "verdict": "CONFIRMED",
+   "finding": "the census still derives 65 ADL semantics at G176, the same kinds G137 added beyond dependencies; no generation from G164 to G176 changed an ADL derivation (every self-recensus since records no ADL change); state machines and package-level declarations stay underived; NA-ADL-STATE-AND-PACKAGES unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-DESIGN_GENERATION",
+   "verdict": "CONFIRMED",
+   "finding": "candidate designs are still authored and then compared by explicit criteria (core::design, compare.rs, G150); nothing generates alternative realizations from the composed world model, and Atlas never selects a design (selection needs an authenticated principal, G171, and the registry is empty); NA-DESIGN-CANDIDATE-GENERATION unchanged",
+   "correction": {}
+  }
+ ]
+}

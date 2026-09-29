@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G176",
+  "base_revision": "a88b5842c394e7149ae7c1e12a2cd8dd44a262a2",
+  "candidate_revision": "06de03f292024824d76c7f652162bc02d13c3951",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+  "after_census_digest": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+  "replay_digest": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+  "inventory_delta": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [],
+    "counts": {}
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {},
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2312,
+    "total_after": 2312
+  },
+  "intent": {
+    "objective": "replay R14 rust-lang/rust: re-census of the R11 verdict at its exact pin at E22; no Atlas change",
+    "changed_paths": [],
+    "total_changes": [],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": []
+  },
+  "intended_changes": [],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
