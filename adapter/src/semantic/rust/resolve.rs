@@ -325,7 +325,9 @@ fn evaluation(mac: &syn::Macro, shadowed: &BTreeSet<String>) -> Option<syn::Expr
     for (argument, role) in recovered.arguments {
         let argument = if debug || (asserting && role == ArgumentRole::Formatted) {
             syn::Expr::Paren(syn::ExprParen {
-                attrs: vec![syn::parse_quote!(#[atlas_conditional])],
+                // G175 (review): marker tokens carry a source span, so a span joined over the
+                // rewritten expression starts where the source does.
+                attrs: vec![syn::parse_quote_spanned!(argument.span()=> #[atlas_conditional])],
                 paren_token: syn::token::Paren {
                     span: *mac.delimiter.span(),
                 },
@@ -353,7 +355,7 @@ fn evaluation(mac: &syn::Macro, shadowed: &BTreeSet<String>) -> Option<syn::Expr
         }
     }
     Some(syn::Expr::Tuple(syn::ExprTuple {
-        attrs: vec![syn::parse_quote!(#[atlas_expanded_macro])],
+        attrs: vec![syn::parse_quote_spanned!(mac.path.span()=> #[atlas_expanded_macro])],
         paren_token: syn::token::Paren {
             span: *mac.delimiter.span(),
         },
@@ -924,6 +926,9 @@ struct DefMap {
     /// G174: the macro names that may shadow a standard macro in the crate being collected, or
     /// `None` while its files are only being discovered (nothing is expanded then).
     shadowed_macros: Option<BTreeSet<String>>,
+    /// G175: each crate's shadowing set, kept for the walk (an opaque invocation of a standard
+    /// macro binds no local).
+    crate_macros: BTreeMap<usize, BTreeSet<String>>,
     modules: Vec<Module>,
     types: Vec<TypeDef>,
     impls: Vec<ImplDef>,
@@ -1335,6 +1340,11 @@ fn start(span: proc_macro2::Span) -> (usize, usize) {
     (start.line, start.column)
 }
 
+fn end(span: proc_macro2::Span) -> (usize, usize) {
+    let end = span.end();
+    (end.line, end.column)
+}
+
 /// G162: the conservative meet of two alternating scopes of one module. A name both phases bind
 /// to the same definition keeps it; any other name either phase binds stays bound, to `Unknown`,
 /// so it neither resolves anything nor lets a lookup fall through to an outer scope or the extern
@@ -1492,7 +1502,9 @@ impl DefMap {
         let mut discovered = BTreeMap::new();
         let mut discovery = DefMap::default();
         discovery.collect_crate_files(krate, input, &dir, sources, &mut discovered);
-        self.shadowed_macros = Some(super::macros::shadowing_macro_names(discovered.values()));
+        let shadowed = super::macros::shadowing_macro_names(discovered.values());
+        self.crate_macros.insert(krate, shadowed.clone());
+        self.shadowed_macros = Some(shadowed);
         self.collect_file(root, &input.root, &dir, sources, parsed);
         self.shadowed_macros = None;
     }
@@ -2882,6 +2894,17 @@ impl DefMap {
 }
 
 impl DefMap {
+    /// G175: the shadowing set of the crate `scope` belongs to; a crate never collected shadows
+    /// every bare name.
+    fn crate_macros_of(&self, scope: ModId) -> &BTreeSet<String> {
+        static EVERY: std::sync::LazyLock<BTreeSet<String>> = std::sync::LazyLock::new(|| {
+            BTreeSet::from([super::macros::EVERY_BARE_NAME.to_owned()])
+        });
+        self.crate_macros
+            .get(&self.modules[scope].krate)
+            .unwrap_or(&EVERY)
+    }
+
     /// G140: `x.name(..)` where `x`'s type is known only through the workspace traits `bounds`.
     /// Their methods are the probe's inherent-like candidates (object and parameter candidates),
     /// ahead of every other trait: the one bound method of that name with the caller's receiver
@@ -2986,7 +3009,7 @@ fn flatten_use(
 }
 
 struct FnCtx {
-    locals: BTreeSet<String>,
+    locals: Locals,
     generics: BTreeSet<String>,
     receiver: Option<Receiver>,
     /// G139: locals whose type is declared (`x: T`, `x: &T`, `x: &mut T` for a workspace type
@@ -3102,16 +3125,178 @@ struct CallWalker<'a> {
     withheld: &'a mut Vec<WithheldPath>,
 }
 
-/// Every identifier a pattern binds.
+/// Every identifier a pattern binds (G175: a macro in it may bind any identifier it spells).
 struct Bindings(BTreeSet<String>);
 
 impl<'ast> Visit<'ast> for Bindings {
     fn visit_pat_ident(&mut self, pat: &'ast syn::PatIdent) {
-        self.0.insert(pat.ident.to_string());
+        self.0.insert(ident_text(&pat.ident));
         syn::visit::visit_pat_ident(self, pat);
+    }
+    fn visit_macro(&mut self, mac: &'ast syn::Macro) {
+        stream_idents(mac.tokens.clone(), &mut self.0);
     }
     fn visit_item(&mut self, _: &'ast syn::Item) {}
     fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+    // G175 (review): a block inside a type in the pattern binds in its own block, not here.
+    fn visit_type(&mut self, _: &'ast syn::Type) {}
+}
+
+/// G175: the locals of a region by name (`r#` stripped), each with the source ranges
+/// `[from, until)` where one of its bindings is in scope.
+#[derive(Clone, Default)]
+struct Locals(BTreeMap<String, BTreeSet<ScopeRange>>);
+
+/// `[from, until)` in (line, column) positions.
+type ScopeRange = ((usize, usize), (usize, usize));
+
+impl Locals {
+    fn in_scope(&self, name: &str, at: (usize, usize)) -> bool {
+        let name = name.strip_prefix("r#").unwrap_or(name);
+        self.0
+            .get(name)
+            .is_some_and(|ranges| ranges.iter().any(|&(from, until)| from <= at && at < until))
+    }
+}
+
+/// G175: every binding of a region with where it is in scope, by the lexical rules of the Rust
+/// reference ("Scopes"): a `let` statement's from its `;` to the end of its block (its
+/// initializer and `else` block do not see it); an `if let` / `while let` (let chains included)
+/// from the end of its `let` through the guarded block; a `match` arm's over its guard and body; a
+/// `for` pattern over the body; a closure parameter over the closure body. An opaque macro
+/// invocation (one `expand_standard_macros` left in place) in statement position may expand to
+/// `let $v = ..`: every identifier it spells is bound from the invocation to the end of its block.
+/// In expression position (a condition included) it expands to one expression, which binds
+/// nothing outside itself. A binding placed nowhere else is in scope from its start to the
+/// end of the function.
+struct LocalScopes<'s> {
+    locals: Locals,
+    /// The crate's shadowing set: an opaque invocation `macros::recover` still reads as a standard
+    /// macro (left in place only for its implicit format captures) binds nothing.
+    shadowed: &'s BTreeSet<String>,
+    /// The ends of the enclosing blocks, innermost last.
+    ends: Vec<(usize, usize)>,
+}
+
+impl<'s> LocalScopes<'s> {
+    fn new(locals: Locals, shadowed: &'s BTreeSet<String>) -> Self {
+        LocalScopes {
+            locals,
+            shadowed,
+            ends: Vec::new(),
+        }
+    }
+
+    fn block_end(&self) -> (usize, usize) {
+        self.ends.last().copied().unwrap_or(FN_END)
+    }
+
+    fn bind(&mut self, pat: &syn::Pat, from: (usize, usize), until: (usize, usize)) {
+        let mut names = Bindings(BTreeSet::new());
+        names.visit_pat(pat);
+        for name in names.0 {
+            self.locals.0.entry(name).or_default().insert((from, until));
+        }
+        // The pattern's types (`let x: [u8; { .. }]`) hold blocks with their own scopes.
+        self.visit_pat(pat);
+    }
+
+    /// The `let`s of an `if` or `while` condition, chained by `&&`, are in scope from their own
+    /// end through `until` (the end of the guarded block, or of a match arm).
+    fn condition(&mut self, cond: &syn::Expr, until: (usize, usize)) {
+        match cond {
+            syn::Expr::Binary(chain) if matches!(chain.op, syn::BinOp::And(_)) => {
+                self.condition(&chain.left, until);
+                self.condition(&chain.right, until);
+            }
+            syn::Expr::Let(binding) => {
+                self.visit_expr(&binding.expr);
+                self.bind(&binding.pat, end(binding.span()), until);
+            }
+            other => self.visit_expr(other),
+        }
+    }
+
+    fn opaque(&mut self, mac: &syn::Macro) {
+        if super::macros::recover(mac, self.shadowed).is_some() {
+            return;
+        }
+        let mut names = BTreeSet::new();
+        stream_idents(mac.tokens.clone(), &mut names);
+        let (from, until) = (start(mac.path.span()), self.block_end());
+        for name in names {
+            self.locals.0.entry(name).or_default().insert((from, until));
+        }
+    }
+}
+
+impl<'ast> Visit<'ast> for LocalScopes<'_> {
+    fn visit_block(&mut self, block: &'ast syn::Block) {
+        self.ends.push(start(block.brace_token.span.close()));
+        syn::visit::visit_block(self, block);
+        self.ends.pop();
+    }
+    fn visit_local(&mut self, local: &'ast syn::Local) {
+        if let Some(init) = &local.init {
+            self.visit_expr(&init.expr);
+            if let Some((_, diverge)) = &init.diverge {
+                self.visit_expr(diverge);
+            }
+        }
+        let until = self.block_end();
+        self.bind(&local.pat, end(local.semi_token.span), until);
+    }
+    fn visit_expr_if(&mut self, expr: &'ast syn::ExprIf) {
+        let until = start(expr.then_branch.brace_token.span.close());
+        self.condition(&expr.cond, until);
+        self.visit_block(&expr.then_branch);
+        if let Some((_, otherwise)) = &expr.else_branch {
+            self.visit_expr(otherwise);
+        }
+    }
+    fn visit_expr_while(&mut self, expr: &'ast syn::ExprWhile) {
+        self.condition(&expr.cond, start(expr.body.brace_token.span.close()));
+        self.visit_block(&expr.body);
+    }
+    fn visit_expr_let(&mut self, expr: &'ast syn::ExprLet) {
+        // A `let` outside a condition chain: not placed, so to the end of the function.
+        self.visit_expr(&expr.expr);
+        self.bind(&expr.pat, start(expr.span()), FN_END);
+    }
+    fn visit_expr_for_loop(&mut self, expr: &'ast syn::ExprForLoop) {
+        self.visit_expr(&expr.expr);
+        let body = &expr.body.brace_token.span;
+        self.bind(&expr.pat, start(body.open()), start(body.close()));
+        self.visit_block(&expr.body);
+    }
+    fn visit_arm(&mut self, arm: &'ast syn::Arm) {
+        let until = end(arm.span());
+        let (pat, guard) = match &arm.pat {
+            syn::Pat::Guard(guarded) => (guarded.pat.as_ref(), Some(guarded.guard.as_ref())),
+            pat => (pat, None),
+        };
+        self.bind(pat, end(pat.span()), until);
+        if let Some(guard) = guard {
+            self.condition(guard, until);
+        }
+        self.visit_expr(&arm.body);
+    }
+    fn visit_expr_closure(&mut self, closure: &'ast syn::ExprClosure) {
+        let (from, until) = (end(closure.inputs_end.span), end(closure.span()));
+        for input in &closure.inputs {
+            self.bind(input, from, until);
+        }
+        if let syn::ReturnType::Type(_, ty) = &closure.output {
+            self.visit_type(ty);
+        }
+        self.visit_expr(&closure.body);
+    }
+    fn visit_stmt_macro(&mut self, stmt: &'ast syn::StmtMacro) {
+        self.opaque(&stmt.mac);
+    }
+    // An item in the body binds no local: in item position only a `macro_rules!` definition is
+    // accepted, and the locals its expansions introduce are hygienic.
+    fn visit_item(&mut self, _: &'ast syn::Item) {}
 }
 
 fn generic_names(generics: &syn::Generics) -> BTreeSet<String> {
@@ -3271,18 +3456,23 @@ impl CallWalker<'_> {
     }
 
     fn enter_fn(&mut self, sig: &syn::Signature, block: &syn::Block) {
-        let mut bindings = Bindings(BTreeSet::new());
+        let mut scopes =
+            LocalScopes::new(Locals::default(), self.map.crate_macros_of(self.scope()));
         for input in &sig.inputs {
-            bindings.visit_fn_arg(input);
+            if let syn::FnArg::Typed(arg) = input {
+                scopes.bind(&arg.pat, (0, 0), FN_END);
+            }
         }
-        bindings.visit_block(block);
+        // G175 (review): blocks in the signature's types (array lengths) scope their own lets.
+        scopes.visit_signature(sig);
+        scopes.visit_block(block);
         let mut generics = generic_names(&sig.generics);
         if let Some(Some(outer)) = self.impl_self.last() {
             generics.extend(outer.generics.iter().cloned());
         }
         let typed = self.typed_locals(sig, block, &generics);
         self.fn_ctx.push(FnCtx {
-            locals: bindings.0,
+            locals: scopes.locals,
             generics,
             receiver: receiver_of(sig),
             typed,
@@ -4183,7 +4373,8 @@ impl CallWalker<'_> {
             if segments[0] == "Self" {
                 return PathCallOutcome::Unresolved("constructor");
             }
-            if ctx.locals.contains(&segments[0]) {
+            // G175: a local shadows the function only where one of its bindings is in scope.
+            if ctx.locals.in_scope(&segments[0], start(path.span())) {
                 return PathCallOutcome::Unresolved("local-binding");
             }
             return match self.map.lexical_lookup(scope, Ns::Values, &segments[0]) {
@@ -4530,13 +4721,13 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
         let Some(enclosing) = self.fn_ctx.last() else {
             return;
         };
-        let mut bindings = Bindings(enclosing.locals.clone());
-        for input in &closure.inputs {
-            bindings.visit_pat(input);
-        }
-        bindings.visit_expr(&closure.body);
+        let mut scopes = LocalScopes::new(
+            enclosing.locals.clone(),
+            self.map.crate_macros_of(self.scope()),
+        );
+        scopes.visit_expr_closure(closure);
         let ctx = FnCtx {
-            locals: bindings.0,
+            locals: scopes.locals,
             generics: enclosing.generics.clone(),
             receiver: enclosing.receiver,
             // Bound once in the whole function, closures included: the same local here.
@@ -4558,10 +4749,13 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
         let Some(enclosing) = self.fn_ctx.last() else {
             return;
         };
-        let mut bindings = Bindings(enclosing.locals.clone());
-        bindings.visit_block(&async_block.block);
+        let mut scopes = LocalScopes::new(
+            enclosing.locals.clone(),
+            self.map.crate_macros_of(self.scope()),
+        );
+        scopes.visit_block(&async_block.block);
         let ctx = FnCtx {
-            locals: bindings.0,
+            locals: scopes.locals,
             generics: enclosing.generics.clone(),
             receiver: enclosing.receiver,
             typed: enclosing.typed.clone(),

@@ -1213,16 +1213,18 @@ fn a_standard_macro_name_the_crate_may_rebind_stays_opaque() {
         &[("src/lib.rs", lib), ("src/m.rs", m), ("src/n.rs", n)],
         "src/lib.rs",
     );
-    // Only the path-qualified `std::format!` is the standard macro.
+    // Only the path-qualified `std::format!` is the standard macro. G175: the opaque `dbg!`
+    // statement before it may expand to `let helper = ..`, so its `helper` is a local.
     assert_eq!(
         outcomes(&results, "src/lib.rs"),
-        [("helper".into(), "src/lib.rs:5:helper".into())]
+        [("helper".into(), "unresolved:local-binding".into())]
     );
     let renamed = "use std::vec as println;\nuse std::format as dbg;\nuse other::assert;\nfn helper() -> u8 { 0 }\nfn f() {\n    println!(helper());\n    let _ = dbg!(\"{}\", helper());\n    assert!(helper() == 0);\n    let _ = format!(\"{}\", helper());\n}\n";
     let results = resolve(&[("src/lib.rs", renamed)], "src/lib.rs");
+    // G175: behind the opaque `println!` and `assert!` statements, `helper` may be a local.
     assert_eq!(
         outcomes(&results, "src/lib.rs"),
-        [("helper".into(), "src/lib.rs:4:helper".into())]
+        [("helper".into(), "unresolved:local-binding".into())]
     );
     let imported = "#[macro_use]\nextern crate log;\nfn helper() -> u8 { 0 }\nfn f() {\n    let _ = vec![helper()];\n    let _ = std::vec![helper()];\n}\n";
     let results = resolve(&[("src/lib.rs", imported)], "src/lib.rs");
@@ -1645,5 +1647,113 @@ fn standard_macro_arguments_resolve_where_the_expansion_evaluates_them() {
     assert_eq!(
         outcomes(&results, "src/lib.rs"),
         [("helper".into(), "src/lib.rs:4:helper".into())]
+    );
+}
+
+#[test]
+fn scopes_hold_over_expanded_macro_bodies_and_blocks_in_pattern_types() {
+    // G175 (review): a closure or arm body opening with an expanded standard macro keeps its
+    // bindings' scope (the rewrite's marker tokens carry source spans), and a `let` inside a
+    // block in a pattern's or parameter's type binds in that block (each checked with rustc).
+    let lib = "pub fn value() -> u8 { 1 }\nconst fn other() -> usize { 0 }\npub fn value2() -> usize { 7 }\npub fn map_arg(opt: Option<fn() -> u8>) -> Option<String> {\n    opt.map(|value| format!(\"{}\", value()))\n}\npub fn guard(opt: Option<fn() -> bool>) {\n    match opt { Some(value) if value() => assert!(value()), _ => {} }\n}\npub fn in_type() { let _a: [u8; { let value2 = other; value2() }] = []; }\npub fn in_sig(_: [u8; { let value2 = other; value2() }]) {}\npub fn in_closure() { let _c = |_: [u8; { let value2 = other; value2() }]| 0; }\npub fn closure_output() { let _c = || -> [u8; { let value2 = other; value2() }] { [] }; }\npub fn after_type() -> usize { let _a: [u8; { let value2 = other; 0 }] = []; value2() }\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let local = || "unresolved:local-binding".to_owned();
+    let got: Vec<(String, String)> = outcomes(&results, "src/lib.rs")
+        .into_iter()
+        .filter(|(callee, _)| callee == "value" || callee == "value2")
+        .collect();
+    assert_eq!(
+        got,
+        [
+            ("value".into(), local()),
+            ("value".into(), local()),
+            ("value".into(), local()),
+            ("value2".into(), local()),
+            ("value2".into(), local()),
+            ("value2".into(), local()),
+            ("value2".into(), local()),
+            // The block's `let` ends with the block: after the statement the fn is called.
+            ("value2".into(), "src/lib.rs:3:value2".into()),
+        ]
+    );
+}
+
+#[test]
+fn a_standard_macro_left_opaque_for_its_captures_binds_no_local() {
+    // G175: `assert!` stays opaque here only for its implicit capture `{n}`; its expansion binds
+    // nothing in the enclosing block, so the later call still names the function. A crate macro
+    // spelling the name may bind it (`let $v = ..`) and still shadows it.
+    let lib = "pub fn value(_: i32) -> Option<i32> { None }\nmacro_rules! bind { ($v:ident) => { let $v = |_: i32| Some(1); }; }\nfn captured(n: i32) {\n    assert!(value(n).is_none(), \"{n}\");\n    value(1);\n}\nfn crate_macro(n: i32) {\n    bind!(value);\n    value(n);\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+        ]
+    );
+}
+
+#[test]
+fn a_local_binding_shadows_a_function_only_where_it_is_in_scope() {
+    // G175: a single-segment call names a local only where a binding of its name is in scope, by
+    // the lexical scope rules (each checked against rustc 1.90, edition 2024).
+    let lib = "pub fn value(_: i32) -> Option<fn(i32) -> bool> { None }\nfn f() -> Option<i32> { None }\nfn g(_: i32) -> Option<fn(i32) -> bool> { None }\nmacro_rules! my_macro { ($v:ident) => { let $v = |_: i32| true; }; }\nfn lets() {\n    let value = value(1);\n    value(2);\n}\nfn tight() {\n    let value = |_: i32| true;value(3);\n}\nfn if_let() {\n    if let Some(value) = value(4) { value(5); } else { value(6); }\n}\nfn let_chain() {\n    if let Some(a) = f() && let Some(value) = g(a) && value(7) {} else { value(8); }\n    value(9);\n}\nfn arms(x: fn(i32) -> bool, opt: Option<fn(i32) -> bool>) {\n    match x { value => value(10), _ => value(11) };\n    match opt { Some(value) if value(12) => {} _ => {} }\n}\nfn loops() {\n    for value in value(13) { value(14); }\n    value(15);\n}\nfn while_let() {\n    while let Some(value) = value(16) { value(17); }\n    value(18);\n}\nfn blocks() {\n    { let value = 1; }\n    value(19);\n}\nfn let_else(opt: Option<fn(i32) -> bool>) {\n    let Some(value) = opt else { value(20); return };\n    value(21);\n}\nfn closures() {\n    let c = |value: fn(i32) -> bool| value(22);\n    value(23);\n    let d = || { let value = |_: i32| true; value(24) };\n    value(25);\n}\nfn signature(_: [u8; { let c = |value: fn(i32) -> bool| value(26); 0 }]) {}\nfn param(value: fn(i32) -> bool) {\n    value(27);\n    let c = || value(28);\n}\nfn macros() {\n    { my_macro!(value); value(29); }\n    value(30);\n    let _ = my_macro!(value);\n    value(31);\n    println!(\"{}\", value(32).is_some());\n    value(33);\n}\nfn raw() {\n    let r#value = |_: i32| true;\n    value(34);\n    let value = |_: i32| true;\n    r#value(35);\n}\nmacro_rules! same { ($p:pat) => { $p }; }\nfn pattern_macro() {\n    let same!(value) = |_: i32| true;\n    value(36);\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            // `let`: from its `;` to the end of its block; its initializer does not see it.
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            // `if let`: the scrutinee and the `else` branch do not see it.
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            // A let chain: later conditions and the block see an earlier `let`.
+            ("f".into(), "src/lib.rs:2:f".into()),
+            ("g".into(), "src/lib.rs:3:g".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            // A match arm's bindings: its guard and body only.
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            // `for` and `while let`: the body only.
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            // A `let` in a nested block ends with it.
+            ("value".into(), "src/lib.rs:1:value".into()),
+            // `let .. else`: the `else` block does not see it.
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            // Closure parameters and lets: the closure body only (in a signature too).
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            // A parameter: the whole body, closures included.
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "unresolved:local-binding".into()),
+            // An opaque statement macro may bind what it spells, to the end of its block; one in
+            // expression position binds nothing, nor does a recovered standard macro.
+            ("value".into(), "unresolved:local-binding".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            ("value".into(), "src/lib.rs:1:value".into()),
+            // `r#value` is `value`.
+            ("value".into(), "unresolved:local-binding".into()),
+            ("r#value".into(), "unresolved:local-binding".into()),
+            // A macro in a pattern may bind what it spells.
+            ("value".into(), "unresolved:local-binding".into()),
+        ]
     );
 }
