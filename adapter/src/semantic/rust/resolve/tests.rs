@@ -221,18 +221,22 @@ fn constructors_traits_and_cfg_alternates_are_never_claimed_as_functions() {
 }
 
 #[test]
-fn an_open_scope_never_falls_through_and_never_trusts_its_globs() {
-    // `std::collections::*` could provide any name, so a miss here is not a miss, and a name a
-    // workspace glob provides might be shadowed by the external one.
-    let lib = "mod a {\n    pub fn f() {}\n}\nmod user {\n    use std::collections::*;\n    use super::a::*;\n    fn own() {}\n    fn t() {\n        own();\n        f();\n        unknown();\n    }\n}\nmod macros {\n    make_items!();\n    fn t() {\n        anything();\n    }\n}\nmod importer {\n    use super::macros::*;\n    fn t() {\n        generated();\n    }\n}\n";
+fn an_open_scope_never_falls_through_and_trusts_only_its_certain_globs() {
+    // `std::collections::*` could provide any name, so a miss here is not a miss. G172: a name a
+    // workspace glob provides is still certain -- the external glob cannot rebind it, since two
+    // globs binding a used name to different items is an error -- unless an unseen item may
+    // shadow it (an unbounded item macro in the importing module).
+    let lib = "mod a {\n    pub fn f() {}\n}\nmod user {\n    use std::collections::*;\n    use super::a::*;\n    fn own() {}\n    fn t() {\n        own();\n        f();\n        unknown();\n    }\n}\nmod macros {\n    make_items!();\n    use super::a::*;\n    fn t() {\n        anything();\n        f();\n    }\n}\nmod importer {\n    use super::macros::*;\n    fn t() {\n        generated();\n    }\n}\n";
     let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
     assert_eq!(
         outcomes(&results, "src/lib.rs"),
         [
             ("own".into(), "src/lib.rs:7:own".into()),
-            ("f".into(), "unresolved:open-scope".into()),
+            ("f".into(), "src/lib.rs:2:f".into()),
             ("unknown".into(), "unresolved:open-scope".into()),
             ("anything".into(), "unresolved:open-scope".into()),
+            // An item the macro may define would shadow the glob-provided `f`.
+            ("f".into(), "unresolved:open-scope".into()),
             // A glob of an open module may import names this pass cannot see.
             ("generated".into(), "unresolved:open-scope".into()),
         ]
@@ -1231,6 +1235,7 @@ fn alternating_scopes_merge_to_their_agreement_and_unknown() {
         def,
         vis: Vis::Public,
         origin: Origin::Named,
+        certain: true,
     };
     let mut a = Scope::default();
     let mut b = Scope::default();
@@ -1304,5 +1309,38 @@ fn a_glob_through_a_named_import_reads_settled_scopes() {
             "anything",
             "glob import `super::Missing::*` does not resolve"
         )]
+    );
+}
+
+/// G172 (replay R12, rust-lang/miri): a crate root that globs an external crate is open, and so is
+/// every module that globs the root. A name the root binds by an item or a named import is still
+/// certain through that glob -- the external glob cannot rebind it (a named import shadows a glob;
+/// two globs binding a used name to different items is an error) -- while a name the root binds
+/// only through its external glob, or not at all, stays withheld; so does a certain name in a
+/// block whose own glob of an unknown enum may shadow it.
+#[test]
+fn a_certain_name_survives_a_glob_of_an_open_module() {
+    let lib = "pub use rustc_const_eval::interpret::*;\nmod data_race;\nmod helper;\npub use crate::data_race::{AtomicReadOrd, report};\npub fn root_fn() {}\nmod inner {\n    pub fn deep() {}\n}\npub use inner::*;\n";
+    let data_race = "pub enum AtomicReadOrd {\n    Relaxed,\n    SeqCst,\n}\npub fn report() {}\n";
+    let helper = "use crate::*;\nfn t(o: AtomicReadOrd) {\n    report();\n    root_fn();\n    deep();\n    interp_ok();\n    {\n        use AtomicReadOrd::*;\n        Relaxed;\n    }\n    {\n        use outside::Kind::*;\n        report();\n    }\n}\n";
+    let results = resolve(
+        &[
+            ("src/lib.rs", lib),
+            ("src/data_race.rs", data_race),
+            ("src/helper.rs", helper),
+        ],
+        "src/lib.rs",
+    );
+    assert_eq!(
+        outcomes(&results, "src/helper.rs"),
+        [
+            ("report".into(), "src/data_race.rs:5:report".into()),
+            ("root_fn".into(), "src/lib.rs:5:root_fn".into()),
+            // Bound in the root only by a glob, next to the external glob: not certain.
+            ("deep".into(), "unresolved:open-scope".into()),
+            ("interp_ok".into(), "unresolved:open-scope".into()),
+            // A block's glob of an external enum may bring its own `report`.
+            ("report".into(), "unresolved:open-scope".into()),
+        ]
     );
 }

@@ -468,6 +468,12 @@ struct Entry {
     def: Def,
     vis: Vis,
     origin: Origin,
+    /// G172: for a glob-provided name, whether the module it came from binds it certainly -- by
+    /// an item or a named import (which no glob and no macro-expanded item can displace there),
+    /// or by a certain glob of a module that is not open at all. Only such a name survives its
+    /// importer being opened by another glob: two globs binding a used name to different items is
+    /// an error in Rust (E0659), so an unseen glob cannot silently rebind it.
+    certain: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -509,6 +515,9 @@ impl Scope {
             Some(existing) if entry.origin == existing.origin && existing.def != entry.def => {
                 existing.def = Def::Ambiguous;
             }
+            Some(existing) if entry.origin == existing.origin => {
+                existing.certain &= entry.certain;
+            }
             Some(_) => {}
         }
     }
@@ -540,6 +549,11 @@ struct Module {
     /// Names may exist that this pass cannot see (an unbounded item macro, an unresolvable glob,
     /// a missing or unparsable module file).
     open: bool,
+    /// G172: open before import resolution -- an unbounded item macro, a missing or refused module
+    /// file -- or with no import fixed point: an unseen item or named import may shadow any glob.
+    /// A module open only because a glob reads an open or unknown source keeps the glob names
+    /// that are certain (`Entry::certain`).
+    items_open: bool,
     /// G162: why the module is open -- the first cause found, in words an agent can act on.
     open_cause: Option<String>,
     /// G145: the names this module's own item-position `macro_rules!` invocations may define.
@@ -1098,6 +1112,7 @@ fn merge_alternating(a: &Scope, b: &Scope) -> Scope {
                         def: Def::Unknown,
                         vis: base.vis.clone(),
                         origin: base.origin,
+                        certain: false,
                     }
                 }
             };
@@ -1118,6 +1133,7 @@ impl DefMap {
             scope: Scope::default(),
             imports: Vec::new(),
             open: false,
+            items_open: false,
             open_cause: None,
             macro_names: BTreeSet::new(),
             shadow: BTreeSet::new(),
@@ -1734,6 +1750,7 @@ impl DefMap {
                 def,
                 vis,
                 origin: Origin::Item,
+                certain: true,
             },
         );
     }
@@ -1807,10 +1824,22 @@ impl DefMap {
         module.open || module.shadow.contains(name)
     }
 
+    /// G172: whether `entry`, bound to `name` in `module`, may be displaced by a name this pass
+    /// cannot see. Only a glob-provided name can be, and only by an unseen item or named import
+    /// (an items-open module, or an item macro that may define `name`) -- or, when the module is
+    /// open because a glob reads an unknown source, if the name itself is not certain.
+    fn uncertain_entry(&self, module: ModId, name: &str, entry: &Entry) -> bool {
+        let m = &self.modules[module];
+        entry.origin == Origin::Glob
+            && (m.items_open || m.shadow.contains(name) || (m.open && !entry.certain))
+    }
+
     fn resolve_imports(&mut self, crates: &[CrateInput]) {
         for module in &mut self.modules {
             module.scope = module.items.clone();
             module.shadow = module.macro_names.clone();
+            // Every module open before imports resolve is open for its items.
+            module.items_open = module.open;
         }
         // G162: the state two rounds back, to recognize a period-2 oscillation.
         let mut before: Option<(Vec<Scope>, Vec<BTreeSet<String>>)> = None;
@@ -1883,6 +1912,7 @@ impl DefMap {
         }
         // No fixed point within the bound: nothing imported may be trusted.
         for id in 0..self.modules.len() {
+            self.modules[id].items_open = true;
             self.open_with(id, || {
                 "imports reach no fixed point within 64 rounds".into()
             });
@@ -1925,6 +1955,7 @@ impl DefMap {
                                 def: Def::Unknown,
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
+                                certain: true,
                             },
                         );
                     }
@@ -1957,6 +1988,12 @@ impl DefMap {
                                     def: entry.def.clone(),
                                     vis: import.vis.clone(),
                                     origin: Origin::Glob,
+                                    // Through a glob only from a module that is not open:
+                                    // a glob-glob clash reached through a re-export chain may be
+                                    // only a lint (`ambiguous_glob_imports`), not an error.
+                                    certain: entry.origin != Origin::Glob
+                                        || !(self.modules[target].open
+                                            || self.uncertain_entry(target, name, entry)),
                                 },
                             );
                         }
@@ -1973,6 +2010,7 @@ impl DefMap {
                                 def: Def::Ctor,
                                 vis: import.vis.clone(),
                                 origin: Origin::Glob,
+                                certain: true,
                             },
                         );
                     }
@@ -1995,6 +2033,7 @@ impl DefMap {
                         def: Def::External(path),
                         vis: import.vis.clone(),
                         origin: Origin::Named,
+                        certain: true,
                     },
                 );
             }
@@ -2006,6 +2045,7 @@ impl DefMap {
                         def: Def::Module(target),
                         vis: import.vis.clone(),
                         origin: Origin::Named,
+                        certain: true,
                     },
                 );
             }
@@ -2036,6 +2076,7 @@ impl DefMap {
                                 def,
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
+                                certain: true,
                             },
                         );
                     }
@@ -2049,6 +2090,7 @@ impl DefMap {
                                 def: Def::Unknown,
                                 vis: import.vis.clone(),
                                 origin: Origin::Named,
+                                certain: true,
                             },
                         );
                     }
@@ -2082,9 +2124,7 @@ impl DefMap {
                 Def::Module(module) => {
                     let entry = self.modules[module].scope.types.get(segment);
                     match entry {
-                        Some(entry)
-                            if entry.origin == Origin::Glob && self.uncertain(module, segment) =>
-                        {
+                        Some(entry) if self.uncertain_entry(module, segment, entry) => {
                             return None;
                         }
                         Some(entry) if self.visible(&entry.vis, scope) => entry.def.clone(),
@@ -2147,7 +2187,7 @@ impl DefMap {
             let module = &self.modules[scope];
             if let Some(entry) = module.scope.ns(ns).get(name) {
                 // A glob-provided name in an open scope may be shadowed by one we cannot see.
-                if entry.origin == Origin::Glob && self.uncertain(scope, name) {
+                if self.uncertain_entry(scope, name, entry) {
                     return Lookup::Open;
                 }
                 return Lookup::Found(entry.def.clone());
@@ -2873,13 +2913,11 @@ impl CallWalker<'_> {
                 Def::Module(module) => {
                     // In an open module only a glob-provided name is uncertain: an explicit item
                     // or named import cannot be redefined by what this pass does not see.
-                    let open = self.map.uncertain(module, &last.ident.to_string());
-                    match self.map.modules[module]
-                        .scope
-                        .types
-                        .get(&last.ident.to_string())
-                    {
-                        Some(entry) if open && entry.origin == Origin::Glob => return None,
+                    let name = last.ident.to_string();
+                    match self.map.modules[module].scope.types.get(&name) {
+                        Some(entry) if self.map.uncertain_entry(module, &name, entry) => {
+                            return None;
+                        }
                         Some(entry) if self.map.visible(&entry.vis, self.scope()) => {
                             match &entry.def {
                                 Def::Type(ty) => self.map.canonical_of_type(self.crates, *ty, 0)?,
@@ -3883,7 +3921,7 @@ impl CallWalker<'_> {
         match prefix {
             Def::Module(module) => match self.map.modules[module].scope.values.get(last) {
                 Some(entry) if self.map.visible(&entry.vis, scope) => {
-                    if entry.origin == Origin::Glob && self.map.uncertain(module, last) {
+                    if self.map.uncertain_entry(module, last, entry) {
                         PathCallOutcome::Unresolved("open-scope")
                     } else {
                         outcome_of(entry.def.clone())
