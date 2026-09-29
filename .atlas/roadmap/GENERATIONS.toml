@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G178"
+current_generation = "G179"
 
 [[generation]]
 id = "G35"
@@ -4322,3 +4322,54 @@ after = 10310
 key = "composed:relation:INVOKES"
 before = 6593
 after = 6770
+
+[[generation]]
+id = "G179"
+kind = "CREATION"
+lane = "CREATION"
+base_commit = "facff0c1ab58afe39dd9a9b8ab63157cd4bdc200"
+priority = "P2"
+serves = "DEBT-ATLASX, construction node M10: the first CREATION generation (ADR 0092), selected by vertical value ([creation_selection] score 230)"
+objective = "NA-ATLASX-PRECONDITION: one gate admitting a parent for AtlasX only when it reads back SEALED, its seal record binds it and the envelope and SELECTED design it names verify, every refusal typed"
+writer = "coordinator (sole writer); one implementation lane"
+evidence = ".atlas/decisions/0093-atlasx-precondition-gate.md"
+self_recensus = ".atlas/evidence/census/G179/recensus.json"
+
+[generation.verification]
+pre_census = "G178 post digest"
+atlas_first = "nothing consumed a SEALED container: M8 and M9 existed since G161, M10 was MISSING and DEBT-ATLASX M1_CONTRACT_ONLY"
+change = "core::atlasx::precondition (pure over parent, envelope and design bytes; typed ADMITTED and REFUSED, reasons in the vocabulary map; every verdict names the contract steps it does not verify); runtime::atlasx reads the files; atlas-systemizer atlasx precondition (ADR 0093)"
+oracle = "the G161 fixture sealed by the real seal gate: admitted; unsealed NOT_SEALED; forged, re-stamped or tampered seal records, envelopes and designs each refused with their reason; every truncation UNREADABLE; the CLI end to end from seal gate to admission; the G178 self-scope container REFUSED NOT_SEALED and DESIGN_ABSENT"
+falsification = "32 mutants killed (30 on the core checks, 2 on the CLI exit code), one after an added test; the first full run failed the self world model (a CLI dev-dependency on core was an undeclared cargo edge), fixed by routing through runtime re-exports"
+boundary = "a SEALED container is self-certifying (RES-G179-SEAL-SELF-CERTIFYING, HIGH, to close before M11 consumes an admitted parent); the seal gate trusts the integrity report's verdict (RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT); the self scope stays unsealable (certificate RECONCILED, no SELECTED design)"
+debts = "DEBT-ATLASX M1_CONTRACT_ONLY -> M2_PARTIAL, last advance G179; M10 EXISTS; next CREATION selection NA-ATLASX-CODEC (M12) planned G181; next generation G180 FULL_OSS_REPLAY rust-lang/datafrog"
+review = "DEBT-ARTIFACT_SEMANTICS, DEBT-BACKEND_ADAPTER, DEBT-CONSTRUCTION_IR and DEBT-TYPE reviewed at their cadence, all CONFIRMED -- weights only among non-code artifacts, no backend adapter, construction IR still without bodies, types unchanged since G153 (evidence/census/G179/debt-review.json)"
+proof = "PROVEN (post 1e254431...): the new module, its fixtures and the command censused"
+
+[generation.value]
+new_capability = "the AtlasX precondition gate and atlas-systemizer atlasx precondition (record atlas.atlasx-precondition.v1)"
+vertical_stage = "ATLASX"
+construction_nodes_completed = ["M10"]
+new_capabilities = 1
+maturity_steps = 1
+capability_delta = 6
+wrong_claims_removed = 0
+wall_clock_s = 4049
+machine_s = 0
+proof_s = 2475
+review_s = 0
+residuals_deferred = 4
+correctness_critical = false
+frontier_rate = 5.33
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the implementation lane's launch to the roadmap commit, measured; proof_s = gates 1,997 s (two full workspace runs, the first failing) + mutants 310 s + self-recensus 168 s; the clean-HEAD evidence run follows the roadmap commit and is not included"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6850
+after = 6967
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 6770
+after = 6957

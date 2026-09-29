@@ -173,3 +173,54 @@ can_create_false_claim = false
 reopen_trigger = "the pinned toolchain moves to a Cargo that reads TOML 1.1, or a census input whose manifest Cargo rejects"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G179-SEAL-SELF-CERTIFYING"
+found_in = "G179"
+source = "core/src/atlas (SEALED container, M9), core/src/atlasx/precondition.rs (M10)"
+subsystem = "core seal M9 and atlasx precondition M10"
+reproduction = "take any unsealed census container; build a SealRecord with arbitrary policy, report, envelope and design ids, copying the manifest's certificate, census and revision, covering every blocker in permitted and setting seal_id = seal_identity(record); atlas::write accepts it, it reads back SEALED, and atlasx precondition ADMITs it with a matching envelope and SELECTED design although no seal gate ran -- the seal identity is a digest, not a signature"
+severity = "HIGH"
+can_create_false_claim = true
+false_claim_condition = "a consumer treats ADMITTED as proof that the seal gate decided the seal, for a SEALED container not produced by seal_container from an ELIGIBLE decision. It does not hold on the current tree: ADMITTED is documented (ADR 0093) as binding only, every verdict lists the seal policy, verification and integrity reports among the steps it does not verify, no SEALED container exists in the tree or its evidence, and nothing materializes"
+reopen_trigger = "before the AtlasX materializer (M11) consumes an admitted parent, or when any SEALED container is committed"
+attack = "NA-ATLASX-MATERIALIZE"
+status = "OPEN"
+pressure = 27
+
+[[residual]]
+id = "RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT"
+found_in = "G179"
+source = "runtime/src/seal.rs (gate_container), runtime/src/integrity.rs (check_report)"
+subsystem = "seal gate M8 and integrity report M6"
+reproduction = "hand-edit an integrity report to verdict ELIGIBLE over failing evaluations, or to cite an envelope id that was never pinned, and pass it to atlas-systemizer seal gate: gate_container reads the report's verdict and trusts it; integrity::check_report is used only by the integrity report command"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a seal gate decision ELIGIBLE resting on a tampered or foreign integrity report. It does not hold on the current tree: the only real decision, the self scope, is NOT_ELIGIBLE on its certificate and design, and the G161 fixture's report is produced by the evaluator"
+reopen_trigger = "the first ELIGIBLE seal decision over a non-fixture container"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED"
+found_in = "G179"
+source = "core/src/atlasx/precondition.rs"
+subsystem = "atlasx precondition M10"
+reproduction = "the SelectedDesign's parent_root is not compared with the admitted container: sealing changes the container root, so the link rests on the seal record's design_id, which covers the design identity"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "when RES-G179-SEAL-SELF-CERTIFYING is closed"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G179-DESIGN-JSON-UNKNOWN-FIELDS"
+found_in = "G179"
+source = "core/src/design (SelectedDesign serde)"
+subsystem = "design record"
+reproduction = "a SelectedDesign JSON with an extra field deserializes and verifies; IntegrityEnvelope rejects unknown fields (deny_unknown_fields)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "when the design schema is made strict"
+status = "OPEN"
+pressure = 1

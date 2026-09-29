@@ -1,0 +1,32 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G179",
+ "trigger": "review cadence: DEBT-ARTIFACT_SEMANTICS, DEBT-BACKEND_ADAPTER, DEBT-CONSTRUCTION_IR and DEBT-TYPE, each stale for at least 13 generations since its last advance and its last review, fell due at G179",
+ "method": "re-read against adapter/src (git log of adapter/src/weights and core weights since G166; the adapter module list); a search of core, runtime, adapter and apps for any backend adapter; git log of core/src/construction and the adapter's type sources",
+ "reviews": [
+  {
+   "debt": "DEBT-ARTIFACT_SEMANTICS",
+   "verdict": "CONFIRMED",
+   "finding": "non-code artifact semantics still stop at weights: the SafeTensors physical census and lossless construction (G163) with the format's element-type table and header bound (G166), adapter/src/weights unchanged since G166; no image, audio, video, document, UI design, CAD or electronics adapter exists in adapter/src; tensor roles stay UNKNOWN and generated files are not distinguished from authored source; NA-WEIGHT-CENSUS-RECORDS stays the next attack",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-BACKEND_ADAPTER",
+   "verdict": "CONFIRMED",
+   "finding": "no backend adapter exists: no BackendAdapter, delegated backend or declared IR version in core, runtime, adapter or apps; core::construction lifts types and a shadow reconstruction verifies them (G153) but emits through no declared backend with toolchain identity; its node M15 stays MISSING behind MIN_ATLASX and, since G179, M14; NA-DELEGATED-BACKEND stays the next attack",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-CONSTRUCTION_IR",
+   "verdict": "CONFIRMED",
+   "finding": "the construction IR v0 (core::construction, G153) still lifts declarations only: core/src/construction is unchanged since G153, every function carries a BODY_UNOBSERVED gap and the backend emits no body (core/src/construction/mod.rs); executable body semantics (M14) stay MISSING; NA-SELF-RECONSTRUCTION-BODIES, now the CREATION lane's selection, is planned for G181",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-TYPE",
+   "verdict": "CONFIRMED",
+   "finding": "types still come from declarations and canonical type identity through native name resolution (two engines, G83 and G153); no advance since G153 -- the G175 to G178 resolver work changed call resolution, not type records; inferred expression types and generic instantiation stay absent; the HARDENING head NA-CALL-TYPE-RESIDUAL that would carry it is LANE_DEFERRED under ADR 0092 while no false-claim residual names it",
+   "correction": {}
+  }
+ ]
+}

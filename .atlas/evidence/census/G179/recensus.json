@@ -1,0 +1,758 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G179",
+  "base_revision": "969e6b4f1941ae1dac87fab1b1fa0b81e728d19e",
+  "candidate_revision": "1e9563f5de8e48d655b0dd73e0cf604b92c3b004",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:7928b607ac4c092b6175027cf1cdf28f3bc3efefb9028f0d1cd5da12bd31343b",
+  "after_census_digest": "blake3-256:1e2544315a557ee66cffb9dcddca5e986a7a584db9a01ac41aa795c065c2e9c3",
+  "replay_digest": "blake3-256:1e2544315a557ee66cffb9dcddca5e986a7a584db9a01ac41aa795c065c2e9c3",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlasx/mod.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/atlasx/precondition/tests.rs",
+      "runtime/src/atlasx.rs"
+    ],
+    "modified": [
+      "apps/cli/Cargo.toml",
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 117,
+      "fact:FunctionSignature|OBSERVED": 43,
+      "fact:SemanticObligation|OBSERVED": 19,
+      "fact:SemanticObligation|UNKNOWN": 53,
+      "fact:SemanticObligation|UNSUPPORTED": 4,
+      "fact:SourceArtifact|OBSERVED": 8,
+      "fact:Symbol|OBSERVED": 177,
+      "fact:Type|DERIVED": 44,
+      "fact:Type|OBSERVED": 75,
+      "record:CALL|DERIVED": 267,
+      "record:CALL|OBSERVED": 946,
+      "record:CONTROL_FLOW|INFERRED": 133,
+      "record:CONTROL_FLOW|OBSERVED": 182,
+      "record:DATA_FLOW|OBSERVED": 1763,
+      "record:EFFECT|DERIVED": 9,
+      "record:EFFECT|INFERRED": 141,
+      "record:FUNCTION_IDENTITY|OBSERVED": 117,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 43,
+      "record:OWNERSHIP|OBSERVED": 483,
+      "record:PERSISTENCE|DERIVED": 5,
+      "record:STATE|OBSERVED": 17,
+      "record:SYMBOL|OBSERVED": 177,
+      "record:TYPE|DERIVED": 44,
+      "record:TYPE|OBSERVED": 75
+    }
+  },
+  "dependency_delta": {
+    "added": [
+      "atlas-cli -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]"
+    ],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 6,
+    "graph_edges": 6127,
+    "graph_nodes": 4438
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 3,
+    "obligation:CALL|UNKNOWN": 5,
+    "obligation:CONCURRENCY|UNKNOWN": 8,
+    "obligation:CONTROL_FLOW|UNKNOWN": 4,
+    "obligation:DATA_FLOW|UNKNOWN": 4,
+    "obligation:EFFECT|UNKNOWN": 8,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 4,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 4,
+    "obligation:OWNERSHIP|UNKNOWN": 4,
+    "obligation:PERSISTENCE|UNKNOWN": 8,
+    "obligation:RESOURCE|UNKNOWN": 4,
+    "obligation:RESOURCE|UNSUPPORTED": 4,
+    "obligation:STATE|UNKNOWN": 4,
+    "obligation:SYMBOL|OBSERVED": 4,
+    "obligation:TYPE|OBSERVED": 4,
+    "obligation:TYPE|UNKNOWN": 4
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/pressure_map_restates_the_ledger()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/pressure_map_restates_the_ledger()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/replay_cadence_is_machine_enforced()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/replay_cadence_is_machine_enforced()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/admit()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/check()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/decide()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/precondition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/envelope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/fixture()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/hex()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/json()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/kinds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/policy()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/restamp_design()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/restamped()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/run()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/precondition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/`impl:Cadence`/lane()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/`impl:Cadence`/replay()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/`impl:Cadences`/load()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/`impl:Cadences`/planned_turn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/`impl:Cadences`/turn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/`impl:Cadences`/walk()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/construction_nodes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/creation_lane_is_never_starved()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/creation_selection_follows_vertical_value()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/generation_value_is_recomputed_from_its_inputs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/numbered()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/numbers()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/open_false_claim_residuals()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/own()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/planned_generations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/real()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/residuals_carry_reproduction_severity_and_pressure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/sub_table()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/vertical_values()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/atlasx/mod.rs: 0 -> 14",
+      "core/src/atlasx/precondition.rs: 0 -> 15",
+      "core/src/atlasx/precondition/tests.rs: 0 -> 14",
+      "runtime/src/atlasx.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2329,
+    "total_after": 2386
+  },
+  "intent": {
+    "objective": "the AtlasX precondition gate (M10): a SEALED parent that binds its seal, envelope and SELECTED design is admitted; every refusal is typed (ADR 0093)",
+    "changed_paths": [
+      "apps/cli/Cargo.toml",
+      "apps/cli/src/main.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/atlasx/precondition/tests.rs",
+      "core/src/lib.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [
+      "+atlas-cli -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]"
+    ],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/atlasx/mod.rs: the gate's fixtures and refusal paths are explained as unresolved by design where they withhold",
+      "core/src/atlasx/precondition.rs: the gate's fixtures and refusal paths are explained as unresolved by design where they withhold",
+      "core/src/atlasx/precondition/tests.rs: the gate's fixtures and refusal paths are explained as unresolved by design where they withhold",
+      "runtime/src/atlasx.rs: the gate's fixtures and refusal paths are explained as unresolved by design where they withhold"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+      "CHANGED runtime tests/essential_complexity/pressure_map_restates_the_ledger().",
+      "CHANGED runtime tests/essential_complexity/replay_cadence_is_machine_enforced().",
+      "CREATED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
+      "CREATED core atlasx/precondition/admit().",
+      "CREATED core atlasx/precondition/check().",
+      "CREATED core atlasx/precondition/decide().",
+      "CREATED core atlasx/precondition/precondition().",
+      "CREATED core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch().",
+      "CREATED core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound().",
+      "CREATED core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason().",
+      "CREATED core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason().",
+      "CREATED core atlasx/precondition/tests/envelope().",
+      "CREATED core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order().",
+      "CREATED core atlasx/precondition/tests/fixture().",
+      "CREATED core atlasx/precondition/tests/hex().",
+      "CREATED core atlasx/precondition/tests/json().",
+      "CREATED core atlasx/precondition/tests/kinds().",
+      "CREATED core atlasx/precondition/tests/policy().",
+      "CREATED core atlasx/precondition/tests/restamp_design().",
+      "CREATED core atlasx/precondition/tests/restamped().",
+      "CREATED core atlasx/precondition/tests/run().",
+      "CREATED core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds().",
+      "CREATED core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed().",
+      "CREATED core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic().",
+      "CREATED runtime atlasx/precondition().",
+      "CREATED runtime atlasx/read().",
+      "CREATED runtime tests/essential_complexity/`impl:Cadence`/lane().",
+      "CREATED runtime tests/essential_complexity/`impl:Cadence`/replay().",
+      "CREATED runtime tests/essential_complexity/`impl:Cadences`/load().",
+      "CREATED runtime tests/essential_complexity/`impl:Cadences`/planned_turn().",
+      "CREATED runtime tests/essential_complexity/`impl:Cadences`/turn().",
+      "CREATED runtime tests/essential_complexity/`impl:Cadences`/walk().",
+      "CREATED runtime tests/essential_complexity/construction_nodes().",
+      "CREATED runtime tests/essential_complexity/creation_lane_is_never_starved().",
+      "CREATED runtime tests/essential_complexity/creation_selection_follows_vertical_value().",
+      "CREATED runtime tests/essential_complexity/generation_value_is_recomputed_from_its_inputs().",
+      "CREATED runtime tests/essential_complexity/numbered().",
+      "CREATED runtime tests/essential_complexity/numbers().",
+      "CREATED runtime tests/essential_complexity/open_false_claim_residuals().",
+      "CREATED runtime tests/essential_complexity/own().",
+      "CREATED runtime tests/essential_complexity/planned_generations().",
+      "CREATED runtime tests/essential_complexity/real().",
+      "CREATED runtime tests/essential_complexity/residuals_carry_reproduction_severity_and_pressure().",
+      "CREATED runtime tests/essential_complexity/sub_table().",
+      "CREATED runtime tests/essential_complexity/vertical_values()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/Cargo.toml",
+    "path apps/cli/src/main.rs",
+    "path core/src/atlasx/mod.rs",
+    "path core/src/atlasx/precondition.rs",
+    "path core/src/atlasx/precondition/tests.rs",
+    "path core/src/lib.rs",
+    "path core/src/quantity/mod.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/atlasx.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "dependency +atlas-cli -> ed25519-compact@2.6.0 (Registry) [Some(Dev)]",
+    "entity CHANGED `apps/cli` run().",
+    "entity CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+    "entity CHANGED runtime tests/essential_complexity/pressure_map_restates_the_ledger().",
+    "entity CHANGED runtime tests/essential_complexity/replay_cadence_is_machine_enforced().",
+    "entity CREATED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
+    "entity CREATED core atlasx/precondition/admit().",
+    "entity CREATED core atlasx/precondition/check().",
+    "entity CREATED core atlasx/precondition/decide().",
+    "entity CREATED core atlasx/precondition/precondition().",
+    "entity CREATED core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch().",
+    "entity CREATED core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound().",
+    "entity CREATED core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason().",
+    "entity CREATED core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason().",
+    "entity CREATED core atlasx/precondition/tests/envelope().",
+    "entity CREATED core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order().",
+    "entity CREATED core atlasx/precondition/tests/fixture().",
+    "entity CREATED core atlasx/precondition/tests/hex().",
+    "entity CREATED core atlasx/precondition/tests/json().",
+    "entity CREATED core atlasx/precondition/tests/kinds().",
+    "entity CREATED core atlasx/precondition/tests/policy().",
+    "entity CREATED core atlasx/precondition/tests/restamp_design().",
+    "entity CREATED core atlasx/precondition/tests/restamped().",
+    "entity CREATED core atlasx/precondition/tests/run().",
+    "entity CREATED core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds().",
+    "entity CREATED core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed().",
+    "entity CREATED core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic().",
+    "entity CREATED runtime atlasx/precondition().",
+    "entity CREATED runtime atlasx/read().",
+    "entity CREATED runtime tests/essential_complexity/`impl:Cadence`/lane().",
+    "entity CREATED runtime tests/essential_complexity/`impl:Cadence`/replay().",
+    "entity CREATED runtime tests/essential_complexity/`impl:Cadences`/load().",
+    "entity CREATED runtime tests/essential_complexity/`impl:Cadences`/planned_turn().",
+    "entity CREATED runtime tests/essential_complexity/`impl:Cadences`/turn().",
+    "entity CREATED runtime tests/essential_complexity/`impl:Cadences`/walk().",
+    "entity CREATED runtime tests/essential_complexity/construction_nodes().",
+    "entity CREATED runtime tests/essential_complexity/creation_lane_is_never_starved().",
+    "entity CREATED runtime tests/essential_complexity/creation_selection_follows_vertical_value().",
+    "entity CREATED runtime tests/essential_complexity/generation_value_is_recomputed_from_its_inputs().",
+    "entity CREATED runtime tests/essential_complexity/numbered().",
+    "entity CREATED runtime tests/essential_complexity/numbers().",
+    "entity CREATED runtime tests/essential_complexity/open_false_claim_residuals().",
+    "entity CREATED runtime tests/essential_complexity/own().",
+    "entity CREATED runtime tests/essential_complexity/planned_generations().",
+    "entity CREATED runtime tests/essential_complexity/real().",
+    "entity CREATED runtime tests/essential_complexity/residuals_carry_reproduction_severity_and_pressure().",
+    "entity CREATED runtime tests/essential_complexity/sub_table().",
+    "entity CREATED runtime tests/essential_complexity/vertical_values()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -3969,7 +3969,9 @@ mod tests {
                         "AGENT_MISSION",
                         "DEBT_TRIGGERED_DONOR_ATTACK",
                         "REPLAY",
-                        "SELF_RECONSTRUCTION"
+                        "SELF_RECONSTRUCTION",
+                        // ADR 0092: the CREATION lane builds construction, never a donor.
+                        "CREATION"
                     ]
                     .contains(&kind.as_str()),
                     "{id}: kind {kind}"

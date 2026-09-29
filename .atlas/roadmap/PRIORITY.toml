@@ -857,7 +857,7 @@ objective = "FULL_OSS_REPLAY egraphs-good/egglog (done: R15 at 90635860, also th
 [[planned_generation]]
 id = "G179"
 priority = "P2"
-objective = "CREATION: NA-ATLASX-PRECONDITION (M10, pressure map [creation_selection], score 230) -- core::atlasx::precondition admits a parent for AtlasX only when it reads back SEALED with a seal record binding it, the integrity envelope the record names and a verifying design, every refusal typed; falsified on the G161 sealed fixture (admitted) and the unsealed self-scope container (NOT_SEALED), a tampered record, envelope or design each refused; mutants killed"
+objective = "CREATION: NA-ATLASX-PRECONDITION (done: M10 EXISTS -- core::atlasx::precondition and atlas-systemizer atlasx precondition admit a parent only when it reads back SEALED, its seal record binds it and the envelope and SELECTED design it names verify, every refusal typed; the G161 fixture admitted, tampered inputs refused, the self scope refused NOT_SEALED and DESIGN_ABSENT; 32 mutants killed; frontier_rate 5.33 per hour; ADR 0093)"
 
 [[planned_generation]]
 id = "G180"
@@ -867,7 +867,7 @@ objective = "FULL_OSS_REPLAY rust-lang/datafrog (QUEUED): rank 4 of the recursiv
 [[planned_generation]]
 id = "G181"
 priority = "P2"
-objective = "CREATION: the next [creation_selection] candidate, re-selected after G179 -- forecast NA-ATLASX-CODEC (M12, score 220): one .atlasx object kind encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a byte-identical fixture round-trip, a flipped byte refused by its digest and an undeclared field refused"
+objective = "CREATION: NA-SELF-RECONSTRUCTION-BODIES (M14, [creation_selection] score 85 after G179 reset DEBT-ATLASX staleness) -- bounded lowerable body semantics: HIR body nodes lifted from census records for pure, call-closed bodies, carried by the construction IR and emitted by the Rust backend, so an SH1 shadow reconstructs a type method from census; falsified by SR1 on MaterializationMode::is_local (its BODY_UNOBSERVED gap closed, the shadow method passing the original tests) while a body outside the subset keeps its gap"
 
 [[planned_generation]]
 id = "G182"
