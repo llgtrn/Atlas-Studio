@@ -772,14 +772,19 @@ objective = "FULL_OSS_REPLAY R12 rust-lang/miri at c8c5364581b0 (done: rust-anal
 [[planned_generation]]
 id = "G173"
 priority = "P0"
-objective = "native attack queue head (pressure map, 73): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE, DEBT-EFFECT, DEBT-CONCURRENCY) -- replays R10-R12 measured the residual on real Rust as method calls on receivers Atlas does not type: 28,573 of rust-analyzer's index edges, 309 of rustc_hir_typeck's, 2,066 of miri's (1,220 of them this.method() on miri's external interpreter context, where an unseen inherent method could win the probe -- the G167 external-declaration boundary, NA-DEPENDENCY-DECLARATIONS)"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done as NA-DEPENDENCY-DECLARATIONS step one: the registry sources Cargo compiles for each locked package read as data into the trait method names of its lock closure, UNKNOWN whenever an unseen expansion could declare one; the autoref guard trusts registry imports whose closure lacks the called name and withholds on unresolved, ambiguous, underscore and attribute-expanded bindings -- the G142 guard falsified, and 15 holes an independent review found closed; on Atlas 115 path calls gained and 7 withdrawn, all confirmed by rust-analyzer's index; 39 mutants killed; capability epoch E20; ADR 0087)"
 
 [[planned_generation]]
 id = "G174"
 priority = "P0"
-objective = "FULL_OSS_REPLAY R13 immunant/c2rust (QUEUED): rank 1 of the recursive revalidation after R12, its G114 decision (DEBT-MULTILANGUAGE, DEBT-TRANSFORMATION) facing the strongest Atlas (E19) at a fresh pin, its license verified at it"
+objective = "FULL_OSS_REPLAY R13 immunant/c2rust (QUEUED): rank 1 of the recursive revalidation after R12, its G114 decision (DEBT-MULTILANGUAGE, DEBT-TRANSFORMATION) facing the strongest Atlas (E20) at a fresh pin, its license verified at it"
 
 [[planned_generation]]
-id = "G175+"
+id = "G175"
+priority = "P0"
+objective = "native attack queue head (pressure map, 77): NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE, DEBT-EFFECT, DEBT-CONCURRENCY) -- after E20 the residual on Atlas is method calls on receivers Atlas does not type and the imports it still cannot see into (serde's build-script include, macro_export names); NA-DEPENDENCY-DECLARATIONS (items through re-exports) and NA-MACRO-EXPORT-NAMES are its bounded next steps"
+
+[[planned_generation]]
+id = "G176+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

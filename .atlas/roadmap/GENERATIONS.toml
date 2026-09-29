@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G172"
+current_generation = "G173"
 
 [[generation]]
 id = "G35"
@@ -4087,3 +4087,47 @@ after = 5281
 key = "records:CALL|atlas.resolution.rust-paths"
 before = 7356
 after = 7368
+
+[[generation]]
+id = "G173"
+kind = "NATIVE_ATTACK"
+base_commit = "a66350a749558bcd2ee6e1d165bb439f734d268b"
+priority = "P0"
+serves = "DEBT-CALL (with DEBT-DEPENDENCY): the native queue head the pressure map selected after replay R12 (pressure 73), its largest measured residual the external-declaration boundary G167 found (NA-DEPENDENCY-DECLARATIONS), between replays R12 and R13"
+objective = "NA-CALL-TYPE-RESIDUAL / NA-DEPENDENCY-DECLARATIONS step one: the autoref guard stops withholding claims beside registry imports whose locked closure provably declares no trait method of the called name"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/coverage/G173-locked-trait-names.json"
+self_recensus = ".atlas/evidence/census/G173/recensus.json"
+epoch_before = "E19"
+epoch_after = "E20"
+
+[generation.verification]
+pre_census = "G172 post digest"
+atlas_first = "an instrumented autoref guard on Atlas itself (reverted): 1,443 refusals, 1,257 of them for registry imports alone (syn Spanned/Visit/Punctuated, serde Serialize/Deserialize, tree_sitter Node/Parser, quote, proc_macro2, blake3)"
+change = "adapter locked_traits: the registry sources Cargo compiles for each Cargo.lock package read as data into the trait method names of its lock closure, or UNKNOWN whenever an unseen expansion could declare one; Def::External carries its locked package (CrateInput.foreign, confirmed by the lockfile); the guard trusts a registry import whose closure lacks the name, and withholds on Unknown(may be a trait), Ambiguous and underscore bindings, on procedural attributes on workspace items and on trait impls on the receiver defining the name; runtime reads the root lockfile and CARGO_HOME registry sources and records the table digest in each resolution batch's input fingerprint (ADR 0087)"
+oracle = "rust-analyzer 1.90.0 SCIP index of the final workspace; the G172 resolver (worktree at the base commit) and the G173 resolver run over one snapshot of the final sources: 115 path calls gained and 7 withdrawn, every one confirmed by the index; 7,643 of 7,644 claimed edges confirmed, the last on a line with a multi-byte character and read correct; none wrong"
+falsification = "the G142 guard claimed beside an unresolved import from a missing module and beside a glob-ambiguous external trait; an independent adversarial review of the first version found 15 holes on stable Rust (underscore trait imports, procedural attributes or derives on workspace items, std operator impls on the receiver, a renamed keyword macro, a default or const-generic block in a trait header, a trait body from a metavariable, a macro_export inside a statement macro, a cfg_attr procedural export, a procedural macro through a metavariable, include or path of a non-.rs file, a library at the package root, a target-dependency feature judged impossible, another registry's copy), each now a regression test; 39 mutants killed"
+boundary = "serde, serde_core, serde_json and tree-sitter stay UNKNOWN (serde splices build-script output); procedural macros of a closure, git and path sources, items reached only through dependency re-exports and macro_export macros invoked by bare name from another module (G145 open modules) remain; the 7 withdrawn edges were correct but unjustified"
+debts = "DEBT-CALL and DEBT-DEPENDENCY last advance G173; capability epoch E20; it fires rust-lang/rust R11's revalidation trigger (the autoref step decided beside external imports): REVALIDATION_REQUIRED; NA-DEPENDENCY-TRAIT-NAMES done; NA-DEPENDENCY-DECLARATIONS continues with items through re-exports; NA-MACRO-EXPORT-NAMES queued; next replay immunant/c2rust G174; native head NA-CALL-TYPE-RESIDUAL planned G175 (pressure 77)"
+review = "DEBT-MULTILANGUAGE, DEBT-EPISTEMIC_UNIFICATION and DEBT-ATLAS_COMPLETENESS reviewed at their cadence, all CONFIRMED -- the vocabulary map caught the new reader's free reading outcome, now the carrier PackageRead (evidence/census/G173/debt-review.json)"
+proof = "PROVEN (post 51bb20ab...): the new dependency reader and its fixtures explained as unresolved by design"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6319
+after = 6517
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 5281
+after = 5482
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 7368
+after = 7656
+
+[[generation.metric]]
+key = "diagnostic:IncompleteAnalysis"
+before = 1901
+after = 1928

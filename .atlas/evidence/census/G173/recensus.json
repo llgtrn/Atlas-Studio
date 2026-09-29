@@ -1,0 +1,1291 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G173",
+  "base_revision": "7bcdb466856a91b52ad28a7c49b399e5dac6119b",
+  "candidate_revision": "a66350a749558bcd2ee6e1d165bb439f734d268b",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:5659fec382de6ec484fb18bc563eceaf4d57b8cfaa74ab6be56343a3ec730409",
+  "after_census_digest": "blake3-256:51bb20aba52ac8e546cc00f7d0001b29376d2914b412bd726b3fb4b12c52f968",
+  "replay_digest": "blake3-256:51bb20aba52ac8e546cc00f7d0001b29376d2914b412bd726b3fb4b12c52f968",
+  "inventory_delta": {
+    "created": [
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/locked_traits/tests.rs"
+    ],
+    "modified": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/weights/safetensors.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 198,
+      "fact:FunctionSignature|OBSERVED": 69,
+      "fact:SemanticObligation|OBSERVED": 9,
+      "fact:SemanticObligation|UNKNOWN": 27,
+      "fact:SemanticObligation|UNSUPPORTED": 2,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 262,
+      "fact:Type|DERIVED": 57,
+      "fact:Type|OBSERVED": 89,
+      "record:CALL|DERIVED": 288,
+      "record:CALL|OBSERVED": 1140,
+      "record:CONCURRENCY|DERIVED": 1,
+      "record:CONTROL_FLOW|INFERRED": 70,
+      "record:CONTROL_FLOW|OBSERVED": 509,
+      "record:DATA_FLOW|OBSERVED": 2099,
+      "record:EFFECT|DERIVED": 22,
+      "record:EFFECT|INFERRED": 88,
+      "record:FUNCTION_IDENTITY|OBSERVED": 198,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 69,
+      "record:OWNERSHIP|OBSERVED": 586,
+      "record:PERSISTENCE|DERIVED": 10,
+      "record:STATE|OBSERVED": 9,
+      "record:SYMBOL|OBSERVED": 262,
+      "record:TYPE|DERIVED": 57,
+      "record:TYPE|OBSERVED": 89
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 7626,
+    "graph_nodes": 5704
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:RESOURCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNSUPPORTED": 2,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/parse_cargo_lock()."
+      ],
+      "after": [
+        "adapter dependency/cargo/parse_cargo_lock()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/resolve_dependency_ref()."
+      ],
+      "after": [
+        "adapter dependency/cargo/resolve_dependency_ref()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/extern_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/extern_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/external_root()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/external_root()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Scope`/insert()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Scope`/insert()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/flatten_use()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/flatten_use()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/merge_alternating()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/merge_alternating()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/outcome_of()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/outcome_of()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/resolve_workspace()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_workspace()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/one_crate()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/one_crate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/transcriber_names()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/transcriber_names()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/crate_targets()."
+      ],
+      "after": [
+        "runtime census/resolution/crate_targets()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/direct_dependency()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/lacks()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/stated()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:PackageFacts`/refuse()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_item_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/angle_depths()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/cfg_false()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/cfg_impossible()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/check_attribute()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/closure_answer()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/closure_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/extracted_dirs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/feature_table()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/impossible_features()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/included_inside()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/item_attrs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/literal_trait_header()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/module_items()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/read_file()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/read_locked_trait_methods()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/read_on_this_stack()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/rust_files()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/scan_tokens()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/stays_inside()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/stream_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/`impl:Drop for Registry`/drop()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/`impl:Registry`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/`impl:Registry`/package()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/a_closure_answers_the_union_of_its_trait_methods()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/a_header_a_metavariable_completes_counts_once_the_keyword_can_bind()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/a_name_no_procedural_macro_of_the_closure_exports_is_inert()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/a_procedural_macro_of_the_closure_poisons_its_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/a_symlink_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/allowed_forms_keep_the_closure_known()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/an_item_macro_invocation_is_read_for_the_traits_it_spells()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/every_unseen_declaration_makes_the_closure_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/lock()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/reason()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_block_in_a_trait_header_is_no_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_default_in_a_completed_header_is_no_expression()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_feature_on_a_target_dependency_stays_possible()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_library_at_the_package_root_reaches_its_tests_directory()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_macro_exported_from_a_statement_macro_is_read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_procedural_macro_named_through_a_metavariable_is_unseen()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_renamed_keyword_macro_binds_the_keyword()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/a_trait_body_from_a_metavariable_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/an_export_under_cfg_attr_is_a_procedural_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/an_include_or_path_of_a_file_not_read_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/review_holes/case()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/the_digest_moves_with_any_source()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/tests/unextracted_or_unregistered_sources_are_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/trait_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/trait_header()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/transcribers()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/unraw()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/use_idents()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/locked_traits/use_renames()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/expanding_attribute()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_workspace_with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_unresolved_or_ambiguous_import_withholds_autoref()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/review_findings_withhold_autoref()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/crate_targets_locked()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/registry_sources()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/registry_dependencies_map_to_the_packages_the_lockfile_confirms()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/src/semantic/rust/locked_traits.rs: 0 -> 15",
+      "adapter/src/semantic/rust/locked_traits/tests.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2283,
+    "total_after": 2312
+  },
+  "intent": {
+    "objective": "NA-CALL-TYPE-RESIDUAL: the locked registry dependencies' trait method names, read as data, relieve the autoref guard; unresolved, ambiguous, underscore and attribute-expanded bindings withhold it (ADR 0087, capability epoch E20)",
+    "changed_paths": [
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/locked_traits/tests.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/weights/safetensors.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONCURRENCY|atlas.resolution.rust-paths",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/src/semantic/rust/locked_traits.rs: new source files of the dependency trait reader and its tests: their own call sites include unresolved method calls on receivers the resolver does not type (syn nodes, token trees, std collections), the same UNKNOWN classes as the rest of the adapter",
+      "adapter/src/semantic/rust/locked_traits/tests.rs: new source files of the dependency trait reader and its tests: their own call sites include unresolved method calls on receivers the resolver does not type (syn nodes, token trees, std collections), the same UNKNOWN classes as the rest of the adapter"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter dependency/cargo/parse_cargo_lock().",
+      "CHANGED adapter dependency/cargo/resolve_dependency_ref().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/extern_crate().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/external_root().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Scope`/insert().",
+      "CHANGED adapter semantic/rust/resolve/flatten_use().",
+      "CHANGED adapter semantic/rust/resolve/merge_alternating().",
+      "CHANGED adapter semantic/rust/resolve/outcome_of().",
+      "CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+      "CHANGED adapter semantic/rust/resolve/resolve_workspace().",
+      "CHANGED adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown().",
+      "CHANGED adapter semantic/rust/resolve/tests/one_crate().",
+      "CHANGED adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items().",
+      "CHANGED adapter semantic/rust/resolve/transcriber_names().",
+      "CHANGED runtime census/resolution/crate_targets().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/direct_dependency().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/lacks().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/stated().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/unknown().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:PackageFacts`/refuse().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_item().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_item_macro().",
+      "CREATED adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_macro().",
+      "CREATED adapter semantic/rust/locked_traits/angle_depths().",
+      "CREATED adapter semantic/rust/locked_traits/cfg_false().",
+      "CREATED adapter semantic/rust/locked_traits/cfg_impossible().",
+      "CREATED adapter semantic/rust/locked_traits/check_attribute().",
+      "CREATED adapter semantic/rust/locked_traits/closure_answer().",
+      "CREATED adapter semantic/rust/locked_traits/closure_of().",
+      "CREATED adapter semantic/rust/locked_traits/extracted_dirs().",
+      "CREATED adapter semantic/rust/locked_traits/feature_table().",
+      "CREATED adapter semantic/rust/locked_traits/impossible_features().",
+      "CREATED adapter semantic/rust/locked_traits/included_inside().",
+      "CREATED adapter semantic/rust/locked_traits/item_attrs().",
+      "CREATED adapter semantic/rust/locked_traits/literal_trait_header().",
+      "CREATED adapter semantic/rust/locked_traits/module_items().",
+      "CREATED adapter semantic/rust/locked_traits/read_file().",
+      "CREATED adapter semantic/rust/locked_traits/read_locked_trait_methods().",
+      "CREATED adapter semantic/rust/locked_traits/read_on_this_stack().",
+      "CREATED adapter semantic/rust/locked_traits/rust_files().",
+      "CREATED adapter semantic/rust/locked_traits/scan_tokens().",
+      "CREATED adapter semantic/rust/locked_traits/stays_inside().",
+      "CREATED adapter semantic/rust/locked_traits/stream_names().",
+      "CREATED adapter semantic/rust/locked_traits/tests/`impl:Drop for Registry`/drop().",
+      "CREATED adapter semantic/rust/locked_traits/tests/`impl:Registry`/new().",
+      "CREATED adapter semantic/rust/locked_traits/tests/`impl:Registry`/package().",
+      "CREATED adapter semantic/rust/locked_traits/tests/a_closure_answers_the_union_of_its_trait_methods().",
+      "CREATED adapter semantic/rust/locked_traits/tests/a_header_a_metavariable_completes_counts_once_the_keyword_can_bind().",
+      "CREATED adapter semantic/rust/locked_traits/tests/a_name_no_procedural_macro_of_the_closure_exports_is_inert().",
+      "CREATED adapter semantic/rust/locked_traits/tests/a_procedural_macro_of_the_closure_poisons_its_names().",
+      "CREATED adapter semantic/rust/locked_traits/tests/a_symlink_is_refused().",
+      "CREATED adapter semantic/rust/locked_traits/tests/allowed_forms_keep_the_closure_known().",
+      "CREATED adapter semantic/rust/locked_traits/tests/an_item_macro_invocation_is_read_for_the_traits_it_spells().",
+      "CREATED adapter semantic/rust/locked_traits/tests/every_unseen_declaration_makes_the_closure_unknown().",
+      "CREATED adapter semantic/rust/locked_traits/tests/lock().",
+      "CREATED adapter semantic/rust/locked_traits/tests/read().",
+      "CREATED adapter semantic/rust/locked_traits/tests/reason().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_block_in_a_trait_header_is_no_body().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_default_in_a_completed_header_is_no_expression().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_feature_on_a_target_dependency_stays_possible().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_library_at_the_package_root_reaches_its_tests_directory().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_macro_exported_from_a_statement_macro_is_read().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_procedural_macro_named_through_a_metavariable_is_unseen().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_renamed_keyword_macro_binds_the_keyword().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_trait_body_from_a_metavariable_is_refused().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/an_export_under_cfg_attr_is_a_procedural_macro().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/an_include_or_path_of_a_file_not_read_is_refused().",
+      "CREATED adapter semantic/rust/locked_traits/tests/review_holes/case().",
+      "CREATED adapter semantic/rust/locked_traits/tests/the_digest_moves_with_any_source().",
+      "CREATED adapter semantic/rust/locked_traits/tests/unextracted_or_unregistered_sources_are_unknown().",
+      "CREATED adapter semantic/rust/locked_traits/trait_body().",
+      "CREATED adapter semantic/rust/locked_traits/trait_header().",
+      "CREATED adapter semantic/rust/locked_traits/transcribers().",
+      "CREATED adapter semantic/rust/locked_traits/unraw().",
+      "CREATED adapter semantic/rust/locked_traits/use_idents().",
+      "CREATED adapter semantic/rust/locked_traits/use_renames().",
+      "CREATED adapter semantic/rust/resolve/expanding_attribute().",
+      "CREATED adapter semantic/rust/resolve/resolve_workspace_with().",
+      "CREATED adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name().",
+      "CREATED adapter semantic/rust/resolve/tests/an_unresolved_or_ambiguous_import_withholds_autoref().",
+      "CREATED adapter semantic/rust/resolve/tests/review_findings_withhold_autoref().",
+      "CREATED runtime census/resolution/crate_targets_locked().",
+      "CREATED runtime census/resolution/registry_sources().",
+      "CREATED runtime census/resolution/tests/registry_dependencies_map_to_the_packages_the_lockfile_confirms()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/dependency/cargo.rs",
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/mod.rs",
+    "path adapter/src/semantic/rust/locked_traits.rs",
+    "path adapter/src/semantic/rust/locked_traits/tests.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/weights/safetensors.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/census/resolution/tests.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONCURRENCY|atlas.resolution.rust-paths",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED adapter dependency/cargo/parse_cargo_lock().",
+    "entity CHANGED adapter dependency/cargo/resolve_dependency_ref().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/canonical_path_type().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/autoref_allowed().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/autoref_name_allowed().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/extern_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/external_root().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_macro_calls().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Scope`/insert().",
+    "entity CHANGED adapter semantic/rust/resolve/flatten_use().",
+    "entity CHANGED adapter semantic/rust/resolve/merge_alternating().",
+    "entity CHANGED adapter semantic/rust/resolve/outcome_of().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CHANGED adapter semantic/rust/resolve/resolve_workspace().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/alternating_scopes_merge_to_their_agreement_and_unknown().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/one_crate().",
+    "entity CHANGED adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items().",
+    "entity CHANGED adapter semantic/rust/resolve/transcriber_names().",
+    "entity CHANGED runtime census/resolution/crate_targets().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/direct_dependency().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/lacks().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/stated().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:LockedTraitMethods`/unknown().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:PackageFacts`/refuse().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_item().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_item_macro().",
+    "entity CREATED adapter semantic/rust/locked_traits/`impl:Visit<'ast> for MacroRules<'_>`/visit_macro().",
+    "entity CREATED adapter semantic/rust/locked_traits/angle_depths().",
+    "entity CREATED adapter semantic/rust/locked_traits/cfg_false().",
+    "entity CREATED adapter semantic/rust/locked_traits/cfg_impossible().",
+    "entity CREATED adapter semantic/rust/locked_traits/check_attribute().",
+    "entity CREATED adapter semantic/rust/locked_traits/closure_answer().",
+    "entity CREATED adapter semantic/rust/locked_traits/closure_of().",
+    "entity CREATED adapter semantic/rust/locked_traits/extracted_dirs().",
+    "entity CREATED adapter semantic/rust/locked_traits/feature_table().",
+    "entity CREATED adapter semantic/rust/locked_traits/impossible_features().",
+    "entity CREATED adapter semantic/rust/locked_traits/included_inside().",
+    "entity CREATED adapter semantic/rust/locked_traits/item_attrs().",
+    "entity CREATED adapter semantic/rust/locked_traits/literal_trait_header().",
+    "entity CREATED adapter semantic/rust/locked_traits/module_items().",
+    "entity CREATED adapter semantic/rust/locked_traits/read_file().",
+    "entity CREATED adapter semantic/rust/locked_traits/read_locked_trait_methods().",
+    "entity CREATED adapter semantic/rust/locked_traits/read_on_this_stack().",
+    "entity CREATED adapter semantic/rust/locked_traits/rust_files().",
+    "entity CREATED adapter semantic/rust/locked_traits/scan_tokens().",
+    "entity CREATED adapter semantic/rust/locked_traits/stays_inside().",
+    "entity CREATED adapter semantic/rust/locked_traits/stream_names().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/`impl:Drop for Registry`/drop().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/`impl:Registry`/new().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/`impl:Registry`/package().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/a_closure_answers_the_union_of_its_trait_methods().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/a_header_a_metavariable_completes_counts_once_the_keyword_can_bind().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/a_name_no_procedural_macro_of_the_closure_exports_is_inert().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/a_procedural_macro_of_the_closure_poisons_its_names().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/a_symlink_is_refused().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/allowed_forms_keep_the_closure_known().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/an_item_macro_invocation_is_read_for_the_traits_it_spells().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/every_unseen_declaration_makes_the_closure_unknown().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/lock().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/read().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/reason().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_block_in_a_trait_header_is_no_body().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_default_in_a_completed_header_is_no_expression().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_feature_on_a_target_dependency_stays_possible().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_library_at_the_package_root_reaches_its_tests_directory().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_macro_exported_from_a_statement_macro_is_read().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_procedural_macro_named_through_a_metavariable_is_unseen().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_renamed_keyword_macro_binds_the_keyword().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/a_trait_body_from_a_metavariable_is_refused().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/an_export_under_cfg_attr_is_a_procedural_macro().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/an_include_or_path_of_a_file_not_read_is_refused().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/review_holes/case().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/the_digest_moves_with_any_source().",
+    "entity CREATED adapter semantic/rust/locked_traits/tests/unextracted_or_unregistered_sources_are_unknown().",
+    "entity CREATED adapter semantic/rust/locked_traits/trait_body().",
+    "entity CREATED adapter semantic/rust/locked_traits/trait_header().",
+    "entity CREATED adapter semantic/rust/locked_traits/transcribers().",
+    "entity CREATED adapter semantic/rust/locked_traits/unraw().",
+    "entity CREATED adapter semantic/rust/locked_traits/use_idents().",
+    "entity CREATED adapter semantic/rust/locked_traits/use_renames().",
+    "entity CREATED adapter semantic/rust/resolve/expanding_attribute().",
+    "entity CREATED adapter semantic/rust/resolve/resolve_workspace_with().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_registry_import_withholds_autoref_only_when_its_locked_closure_may_declare_the_name().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_unresolved_or_ambiguous_import_withholds_autoref().",
+    "entity CREATED adapter semantic/rust/resolve/tests/review_findings_withhold_autoref().",
+    "entity CREATED runtime census/resolution/crate_targets_locked().",
+    "entity CREATED runtime census/resolution/registry_sources().",
+    "entity CREATED runtime census/resolution/tests/registry_dependencies_map_to_the_packages_the_lockfile_confirms()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

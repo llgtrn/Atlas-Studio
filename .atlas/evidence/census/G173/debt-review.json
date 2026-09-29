@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G173",
+ "trigger": "review cadence: DEBT-MULTILANGUAGE, DEBT-EPISTEMIC_UNIFICATION and DEBT-ATLAS_COMPLETENESS, each stale for at least 13 generations since its last advance and its last review, fell due at G173",
+ "method": "re-read against the code of the G173 change (the dependency trait reader, the autoref guard, the vocabulary map entry it needed) and the generations G161-G172 that touched each capability (TypeScript module linking, the seal gate, principal authentication, the replays)",
+ "reviews": [
+  {
+   "debt": "DEBT-MULTILANGUAGE",
+   "verdict": "CONFIRMED",
+   "finding": "the second language is still the bounded TypeScript/JavaScript profile (G152) with module linking through exports, compiled package entries and declared outDir mappings (G158, G160); member and this calls, namespace imports, JSX component uses, types and data flow for it, and any C or C++ frontend remain absent; replay R13 immunant/c2rust (G174), whose decision rested on this debt, faces it next; NA-MULTILANGUAGE unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-EPISTEMIC_UNIFICATION",
+   "verdict": "CONFIRMED",
+   "finding": "the vocabulary map test still walks struct fields only; at G173 it caught a free Result<usize, String> reading outcome in the new dependency reader, now the typed carrier PackageRead (CarrierRole::Outcome) in the map; enum payloads, function returns and the donor ledger's boundary statuses stay unchecked; NA-VOCABULARY-COMPLETION unchanged",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-ATLAS_COMPLETENESS",
+   "verdict": "CONFIRMED",
+   "finding": "the container still writes typed records and evidence uncompressed (8-byte framing per field) with no separate identity, type or symbol interning tables; no DESIGN section exists, and since no design is SELECTED (the principal registry is empty, G171) there is none to carry; G173 changed resolution inputs, not the container; NA-ATLAS-DESIGN-SECTION unchanged",
+   "correction": {}
+  }
+ ]
+}
