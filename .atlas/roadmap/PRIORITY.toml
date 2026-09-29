@@ -792,7 +792,7 @@ objective = "FULL_OSS_REPLAY R14 rust-lang/rust (done: the R11 verdict re-census
 [[planned_generation]]
 id = "G177"
 priority = "P0"
-objective = "native attack queue head (pressure map, 85): NA-CALL-TYPE-RESIDUAL -- its largest measured residual on Atlas, 431 autoref refusals beside use serde::{Deserialize, Serialize}, taken by NA-DEPENDENCY-DECLARATIONS step two (a named re-export read through a zero-argument local macro_rules crate root, per item, to the trait declaration); then NA-TRAIT-IMPL-RECEIVERS (150 trait-impl methods on self) and NA-BLOCK-MACRO-ITEMS"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-DEPENDENCY; done as NA-DEPENDENCY-DECLARATIONS step two: the autoref guard reads the one item a registry import names through the locked package's module tree -- serde's traits read through its zero-argument crate_root!() to serde_core, certain beside its build-script include; 9,677 -> 10,051 resolved path calls on Atlas, none withdrawn, every changed call confirmed by rust-analyzer's index; seven review holes over two passes closed; 29 mutants killed; capability epoch E23; ADR 0090)"
 
 [[planned_generation]]
 id = "G178"
@@ -800,6 +800,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY egraphs-good/egglog (QUEUED): rank 3 of the recursive revalidation (ranks 1 and 2 replayed, triggers CURRENT), its G82 decision (DEBT-TYPE, DEBT-DESIGN_GENERATION) facing the strongest Atlas (E22) at a fresh pin, its license verified at it"
 
 [[planned_generation]]
-id = "G179+"
+id = "G179"
+priority = "P0"
+objective = "native attack queue head (pressure map, 93): NA-CALL-TYPE-RESIDUAL -- after E23 the residual on Atlas is 150 trait-impl methods on self (NA-TRAIT-IMPL-RECEIVERS) and 90 autoref refusals under another guard rule (40 in composition/lens.rs), measured again against rust-analyzer's index first"
+
+[[planned_generation]]
+id = "G180+"
 priority = "P0"
 objective = "FULL_OSS_REPLAY every other generation, interleaved with the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml; the weight stages NA-WEIGHT-CENSUS-RECORDS, NA-WEIGHT-ROLES, NA-WEIGHT-TRANSFORMS and NA-WEIGHT-FORMATS take their place in it, each weight format after its donor replay), SELF_RECONSTRUCTION (NA-SELF-RECONSTRUCTION-BODIES, then SH1 on the next target) and an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

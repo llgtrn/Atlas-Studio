@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G176"
+evaluated_at = "G177"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -21,6 +21,14 @@ rule = "A historical donor verdict is valid evidence only for the semantic capab
 # the historical decision stays recorded. priority = sum over the delta of the age of each debt the
 # milestone advanced and the donor depended on (essential debt pressure x capability delta x relevance).
 # language is recorded knowledge unless language_verified (established by a materialization).
+
+[[capability_milestone]]
+id = "DEPENDENCY_ITEM_TRAITS"
+generation = "G177"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "the autoref guard reads the one item a registry import names, resolved through the locked package's module tree, instead of its whole closure"
+evidence = ".atlas/decisions/0090-an-import-of-a-known-item-brings-that-item-alone.md"
 
 [[capability_milestone]]
 id = "LEXICAL_LOCAL_SCOPES"
@@ -459,7 +467,7 @@ capabilities_available_then = []
 semantic_delta = ["SEAL_POLICY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DEPENDENCY, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 141
+priority = 142
 rank = 4
 
 [[donor]]
@@ -488,10 +496,10 @@ last_materialized_generation = "G168"
 last_deep_census_generation = "G168"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
-semantic_delta = ["LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
+semantic_delta = ["DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 705
+priority = 852
 rank = 1
 
 [[donor]]
@@ -584,7 +592,7 @@ last_materialized_generation = "G69"
 last_deep_census_generation = "G69"
 capabilities_examined = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
 reason = "the advanced capabilities are Rust semantic engines; a scala source exposes nothing new to them (condition 3 fails)"
 priority = 0
@@ -648,10 +656,10 @@ last_materialized_generation = "G170"
 last_deep_census_generation = "G170"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
+semantic_delta = ["DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 564
+priority = 710
 rank = 2
 
 [[donor]]
@@ -680,7 +688,7 @@ last_materialized_generation = "G78"
 last_deep_census_generation = "G78"
 capabilities_examined = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS"]
-semantic_delta = ["LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "COMPILED_PACKAGE_ENTRIES", "ASYNC_BLOCK_REGIONS", "TS_MODULE_LINKING", "IMPL_SHAPE_BY_APPLIED_TYPES", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "COMPILED_PACKAGE_ENTRIES", "ASYNC_BLOCK_REGIONS", "TS_MODULE_LINKING", "IMPL_SHAPE_BY_APPLIED_TYPES", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "LANGUAGE_UNDETERMINED"
 reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
 priority = 0
@@ -699,7 +707,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 141
+priority = 142
 rank = 5
 
 [[donor]]
@@ -731,7 +739,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "DESIGN_CANDIDATES", "ITEM_MACRO_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-DESIGN_GENERATION, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 549
+priority = 553
 rank = 3
 
 [[donor]]
@@ -1083,7 +1091,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 138
+priority = 139
 rank = 6
 
 [[donor]]

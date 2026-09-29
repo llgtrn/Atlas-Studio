@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G176"
+current_generation = "G177"
 
 [[generation]]
 id = "G35"
@@ -4241,3 +4241,37 @@ boundary = "the autoref step beside rustc_* imports (191 oracle-confirmed calls)
 debts = "DEBT-CALL unchanged (last advance G175); no capability epoch; rust-lang/rust's trigger CURRENT at E22 (re-opened by reading workspace path crates' declarations for the guard, autoderef through Deref, or dependency macro expansion); next replay egraphs-good/egglog G178; native head NA-CALL-TYPE-RESIDUAL planned G177"
 review = "DEBT-MULTI_ENGINE, DEBT-SANDBOXED_EXECUTION, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-DESIGN_GENERATION reviewed at their cadence, all CONFIRMED -- one engine for four dimensions, no filesystem confinement, no ADL derivation change since G137, designs authored not generated (evidence/census/G176/debt-review.json)"
 proof = "PROVEN (post 6bc2b739..., unchanged): the census of Atlas is identical, no source changed; the clone, the oracle copy, the index and the rebuilt engine deleted before the recensus"
+
+[[generation]]
+id = "G177"
+kind = "NATIVE_ATTACK"
+base_commit = "28928faaa31b3b555d2a73646d8f6f77110c39af"
+priority = "P0"
+serves = "DEBT-CALL (with DEBT-DEPENDENCY): the native queue head the pressure map selected after replay R14 (pressure 85), its largest measured residual on Atlas the 431 autoref refusals beside serde imports (NA-DEPENDENCY-DECLARATIONS step two)"
+objective = "NA-CALL-TYPE-RESIDUAL / NA-DEPENDENCY-DECLARATIONS step two: the autoref guard reads the one item a registry import names, through the locked package's module tree, instead of the package's whole closure"
+writer = "coordinator (sole writer); one implementation lane and one read-only adversarial review lane (two passes)"
+evidence = ".atlas/evidence/coverage/G177-dependency-item-traits.json"
+self_recensus = ".atlas/evidence/census/G177/recensus.json"
+epoch_before = "E22"
+epoch_after = "E23"
+
+[generation.verification]
+pre_census = "G176 post digest"
+atlas_first = "G175's residual join: 431 oracle-confirmed &self calls refused at the autoref step; serde's root binds Serialize and Deserialize by a named pub use serde_core::{..} inside its zero-argument local crate_root!(), certain beside its build-script include (E0255)"
+change = "adapter locked_traits/items.rs: per-package module trees from the parsed registry sources (named uses across packages, single-empty-rule local macro_rules in textual scope, #[macro_use] mod, #[path], cfg kept and evaluated per package over every assignment); item_methods/item_lacks; resolve: Def::External carries Registry { package, path }, the guard reads the item, a crate-root extern crate rename decides its name; runtime: registry dependencies named by library name in the foreign map (ADR 0090)"
+oracle = "rust-analyzer 1.90.0 SCIP index of the tree: of 375 changed call sites 374 confirmed (columns in bytes), the last the edited guard line itself; 9,677 -> 10,051 resolved path calls on Atlas, none withdrawn"
+falsification = "an independent adversarial review found seven holes over two passes, each reproduced on rustc 1.90.0 -- cfg atoms shared across packages, an unread #[macro_use] module without an opaque point, crate-root extern crate renames ignored (registry side and, older, the resolver), dependencies named by key not library name (registry side and the workspace foreign map), a procedural attribute on a root extern crate trusted -- all closed, each a regression test; 29 mutants killed"
+boundary = "names reached only through globs or unseen expansions, value- and macro-namespace names, standard-library re-exports, macros with parameters or several rules, git and path sources (rustc's own crates at R14) stay UNKNOWN; 90 autoref refusals remain on Atlas (40 in composition/lens.rs, another guard rule); 150 trait-impl methods on self (NA-TRAIT-IMPL-RECEIVERS)"
+debts = "DEBT-CALL and DEBT-DEPENDENCY last advance G177; capability epoch E23 fires no processed replay's trigger; NA-DEPENDENCY-ITEMS done; NA-DEPENDENCY-DECLARATIONS continues with path and git sources and globs; next replay egraphs-good/egglog G178; native head NA-CALL-TYPE-RESIDUAL planned G179 (pressure 93)"
+review = "DEBT-INTEGRITY_ENVELOPE reviewed at its cadence, CONFIRMED -- 15 invariants evaluated ELIGIBLE, no class added since G138 (evidence/census/G177/debt-review.json)"
+proof = "PROVEN (post 236e7a41...): the per-item reader and its fixtures explained as unresolved by design; the calls the guard now allows reach the item lookup"
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 9426
+after = 10042
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 6210
+after = 6593

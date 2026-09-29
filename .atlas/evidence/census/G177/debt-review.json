@@ -1,0 +1,14 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G177",
+ "trigger": "review cadence: DEBT-INTEGRITY_ENVELOPE, stale for at least 13 generations since its last advance and its last review, fell due at G177",
+ "method": "re-read against runtime/src/integrity.rs (unchanged since G138), the G176 integrity report and the seal gate's use of it",
+ "reviews": [
+  {
+   "debt": "DEBT-INTEGRITY_ENVELOPE",
+   "verdict": "CONFIRMED",
+   "finding": "the envelope still pins the invariant set G138 introduced and the report evaluates each against the observed architecture root: at G176 15 invariants evaluated, no hard violation, no required unknown, verdict ELIGIBLE, consumed by the seal gate since G161; runtime/src/integrity.rs is unchanged since G138, so invariant classes beyond that set (NA-INTEGRITY-CLASSES) are still absent",
+   "correction": {}
+  }
+ ]
+}

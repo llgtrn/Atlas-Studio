@@ -1,0 +1,58 @@
+{
+ "schema": "atlas.evidence.coverage.v1",
+ "generation": "G177",
+ "attack": "NA-CALL-TYPE-RESIDUAL (NA-DEPENDENCY-DECLARATIONS step two, NA-DEPENDENCY-ITEMS)",
+ "decision": ".atlas/decisions/0090-an-import-of-a-known-item-brings-that-item-alone.md",
+ "method": "the resolver's path-call outcomes over Atlas's own sources (target/, .git and .atlas/ excluded) with the guard's per-item branch swapped back to the G173 closure rule (before) and as committed (after), in one build; every changed outcome checked against rust-analyzer 1.90.0's SCIP index of the tree, columns compared in bytes",
+ "residual_before": "431 oracle-confirmed &self calls refused at the autoref step beside use serde::{Deserialize, Serialize} (G175 measurement)",
+ "item_answers": {
+  "serde::Serialize": [
+   "serialize"
+  ],
+  "serde::Deserialize": [
+   "deserialize",
+   "deserialize_in_place"
+  ],
+  "serde::de::DeserializeOwned": [],
+  "serde_json::Value": [],
+  "serde_json::Map": [],
+  "tree_sitter::Node": [],
+  "tree_sitter::Parser": [],
+  "serde_json::from_str": "UNKNOWN (value namespace)"
+ },
+ "resolved_path_calls": {
+  "N": 9677,
+  "N_plus_1": 10051,
+  "gained": 374,
+  "withdrawn": 0,
+  "gained_detail": "371 receiver-form-differs now resolved, 3 chained calls typed through them; 1 further changed site is the edited guard line itself"
+ },
+ "oracle": {
+  "changed_sites": 375,
+  "confirmed": 374,
+  "not_in_index": "the guard line in resolve.rs, which moved after the index was built",
+  "wrong": 0
+ },
+ "residual_after": "90 oracle-confirmed receiver-form-differs refusals remain on Atlas, 40 in core/src/composition/lens.rs, withheld by another guard rule (serde is its only registry import) -- next to examine",
+ "review": {
+  "passes": 2,
+  "holes": [
+   "cfg atoms shared across packages",
+   "an unread #[macro_use] module left no opaque point",
+   "a crate-root extern crate rename ignored in the registry reading",
+   "the same in the resolver (older, now claimed through)",
+   "dependencies named by manifest key, not library name",
+   "a procedural attribute on a root extern crate trusted by the resolver",
+   "the workspace foreign map named dependencies by key"
+  ],
+  "status": "all closed, each a regression test"
+ },
+ "self_recensus": {
+  "records:CALL|atlas.resolution.rust-paths": "9,426 -> 10,042",
+  "composed:relation:INVOKES": "6,210 -> 6,593"
+ },
+ "mutants": {
+  "killed": 29,
+  "survived": 0
+ }
+}
