@@ -555,6 +555,54 @@ pub fn check_report(report: &IntegrityReport, pinned: &IntegrityEnvelope) -> Vec
             problems.push(format!("{} is not evaluated", invariant.invariant_id));
         }
     }
+    // G185: an evaluation's diagnostics follow from its status and the invariant's strength, as
+    // `evaluate` writes them; an evaluation of nothing the envelope pins is foreign.
+    let pinned_by_id: BTreeMap<&str, &EnvelopeInvariant> = pinned
+        .invariants
+        .iter()
+        .map(|i| (i.invariant_id.as_str(), i))
+        .collect();
+    for evaluation in &report.evaluations {
+        let Some(invariant) = pinned_by_id.get(evaluation.invariant_ref.as_str()) else {
+            problems.push(format!(
+                "{} is not an invariant the envelope pins",
+                evaluation.invariant_ref
+            ));
+            continue;
+        };
+        let has = |code| evaluation.diagnostic_codes.contains(&code);
+        let hard = invariant.strength == Strength::Hard;
+        let unselected = has(ArchitectureDiagnostic::UnselectedRevision);
+        let missing = match evaluation.status {
+            EvaluationStatus::Fail if hard && !unselected => {
+                (!has(ArchitectureDiagnostic::HardViolation)).then_some("HARD_VIOLATION")
+            }
+            EvaluationStatus::Unknown if hard => {
+                (!has(ArchitectureDiagnostic::RequiredUnknown)).then_some("REQUIRED_UNKNOWN")
+            }
+            _ => None,
+        };
+        if let Some(code) = missing {
+            problems.push(format!(
+                "{} is {} for a HARD invariant without {code}",
+                evaluation.invariant_ref, evaluation.status
+            ));
+        }
+        // G185: `evaluate` decides a HARD invariant PASS, FAIL or UNKNOWN, never CONFLICT or
+        // NOT_AFFECTED; a CONFLICT does not silently pick a winner, and a pinned invariant is
+        // evaluated over the full census, so nothing is out of its reach.
+        if hard
+            && matches!(
+                evaluation.status,
+                EvaluationStatus::Conflict | EvaluationStatus::NotAffected
+            )
+        {
+            problems.push(format!(
+                "{} is {} for a HARD invariant: only PASS, FAIL or UNKNOWN is decided",
+                evaluation.invariant_ref, evaluation.status
+            ));
+        }
+    }
     problems
 }
 

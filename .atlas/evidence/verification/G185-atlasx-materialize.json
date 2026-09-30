@@ -1,0 +1,863 @@
+{
+ "schema": "atlas.evidence.verification.v1",
+ "generation": "G185",
+ "attack": "NA-ATLASX-MATERIALIZE",
+ "debts": [
+  "DEBT-ATLASX"
+ ],
+ "construction_node": "M11",
+ "decision": ".atlas/decisions/0097-atlasx-materializes-functions-from-a-gate-decided-parent.md",
+ "closes": [
+  "RES-G179-SEAL-SELF-CERTIFYING (the forgery and self-authored reports and envelopes; the report contents as authored remain as RES-G185-REPORT-CONTENTS-AS-AUTHORED)",
+  "RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED",
+  "RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT (seal::gate applies integrity::check_report against the pinned envelope and verification::check_report; seal gate reads the pinned envelope from --root)"
+ ],
+ "seal_closing_design": "the AtlasX precondition judges a parent under the repository's Declaration (declared seal policy, pinned integrity envelope, declared principal registry, read from --root; --policy/--envelope refused), requires the verification and integrity reports to be internally consistent (summaries, counts and verdicts re-derived from outcomes and evaluations; the integrity report against the pin), and as its last check re-runs seal::gate (authority first; the container at its recomputed pre-seal root) and admits only when the gate decides ELIGIBLE and exactly the record the container carries. The seal is not signed: Atlas holds no key (ADR 0085). AdmittedParent names policy_id, principal, principal_key and registry_digest.",
+ "fixture": {
+  "census_records": "core/src/atlasx/materialize/census_records.json: FUNCTION_IDENTITY f9cc9be4f375986b, FUNCTION_SIGNATURE 43bada38908117fd (MaterializationMode::is_local) and SYMBOL 02255955f298ded0 (MaterializationMode), with their evidence, copied verbatim from the G184 self census container (root blake3-256:8390d190ec8dce6eac146231a07cdccbb102dd9d7f8b2dc4deadf6c01b42c81e, revision git:c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8)",
+  "builder": "core/src/atlasx/fixture.rs (cfg(test)): the G161 fixture container carrying those records, sealed by the real seal gate; the design selected by a fixture principal signing with a test key (ed25519-compact dev-dependency)",
+  "staged_object": {
+   "path": "functions/6e6af317bfa2df1957f19149fab9bdea2cbd1c582eb6ed4d6cbfd56545199e39.atlasx",
+   "bytes": 465,
+   "object_class": "FUNCTIONS (4)",
+   "records": 1,
+   "function_id": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+   "lineage": [
+    "semantic:FUNCTION_IDENTITY:f9cc9be4f375986b",
+    "semantic:FUNCTION_SIGNATURE:43bada38908117fd"
+   ],
+   "not_materialized": [
+    "SYMBOL:semantic:SYMBOL:02255955f298ded0"
+   ],
+   "cross_check": "equal field for field to FunctionSignatureRecord::of the SR1-3 lifted function (core/src/atlasx/codec/fixture_module.json) but for lineage, whose record ids are that earlier census's"
+  },
+  "reports": "the verification report is written by verification::evaluate from one OBSERVED satisfying run per required class; the integrity report by integrity::evaluate against the pinned envelope with its invariant decided satisfied"
+ },
+ "falsifications": [
+  {
+   "claim": "the G179 self-certification reproduction is REFUSED (ADMITTED before)",
+   "demonstrated_by": "core atlasx::precondition::tests::a_self_certified_seal_record_is_refused_seal_record_not_decided: exactly [SEAL_RECORD_NOT_DECIDED], every G179 check passing; with the gate re-run removed (mutant M01) it is ADMITTED; a forged design signed by an undeclared key: SEAL_GATE_NOT_ELIGIBLE DESIGN_AUTHORITY_REFUSED"
+  },
+  {
+   "claim": "the legitimate G161 fixture path is still ADMITTED",
+   "demonstrated_by": "core atlasx::precondition::tests::the_g161_sealed_container_is_admitted_with_the_identities_it_binds; a_design_over_another_root_is_refused_by_the_re_run_gate (a gate-sealed design with other roots admitted)"
+  },
+  {
+   "claim": "every gate input must decide the record the container carries",
+   "demonstrated_by": "core atlasx::precondition::tests::every_gate_input_must_decide_the_record_the_container_carries (policy, verification, integrity, registry each changed alone); a_design_over_another_root_is_refused_by_the_re_run_gate (DESIGN_CANDIDATE_MISMATCH against the recomputed pre-seal root)"
+  },
+  {
+   "claim": "an admitted parent stages its FUNCTIONS object through the M12 codec under its address, and each record's lineage refers to the parent's records",
+   "demonstrated_by": "core atlasx::materialize::tests::an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent; atlas-cli atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed (staged file read back with atlasx codec --decode)"
+  },
+  {
+   "claim": "lineage that does not map back to the parent is refused with a typed defect",
+   "demonstrated_by": "core atlasx::materialize::tests::lineage_that_does_not_map_back_to_the_parent_is_refused, staging_refuses_records_whose_lineage_does_not_map_back (LINEAGE_OUTSIDE_PARENT, LINEAGE_NOT_SELECTED)"
+  },
+  {
+   "claim": "a non-admitted parent is refused before anything is written",
+   "demonstrated_by": "core atlasx::materialize::tests::a_parent_the_precondition_refuses_is_refused_before_any_object_exists; CLI: forged and unsealed containers exit ATLASX_MATERIALIZATION_REFUSED: 1 defects and no staging directory exists"
+  },
+  {
+   "claim": "the self scope stays refused",
+   "demonstrated_by": "atlas-systemizer atlasx materialize --atlas .atlas/.cache/atlas-studio.census.atlas --verification .atlas/evidence/verification/G184-self-scope.json --integrity .atlas/evidence/census/G184/integrity-report.json --out <scratch> (declarations from --root .): exit 2, ATLASX_MATERIALIZATION_REFUSED: 2 defects, nothing staged; both reports consistent",
+   "result": {
+    "verdict": "REFUSED",
+    "defects": [
+     [
+      "PARENT_NOT_ADMITTED",
+      "DESIGN_ABSENT: no SelectedDesign was supplied"
+     ],
+     [
+      "PARENT_NOT_ADMITTED",
+      "NOT_SEALED: seal status UNSEALED_CENSUS_CONTAINER"
+     ]
+    ],
+    "precondition_reasons": [
+     [
+      "NOT_SEALED",
+      "seal status UNSEALED_CENSUS_CONTAINER"
+     ],
+     [
+      "DESIGN_ABSENT",
+      "no SelectedDesign was supplied"
+     ]
+    ]
+   }
+  },
+  {
+   "claim": "reports a principal authors themselves are refused when they contradict their own contents (review P1)",
+   "demonstrated_by": "core atlasx::precondition::tests::a_seal_over_self_contradicting_reports_is_refused (each sealed by the real gate): HARD FAIL counted as none with verdict ELIGIBLE; the HARD_VIOLATION dropped; HARD UNKNOWN without REQUIRED_UNKNOWN; ADMISSIBLE with blockers ['UNIT: 12 required unit obligations fail']; coverage not counting the outcomes; a failure naming a non-failed obligation; SATISFIED without evidence"
+  },
+  {
+   "claim": "the envelope is the repository's pinned one (review P1)",
+   "demonstrated_by": "core atlasx::precondition::tests::a_seal_over_a_self_authored_envelope_is_refused: admitted only under its own pin, refused [ENVELOPE_MISMATCH, INTEGRITY_REPORT_INCONSISTENT] under the repository's"
+  },
+  {
+   "claim": "no policy or envelope override; the admission names its declaration (review P2)",
+   "demonstrated_by": "atlas-cli atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed (--policy and --envelope refused; admitted.json carries policy_id, principal, principal_key, registry_digest); core the_g161_sealed_container_is_admitted_with_the_identities_it_binds (another registry, another digest)"
+  },
+  {
+   "claim": "repeated roots select once; colliding GLOBAL_IDs are a typed defect (N1)",
+   "demonstrated_by": "core atlasx::materialize::tests::repeated_roots_select_once_and_colliding_global_ids_are_refused"
+  },
+  {
+   "claim": "a failed staging leaves nothing behind (N3)",
+   "demonstrated_by": "runtime atlasx::tests::a_failed_staging_leaves_nothing_behind"
+  },
+  {
+   "claim": "the seal gate itself refuses reports its contents contradict (re-review S3)",
+   "demonstrated_by": "core seal::gate::tests::every_input_that_does_not_admit_the_candidate_refuses_the_seal (P1 integrity report, ADMISSIBLE with blockers, a verdict edited either way, another envelope cited); atlas-cli: seal gate over the P1 integrity report exits SEAL_NOT_ELIGIBLE: 2 reasons, INTEGRITY_REPORT_INCONSISTENT; core atlasx::precondition::tests::a_seal_over_self_contradicting_reports_is_refused (each dirty report refused by the gate and, named by a forged record, by the precondition; CONFLICT, NOT_AFFECTED and non-required-only coverage included)"
+  },
+  {
+   "claim": "staging never follows a pre-existing object directory and removes only what it created (re-review NITs a, b)",
+   "demonstrated_by": "runtime atlasx::tests::a_failed_staging_leaves_nothing_behind"
+  }
+ ],
+ "refusals_tested": {
+  "PreconditionRefusal (new)": [
+   "INTEGRITY_REPORT_INCONSISTENT",
+   "VERIFICATION_REPORT_INCONSISTENT",
+   "SEAL_GATE_NOT_ELIGIBLE",
+   "SEAL_RECORD_NOT_DECIDED",
+   "ENVELOPE_MISMATCH against the pinned envelope",
+   "UNREADABLE (verification, integrity)"
+  ],
+  "MaterializationDefect": [
+   "PARENT_NOT_ADMITTED",
+   "ROOT_UNRESOLVED",
+   "NOTHING_TO_MATERIALIZE",
+   "SIGNATURE_ABSENT",
+   "SIGNATURE_CONFLICT",
+   "DISPATCH_UNSUPPORTED",
+   "GLOBAL_ID_COLLISION",
+   "ENCODING_REFUSED",
+   "LINEAGE_OUTSIDE_PARENT",
+   "LINEAGE_NOT_SELECTED"
+  ],
+  "IneligibleReason (new)": [
+   "INTEGRITY_REPORT_INCONSISTENT",
+   "VERIFICATION_REPORT_INCONSISTENT"
+  ]
+ },
+ "mutants": {
+  "method": "hand mutants applied one at a time, each followed by the affected package's tests (cargo test -q -p core atlasx, or -- atlasx seal verification integrity for gate/report rules; -p runtime atlasx:: for staging; -p atlas-cli atlasx for CLI); the source restored after each and checked by sha256. Round 1 (28) and round 2 (23) were re-run on the final code after the re-review fixes; round 3 (10) covers the re-review fixes",
+  "total_on_final_code": 60,
+  "killed_on_final_code": 60,
+  "first_pass": {
+   "total": 29,
+   "killed": 28,
+   "equivalent": [
+    {
+     "id": "M29",
+     "mutant": "staged read-back not compared (first round)",
+     "file": "runtime/src/atlasx.rs",
+     "result": "EQUIVALENT",
+     "why": "a file DECODED under its address name is the canonical object whose digest is that name, i.e. the bytes written; the redundant byte comparison was removed"
+    }
+   ]
+  },
+  "notes": [
+   "R10 (verification coverage not compared) first SURVIVED in the review round; a test editing the coverage alone was added and it was then KILLED",
+   "M27 no longer applies (its text moved into runtime::atlasx::stage); R21 mutates the same occupancy rule and is KILLED"
+  ],
+  "round1_final": [
+   {
+    "id": "M01",
+    "mutant": "skip the re-run gate",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "M02",
+    "mutant": "gate runs only when other reasons exist",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "a_tampered_design_is_refused_with_exactly_its_reason",
+     "a_tampered_envelope_is_refused_with_exactly_its_reason",
+     "every_gate_input_must_decide_the_record_the_container_carries",
+     "every_reason_is_collected_in_a_deterministic_order"
+    ]
+   },
+   {
+    "id": "M03",
+    "mutant": "unsealed copy keeps SEALED status",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "every_gate_input_must_decide_the_record_the_container_carries",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back",
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "M04",
+    "mutant": "design parent root not recomputed",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "every_gate_input_must_decide_the_record_the_container_carries",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back",
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "M05",
+    "mutant": "not-eligible test inverted",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "M06",
+    "mutant": "no return after not-eligible",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "M07",
+    "mutant": "record equality not required",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "M08",
+    "mutant": "certificate blockers dropped",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back",
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "M09",
+    "mutant": "design withheld from gate",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "every_gate_input_must_decide_the_record_the_container_carries",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back",
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "M10",
+    "mutant": "registry replaced by empty",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_design_over_another_root_is_refused_by_the_re_run_gate",
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists",
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "a_self_certified_seal_record_is_refused_seal_record_not_decided",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "every_gate_input_must_decide_the_record_the_container_carries",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back",
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "M11",
+    "mutant": "integrity decode misnamed",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "unreadable_input_is_refused_never_a_panic"
+    ]
+   },
+   {
+    "id": "M12",
+    "mutant": "admission never returned",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back"
+    ]
+   },
+   {
+    "id": "M13",
+    "mutant": "root dimension not checked",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "M14",
+    "mutant": "absent signature skipped silently",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "M15",
+    "mutant": "conflict never detected",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "M16",
+    "mutant": "inherent method dispatch wrong",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent"
+    ]
+   },
+   {
+    "id": "M17",
+    "mutant": "unsupported dispatch accepted as free",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "M18",
+    "mutant": "owner dropped from id",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused"
+    ]
+   },
+   {
+    "id": "M19",
+    "mutant": "identity missing from lineage",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back"
+    ]
+   },
+   {
+    "id": "M20",
+    "mutant": "nothing-to-materialize not raised",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "M21",
+    "mutant": "lineage-outside-parent inverted",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back"
+    ]
+   },
+   {
+    "id": "M22",
+    "mutant": "selected roots of wrong dimension",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back"
+    ]
+   },
+   {
+    "id": "M23",
+    "mutant": "staging skips lineage check",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "staging_refuses_records_whose_lineage_does_not_map_back"
+    ]
+   },
+   {
+    "id": "M24",
+    "mutant": "object path without directory",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent"
+    ]
+   },
+   {
+    "id": "M25",
+    "mutant": "precondition reason dropped from defect",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_parent_the_precondition_refuses_is_refused_before_any_object_exists"
+    ]
+   },
+   {
+    "id": "M26",
+    "mutant": "root not in parent accepted as other class",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "M27",
+    "mutant": "staging directory reuse allowed",
+    "file": "runtime/src/atlasx.rs",
+    "result": "NOT_APPLIED",
+    "why": "the text it mutated moved; the same rule is R21, KILLED"
+   },
+   {
+    "id": "M28",
+    "mutant": "wrapped verification unwrap inverted",
+    "file": "runtime/src/atlasx.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed"
+    ]
+   }
+  ],
+  "round2": [
+   {
+    "id": "R01",
+    "mutant": "integrity report not checked",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "a_tampered_envelope_is_refused_with_exactly_its_reason",
+     "every_gate_input_must_decide_the_record_the_container_carries",
+     "every_reason_is_collected_in_a_deterministic_order"
+    ]
+   },
+   {
+    "id": "R02",
+    "mutant": "verification report not checked",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "R03",
+    "mutant": "seal may name an unpinned envelope",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch",
+     "a_seal_over_a_self_authored_envelope_is_refused",
+     "a_tampered_envelope_is_refused_with_exactly_its_reason"
+    ]
+   },
+   {
+    "id": "R04",
+    "mutant": "admitted principal key dropped",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "R05",
+    "mutant": "registry digest constant",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "the_g161_sealed_container_is_admitted_with_the_identities_it_binds"
+    ]
+   },
+   {
+    "id": "R06",
+    "mutant": "authority pre-check skipped",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "R07",
+    "mutant": "HARD FAIL without code accepted",
+    "file": "core/src/integrity/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "R08",
+    "mutant": "HARD UNKNOWN without code accepted",
+    "file": "core/src/integrity/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "R09",
+    "mutant": "foreign evaluation accepted",
+    "file": "core/src/integrity/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "every_reason_is_collected_in_a_deterministic_order"
+    ]
+   },
+   {
+    "id": "R10",
+    "mutant": "verification coverage not compared",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "R11",
+    "mutant": "verification blockers not compared",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "R12",
+    "mutant": "verification verdict not compared",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "R13",
+    "mutant": "failures not compared",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "R14",
+    "mutant": "satisfied without evidence accepted",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "R15",
+    "mutant": "repeated roots not deduplicated",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused"
+    ]
+   },
+   {
+    "id": "R16",
+    "mutant": "GLOBAL_ID collision undetected",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused"
+    ]
+   },
+   {
+    "id": "R17",
+    "mutant": "not_materialized unsorted",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect"
+    ]
+   },
+   {
+    "id": "R18",
+    "mutant": "signature index keyed wrong",
+    "file": "core/src/atlasx/materialize.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_record_the_codec_refuses_is_refused_encoding_refused",
+     "a_selection_the_parent_cannot_answer_is_refused_with_its_defect",
+     "an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "lineage_that_does_not_map_back_to_the_parent_is_refused",
+     "repeated_roots_select_once_and_colliding_global_ids_are_refused",
+     "staging_refuses_records_whose_lineage_does_not_map_back"
+    ]
+   },
+   {
+    "id": "R19",
+    "mutant": "staging cleanup skipped",
+    "file": "runtime/src/atlasx.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_failed_staging_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "R20",
+    "mutant": "staged read-back verdict ignored",
+    "file": "runtime/src/atlasx.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_failed_staging_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "R21",
+    "mutant": "staging occupancy ignored",
+    "file": "runtime/src/atlasx.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_failed_staging_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "R22",
+    "mutant": "policy override accepted",
+    "file": "apps/cli/src/main.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed"
+    ]
+   },
+   {
+    "id": "R23",
+    "mutant": "envelope override accepted",
+    "file": "apps/cli/src/main.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed"
+    ]
+   }
+  ],
+  "round3": [
+   {
+    "id": "T01",
+    "mutant": "HARD CONFLICT/NOT_AFFECTED accepted",
+    "file": "core/src/integrity/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "T02",
+    "mutant": "HARD NOT_AFFECTED accepted",
+    "file": "core/src/integrity/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused"
+    ]
+   },
+   {
+    "id": "T03",
+    "mutant": "required class covered by any obligation",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "evaluated_reports_are_consistent_and_edits_are_not"
+    ]
+   },
+   {
+    "id": "T04",
+    "mutant": "seal gate skips the verification check",
+    "file": "core/src/seal/gate.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "every_input_that_does_not_admit_the_candidate_refuses_the_seal"
+    ]
+   },
+   {
+    "id": "T05",
+    "mutant": "seal gate skips the integrity check",
+    "file": "core/src/seal/gate.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_seal_over_self_contradicting_reports_is_refused",
+     "every_input_that_does_not_admit_the_candidate_refuses_the_seal"
+    ]
+   },
+   {
+    "id": "T06",
+    "mutant": "event-less design reaches the re-encode",
+    "file": "core/src/atlasx/precondition.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "every_gate_input_must_decide_the_record_the_container_carries"
+    ]
+   },
+   {
+    "id": "T07",
+    "mutant": "object directory may pre-exist",
+    "file": "runtime/src/atlasx.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_failed_staging_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "T08",
+    "mutant": "created staging directory not removed",
+    "file": "runtime/src/atlasx.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "a_failed_staging_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "T09",
+    "mutant": "malformed evidence ids accepted",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "evaluated_reports_are_consistent_and_edits_are_not"
+    ]
+   },
+   {
+    "id": "T10",
+    "mutant": "empty evidence id accepted",
+    "file": "core/src/verification/mod.rs",
+    "result": "KILLED",
+    "killed_by": [
+     "evaluated_reports_are_consistent_and_edits_are_not"
+    ]
+   }
+  ]
+ },
+ "boundary": {
+  "not_verified": "precondition NOT_VERIFIED: 3 Genome compatibility; 5 the verification outcomes and integrity evaluations as authored (consistency re-derived, evidence not in the container); 6 obligation state; 8 roots reachable; 9 critical obligations; 12 architectural impact. MATERIALIZE_NOT_DONE: publication steps 4-8, every class but FUNCTIONS, closure beyond FUNCTION_IDENTITY roots, bodies, a stable GLOBAL_ID, the records' epistemic status, M3-M6, M11's deterministic reproduction check, M13 validation",
+  "open": [
+   "M13 validator",
+   "MIN_ATLASX",
+   "RES-G185-REPORT-CONTENTS-AS-AUTHORED",
+   "RES-G185-PRE-SEAL-ROOT-REENCODE",
+   "RES-G183-GLOBAL-ID-PROVISIONAL",
+   "RES-G183-BODIES-NOT-ENCODED",
+   "RES-G183-SINGLE-CLASS"
+  ]
+ },
+ "review": {
+  "source": "independent review of the first G185 pass (coordinator)",
+  "findings_fixed": [
+   "P1: self-authored inconsistent integrity/verification reports sealed by the gate were ADMITTED -> INTEGRITY_REPORT_INCONSISTENT / VERIFICATION_REPORT_INCONSISTENT; the envelope was not compared with the pinned one -> the envelope is the Declaration's pinned envelope (ENVELOPE_MISMATCH)",
+   "P2: --policy override turned REFUSED into ADMITTED -> removed; AdmittedParent names policy, principal, key, registry digest",
+   "S3: docs claimed a removed byte comparison -> reworded",
+   "S4: roots x records signature scan -> one index",
+   "N1 roots deduplicated, GLOBAL_ID_COLLISION; N2 authority checked before the re-encode; N3 create_dir/create_new staging, cleanup on failure; N5 contract wording (M0 in part) and deterministic reproduction in MATERIALIZE_NOT_DONE; N6 not_materialized sorted; N7 runtime doc wrapping"
+  ],
+  "probe_replay": "the reviewer's dirty-sealed.atlas with dirty-integrity.json / dirty-verification.json through the new CLI under a root pinning its envelope: REFUSED [INTEGRITY_REPORT_INCONSISTENT x2, VERIFICATION_REPORT_INCONSISTENT x3]; --policy permissive-policy.json: 'atlasx precondition does not take --policy: the repository at --root declares it'"
+ },
+ "re_review": {
+  "findings_fixed": [
+   "S1: a HARD invariant decided CONFLICT or NOT_AFFECTED (which integrity::evaluate never writes) is refused",
+   "S2: a required class is covered only by a required obligation (verification summarize, so evaluate writes the same rule)",
+   "S3: seal::gate takes the pinned envelope and applies both check_reports; seal gate reads PINNED_ENVELOPE_PATH under --root; seal gate and the precondition decide alike",
+   "NIT a: the staging directory is created only when absent (parent present) and removed on failure only then",
+   "NIT b: object directories are created, never followed (AlreadyExists is an error)",
+   "NIT c: an event-less design is refused before the re-encode",
+   "NIT d: an empty or control-character evidence id is refused"
+  ],
+  "probe_replay": "through the new CLI: seal gate and atlasx precondition over gap-int-conflict.json and gap-int-notaffected.json name 'is CONFLICT/NOT_AFFECTED for a HARD invariant: only PASS, FAIL or UNKNOWN is decided'; seal gate over gap-ver-allfailed.json names 'required class SEMANTIC has no obligation' among the re-derived blockers; gap-ver-satisfied.json's evidence id with a NUL is refused",
+  "historical_reports": {
+   "integrity_reports_under_evidence_census": 47,
+   "consistent_under_current_pin": 47,
+   "self_scope_verification_reports_under_evidence_verification": 58,
+   "consistent": 58
+  }
+ }
+}

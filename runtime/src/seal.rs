@@ -9,7 +9,7 @@
 use crate::design::{invalid, read_container, read_design, read_json, read_report};
 use atlas_core::atlas::{SEALED, seal_binding, write};
 use atlas_core::design::PrincipalRegistry;
-use atlas_core::integrity::IntegrityReport;
+use atlas_core::integrity::{IntegrityEnvelope, IntegrityReport};
 use atlas_core::seal::{
     BlockerKind, CertificateBinding, DECLARED_SEAL_POLICY_PATH, Disposition, GateInputs,
     ResidualBound, SEAL_POLICY_SCHEMA_VERSION, ScopePolicy, ScopedCertificateVerdict,
@@ -119,13 +119,16 @@ pub fn evaluate(
 /// G161 (M8, ADR 0076): the seal gate for the verified container at `container`, joined with the
 /// verification report, the integrity report and (when one exists) the SelectedDesign that name
 /// it. The container binding and its certificate are read from the container itself -- the
-/// certificate the seal would bind -- never from a separate file.
+/// certificate the seal would bind -- never from a separate file. G185 (ADR 0097): `envelope` is
+/// the repository's pinned integrity envelope; both reports must agree with their own contents
+/// and the integrity report with it.
 pub fn gate_container(
     container: impl AsRef<Path>,
     verification: impl AsRef<Path>,
     integrity: impl AsRef<Path>,
     design: Option<&Path>,
     policy: &SealPolicy,
+    envelope: &IntegrityEnvelope,
     registry: &PrincipalRegistry,
 ) -> io::Result<SealEligibility> {
     let (atlas, root_id) = read_container(container)?;
@@ -148,6 +151,7 @@ pub fn gate_container(
         certificate: &certificate,
         verification: &verification,
         integrity: &integrity,
+        envelope,
         design: design.as_ref(),
         registry,
     }))
@@ -248,7 +252,7 @@ mod tests {
             PrincipalKind, SelectedDesign, container_candidate, design_identity, event_identity,
             signing_message,
         };
-        use atlas_core::integrity::{ImpactClosureRef, IntegrityVerdict};
+        use atlas_core::integrity::IntegrityVerdict;
         let dir = std::env::temp_dir().join(format!("atlas-seal-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let sha = "0123456789abcdef0123456789abcdef01234567";
@@ -282,37 +286,72 @@ mod tests {
         std::fs::write(&container, write(&atlas).unwrap()).unwrap();
         let (_, root) = read_container(&container).unwrap();
         let candidate = container_candidate(&atlas);
+        // G185: both reports written by the real evaluators, so they agree with their contents,
+        // and the integrity report against the envelope the fixture pins (no invariants).
         let verification = dir.join("verification.json");
-        let body = serde_json::json!({
-            "schema": "atlas.verification-report.v1",
-            "policy": VerificationPolicy::library_package(),
-            "candidate": candidate,
-            "outcomes": [], "coverage": {}, "failures": [],
-            "verdict": "ADMISSIBLE", "blockers": []
-        });
-        std::fs::write(&verification, body.to_string()).unwrap();
-        let integrity = dir.join("integrity.json");
-        let report = IntegrityReport {
-            schema_version: "atlas.architectural-integrity-report.v1".into(),
-            report_id: "report:fixture".into(),
-            candidate_ref: format!("revision:{sha}"),
-            materialization_ref: None,
-            envelope_ref: "envelope:fixture".into(),
-            observed_architecture_root: candidate.clone(),
-            impact_closure: ImpactClosureRef {
-                closed: true,
-                affected_semantic_refs: Vec::new(),
-                affected_invariant_refs: Vec::new(),
-                closure_root: None,
+        let obligations: Vec<atlas_core::verification::VerificationObligation> =
+            VerificationPolicy::library_package()
+                .required_classes
+                .iter()
+                .map(|class| atlas_core::verification::VerificationObligation {
+                    id: format!("fixture:{}", class.as_str()),
+                    class: *class,
+                    subject: "fixture".into(),
+                    statement: "fixture".into(),
+                    required: true,
+                })
+                .collect();
+        let runs: Vec<atlas_core::verification::VerificationEvidence> = obligations
+            .iter()
+            .map(|o| atlas_core::verification::VerificationEvidence {
+                id: format!("evidence:{}", o.id),
+                obligations: vec![o.id.clone()],
+                producer: atlas_core::verification::Producer {
+                    tool: "fixture".into(),
+                    version: "1".into(),
+                },
+                run_id: format!("run:{}", o.id),
+                candidate: candidate.clone(),
+                environment: "fixture".into(),
+                inputs: Vec::new(),
+                result: atlas_core::verification::EvidenceResult::Satisfied,
+                content_hash: format!("fixture:{}", o.id),
+                counterexample: None,
+                status: atlas_core::EpistemicStatus::Observed,
+            })
+            .collect();
+        let report = atlas_core::verification::evaluate(
+            &atlas_core::verification::VerificationPlan {
+                policy: VerificationPolicy::library_package(),
+                candidate: candidate.clone(),
+                obligations,
             },
-            evaluations: Vec::new(),
-            hard_violation_count: 0,
-            required_unknown_count: 0,
-            load_bearing_equivalence_closed: true,
+            &runs,
+        );
+        std::fs::write(&verification, serde_json::to_string(&report).unwrap()).unwrap();
+        let mut envelope = IntegrityEnvelope {
+            schema_version: atlas_core::integrity::ENVELOPE_SCHEMA_VERSION.into(),
+            envelope_id: String::new(),
+            subject_ref: "system:Fixture".into(),
+            genome_ref: "atlas.genome.v1".into(),
+            selected_design_ref: None,
             blueprint_revision_ref: None,
-            verdict: IntegrityVerdict::Eligible,
-            evidence_refs: Vec::new(),
+            status: atlas_core::integrity::EnvelopeStatus::Active,
+            elements: Vec::new(),
+            invariants: Vec::new(),
+            provenance_refs: Vec::new(),
+            notes: Vec::new(),
         };
+        envelope.envelope_id = atlas_core::integrity::envelope_identity(&envelope);
+        let integrity = dir.join("integrity.json");
+        let report = atlas_core::integrity::evaluate(
+            &envelope,
+            &envelope,
+            &[],
+            &format!("revision:{sha}"),
+            &candidate,
+        );
+        assert_eq!(report.verdict, IntegrityVerdict::Eligible);
         std::fs::write(&integrity, serde_json::to_string(&report).unwrap()).unwrap();
         let mut design = SelectedDesign {
             schema: "atlas.selected-design.v1".into(),
@@ -382,6 +421,7 @@ mod tests {
             &integrity,
             None,
             &policy,
+            &envelope,
             &registry,
         )
         .unwrap();
@@ -399,6 +439,7 @@ mod tests {
             &integrity,
             Some(design_path.as_path()),
             &policy,
+            &envelope,
             &registry,
         )
         .unwrap();
@@ -416,7 +457,16 @@ mod tests {
         assert_eq!(read_back.seal, eligible.record);
         // A sealed container is not gated or sealed again.
         assert!(
-            gate_container(&sealed, &verification, &integrity, None, &policy, &registry).is_err()
+            gate_container(
+                &sealed,
+                &verification,
+                &integrity,
+                None,
+                &policy,
+                &envelope,
+                &registry
+            )
+            .is_err()
         );
         // G171: the same design with its event unsigned, or judged against an empty registry,
         // does not seal.
@@ -432,6 +482,7 @@ mod tests {
                 &integrity,
                 Some(path),
                 &policy,
+                &envelope,
                 registry,
             )
             .unwrap();

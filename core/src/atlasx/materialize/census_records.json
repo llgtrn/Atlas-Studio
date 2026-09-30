@@ -1,0 +1,340 @@
+{
+ "note": "real census records of MaterializationMode::is_local (core/src/donor/mod.rs) and of the MaterializationMode definition, with their evidence, copied verbatim from the G184 self census container (.atlas/.cache/atlas-studio.census.atlas, root below) at the revision below; the AtlasX materializer fixture (G185) packages them",
+ "source": {
+  "container_root": "blake3-256:8390d190ec8dce6eac146231a07cdccbb102dd9d7f8b2dc4deadf6c01b42c81e",
+  "path": "core/src/donor/mod.rs",
+  "revision": "git:c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+ },
+ "typed_records": [
+  {
+   "FunctionIdentity": {
+    "dimension": "FUNCTION_IDENTITY",
+    "evidence_refs": [
+     "evidence:1651bae2d908e131"
+    ],
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "provenance": {
+     "content_hash": null,
+     "extractor": "atlas.rust.source-semantic.v1",
+     "source_path": "core/src/donor/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+     },
+     "span": "114:4"
+    },
+    "record_id": "semantic:FUNCTION_IDENTITY:f9cc9be4f375986b",
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+    },
+    "scope": {
+     "segments": [
+      "impl:MaterializationMode"
+     ]
+    },
+    "status": "OBSERVED",
+    "subject": {
+     "declaration_kind": "INHERENT_METHOD",
+     "generated": false,
+     "generics": [],
+     "language": "rust",
+     "owner": {
+      "target": {
+       "canonical": null,
+       "name": "MaterializationMode",
+       "path": "core/src/donor/mod.rs",
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+       },
+       "scope": {
+        "segments": []
+       }
+      },
+      "trait_path": null
+     },
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+     },
+     "scope": {
+      "segments": [
+       "impl:MaterializationMode"
+      ]
+     },
+     "span": {
+      "column": 4,
+      "line": 114,
+      "path": "core/src/donor/mod.rs"
+     },
+     "symbol": {
+      "name": "is_local",
+      "path": "core/src/donor/mod.rs",
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+      },
+      "role": "DEFINITION",
+      "scope": {
+       "segments": [
+        "impl:MaterializationMode"
+       ]
+      }
+     }
+    }
+   }
+  },
+  {
+   "FunctionSignature": {
+    "dimension": "FUNCTION_SIGNATURE",
+    "evidence_refs": [
+     "evidence:e99569d5d07033f4"
+    ],
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "provenance": {
+     "content_hash": null,
+     "extractor": "atlas.rust.source-semantic.v1",
+     "source_path": "core/src/donor/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+     },
+     "span": "114:4"
+    },
+    "record_id": "semantic:FUNCTION_SIGNATURE:43bada38908117fd",
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+    },
+    "scope": {
+     "segments": [
+      "impl:MaterializationMode"
+     ]
+    },
+    "status": "OBSERVED",
+    "subject": {
+     "abi": null,
+     "body": {
+      "children": [
+       {
+        "kind": "PATH",
+        "text": "self"
+       },
+       {
+        "kind": "PATH",
+        "text": "Self::RemoteMetadata"
+       }
+      ],
+      "kind": "BINARY",
+      "text": "!="
+     },
+     "body_fingerprint": "blake3-256:37306332b6453e3566f711b7b4e83ae0456608689d830963378ff0f22d008639",
+     "function": {
+      "declaration_kind": "INHERENT_METHOD",
+      "generated": false,
+      "generics": [],
+      "language": "rust",
+      "owner": {
+       "target": {
+        "canonical": null,
+        "name": "MaterializationMode",
+        "path": "core/src/donor/mod.rs",
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+        },
+        "scope": {
+         "segments": []
+        }
+       },
+       "trait_path": null
+      },
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+      },
+      "scope": {
+       "segments": [
+        "impl:MaterializationMode"
+       ]
+      },
+      "span": {
+       "column": 4,
+       "line": 114,
+       "path": "core/src/donor/mod.rs"
+      },
+      "symbol": {
+       "name": "is_local",
+       "path": "core/src/donor/mod.rs",
+       "repository": "llgtrn/Atlas-Studio",
+       "revision": {
+        "kind": "git",
+        "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+       },
+       "role": "DEFINITION",
+       "scope": {
+        "segments": [
+         "impl:MaterializationMode"
+        ]
+       }
+      }
+     },
+     "generics": [],
+     "is_async": false,
+     "is_extern": false,
+     "is_unsafe": false,
+     "parameters": [
+      {
+       "name": "self",
+       "type_identity": {
+        "canonical": null,
+        "name": "Self",
+        "path": "core/src/donor/mod.rs",
+        "repository": "llgtrn/Atlas-Studio",
+        "revision": {
+         "kind": "git",
+         "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+        },
+        "scope": {
+         "segments": [
+          "impl:MaterializationMode"
+         ]
+        }
+       }
+      }
+     ],
+     "return_type": {
+      "canonical": null,
+      "name": "bool",
+      "path": "core/src/donor/mod.rs",
+      "repository": "llgtrn/Atlas-Studio",
+      "revision": {
+       "kind": "git",
+       "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+      },
+      "scope": {
+       "segments": [
+        "impl:MaterializationMode"
+       ]
+      }
+     },
+     "visibility": "pub"
+    }
+   }
+  },
+  {
+   "Symbol": {
+    "dimension": "SYMBOL",
+    "evidence_refs": [
+     "evidence:a20a7a97b82c129d"
+    ],
+    "extractor": {
+     "id": "atlas.rust.source-semantic.v1",
+     "version": "0.1.0"
+    },
+    "provenance": {
+     "content_hash": null,
+     "extractor": "atlas.rust.source-semantic.v1",
+     "source_path": "core/src/donor/mod.rs",
+     "source_revision": {
+      "kind": "git",
+      "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+     },
+     "span": "101:0"
+    },
+    "record_id": "semantic:SYMBOL:02255955f298ded0",
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": {
+     "kind": "git",
+     "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+    },
+    "scope": {
+     "segments": []
+    },
+    "status": "OBSERVED",
+    "subject": {
+     "declaration": {
+      "attributes": [
+       "serde(rename_all = \"SCREAMING_SNAKE_CASE\")"
+      ],
+      "derives": [
+       "Debug",
+       "Clone",
+       "Copy",
+       "Serialize",
+       "Deserialize",
+       "PartialEq",
+       "Eq",
+       "PartialOrd",
+       "Ord"
+      ],
+      "item": "ENUM",
+      "shape": null,
+      "visibility": "pub"
+     },
+     "documentation": {
+      "lines": 2,
+      "summary": "Materialization strategies, cheapest first. The cheapest one that can produce the required evidence is chosen (`cheapest_sufficient_mode`)."
+     },
+     "name": "MaterializationMode",
+     "path": "core/src/donor/mod.rs",
+     "repository": "llgtrn/Atlas-Studio",
+     "revision": {
+      "kind": "git",
+      "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+     },
+     "role": "DEFINITION",
+     "scope": {
+      "segments": []
+     }
+    }
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "evidence:1651bae2d908e131",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/donor/mod.rs",
+   "revision": {
+    "kind": "git",
+    "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+   },
+   "summary": "parsed function identity `is_local`"
+  },
+  {
+   "id": "evidence:a20a7a97b82c129d",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/donor/mod.rs",
+   "revision": {
+    "kind": "git",
+    "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+   },
+   "summary": "parsed DEFINITION `MaterializationMode` at core/src/donor/mod.rs:101:0"
+  },
+  {
+   "id": "evidence:e99569d5d07033f4",
+   "kind": "PARSER_OUTPUT",
+   "path": "core/src/donor/mod.rs",
+   "revision": {
+    "kind": "git",
+    "value": "c5fc38bd6acb2c8352da02c5202ba91af5cd9ee8"
+   },
+   "summary": "parsed function signature for `is_local`"
+  }
+ ]
+}

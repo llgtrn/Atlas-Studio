@@ -260,13 +260,40 @@ pub fn evaluate_obligation(
 pub fn evaluate(plan: &VerificationPlan, evidence: &[VerificationEvidence]) -> VerificationReport {
     let mut outcomes = Vec::new();
     let mut failures = Vec::new();
-    let mut coverage: BTreeMap<VerificationClass, ClassCoverage> = BTreeMap::new();
-    for class in &plan.policy.required_classes {
-        coverage.entry(*class).or_default();
-    }
     for obligation in &plan.obligations {
         let (outcome, failure) = evaluate_obligation(obligation, &plan.candidate, evidence);
-        let tally = coverage.entry(obligation.class).or_default();
+        outcomes.push(outcome);
+        failures.extend(failure);
+    }
+    let (coverage, blockers, verdict) = summarize(&plan.policy, &outcomes);
+    VerificationReport {
+        schema: VERIFICATION_REPORT_SCHEMA.into(),
+        policy: plan.policy.clone(),
+        candidate: plan.candidate.clone(),
+        outcomes,
+        coverage,
+        failures,
+        verdict,
+        blockers,
+    }
+}
+
+/// The coverage, blockers and verdict a report's outcomes imply under its policy: the one rule
+/// `evaluate` writes and `check_report` re-derives.
+fn summarize(
+    policy: &VerificationPolicy,
+    outcomes: &[ObligationOutcome],
+) -> (
+    BTreeMap<VerificationClass, ClassCoverage>,
+    Vec<String>,
+    ReportVerdict,
+) {
+    let mut coverage: BTreeMap<VerificationClass, ClassCoverage> = BTreeMap::new();
+    for class in &policy.required_classes {
+        coverage.entry(*class).or_default();
+    }
+    for outcome in outcomes {
+        let tally = coverage.entry(outcome.class).or_default();
         tally.obligations += 1;
         match outcome.state {
             ObligationState::Satisfied => tally.satisfied += 1,
@@ -274,19 +301,18 @@ pub fn evaluate(plan: &VerificationPlan, evidence: &[VerificationEvidence]) -> V
             ObligationState::Unverified => tally.unverified += 1,
             ObligationState::Unresolved => tally.unresolved += 1,
         }
-        outcomes.push(outcome);
-        failures.extend(failure);
     }
     let mut blockers = Vec::new();
-    for class in &plan.policy.required_classes {
-        if coverage.get(class).is_none_or(|c| c.obligations == 0) {
+    // G185: a required class is covered only by a required obligation of that class.
+    for class in &policy.required_classes {
+        if !outcomes.iter().any(|o| o.class == *class && o.required) {
             blockers.push(format!(
                 "required class {} has no obligation: a required obligation may not disappear",
                 class.as_str()
             ));
         }
     }
-    for outcome in &outcomes {
+    for outcome in outcomes {
         if outcome.required && outcome.state != ObligationState::Satisfied {
             blockers.push(format!(
                 "{} is {}",
@@ -295,20 +321,77 @@ pub fn evaluate(plan: &VerificationPlan, evidence: &[VerificationEvidence]) -> V
             ));
         }
     }
-    VerificationReport {
-        schema: VERIFICATION_REPORT_SCHEMA.into(),
-        policy: plan.policy.clone(),
-        candidate: plan.candidate.clone(),
-        outcomes,
-        coverage,
-        failures,
-        verdict: if blockers.is_empty() {
-            ReportVerdict::Admissible
-        } else {
-            ReportVerdict::Blocked
-        },
-        blockers,
+    let verdict = if blockers.is_empty() {
+        ReportVerdict::Admissible
+    } else {
+        ReportVerdict::Blocked
+    };
+    (coverage, blockers, verdict)
+}
+
+/// G185: every way `report` contradicts itself -- its coverage, blockers and verdict re-derived
+/// from its outcomes under its policy, its failures against its FAILED outcomes, a SATISFIED
+/// outcome without admissible evidence. The outcomes' states themselves rest on evidence the
+/// report cites but does not carry, so they are not re-derived here.
+pub fn check_report(report: &VerificationReport) -> Vec<String> {
+    let mut problems = Vec::new();
+    if report.schema != VERIFICATION_REPORT_SCHEMA {
+        problems.push(format!("unknown schema `{}`", report.schema));
     }
+    let (coverage, blockers, verdict) = summarize(&report.policy, &report.outcomes);
+    if report.coverage != coverage {
+        problems.push("coverage does not follow from the outcomes".into());
+    }
+    if report.blockers != blockers {
+        problems.push(format!(
+            "blockers {:?} do not follow from the outcomes ({:?})",
+            report.blockers, blockers
+        ));
+    }
+    if report.verdict != verdict {
+        problems.push(format!(
+            "verdict {} does not follow from the outcomes",
+            report.verdict
+        ));
+    }
+    let failed: Vec<&str> = report
+        .outcomes
+        .iter()
+        .filter(|o| o.state == ObligationState::Failed)
+        .map(|o| o.obligation.as_str())
+        .collect();
+    let named: Vec<&str> = report
+        .failures
+        .iter()
+        .map(|f| f.obligation.as_str())
+        .collect();
+    if failed != named {
+        problems.push(format!(
+            "failures name {named:?}, the FAILED outcomes are {failed:?}"
+        ));
+    }
+    let malformed = |id: &str| id.is_empty() || id.chars().any(char::is_control);
+    let cited = report
+        .outcomes
+        .iter()
+        .flat_map(|o| o.evidence.iter().chain(&o.inadmissible))
+        .chain(report.failures.iter().flat_map(|f| f.evidence.iter()));
+    for id in cited {
+        if malformed(id) {
+            problems.push(format!(
+                "evidence id {id:?} is empty or has a control character"
+            ));
+        }
+    }
+    for outcome in &report.outcomes {
+        if outcome.state == ObligationState::Satisfied && outcome.evidence.is_empty() {
+            problems.push(format!(
+                "{} is SATISFIED without admissible evidence",
+                outcome.obligation
+            ));
+        }
+    }
+    problems
 }
 
 #[cfg(test)]
@@ -420,5 +503,34 @@ mod tests {
         assert_eq!(report.verdict, "BLOCKED");
         assert!(report.blockers[0].contains("COMPATIBILITY has no obligation"));
         assert_eq!(evaluate(&plan(), &satisfied).verdict, "ADMISSIBLE");
+    }
+
+    /// G185: what `evaluate` writes passes `check_report`; a required class covered only by an
+    /// obligation that is not required blocks; an empty or control-character evidence id is
+    /// refused.
+    #[test]
+    fn evaluated_reports_are_consistent_and_edits_are_not() {
+        let satisfied: Vec<VerificationEvidence> = ["SEM", "UNIT", "COMPAT"]
+            .iter()
+            .map(|o| evidence(&format!("e-{o}"), o, "c1", EvidenceResult::Satisfied))
+            .collect();
+        for report in [evaluate(&plan(), &[]), evaluate(&plan(), &satisfied)] {
+            assert_eq!(check_report(&report), Vec::<String>::new());
+        }
+        let mut optional = plan();
+        optional.obligations[1].required = false;
+        let report = evaluate(&optional, &satisfied);
+        assert_eq!(report.verdict, ReportVerdict::Blocked);
+        assert!(report.blockers[0].contains("UNIT has no obligation"));
+        for bad in ["", "e\u{7}"] {
+            let mut report = evaluate(&plan(), &satisfied);
+            report.outcomes[0].evidence = vec![bad.into()];
+            assert_eq!(
+                check_report(&report),
+                [format!(
+                    "evidence id {bad:?} is empty or has a control character"
+                )]
+            );
+        }
     }
 }

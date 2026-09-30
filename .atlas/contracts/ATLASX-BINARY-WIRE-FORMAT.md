@@ -443,6 +443,8 @@ Required order:
 
 A manifest MUST NOT reference missing/unverified required objects.
 
+Implementation status (G185, ADR 0097): `runtime::atlasx::materialize` performs steps 1 to 3 for one FUNCTIONS object. It creates the object new in a staging directory that must be absent or empty, at `functions/<decoded-content-hash-hex>.atlasx`, and requires it to decode when read back under that address name. On any staging failure it removes what it wrote. Steps 4 to 8 (manifest, root identity, publication, advertisement) are not implemented, so nothing is published or advertised.
+
 ## Reader verification order
 
 A reader/compiler MUST conceptually verify:

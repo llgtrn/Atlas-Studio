@@ -93,7 +93,7 @@ Before materialization:
 11. load the exact pinned ArchitecturalIntegrityEnvelope and sealed integrity evidence;
 12. compute materialization-critical architectural impact from selected bindings/profile/closure expansion and fail closed if a HARD invariant would be violated.
 
-Implementation status (G179, ADR 0093): `atlas_core::atlasx::precondition` (`atlas-systemizer atlasx precondition`) implements steps 1, 2, 7 and 11 and the seal-identity part of step 5. It admits a parent only when the parent reads back SEALED, its seal record binds it, the integrity envelope is the one the record names and verifies, and the SelectedDesign is the one the record names, verifies and is SELECTED. Every refusal is a typed reason. Every verdict lists the steps it does not verify yet (3, the rest of 5, 6, 8, 9, 12, and the design's selection authority).
+Implementation status (G179, ADR 0093): `atlas_core::atlasx::precondition` (`atlas-systemizer atlasx precondition`) implements steps 1, 2, 7 and 11 and the seal-identity part of step 5. It admits a parent only when the parent reads back SEALED, its seal record binds it, the integrity envelope is the one the record names and verifies, and the SelectedDesign is the one the record names, verifies and is SELECTED. Every refusal is a typed reason. Every verdict lists the steps it does not verify yet (3, the rest of 5, 6, 8, 9, 12, and the design's selection authority). G185 (ADR 0097): the envelope is the one the repository pins, and the seal policy and principal registry are the ones it declares. Neither the parent nor the operator supplies them. The verification and integrity reports must be consistent in themselves: their summaries, counts and verdicts are re-derived from their outcomes and evaluations, and the integrity report is checked against the pinned envelope. The gate then re-runs the seal gate over these inputs, the container's certificate and the design, and admits only when the gate decides ELIGIBLE and decides exactly the record the container carries. This covers step 7 (the design's selection authority), the certificate part of step 6 and the design's parent root. Every verdict still lists 3; the reports' obligation outcomes and invariant evaluations in 5, which are taken as authored because their evidence is not in the container; the obligation state in 6; and 8, 9 and 12. An admitted parent names its policy, the principal and key that selected its design, and a digest of the registry.
 
 Materialization MUST fail closed on required integrity/schema/selection errors. Architectural integrity is included in this fail-closed rule; materialization cannot use a profile or binding to bypass an invariant that was required at seal.
 
@@ -187,6 +187,16 @@ M12 Publish transactionally
 ~~~
 
 An implementation may optimize internal execution but observable results MUST be equivalent to this logical order.
+
+Implementation status (G185, ADR 0097): `atlas_core::atlasx::materialize` (`atlas-systemizer atlasx materialize`) covers the following through the precondition gate:
+
+- M0 in part: wire, root identity and seal. Genome compatibility (step 3) is not verified.
+- M1.
+- M2, bounded to the SelectedDesign's FUNCTION_IDENTITY roots. Each root is resolved in the parent with its FUNCTION_SIGNATURE record; nothing is invented or chosen between.
+- M7 and M8 for one object class, FUNCTIONS, through the object codec.
+- The lineage part of M11 for that object: it is read back, and every record's lineage must resolve among the parent's census records and include a selected root.
+
+The object is staged, not published. M3 to M6, M9, M10, M11's deterministic-reproduction check, M12, every other class and the rest of the closure are not implemented, and every result lists them.
 
 ## Binding resolution boundary
 

@@ -1,4 +1,8 @@
-use std::{env, fs, path::PathBuf, process::ExitCode};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process::ExitCode,
+};
 
 /// `Ok(None)` when `name` is not present at all; `Ok(Some(v))` when present with a following
 /// value; `Err` when `name` is present but has no following argument (e.g. it is the last token,
@@ -32,6 +36,54 @@ fn write_report_to_out(out: &str, text: &str) -> Result<(), String> {
         fs::create_dir_all(parent).map_err(|e| format!("{out}: {e}"))?;
     }
     fs::write(&out_path, text).map_err(|e| format!("{out}: {e}"))
+}
+
+/// G185 (ADR 0097): what `atlasx precondition` and `atlasx materialize` judge a parent by: the
+/// container, design, verification report and integrity report files, under the declarations of
+/// the repository at `--root` -- its seal policy, pinned integrity envelope and principals. Neither
+/// the parent nor the operator may supply their own: `--policy` and `--envelope` are refused.
+struct ParentArgs {
+    atlas: String,
+    design: Option<String>,
+    verification: String,
+    integrity: String,
+    declared: runtime::atlasx::Declared,
+}
+
+impl ParentArgs {
+    fn parse(rest: &[String], command: &str) -> Result<Self, String> {
+        for overriding in ["--policy", "--envelope"] {
+            if rest.iter().any(|arg| arg == overriding) {
+                return Err(format!(
+                    "{command} does not take {overriding}: the repository at --root declares it"
+                ));
+            }
+        }
+        let required = |name: &str| -> Result<String, String> {
+            value(rest, name)?.ok_or(format!("{command} requires {name}"))
+        };
+        let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+        let atlas = required("--atlas")?;
+        let (verification, integrity) = (required("--verification")?, required("--integrity")?);
+        let declared = runtime::atlasx::read_declared(&root).map_err(|e| format!("{root}: {e}"))?;
+        Ok(Self {
+            atlas,
+            design: value(rest, "--design")?,
+            verification,
+            integrity,
+            declared,
+        })
+    }
+
+    fn files(&self) -> runtime::atlasx::ParentFiles<'_> {
+        runtime::atlasx::ParentFiles {
+            atlas: Path::new(&self.atlas),
+            design: self.design.as_deref().map(Path::new),
+            verification: Path::new(&self.verification),
+            integrity: Path::new(&self.integrity),
+            declared: &self.declared,
+        }
+    }
 }
 
 fn run(args: &[String]) -> Result<(), String> {
@@ -307,7 +359,9 @@ fn run(args: &[String]) -> Result<(), String> {
         [cmd, sub, rest @ ..] if cmd == "seal" && sub == "gate" => {
             // G161 (M8, ADR 0076): whether the verified container `--atlas` can be sealed under
             // the declared policy, joined with the verification report, the integrity report and
-            // an optional SelectedDesign; exits SEAL_NOT_ELIGIBLE with every typed reason.
+            // an optional SelectedDesign; G185: the reports must agree with their contents and the
+            // integrity report with the envelope `--root` pins. Exits SEAL_NOT_ELIGIBLE with every
+            // typed reason.
             let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
             let atlas = value(rest, "--atlas")?.ok_or("seal gate requires --atlas")?;
             let verification =
@@ -325,12 +379,17 @@ fn run(args: &[String]) -> Result<(), String> {
             // G171: the design's authority is judged against the repository's declared principals.
             let registry =
                 runtime::design::read_registry(&root).map_err(|e| format!("{root}: {e}"))?;
+            // G185: the integrity report is judged against the repository's pinned envelope.
+            let pinned = Path::new(&root).join(runtime::integrity::PINNED_ENVELOPE_PATH);
+            let envelope = runtime::integrity::read_envelope(&pinned)
+                .map_err(|e| format!("{}: {e}", pinned.display()))?;
             let eligibility = runtime::seal::gate_container(
                 &atlas,
                 &verification,
                 &integrity,
                 design.as_deref().map(std::path::Path::new),
                 &policy,
+                &envelope,
                 &registry,
             )
             .map_err(|e| format!("{atlas}: {e}"))?;
@@ -365,19 +424,14 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         [cmd, sub, rest @ ..] if cmd == "atlasx" && sub == "precondition" => {
             // G179 (M10, ADR 0093): whether `--atlas` is admitted as an AtlasX parent -- a SEALED
-            // container whose seal record binds it, with the integrity envelope `--envelope` and
-            // the SelectedDesign `--design` its record names; exits ATLASX_PRECONDITION_REFUSED
-            // with every typed reason.
-            let atlas = value(rest, "--atlas")?.ok_or("atlasx precondition requires --atlas")?;
-            let envelope =
-                value(rest, "--envelope")?.ok_or("atlasx precondition requires --envelope")?;
-            let design = value(rest, "--design")?;
-            let verdict = runtime::atlasx::precondition(
-                &atlas,
-                &envelope,
-                design.as_deref().map(std::path::Path::new),
-            )
-            .map_err(|e| e.to_string())?;
+            // container whose seal record binds it, with the SelectedDesign `--design` its record
+            // names; G185 (ADR 0097): under the envelope, seal policy and principals the
+            // repository at `--root` declares, with consistent `--verification` and `--integrity`
+            // reports, and a record the re-run seal gate decides. Exits
+            // ATLASX_PRECONDITION_REFUSED with every typed reason.
+            let parent = ParentArgs::parse(rest, "atlasx precondition")?;
+            let verdict =
+                runtime::atlasx::precondition(&parent.files()).map_err(|e| e.to_string())?;
             let text = json(&verdict)? + "\n";
             match value(rest, "--out")? {
                 Some(out) => write_report_to_out(&out, &text)?,
@@ -387,6 +441,23 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err(format!(
                     "ATLASX_PRECONDITION_REFUSED: {} reasons",
                     verdict.reasons.len()
+                ));
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "atlasx" && sub == "materialize" => {
+            // G185 (M11, ADR 0097): the FUNCTIONS object of the parent's selected functions,
+            // staged under `--out` as `functions/<address>.atlasx` when the precondition admits
+            // the parent; prints the typed result and exits ATLASX_MATERIALIZATION_REFUSED with
+            // the number of defects. A refused parent writes nothing. Nothing is published.
+            let parent = ParentArgs::parse(rest, "atlasx materialize")?;
+            let out = value(rest, "--out")?.ok_or("atlasx materialize requires --out")?;
+            let result =
+                runtime::atlasx::materialize(&parent.files(), &out).map_err(|e| e.to_string())?;
+            println!("{}", json(&result)?);
+            if result.verdict != runtime::atlasx::MaterializationVerdict::Staged {
+                return Err(format!(
+                    "ATLASX_MATERIALIZATION_REFUSED: {} defects",
+                    result.defects.len()
                 ));
             }
         }
@@ -1272,7 +1343,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx materialize|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }
@@ -1642,7 +1713,11 @@ mod tests {
     /// ELIGIBLE, `atlas seal` writes the sealed container, and `atlasx precondition` admits it
     /// with the envelope and design its record names; the unsealed container is refused
     /// NOT_SEALED and the command exits non-zero. The design is selected by a test-fixture
-    /// principal declared in a scratch root, never a recorded selection.
+    /// principal declared in a scratch root, never a recorded selection. G185 (M11, ADR 0097):
+    /// the container carries real census records of `MaterializationMode::is_local`, the design
+    /// selects that function, and `atlasx materialize` stages its FUNCTIONS object, which reads
+    /// back through `atlasx codec --decode` with lineage into the container; a self-certified
+    /// seal record and the unsealed container are refused and nothing is staged.
     #[test]
     fn atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed() {
         // Through the runtime's re-exports: the CLI depends on Core only through Runtime.
@@ -1653,7 +1728,7 @@ mod tests {
             Principal, PrincipalKey, PrincipalKind, PrincipalRegistry, REPORT_SCHEMA_VERSION,
             RootManifest, SelectedDesign, Strength, UNSEALED, VerificationPolicy, ViolationAction,
             container_candidate, design_identity, envelope_identity, event_identity, read,
-            signing_message, write,
+            seal_identity, signing_message, write,
         };
         let dir = std::env::temp_dir().join(format!("atlas-cli-atlasx-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
@@ -1688,6 +1763,15 @@ mod tests {
             diagnostics: Vec::new(),
             seal: None,
         };
+        // G185: the real census records of `MaterializationMode::is_local` (the core fixture).
+        let census: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../core/src/atlasx/materialize/census_records.json"
+        ))
+        .unwrap();
+        atlas.typed_records = serde_json::from_value(census["typed_records"].clone()).unwrap();
+        atlas.evidence = serde_json::from_value(census["evidence"].clone()).unwrap();
+        let identity = "semantic:FUNCTION_IDENTITY:f9cc9be4f375986b";
+        let signature = "semantic:FUNCTION_SIGNATURE:43bada38908117fd";
         atlas.canonicalize();
         let bytes = write(&atlas).unwrap();
         fs::write(dir.join("unsealed.atlas"), &bytes).unwrap();
@@ -1708,7 +1792,7 @@ mod tests {
                 strength: Strength::Hard,
                 subject_refs: vec!["Core".into(), "Runtime".into()],
                 statement: "forall f: function in Core forbid call to Runtime".into(),
-                rule_ref: None,
+                rule_ref: Some("adl:fixture".into()),
                 falsification_conditions: Vec::new(),
                 violation_action: ViolationAction::Reject,
                 evidence_refs: Vec::new(),
@@ -1717,14 +1801,33 @@ mod tests {
             notes: Vec::new(),
         };
         envelope.envelope_id = envelope_identity(&envelope);
-        write_json("envelope.json", &serde_json::to_value(&envelope).unwrap());
+        // G185: the envelope the scratch repository pins.
+        write_json(
+            ".atlas/declared/integrity-envelope.json",
+            &serde_json::to_value(&envelope).unwrap(),
+        );
+        // G185: a report consistent in itself: one satisfied obligation per required class.
+        let outcome = |class: &str| {
+            serde_json::json!({
+                "obligation": format!("fixture:{class}"), "class": class, "required": true,
+                "state": "SATISFIED", "evidence": [format!("evidence:{class}")],
+                "inadmissible": []
+            })
+        };
+        let covered = serde_json::json!({
+            "obligations": 1, "satisfied": 1, "failed": 0, "unverified": 0, "unresolved": 0
+        });
         write_json(
             "verification.json",
             &serde_json::json!({
                 "schema": "atlas.verification-report.v1",
                 "policy": VerificationPolicy::library_package(),
                 "candidate": candidate,
-                "outcomes": [], "coverage": {}, "failures": [],
+                "outcomes": [outcome("SEMANTIC"), outcome("UNIT"), outcome("COMPATIBILITY")],
+                "coverage": {
+                    "SEMANTIC": covered, "UNIT": covered, "COMPATIBILITY": covered
+                },
+                "failures": [],
                 "verdict": "ADMISSIBLE", "blockers": []
             }),
         );
@@ -1741,7 +1844,11 @@ mod tests {
                 affected_invariant_refs: Vec::new(),
                 closure_root: None,
             },
-            evaluations: Vec::new(),
+            evaluations: serde_json::from_value(serde_json::json!([{
+                "invariant_ref": "invariant:fixture", "status": "PASS",
+                "evidence_refs": ["invariant:fixture", "adl:fixture"]
+            }]))
+            .unwrap(),
             hard_violation_count: 0,
             required_unknown_count: 0,
             load_bearing_equivalence_closed: true,
@@ -1759,7 +1866,10 @@ mod tests {
             target_kind: "LIBRARY_PACKAGE".into(),
             variant: "default".into(),
             state: DesignState::Selected,
-            roots: Vec::new(),
+            roots: serde_json::from_value(
+                serde_json::json!([{ "dimension": "FUNCTION_IDENTITY", "record_id": identity }]),
+            )
+            .unwrap(),
             bindings: Vec::new(),
             candidate_set: Vec::new(),
             evidence_refs: Vec::new(),
@@ -1809,6 +1919,10 @@ mod tests {
             "policy.json",
             &serde_json::to_value(runtime::seal::self_scope_policy()).unwrap(),
         );
+        write_json(
+            ".atlas/declared/seal-policy.json",
+            &serde_json::to_value(runtime::seal::self_scope_policy()).unwrap(),
+        );
         let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();
         run(&args(&[
             "seal",
@@ -1840,19 +1954,62 @@ mod tests {
             &path("sealed.atlas"),
         ]))
         .expect("the ELIGIBLE fixture is sealed");
-        let precondition = |parent: &str, out: &str| {
-            run(&args(&[
+        // G185: the seal gate itself refuses a report its own contents contradict -- the
+        // review's P1 integrity report, a HARD violation counted as none and ELIGIBLE.
+        let mut dirty = serde_json::to_value(&integrity).unwrap();
+        dirty["evaluations"][0]["status"] = "FAIL".into();
+        dirty["evaluations"][0]["diagnostic_codes"] =
+            serde_json::json!(["ARCHITECTURE_HARD_VIOLATION"]);
+        write_json("dirty-integrity.json", &dirty);
+        let err = run(&args(&[
+            "seal",
+            "gate",
+            "--root",
+            &path(""),
+            "--atlas",
+            &path("unsealed.atlas"),
+            "--verification",
+            &path("verification.json"),
+            "--integrity",
+            &path("dirty-integrity.json"),
+            "--design",
+            &path("design.json"),
+            "--policy",
+            &path("policy.json"),
+            "--out",
+            &path("dirty-eligibility.json"),
+        ]))
+        .expect_err("inconsistent");
+        assert_eq!(err, "SEAL_NOT_ELIGIBLE: 2 reasons");
+        let dirty: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(dir.join("dirty-eligibility.json")).unwrap())
+                .unwrap();
+        assert_eq!(dirty["reasons"][0][0], "INTEGRITY_REPORT_INCONSISTENT");
+        let parent_args = |command: &str, parent: &str| -> Vec<String> {
+            args(&[
                 "atlasx",
-                "precondition",
+                command,
+                "--root",
+                &path(""),
                 "--atlas",
                 &path(parent),
-                "--envelope",
-                &path("envelope.json"),
                 "--design",
                 &path("design.json"),
-                "--out",
-                &path(out),
-            ]))
+                "--verification",
+                &path("verification.json"),
+                "--integrity",
+                &path("integrity.json"),
+            ])
+        };
+        let precondition = |parent: &str, out: &str| {
+            let mut list = parent_args("precondition", parent);
+            list.extend(args(&["--out", &path(out)]));
+            run(&list)
+        };
+        let materialize = |parent: &str, out: &str| {
+            let mut list = parent_args("materialize", parent);
+            list.extend(args(&["--out", &path(out)]));
+            run(&list)
         };
         let read_out = |out: &str| -> serde_json::Value {
             serde_json::from_str(&fs::read_to_string(dir.join(out)).unwrap()).unwrap()
@@ -1869,6 +2026,19 @@ mod tests {
         assert_eq!(admitted["admitted"]["seal_id"], record.seal_id);
         assert_eq!(admitted["admitted"]["envelope_id"], envelope.envelope_id);
         assert_eq!(admitted["admitted"]["design_id"], design.design_id);
+        // G185: who admitted it, under which declaration.
+        assert_eq!(
+            admitted["admitted"]["policy_id"],
+            runtime::seal::self_scope_policy().policy_id
+        );
+        assert_eq!(admitted["admitted"]["principal"], "fixture-principal");
+        assert_eq!(admitted["admitted"]["principal_key"], hex(&key.pk[..]));
+        assert!(
+            admitted["admitted"]["registry_digest"]
+                .as_str()
+                .unwrap()
+                .starts_with("blake3-256:")
+        );
 
         let err = precondition("unsealed.atlas", "refused.json")
             .expect_err("an unsealed parent is refused");
@@ -1891,8 +2061,85 @@ mod tests {
             "--atlas",
             &path("sealed.atlas"),
         ]))
-        .expect_err("the envelope is an explicit input");
-        assert_eq!(err, "atlasx precondition requires --envelope");
+        .expect_err("the reports are explicit inputs");
+        assert_eq!(err, "atlasx precondition requires --verification");
+        // G185: no override of the repository's declarations.
+        for (command, flag, file) in [
+            ("precondition", "--policy", "policy.json"),
+            ("materialize", "--envelope", "envelope.json"),
+        ] {
+            let mut list = parent_args(command, "sealed.atlas");
+            list.extend(args(&[flag, &path(file)]));
+            let err = run(&list).expect_err("no override");
+            assert_eq!(
+                err,
+                format!(
+                    "atlasx {command} does not take {flag}: the repository at --root declares it"
+                )
+            );
+        }
+
+        // G185: the admitted parent materializes into staging; the object reads back by its
+        // address through the codec, with lineage into the container's census records.
+        materialize("sealed.atlas", "staging").expect("the admitted parent is staged");
+        let staged: Vec<_> = fs::read_dir(dir.join("staging/functions"))
+            .unwrap()
+            .map(|e| e.unwrap().path())
+            .collect();
+        assert_eq!(staged.len(), 1, "{staged:?}");
+        let object = staged[0].to_string_lossy().into_owned();
+        run(&args(&[
+            "atlasx",
+            "codec",
+            "--decode",
+            &object,
+            "--out",
+            &path("decoded.json"),
+        ]))
+        .expect("the staged object decodes under its address");
+        let decoded = read_out("decoded.json");
+        assert_eq!(decoded["verdict"], "DECODED");
+        let address = decoded["address"].as_str().unwrap();
+        assert!(object.ends_with(&format!("staging/functions/{address}.atlasx")));
+        let record = &decoded["records"][0];
+        assert_eq!(
+            record["function_id"],
+            "fn:core/src/donor/mod.rs::MaterializationMode::is_local"
+        );
+        assert_eq!(record["lineage"], serde_json::json!([identity, signature]));
+        let ids: Vec<String> = sealed
+            .typed_records
+            .iter()
+            .map(|r| r.record_id().as_str().to_owned())
+            .collect();
+        for entry in record["lineage"].as_array().unwrap() {
+            assert!(
+                ids.iter().any(|id| id == entry.as_str().unwrap()),
+                "{entry}"
+            );
+        }
+        // Staging is never reused: a second run into the same directory is refused.
+        let err = materialize("sealed.atlas", "staging").expect_err("occupied");
+        assert!(err.contains("the staging directory is not empty"), "{err}");
+
+        // A self-certified seal: the sealed record re-stamped to name another policy still binds
+        // the container, but no gate decided it. Refused, and nothing is staged.
+        let (mut forged, _) = runtime::design::read_container(dir.join("sealed.atlas")).unwrap();
+        let forged_record = forged.seal.as_mut().unwrap();
+        forged_record.policy_id = "blake3-256:any-policy".into();
+        forged_record.seal_id = seal_identity(forged_record);
+        fs::write(dir.join("forged.atlas"), write(&forged).unwrap()).unwrap();
+        let err = precondition("forged.atlas", "forged.json").expect_err("not decided");
+        assert_eq!(err, "ATLASX_PRECONDITION_REFUSED: 1 reasons");
+        assert_eq!(
+            read_out("forged.json")["reasons"][0][0],
+            "SEAL_RECORD_NOT_DECIDED"
+        );
+        for parent in ["forged.atlas", "unsealed.atlas"] {
+            let err = materialize(parent, "refused-staging").expect_err("not admitted");
+            assert_eq!(err, "ATLASX_MATERIALIZATION_REFUSED: 1 defects", "{parent}");
+            assert!(!dir.join("refused-staging").exists(), "{parent}");
+        }
         fs::remove_dir_all(&dir).ok();
     }
 }

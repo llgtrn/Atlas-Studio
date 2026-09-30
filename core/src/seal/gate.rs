@@ -11,6 +11,10 @@
 //!   never read from a stored verdict, and the certificate must be at least CLOSED;
 //! - the verification report must be ADMISSIBLE, under the policy's verification classes, for
 //!   the container's census digest;
+//! - G185: both reports must agree with their own contents (`verification::check_report`,
+//!   `integrity::check_report`: summaries, counts and verdicts re-derived from their outcomes
+//!   and evaluations), and the integrity report with the envelope the repository pins, so the
+//!   verdicts read below are never a verdict the report itself contradicts;
 //! - the integrity report must carry the verdict the policy requires, for the container's
 //!   revision and census digest;
 //! - the design must be SELECTED by an authority event, rest on a comparison, carry its own
@@ -28,7 +32,7 @@ use crate::design::{
     DesignState, PrincipalRegistry, SelectedDesign, authority_violations, design_identity,
 };
 use crate::identity::IntegrityDigest;
-use crate::integrity::IntegrityReport;
+use crate::integrity::{IntegrityEnvelope, IntegrityReport};
 use crate::verification::{ReportVerdict, VerificationReport};
 use serde::{Deserialize, Serialize};
 
@@ -47,6 +51,11 @@ crate::vocabulary_enum! {
         VerificationCandidateMismatch => "VERIFICATION_CANDIDATE_MISMATCH",
         IntegrityNotEligible => "INTEGRITY_NOT_ELIGIBLE",
         IntegrityCandidateMismatch => "INTEGRITY_CANDIDATE_MISMATCH",
+        /// G185: the integrity report contradicts itself or the pinned envelope
+        /// (`integrity::check_report`).
+        IntegrityReportInconsistent => "INTEGRITY_REPORT_INCONSISTENT",
+        /// G185: the verification report contradicts itself (`verification::check_report`).
+        VerificationReportInconsistent => "VERIFICATION_REPORT_INCONSISTENT",
         DesignAbsent => "DESIGN_ABSENT",
         DesignNotSelected => "DESIGN_NOT_SELECTED",
         DesignWithoutAuthority => "DESIGN_WITHOUT_AUTHORITY",
@@ -83,6 +92,9 @@ pub struct GateInputs<'a> {
     pub certificate: &'a CertificateBinding,
     pub verification: &'a VerificationReport,
     pub integrity: &'a IntegrityReport,
+    /// G185: the integrity envelope the repository pins; the integrity report must cite it and
+    /// agree with it.
+    pub envelope: &'a IntegrityEnvelope,
     pub design: Option<&'a SelectedDesign>,
     /// The declared principals and their keys (G171).
     pub registry: &'a PrincipalRegistry,
@@ -146,6 +158,7 @@ pub fn gate(inputs: &GateInputs) -> SealEligibility {
         certificate,
         verification,
         integrity,
+        envelope,
         design,
         registry,
     } = *inputs;
@@ -178,6 +191,14 @@ pub fn gate(inputs: &GateInputs) -> SealEligibility {
     let verdict = evaluate_certificate(&certificate.certificate_id, &certificate.blockers, policy);
     for refused in &verdict.refused {
         reasons.push((R::CertificateBlockersRefused, refused.clone()));
+    }
+    // G185: both reports agree with their own contents -- the verdicts read below are the ones
+    // their outcomes and evaluations imply -- and the integrity report with the pinned envelope.
+    for problem in crate::verification::check_report(verification) {
+        reasons.push((R::VerificationReportInconsistent, problem));
+    }
+    for problem in crate::integrity::check_report(integrity, envelope) {
+        reasons.push((R::IntegrityReportInconsistent, problem));
     }
     // The verification report: admissible, under the policy, for this candidate.
     if verification.verdict != ReportVerdict::Admissible {

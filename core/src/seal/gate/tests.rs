@@ -6,7 +6,7 @@ use crate::design::{
     AuthorityEvent, AuthorityMode, EventSignature, Principal, PrincipalKey, PrincipalKind,
     PrincipalRegistry, SelectedDesign, event_identity, signing_message,
 };
-use crate::integrity::{ImpactClosureRef, IntegrityVerdict};
+use crate::integrity::IntegrityVerdict;
 use crate::verification::VerificationPolicy;
 use std::collections::BTreeMap;
 
@@ -66,41 +66,18 @@ fn certificate() -> CertificateBinding {
     }
 }
 
+/// Written by the real evaluator (G185: the gate refuses a report its contents contradict).
 fn verification() -> VerificationReport {
-    VerificationReport {
-        schema: "atlas.verification-report.v1".into(),
-        policy: VerificationPolicy::library_package(),
-        candidate: DIGEST.into(),
-        outcomes: Vec::new(),
-        coverage: BTreeMap::new(),
-        failures: Vec::new(),
-        verdict: ReportVerdict::Admissible,
-        blockers: Vec::new(),
-    }
+    crate::atlasx::fixture::verification(DIGEST)
 }
 
+/// Written by the real evaluator against the pinned envelope.
 fn integrity() -> IntegrityReport {
-    IntegrityReport {
-        schema_version: "atlas.integrity-report.v1".into(),
-        report_id: "integrity:fixture".into(),
-        candidate_ref: "revision:abc123".into(),
-        materialization_ref: None,
-        envelope_ref: "envelope:fixture".into(),
-        observed_architecture_root: DIGEST.into(),
-        impact_closure: ImpactClosureRef {
-            closed: true,
-            affected_semantic_refs: Vec::new(),
-            affected_invariant_refs: Vec::new(),
-            closure_root: None,
-        },
-        evaluations: Vec::new(),
-        hard_violation_count: 0,
-        required_unknown_count: 0,
-        load_bearing_equivalence_closed: true,
-        blueprint_revision_ref: None,
-        verdict: IntegrityVerdict::Eligible,
-        evidence_refs: Vec::new(),
-    }
+    crate::atlasx::fixture::integrity_for(&envelope(), "revision:abc123", DIGEST)
+}
+
+fn envelope() -> crate::integrity::IntegrityEnvelope {
+    crate::atlasx::fixture::envelope()
 }
 
 /// A test fixture's design: selected by a fixture principal, never a recorded selection.
@@ -189,6 +166,7 @@ fn decide(
         certificate,
         verification,
         integrity,
+        envelope: &envelope(),
         design,
         registry: &registry(),
     })
@@ -329,8 +307,24 @@ fn every_input_that_does_not_admit_the_candidate_refuses_the_seal() {
         "a residual beyond its bound"
     );
     assert_eq!(
-        case(&|_, _, v, _, _| v.verdict = ReportVerdict::Blocked),
+        case(
+            &|_, _, v, _, _| *v = crate::atlasx::fixture::verification_with(
+                DIGEST,
+                crate::verification::EvidenceResult::Violated
+            )
+        ),
         [R::VerificationBlocked]
+    );
+    // G185: a verdict the report's own outcomes contradict, either way.
+    assert_eq!(
+        case(&|_, _, v, _, _| v.verdict = ReportVerdict::Blocked),
+        [R::VerificationBlocked, R::VerificationReportInconsistent]
+    );
+    assert_eq!(
+        case(&|_, _, v, _, _| v
+            .blockers
+            .push("UNIT: 12 required unit obligations fail".into())),
+        [R::VerificationReportInconsistent]
     );
     assert_eq!(
         case(&|_, _, v, _, _| v.policy.required_classes.clear()),
@@ -341,8 +335,35 @@ fn every_input_that_does_not_admit_the_candidate_refuses_the_seal() {
         [R::VerificationCandidateMismatch]
     );
     assert_eq!(
-        case(&|_, _, _, i, _| i.verdict = IntegrityVerdict::Incomplete),
+        case(&|_, _, _, i, _| {
+            i.evaluations[0].status = crate::integrity::EvaluationStatus::Unknown;
+            i.evaluations[0].diagnostic_codes =
+                vec![crate::integrity::ArchitectureDiagnostic::RequiredUnknown];
+            i.required_unknown_count = 1;
+            i.verdict = IntegrityVerdict::Incomplete;
+        }),
         [R::IntegrityNotEligible]
+    );
+    // G185: the review's P1 report -- a HARD violation counted as none, verdict ELIGIBLE -- and
+    // a report citing another envelope.
+    assert_eq!(
+        case(&|_, _, _, i, _| {
+            i.evaluations[0].status = crate::integrity::EvaluationStatus::Fail;
+            i.evaluations[0].diagnostic_codes =
+                vec![crate::integrity::ArchitectureDiagnostic::HardViolation];
+        }),
+        [
+            R::IntegrityReportInconsistent,
+            R::IntegrityReportInconsistent
+        ]
+    );
+    assert_eq!(
+        case(&|_, _, _, i, _| i.envelope_ref = "envelope:other".into()),
+        [R::IntegrityReportInconsistent]
+    );
+    assert_eq!(
+        case(&|_, _, _, i, _| i.verdict = IntegrityVerdict::Incomplete),
+        [R::IntegrityNotEligible, R::IntegrityReportInconsistent]
     );
     assert_eq!(
         case(&|_, _, _, i, _| i.candidate_ref = "revision:other".into()),

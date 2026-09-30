@@ -191,7 +191,7 @@ pub const CARRIERS: &[Carrier] = &[
     carrier(
         "PreconditionRefusal",
         CarrierRole::Verdict,
-        "why the AtlasX precondition gate refuses a parent: unreadable, not sealed, an unbound seal record, an envelope or design that does not verify or is not the one the seal names (G179)",
+        "why the AtlasX precondition gate refuses a parent: unreadable, not sealed, an unbound seal record, an envelope or design that does not verify or is not the one the seal names (G179), the re-run seal gate not eligible or deciding another record (G185)",
     ),
     carrier(
         "CodecVerdict",
@@ -202,6 +202,16 @@ pub const CARRIERS: &[Carrier] = &[
         "CodecDefect",
         CarrierRole::Verdict,
         "why the AtlasX object codec refuses bytes or an object to write: header, bounds, digest, framing, schema or canonical-form defects, or a source construction module that does not verify (G183)",
+    ),
+    carrier(
+        "MaterializationVerdict",
+        CarrierRole::Verdict,
+        "an AtlasX materialization staged or refused by the materializer (G185, M11)",
+    ),
+    carrier(
+        "MaterializationDefect",
+        CarrierRole::Verdict,
+        "why the AtlasX materializer refuses: a parent not admitted, a selection the parent cannot answer, a record the codec refuses, or lineage that does not map back to the parent and design (G185)",
     ),
     carrier(
         "Enforcement",
