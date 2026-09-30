@@ -1,0 +1,840 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G181",
+  "base_revision": "6a50bd1dbf5a3869e43d20f40e2311153041ad83",
+  "candidate_revision": "8f88588b91608058f9acadeacd551a8daff924ae",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:fc204618426dd73bc89f5afc3d958a76e4d4f8339b86a0e41e90bcb93779de81",
+  "after_census_digest": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+  "replay_digest": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+  "inventory_delta": {
+    "created": [
+      "adapter/src/semantic/rust/body.rs"
+    ],
+    "modified": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/semantic/typescript/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/construction/mod.rs",
+      "core/src/construction/rust.rs",
+      "core/src/construction/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/self_reconstruction.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/semantic/typescript/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/construction/mod.rs",
+      "core/src/construction/rust.rs",
+      "core/src/construction/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/self_reconstruction.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 126,
+      "fact:FunctionSignature|OBSERVED": 33,
+      "fact:SemanticObligation|OBSERVED": 4,
+      "fact:SemanticObligation|UNKNOWN": 14,
+      "fact:SemanticObligation|UNSUPPORTED": 1,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 162,
+      "fact:Type|DERIVED": 31,
+      "fact:Type|OBSERVED": 73,
+      "record:CALL|DERIVED": 100,
+      "record:CALL|OBSERVED": 729,
+      "record:CONTROL_FLOW|INFERRED": 57,
+      "record:CONTROL_FLOW|OBSERVED": 317,
+      "record:DATA_FLOW|OBSERVED": 1441,
+      "record:EFFECT|INFERRED": 57,
+      "record:FUNCTION_IDENTITY|OBSERVED": 126,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 33,
+      "record:OWNERSHIP|OBSERVED": 323,
+      "record:STATE|OBSERVED": 3,
+      "record:SYMBOL|OBSERVED": 162,
+      "record:TYPE|DERIVED": 31,
+      "record:TYPE|OBSERVED": 73
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 1,
+    "graph_edges": 4723,
+    "graph_nodes": 3597
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNKNOWN": 1,
+    "obligation:RESOURCE|UNSUPPORTED": 1,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/region()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/region()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/signature()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/signature()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core construction/rust/emit()."
+      ],
+      "after": [
+        "core construction/rust/emit()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core construction/tests/function()."
+      ],
+      "after": [
+        "core construction/tests/function()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core construction/validate_module()."
+      ],
+      "after": [
+        "core construction/validate_module()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/function_signature_observation()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/function_signature_observation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core recensus/entity/tests/signature/sig()."
+      ],
+      "after": [
+        "core recensus/entity/tests/signature/sig()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/function/tests/summary_renders_asyncness_unsafety_parameters_and_return_type()."
+      ],
+      "after": [
+        "core semantic/function/tests/summary_renders_asyncness_unsafety_parameters_and_return_type()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/function/tests/summary_renders_unit_return_and_no_modifiers_when_absent()."
+      ],
+      "after": [
+        "core semantic/function/tests/summary_renders_unit_return_and_no_modifiers_when_absent()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core semantic/function/tests/summary_renders_visibility_generics_and_extern_abi()."
+      ],
+      "after": [
+        "core semantic/function/tests/summary_renders_visibility_generics_and_extern_abi()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/attempt()."
+      ],
+      "after": [
+        "runtime self_reconstruction/attempt()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/differential()."
+      ],
+      "after": [
+        "runtime self_reconstruction/differential()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/lift()."
+      ],
+      "after": [
+        "runtime self_reconstruction/lift()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/semantic_checks()."
+      ],
+      "after": [
+        "runtime self_reconstruction/semantic_checks()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/tests/the_differential_compares_every_derived_property_and_is_exhaustive()."
+      ],
+      "after": [
+        "runtime self_reconstruction/tests/the_differential_compares_every_derived_property_and_is_exhaustive()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime self_reconstruction/tests/the_shadow_census_round_trips_and_catches_a_reordered_or_underived_emission()."
+      ],
+      "after": [
+        "runtime self_reconstruction/tests/the_shadow_census_round_trips_and_catches_a_reordered_or_underived_emission()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "runtime self_reconstruction/tests/a_declared_enum_lifts_whole_and_only_its_body_is_a_gap()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/body/expression()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/body/lowerable_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/body/node()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/body/patterns()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/body/plain_path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/g181_a_body_is_recorded_only_when_all_of_it_is_in_the_lowerable_subset()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_signature_body_round_trips_as_nested_body_nodes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/body_violation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/derives()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/resolve_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/rust/emit_function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/rust/expression()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/rust/function_refusal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/a_body_and_its_gap_exclude_each_other()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/a_match_must_cover_every_variant_and_emits_its_arms_in_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/a_typed_resolved_body_is_valid_and_emitted_inside_an_impl()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/arm()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/bodied()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/body_codes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/hir()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/malformed_untyped_or_unresolved_bodies_are_refused_with_their_defect()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/matching()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/tests/the_backend_emits_a_method_only_with_its_body_its_owner_and_spellable_parameters()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core construction/validate_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/`impl:Lowering<'_>`/expression()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/`impl:Lowering<'_>`/node()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/`impl:Lowering<'_>`/push()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/`impl:Lowering<'_>`/text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/`impl:Lowering<'_>`/variant()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/declared_variations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/lower_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/tests/a_declared_enum_lifts_whole_with_its_lowerable_body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/tests/a_lowered_body_the_ir_refuses_is_dropped_whole_and_stays_a_gap()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime self_reconstruction/tests/the_real_target_lifts_its_body_and_a_body_outside_the_subset_keeps_its_gap()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/construction/rust.rs: 14 -> 15",
+      "adapter/src/semantic/rust/body.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2386,
+    "total_after": 2401
+  },
+  "intent": {
+    "objective": "lowerable bodies reach SH1: bounded HIR body semantics lifted from census, carried by the construction IR and emitted by the Rust backend; SR1-3 reconstructs MaterializationMode::is_local (ADR 0094)",
+    "changed_paths": [
+      "adapter/src/semantic/rust/body.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/semantic/typescript/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/construction/mod.rs",
+      "core/src/construction/rust.rs",
+      "core/src/construction/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/self_reconstruction.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/construction/rust.rs: the body extractor and backend explained as unresolved by design where they withhold",
+      "adapter/src/semantic/rust/body.rs: the body extractor and backend explained as unresolved by design where they withhold"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/region().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/signature().",
+      "CHANGED core construction/rust/emit().",
+      "CHANGED core construction/tests/function().",
+      "CHANGED core construction/validate_module().",
+      "CHANGED core graph/engineering_graph/tests/function_signature_observation().",
+      "CHANGED core recensus/entity/tests/signature/sig().",
+      "CHANGED core semantic/function/tests/summary_renders_asyncness_unsafety_parameters_and_return_type().",
+      "CHANGED core semantic/function/tests/summary_renders_unit_return_and_no_modifiers_when_absent().",
+      "CHANGED core semantic/function/tests/summary_renders_visibility_generics_and_extern_abi().",
+      "CHANGED runtime self_reconstruction/attempt().",
+      "CHANGED runtime self_reconstruction/differential().",
+      "CHANGED runtime self_reconstruction/lift().",
+      "CHANGED runtime self_reconstruction/semantic_checks().",
+      "CHANGED runtime self_reconstruction/tests/the_differential_compares_every_derived_property_and_is_exhaustive().",
+      "CHANGED runtime self_reconstruction/tests/the_shadow_census_round_trips_and_catches_a_reordered_or_underived_emission().",
+      "DELETED runtime self_reconstruction/tests/a_declared_enum_lifts_whole_and_only_its_body_is_a_gap().",
+      "CREATED adapter semantic/rust/body/expression().",
+      "CREATED adapter semantic/rust/body/lowerable_body().",
+      "CREATED adapter semantic/rust/body/node().",
+      "CREATED adapter semantic/rust/body/patterns().",
+      "CREATED adapter semantic/rust/body/plain_path().",
+      "CREATED adapter semantic/rust/tests/g181_a_body_is_recorded_only_when_all_of_it_is_in_the_lowerable_subset().",
+      "CREATED core atlas/tests/a_signature_body_round_trips_as_nested_body_nodes().",
+      "CREATED core construction/body_violation().",
+      "CREATED core construction/derives().",
+      "CREATED core construction/resolve_type().",
+      "CREATED core construction/rust/emit_function().",
+      "CREATED core construction/rust/expression().",
+      "CREATED core construction/rust/function_refusal().",
+      "CREATED core construction/tests/a_body_and_its_gap_exclude_each_other().",
+      "CREATED core construction/tests/a_match_must_cover_every_variant_and_emits_its_arms_in_order().",
+      "CREATED core construction/tests/a_typed_resolved_body_is_valid_and_emitted_inside_an_impl().",
+      "CREATED core construction/tests/arm().",
+      "CREATED core construction/tests/bodied().",
+      "CREATED core construction/tests/body_codes().",
+      "CREATED core construction/tests/hir().",
+      "CREATED core construction/tests/malformed_untyped_or_unresolved_bodies_are_refused_with_their_defect().",
+      "CREATED core construction/tests/matching().",
+      "CREATED core construction/tests/the_backend_emits_a_method_only_with_its_body_its_owner_and_spellable_parameters().",
+      "CREATED core construction/validate_body().",
+      "CREATED runtime self_reconstruction/`impl:Lowering<'_>`/expression().",
+      "CREATED runtime self_reconstruction/`impl:Lowering<'_>`/node().",
+      "CREATED runtime self_reconstruction/`impl:Lowering<'_>`/push().",
+      "CREATED runtime self_reconstruction/`impl:Lowering<'_>`/text().",
+      "CREATED runtime self_reconstruction/`impl:Lowering<'_>`/variant().",
+      "CREATED runtime self_reconstruction/declared_variations().",
+      "CREATED runtime self_reconstruction/lower_body().",
+      "CREATED runtime self_reconstruction/tests/a_declared_enum_lifts_whole_with_its_lowerable_body().",
+      "CREATED runtime self_reconstruction/tests/a_lowered_body_the_ir_refuses_is_dropped_whole_and_stays_a_gap().",
+      "CREATED runtime self_reconstruction/tests/the_real_target_lifts_its_body_and_a_body_outside_the_subset_keeps_its_gap()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/body.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path adapter/src/semantic/typescript/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/schema_history.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/construction/mod.rs",
+    "path core/src/construction/rust.rs",
+    "path core/src/construction/tests.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/lib.rs",
+    "path core/src/recensus/entity/tests.rs",
+    "path core/src/semantic/function.rs",
+    "path core/src/semantic/mod.rs",
+    "path runtime/src/self_reconstruction.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_function().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/region().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/signature().",
+    "entity CHANGED core construction/rust/emit().",
+    "entity CHANGED core construction/tests/function().",
+    "entity CHANGED core construction/validate_module().",
+    "entity CHANGED core graph/engineering_graph/tests/function_signature_observation().",
+    "entity CHANGED core recensus/entity/tests/signature/sig().",
+    "entity CHANGED core semantic/function/tests/summary_renders_asyncness_unsafety_parameters_and_return_type().",
+    "entity CHANGED core semantic/function/tests/summary_renders_unit_return_and_no_modifiers_when_absent().",
+    "entity CHANGED core semantic/function/tests/summary_renders_visibility_generics_and_extern_abi().",
+    "entity CHANGED runtime self_reconstruction/attempt().",
+    "entity CHANGED runtime self_reconstruction/differential().",
+    "entity CHANGED runtime self_reconstruction/lift().",
+    "entity CHANGED runtime self_reconstruction/semantic_checks().",
+    "entity CHANGED runtime self_reconstruction/tests/the_differential_compares_every_derived_property_and_is_exhaustive().",
+    "entity CHANGED runtime self_reconstruction/tests/the_shadow_census_round_trips_and_catches_a_reordered_or_underived_emission().",
+    "entity DELETED runtime self_reconstruction/tests/a_declared_enum_lifts_whole_and_only_its_body_is_a_gap().",
+    "entity CREATED adapter semantic/rust/body/expression().",
+    "entity CREATED adapter semantic/rust/body/lowerable_body().",
+    "entity CREATED adapter semantic/rust/body/node().",
+    "entity CREATED adapter semantic/rust/body/patterns().",
+    "entity CREATED adapter semantic/rust/body/plain_path().",
+    "entity CREATED adapter semantic/rust/tests/g181_a_body_is_recorded_only_when_all_of_it_is_in_the_lowerable_subset().",
+    "entity CREATED core atlas/tests/a_signature_body_round_trips_as_nested_body_nodes().",
+    "entity CREATED core construction/body_violation().",
+    "entity CREATED core construction/derives().",
+    "entity CREATED core construction/resolve_type().",
+    "entity CREATED core construction/rust/emit_function().",
+    "entity CREATED core construction/rust/expression().",
+    "entity CREATED core construction/rust/function_refusal().",
+    "entity CREATED core construction/tests/a_body_and_its_gap_exclude_each_other().",
+    "entity CREATED core construction/tests/a_match_must_cover_every_variant_and_emits_its_arms_in_order().",
+    "entity CREATED core construction/tests/a_typed_resolved_body_is_valid_and_emitted_inside_an_impl().",
+    "entity CREATED core construction/tests/arm().",
+    "entity CREATED core construction/tests/bodied().",
+    "entity CREATED core construction/tests/body_codes().",
+    "entity CREATED core construction/tests/hir().",
+    "entity CREATED core construction/tests/malformed_untyped_or_unresolved_bodies_are_refused_with_their_defect().",
+    "entity CREATED core construction/tests/matching().",
+    "entity CREATED core construction/tests/the_backend_emits_a_method_only_with_its_body_its_owner_and_spellable_parameters().",
+    "entity CREATED core construction/validate_body().",
+    "entity CREATED runtime self_reconstruction/`impl:Lowering<'_>`/expression().",
+    "entity CREATED runtime self_reconstruction/`impl:Lowering<'_>`/node().",
+    "entity CREATED runtime self_reconstruction/`impl:Lowering<'_>`/push().",
+    "entity CREATED runtime self_reconstruction/`impl:Lowering<'_>`/text().",
+    "entity CREATED runtime self_reconstruction/`impl:Lowering<'_>`/variant().",
+    "entity CREATED runtime self_reconstruction/declared_variations().",
+    "entity CREATED runtime self_reconstruction/lower_body().",
+    "entity CREATED runtime self_reconstruction/tests/a_declared_enum_lifts_whole_with_its_lowerable_body().",
+    "entity CREATED runtime self_reconstruction/tests/a_lowered_body_the_ir_refuses_is_dropped_whole_and_stays_a_gap().",
+    "entity CREATED runtime self_reconstruction/tests/the_real_target_lifts_its_body_and_a_body_outside_the_subset_keeps_its_gap()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

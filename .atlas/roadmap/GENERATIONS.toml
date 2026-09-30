@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G180"
+current_generation = "G181"
 
 [[generation]]
 id = "G35"
@@ -4420,3 +4420,54 @@ correctness_critical = false
 frontier_rate = 0.0
 frontier_class = "LOW_FRONTIER_PROGRESS"
 note = "a replay that falsified nothing: cheap (14 s of machine stages, 74 s of proof) and honestly LOW_FRONTIER_PROGRESS; its value is the confirmation that every claimed edge holds on a fresh donor; the clean-HEAD evidence run follows the roadmap commit and is not included"
+
+[[generation]]
+id = "G181"
+kind = "CREATION"
+lane = "CREATION"
+base_commit = "f344fec26f92873d51a48c10f33336874e86bf37"
+priority = "P6"
+serves = "DEBT-CONSTRUCTION_IR, construction node M14, and the SELF_RECONSTRUCTION ladder's SH1: the CREATION selection after G179 ([creation_selection] score 85)"
+objective = "NA-SELF-RECONSTRUCTION-BODIES: bounded lowerable body semantics lifted from census records, carried by the construction IR and emitted by the Rust backend; SR1 reconstructs MaterializationMode::is_local with its body"
+writer = "coordinator (sole writer); one implementation lane, restarted once after a container restart from its snapshot"
+evidence = ".atlas/decisions/0094-lowerable-bodies-reach-sh1.md"
+self_recensus = ".atlas/evidence/census/G181/recensus.json"
+
+[generation.verification]
+pre_census = "G180 post digest"
+atlas_first = "every constructed function carried BODY_UNOBSERVED and the backend emitted no body: SH1 ATTEMPTED since G153 (SR1-1, SR1-2)"
+change = "adapter semantic::rust::body records a pure body of the subset on FUNCTION_SIGNATURE (the .atlas schema gains an optional body, generation G181); core construction HirBody/HirNode (CONST, COPY, INTRINSIC EQ/NE, MATCH) with typed BodyDefect refusals; the Rust backend emits bodied inherent methods; runtime self_reconstruction lifts bodies from census only and verifies them by an exhaustive differential and a re-lowering of the shadow (ADR 0094)"
+oracle = "SR1-3 on core::donor::MaterializationMode: is_local = self != Self::RemoteMetadata lifted from census alone, the shadow agreeing with the compiled original on all five variants; 14 of 14 checks EQUIVALENT, the doc comment's wrapping the declared variation: RECONSTRUCTED_WITH_DECLARED_VARIATION; the committed tree's census (7c9eda68...) is the one SR1-3 ran on"
+falsification = "26 mutants killed across extractor, schema, IR validation, lifter, backend, verification and declared variation, two after added tests; StorageState's methods keep BODY_UNOBSERVED; malformed bodies refused with typed defects"
+boundary = "bodies over &self and &mut self, calls and arithmetic stay BODY_UNOBSERVED (RES-G181-REF-RECEIVERS); verification by differential over the method's domain, not the original tests, which reach is_local only through donor code (SH4); four residuals recorded"
+debts = "DEBT-CONSTRUCTION_IR M2_PARTIAL -> M3_SINGLE_ENGINE_BOUNDED, last advance G181; M14 EXISTS; SELF_RECONSTRUCTION SH1 REACHED; next generation G182 FULL_OSS_REPLAY timelydataflow/differential-dataflow"
+review = "fourteen debts reviewed at their cadence (the G168 batch fell due together), all CONFIRMED against the code: no constructed-artifact identity or lowering from .atlasx, and no commit since G168 in provenance, constraint, quantity, physical, browser or agent code (evidence/census/G181/debt-review.json)"
+proof = "PROVEN (post 7c9eda68...): proven after the last source change; the new extractor, IR and backend censused"
+
+[generation.value]
+new_capability = "executable body semantics for a bounded subset and the SH1 reconstruction of a method from census (record: the FUNCTION_SIGNATURE body)"
+vertical_stage = "SELF_RECONSTRUCTION"
+construction_nodes_completed = ["M14"]
+new_capabilities = 1
+maturity_steps = 1
+capability_delta = 6
+wrong_claims_removed = 0
+wall_clock_s = 6291
+machine_s = 136
+proof_s = 3865
+review_s = 0
+residuals_deferred = 4
+correctness_critical = false
+frontier_rate = 3.43
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the first implementation lane's launch to the roadmap commit, measured, including a container restart that killed the first lane (its snapshot was resumed); proof_s = mutants 922 + gates and build 292 + verification self with a full workspace run 1,363 + the final full suite 1,207 + self-recensus 81; the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 6967
+after = 7093
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 6957
+after = 7013

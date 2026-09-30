@@ -867,7 +867,7 @@ objective = "FULL_OSS_REPLAY rust-lang/datafrog (done: R16 at edd7cfc0, which is
 [[planned_generation]]
 id = "G181"
 priority = "P2"
-objective = "CREATION: NA-SELF-RECONSTRUCTION-BODIES (M14, [creation_selection] score 85 after G179 reset DEBT-ATLASX staleness) -- bounded lowerable body semantics: HIR body nodes lifted from census records for pure, call-closed bodies, carried by the construction IR and emitted by the Rust backend, so an SH1 shadow reconstructs a type method from census; falsified by SR1 on MaterializationMode::is_local (its BODY_UNOBSERVED gap closed, the shadow method passing the original tests) while a body outside the subset keeps its gap"
+objective = "CREATION: NA-SELF-RECONSTRUCTION-BODIES (done: M14 EXISTS -- body semantics lifted from census for a bounded subset, carried by the construction IR and emitted by the Rust backend; SR1-3 rebuilds MaterializationMode::is_local with its body, SH1 REACHED; 26 mutants killed; frontier_rate 3.43 per hour; ADR 0094)"
 
 [[planned_generation]]
 id = "G182"
@@ -877,7 +877,7 @@ objective = "FULL_OSS_REPLAY timelydataflow/differential-dataflow (QUEUED, FULL-
 [[planned_generation]]
 id = "G183"
 priority = "P2"
-objective = "CREATION: the [creation_selection] winner after G181 (forecast NA-SELF-RECONSTRUCTION-BODIES, M14, or the next AtlasX node M10 and M12 leave reachable)"
+objective = "CREATION: NA-ATLASX-CODEC (M12, [creation_selection] winner after G181, score 81, ahead of NA-ATLASX-MATERIALIZE by attack id) -- one .atlasx object kind (a header and one typed record section) encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a byte-identical fixture round-trip, a flipped byte refused by its digest and an undeclared field refused (ATLASX-FORMAT)"
 
 [[planned_generation]]
 id = "G184+"

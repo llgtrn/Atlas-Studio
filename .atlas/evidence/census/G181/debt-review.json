@@ -1,0 +1,92 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G181",
+ "trigger": "review cadence: DEBT-ARTIFACT_IDENTITY, DEBT-COMPILER_LOWERING, DEBT-SYMBOL, DEBT-PROVENANCE, DEBT-CONSTRAINT_REASONING, DEBT-TARGET_PROFILE, DEBT-TRANSFORMATION, DEBT-UNCERTAINTY, DEBT-DISTRIBUTED_SEMANTICS, DEBT-REAL_WORLD_OBSERVATION, DEBT-SIMULATION, DEBT-PHYSICAL_ONTOLOGY, DEBT-CONSTRUCTION_TRANSACTION, DEBT-SEMANTIC-COMPOSITION -- each stale for at least 13 generations since its last advance and its last review -- fell due at G181",
+ "method": "re-read against core and runtime (no constructed-artifact identity type or issuance) and the construction graph (M17 behind M16, M15, MIN_ATLASX); a search of core and runtime for lowering code (only the construction IR's Rust backend and the frozen Creator HTML lowering); git log since the G168 commit 53a23ab0 over core/src/provenance, core/src/composition, core/src/constraint, core/src/quantity, core/src/physical, adapter/src/browser and runtime/src/agent.rs, and a search for TargetProfile, ConstructionTransaction, transformation and distributed-semantics types",
+ "reviews": [
+  {
+   "debt": "DEBT-ARTIFACT_IDENTITY",
+   "verdict": "CONFIRMED",
+   "finding": "constructed artifacts still have no identity of their own: BLAKE3 content identities and the atlas pack root cover census products only; the SR1 shadows (G153 to G181) are verified by differential and recensus, not issued an artifact identity; M17 stays MISSING behind M16, M15 and MIN_ATLASX, so NA-FIRST-ARTIFACT stays queued behind the construction frontier",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-COMPILER_LOWERING",
+   "verdict": "CONFIRMED",
+   "finding": "no Atlas-owned lowering from .atlasx exists: there is no .atlasx to lower (M11 to MIN_ATLASX missing); the only lowering is the construction IR's Rust backend for self-reconstruction shadows, which since G181 lowers a bounded subset of bodies (HIR body nodes), pre-AtlasX and never admitted; M15 stays MISSING behind MIN_ATLASX and, since G179, M14 -- now EXISTS -- so MIN_ATLASX alone blocks it; NA-DELEGATED-BACKEND stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-SYMBOL",
+   "verdict": "CONFIRMED",
+   "finding": "symbols still come from one engine, the syntactic walker in adapter/src/semantic/rust; the resolver work of G169 to G181 changed call resolution, not symbol records; NA-SECOND-ENGINE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-PROVENANCE",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/provenance has no commit since G168: evidence refs on every typed record and the clean-HEAD product match remain; constructed artifacts still have no provenance of their own (M18 behind M17); NA-FIRST-ARTIFACT stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-CONSTRAINT_REASONING",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/constraint has no commit since G168 and core/src/composition only G169's resource release points; the quantified forbids and census invariants of G130 are unchanged; NA-QUANTIFIED-STATE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-TARGET_PROFILE",
+   "verdict": "CONFIRMED",
+   "finding": "no TargetProfile type exists in core, runtime or adapter; the first target stays the host Rust target by convention only; NA-TARGET-PROFILE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-TRANSFORMATION",
+   "verdict": "CONFIRMED",
+   "finding": "no transformation class exists in core, runtime or adapter; it stays blocked by DEBT-SANDBOXED_EXECUTION (filesystem confinement unenforced, RES-G179 notes unchanged); NA-TRANSFORMATION stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-UNCERTAINTY",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/quantity has no commit since G168: exact intervals, recorded float drops and the approximation marker of G131 remain; NA-BOUNDED-SIMULATION stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-DISTRIBUTED_SEMANTICS",
+   "verdict": "CONFIRMED",
+   "finding": "no distributed-semantics code exists; it stays blocked by DEBT-CONCURRENCY and DEBT-PERSISTENCE",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-REAL_WORLD_OBSERVATION",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/browser has no commit since G168: the BrowserInstrument abstraction of G55 remains; it stays blocked by DEBT-ARTIFACT_IDENTITY",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-SIMULATION",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/physical has no commit since G168: dynamics.rs with recorded float drops per run remains; it stays blocked by DEBT-QUANTITY_UNITS",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-PHYSICAL_ONTOLOGY",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/physical has no commit since G168: PlanarArm, Motor and Rail remain; frozen until its unfreeze gate",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-CONSTRUCTION_TRANSACTION",
+   "verdict": "CONFIRMED",
+   "finding": "no ConstructionTransaction type exists; the self-recensus proof remains the only (post-hoc, whole-generation) admission; blocked by DEBT-ATLASX, whose M10 exists since G179 while MIN_ATLASX does not",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-SEMANTIC-COMPOSITION",
+   "verdict": "CONFIRMED",
+   "finding": "runtime/src/agent.rs has no commit since G168 and core/src/composition only G169's resource release points; the composed world model and agent lenses are unchanged; NA-CAPABILITY-REALIZATION stays next, and no AGENT_MISSION generation has run since the replay lane counts replays as missions",
+   "correction": {}
+  }
+ ]
+}

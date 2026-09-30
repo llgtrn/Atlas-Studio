@@ -248,3 +248,53 @@ can_create_false_claim = false
 reopen_trigger = "a replay or the self census needs calls from example or test targets into their own package's library"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G181-REF-RECEIVERS"
+found_in = "G181"
+source = "runtime/src/self_reconstruction.rs (lifter), core/src/construction/rust.rs (backend)"
+subsystem = "runtime self_reconstruction lifter and core construction backend"
+reproduction = "fn f(&self) -> bool { match self { Self::A => true, _ => false } } stays BODY_UNOBSERVED: bodies over &self or &mut self receivers, and bodies with calls or arithmetic, are outside the G181 subset (most real methods)"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "an SH2 target whose methods take &self"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G181-CONSERVATIVE-COPY"
+found_in = "G181"
+source = "core/src/construction/mod.rs (validate_body)"
+subsystem = "core construction IR validation"
+reproduction = "a COPY of self requires an observed Copy derive even where != only borrows, so the IR may refuse a body rustc would accept"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a refused body that rustc accepts"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G181-EMIT-TRUSTS-VALIDATION"
+found_in = "G181"
+source = "core/src/construction/rust.rs (emit)"
+subsystem = "core construction Rust backend"
+reproduction = "rust::emit does not re-validate its module: an INTRINSIC node without an intrinsic prints != for a module that never passed validate_module"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a caller emits a construction module without validate_module and treats the emitted source as the census's body. It does not hold on the current tree: the only caller, the self-reconstruction lifter, validates every module before emitting"
+reopen_trigger = "any new caller of rust::emit"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G181-UNDECLARED-BODY-TEXT"
+found_in = "G181"
+source = "runtime/src/self_reconstruction.rs (declared_variations)"
+subsystem = "runtime self_reconstruction verdict"
+reproduction = "only a doc comment's wrapping is declared as a variation; inner comments or formatting of an original body that the census drops are not declared -- only the body check's token-identity flag in its detail shows them"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a bodied target whose body carries inner comments or formatting the census drops gets RECONSTRUCTED_WITH_DECLARED_VARIATION without declaring that difference. It does not hold on the current tree: SR1-3's is_local lowers token-identically (the check's flag is true)"
+reopen_trigger = "the first bodied target whose token-identical flag is false"
+status = "OPEN"
+pressure = 3
