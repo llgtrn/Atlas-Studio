@@ -1,0 +1,44 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G185",
+ "trigger": "review cadence: DEBT-CONTROL_FLOW, DEBT-DATA_FLOW, DEBT-STATE, DEBT-EFFECT, DEBT-OWNERSHIP, DEBT-CONCURRENCY -- each stale for at least 13 generations since its last advance and its last review (G172) -- fell due at G185",
+ "method": "git log since the G172 commit f442e13d over adapter/src/semantic/rust/{cfg,dataflow,state,effect,ownership,concurrency}.rs and the resolver; the records totals of the G172 and G185 post.json compared",
+ "reviews": [
+  {
+   "debt": "DEBT-CONTROL_FLOW",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/semantic/rust/cfg.rs has no commit since G172: one syntactic engine still records control flow per function (G133 put closure bodies in the profile); its records grew from 16,788 at G172 to 20,284 at G185 with the code they read; no second engine reconciles them; NA-SECOND-ENGINE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-DATA_FLOW",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/semantic/rust/dataflow.rs has no commit since G172: the syntactic def-use walker (with recovered macro arguments and implicit format captures) remains the only engine; its records grew from 71,561 at G172 to 87,281 at G185 with the code; no alias or field-sensitive flow; NA-SECOND-ENGINE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-STATE",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/semantic/rust/state.rs has no commit since G172: state records (589 at G172, 824 at G185, grown with the code) still come from one syntactic engine; interior mutability and write! targets need resolution; NA-SECOND-ENGINE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-EFFECT",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/semantic/rust/effect.rs has no commit since G172: effect records come from the spelling engine (4,677 at G172, 5,556 at G185) and from resolved std paths (532 to 620), the latter grown by the resolver work of G173 to G178 that resolved more std calls; method-level effects still need receiver types; NA-CALL-TYPE-RESIDUAL, LANE_DEFERRED under ADR 0092",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-OWNERSHIP",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/semantic/rust/ownership.rs has no commit since G172: one syntactic engine records moves and borrows (18,233 at G172, 22,849 at G185, grown with the code); no reconciled second engine; NA-SECOND-ENGINE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-CONCURRENCY",
+   "verdict": "CONFIRMED",
+   "finding": "adapter/src/semantic/rust/concurrency.rs has no commit since G172: concurrency records stay few (2 from the spelling engine, 5 at G172 and 6 at G185 from resolved std paths); scoped spawns and joins are method calls on untyped closure parameters, and a join is not an ordering record; NA-CALL-TYPE-RESIDUAL, LANE_DEFERRED under ADR 0092",
+   "correction": {}
+  }
+ ]
+}

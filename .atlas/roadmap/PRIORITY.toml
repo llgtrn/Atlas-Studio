@@ -887,7 +887,7 @@ objective = "FULL_OSS_REPLAY verus-lang/verus (done: R18 at d85f7578; 3,480 of 3
 [[planned_generation]]
 id = "G185"
 priority = "P2"
-objective = "CREATION: NA-ATLASX-MATERIALIZE (M11, [creation_selection] winner after G183, score 80, the only reachable candidate; M12 and M10 exist) -- first close RES-G179-SEAL-SELF-CERTIFYING so an admitted parent is one the seal gate decided, then the smallest materializer slice over an admitted parent; falsified by a self-certified SEALED container refused and a materialized object whose lineage does not map back to its parent refused"
+objective = "CREATION: NA-ATLASX-MATERIALIZE (done: M11 EXISTS -- the precondition re-runs the seal gate under the repository declaration and both deciders re-derive the reports, closing RES-G179-SEAL-SELF-CERTIFYING, RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT and RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED; the materializer stages the design's function roots as one FUNCTIONS object from an admitted parent, every record traced back; 60 mutants killed; ADR 0097)"
 
 [[planned_generation]]
 id = "G186"
@@ -895,6 +895,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY 666ghj/bettafish (QUEUED, FULL-OSS-REPLAY.toml next_replay after R18): every REVALIDATION_REQUIRED rank replayed, the canonical order resumes at its first NEVER_REPLAYED repository, facing the strongest Atlas (E25) at a fresh pin, its license verified at it (GPL-2.0 recorded: census and oracle only, nothing copied); fix natively only what falsifies the tree (ADR 0092)"
 
 [[planned_generation]]
-id = "G187+"
+id = "G187"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-VALIDATE (M13, [creation_selection] winner after G185, score 70, the only reachable candidate; M11 and M12 exist) -- a ROOT_MANIFEST over the staged objects of a materialization, the AtlasX root identity computed from it, and a validator that follows the reader verification order over one root; falsified by the materialized G161 root validated and a tampered root (a flipped object byte, a missing object, a lineage outside the parent) refused -> MIN_ATLASX"
+
+[[planned_generation]]
+id = "G188+"
 priority = "P0"
 objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

@@ -1,0 +1,1231 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G185",
+  "base_revision": "023b782c66fdfdfea197882a900560af68c89201",
+  "candidate_revision": "ae2a73c543745ac565fdcab07f62e34c9659b5ec",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:d25474f7d3a9fc7bdb1012482d072a8944c669e4e8522e443d1e743a24166f81",
+  "after_census_digest": "blake3-256:12593fd6e8fa687865656809253cc1815915f87312334809367120fdb5a21519",
+  "replay_digest": "blake3-256:12593fd6e8fa687865656809253cc1815915f87312334809367120fdb5a21519",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlasx/fixture.rs",
+      "core/src/atlasx/materialize.rs",
+      "core/src/atlasx/materialize/census_records.json",
+      "core/src/atlasx/materialize/tests.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/atlasx/precondition/tests.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "core/src/verification/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs",
+      "runtime/src/seal.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/atlasx/precondition/tests.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "core/src/verification/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs",
+      "runtime/src/seal.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 136,
+      "fact:FunctionSignature|OBSERVED": 54,
+      "fact:SemanticObligation|OBSERVED": 12,
+      "fact:SemanticObligation|UNKNOWN": 42,
+      "fact:SemanticObligation|UNSUPPORTED": 16,
+      "fact:SourceArtifact|OBSERVED": 8,
+      "fact:Symbol|OBSERVED": 207,
+      "fact:Type|DERIVED": 84,
+      "fact:Type|OBSERVED": 110,
+      "record:CALL|DERIVED": 269,
+      "record:CALL|OBSERVED": 1047,
+      "record:CONTROL_FLOW|INFERRED": 131,
+      "record:CONTROL_FLOW|OBSERVED": 272,
+      "record:DATA_FLOW|OBSERVED": 2029,
+      "record:EFFECT|DERIVED": 16,
+      "record:EFFECT|INFERRED": 147,
+      "record:FUNCTION_IDENTITY|OBSERVED": 136,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 54,
+      "record:OWNERSHIP|OBSERVED": 617,
+      "record:PERSISTENCE|DERIVED": 3,
+      "record:PERSISTENCE|INFERRED": 1,
+      "record:STATE|OBSERVED": 7,
+      "record:SYMBOL|OBSERVED": 207,
+      "record:TYPE|DERIVED": 84,
+      "record:TYPE|OBSERVED": 110
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 7,
+    "graph_edges": 7237,
+    "graph_nodes": 5311
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 2,
+    "obligation:CALL|UNKNOWN": 4,
+    "obligation:CALL|UNSUPPORTED": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 6,
+    "obligation:CONCURRENCY|UNSUPPORTED": 1,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:CONTROL_FLOW|UNSUPPORTED": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNSUPPORTED": 1,
+    "obligation:EFFECT|UNKNOWN": 6,
+    "obligation:EFFECT|UNSUPPORTED": 1,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_IDENTITY|UNSUPPORTED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:OWNERSHIP|UNSUPPORTED": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 6,
+    "obligation:PERSISTENCE|UNSUPPORTED": 1,
+    "obligation:RESOURCE|UNKNOWN": 3,
+    "obligation:RESOURCE|UNSUPPORTED": 4,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:STATE|UNSUPPORTED": 1,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:SYMBOL|UNKNOWN": 1,
+    "obligation:SYMBOL|UNSUPPORTED": 1,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 4,
+    "obligation:TYPE|UNSUPPORTED": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed()."
+      ],
+      "after": [
+        "`apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/admit()."
+      ],
+      "after": [
+        "core atlasx/precondition/admit()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/check()."
+      ],
+      "after": [
+        "core atlasx/precondition/check()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/precondition()."
+      ],
+      "after": [
+        "core atlasx/precondition/precondition()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/run()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic()."
+      ],
+      "after": [
+        "core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core integrity/check_report()."
+      ],
+      "after": [
+        "core integrity/check_report()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/gate()."
+      ],
+      "after": [
+        "core seal/gate/gate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/decide()."
+      ],
+      "after": [
+        "core seal/gate/tests/decide()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal()."
+      ],
+      "after": [
+        "core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/integrity()."
+      ],
+      "after": [
+        "core seal/gate/tests/integrity()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core seal/gate/tests/verification()."
+      ],
+      "after": [
+        "core seal/gate/tests/verification()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core verification/evaluate()."
+      ],
+      "after": [
+        "core verification/evaluate()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime atlasx/precondition()."
+      ],
+      "after": [
+        "runtime atlasx/precondition()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime seal/gate_container()."
+      ],
+      "after": [
+        "runtime seal/gate_container()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+      ],
+      "after": [
+        "runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "core atlasx/precondition/tests/envelope()."
+      ],
+      "after": [
+        "core atlasx/fixture/envelope()."
+      ],
+      "evidence": "identical signature and body; visibility inherited -> pub"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "core atlasx/precondition/tests/hex()."
+      ],
+      "after": [
+        "core atlasx/fixture/hex()."
+      ],
+      "evidence": "identical signature and body; visibility inherited -> pub"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "core atlasx/precondition/tests/policy()."
+      ],
+      "after": [
+        "core atlasx/fixture/policy()."
+      ],
+      "evidence": "identical signature and body; visibility inherited -> pub"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core atlasx/precondition/tests/fixture()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `impl:ParentArgs`/files()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `impl:ParentArgs`/parse()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/design_over()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/fixture()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/integrity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/integrity_for()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/key()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/principal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/roots()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/seal()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/select()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/unsealed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/verification()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/fixture/verification_with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/check_lineage()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/materialize()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/select()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/settle()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/stage()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/a_parent_the_precondition_refuses_is_refused_before_any_object_exists()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/a_record_the_codec_refuses_is_refused_encoding_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/a_selection_the_parent_cannot_answer_is_refused_with_its_defect()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/json()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/kinds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/lineage_that_does_not_map_back_to_the_parent_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/repeated_roots_select_once_and_colliding_global_ids_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/root()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/run()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/sealed_run()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/materialize/tests/staging_refuses_records_whose_lineage_does_not_map_back()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/`impl:Declared`/declaration()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/decode_json()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/evaluate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/gate_decides()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/registry_digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_design_over_another_root_is_refused_by_the_re_run_gate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_seal_over_a_self_authored_envelope_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_seal_over_self_contradicting_reports_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/a_self_certified_seal_record_is_refused_seal_record_not_decided()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/every_gate_input_must_decide_the_record_the_container_carries()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/reports()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/run_with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/precondition/tests/sealed_over()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core seal/gate/tests/envelope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/check_report()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/summarize()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/evaluated_reports_are_consistent_and_edits_are_not()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/at()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/materialize()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/over_bytes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/read_declared()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/stage()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/stage_objects()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/tests/a_failed_staging_leaves_nothing_behind()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "runtime/src/atlasx.rs: 14 -> 15",
+      "core/src/atlasx/fixture.rs: 0 -> 14",
+      "core/src/atlasx/materialize.rs: 0 -> 17",
+      "core/src/atlasx/materialize/census_records.json: 0 -> 13",
+      "core/src/atlasx/materialize/tests.rs: 0 -> 14"
+    ],
+    "decreased": [
+      "runtime/src/seal.rs: 15 -> 14"
+    ],
+    "total_before": 2527,
+    "total_after": 2585
+  },
+  "intent": {
+    "objective": "CREATION NA-ATLASX-MATERIALIZE (M11): the precondition re-runs the seal gate under the repository declaration; the materializer stages FUNCTIONS objects from an admitted parent (ADR 0097)",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/atlasx/fixture.rs",
+      "core/src/atlasx/materialize.rs",
+      "core/src/atlasx/materialize/census_records.json",
+      "core/src/atlasx/materialize/tests.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/atlasx/precondition/tests.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/gate/tests.rs",
+      "core/src/verification/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs",
+      "runtime/src/seal.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+diagnostic:UnsupportedLanguageOrProfile",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:PERSISTENCE|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "runtime/src/atlasx.rs: the seal gate and the precondition check both reports for internal consistency; core::atlasx::materialize, the shared Declared declaration, runtime::atlasx stage and atlas-systemizer atlasx materialize are new",
+      "core/src/atlasx/fixture.rs: the seal gate and the precondition check both reports for internal consistency; core::atlasx::materialize, the shared Declared declaration, runtime::atlasx stage and atlas-systemizer atlasx materialize are new",
+      "core/src/atlasx/materialize.rs: the seal gate and the precondition check both reports for internal consistency; core::atlasx::materialize, the shared Declared declaration, runtime::atlasx stage and atlas-systemizer atlasx materialize are new",
+      "core/src/atlasx/materialize/census_records.json: the seal gate and the precondition check both reports for internal consistency; core::atlasx::materialize, the shared Declared declaration, runtime::atlasx stage and atlas-systemizer atlasx materialize are new",
+      "core/src/atlasx/materialize/tests.rs: the seal gate and the precondition check both reports for internal consistency; core::atlasx::materialize, the shared Declared declaration, runtime::atlasx stage and atlas-systemizer atlasx materialize are new"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CHANGED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
+      "CHANGED core atlasx/precondition/admit().",
+      "CHANGED core atlasx/precondition/check().",
+      "CHANGED core atlasx/precondition/precondition().",
+      "CHANGED core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch().",
+      "CHANGED core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound().",
+      "CHANGED core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason().",
+      "CHANGED core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason().",
+      "CHANGED core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order().",
+      "CHANGED core atlasx/precondition/tests/run().",
+      "CHANGED core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds().",
+      "CHANGED core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed().",
+      "CHANGED core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic().",
+      "CHANGED core integrity/check_report().",
+      "CHANGED core seal/gate/gate().",
+      "CHANGED core seal/gate/tests/decide().",
+      "CHANGED core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal().",
+      "CHANGED core seal/gate/tests/integrity().",
+      "CHANGED core seal/gate/tests/verification().",
+      "CHANGED core verification/evaluate().",
+      "CHANGED runtime atlasx/precondition().",
+      "CHANGED runtime seal/gate_container().",
+      "CHANGED runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed().",
+      "MOVED core atlasx/precondition/tests/envelope(). -> core atlasx/fixture/envelope().",
+      "MOVED core atlasx/precondition/tests/hex(). -> core atlasx/fixture/hex().",
+      "MOVED core atlasx/precondition/tests/policy(). -> core atlasx/fixture/policy().",
+      "DELETED core atlasx/precondition/tests/fixture().",
+      "CREATED `apps/cli` `impl:ParentArgs`/files().",
+      "CREATED `apps/cli` `impl:ParentArgs`/parse().",
+      "CREATED core atlasx/fixture/design_over().",
+      "CREATED core atlasx/fixture/fixture().",
+      "CREATED core atlasx/fixture/integrity().",
+      "CREATED core atlasx/fixture/integrity_for().",
+      "CREATED core atlasx/fixture/key().",
+      "CREATED core atlasx/fixture/principal().",
+      "CREATED core atlasx/fixture/roots().",
+      "CREATED core atlasx/fixture/seal().",
+      "CREATED core atlasx/fixture/select().",
+      "CREATED core atlasx/fixture/unsealed().",
+      "CREATED core atlasx/fixture/verification().",
+      "CREATED core atlasx/fixture/verification_with().",
+      "CREATED core atlasx/materialize/check_lineage().",
+      "CREATED core atlasx/materialize/materialize().",
+      "CREATED core atlasx/materialize/select().",
+      "CREATED core atlasx/materialize/settle().",
+      "CREATED core atlasx/materialize/stage().",
+      "CREATED core atlasx/materialize/tests/a_parent_the_precondition_refuses_is_refused_before_any_object_exists().",
+      "CREATED core atlasx/materialize/tests/a_record_the_codec_refuses_is_refused_encoding_refused().",
+      "CREATED core atlasx/materialize/tests/a_selection_the_parent_cannot_answer_is_refused_with_its_defect().",
+      "CREATED core atlasx/materialize/tests/an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent().",
+      "CREATED core atlasx/materialize/tests/json().",
+      "CREATED core atlasx/materialize/tests/kinds().",
+      "CREATED core atlasx/materialize/tests/lineage_that_does_not_map_back_to_the_parent_is_refused().",
+      "CREATED core atlasx/materialize/tests/repeated_roots_select_once_and_colliding_global_ids_are_refused().",
+      "CREATED core atlasx/materialize/tests/root().",
+      "CREATED core atlasx/materialize/tests/run().",
+      "CREATED core atlasx/materialize/tests/sealed_run().",
+      "CREATED core atlasx/materialize/tests/staging_refuses_records_whose_lineage_does_not_map_back().",
+      "CREATED core atlasx/precondition/`impl:Declared`/declaration().",
+      "CREATED core atlasx/precondition/decode_json().",
+      "CREATED core atlasx/precondition/evaluate().",
+      "CREATED core atlasx/precondition/gate_decides().",
+      "CREATED core atlasx/precondition/registry_digest().",
+      "CREATED core atlasx/precondition/tests/a_design_over_another_root_is_refused_by_the_re_run_gate().",
+      "CREATED core atlasx/precondition/tests/a_seal_over_a_self_authored_envelope_is_refused().",
+      "CREATED core atlasx/precondition/tests/a_seal_over_self_contradicting_reports_is_refused().",
+      "CREATED core atlasx/precondition/tests/a_self_certified_seal_record_is_refused_seal_record_not_decided().",
+      "CREATED core atlasx/precondition/tests/every_gate_input_must_decide_the_record_the_container_carries().",
+      "CREATED core atlasx/precondition/tests/reports().",
+      "CREATED core atlasx/precondition/tests/run_with().",
+      "CREATED core atlasx/precondition/tests/sealed_over().",
+      "CREATED core seal/gate/tests/envelope().",
+      "CREATED core verification/check_report().",
+      "CREATED core verification/summarize().",
+      "CREATED core verification/tests/evaluated_reports_are_consistent_and_edits_are_not().",
+      "CREATED runtime atlasx/at().",
+      "CREATED runtime atlasx/materialize().",
+      "CREATED runtime atlasx/over_bytes().",
+      "CREATED runtime atlasx/read_declared().",
+      "CREATED runtime atlasx/stage().",
+      "CREATED runtime atlasx/stage_objects().",
+      "CREATED runtime atlasx/tests/a_failed_staging_leaves_nothing_behind()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/atlasx/fixture.rs",
+    "path core/src/atlasx/materialize.rs",
+    "path core/src/atlasx/materialize/census_records.json",
+    "path core/src/atlasx/materialize/tests.rs",
+    "path core/src/atlasx/mod.rs",
+    "path core/src/atlasx/precondition.rs",
+    "path core/src/atlasx/precondition/tests.rs",
+    "path core/src/integrity/mod.rs",
+    "path core/src/seal/gate.rs",
+    "path core/src/seal/gate/tests.rs",
+    "path core/src/verification/mod.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/atlasx.rs",
+    "path runtime/src/seal.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +diagnostic:UnsupportedLanguageOrProfile",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:PERSISTENCE|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CHANGED `apps/cli` tests/atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed().",
+    "entity CHANGED core atlasx/precondition/admit().",
+    "entity CHANGED core atlasx/precondition/check().",
+    "entity CHANGED core atlasx/precondition/precondition().",
+    "entity CHANGED core atlasx/precondition/tests/a_re_stamped_seal_record_naming_other_inputs_is_refused_with_their_mismatch().",
+    "entity CHANGED core atlasx/precondition/tests/a_seal_record_that_does_not_bind_the_parent_is_refused_seal_record_unbound().",
+    "entity CHANGED core atlasx/precondition/tests/a_tampered_design_is_refused_with_exactly_its_reason().",
+    "entity CHANGED core atlasx/precondition/tests/a_tampered_envelope_is_refused_with_exactly_its_reason().",
+    "entity CHANGED core atlasx/precondition/tests/every_reason_is_collected_in_a_deterministic_order().",
+    "entity CHANGED core atlasx/precondition/tests/run().",
+    "entity CHANGED core atlasx/precondition/tests/the_g161_sealed_container_is_admitted_with_the_identities_it_binds().",
+    "entity CHANGED core atlasx/precondition/tests/the_unsealed_container_is_refused_not_sealed().",
+    "entity CHANGED core atlasx/precondition/tests/unreadable_input_is_refused_never_a_panic().",
+    "entity CHANGED core integrity/check_report().",
+    "entity CHANGED core seal/gate/gate().",
+    "entity CHANGED core seal/gate/tests/decide().",
+    "entity CHANGED core seal/gate/tests/every_input_that_does_not_admit_the_candidate_refuses_the_seal().",
+    "entity CHANGED core seal/gate/tests/integrity().",
+    "entity CHANGED core seal/gate/tests/verification().",
+    "entity CHANGED core verification/evaluate().",
+    "entity CHANGED runtime atlasx/precondition().",
+    "entity CHANGED runtime seal/gate_container().",
+    "entity CHANGED runtime seal/tests/a_container_every_input_admits_is_gated_sealed_and_read_back_sealed().",
+    "entity MOVED core atlasx/precondition/tests/envelope(). -> core atlasx/fixture/envelope().",
+    "entity MOVED core atlasx/precondition/tests/hex(). -> core atlasx/fixture/hex().",
+    "entity MOVED core atlasx/precondition/tests/policy(). -> core atlasx/fixture/policy().",
+    "entity DELETED core atlasx/precondition/tests/fixture().",
+    "entity CREATED `apps/cli` `impl:ParentArgs`/files().",
+    "entity CREATED `apps/cli` `impl:ParentArgs`/parse().",
+    "entity CREATED core atlasx/fixture/design_over().",
+    "entity CREATED core atlasx/fixture/fixture().",
+    "entity CREATED core atlasx/fixture/integrity().",
+    "entity CREATED core atlasx/fixture/integrity_for().",
+    "entity CREATED core atlasx/fixture/key().",
+    "entity CREATED core atlasx/fixture/principal().",
+    "entity CREATED core atlasx/fixture/roots().",
+    "entity CREATED core atlasx/fixture/seal().",
+    "entity CREATED core atlasx/fixture/select().",
+    "entity CREATED core atlasx/fixture/unsealed().",
+    "entity CREATED core atlasx/fixture/verification().",
+    "entity CREATED core atlasx/fixture/verification_with().",
+    "entity CREATED core atlasx/materialize/check_lineage().",
+    "entity CREATED core atlasx/materialize/materialize().",
+    "entity CREATED core atlasx/materialize/select().",
+    "entity CREATED core atlasx/materialize/settle().",
+    "entity CREATED core atlasx/materialize/stage().",
+    "entity CREATED core atlasx/materialize/tests/a_parent_the_precondition_refuses_is_refused_before_any_object_exists().",
+    "entity CREATED core atlasx/materialize/tests/a_record_the_codec_refuses_is_refused_encoding_refused().",
+    "entity CREATED core atlasx/materialize/tests/a_selection_the_parent_cannot_answer_is_refused_with_its_defect().",
+    "entity CREATED core atlasx/materialize/tests/an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent().",
+    "entity CREATED core atlasx/materialize/tests/json().",
+    "entity CREATED core atlasx/materialize/tests/kinds().",
+    "entity CREATED core atlasx/materialize/tests/lineage_that_does_not_map_back_to_the_parent_is_refused().",
+    "entity CREATED core atlasx/materialize/tests/repeated_roots_select_once_and_colliding_global_ids_are_refused().",
+    "entity CREATED core atlasx/materialize/tests/root().",
+    "entity CREATED core atlasx/materialize/tests/run().",
+    "entity CREATED core atlasx/materialize/tests/sealed_run().",
+    "entity CREATED core atlasx/materialize/tests/staging_refuses_records_whose_lineage_does_not_map_back().",
+    "entity CREATED core atlasx/precondition/`impl:Declared`/declaration().",
+    "entity CREATED core atlasx/precondition/decode_json().",
+    "entity CREATED core atlasx/precondition/evaluate().",
+    "entity CREATED core atlasx/precondition/gate_decides().",
+    "entity CREATED core atlasx/precondition/registry_digest().",
+    "entity CREATED core atlasx/precondition/tests/a_design_over_another_root_is_refused_by_the_re_run_gate().",
+    "entity CREATED core atlasx/precondition/tests/a_seal_over_a_self_authored_envelope_is_refused().",
+    "entity CREATED core atlasx/precondition/tests/a_seal_over_self_contradicting_reports_is_refused().",
+    "entity CREATED core atlasx/precondition/tests/a_self_certified_seal_record_is_refused_seal_record_not_decided().",
+    "entity CREATED core atlasx/precondition/tests/every_gate_input_must_decide_the_record_the_container_carries().",
+    "entity CREATED core atlasx/precondition/tests/reports().",
+    "entity CREATED core atlasx/precondition/tests/run_with().",
+    "entity CREATED core atlasx/precondition/tests/sealed_over().",
+    "entity CREATED core seal/gate/tests/envelope().",
+    "entity CREATED core verification/check_report().",
+    "entity CREATED core verification/summarize().",
+    "entity CREATED core verification/tests/evaluated_reports_are_consistent_and_edits_are_not().",
+    "entity CREATED runtime atlasx/at().",
+    "entity CREATED runtime atlasx/materialize().",
+    "entity CREATED runtime atlasx/over_bytes().",
+    "entity CREATED runtime atlasx/read_declared().",
+    "entity CREATED runtime atlasx/stage().",
+    "entity CREATED runtime atlasx/stage_objects().",
+    "entity CREATED runtime atlasx/tests/a_failed_staging_leaves_nothing_behind()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

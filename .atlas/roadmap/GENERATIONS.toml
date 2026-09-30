@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G184"
+current_generation = "G185"
 
 [[generation]]
 id = "G35"
@@ -4638,3 +4638,54 @@ after = 7314
 key = "obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED"
 before = 151
 after = 131
+
+[[generation]]
+id = "G185"
+kind = "CREATION"
+lane = "CREATION"
+base_commit = "ae2a73c543745ac565fdcab07f62e34c9659b5ec"
+priority = "P2"
+serves = "DEBT-ATLASX, construction node M11: the CREATION selection after G183 ([creation_selection] score 80, the only reachable candidate)"
+objective = "NA-ATLASX-MATERIALIZE: close RES-G179-SEAL-SELF-CERTIFYING so an admitted parent is one the seal gate decided, then the smallest materializer slice -- the selected design's function roots staged as one canonical FUNCTIONS object from an admitted parent, every record traced back to it"
+writer = "coordinator (sole writer); one implementation lane over three rounds, one independent review lane over three rounds"
+evidence = ".atlas/evidence/verification/G185-atlasx-materialize.json"
+self_recensus = ".atlas/evidence/census/G185/recensus.json"
+
+[generation.verification]
+pre_census = "G184 post digest"
+atlas_first = "a SealRecord built over any unsealed census with arbitrary policy, report, envelope and design ids read back SEALED and was ADMITTED by the precondition (RES-G179-SEAL-SELF-CERTIFYING, HIGH); the seal gate decided on report verdicts without re-deriving them; no .atlasx object could be produced from a parent (M11 MISSING)"
+change = "ADR 0097: the precondition reads the repository declaration (seal policy, pinned integrity envelope, principal registry) from --root, never from the parent or the operator, checks the design authority first, then re-runs the seal gate over the reports, the certificate and the design against the pre-seal root and admits only the record the gate decides; the seal gate and the precondition both re-derive the integrity and verification reports' summaries (HARD invariants decided PASS, FAIL or UNKNOWN with their diagnostics, a required class covered by a required obligation, cited evidence ids well formed); an admission names its policy, principal, key and registry digest; core::atlasx::materialize stages the design's FUNCTION_IDENTITY roots, paired with their FUNCTION_SIGNATURE records, as one FUNCTIONS object through the M12 codec with every record's lineage checked back to the parent; runtime staging creates only what it removes on failure; atlas-systemizer atlasx materialize"
+oracle = "the G161 fixture, with reports now produced by the real evaluators, is admitted and stages functions/6e6af317....atlasx (465 bytes), decoded under its address with one record, fn:core/src/donor/mod.rs::MaterializationMode::is_local, whose lineage resolves to the parent's census records (extracted verbatim from the G184 self container) and equals the SR1-3 lifted function but for lineage; all 47 historical integrity reports and 58 self-scope verification reports pass the tightened checks; the committed G184 seal decision reproduces byte for byte"
+falsification = "the G179 self-certified seal refused SEAL_RECORD_NOT_DECIDED; an independent review's forgeries -- self-contradicting integrity and verification reports, a HARD invariant decided CONFLICT or NOT_AFFECTED, every obligation failed and marked optional, an unpinned envelope, a permissive policy override, malformed evidence ids -- refused by both the seal gate and the precondition; lineage outside the parent or not selected refused; a non-admitted parent writes nothing; the self scope refused NOT_SEALED and DESIGN_ABSENT; 60 mutants killed"
+boundary = "no ROOT_MANIFEST, root identity, publication or validator (M13, MIN_ATLASX MISSING); one class, roots not closures, no bodies; report contents a declared principal's design holder authors consistently are taken as authored (RES-G185-REPORT-CONTENTS-AS-AUTHORED); seven residuals recorded, three G179 residuals closed"
+debts = "DEBT-ATLASX stays M2_PARTIAL (no maturity step: nothing validates an AtlasX root), last advance G185; M11 EXISTS; RES-G179-SEAL-SELF-CERTIFYING, RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT and RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED closed; next generation G186 FULL_OSS_REPLAY 666ghj/bettafish"
+review = "six debts reviewed at their cadence (the G172 batch fell due together), all CONFIRMED against the code: no commit since G172 to the control-flow, data-flow, state, effect, ownership or concurrency walkers, their records grown with the code they read (evidence/census/G185/debt-review.json)"
+proof = "PROVEN (post 12593fd6...): proven after the last source change; the materializer, the re-run gate and the tightened report checks censused"
+
+[generation.value]
+new_capability = "materialization of the FUNCTIONS class from a gate-decided parent into staging (command: atlas-systemizer atlasx materialize)"
+vertical_stage = "ATLASX"
+construction_nodes_completed = ["M11"]
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 5
+wrong_claims_removed = 0
+wall_clock_s = 14864
+machine_s = 150
+proof_s = 8078
+review_s = 1304
+residuals_deferred = 7
+correctness_critical = false
+frontier_rate = 1.21
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the implementation lane's launch to the roadmap commit, measured; machine_s = fixture extraction 68 + the self-scope run 7 + the historical report sweep 75; proof_s = three mutation rounds 3,370 + the lane's gates 2,975 + the self-recensus 211 + the final full suite 1,522 (a first run found a duplicated helper body, fixed by a shared type, and a container restart lost one run); review_s = an independent review and two verifications of its fixes; the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 7400
+after = 7536
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7314
+after = 7485

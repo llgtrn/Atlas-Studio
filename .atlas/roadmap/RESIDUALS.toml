@@ -184,8 +184,9 @@ severity = "HIGH"
 can_create_false_claim = true
 false_claim_condition = "a consumer treats ADMITTED as proof that the seal gate decided the seal, for a SEALED container not produced by seal_container from an ELIGIBLE decision. It does not hold on the current tree: ADMITTED is documented (ADR 0093) as binding only, every verdict lists the seal policy, verification and integrity reports among the steps it does not verify, no SEALED container exists in the tree or its evidence, and nothing materializes"
 reopen_trigger = "before the AtlasX materializer (M11) consumes an admitted parent, or when any SEALED container is committed"
-attack = "NA-ATLASX-MATERIALIZE"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G185"
+closure = "ADR 0097: the AtlasX precondition re-runs the seal gate over the repository declaration (its seal policy, pinned envelope and principal registry), the verification and integrity reports and the SelectedDesign against the pre-seal root, and admits only the record the gate decides; the G179 reproduction is refused SEAL_RECORD_NOT_DECIDED. The remainder -- report contents a declared principal's design holder authors -- is RES-G185-REPORT-CONTENTS-AS-AUTHORED"
 pressure = 27
 
 [[residual]]
@@ -198,7 +199,9 @@ severity = "MEDIUM"
 can_create_false_claim = true
 false_claim_condition = "a seal gate decision ELIGIBLE resting on a tampered or foreign integrity report. It does not hold on the current tree: the only real decision, the self scope, is NOT_ELIGIBLE on its certificate and design, and the G161 fixture's report is produced by the evaluator"
 reopen_trigger = "the first ELIGIBLE seal decision over a non-fixture container"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G185"
+closure = "ADR 0097: seal::gate takes the pinned envelope and applies integrity::check_report and verification::check_report itself, refusing INTEGRITY_REPORT_INCONSISTENT and VERIFICATION_REPORT_INCONSISTENT (a HARD invariant decided only PASS, FAIL or UNKNOWN with its diagnostics, a required class covered by a required obligation); the AtlasX precondition applies the same checks. Report contents authored consistently remain RES-G185-REPORT-CONTENTS-AS-AUTHORED"
 pressure = 9
 
 [[residual]]
@@ -210,7 +213,9 @@ reproduction = "the SelectedDesign's parent_root is not compared with the admitt
 severity = "LOW"
 can_create_false_claim = false
 reopen_trigger = "when RES-G179-SEAL-SELF-CERTIFYING is closed"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G185"
+closure = "ADR 0097: the re-run seal gate compares the design parent_root with the recomputed pre-seal root and refuses another root DESIGN_CANDIDATE_MISMATCH"
 pressure = 1
 
 [[residual]]
@@ -448,3 +453,90 @@ false_claim_condition = "written module source sits in an output-named directory
 reopen_trigger = "a donor or the self tree with written module source under tests/, examples/, benches/ or src/bin/ in a directory named build, dist, .next or coverage"
 status = "OPEN"
 pressure = 3
+
+[[residual]]
+id = "RES-G185-STAGED-NOT-PUBLISHED"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs, runtime/src/atlasx.rs (materialize)"
+subsystem = "core atlasx materializer M11"
+reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx into staging only: no ROOT_MANIFEST, no AtlasX root identity, and publication steps 4 to 8 of ATLASX-BINARY-WIRE-FORMAT are not done"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a staged object is reported as an AtlasX root or a completed materialization. It does not hold on the current tree: the verdict is STAGED, never a root, MATERIALIZE_NOT_DONE lists publication, and M13 and MIN_ATLASX stay MISSING"
+reopen_trigger = "a ROOT_MANIFEST schema (RES-G183-SINGLE-CLASS) or the AtlasX validator (M13)"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G185-CLOSURE-ROOTS-ONLY"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs (selection)"
+subsystem = "core atlasx materializer M11"
+reproduction = "the materialized selection is exactly the SelectedDesign's FUNCTION_IDENTITY roots: calls, types, state and effects they reach are not followed, and a SYMBOL root is listed in not_materialized"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "the staged object is read as the design's complete executable closure. It does not hold on the current tree: MATERIALIZE_NOT_DONE and not_materialized state the omission, and nothing consumes staged objects"
+reopen_trigger = "a second materialized class, or any consumer of staged objects"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G185-LINEAGE-ROOT-IN-RESULT-ONLY"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs (lineage), runtime/src/atlasx.rs"
+subsystem = "core atlasx materializer M11"
+reproduction = "a staged object's records carry only census record ids as lineage; the parent root, the seal and the design they came from are bound only in the noncanonical JSON result (the embedded precondition verdict), since no manifest exists"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the ROOT_MANIFEST and root identity (publication steps 4 to 6)"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G185-RECORD-STATUS-UNJUDGED"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs (pairing)"
+subsystem = "core atlasx materializer M11"
+reproduction = "the epistemic status (OBSERVED, INFERRED and others) of the FUNCTION_IDENTITY and FUNCTION_SIGNATURE records a design selects is not checked before they are materialized"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a selected record that is not OBSERVED, or the seal policy's obligations reaching materialization"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G185-GATE-RERUN-REENCODES-CONTAINER"
+found_in = "G185"
+source = "core/src/atlasx/precondition.rs (gate_decides)"
+subsystem = "core atlasx precondition M10"
+reproduction = "gate_decides clones and re-encodes the whole sealed container to recompute its pre-seal root: about twice the container's memory (the self census container is 168 MB)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the first non-fixture SEALED container, or an admission under a memory limit"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G185-REPORT-CONTENTS-AS-AUTHORED"
+found_in = "G185"
+source = "core/src/atlasx/precondition.rs (NOT_VERIFIED step 5), core/src/verification/mod.rs and core/src/integrity/mod.rs (check_report)"
+subsystem = "core atlasx precondition M10 and seal gate M8"
+reproduction = "the holder of a SELECTED design signed by a principal declared in .atlas/declared/principals.json writes a verification report whose outcomes claim SATISFIED citing evidence ids no run produced, and an integrity report evaluating each pinned invariant PASS, both internally consistent (a required class covered by a required obligation, HARD invariants decided PASS, FAIL or UNKNOWN with their diagnostics) and citing the pinned envelope; seal gate decides ELIGIBLE, atlas seal writes the container, atlasx precondition admits and atlasx materialize stages it: the container carries neither the ADL constraint results integrity::evaluate needs nor the evidence runs verification::evaluate needs, so outcomes and evaluations are taken as authored"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "ADMITTED or STAGED is read as proof that the parent's verification obligations and HARD invariants were observed to hold. It does not hold on the current tree: .atlas/declared/principals.json declares no principal, so no design can be selected under the repository's declaration; no SEALED container exists outside test fixtures; the self scope is NOT_SEALED and DESIGN_ABSENT; and every verdict lists step 5 as taken as authored"
+reopen_trigger = "the first principal declared in .atlas/declared/principals.json, or the container carrying constraint results or verification evidence"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G185-PRE-SEAL-ROOT-REENCODE"
+found_in = "G185"
+source = "core/src/atlasx/precondition.rs (gate_decides)"
+subsystem = "core atlasx precondition M10"
+reproduction = "a SEALED container written before a container schema generation change reads back (schema::accepted_schema_ids) but gate_decides re-encodes it under the current section schema ids, so its recomputed pre-seal root differs from the root the design selected and the re-run gate refuses SEAL_GATE_NOT_ELIGIBLE: DESIGN_CANDIDATE_MISMATCH although the gate once decided it"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a container schema generation bump while a SEALED container is in use (carry the pre-seal root in the seal record, or re-encode under the parent's own schema ids)"
+status = "OPEN"
+pressure = 1
