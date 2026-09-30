@@ -158,12 +158,26 @@ fn technology_lifecycle_is_computed_and_claims_are_checked() {
     let a = r.assess();
     assert_eq!(a.technologies[0].effective, TechnologyLifecycle::Native);
     assert!(finding(&a, "TECHNOLOGY_CLAIM_EXCEEDS_EVIDENCE", "hash.digest").is_some());
-    // A technology whose node wraps a donor is not native.
+    // A node that wraps a donor does not taint a technology whose sources stand alone...
     r.write("core/Cargo.toml", "[package]\nname = \"core-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\ngeo = \"0.33\"\n");
     assert_eq!(
         r.assess().technologies[0].effective,
-        TechnologyLifecycle::Experimental
+        TechnologyLifecycle::Native
     );
+    // ...but sources that import the donor, or reach into the wrapping node, are not native.
+    for body in [
+        "pub fn digest(bytes: &[u8]) -> geo::Point { todo!() }\n",
+        "pub fn digest(bytes: &[u8]) -> crate::Point { todo!() }\n",
+    ] {
+        r.write("core/src/digest.rs", body);
+        let a = r.assess();
+        assert_eq!(
+            a.technologies[0].effective,
+            TechnologyLifecycle::Experimental,
+            "{body}"
+        );
+        assert!(a.technologies[0].stopped_by.contains("not self-contained"));
+    }
 }
 
 #[test]

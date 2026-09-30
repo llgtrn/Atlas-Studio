@@ -372,7 +372,10 @@ pub fn compile(files: &Files, d: &Declaration) -> Vec<Symbol> {
     let excluded = crate::census::excluded_roots(d);
     let mut out = Vec::new();
     for f in &files.paths {
-        if crate::census::is_excluded(f, &excluded)
+        // The installed subsystem is Ynventa's surface, not the shard's: only the template
+        // shard compiles it into YIR (every other shard carries an identical copy).
+        if (f.starts_with(".ynventa/") && d.repository.shard != "ynventa")
+            || crate::census::is_excluded(f, &excluded)
             || f.starts_with(".ynventa/tests")
             || crate::census::scope_of_file(f) == crate::schema::Scope::Test
         {

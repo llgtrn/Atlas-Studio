@@ -73,6 +73,19 @@ fn a_modified_subsystem_copy_is_detected() {
     }
     let (code, _) = r.cli(&["conformance"]);
     assert_eq!(code, 1);
+    // Upgrading restores the canonical subsystem and removes files it no longer has.
+    r.write(".ynventa/src/stale.rs", "// from an older snapshot\n");
+    let (code, out) = r.cli(&["migrate", "scaffold"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(!r.exists(".ynventa/src/stale.rs"));
+    let again = ynventa::conformance::protocol_checks(&r.assess(), None);
+    assert!(
+        again
+            .iter()
+            .find(|c| c.id == "protocol.subsystem_integrity")
+            .unwrap()
+            .pass
+    );
 }
 
 #[test]

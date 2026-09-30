@@ -132,6 +132,24 @@ const NOT_CRATES: &[&str] = &[
     "alloc",
     "proc_macro",
     "test",
+    // Primitive types: `u128::from(x)` and `usize::MAX` are paths, not crates.
+    "u8",
+    "u16",
+    "u32",
+    "u64",
+    "u128",
+    "usize",
+    "i8",
+    "i16",
+    "i32",
+    "i64",
+    "i128",
+    "isize",
+    "f32",
+    "f64",
+    "bool",
+    "char",
+    "str",
 ];
 
 /// Root identifiers of paths (`x::..`, `use x`, `extern crate x`) in one file.
@@ -155,7 +173,9 @@ pub fn crate_roots(toks: &[Tok]) -> BTreeSet<String> {
                     Some(Tok::Ident(_)) | Some(Tok::Punct('>')) | Some(Tok::Punct(')'))
                 );
             let path_start = !after_colons || !continuation;
-            if path_start && is(i + 1, ':') && is(i + 2, ':') {
+            // `.collect::<T>()` is a turbofish method call, not a path.
+            let method = i >= 1 && is(i - 1, '.');
+            if path_start && !method && is(i + 1, ':') && is(i + 2, ':') {
                 roots.insert(x.clone());
             }
             if (x == "use" || x == "crate") && i + 2 < toks.len() {
@@ -368,6 +388,8 @@ mod tests {
             fn h() { json::parse(); t::parse(); }
             fn f() { let s = "tokio::spawn"; let r = r#"hyper::x"#; let c = 'a'; }
             fn g<'a>(x: &'a str) -> std::string::String { crate::m(); NodeKind::Kernel; ::regex::Regex::new(x) }
+            fn p(v: &[u64]) -> u128 { let n: u64 = v.iter().sum::<u64>(); u128::from(n) + usize::MAX as u128 }
+            fn q(v: &[u8]) -> Vec<u8> { v.iter().copied().collect::<Vec<_>>() }
         "##;
         let roots = crate_roots(&lex(src));
         let got: Vec<&str> = roots.iter().map(String::as_str).collect();

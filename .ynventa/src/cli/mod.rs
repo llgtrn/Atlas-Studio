@@ -558,7 +558,7 @@ fn compact_cmd(args: &Args) -> Out {
                 {
                     continue;
                 }
-                match migration::legacy::extract_file(f, &bytes, seq) {
+                match migration::atlas::extract_file(f, &bytes, seq) {
                     Some(x) => {
                         facts.extend(x);
                         n += 1;
@@ -712,8 +712,9 @@ fn migrate(args: &Args) -> Out {
             Ok((
                 0,
                 format!(
-                    "subsystem files copied: {}\ndeclarations written: {}\ndialects: {}\nnodes: {} donors: {} waves: {} legacy facts: {}\n",
+                    "subsystem files copied: {} (stale removed: {})\ndeclarations written: {}\ndialects: {}\nnodes: {} donors: {} waves: {} legacy facts: {}\n",
                     r.copied,
+                    r.removed,
                     r.declarations_written,
                     if r.dialects.is_empty() { "none".into() } else { r.dialects.join(", ") },
                     r.nodes,
@@ -725,7 +726,7 @@ fn migrate(args: &Args) -> Out {
         }
         "import" => {
             let files = crate::repository::files::Files::scan(root).map_err(|e| e.to_string())?;
-            let imp = migration::legacy::import(
+            let imp = migration::atlas::import(
                 root,
                 &files,
                 args.value("--shard"),
@@ -911,7 +912,7 @@ pub fn assess_or_import(root: &Path) -> Result<Assessment, String> {
         return assess(root);
     }
     let files = crate::repository::files::Files::scan(root).map_err(|e| e.to_string())?;
-    let imp = migration::legacy::import(root, &files, None, None);
+    let imp = migration::atlas::import(root, &files, None, None);
     Ok(crate::assess_with(root, files, imp.declaration))
 }
 

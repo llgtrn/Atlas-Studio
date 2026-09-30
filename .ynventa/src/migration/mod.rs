@@ -9,7 +9,7 @@
 //!   scaffolding cannot become architecture.
 //! * Legacy `.atlas` state enters only through `legacy`, as claims with provenance.
 
-pub mod legacy;
+pub mod atlas;
 pub mod pathmap;
 pub mod scaffold;
 

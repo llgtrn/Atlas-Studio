@@ -70,7 +70,8 @@ pub fn assess(
         let exists = node.is_some_and(|n| !n.path.is_empty() && files.exists(&n.path))
             && !t.sources.is_empty()
             && t.sources.iter().all(|s| files.paths.contains(s));
-        let native = node_status.get(&t.node) == Some(&NativeStatus::Native);
+        let node_native = node_status.get(&t.node) == Some(&NativeStatus::Native);
+        let native = node_native || self_contained(files, t);
         let proven = !proofs.is_empty() && proofs.iter().all(|(_, v)| *v == Verdict::Pass);
         let unrelated_twin = d.technologies.iter().find(|o| {
             o.key != t.key
@@ -87,7 +88,7 @@ pub fn assess(
                 TechnologyLifecycle::Native,
                 native,
                 format!(
-                    "node `{}` is {}",
+                    "node `{}` is {} and its sources are not self-contained Rust",
                     t.node,
                     node_status
                         .get(&t.node)
@@ -189,6 +190,30 @@ pub fn assess(
         });
     }
     out
+}
+
+/// Whether every canonical source is Rust that stands alone: no foreign crate roots, native
+/// links or processes, and no `crate::` reach into the enclosing node. Such a technology is
+/// native even inside a node that wraps something else, because nothing it compiles is foreign.
+pub fn self_contained(files: &Files, t: &Technology) -> bool {
+    use crate::census::sources::{crate_roots, lex, links_and_processes, Tok};
+    !t.sources.is_empty()
+        && t.sources.iter().all(|s| {
+            let Some(text) = s.ends_with(".rs").then(|| files.read(s)).flatten() else {
+                return false;
+            };
+            let toks = lex(&text);
+            let (links, processes) = links_and_processes(&toks);
+            let reaches_crate = toks.windows(3).any(|w| {
+                matches!(&w[0], Tok::Ident(x) if x == "crate")
+                    && matches!(w[1], Tok::Punct(':'))
+                    && matches!(w[2], Tok::Punct(':'))
+            });
+            crate_roots(&toks).is_empty()
+                && links.is_empty()
+                && processes.is_empty()
+                && !reaches_crate
+        })
 }
 
 /// Whether two technologies declare a relation in either direction.
