@@ -68,16 +68,16 @@ pub fn module_facts(input: &ExtractionInput) -> Option<ModuleFacts> {
     ctx.walk(root, &Walk::module());
     let unique: BTreeSet<String> = ctx
         .bindings
-        .iter()
-        .filter(|(name, count)| **count == 1 && !ctx.assigned.contains(*name))
-        .map(|(name, _)| name.clone())
+        .keys()
+        .filter(|name| ctx.fixed(name) && !ctx.expression_names.iter().any(|(n, ..)| n == *name))
+        .cloned()
         .collect();
     let mut facts = ModuleFacts {
         functions: ctx
             .module_functions
             .iter()
-            .filter(|(name, _)| unique.contains(*name))
-            .map(|(name, id)| (name.clone(), id.clone()))
+            .filter(|(name, visible)| visible.top && unique.contains(*name))
+            .map(|(name, visible)| (name.clone(), visible.id.clone()))
             .collect(),
         unique,
         ..ModuleFacts::default()
@@ -156,29 +156,7 @@ fn export_facts(node: Node, text: &impl Fn(Node) -> String, facts: &mut ModuleFa
     let source = node.child_by_field_name("source").map(|s| unquote(text(s)));
     let default = has_token(node, "default");
     if let Some(declaration) = node.child_by_field_name("declaration") {
-        let mut names = Vec::new();
-        match declaration.kind() {
-            "function_declaration"
-            | "generator_function_declaration"
-            | "class_declaration"
-            | "abstract_class_declaration" => {
-                if let Some(name) = declaration.child_by_field_name("name") {
-                    names.push(text(name));
-                }
-            }
-            "lexical_declaration" | "variable_declaration" => {
-                let mut cursor = declaration.walk();
-                for declarator in declaration.named_children(&mut cursor) {
-                    if declarator.kind() == "variable_declarator"
-                        && let Some(name) = declarator.child_by_field_name("name")
-                        && name.kind() == "identifier"
-                    {
-                        names.push(text(name));
-                    }
-                }
-            }
-            _ => {}
-        }
+        let names: Vec<String> = declared_names(declaration).into_iter().map(text).collect();
         for name in names {
             let exported = if default {
                 "default".into()
@@ -234,6 +212,67 @@ fn export_facts(node: Node, text: &impl Fn(Node) -> String, facts: &mut ModuleFa
             }
         }
         (None, None) => {}
+    }
+}
+
+/// The value names an exported declaration binds: a function, class, enum or namespace name,
+/// every identifier of a variable's destructuring pattern (`export const { a, b: [c] } = o`),
+/// and the names of an ambient declaration (`export declare const x`, `export declare function
+/// f()`), and an `export import` alias. A local export shadows `export *`, so a missed name
+/// would let a star export resolve it to another module's function (G188, ADR 0101).
+/// Interfaces and type aliases bind no value. An ambient declaration, a non-instantiated
+/// namespace or a `const enum` shadows the star only in the type system -- it emits no
+/// JavaScript, so at run time the star may supply the name -- and the import is left
+/// unresolved: withheld, never a wrong edge.
+fn declared_names(declaration: Node) -> Vec<Node> {
+    match declaration.kind() {
+        "function_declaration"
+        | "generator_function_declaration"
+        | "function_signature"
+        | "class_declaration"
+        | "abstract_class_declaration"
+        | "enum_declaration" => declaration
+            .child_by_field_name("name")
+            .into_iter()
+            .collect(),
+        // `export namespace N {}`, `export module N {}`, `export namespace N.B.C {}` (binds `N`;
+        // tree-sitter nests `N.B` as a member expression inside the dotted name);
+        // a string-named ambient module binds no name.
+        "internal_module" | "module" => {
+            let mut name = declaration.child_by_field_name("name");
+            while let Some(nested) =
+                name.filter(|n| matches!(n.kind(), "nested_identifier" | "member_expression"))
+            {
+                name = nested.child_by_field_name("object");
+            }
+            name.filter(|n| n.kind() == "identifier")
+                .into_iter()
+                .collect()
+        }
+        // `export import M = N.X`: the alias is the first identifier.
+        "import_alias" => {
+            let mut cursor = declaration.walk();
+            declaration
+                .named_children(&mut cursor)
+                .find(|c| c.kind() == "identifier")
+                .into_iter()
+                .collect()
+        }
+        "lexical_declaration" | "variable_declaration" => {
+            let mut cursor = declaration.walk();
+            declaration
+                .named_children(&mut cursor)
+                .filter(|declarator| declarator.kind() == "variable_declarator")
+                .filter_map(|declarator| declarator.child_by_field_name("name"))
+                .flat_map(super::pattern_identifiers)
+                .collect()
+        }
+        "ambient_declaration" => {
+            let mut cursor = declaration.walk();
+            let inner: Vec<Node> = declaration.named_children(&mut cursor).collect();
+            inner.into_iter().flat_map(declared_names).collect()
+        }
+        _ => Vec::new(),
     }
 }
 

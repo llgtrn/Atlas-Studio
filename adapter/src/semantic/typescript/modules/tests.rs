@@ -299,3 +299,72 @@ fn compiled_entries_map_back_to_sources_only_through_declared_directories() {
         "a .js entry is emitted from .tsx when no .ts exists"
     );
 }
+
+/// A local export shadows `export *`: every name an exported declaration binds -- destructured
+/// variables, enums, namespaces, ambient declarations -- is an export of its own module, so a
+/// star export never resolves it to another module's function (G188, ADR 0101).
+#[test]
+fn a_destructured_or_ambient_local_export_shadows_a_star_export() {
+    let files = facts(&[
+        (
+            "src/a.ts",
+            "export * from './b';\nexport const { f, g: [h], ...rest } = make();\nexport enum e { X }\nexport declare const d: number;\nexport declare function s(): void;\nexport namespace n {}\n",
+        ),
+        (
+            "src/b.ts",
+            "export function f() {}\nexport function h() {}\nexport function rest() {}\nexport function e() {}\nexport function d() {}\nexport function s() {}\nexport function n() {}\nexport function g() {}\nexport function only() {}\n",
+        ),
+        (
+            "src/use.ts",
+            "import { f, h, rest, e, d, s, n, g, only } from './a';\n",
+        ),
+    ]);
+    let a = &files["src/a.ts"];
+    for name in ["f", "h", "rest", "e", "d", "s", "n"] {
+        assert_eq!(
+            a.exports.get(name).map(String::as_str),
+            Some(name),
+            "{name}: {:?}",
+            a.exports
+        );
+    }
+    assert!(
+        !a.exports.contains_key("g"),
+        "a property key is not a binding"
+    );
+    let a2 = module_facts(&input(
+        "src/a2.ts",
+        "export * from './b';\nexport module mm { export const y = 1; }\nexport namespace nb.B.C { export const x = 1; }\nexport import al = N.X;\nexport declare module \"q\" {}\n",
+    ))
+    .unwrap();
+    assert_eq!(
+        a2.exports.keys().collect::<Vec<_>>(),
+        ["al", "mm", "nb"],
+        "a module, a dotted namespace (its leftmost name) and an alias; never a string name"
+    );
+    let bindings = resolve_imports(&files, &BTreeMap::new());
+    let resolved: BTreeSet<&str> = bindings
+        .iter()
+        .filter(|b| b.path == "src/use.ts")
+        .map(|b| b.local.as_str())
+        .collect();
+    assert_eq!(
+        resolved,
+        BTreeSet::from(["g", "only"]),
+        "only names `a` does not declare itself reach `b` through the star"
+    );
+}
+
+/// Only a function whose name is visible module-wide is a module function an export may name,
+/// and an import a named function expression rebinds inside itself is not fixed (G188, ADR
+/// 0101).
+#[test]
+fn block_functions_and_rebound_imports_are_not_module_facts() {
+    let f = module_facts(&input(
+        "src/m.js",
+        "import { f } from './b';\nconst g = function f() { return f(); };\n{ function h() {} }\nexport { h };\nexport function top() {}\n",
+    ))
+    .unwrap();
+    assert_eq!(f.functions.keys().collect::<Vec<_>>(), ["g", "top"]);
+    assert!(!f.unique.contains("f"), "{:?}", f.unique);
+}
