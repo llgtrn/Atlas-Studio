@@ -214,6 +214,16 @@ pub const CARRIERS: &[Carrier] = &[
         "why the AtlasX materializer refuses: a parent not admitted, a selection the parent cannot answer, a record the codec refuses, or lineage that does not map back to the parent and design (G185)",
     ),
     carrier(
+        "ValidationVerdict",
+        CarrierRole::Verdict,
+        "an AtlasX root valid or invalid by the validator (G187, M13)",
+    ),
+    carrier(
+        "ValidationDefect",
+        CarrierRole::Verdict,
+        "why the AtlasX validator finds a root invalid: its manifest absent, refused or its root id not recomputed, a parent not admitted or not the one bound, an entry path or class, a missing, unlisted or refused object, a duplicate identity, lineage outside the parent, or a root that is not the one the materializer reproduces for the admitted parent (G187)",
+    ),
+    carrier(
         "Enforcement",
         CarrierRole::Enforcement,
         "an isolation property applied or not, with why",

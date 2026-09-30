@@ -196,7 +196,7 @@ Implementation status (G185, ADR 0097): `atlas_core::atlasx::materialize` (`atla
 - M7 and M8 for one object class, FUNCTIONS, through the object codec.
 - The lineage part of M11 for that object: it is read back, and every record's lineage must resolve among the parent's census records and include a selected root.
 
-The object is staged, not published. M3 to M6, M9, M10, M11's deterministic-reproduction check, M12, every other class and the rest of the closure are not implemented, and every result lists them.
+The object is staged, not published. M3 to M6, M9, M10, M11's deterministic-reproduction check, M12, every other class and the rest of the closure are not implemented, and every result lists them. G187 (ADR 0099): M9 and M10 follow. The ROOT_MANIFEST over the staged objects binds the admitted parent (root, Genome hash, census digest, revision, seal, design, scope), and the AtlasX root identity is computed from it. The runtime writes the manifest after the objects and verifies it on read-back. M12 remains staging only: nothing is published.
 
 ## Binding resolution boundary
 
@@ -504,6 +504,20 @@ An AtlasX validator MUST verify at least:
 - no selected binding/profile introduces a forbidden dependency, authority path, state owner, failure path or lifecycle relation;
 - deterministic ordering constraints;
 - target/compiler contract compatibility.
+
+Implementation status (G187, ADR 0099): `atlas_core::atlasx::validate` (`atlas-systemizer atlasx validate`) verifies the following over one staged root of the FUNCTIONS class, and says VALID or INVALID with typed defects:
+
+- the manifest schema and version;
+- the parent Atlas root identity, with the parent's admission re-run through the precondition;
+- SelectedDesign lineage (every record's lineage resolves in the parent and includes a selected root);
+- the object inventory and content hashes;
+- identity uniqueness;
+- deterministic ordering (canonical re-encode of the manifest and of every object);
+- that the root is exactly the one the materializer reproduces, in memory, for the admitted parent. This is a same-code, same-process re-materialization, not M11's independent deterministic reproduction, which stays unimplemented.
+
+MIN_ATLASX is not reached. Its mechanism is demonstrated end to end on a test fixture whose seal rests on synthetic inputs. It stays MISSING until a real repository parent (a declared principal, a SELECTED design over a real census) is sealed, admitted, materialized and validated.
+
+Genome compatibility is carried, not verified. It does not verify references beyond lineage, dynamic boundaries, obligations, semantic barriers, profiles and bindings, integrity invariants for an expanded closure, or target and compiler-contract compatibility. Every verdict lists these (`VALIDATE_NOT_VERIFIED`).
 
 ## Compiler handoff
 

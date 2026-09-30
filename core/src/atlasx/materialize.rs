@@ -21,15 +21,24 @@
 //! 4. M11, for this object: the bytes are read back through the codec, and every record's lineage
 //!    must resolve among the parent's census records and include a root the design selected.
 //!
+//! 5. G187 (M13, ADR 0099), publication steps 4 to 6 in part: the ROOT_MANIFEST of the staged
+//!    objects is built (`manifest_for`), naming the parent binding the precondition admitted, its
+//!    AtlasX root identity computed, and the manifest read back through its codec with the root
+//!    identity recomputed. The runtime writes it last, after the objects.
+//!
 //! Each record's lineage is the census records it was lifted from: the function's
 //! FUNCTION_IDENTITY and FUNCTION_SIGNATURE records. Its GLOBAL_ID is the construction IR's
-//! provisional function id (`fn:<path>::<owner>::<name>`). The parent root, the seal, the design
-//! and the declaration it was admitted under are bound by the embedded precondition verdict. The manifest, the AtlasX root identity
-//! and publication are not done (`MATERIALIZE_NOT_DONE`): what this produces is staged objects,
-//! never an AtlasX root.
+//! provisional function id (`fn:<path>::<owner>::<name>`). The parent root, census digest,
+//! revision, seal and design are bound canonically by the manifest (G187); the declaration the
+//! parent was admitted under, by the embedded precondition verdict. Publication steps 7 and 8
+//! are not done (`MATERIALIZE_NOT_DONE`): what this produces is a staged root, never a published
+//! or advertised one, and a staged root is VALID only when `validate` says so.
 
 use super::codec::{self, CodecVerdict, FunctionSignatureRecord};
-use super::precondition::{Precondition, PreconditionInputs, PreconditionVerdict, evaluate};
+use super::manifest::{self, AtlasxManifest, CLASS_ROOT_MANIFEST, MANIFEST_FILE, ObjectEntry};
+use super::precondition::{
+    Admission, AdmittedParent, Precondition, PreconditionInputs, PreconditionVerdict, evaluate,
+};
 use crate::SemanticObservation;
 use crate::atlas::CensusAtlas;
 use crate::construction::{Dispatch, IrParam};
@@ -39,13 +48,24 @@ use crate::semantic::{FunctionDeclarationKind, SemanticDimension};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const MATERIALIZATION_SCHEMA_VERSION: &str = "atlas.atlasx-materialization.v1";
+/// v2 (G187): the result carries the staged manifest and the AtlasX root identity. It is also
+/// the manifest's tag 9, so the version takes part in the root identity.
+pub const MATERIALIZATION_SCHEMA_VERSION: &str = "atlas.atlasx-materialization.v2";
 /// The canonical directory of FUNCTIONS objects (`ATLASX-BINARY-WIRE-FORMAT.md`).
 pub const FUNCTIONS_DIRECTORY: &str = "functions";
+/// G187: the materializer's identity and version, as the manifest names them (tags 7 and 8).
+/// The version moves with any change to what is written for the same inputs; the fixture's
+/// pinned root id shows such a change.
+pub const MATERIALIZER_IDENTITY: &str = "atlas_core::atlasx::materialize";
+pub const MATERIALIZER_VERSION: &str = "1";
+/// G187: the target kind (tag 6). No target or profile is frozen (M6 is not done): none is named.
+pub const TARGET_KIND_NONE: &str = "NONE";
+/// G187: the compiler IR contract (tag 10). None is defined: its compatibility is UNKNOWN.
+pub const COMPILER_IR_CONTRACT_UNKNOWN: &str = "UNKNOWN";
 
 /// What this slice of the materializer does not do; listed in every result.
 pub const MATERIALIZE_NOT_DONE: &[&str] = &[
-    "publication steps 4-8: no ROOT_MANIFEST (the class has no schema), no AtlasX root identity; the objects stay in staging and nothing is advertised",
+    "publication steps 7-8: the objects and manifest.atlasx stay in staging; nothing is atomically published or advertised",
     "every class but FUNCTIONS: a selected root of another dimension is listed in not_materialized",
     "selection closure beyond the design's FUNCTION_IDENTITY roots (calls, types, state, effects and the rest of the contract's closure)",
     "function bodies: FUNCTION_SIGNATURE carries none",
@@ -53,7 +73,8 @@ pub const MATERIALIZE_NOT_DONE: &[&str] = &[
     "the epistemic status of the census records materialized",
     "stages M3-M6: obligations, bindings, template expansion, profiles",
     "M11's deterministic reproduction check (a second, independent materialization compared byte for byte)",
-    "validation of a staged root (M13)",
+    "validation of the staged root: `validate` (M13) judges it",
+    "the manifest's profiles, external bindings, semantic barriers, dynamic obligations and compatibility requirements: none is materialized, the target kind is NONE and the compiler IR contract UNKNOWN",
 ];
 
 crate::vocabulary_enum! {
@@ -123,6 +144,10 @@ pub struct Materialization {
     pub precondition: Precondition,
     /// Only when STAGED.
     pub objects: Vec<StagedObject>,
+    /// G187, only when STAGED: `manifest.atlasx` over `objects`, and the AtlasX root identity it
+    /// carries. A staged root, never a published one.
+    pub manifest: Option<StagedObject>,
+    pub root_id: Option<IntegrityDigest>,
     pub functions: Vec<MaterializedFunction>,
     /// Selected roots of dimensions no materialized class carries, as `DIMENSION:record`.
     pub not_materialized: Vec<String>,
@@ -138,14 +163,25 @@ fn settle(mut defects: MaterializationDefects) -> MaterializationDefects {
 /// M11 (FUNCTIONS only): the staged objects of the parent in `inputs`, when the precondition
 /// admits it and every selected function materializes with lineage into the parent.
 pub fn materialize(inputs: &PreconditionInputs) -> Materialization {
-    use MaterializationDefect as D;
     let (precondition, admission) = evaluate(inputs);
+    materialize_over(precondition, admission.as_ref())
+}
+
+/// `materialize` over a precondition already decided, with its decoded parent when admitted.
+/// G187: the validator reproduces a root through this, over the admission it already holds.
+pub(crate) fn materialize_over(
+    precondition: Precondition,
+    admission: Option<&Admission>,
+) -> Materialization {
+    use MaterializationDefect as D;
     let mut result = Materialization {
         schema: MATERIALIZATION_SCHEMA_VERSION.into(),
         verdict: MaterializationVerdict::Refused,
         defects: MaterializationDefects::new(),
         precondition,
         objects: Vec::new(),
+        manifest: None,
+        root_id: None,
         functions: Vec::new(),
         not_materialized: Vec::new(),
         not_done: MATERIALIZE_NOT_DONE
@@ -178,9 +214,20 @@ pub fn materialize(inputs: &PreconditionInputs) -> Materialization {
             Err(found) => defects = found,
         }
     }
+    let mut root = None;
+    if let (Some(admitted), Some((staged, _))) = (&result.precondition.admitted, &object) {
+        match stage_manifest(admission, admitted, std::slice::from_ref(staged)) {
+            Ok(staged) => root = Some(staged),
+            Err(found) => defects.extend(encoding(found)),
+        }
+    }
     result.defects = settle(defects);
-    if let (true, Some((staged, decoded))) = (result.defects.is_empty(), object) {
+    if let (true, Some((staged, decoded)), Some((manifest, root_id))) =
+        (result.defects.is_empty(), object, root)
+    {
         result.verdict = MaterializationVerdict::Staged;
+        result.manifest = Some(manifest);
+        result.root_id = Some(root_id);
         result.functions = decoded
             .into_iter()
             .map(|r| MaterializedFunction {
@@ -335,6 +382,92 @@ fn select(
     (records, not_materialized, defects)
 }
 
+/// A codec refusal, each defect ENCODING_REFUSED with the codec's own.
+fn encoding(defects: codec::Defects) -> MaterializationDefects {
+    defects
+        .into_iter()
+        .map(|(defect, detail)| {
+            (
+                MaterializationDefect::EncodingRefused,
+                format!("{defect}: {detail}"),
+            )
+        })
+        .collect()
+}
+
+/// G187: the materialized scope (tag 5): the sealed scope, narrowed to the one class and the
+/// selection this slice materializes (RES-G185-CLOSURE-ROOTS-ONLY).
+pub fn scope_id(sealed_scope: &str) -> String {
+    format!("{sealed_scope}/FUNCTIONS/design-function-roots")
+}
+
+/// G187: the manifest this materializer writes for `objects` of the parent `admitted` (whose
+/// container is `admission`), with its root identity set. The validator builds the same one to
+/// judge a manifest's parent binding and fields.
+pub(crate) fn manifest_for(
+    admission: &Admission,
+    admitted: &AdmittedParent,
+    objects: Vec<ObjectEntry>,
+) -> Result<AtlasxManifest, codec::Defects> {
+    let digest = |value: &str| {
+        IntegrityDigest::parse(value)
+            .or_else(|e| codec::defect(codec::CodecDefect::MalformedValue, e))
+    };
+    let mut manifest = AtlasxManifest {
+        root_id: IntegrityDigest::blake3_256(&[0; 32]),
+        parent_root: digest(&admitted.parent_root)?,
+        genome_hash: IntegrityDigest::blake3_256(&admission.atlas.manifest.genome_hash),
+        design_id: admitted.design_id.clone(),
+        scope_id: scope_id(&admitted.scope),
+        target_kind: TARGET_KIND_NONE.into(),
+        materializer: MATERIALIZER_IDENTITY.into(),
+        materializer_version: MATERIALIZER_VERSION.into(),
+        materialization_schema: MATERIALIZATION_SCHEMA_VERSION.into(),
+        compiler_ir_contract: COMPILER_IR_CONTRACT_UNKNOWN.into(),
+        objects,
+        census_digest: digest(&admitted.census_digest)?,
+        revision: admitted.revision.clone(),
+        seal_id: admitted.seal_id.clone(),
+    };
+    manifest.root_id = manifest::root_identity(&manifest)?;
+    Ok(manifest)
+}
+
+/// G187, publication steps 4 and 5: the manifest over the staged `objects`, with its root
+/// identity. Step 6's verification is the runtime's: it reads `manifest.atlasx` back from staging
+/// and recomputes the root identity from what it read.
+fn stage_manifest(
+    admission: &Admission,
+    admitted: &AdmittedParent,
+    objects: &[StagedObject],
+) -> Result<(StagedObject, IntegrityDigest), codec::Defects> {
+    let entries = objects
+        .iter()
+        .map(|o| ObjectEntry {
+            relative_path: o.path.clone(),
+            object_class: o.object_class,
+            object_schema_version: codec::FUNCTIONS_SCHEMA_VERSION,
+            decoded_content_hash: o.digest.clone(),
+            decoded_length: o.decoded_length,
+            required: true,
+            logical_record_count: o.records as u64,
+        })
+        .collect();
+    let built = manifest_for(admission, admitted, entries)?;
+    let bytes = manifest::encode_manifest(&built)?;
+    let header = codec::ObjectHeader::parse(&bytes).expect("the writer writes a header");
+    let staged = StagedObject {
+        path: MANIFEST_FILE.into(),
+        address: header.address(),
+        digest: header.digest(),
+        object_class: CLASS_ROOT_MANIFEST,
+        decoded_length: header.decoded_length,
+        records: 1,
+        bytes,
+    };
+    Ok((staged, built.root_id))
+}
+
 /// The FUNCTIONS object of `records`, read back through the codec, with its lineage checked
 /// against `parent` and `design`.
 fn stage(
@@ -342,13 +475,6 @@ fn stage(
     design: &SelectedDesign,
     records: &[FunctionSignatureRecord],
 ) -> Result<(StagedObject, Vec<FunctionSignatureRecord>), MaterializationDefects> {
-    use MaterializationDefect as D;
-    let encoding = |defects: codec::Defects| -> MaterializationDefects {
-        defects
-            .into_iter()
-            .map(|(defect, detail)| (D::EncodingRefused, format!("{defect}: {detail}")))
-            .collect()
-    };
     let bytes = codec::encode_functions(records).map_err(encoding)?;
     let report = codec::decode(&bytes);
     if report.verdict != CodecVerdict::Decoded {

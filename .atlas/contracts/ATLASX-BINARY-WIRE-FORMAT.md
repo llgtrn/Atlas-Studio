@@ -305,6 +305,8 @@ Tag 1 is excluded from the root-ID preimage to avoid self-reference.
 
 All other semantic fields are included.
 
+Implementation status (G187, ADR 0099): `atlas_core::atlasx::manifest` writes and reads ROOT_MANIFEST (class 1, object schema 1) through the object codec's framing, with exactly one root-manifest record. It declares tags 1 to 10 and 14 as numbered here, all required. It adds tags 17 (parent census digest), 18 (parent revision) and 19 (parent seal id), also required, so that the admitted parent binding is canonical. Tags 11, 12, 13, 15 and 16 are not declared: nothing materializes them, and a manifest that carries one is refused as an undeclared field. The target kind is `NONE` and the compiler IR contract `UNKNOWN`. Entries are sorted by class, then decoded hash, then path, and two entries with one path are refused.
+
 ## ObjectEntry
 
 Each manifest `object_entry` nested record MUST contain:
@@ -356,6 +358,8 @@ The digest algorithm is the one declared by `manifest.atlasx`.
 After computing the root ID, tag 1 stores that exact digest/identity.
 
 A reader MUST recompute and compare it.
+
+Implementation status (G187, ADR 0099): `atlas_core::atlasx::manifest::root_identity` is the BLAKE3-256 of the canonical root-manifest record payload with field 1 omitted: every other field, framed, in ascending tag order, so it includes tags 17 to 19. The validator recomputes it and refuses a mismatch (`ROOT_ID_MISMATCH`).
 
 ## Object content identity
 
@@ -443,7 +447,7 @@ Required order:
 
 A manifest MUST NOT reference missing/unverified required objects.
 
-Implementation status (G185, ADR 0097): `runtime::atlasx::materialize` performs steps 1 to 3 for one FUNCTIONS object. It creates the object new in a staging directory that must be absent or empty, at `functions/<decoded-content-hash-hex>.atlasx`, and requires it to decode when read back under that address name. On any staging failure it removes what it wrote. Steps 4 to 8 (manifest, root identity, publication, advertisement) are not implemented, so nothing is published or advertised.
+Implementation status (G185, ADR 0097): `runtime::atlasx::materialize` performs steps 1 to 3 for one FUNCTIONS object. It creates the object new in a staging directory that must be absent or empty, at `functions/<decoded-content-hash-hex>.atlasx`, and requires it to decode when read back under that address name. On any staging failure it removes what it wrote. Steps 4 to 8 (manifest, root identity, publication, advertisement) are not implemented, so nothing is published or advertised. G187 (ADR 0099): steps 4 to 6 follow in staging. The manifest over the staged objects is built with its root identity, written last (created new, synced) as `manifest.atlasx`, and read back: it must decode and recompute to the same root identity. Steps 7 and 8 (atomic publish or switch, advertisement) are not implemented. A staged root is never published or advertised.
 
 ## Reader verification order
 
@@ -470,6 +474,19 @@ manifest header/magic/version
 Failure at a required step invalidates the root.
 
 Implementation status (G183, ADR 0095): `atlas_core::atlasx::codec` (`atlas-systemizer atlasx codec`) writes and reads one object class, FUNCTIONS, with one record kind, FUNCTION_SIGNATURE. It verifies the per-object steps: header, bounds, decoded hash, record framing, field framing and class/schema constraints. It also re-encodes and requires byte equality, so no non-canonical form is accepted. Minor 0 is the only minor, so it refuses every undeclared field, optional or required. The manifest steps, root identity, cross-object closure and every other class are not implemented (M11, M13).
+
+Implementation status (G187, ADR 0099): `atlas_core::atlasx::validate` (`atlas-systemizer atlasx validate`) follows this order over one staged root of the FUNCTIONS class, against the parent's inputs:
+
+- the manifest's header, bounds, hash, framing, schema and canonical form;
+- the recomputed root ID;
+- parent compatibility: the precondition is re-run, and the manifest's parent root, Genome hash, census digest, revision, seal, design and scope must be the admitted parent's;
+- object-entry paths, which must be exactly canonical;
+- presence of every required object, and no entry outside the manifest (a deviation: unlisted debug files, directories holding no listed object and non-UTF-8 names are refused; the runtime checks each entry's type and identity at listing and again at open, and a concurrent writer is outside the model);
+- each object through the codec under its address name, with the entry describing it;
+- lineage closure against the parent, and identity uniqueness across objects;
+- last, reproduction: the admitted parent is re-materialized in memory, and the root must equal it byte for byte, records, objects and manifest (`ROOT_NOT_REPRODUCED`).
+
+FUNCTIONS has no cross-object reference beyond lineage. Dynamic and external boundaries, semantic barriers and compiler-contract compatibility are not verified: the manifest carries none of them, and the compiler contract is `UNKNOWN`. Every verdict lists these. An entry of another class is refused, never validated.
 
 ## Canonical versus noncanonical files
 

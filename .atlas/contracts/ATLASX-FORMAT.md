@@ -472,6 +472,19 @@ An AtlasX validator MUST reject at least:
 - missing required semantic barrier;
 - compiler-contract incompatibility.
 
+Implementation status (G187, ADR 0099): `atlas_core::atlasx::validate` rejects the following, for the FUNCTIONS class only:
+
+- manifest/schema incompatibility (`MANIFEST_REFUSED`, `SCHEMA_INCOMPATIBLE`);
+- a parent Atlas mismatch (`PARENT_NOT_ADMITTED`, `PARENT_MISMATCH`);
+- a Genome hash other than the parent's (`PARENT_MISMATCH`; Genome compatibility itself is not verified);
+- a missing required object (`OBJECT_MISSING`);
+- lineage that does not resolve (`LINEAGE_OUTSIDE_PARENT`, `LINEAGE_NOT_SELECTED`);
+- a duplicate identity (`DUPLICATE_IDENTITY`);
+- an object hash mismatch (`OBJECT_REFUSED`, `ENTRY_MISMATCH`);
+- a root that is not the one the materializer reproduces for the admitted parent (`ROOT_NOT_REPRODUCED`).
+
+Hidden obligations, dynamic boundaries, semantic barriers and compiler-contract compatibility are not checked, because the manifest carries none of them. Every verdict says so.
+
 ## Blueprint evolution
 
 The ATLASX blueprint may change when census demonstrates a better executable representation or materialization strategy.

@@ -142,6 +142,13 @@ fn an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent
     // Its verdict is typed vocabulary on the wire.
     let text = serde_json::to_value(&m).unwrap();
     assert_eq!(text["verdict"], "STAGED");
+    // G187: the manifest over the object, and the root identity it carries (pinned and
+    // validated in `validate::tests`).
+    let manifest = m.manifest.as_ref().expect("a manifest");
+    let (_, read) = crate::atlasx::manifest::read_manifest(&manifest.bytes).unwrap();
+    assert_eq!(Some(&read.root_id), m.root_id.as_ref());
+    assert_eq!(read.objects.len(), 1);
+    assert_eq!(read.objects[0].relative_path, object.path);
 }
 
 #[test]
@@ -156,6 +163,7 @@ fn a_parent_the_precondition_refuses_is_refused_before_any_object_exists() {
         "NOT_SEALED: seal status UNSEALED_CENSUS_CONTAINER"
     );
     assert!(m.objects.is_empty() && m.functions.is_empty());
+    assert!(m.manifest.is_none() && m.root_id.is_none());
     assert_eq!(m.precondition.verdict, PreconditionVerdict::Refused);
     // No design.
     let m = run(&f, &f.sealed, None);
