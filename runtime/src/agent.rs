@@ -1866,6 +1866,65 @@ fn run(s: &core::store::Store) { s.save(); }
         assert!(!invariant.evidence.is_empty());
     }
 
+    /// G186 (ADR 0098): every call of a JavaScript chain is its own call site. The chain's calls
+    /// shared one anchor (the expression's first token), so `inner().m()` recorded only `.m`:
+    /// `impact` counted no caller and no candidate site for `inner`, and `hypothesis invokes`
+    /// reported "0 unresolved call sites" spelled with its name.
+    #[test]
+    fn the_inner_calls_of_a_javascript_chain_reach_impact_and_hypotheses() {
+        let dir = fixture("js-chain", ADL, CORE_LIB);
+        let path = dir.join("web/chain.js");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(
+            &path,
+            "function target() { return 1; }\n\
+             function inner() { return { m() { return target(); } }; }\n\
+             function viaChain() { return inner().m(); }\n\
+             function viaMember(o) { return o.inner().m(); }\n\
+             function viaCurried(make) { return make()().m(); }\n",
+        )
+        .unwrap();
+        let model = world_model(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let inner = function(&model, "inner");
+        let via_chain = function(&model, "viaChain");
+        assert_eq!(via_chain.calls, std::slice::from_ref(&inner.id));
+        assert_eq!(via_chain.unresolved_calls, 1);
+        assert_eq!(via_chain.unresolved_callee_names.get("m"), Some(&1));
+        let via_member = function(&model, "viaMember");
+        assert_eq!(via_member.unresolved_calls, 2);
+        assert_eq!(via_member.unresolved_callee_names.get("inner"), Some(&1));
+        // `make()()`: the outer call's callee is a call, a non-name site of its own.
+        let via_curried = function(&model, "viaCurried");
+        assert_eq!(
+            (
+                via_curried.unresolved_calls,
+                via_curried.unnamed_unresolved_calls
+            ),
+            (3, 1)
+        );
+        let frontier = lens::impact(&model, &["fn:inner"]).unwrap().frontier;
+        assert_eq!(frontier.callers, 1);
+        assert!(frontier.nearest.items.iter().any(|f| f.id == via_chain.id));
+        assert_eq!(frontier.candidate_sites, 1);
+        assert!(
+            frontier
+                .candidate_callers
+                .items
+                .iter()
+                .any(|f| f.id == via_member.id)
+        );
+        let check = |h: &str| lens::hypothesis(&model, h).unwrap();
+        assert_eq!(check("invokes:viaChain:inner").outcome, "VALIDATED");
+        let open = check("invokes:viaMember:inner");
+        assert_eq!(open.outcome, "STILL_HYPOTHESIZED");
+        assert!(
+            open.note.starts_with("1 unresolved call sites"),
+            "{}",
+            open.note
+        );
+    }
+
     /// A world model written before callee names existed (G122) claims no narrowing: every
     /// unresolved site without a recorded name may reach anything.
     #[test]

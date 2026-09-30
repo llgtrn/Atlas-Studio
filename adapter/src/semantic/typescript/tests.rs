@@ -431,3 +431,227 @@ fn every_closure_has_an_enclosing_region() {
     assert!(closure_scopes.contains("fn {module}"));
     assert!(closure_scopes.contains("fn go"));
 }
+
+// --- G186 CALL site identity: every call of a chain is its own call site -----------------------
+// A call site was anchored at its expression's first token, which every call of a chain shares
+// (`inner().m()` and `inner()` both start at `inner`), so the chain collapsed into one CALL record:
+// the outer call kept the identity and the inner calls were silently erased (1,018 of the donor's
+// 30,118 call and `new` sites, 21 of the 210 in Atlas's own browser scripts). The anchor is now
+// the callee's name token, as `CallSiteIdentity::span` (G74) and the Rust extractor define it
+// (ADR 0098).
+
+/// (caller, callee spelling, line, column, the token at the anchor), in source order.
+fn call_anchors(
+    batch: &ExtractionBatch,
+    source: &str,
+) -> Vec<(String, String, usize, usize, String)> {
+    let lines: Vec<&str> = source.lines().collect();
+    let mut out: Vec<_> = batch
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Call(h) => {
+                let span = &h.subject.span;
+                let rest = &lines[span.line - 1][span.column..];
+                let word: String = rest
+                    .chars()
+                    .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '$' || *c == '#')
+                    .collect();
+                let token = if word.is_empty() {
+                    rest.chars().next().map(String::from).unwrap_or_default()
+                } else {
+                    word
+                };
+                Some((
+                    name_of(batch, &h.subject.function),
+                    h.subject.callee_spelling.clone().unwrap_or_default(),
+                    span.line,
+                    span.column,
+                    token,
+                ))
+            }
+            _ => None,
+        })
+        .collect();
+    out.sort_by_key(|c| (c.2, c.3));
+    out
+}
+
+const CHAINS: &str = r#"function inner() { return { m() { return 1; } }; }
+function viaChain() { return inner().m(); }
+async function hover(page, target) { await page.locator(target).first().hover(); }
+function viaNew() { return new Box().open(); }
+class Box { open() { return 1; } }
+(async () => { await 1; })().catch(fail);
+function curried(a) { return a()(); }
+function others(f, k, o, ns) { (f)(1); o[k](); new ns.C(); new (f())(); new Box; o?.m(); f()`t`; new (f()); }
+class Kid extends Box { #p() { return 1; } constructor() { super(); this.#p(); import("x"); } }
+"#;
+
+#[test]
+fn every_call_of_a_chain_is_its_own_call_site_anchored_at_the_callee_name() {
+    for path in [
+        "src/chains.js",
+        "src/chains.ts",
+        "src/chains.tsx",
+        "src/chains.mjs",
+    ] {
+        let batch = extract(path, CHAINS);
+        let got: Vec<(String, usize, usize, String)> = call_anchors(&batch, CHAINS)
+            .into_iter()
+            .map(|(caller, _, line, column, token)| (caller, line, column, token))
+            .collect();
+        let want: Vec<(&str, usize, usize, &str)> = vec![
+            ("viaChain", 2, 29, "inner"),
+            ("viaChain", 2, 37, "m"),
+            ("hover", 3, 48, "locator"),
+            ("hover", 3, 64, "first"),
+            ("hover", 3, 72, "hover"),
+            ("viaNew", 4, 31, "Box"),
+            ("viaNew", 4, 37, "open"),
+            // The IIFE's callee is not a name: anchored at its own argument list.
+            ("{module}", 6, 26, "("),
+            ("{module}", 6, 29, "catch"),
+            ("curried", 7, 29, "a"),
+            // `a()()`: the outer call's callee is a call, anchored at its own `(`.
+            ("curried", 7, 32, "("),
+            ("others", 8, 34, "("),
+            ("others", 8, 43, "("),
+            ("others", 8, 54, "C"),
+            ("others", 8, 64, "f"),
+            // `new (f())()`: a constructor that is not a name, anchored at its argument list.
+            ("others", 8, 68, "("),
+            ("others", 8, 76, "Box"),
+            ("others", 8, 84, "m"),
+            ("others", 8, 89, "f"),
+            // A call tagging a template: the template is its argument list.
+            ("others", 8, 92, "`"),
+            // `new (f())`: neither a name nor an argument list, anchored at its `new`.
+            ("others", 8, 97, "new"),
+            ("others", 8, 102, "f"),
+            ("constructor", 9, 59, "super"),
+            ("constructor", 9, 73, "#p"),
+            ("constructor", 9, 79, "import"),
+        ];
+        let want: Vec<(String, usize, usize, String)> = want
+            .into_iter()
+            .map(|(c, l, col, t)| (c.to_owned(), l, col, t.to_owned()))
+            .collect();
+        assert_eq!(got, want, "{path}");
+        // Every anchor is a distinct identity.
+        let ids: BTreeSet<&str> = batch
+            .observations
+            .iter()
+            .filter(|o| matches!(o, SemanticObservation::Call(_)))
+            .map(|o| o.record_id().as_str())
+            .collect();
+        assert_eq!(ids.len(), want.len(), "{path}");
+    }
+}
+
+/// The minimal G186 repro: `inner().m()` recorded only `.m`, so `inner` had no caller at all.
+#[test]
+fn the_inner_call_of_a_chain_is_resolved_and_the_outer_stays_unresolved() {
+    let batch = extract(
+        "src/mini.js",
+        "function target() { return 1; }\nfunction inner() { return { m() { return target(); } }; }\nfunction viaChain() {\n  return inner().m();\n}\n",
+    );
+    let got = calls(&batch);
+    let via: Vec<_> = got.iter().filter(|c| c.0 == "viaChain").collect();
+    assert_eq!(via.len(), 2, "{got:#?}");
+    assert_eq!(
+        (via[0].1.as_str(), via[0].2.clone(), via[0].3),
+        (".m", Vec::<String>::new(), EpistemicStatus::Observed)
+    );
+    assert_eq!(
+        (via[1].1.as_str(), via[1].2.clone(), via[1].3),
+        ("inner", vec!["inner".to_owned()], EpistemicStatus::Derived)
+    );
+}
+
+/// A call whose callee is a bare name keeps the identity it had before G186: its name token is
+/// the expression's first token.
+#[test]
+fn a_bare_call_keeps_its_identity() {
+    let source =
+        "function f() { return 1; }\nfunction g(x) {\n  f();\n  return  f(x) + f(f());\n}\n";
+    let batch = extract("src/bare.js", source);
+    let spans: Vec<(usize, usize)> = call_anchors(&batch, source)
+        .into_iter()
+        .map(|c| (c.2, c.3))
+        .collect();
+    // The start of each call expression, counted by hand.
+    assert_eq!(spans, [(3, 2), (4, 10), (4, 17), (4, 19)]);
+    let caller = batch
+        .observations
+        .iter()
+        .find_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == "g" => {
+                Some(h.record_id.clone())
+            }
+            _ => None,
+        })
+        .unwrap();
+    let first = batch
+        .observations
+        .iter()
+        .find_map(|o| match o {
+            SemanticObservation::Call(h) if h.subject.span.line == 3 => Some(h),
+            _ => None,
+        })
+        .unwrap();
+    let pre_g186 = CallSiteIdentity {
+        span: SourceSpan {
+            path: "src/bare.js".into(),
+            line: 3,
+            column: 2,
+        },
+        function: caller,
+        ..first.subject.clone()
+    };
+    assert_eq!(
+        first.record_id,
+        SemanticRecordId::new(SemanticDimension::Call, &pre_g186.identity_key())
+    );
+}
+
+/// Every call and `new` expression of Atlas's own browser scripts is one CALL record, counted by
+/// an enumeration of every syntax node independent of the extractor's walker.
+#[test]
+fn every_call_of_the_browser_scripts_is_a_call_record() {
+    for (path, source) in [
+        (
+            "adapter/src/browser/observe.js",
+            include_str!("../../browser/observe.js"),
+        ),
+        (
+            "adapter/src/browser/measure_layout.js",
+            include_str!("../../browser/measure_layout.js"),
+        ),
+        (
+            "adapter/src/browser/webdriver.js",
+            include_str!("../../browser/webdriver.js"),
+        ),
+    ] {
+        let mut parser = Parser::new();
+        parser.set_language(&grammar(path)).unwrap();
+        let tree = parser.parse(source, None).unwrap();
+        let mut expressions = 0;
+        let mut stack = vec![tree.root_node()];
+        while let Some(node) = stack.pop() {
+            if matches!(node.kind(), "call_expression" | "new_expression") {
+                expressions += 1;
+            }
+            let mut cursor = node.walk();
+            stack.extend(node.children(&mut cursor));
+        }
+        let batch = extract(path, source);
+        let records = batch
+            .observations
+            .iter()
+            .filter(|o| matches!(o, SemanticObservation::Call(_)))
+            .count();
+        assert!(expressions > 0, "{path}");
+        assert_eq!(records, expressions, "{path}");
+    }
+}

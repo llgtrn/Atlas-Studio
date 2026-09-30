@@ -14,7 +14,9 @@
 //! - SYMBOL: definitions of functions, classes, interfaces, type aliases, enums and module-level
 //!   variables; imported names as declarations under `import <source>`.
 //! - CALL: every call and `new` site, attributed to its innermost region, with its callee
-//!   spelling (`name`, `.method`, `Class::constructor`). A bare identifier is resolved only to a
+//!   spelling (`name`, `.method`, `Class::constructor`), anchored at the callee's name token so
+//!   the calls of a chain stay distinct sites (G186, ADR 0098; see `call_anchor`). A bare
+//!   identifier is resolved only to a
 //!   function declared at module level in the same file whose name is bound exactly once in the
 //!   file and never assigned: JavaScript's lexical scoping then fixes the callee (DERIVED).
 //!   Everything else -- member calls, imported callees, callbacks, `this`, dynamic property
@@ -844,7 +846,7 @@ impl<'a> Context<'a> {
         let caller = self.region(at);
         self.pending.push(PendingCall {
             caller,
-            span: self.span(node),
+            span: self.span(call_anchor(node)),
             scope: at.scope.clone(),
             spelling,
             target,
@@ -1239,6 +1241,47 @@ impl Header {
             provenance: self.provenance,
         }
     }
+}
+
+/// The token a call site is anchored at (its `CallSiteIdentity.span`), per the G74 contract of
+/// `atlas_core::CallSiteIdentity::span` and like the Rust extractor's `call_anchor` (G186, ADR
+/// 0098):
+///
+/// - `f()`, `f<T>()`, `f?.()`, `` f`..` ``: the callee identifier `f`;
+/// - `x.m()`, `x?.m()`, `x.#m()`: the property name `m`;
+/// - `new C()`, `new C`: the constructor name `C`; `new ns.C()`: the property `C`;
+/// - `super()`, `import(..)`: the keyword, which is the whole callee;
+/// - any other callee (`(f)()`, `a()()`, `(async () => ..)()`, `a[k]()`, `new (make())()`): the
+///   argument list's first token -- its `(`, or a tagged template's backtick -- and, for a
+///   `new` without arguments whose constructor is not a name, the `new` keyword.
+///
+/// Each of these tokens belongs to exactly one call or `new` expression, so the calls of a chain
+/// (`page.locator(s).first().hover()`, `new Box().open()`, `inner().m()`), which all START at the
+/// same token, stay distinct call sites. The expression's start cannot serve: anchoring there gave
+/// every call of a chain one identity, the first recorded (the outermost) kept it and the inner
+/// calls were silently erased (measured G186: 1,018 of the donor's 30,118 call and `new` sites).
+fn call_anchor(node: Node) -> Node {
+    let callee = match node.kind() {
+        "new_expression" => node.child_by_field_name("constructor"),
+        _ => node.child_by_field_name("function"),
+    };
+    if let Some(callee) = callee {
+        match callee.kind() {
+            "identifier" | "super" | "import" => return callee,
+            "member_expression" => {
+                if let Some(property) = callee.child_by_field_name("property").filter(|p| {
+                    matches!(
+                        p.kind(),
+                        "property_identifier" | "private_property_identifier"
+                    )
+                }) {
+                    return property;
+                }
+            }
+            _ => {}
+        }
+    }
+    node.child_by_field_name("arguments").unwrap_or(node)
 }
 
 /// A callee expression's spelling on one line, bounded.
