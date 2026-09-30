@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G182"
+current_generation = "G183"
 
 [[generation]]
 id = "G35"
@@ -4518,3 +4518,54 @@ correctness_critical = false
 frontier_rate = 0.0
 frontier_class = "LOW_FRONTIER_PROGRESS"
 note = "a replay that falsified nothing: machine stages 318 s (materialize 3, census 8, the two SCIP indexes 178 and 128, differential 1), honestly LOW_FRONTIER_PROGRESS; wall clock from the measurement lane's launch to the roadmap commit, measured; the clean-HEAD evidence run follows the roadmap commit and is not included"
+
+[[generation]]
+id = "G183"
+kind = "CREATION"
+lane = "CREATION"
+base_commit = "51cf38a700b7b605c49d228e9fdf64954142ce15"
+priority = "P2"
+serves = "DEBT-ATLASX, construction node M12: the CREATION selection after G181 ([creation_selection] score 81)"
+objective = "NA-ATLASX-CODEC: the .atlasx object codec for one object class (FUNCTIONS: a header and one typed record section) encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a fixture round-trip byte for byte, a flipped byte refused by its digest and an undeclared field refused"
+writer = "coordinator (sole writer); one implementation lane, one independent review lane"
+evidence = ".atlas/evidence/verification/G183-atlasx-codec.json"
+self_recensus = ".atlas/evidence/census/G183/recensus.json"
+
+[generation.verification]
+pre_census = "G182 post digest"
+atlas_first = "no .atlasx object could be written or read: M12 MISSING since G116, the precondition gate (M10, G179) the only AtlasX code"
+change = "core::atlasx::codec encodes FUNCTIONS objects (FUNCTION_SIGNATURE records with PARAM and LINEAGE_REF sub-records) from a construction module that verifies (its identity and validate_module), per ATLASX-BINARY-WIRE-FORMAT: the 80-byte header, record and tagged-field framing, codec NONE, the native BLAKE3 of the decoded payload as the address; the reader follows the contract's order and accepts only bytes that re-encode to themselves, refusing with typed CodecDefects; runtime::atlasx reads at most a header, the largest payload and one byte; atlas-systemizer atlasx codec --encode|--decode (ADR 0095)"
+oracle = "the SR1-3 construction module of G181 encodes to the committed fixture byte for byte (465 bytes, address 5b822360...), its payload digest equal under the native BLAKE3 and the reference crate, and an independent parse outside Rust found the contract's offsets"
+falsification = "every single-byte flip of the fixture refused (payload and hash bytes DIGEST_MISMATCH, other header bytes their field's defect), every truncation refused, an undeclared field refused whether marked required or optional, a forged or invalid source module refused; 55 of 56 mutants killed, the survivor equivalent; an independent review found no unsoundness and eight wording, completeness and resource findings, all fixed but the bounded frame-memory growth (RES-G183-FRAME-MEMORY)"
+boundary = "one class, no bodies, no manifest, root identity, cross-object closure or ZSTD: DECODED is not validated and says so (RES-G183-DECODED-IS-NOT-VALIDATED, RES-G183-BODIES-NOT-ENCODED); the materializer M11 and validator M13 stay MISSING; five residuals recorded"
+debts = "DEBT-ATLASX stays M2_PARTIAL (no maturity step: no validated .atlasx is closer than a codec for one class), last advance G183; M12 EXISTS; next generation G184 FULL_OSS_REPLAY verus-lang/verus"
+review = "DEBT-PERSISTENCE reviewed at its cadence and CONFIRMED against the code: no commit to the persistence walker since G170, the derived durable sites grown with the code they read, untyped receivers still unresolved (evidence/census/G183/debt-review.json)"
+proof = "PROVEN (post 8292a7ef...): proven after the last source change; the codec, its runtime surface and command censused"
+
+[generation.value]
+new_capability = "the AtlasX object codec for the FUNCTIONS class (command: atlas-systemizer atlasx codec)"
+vertical_stage = "ATLASX"
+construction_nodes_completed = ["M12"]
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 5
+wrong_claims_removed = 0
+wall_clock_s = 5228
+machine_s = 1
+proof_s = 2959
+review_s = 317
+residuals_deferred = 5
+correctness_critical = false
+frontier_rate = 3.44
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the implementation lane's launch to the roadmap commit, measured; proof_s = four mutation runs 1,138 + the lane's gates 344 + the self-recensus 196 + the final full suite 1,281; machine_s = the fixture encode and decode through the command; review_s the independent review lane; the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 7093
+after = 7270
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7013
+after = 7232

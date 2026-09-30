@@ -1,0 +1,1285 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G183",
+  "base_revision": "82b09e905b75ae34ce0e94e897b2869d57acea7e",
+  "candidate_revision": "51cf38a700b7b605c49d228e9fdf64954142ce15",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+  "after_census_digest": "blake3-256:8292a7ef786929f47d596afeb41f130d40fffaa1c3fe5a417a2addff093f3325",
+  "replay_digest": "blake3-256:8292a7ef786929f47d596afeb41f130d40fffaa1c3fe5a417a2addff093f3325",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlasx/codec.rs",
+      "core/src/atlasx/codec/fixture.bin",
+      "core/src/atlasx/codec/fixture_module.json",
+      "core/src/atlasx/codec/tests.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 177,
+      "fact:FunctionSignature|OBSERVED": 90,
+      "fact:SemanticObligation|OBSERVED": 9,
+      "fact:SemanticObligation|UNKNOWN": 27,
+      "fact:SemanticObligation|UNSUPPORTED": 15,
+      "fact:SourceArtifact|OBSERVED": 7,
+      "fact:Symbol|OBSERVED": 304,
+      "fact:Type|DERIVED": 72,
+      "fact:Type|OBSERVED": 149,
+      "record:CALL|DERIVED": 455,
+      "record:CALL|OBSERVED": 1284,
+      "record:CONTROL_FLOW|INFERRED": 180,
+      "record:CONTROL_FLOW|OBSERVED": 396,
+      "record:DATA_FLOW|OBSERVED": 2615,
+      "record:EFFECT|DERIVED": 17,
+      "record:EFFECT|INFERRED": 195,
+      "record:FUNCTION_IDENTITY|OBSERVED": 177,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 90,
+      "record:OWNERSHIP|OBSERVED": 794,
+      "record:PERSISTENCE|DERIVED": 8,
+      "record:RESOURCE|DERIVED": 1,
+      "record:RESOURCE|INFERRED": 1,
+      "record:STATE|OBSERVED": 39,
+      "record:SYMBOL|OBSERVED": 304,
+      "record:TYPE|DERIVED": 72,
+      "record:TYPE|OBSERVED": 149
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 9241,
+    "graph_nodes": 6917
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CALL|UNSUPPORTED": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONCURRENCY|UNSUPPORTED": 1,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNSUPPORTED": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNSUPPORTED": 1,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:EFFECT|UNSUPPORTED": 1,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_IDENTITY|UNSUPPORTED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:OWNERSHIP|UNSUPPORTED": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:PERSISTENCE|UNSUPPORTED": 1,
+    "obligation:RESOURCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNSUPPORTED": 3,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:STATE|UNSUPPORTED": 1,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:SYMBOL|UNSUPPORTED": 1,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2,
+    "obligation:TYPE|UNSUPPORTED": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/read_uvarint()."
+      ],
+      "after": [
+        "core atlas/read_uvarint()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/u16_at()."
+      ],
+      "after": [
+        "core atlas/u16_at()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/u32_at()."
+      ],
+      "after": [
+        "core atlas/u32_at()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/u64_at()."
+      ],
+      "after": [
+        "core atlas/u64_at()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/uvarint()."
+      ],
+      "after": [
+        "core atlas/uvarint()."
+      ],
+      "evidence": "visibility"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` tests/atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:Declared<'f, 'a>`/embedded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:Declared<'f, 'a>`/optional_hash()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:Declared<'f, 'a>`/optional_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:Declared<'f, 'a>`/raw()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:Declared<'f, 'a>`/text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:Declared<'f, 'a>`/uvarint()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:FunctionSignatureRecord`/canonicalize()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:FunctionSignatureRecord`/of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:ObjectHeader`/address()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:ObjectHeader`/defects()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:ObjectHeader`/digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:ObjectHeader`/functions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:ObjectHeader`/parse()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:ObjectHeader`/to_bytes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordDef`/field()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/embedded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/frame()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/optional_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/payload()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/put()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/`impl:RecordWriter`/text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/declared()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/decode()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/decode_named()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/decode_signature()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/defect()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/encode_functions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/encode_module()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/frames()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/not_verified()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/object_address()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/opt()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/record_def()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/records()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/req()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/schema_digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/settle()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/signature_record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/`impl:Rng`/below()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/`impl:Rng`/next()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/a_missing_required_field_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/a_rehashed_payload_edit_passes_the_digest_and_is_caught_later()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/an_undeclared_field_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/arbitrary_input_is_refused_never_a_panic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/duplicate_identities_empty_objects_and_non_canonical_forms_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/encoding_is_deterministic_and_independent_of_input_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/every_dispatch_code_reads_back()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/every_flipped_byte_is_refused_with_its_defect()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/every_report_says_what_it_does_not_verify()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/every_truncation_and_extension_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/field()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/field_flags_must_be_the_declared_ones()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/fixture_record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/forge()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/framing_defects_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/header_defect()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/header_fields_are_refused_each_with_its_defect()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/kinds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/malformed_values_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/module()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/nesting_deeper_than_the_limit_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/out_of_order_and_duplicate_tags_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/oversized_lengths_are_refused_before_anything_is_read()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/permute()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/raw_field()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/raw_record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/record_kinds_versions_and_flags_are_the_declared_ones()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/reidentified()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/several()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/signature()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/signature_fields()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/signature_with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/the_address_is_the_native_blake3_of_the_payload_and_agrees_with_the_reference_crate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/the_fixture_module_encodes_to_the_committed_bytes_and_reads_back()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/the_header_is_the_contract_layout()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/the_schema_table_is_pinned_to_its_version()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/the_source_module_must_verify_before_it_is_encoded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/the_writer_refuses_what_it_cannot_write_canonically()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/wire_types_outside_the_table_or_the_schema_are_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlasx/codec/tests/with_header()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/decode_object()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/encode_module()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/read_at_most()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/tests/an_object_file_is_read_only_up_to_the_limit()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime atlasx/tests/scratch()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/atlasx/codec.rs: 0 -> 15",
+      "core/src/atlasx/codec/fixture_module.json: 0 -> 13",
+      "core/src/atlasx/codec/tests.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2401,
+    "total_after": 2443
+  },
+  "intent": {
+    "objective": "CREATION NA-ATLASX-CODEC (M12)",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlasx/codec.rs",
+      "core/src/atlasx/codec/fixture.bin",
+      "core/src/atlasx/codec/fixture_module.json",
+      "core/src/atlasx/codec/tests.rs",
+      "core/src/atlasx/mod.rs",
+      "core/src/vocabulary/mod.rs",
+      "runtime/src/atlasx.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+diagnostic:UnsupportedLanguageOrProfile",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:RESOURCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/atlasx/codec.rs: the AtlasX object codec for the FUNCTIONS class: core::atlasx::codec, runtime::atlasx encode_module/decode_object, atlas-systemizer atlasx codec",
+      "core/src/atlasx/codec/fixture_module.json: the AtlasX object codec for the FUNCTIONS class: core::atlasx::codec, runtime::atlasx encode_module/decode_object, atlas-systemizer atlasx codec",
+      "core/src/atlasx/codec/tests.rs: the AtlasX object codec for the FUNCTIONS class: core::atlasx::codec, runtime::atlasx encode_module/decode_object, atlas-systemizer atlasx codec"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CHANGED core atlas/read_uvarint().",
+      "CHANGED core atlas/u16_at().",
+      "CHANGED core atlas/u32_at().",
+      "CHANGED core atlas/u64_at().",
+      "CHANGED core atlas/uvarint().",
+      "CREATED `apps/cli` tests/atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte().",
+      "CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/embedded().",
+      "CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/optional_hash().",
+      "CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/optional_text().",
+      "CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/raw().",
+      "CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/text().",
+      "CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/uvarint().",
+      "CREATED core atlasx/codec/`impl:FunctionSignatureRecord`/canonicalize().",
+      "CREATED core atlasx/codec/`impl:FunctionSignatureRecord`/of().",
+      "CREATED core atlasx/codec/`impl:ObjectHeader`/address().",
+      "CREATED core atlasx/codec/`impl:ObjectHeader`/defects().",
+      "CREATED core atlasx/codec/`impl:ObjectHeader`/digest().",
+      "CREATED core atlasx/codec/`impl:ObjectHeader`/functions().",
+      "CREATED core atlasx/codec/`impl:ObjectHeader`/parse().",
+      "CREATED core atlasx/codec/`impl:ObjectHeader`/to_bytes().",
+      "CREATED core atlasx/codec/`impl:RecordDef`/field().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/embedded().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/frame().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/new().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/optional_text().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/payload().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/put().",
+      "CREATED core atlasx/codec/`impl:RecordWriter`/text().",
+      "CREATED core atlasx/codec/declared().",
+      "CREATED core atlasx/codec/decode().",
+      "CREATED core atlasx/codec/decode_named().",
+      "CREATED core atlasx/codec/decode_signature().",
+      "CREATED core atlasx/codec/defect().",
+      "CREATED core atlasx/codec/encode_functions().",
+      "CREATED core atlasx/codec/encode_module().",
+      "CREATED core atlasx/codec/frames().",
+      "CREATED core atlasx/codec/not_verified().",
+      "CREATED core atlasx/codec/object_address().",
+      "CREATED core atlasx/codec/opt().",
+      "CREATED core atlasx/codec/read().",
+      "CREATED core atlasx/codec/record_def().",
+      "CREATED core atlasx/codec/records().",
+      "CREATED core atlasx/codec/req().",
+      "CREATED core atlasx/codec/schema_digest().",
+      "CREATED core atlasx/codec/settle().",
+      "CREATED core atlasx/codec/signature_record().",
+      "CREATED core atlasx/codec/tests/`impl:Rng`/below().",
+      "CREATED core atlasx/codec/tests/`impl:Rng`/next().",
+      "CREATED core atlasx/codec/tests/a_missing_required_field_is_refused().",
+      "CREATED core atlasx/codec/tests/a_rehashed_payload_edit_passes_the_digest_and_is_caught_later().",
+      "CREATED core atlasx/codec/tests/an_undeclared_field_is_refused().",
+      "CREATED core atlasx/codec/tests/arbitrary_input_is_refused_never_a_panic().",
+      "CREATED core atlasx/codec/tests/duplicate_identities_empty_objects_and_non_canonical_forms_are_refused().",
+      "CREATED core atlasx/codec/tests/encoding_is_deterministic_and_independent_of_input_order().",
+      "CREATED core atlasx/codec/tests/every_dispatch_code_reads_back().",
+      "CREATED core atlasx/codec/tests/every_flipped_byte_is_refused_with_its_defect().",
+      "CREATED core atlasx/codec/tests/every_report_says_what_it_does_not_verify().",
+      "CREATED core atlasx/codec/tests/every_truncation_and_extension_is_refused().",
+      "CREATED core atlasx/codec/tests/field().",
+      "CREATED core atlasx/codec/tests/field_flags_must_be_the_declared_ones().",
+      "CREATED core atlasx/codec/tests/fixture_record().",
+      "CREATED core atlasx/codec/tests/forge().",
+      "CREATED core atlasx/codec/tests/framing_defects_are_refused().",
+      "CREATED core atlasx/codec/tests/header_defect().",
+      "CREATED core atlasx/codec/tests/header_fields_are_refused_each_with_its_defect().",
+      "CREATED core atlasx/codec/tests/kinds().",
+      "CREATED core atlasx/codec/tests/malformed_values_are_refused().",
+      "CREATED core atlasx/codec/tests/module().",
+      "CREATED core atlasx/codec/tests/nesting_deeper_than_the_limit_is_refused().",
+      "CREATED core atlasx/codec/tests/out_of_order_and_duplicate_tags_are_refused().",
+      "CREATED core atlasx/codec/tests/oversized_lengths_are_refused_before_anything_is_read().",
+      "CREATED core atlasx/codec/tests/permute().",
+      "CREATED core atlasx/codec/tests/raw_field().",
+      "CREATED core atlasx/codec/tests/raw_record().",
+      "CREATED core atlasx/codec/tests/record().",
+      "CREATED core atlasx/codec/tests/record_kinds_versions_and_flags_are_the_declared_ones().",
+      "CREATED core atlasx/codec/tests/refused().",
+      "CREATED core atlasx/codec/tests/reidentified().",
+      "CREATED core atlasx/codec/tests/several().",
+      "CREATED core atlasx/codec/tests/signature().",
+      "CREATED core atlasx/codec/tests/signature_fields().",
+      "CREATED core atlasx/codec/tests/signature_with().",
+      "CREATED core atlasx/codec/tests/the_address_is_the_native_blake3_of_the_payload_and_agrees_with_the_reference_crate().",
+      "CREATED core atlasx/codec/tests/the_fixture_module_encodes_to_the_committed_bytes_and_reads_back().",
+      "CREATED core atlasx/codec/tests/the_header_is_the_contract_layout().",
+      "CREATED core atlasx/codec/tests/the_schema_table_is_pinned_to_its_version().",
+      "CREATED core atlasx/codec/tests/the_source_module_must_verify_before_it_is_encoded().",
+      "CREATED core atlasx/codec/tests/the_writer_refuses_what_it_cannot_write_canonically().",
+      "CREATED core atlasx/codec/tests/wire_types_outside_the_table_or_the_schema_are_refused().",
+      "CREATED core atlasx/codec/tests/with_header().",
+      "CREATED runtime atlasx/decode_object().",
+      "CREATED runtime atlasx/encode_module().",
+      "CREATED runtime atlasx/read_at_most().",
+      "CREATED runtime atlasx/tests/an_object_file_is_read_only_up_to_the_limit().",
+      "CREATED runtime atlasx/tests/scratch()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlasx/codec.rs",
+    "path core/src/atlasx/codec/fixture.bin",
+    "path core/src/atlasx/codec/fixture_module.json",
+    "path core/src/atlasx/codec/tests.rs",
+    "path core/src/atlasx/mod.rs",
+    "path core/src/vocabulary/mod.rs",
+    "path runtime/src/atlasx.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +diagnostic:UnsupportedLanguageOrProfile",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.extraction.unsupported-language|UNSUPPORTED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:RESOURCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CHANGED core atlas/read_uvarint().",
+    "entity CHANGED core atlas/u16_at().",
+    "entity CHANGED core atlas/u32_at().",
+    "entity CHANGED core atlas/u64_at().",
+    "entity CHANGED core atlas/uvarint().",
+    "entity CREATED `apps/cli` tests/atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte().",
+    "entity CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/embedded().",
+    "entity CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/optional_hash().",
+    "entity CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/optional_text().",
+    "entity CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/raw().",
+    "entity CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/text().",
+    "entity CREATED core atlasx/codec/`impl:Declared<'f, 'a>`/uvarint().",
+    "entity CREATED core atlasx/codec/`impl:FunctionSignatureRecord`/canonicalize().",
+    "entity CREATED core atlasx/codec/`impl:FunctionSignatureRecord`/of().",
+    "entity CREATED core atlasx/codec/`impl:ObjectHeader`/address().",
+    "entity CREATED core atlasx/codec/`impl:ObjectHeader`/defects().",
+    "entity CREATED core atlasx/codec/`impl:ObjectHeader`/digest().",
+    "entity CREATED core atlasx/codec/`impl:ObjectHeader`/functions().",
+    "entity CREATED core atlasx/codec/`impl:ObjectHeader`/parse().",
+    "entity CREATED core atlasx/codec/`impl:ObjectHeader`/to_bytes().",
+    "entity CREATED core atlasx/codec/`impl:RecordDef`/field().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/embedded().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/frame().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/new().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/optional_text().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/payload().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/put().",
+    "entity CREATED core atlasx/codec/`impl:RecordWriter`/text().",
+    "entity CREATED core atlasx/codec/declared().",
+    "entity CREATED core atlasx/codec/decode().",
+    "entity CREATED core atlasx/codec/decode_named().",
+    "entity CREATED core atlasx/codec/decode_signature().",
+    "entity CREATED core atlasx/codec/defect().",
+    "entity CREATED core atlasx/codec/encode_functions().",
+    "entity CREATED core atlasx/codec/encode_module().",
+    "entity CREATED core atlasx/codec/frames().",
+    "entity CREATED core atlasx/codec/not_verified().",
+    "entity CREATED core atlasx/codec/object_address().",
+    "entity CREATED core atlasx/codec/opt().",
+    "entity CREATED core atlasx/codec/read().",
+    "entity CREATED core atlasx/codec/record_def().",
+    "entity CREATED core atlasx/codec/records().",
+    "entity CREATED core atlasx/codec/req().",
+    "entity CREATED core atlasx/codec/schema_digest().",
+    "entity CREATED core atlasx/codec/settle().",
+    "entity CREATED core atlasx/codec/signature_record().",
+    "entity CREATED core atlasx/codec/tests/`impl:Rng`/below().",
+    "entity CREATED core atlasx/codec/tests/`impl:Rng`/next().",
+    "entity CREATED core atlasx/codec/tests/a_missing_required_field_is_refused().",
+    "entity CREATED core atlasx/codec/tests/a_rehashed_payload_edit_passes_the_digest_and_is_caught_later().",
+    "entity CREATED core atlasx/codec/tests/an_undeclared_field_is_refused().",
+    "entity CREATED core atlasx/codec/tests/arbitrary_input_is_refused_never_a_panic().",
+    "entity CREATED core atlasx/codec/tests/duplicate_identities_empty_objects_and_non_canonical_forms_are_refused().",
+    "entity CREATED core atlasx/codec/tests/encoding_is_deterministic_and_independent_of_input_order().",
+    "entity CREATED core atlasx/codec/tests/every_dispatch_code_reads_back().",
+    "entity CREATED core atlasx/codec/tests/every_flipped_byte_is_refused_with_its_defect().",
+    "entity CREATED core atlasx/codec/tests/every_report_says_what_it_does_not_verify().",
+    "entity CREATED core atlasx/codec/tests/every_truncation_and_extension_is_refused().",
+    "entity CREATED core atlasx/codec/tests/field().",
+    "entity CREATED core atlasx/codec/tests/field_flags_must_be_the_declared_ones().",
+    "entity CREATED core atlasx/codec/tests/fixture_record().",
+    "entity CREATED core atlasx/codec/tests/forge().",
+    "entity CREATED core atlasx/codec/tests/framing_defects_are_refused().",
+    "entity CREATED core atlasx/codec/tests/header_defect().",
+    "entity CREATED core atlasx/codec/tests/header_fields_are_refused_each_with_its_defect().",
+    "entity CREATED core atlasx/codec/tests/kinds().",
+    "entity CREATED core atlasx/codec/tests/malformed_values_are_refused().",
+    "entity CREATED core atlasx/codec/tests/module().",
+    "entity CREATED core atlasx/codec/tests/nesting_deeper_than_the_limit_is_refused().",
+    "entity CREATED core atlasx/codec/tests/out_of_order_and_duplicate_tags_are_refused().",
+    "entity CREATED core atlasx/codec/tests/oversized_lengths_are_refused_before_anything_is_read().",
+    "entity CREATED core atlasx/codec/tests/permute().",
+    "entity CREATED core atlasx/codec/tests/raw_field().",
+    "entity CREATED core atlasx/codec/tests/raw_record().",
+    "entity CREATED core atlasx/codec/tests/record().",
+    "entity CREATED core atlasx/codec/tests/record_kinds_versions_and_flags_are_the_declared_ones().",
+    "entity CREATED core atlasx/codec/tests/refused().",
+    "entity CREATED core atlasx/codec/tests/reidentified().",
+    "entity CREATED core atlasx/codec/tests/several().",
+    "entity CREATED core atlasx/codec/tests/signature().",
+    "entity CREATED core atlasx/codec/tests/signature_fields().",
+    "entity CREATED core atlasx/codec/tests/signature_with().",
+    "entity CREATED core atlasx/codec/tests/the_address_is_the_native_blake3_of_the_payload_and_agrees_with_the_reference_crate().",
+    "entity CREATED core atlasx/codec/tests/the_fixture_module_encodes_to_the_committed_bytes_and_reads_back().",
+    "entity CREATED core atlasx/codec/tests/the_header_is_the_contract_layout().",
+    "entity CREATED core atlasx/codec/tests/the_schema_table_is_pinned_to_its_version().",
+    "entity CREATED core atlasx/codec/tests/the_source_module_must_verify_before_it_is_encoded().",
+    "entity CREATED core atlasx/codec/tests/the_writer_refuses_what_it_cannot_write_canonically().",
+    "entity CREATED core atlasx/codec/tests/wire_types_outside_the_table_or_the_schema_are_refused().",
+    "entity CREATED core atlasx/codec/tests/with_header().",
+    "entity CREATED runtime atlasx/decode_object().",
+    "entity CREATED runtime atlasx/encode_module().",
+    "entity CREATED runtime atlasx/read_at_most().",
+    "entity CREATED runtime atlasx/tests/an_object_file_is_read_only_up_to_the_limit().",
+    "entity CREATED runtime atlasx/tests/scratch()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

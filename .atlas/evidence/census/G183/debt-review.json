@@ -1,0 +1,14 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G183",
+ "trigger": "review cadence: DEBT-PERSISTENCE -- stale for at least 13 generations since its last advance and its last review (G170) -- fell due at G183",
+ "method": "git log since the G170 commit d8c8e56b over adapter/src/semantic/rust/persistence.rs, core/src/persistence and runtime/src/census; the PERSISTENCE totals of the G170, G178 and G183 post.json compared",
+ "reviews": [
+  {
+   "debt": "DEBT-PERSISTENCE",
+   "verdict": "CONFIRMED",
+   "finding": "durable sites still come from resolved std paths (G125) and declared std receivers (G144), with the spelling engine's INFERRED guesses beside them: adapter/src/semantic/rust/persistence.rs has no commit since G170, and the resolver work of G173, G177 and G178 widened call resolution, not the persistence table; the derived records grew from 179 at G170 to 209 at G183 with the code they read (new file writes such as the AtlasX codec's object writer), the spelling engine's 17 unchanged; flush or sync_all on a receiver Atlas does not type stays unresolved; NA-CALL-TYPE-RESIDUAL, LANE_DEFERRED under ADR 0092",
+   "correction": {}
+  }
+ ]
+}

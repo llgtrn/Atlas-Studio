@@ -877,7 +877,7 @@ objective = "FULL_OSS_REPLAY timelydataflow/differential-dataflow (done: R17 at 
 [[planned_generation]]
 id = "G183"
 priority = "P2"
-objective = "CREATION: NA-ATLASX-CODEC (M12, [creation_selection] winner after G181, score 81, ahead of NA-ATLASX-MATERIALIZE by attack id) -- one .atlasx object kind (a header and one typed record section) encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a byte-identical fixture round-trip, a flipped byte refused by its digest and an undeclared field refused (ATLASX-FORMAT)"
+objective = "CREATION: NA-ATLASX-CODEC (done: M12 EXISTS -- core::atlasx::codec and atlas-systemizer atlasx codec write FUNCTIONS objects from a construction module that verifies, canonically per ATLASX-BINARY-WIRE-FORMAT and addressed by the BLAKE3 of their payload, and read back only bytes that re-encode to themselves; the SR1-3 module round-trips byte for byte, every flipped byte and every undeclared field refused; 55 of 56 mutants killed; ADR 0095)"
 
 [[planned_generation]]
 id = "G184"
@@ -885,6 +885,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY verus-lang/verus (QUEUED, FULL-OSS-REPLAY.toml next_replay after R17): the next rank of the recursive revalidation, facing the strongest Atlas at a fresh pin, its license verified at it; fix natively only what falsifies the tree (ADR 0092)"
 
 [[planned_generation]]
-id = "G185+"
+id = "G185"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-MATERIALIZE (M11, [creation_selection] winner after G183, score 80, the only reachable candidate; M12 and M10 exist) -- first close RES-G179-SEAL-SELF-CERTIFYING so an admitted parent is one the seal gate decided, then the smallest materializer slice over an admitted parent; falsified by a self-certified SEALED container refused and a materialized object whose lineage does not map back to its parent refused"
+
+[[planned_generation]]
+id = "G186+"
 priority = "P0"
 objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

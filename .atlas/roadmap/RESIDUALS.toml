@@ -310,3 +310,65 @@ can_create_false_claim = false
 reopen_trigger = "a replay's mission or the self census needs calls in an auto-discovered target, or the HARDENING lane reopens native resolution by policy"
 status = "OPEN"
 pressure = 3
+
+[[residual]]
+id = "RES-G183-GLOBAL-ID-PROVISIONAL"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (FUNCTIONS_SCHEMA field 1)"
+subsystem = "core atlasx codec M12"
+reproduction = "core/src/atlasx/codec/fixture.bin: field 1 (GLOBAL_ID) of the FUNCTION_SIGNATURE record carries the UTF-8 bytes of the construction IR's function id (fn:core/...::is_local); no stable AtlasX identity form is defined yet"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the materializer (M11) defines the stable GLOBAL_ID form; a different form must come with a new record schema version, which the pinned schema digest forces"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G183-BODIES-NOT-ENCODED"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (encode_module, bodies_not_encoded)"
+subsystem = "core atlasx codec M12"
+reproduction = "atlas-systemizer atlasx codec --encode core/src/atlasx/codec/fixture_module.json --out <dir> reports bodies_not_encoded = [the is_local function id]: the FUNCTIONS object carries signatures only, the construction IR's HIR body is dropped"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a consumer reads a DECODED FUNCTIONS object as the function's executable semantics. It does not hold on the current tree: nothing consumes a decoded object, and every encode and decode report names the body among what it does not carry (bodies_not_encoded, CODEC_NOT_VERIFIED)"
+reopen_trigger = "the materializer (M11) materializes functions with bodies, or any consumer of a decoded FUNCTIONS object"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G183-DECODED-IS-NOT-VALIDATED"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (read, CODEC_NOT_VERIFIED)"
+subsystem = "core atlasx codec M12, validator M13"
+reproduction = "any canonical FUNCTIONS object whose lineage or owner resolve nowhere, re-hashed after editing, decodes as DECODED (the codec test of a re-hashed payload edit): the digest authenticates bytes, not provenance, and no manifest, root identity or cross-object closure is checked"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "DECODED is reported as a validated AtlasX object or root. It does not hold on the current tree: the verdict is DECODED, never VALID, every report lists the manifest, root identity, parent compatibility, cross-object references and lineage among what it does not verify, and M13 stays MISSING"
+reopen_trigger = "the AtlasX validator (M13), or any consumer of a decoded object"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G183-SINGLE-CLASS"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (read: expected class FUNCTIONS)"
+subsystem = "core atlasx codec M12"
+reproduction = "any object whose header object_class is not 4 (FUNCTIONS) is refused CLASS_MISMATCH; the other twenty classes, ROOT_MANIFEST among them, have no schema"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the materializer (M11) or validator (M13) needs a second class, ROOT_MANIFEST first"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G183-FRAME-MEMORY"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (frames)"
+subsystem = "core atlasx codec M12"
+reproduction = "a correctly hashed 63.5 MiB payload of FUNCTION_SIGNATURE records each carrying 65,535 empty BOOL fields is framed whole before the schema runs and refused FIELD_FLAGS at a peak of about 466 MB resident (the fixture peaks at about 13 MB): each 8-byte field header becomes a frame of about 48 bytes -- bounded by the decoded-length limit, not unbounded"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a decoded-length limit raised above its G183 value, or objects decoded where memory is constrained (schema-check each top-level record as it is framed)"
+status = "OPEN"
+pressure = 1
