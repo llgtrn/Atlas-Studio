@@ -1,0 +1,20 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G184",
+ "trigger": "review cadence: DEBT-SELECTED_DESIGN and DEBT-IDENTITY_AUTHORITY -- each stale for at least 13 generations since its last advance (G171) and its last review (G161) -- fell due at G184",
+ "method": "git log since the G171 commit 80a1a3bc over core/src/design, runtime/src/design.rs, .atlas/declared/principals.json and the CLI; the registry file read; a search of .atlas for a SELECTED design",
+ "reviews": [
+  {
+   "debt": "DEBT-SELECTED_DESIGN",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/design has no commit since G171 (principals authenticated by signature, ADR 0085): SelectedDesign, its digest identity and validation against a verified container remain; no design is SELECTED -- the principal registry (.atlas/declared/principals.json) is still empty, so no authority event can select one; since G179 the AtlasX precondition gate consumes a SELECTED design and refuses the self scope DESIGN_ABSENT, a consumer without a producer; NA-ADMISSION-AUTHORITY stays next, and a SELECTED design waits on the owner declaring a principal and a key",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-IDENTITY_AUTHORITY",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/design's Principal, AuthorityEvent and PrincipalRegistry have no commit since G171: signature authentication by a declared ed25519 key remains, Atlas holds no private key; the registry is still empty (no declared principal), no actor or tenant identity exists, no authority is bound to admissions, and there is no key rotation or revocation; NA-ADMISSION-AUTHORITY stays next",
+   "correction": {}
+  }
+ ]
+}

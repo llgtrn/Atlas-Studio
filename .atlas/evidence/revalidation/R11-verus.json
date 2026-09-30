@@ -1,0 +1,111 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R11",
+ "generation": "G184",
+ "donor": "verus",
+ "historical_decision": {
+  "generation": "G105",
+  "terminal_state": "EXTERNAL_BOUNDARY",
+  "detail": "Verus with Z3 as an external oracle through --output-json; modes, triggers, pruning, termination, VIR to AIR to SMT lowering and vstd kept REFERENCE_ONLY; capabilities examined DEBT-VERIFICATION_EVIDENCE and DEBT-CONSTRAINT_REASONING",
+  "evidence": ".atlas/evidence/campaign/41-verus.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED, priority 145",
+  "reason": "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since G105 by census-quantified invariants (G130, semantic delta CENSUS_QUANTIFIED_INVARIANTS), and the donor is Rust source the new capability can observe"
+ },
+ "question": "with every capability gained since G105, can Atlas now absorb Verus's verification mechanism -- does it have a solver-backed or quantified-invariant consumer, or a proof class for verification evidence -- on the exact G105 source?",
+ "materialization": {
+  "pinned_commit": "5f0930a0b820425aa857269070362ddcf7c29672",
+  "remote": "https://github.com/verus-lang/verus.git",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/verus-5f0930a0",
+  "note": "the exact G105 pin (committed 2026-09-20; 1,456 tracked files, 969 rs), beside replay R18's fresh pin d85f7578; air, vir and vir_macros differ between the two in 12 blobs; b9416fad is the G53 materialization head and carries no decision; re-materialized once after the first extinction to census it with E25 (102 s), then deleted again"
+ },
+ "engines": {
+  "historical": "Atlas E24 at 023b782c",
+  "current": "Atlas E25, the G184 working tree's final binary",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole repository at the pin: E24 (the historical engine of this replay) and E25 (the G184 change) on the same source",
+  "historical_records": {
+   "CALL": 159308,
+   "CONCURRENCY": 36,
+   "CONTROL_FLOW": 68673,
+   "DATA_FLOW": 321037,
+   "EFFECT": 2523,
+   "FUNCTION_IDENTITY": 25032,
+   "FUNCTION_SIGNATURE": 20759,
+   "OWNERSHIP": 100631,
+   "PERSISTENCE": 61,
+   "RESOURCE": 29,
+   "STATE": 6358,
+   "SYMBOL": 39258,
+   "TYPE": 44517
+  },
+  "current_records": {
+   "CALL": 159308,
+   "CONCURRENCY": 36,
+   "CONTROL_FLOW": 68673,
+   "DATA_FLOW": 321037,
+   "EFFECT": 2523,
+   "FUNCTION_IDENTITY": 25032,
+   "FUNCTION_SIGNATURE": 20759,
+   "OWNERSHIP": 100631,
+   "PERSISTENCE": 61,
+   "RESOURCE": 29,
+   "STATE": 6358,
+   "SYMBOL": 39264,
+   "TYPE": 44521
+  },
+  "historical_total": 788222,
+  "current_total": 788232,
+  "record_delta": "SYMBOL +6 and TYPE +4 (two unions recorded); every other dimension identical; 25,032 functions both",
+  "coverage_delta": "E25 holds declaration coverage UNKNOWN on 512 files whose written declarations the walk cannot see (GAP-HIDDEN-DECLARATION 512)",
+  "mechanism_slices": {
+   "INVOKES by member (E24)": {
+    "verus_syn (vendored syn)": "3951",
+    "vir (VIR, lowering to AIR)": "3241",
+    "prettyplease (vendored)": "1514",
+    "rust_verify (the rustc driver)": "1396",
+    "builtin_macros": "575",
+    "state_machines_macros": "520",
+    "rustc_mir_build (fork)": "508",
+    "air (the SMT layer)": "429",
+    "vstd (inside verus!)": "0"
+   }
+  },
+  "repository": {
+   "E24": {
+    "functions": 25032,
+    "invokes": 13436,
+    "withheld_path_calls": 2476,
+    "open_scope_components": 98,
+    "unresolved_call_sites": 120250
+   }
+  },
+  "vstd": "0 functions inside the 451 verus! blocks at both pins: the verifier's standard library is invisible to the syntactic census, and since E25 its files say so (declaration coverage UNKNOWN, GAP-HIDDEN-DECLARATION)"
+ },
+ "premises_rechecked": {
+  "verification_evidence": "no longer holds: core::verification (G127, ADR 0048) and runtime command evidence exist, so an evidence-consuming oracle over Verus's --output-json is now feasible; VerificationClass has no proof or SMT class, DEBT-VERIFICATION_EVIDENCE is M2_PARTIAL and verus:ORACLE is still an external boundary",
+  "constraint_reasoning": "holds for solver reasoning: core/src/composition/quantified.rs (G130, ADR 0050) decides census-quantified forall forbids three-valued with no solver and no existential form; DEBT-CONSTRAINT_REASONING is M3_SINGLE_ENGINE_BOUNDED and needs M5 (decided natively or through a recorded solver boundary); no SMT, Z3 or solver code exists in adapter, core, runtime or apps"
+ },
+ "outcome": "REVALIDATED",
+ "finding": "EXTERNAL_BOUNDARY (ORACLE) holds: nothing in Atlas can absorb VIR to AIR to SMT, modes or triggers; the verification-evidence premise is stale (an evidence consumer exists), which makes a recorded oracle boundary feasible, not absorption",
+ "trigger_after": "CURRENT; re-opened by a proof or SMT class in core::verification, solver-backed constraint reasoning, or a frontend that expands verus!",
+ "extinction": {
+  "path": ".atlas/.cache/donors/verus-5f0930a0",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ },
+ "mechanism_through_atlas": "at the G105 pin Atlas's view of the verifier is 25,032 functions and 13,436 INVOKES at E24 (vir 3,241, air 429, rust_verify 1,396), the solver path of air read as a writer thread behind a spawned closure; vstd written inside verus! is invisible at both engines and, since E25, declared so on 512 files",
+ "semantic_delta": [
+  "CENSUS_QUANTIFIED_INVARIANTS"
+ ],
+ "follow_up": "NA-QUANTIFIED-STATE",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G184 REVALIDATED at E25 (replay R18, revalidation R11)"
+ },
+ "engine_change_this_generation": "E24 -> E25 (ADR 0096): declaration coverage honest over what the walk cannot see; unions recorded"
+}

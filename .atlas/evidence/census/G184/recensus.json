@@ -1,0 +1,1199 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G184",
+  "base_revision": "51cf38a700b7b605c49d228e9fdf64954142ce15",
+  "candidate_revision": "023b782c66fdfdfea197882a900560af68c89201",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:8292a7ef786929f47d596afeb41f130d40fffaa1c3fe5a417a2addff093f3325",
+  "after_census_digest": "blake3-256:d25474f7d3a9fc7bdb1012482d072a8944c669e4e8522e443d1e743a24166f81",
+  "replay_digest": "blake3-256:d25474f7d3a9fc7bdb1012482d072a8944c669e4e8522e443d1e743a24166f81",
+  "inventory_delta": {
+    "created": [
+      "adapter/src/source/module_dirs.rs",
+      "core/src/coverage/mod.rs"
+    ],
+    "modified": [
+      "adapter/src/semantic/rust/macros.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "deleted": [
+      "core/src/coverage"
+    ]
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/macros.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/atlasx/codec.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/construction/mod.rs",
+      "core/src/design/mod.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/mod.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/mod.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/resource.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/verification/mod.rs",
+      "core/src/weights/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/typescript_modules/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 130,
+      "fact:FunctionSignature|OBSERVED": 64,
+      "fact:SemanticObligation|OBSERVED": -46,
+      "fact:SemanticObligation|UNKNOWN": 82,
+      "fact:SemanticObligation|UNSUPPORTED": 2,
+      "fact:SourceArtifact|IGNORED": -1,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 190,
+      "fact:Type|DERIVED": 27,
+      "fact:Type|OBSERVED": 101,
+      "record:CALL|DERIVED": 111,
+      "record:CALL|OBSERVED": 583,
+      "record:CONTROL_FLOW|INFERRED": 93,
+      "record:CONTROL_FLOW|OBSERVED": 258,
+      "record:DATA_FLOW|OBSERVED": 1447,
+      "record:EFFECT|DERIVED": 10,
+      "record:EFFECT|INFERRED": 103,
+      "record:FUNCTION_IDENTITY|OBSERVED": 130,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 64,
+      "record:OWNERSHIP|OBSERVED": 418,
+      "record:PERSISTENCE|DERIVED": 3,
+      "record:STATE|OBSERVED": 27,
+      "record:SYMBOL|OBSERVED": 190,
+      "record:TYPE|DERIVED": 27,
+      "record:TYPE|OBSERVED": 101
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 12,
+    "graph_edges": 4893,
+    "graph_nodes": 3701
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 4,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": -3,
+    "obligation:FUNCTION_IDENTITY|UNKNOWN": 5,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": -3,
+    "obligation:FUNCTION_SIGNATURE|UNKNOWN": 5,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:RESOURCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNSUPPORTED": 2,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": -20,
+    "obligation:SYMBOL|UNKNOWN": 22,
+    "obligation:TYPE|OBSERVED": -20,
+    "obligation:TYPE|UNKNOWN": 24
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/finish_success()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/finish_success()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_struct()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_struct()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/new()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/new()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/`impl:SemanticExtractor for RustSemanticExtractor`/extract()."
+      ],
+      "after": [
+        "adapter semantic/rust/`impl:SemanticExtractor for RustSemanticExtractor`/extract()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter source/classify_entry()."
+      ],
+      "after": [
+        "adapter source/classify_entry()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter source/ignored_directory()."
+      ],
+      "after": [
+        "adapter source/ignored_directory()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter source/policy_boundary()."
+      ],
+      "after": [
+        "adapter source/policy_boundary()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose_input()."
+      ],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/lens/unknowns()."
+      ],
+      "after": [
+        "core composition/lens/unknowns()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks()."
+      ],
+      "after": [
+        "runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_fields_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_union()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/`impl:ExtractionContext<'a>`/hidden_declarations_message()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Hidden<'_>`/body()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Hidden<'_>`/item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Hidden<'_>`/push()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Hidden<'_>`/unwalked()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Hidden<'_>`/verbatim()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Template`/merge()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Definitions`/visit_item_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Definitions`/visit_item_use()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_foreign_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item_const()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item_fn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_const()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_fn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_static()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_macro()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_stmt()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item_const()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item_fn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_variant()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/hidden_declarations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/invoked_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/local_templates()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/renames()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/spelled_declarations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/macros/spelled_region()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/a_bounded_workspace_macro_hides_the_declarations_written_in_its_invocation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/a_closure_written_in_an_unexpanded_macro_in_a_body_holds_function_coverage_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/a_foreign_type_and_a_trait_alias_are_recorded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/a_local_macro_rules_template_invoked_in_its_file_hides_what_it_spells()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/a_long_template_chain_resolves_through_the_worklist()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/a_union_is_recorded_like_a_struct()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/an_unparsed_item_is_opaque_for_call_and_hides_declarations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/declaration_coverage()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/declarations_written_in_an_unexpanded_item_macro_hold_declaration_coverage_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/declaring_templates_are_a_fixpoint_over_invocations_paths_and_aliases()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/each_dimension_names_only_the_places_that_hide_it()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/generated_declarations_and_walked_macro_arguments_keep_declaration_coverage()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/has_function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/hidden_declarations_are_found_wherever_the_walk_records_declarations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/items_and_macros_in_unwalked_blocks_are_hidden_declarations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/tests/only_a_spelled_fn_holds_function_coverage_unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter source/module_dirs/boundary_reason()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter source/module_dirs/crate_root()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter source/output_directory_name()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter source/tests/a_module_directory_with_a_build_output_name_is_source()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter source/tests/an_output_directory_past_the_entry_cap_keeps_the_boundary_and_names_it()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/`impl:SupportLevel`/is_semantic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/`impl:SupportReport`/level_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/artifact_class()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/level_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/measure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/rank()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/tests/a_level_needs_every_rung_below_it()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/tests/artifact_classes_come_from_the_extension_and_stay_open()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/tests/evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core coverage/validate_claims()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [
+    "FUNCTION_IDENTITY: OBSERVED -> UNKNOWN",
+    "FUNCTION_SIGNATURE: OBSERVED -> UNKNOWN",
+    "SYMBOL: OBSERVED -> UNKNOWN",
+    "TYPE: OBSERVED -> UNKNOWN"
+  ],
+  "unknown_delta": {
+    "increased": [
+      "adapter/src/lib.rs: 15 -> 19",
+      "adapter/src/semantic/rust/locked_traits.rs: 15 -> 19",
+      "adapter/src/semantic/rust/resolve.rs: 15 -> 19",
+      "core/src/atlasx/codec.rs: 15 -> 17",
+      "core/src/atlasx/precondition.rs: 15 -> 17",
+      "core/src/composition/closure.rs: 15 -> 17",
+      "core/src/composition/lens.rs: 15 -> 17",
+      "core/src/composition/mod.rs: 15 -> 17",
+      "core/src/construction/mod.rs: 15 -> 17",
+      "core/src/design/mod.rs: 15 -> 17",
+      "core/src/graph/mod.rs: 15 -> 17",
+      "core/src/identity/mod.rs: 15 -> 19",
+      "core/src/integrity/mod.rs: 15 -> 17",
+      "core/src/seal/gate.rs: 15 -> 17",
+      "core/src/seal/mod.rs: 15 -> 17",
+      "core/src/semantic/function.rs: 15 -> 17",
+      "core/src/semantic/resource.rs: 15 -> 17",
+      "core/src/semantic/symbol.rs: 15 -> 17",
+      "core/src/verification/mod.rs: 15 -> 17",
+      "core/src/weights/mod.rs: 15 -> 17",
+      "runtime/src/census/typescript_modules/tests.rs: 15 -> 19",
+      "adapter/src/source/module_dirs.rs: 0 -> 15",
+      "core/src/coverage/mod.rs: 0 -> 17"
+    ],
+    "decreased": [],
+    "total_before": 2443,
+    "total_after": 2527
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R18 verus-lang/verus: declaration coverage honest over what the walk cannot see (E25, ADR 0096)",
+    "changed_paths": [
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/rust/locked_traits.rs",
+      "adapter/src/semantic/rust/macros.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/source/module_dirs.rs",
+      "core/src/atlasx/codec.rs",
+      "core/src/atlasx/precondition.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/construction/mod.rs",
+      "core/src/coverage",
+      "core/src/coverage/mod.rs",
+      "core/src/design/mod.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/mod.rs",
+      "core/src/integrity/mod.rs",
+      "core/src/lib.rs",
+      "core/src/seal/gate.rs",
+      "core/src/seal/mod.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/resource.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/verification/mod.rs",
+      "core/src/weights/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/census/typescript_modules/tests.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:STATE_FLOW",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+composed:understanding_gap",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "-obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "-obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "-obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "-obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [
+      "FUNCTION_IDENTITY=UNKNOWN",
+      "FUNCTION_SIGNATURE=UNKNOWN",
+      "SYMBOL=UNKNOWN",
+      "TYPE=UNKNOWN"
+    ],
+    "explained_unknowns": [
+      "adapter/src/lib.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "adapter/src/semantic/rust/locked_traits.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "adapter/src/semantic/rust/resolve.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/atlasx/codec.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/atlasx/precondition.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/composition/closure.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/composition/lens.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/composition/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/construction/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/design/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/graph/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/identity/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/integrity/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/seal/gate.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/seal/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/semantic/function.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/semantic/resource.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/semantic/symbol.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/verification/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/weights/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "runtime/src/census/typescript_modules/tests.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "adapter/src/source/module_dirs.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census",
+      "core/src/coverage/mod.rs: declaration coverage of 22 Atlas files becomes UNKNOWN with a named hidden-declaration place (vocabulary_enum!, typed_id!, closures in matches! and local templates); core/src/coverage/mod.rs enters the census"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/finish_success().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_struct().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/new().",
+      "CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+      "CHANGED adapter semantic/rust/`impl:SemanticExtractor for RustSemanticExtractor`/extract().",
+      "CHANGED adapter source/classify_entry().",
+      "CHANGED adapter source/ignored_directory().",
+      "CHANGED adapter source/policy_boundary().",
+      "CHANGED core composition/compose_input().",
+      "CHANGED core composition/lens/unknowns().",
+      "CHANGED runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks().",
+      "CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_fields_item().",
+      "CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_union().",
+      "CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/hidden_declarations_message().",
+      "CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/body().",
+      "CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/item().",
+      "CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/push().",
+      "CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/unwalked().",
+      "CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/verbatim().",
+      "CREATED adapter semantic/rust/macros/`impl:Template`/merge().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Definitions`/visit_item_macro().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Definitions`/visit_item_use().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_foreign_item().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item_const().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item_fn().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_const().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_fn().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_macro().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_static().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_macro().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_stmt().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item_const().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item_fn().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_type().",
+      "CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_variant().",
+      "CREATED adapter semantic/rust/macros/hidden_declarations().",
+      "CREATED adapter semantic/rust/macros/invoked_names().",
+      "CREATED adapter semantic/rust/macros/local_templates().",
+      "CREATED adapter semantic/rust/macros/renames().",
+      "CREATED adapter semantic/rust/macros/spelled_declarations().",
+      "CREATED adapter semantic/rust/macros/spelled_region().",
+      "CREATED adapter semantic/rust/tests/a_bounded_workspace_macro_hides_the_declarations_written_in_its_invocation().",
+      "CREATED adapter semantic/rust/tests/a_closure_written_in_an_unexpanded_macro_in_a_body_holds_function_coverage_unknown().",
+      "CREATED adapter semantic/rust/tests/a_foreign_type_and_a_trait_alias_are_recorded().",
+      "CREATED adapter semantic/rust/tests/a_local_macro_rules_template_invoked_in_its_file_hides_what_it_spells().",
+      "CREATED adapter semantic/rust/tests/a_long_template_chain_resolves_through_the_worklist().",
+      "CREATED adapter semantic/rust/tests/a_union_is_recorded_like_a_struct().",
+      "CREATED adapter semantic/rust/tests/an_unparsed_item_is_opaque_for_call_and_hides_declarations().",
+      "CREATED adapter semantic/rust/tests/declaration_coverage().",
+      "CREATED adapter semantic/rust/tests/declarations_written_in_an_unexpanded_item_macro_hold_declaration_coverage_unknown().",
+      "CREATED adapter semantic/rust/tests/declaring_templates_are_a_fixpoint_over_invocations_paths_and_aliases().",
+      "CREATED adapter semantic/rust/tests/each_dimension_names_only_the_places_that_hide_it().",
+      "CREATED adapter semantic/rust/tests/generated_declarations_and_walked_macro_arguments_keep_declaration_coverage().",
+      "CREATED adapter semantic/rust/tests/has_function().",
+      "CREATED adapter semantic/rust/tests/hidden_declarations_are_found_wherever_the_walk_records_declarations().",
+      "CREATED adapter semantic/rust/tests/items_and_macros_in_unwalked_blocks_are_hidden_declarations().",
+      "CREATED adapter semantic/rust/tests/only_a_spelled_fn_holds_function_coverage_unknown().",
+      "CREATED adapter source/module_dirs/boundary_reason().",
+      "CREATED adapter source/module_dirs/crate_root().",
+      "CREATED adapter source/output_directory_name().",
+      "CREATED adapter source/tests/a_module_directory_with_a_build_output_name_is_source().",
+      "CREATED adapter source/tests/an_output_directory_past_the_entry_cap_keeps_the_boundary_and_names_it().",
+      "CREATED core coverage/`impl:SupportLevel`/is_semantic().",
+      "CREATED core coverage/`impl:SupportReport`/level_of().",
+      "CREATED core coverage/artifact_class().",
+      "CREATED core coverage/level_of().",
+      "CREATED core coverage/measure().",
+      "CREATED core coverage/rank().",
+      "CREATED core coverage/tests/a_level_needs_every_rung_below_it().",
+      "CREATED core coverage/tests/artifact_classes_come_from_the_extension_and_stay_open().",
+      "CREATED core coverage/tests/evidence().",
+      "CREATED core coverage/validate_claims()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/rust/locked_traits.rs",
+    "path adapter/src/semantic/rust/macros.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path adapter/src/source/mod.rs",
+    "path adapter/src/source/module_dirs.rs",
+    "path core/src/atlasx/codec.rs",
+    "path core/src/atlasx/precondition.rs",
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/construction/mod.rs",
+    "path core/src/coverage",
+    "path core/src/coverage/mod.rs",
+    "path core/src/design/mod.rs",
+    "path core/src/graph/mod.rs",
+    "path core/src/identity/mod.rs",
+    "path core/src/integrity/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/seal/gate.rs",
+    "path core/src/seal/mod.rs",
+    "path core/src/semantic/diagnostic.rs",
+    "path core/src/semantic/function.rs",
+    "path core/src/semantic/mod.rs",
+    "path core/src/semantic/resource.rs",
+    "path core/src/semantic/symbol.rs",
+    "path core/src/verification/mod.rs",
+    "path core/src/weights/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/census/typescript_modules/tests.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:STATE_FLOW",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +composed:understanding_gap",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total -obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total -obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total -obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total -obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/finish_success().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_foreign_mod().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_struct().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/new().",
+    "entity CHANGED adapter semantic/rust/`impl:ExtractionContext<'a>`/walk_item().",
+    "entity CHANGED adapter semantic/rust/`impl:SemanticExtractor for RustSemanticExtractor`/extract().",
+    "entity CHANGED adapter source/classify_entry().",
+    "entity CHANGED adapter source/ignored_directory().",
+    "entity CHANGED adapter source/policy_boundary().",
+    "entity CHANGED core composition/compose_input().",
+    "entity CHANGED core composition/lens/unknowns().",
+    "entity CHANGED runtime agent/tests/an_open_scope_is_explained_where_the_pilot_looks().",
+    "entity CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_fields_item().",
+    "entity CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/handle_union().",
+    "entity CREATED adapter semantic/rust/`impl:ExtractionContext<'a>`/hidden_declarations_message().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/body().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/item().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/push().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/unwalked().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Hidden<'_>`/verbatim().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Template`/merge().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Definitions`/visit_item_macro().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Definitions`/visit_item_use().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_foreign_item().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item_const().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_impl_item_fn().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_const().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_fn().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_macro().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_item_static().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_macro().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_stmt().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item_const().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_trait_item_fn().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_type().",
+    "entity CREATED adapter semantic/rust/macros/`impl:Visit<'ast> for Hidden<'_>`/visit_variant().",
+    "entity CREATED adapter semantic/rust/macros/hidden_declarations().",
+    "entity CREATED adapter semantic/rust/macros/invoked_names().",
+    "entity CREATED adapter semantic/rust/macros/local_templates().",
+    "entity CREATED adapter semantic/rust/macros/renames().",
+    "entity CREATED adapter semantic/rust/macros/spelled_declarations().",
+    "entity CREATED adapter semantic/rust/macros/spelled_region().",
+    "entity CREATED adapter semantic/rust/tests/a_bounded_workspace_macro_hides_the_declarations_written_in_its_invocation().",
+    "entity CREATED adapter semantic/rust/tests/a_closure_written_in_an_unexpanded_macro_in_a_body_holds_function_coverage_unknown().",
+    "entity CREATED adapter semantic/rust/tests/a_foreign_type_and_a_trait_alias_are_recorded().",
+    "entity CREATED adapter semantic/rust/tests/a_local_macro_rules_template_invoked_in_its_file_hides_what_it_spells().",
+    "entity CREATED adapter semantic/rust/tests/a_long_template_chain_resolves_through_the_worklist().",
+    "entity CREATED adapter semantic/rust/tests/a_union_is_recorded_like_a_struct().",
+    "entity CREATED adapter semantic/rust/tests/an_unparsed_item_is_opaque_for_call_and_hides_declarations().",
+    "entity CREATED adapter semantic/rust/tests/declaration_coverage().",
+    "entity CREATED adapter semantic/rust/tests/declarations_written_in_an_unexpanded_item_macro_hold_declaration_coverage_unknown().",
+    "entity CREATED adapter semantic/rust/tests/declaring_templates_are_a_fixpoint_over_invocations_paths_and_aliases().",
+    "entity CREATED adapter semantic/rust/tests/each_dimension_names_only_the_places_that_hide_it().",
+    "entity CREATED adapter semantic/rust/tests/generated_declarations_and_walked_macro_arguments_keep_declaration_coverage().",
+    "entity CREATED adapter semantic/rust/tests/has_function().",
+    "entity CREATED adapter semantic/rust/tests/hidden_declarations_are_found_wherever_the_walk_records_declarations().",
+    "entity CREATED adapter semantic/rust/tests/items_and_macros_in_unwalked_blocks_are_hidden_declarations().",
+    "entity CREATED adapter semantic/rust/tests/only_a_spelled_fn_holds_function_coverage_unknown().",
+    "entity CREATED adapter source/module_dirs/boundary_reason().",
+    "entity CREATED adapter source/module_dirs/crate_root().",
+    "entity CREATED adapter source/output_directory_name().",
+    "entity CREATED adapter source/tests/a_module_directory_with_a_build_output_name_is_source().",
+    "entity CREATED adapter source/tests/an_output_directory_past_the_entry_cap_keeps_the_boundary_and_names_it().",
+    "entity CREATED core coverage/`impl:SupportLevel`/is_semantic().",
+    "entity CREATED core coverage/`impl:SupportReport`/level_of().",
+    "entity CREATED core coverage/artifact_class().",
+    "entity CREATED core coverage/level_of().",
+    "entity CREATED core coverage/measure().",
+    "entity CREATED core coverage/rank().",
+    "entity CREATED core coverage/tests/a_level_needs_every_rung_below_it().",
+    "entity CREATED core coverage/tests/artifact_classes_come_from_the_extension_and_stay_open().",
+    "entity CREATED core coverage/tests/evidence().",
+    "entity CREATED core coverage/validate_claims().",
+    "coverage FUNCTION_IDENTITY: OBSERVED -> UNKNOWN",
+    "coverage FUNCTION_SIGNATURE: OBSERVED -> UNKNOWN",
+    "coverage SYMBOL: OBSERVED -> UNKNOWN",
+    "coverage TYPE: OBSERVED -> UNKNOWN"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

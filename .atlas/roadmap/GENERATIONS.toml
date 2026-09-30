@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G183"
+current_generation = "G184"
 
 [[generation]]
 id = "G35"
@@ -4569,3 +4569,72 @@ after = 7270
 key = "composed:relation:INVOKES"
 before = 7013
 after = 7232
+
+[[generation]]
+id = "G184"
+kind = "REPLAY"
+lane = "HARDENING"
+base_commit = "023b782c66fdfdfea197882a900560af68c89201"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R18: the verifier verus (REVALIDATION_REQUIRED, rank 3 of the recursive revalidation), facing E24 at a fresh pin; its G105 decision pin materialized beside it"
+objective = "census verus at d85f7578 with E24 against rust-analyzer's SCIP index of its plain-Rust crates (air, vir) with the standard library loaded; decide whether EXTERNAL_BOUNDARY holds; fix natively only what falsifies the tree (ADR 0092); revalidation R11 at the G105 pin; extinction"
+writer = "coordinator (sole writer); one measurement lane, one implementation lane over five rounds, two independent review lanes"
+replay = "verus-lang/verus"
+pinned_commit = "d85f75780de687461a30e7771985c4a3e9ea0e58"
+source_path = ".atlas/.cache/donors/verus"
+epoch_before = "E24"
+epoch_after = "E25"
+mission = ".atlas/evidence/replay/R18-verus.json"
+evidence = ".atlas/evidence/replay/R18-verus.json"
+self_recensus = ".atlas/evidence/census/G184/recensus.json"
+
+[generation.verification]
+pre_census = "G183 post digest"
+atlas_first = "25,061 functions, 13,487 INVOKES; air's query entry reaches the solver writer thread (PATH_OBSERVED, INFERRED through the spawned closure) and vir's lowering reaches air's constructors (DERIVED, read correct); no claim inside any verus! block -- yet FUNCTION_IDENTITY, SYMBOL, TYPE and FUNCTION_SIGNATURE coverage OBSERVED on 513 files whose written declarations the walk cannot see (about 5,170 fn declarations inside verus! blocks)"
+change = "ADR 0096: a place the walk cannot see into -- an unexpanded macro invocation, an unparsed item, an unwalked block (initializers, discriminants, expressions inside types), a same-file macro_rules! template reached through a worklist fixpoint over its invocations, a closure or async block written in an unexpanded macro inside a body -- that spells a declaration holds SYMBOL and TYPE (and FUNCTION_IDENTITY and FUNCTION_SIGNATURE when it spells a function) UNKNOWN, named by an INCOMPLETE_ANALYSIS diagnostic and GAP-HIDDEN-DECLARATION; unions, foreign types and trait aliases are recorded; an output-named directory (build, dist, .next, coverage) is source when its files show a Rust module or package, by file presence alone; capability epoch E25"
+oracle = "rust-analyzer 1.90.0 SCIP with sysroot_src over air, vir and vir_macros (81 of 82 files): 3,480 of 3,481 function-level edges confirmed, the other read correct (the index conflates two nested fns), recall 77.0%; 999 of the 1,042 missing edges named unresolved, 42 silent inside macro token trees in files whose CALL coverage is UNKNOWN; E25 changes no function, relation or edge on the donor"
+falsification = "declaration coverage claimed exhaustive over declarations the walk cannot see, on verus (513 files) and on Atlas itself (22 files: the enums of vocabulary_enum!, the structs of typed_id!, closures in matches! and in local templates), and the written module core/src/coverage dropped as build output; two independent reviews then found a stack overflow and two superlinear scans introduced by the fix, initializer items, chained and path-qualified local templates and crate-root module resolution -- all fixed, the directory rule reduced to file presence; 57 mutants killed"
+boundary = "cross-file macro_rules! templates invoked with keyword-free tokens, attribute arguments, DSL declarations without a Rust keyword, const-generic blocks, output-named module directories reached only by #[path], inline modules, cfg_attr, cfg_if!, workspace members or Cargo targets, and calls inside matches!: nine residuals recorded"
+debts = "capability epoch E25; DEBT-SYMBOL last advance G184 without a maturity step; verus EXTERNAL_BOUNDARY (ORACLE) revalidated (R11), trigger CURRENT; E25 fires no processed replay trigger; next replay 666ghj/bettafish G186; next generation G185 CREATION NA-ATLASX-MATERIALIZE (M11)"
+review = "DEBT-SELECTED_DESIGN and DEBT-IDENTITY_AUTHORITY reviewed at their cadence and CONFIRMED against the code: no commit to core/src/design since G171, the principal registry still empty, no design SELECTED while the AtlasX precondition gate now consumes one (evidence/census/G184/debt-review.json)"
+proof = "PROVEN (post d25474f7...): proven after the last source change; the four declaration dimensions' aggregate coverage OBSERVED -> UNKNOWN declared as intended and every new unknown explained; the donor, its G105 checkout, the oracle copy and the index deleted before the recensus"
+
+[[generation.expansion]]
+finding = "the written module core/src/coverage dropped from Atlas's own census as generated-or-external build output"
+justification = "FALSIFIES_CURRENT_TRUTH"
+
+[[generation.expansion]]
+finding = "unions and items in const and static initializers unrecorded while declaration coverage claimed exhaustive on verus files"
+justification = "INVALIDATES_GENERATION_EVIDENCE"
+
+[[generation.expansion]]
+finding = "closures written inside unexpanded macros unrecorded while FUNCTION_IDENTITY claimed exhaustive on Atlas files and verus files"
+justification = "FALSIFIES_CURRENT_TRUTH"
+
+[generation.value]
+new_capability = "declaration coverage honest over what the walk cannot see, with the hidden places named (capability epoch E25)"
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 2
+wrong_claims_removed = 5
+wall_clock_s = 15338
+machine_s = 2121
+proof_s = 6209
+review_s = 2000
+residuals_deferred = 9
+correctness_critical = true
+frontier_rate = 0.47
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the measurement lane's launch to the roadmap commit, measured; machine_s = the measurement lane's stages 663 + the implementation lane's builds, censuses and snapshots 1,458; proof_s = the implementation lane's mutation runs and gates 4,737 + the self-recensus 151 + the final full suite 1,321; review_s = two independent reviews and a verification of the last round; five classes of WRONG completeness claims removed (hidden declarations in unexpanded macros, closures in macros, items in unwalked blocks, unrecorded unions, a written module dropped as output); the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7232
+after = 7314
+
+[[generation.metric]]
+key = "obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED"
+before = 151
+after = 131

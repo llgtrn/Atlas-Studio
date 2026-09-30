@@ -1,0 +1,184 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R18",
+ "generation": "G184",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "verus-lang/verus",
+  "remote": "https://github.com/verus-lang/verus.git",
+  "pin": "d85f75780de687461a30e7771985c4a3e9ea0e58",
+  "pin_choice": "the upstream main head resolved at execution (2026-09-30, committed 2026-09-29); the G105 decision pin 5f0930a0 was materialized beside it for revalidation R11",
+  "license": "MIT (LICENSE at the pin, byte-identical to .atlas/licenses/verus/LICENSE; license = MIT in builtin, builtin_macros, vstd and state_machines_macros; air, vir and vir_macros declare none and fall under the root license; the vendored syn, prettyplease and forked rustc crates carry their own MIT/Apache-2.0 files)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over a scratch copy of air, vir and vir_macros; nothing copied -- the fix is Atlas-native)",
+  "selection": "rank after R17 in RECURSIVE-DONOR-REVALIDATION (REVALIDATION_REQUIRED, priority 145): its G105 decision rested on DEBT-VERIFICATION_EVIDENCE and DEBT-CONSTRAINT_REASONING, the latter advanced by census-quantified invariants (G130)",
+  "dependency_class": "EXTERNAL_BOUNDARY:ORACLE (Verus with Z3 as an external verifier; VIR to AIR to SMT, modes, triggers, vstd)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/verus (1,462 tracked files, 971 rs, 41 MB), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E24",
+  "after": "E25"
+ },
+ "engines": {
+  "N": "the E24 release binary (HEAD 023b782c)",
+  "N_plus_1": "E25: the working tree of the G184 native change (ADR 0096)"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence; language now verified (971 .rs files; the revalidation ledger had language_verified = false); vstd and the verifier's rustc_private crates are Rust the syntactic census reads only outside the verus! macro"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (25,061 functions, 86.7 s)",
+   "component withheld notes (99 open-scope components, 2,491 withheld path calls: external globs, derives and attributes, item macros with no workspace definition)",
+   "agent trace --from Context::check_valid (air context.rs:487) --to writer_thread (smt_process.rs)",
+   "agent trace --from Context::check_valid --to SmtProcess::send_commands",
+   "agent trace --from func_sst_to_air (vir) --to mk_and (air) (positive control)",
+   "agent trace --from func_sst_to_air --to mk_forall (negative control)"
+  ],
+  "atlas_knew": {
+   "functions": 25061,
+   "invokes": 13487,
+   "dispatches_to": 3975,
+   "supplies_data": 10724,
+   "unresolved_call_sites": 120371,
+   "withheld_path_calls": 2491,
+   "open_scope_components": 99
+  },
+  "challenge": "does air's query entry point reach the SMT solver process write, and does vir's lowering reach air's expression constructors -- the VIR to AIR to SMT pipeline G105 kept behind the oracle boundary?",
+  "answer": "E24: check_valid -> writer_thread PATH_OBSERVED, INFERRED in six steps through the spawned closure (the channel hand-off is not modelled); check_valid -> send_commands NO_PATH_OBSERVED, UNKNOWN (a method call on a call result, correctly withheld); func_sst_to_air -> mk_and PATH_OBSERVED, DERIVED in three INVOKES steps, read correct; func_sst_to_air -> mk_forall NO_PATH_OBSERVED, UNKNOWN, and vir never calls mk_forall"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 scip over a scratch copy of the air library and binary, vir (edition 2024) and vir_macros (a proc-macro leaf, unexpanded) at the donor's relative paths, a hand-written rust-project.json, sysroot and sysroot_src; 81 of 82 files (singular_manager.rs behind a disabled feature); registry dependencies omitted on both sides; 85.9 s. The verifier (rustc_private and forked rustc crates), vstd (written inside verus!) and the vendored proc-macro crates cannot be indexed by a plain language server and were excluded",
+  "summary": {
+   "N": {
+    "atlas_edges": 3481,
+    "oracle_edges": 4522,
+    "agree": 3480,
+    "atlas_only": 1,
+    "oracle_only": 1042,
+    "precision_adjudicated": 1.0,
+    "recall": 0.7696,
+    "oracle_only_by_atlas_account": {
+     "ATLAS_UNKNOWN_NAMED": 999,
+     "ATLAS_SILENT": 43
+    }
+   },
+   "N_plus_1": {
+    "atlas_edges": 3481,
+    "agree": 3480,
+    "atlas_only": 1,
+    "note": "E25 changes no function, relation or edge: 25,061 functions with identical ids, 33,045 relations identical, 13,487 INVOKES"
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT (oracle limitation)",
+    "n": 1,
+    "what": "well_formed.rs:263 check_path_and_get_function to its own nested fn is_proxy (line 245); the index gives both nested is_proxy the same symbol and maps the call to the one at line 179 -- the mirror oracle_only row is the oracle's error"
+   },
+   {
+    "class": "ATLAS_WRONG",
+    "n": 0,
+    "what": "no wrong edge"
+   },
+   {
+    "class": "ATLAS_SILENT (honest at file level)",
+    "n": 42,
+    "what": "calls inside macro token trees Atlas does not re-parse: the standard matches! and the crate's node!, nodes!, dohash!, unwrap!, push_or_return_never!; every caller sits in a file whose CALL coverage is UNKNOWN (RES-G184-MATCHES-MACRO-ARGUMENTS)"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n": 999,
+    "what": "a sample of 20 read in source: method calls on typed receivers and generic-trait static calls, each named unresolved at its caller"
+   }
+  ],
+  "cases": [
+   {
+    "question": "does Atlas claim anything inside verus! blocks?",
+    "answer": "no edge and no function: 0 of the about 5,170 fn declarations written inside 451 verus! blocks are censused, and no INVOKES or DISPATCHES_TO touches a block -- but FUNCTION_IDENTITY, SYMBOL, TYPE and FUNCTION_SIGNATURE coverage said OBSERVED on all 297 files holding one: the falsification"
+   }
+  ]
+ },
+ "falsification": {
+  "claim": "declaration coverage OBSERVED (exhaustive) on files whose declarations are written inside macros Atlas does not expand",
+  "evidence": "297 verus files with verus! blocks (3,019 fn declarations in vstd alone) claimed FUNCTION_IDENTITY, SYMBOL, TYPE and FUNCTION_SIGNATURE OBSERVED with 0 functions recorded inside the blocks; the same over-claim held on Atlas's own census (the enums written in vocabulary_enum!, the structs of typed_id!, closures written inside matches! and inside local templates) and, found while fixing, a written source module (core/src/coverage) dropped as generated output, unions unrecorded, and items in const and static initializers unrecorded",
+  "kind": "WRONG completeness claims (no wrong edge)"
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing absorbed: the verifier's mechanism stays behind the oracle boundary; the fix is Atlas's own honesty about what its syntactic walk cannot see",
+  "change": "ADR 0096: a place the walk cannot see into -- an unexpanded macro invocation, an unparsed item, a block the walk never enters (initializers, discriminants, expressions inside types), a same-file macro_rules! template reached through a fixpoint of its invocations, a closure or async block written in an unexpanded macro inside a body -- that spells a declaration holds SYMBOL and TYPE (and FUNCTION_IDENTITY and FUNCTION_SIGNATURE when it spells fn or a closure) UNKNOWN with a named INCOMPLETE_ANALYSIS diagnostic and GAP-HIDDEN-DECLARATION; unions, foreign types and trait aliases are recorded; an output-named directory is source when its files show a Rust module or package (file presence only)",
+  "falsification": "the first measurement's over-claim, then two independent review rounds: a stack overflow and a quadratic scan in a directory parser (replaced by a rule that reads no file contents), initializer items, local and chained templates, crate-root module resolution; 55 of 55 final mutants killed",
+  "review": "two independent adversarial reviews and a verification of the last round's fixes"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "d85f75780de6 (the whole repository)",
+  "N": {
+   "epoch": "E24",
+   "functions": 25061,
+   "invokes": 13487,
+   "relations": 33045,
+   "symbol_records": 39347,
+   "type_records": 44618,
+   "declaration_files_observed_with_hidden_declarations": 513
+  },
+  "N_plus_1": {
+   "epoch": "E25",
+   "functions": 25061,
+   "invokes": 13487,
+   "relations": 33045,
+   "symbol_records": 39353,
+   "type_records": 44622,
+   "symbol_type_unknown_files": 513,
+   "function_identity_signature_unknown_files": 482,
+   "call_unknown_files_added": 1,
+   "gap_hidden_declaration": 513
+  },
+  "edge_delta": {
+   "invokes_gained": 0,
+   "invokes_lost": 0,
+   "gained_wrong": 0
+  },
+  "what_atlas_n_saw": "3,480 of 3,481 function-level edges in air and vir confirmed by the index and the other read correct (recall 77.0%); no claim inside any verus! block; declaration coverage wrongly exhaustive on 513 files",
+  "what_atlas_n_plus_1_sees": "the same edges; every file whose written declarations the walk cannot see says so by dimension and names the place"
+ },
+ "manual_reads": [
+  {
+   "what": "source/air/src/context.rs 480-520, smt_process.rs 120-200",
+   "why": "ground truth for the solver mission",
+   "gap": "the mpsc hand-off to the writer thread"
+  },
+  {
+   "what": "source/vir/src/sst_to_air_func.rs 1000, sst_to_air.rs 1305, 3149",
+   "why": "ground truth for the lowering control",
+   "gap": "none"
+  },
+  {
+   "what": "source/vir/src/well_formed.rs 170-270",
+   "why": "the one edge only Atlas holds",
+   "gap": "none: oracle symbol collision"
+  },
+  {
+   "what": "a brace-matched scan of the 297 files holding verus! (451 blocks)",
+   "why": "whether Atlas claims anything inside the macro",
+   "gap": "the declaration-coverage over-claim"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R11 (evidence/revalidation/R11-verus.json): at the exact G105 pin 5f0930a0",
+  "historical_decision": "G105 EXTERNAL_BOUNDARY (ORACLE): Verus with Z3 through --output-json; modes, triggers, pruning, termination, VIR to AIR to SMT and vstd REFERENCE_ONLY",
+  "outcome": "REVALIDATED",
+  "finding": "the verification-evidence premise no longer holds (core::verification exists since G127), so an evidence-consuming oracle is now feasible; the constraint premise holds for solver reasoning: census-quantified invariants (G130) are decided without a solver, no SMT or proof class exists -- the boundary stands and nothing is absorbable"
+ },
+ "decision": {
+  "donor": "EXTERNAL_BOUNDARY (ORACLE) at E25: unchanged",
+  "capability_delta": "CAPABILITY_ADVANCED (E24 -> E25: declaration coverage no longer exhaustive over declarations the walk cannot see; unions, foreign types and trait aliases recorded; output-named Rust module directories censused)",
+  "trigger": "CURRENT; re-opened by a proof or SMT verification class in core::verification, solver-backed constraint reasoning (DEBT-CONSTRAINT_REASONING at M5), or a frontend that expands verus!: re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/verus and /home/user/Atlas-Studio/.atlas/.cache/donors/verus-5f0930a0, after resolving each path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracle copy of air, vir and vir_macros, the SCIP index, a copied vstd file in the fixture crate and the reviewers' copies of registry crates (scratch, outside the repository); census models, differentials and traces kept as derived data",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and revalidation R11; no verus text in Atlas beyond its preserved LICENSE under .atlas/licenses",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

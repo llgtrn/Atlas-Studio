@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G183"
+evaluated_at = "G184"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -507,7 +507,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1036
+priority = 1043
 rank = 1
 
 [[donor]]
@@ -667,7 +667,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 888
+priority = 894
 rank = 2
 
 [[donor]]
@@ -1092,15 +1092,15 @@ first_50_ordinal = 41
 language = "rust"
 language_verified = false
 historical_decision_generation = "G105"
-last_materialized_generation = "G105"
-last_deep_census_generation = "G105"
+last_materialized_generation = "G184"
+last_deep_census_generation = "G184"
 capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
-status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 145
-rank = 3
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
 
 [[donor]]
 donor = "podman"
@@ -1633,3 +1633,21 @@ evidence = ".atlas/evidence/revalidation/R10-differential-dataflow.json"
 outcome = "REVALIDATED"
 finding = "verdict holds: arrangements, traces and incremental joins stay REFERENCE_ONLY -- Atlas has no incremental consumer; on the exact G80 source 1,096 of 1,099 member call edges Atlas claims are the index's and the rest read correct; the G80 scale evidence (about 117 artifacts, a 7.8 s self-recensus) is stale and its fanout trigger unmeasured"
 follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R11"
+donor = "verus"
+generation = "G184"
+debt = "DEBT-CONSTRAINT_REASONING"
+capabilities = ["CENSUS_QUANTIFIED_INVARIANTS"]
+question = "with every capability gained since G105, can Atlas now absorb Verus's verification mechanism -- a solver-backed or quantified-invariant consumer, or a proof class for verification evidence -- on the exact G105 source?"
+remote = "https://github.com/verus-lang/verus.git"
+pinned_commit = "5f0930a0b820425aa857269070362ddcf7c29672"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G105 pin, beside replay R18 at a fresh pin, censused by E24"
+source_path = ".atlas/.cache/donors/verus-5f0930a0"
+status = "COMPLETE"
+evidence = ".atlas/evidence/revalidation/R11-verus.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the verifier stays an external oracle -- census-quantified invariants are decided without a solver and no proof or SMT class exists, so VIR to AIR to SMT, modes and triggers are not absorbable; the verification-evidence premise is stale (core::verification exists since G127), which makes an evidence-consuming oracle feasible, not absorption"
+follow_up = "NA-QUANTIFIED-STATE"

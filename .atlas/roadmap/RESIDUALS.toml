@@ -372,3 +372,79 @@ can_create_false_claim = false
 reopen_trigger = "a decoded-length limit raised above its G183 value, or objects decoded where memory is constrained (schema-check each top-level record as it is framed)"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G184-MATCHES-MACRO-ARGUMENTS"
+found_in = "G184"
+source = "adapter/src/semantic/rust (EXPRESSION_MACROS, the recovered standard macro arguments of G120)"
+subsystem = "adapter semantic::rust call extraction"
+reproduction = "verus at d85f7578, source/vir: 42 of the 1,042 call edges rust-analyzer's index holds and Atlas lacks sit inside macro token trees Atlas does not re-parse -- the standard matches! (interpreter, ast_to_sst, safe_api) and the crate's own node!, nodes!, dohash!, unwrap! and push_or_return_never!; matches! is a std expression macro missing from EXPRESSION_MACROS"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay mission or the self census needs calls inside matches!, or the HARDENING lane reopens native call recovery by policy"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G184-CROSS-FILE-TEMPLATE"
+found_in = "G184"
+source = "adapter/src/semantic/rust/macros.rs (hidden declaration places), adapter/src/semantic/rust/mod.rs (declaration coverage)"
+subsystem = "adapter semantic::rust declaration coverage"
+reproduction = "a workspace macro_rules! defined in file A whose transcriber declares (pub struct $n, fn), invoked from file B as crate::defs::gen_fn!(from_other_file) or m!(X) with tokens that spell no declaration keyword: B keeps SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE OBSERVED while the declared items are in no record -- the extractor reads one file, and only same-file templates (a fixpoint over their invocations) are hidden places (ADR 0096)"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a file invokes a keyword-spelling macro_rules! template defined in another file with keyword-free tokens. It does not hold on the current tree: typed_id!, string!, boolean! and array! are invoked only in their defining files, and every vocabulary_enum! invocation spells enum"
+reopen_trigger = "a workspace macro_rules! invoked outside its defining file without a declaration keyword in the invocation, in the self census or a replay"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G184-OUTPUT-NAMED-MODULE-DIRECTORIES"
+found_in = "G184"
+source = "adapter/src/source/module_dirs.rs (the file-presence rule for build-output directory names, ADR 0096)"
+subsystem = "adapter source inventory policy"
+reproduction = "an output-named directory (build, dist, .next, coverage) holding written source without its own mod.rs or Cargo.toml and without a non-crate-root sibling <name>.rs -- reached only through #[path = \"coverage/m.rs\"] mod m;, #[cfg_attr(unix, path = \"build/unix.rs\")], a mod declared inside cfg_if!, an inline mod dist { mod inner; } in lib.rs, a workspace member or a Cargo build or path target inside it, or non-Rust source there (web/src/build/index.ts) -- stays the IgnoredByExplicitPolicy generated-or-external boundary, as before G184"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "written source sits under such a directory reachable only by those forms: its files are absent from every record under a generated-or-external label. It does not hold on the current tree: its only output-named source directory, core/src/coverage, has its own mod.rs"
+reopen_trigger = "a donor or the self tree with written source under build/, dist/, .next/ or coverage/ that the file-presence rule does not recognize"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G184-CONST-GENERIC-BLOCKS"
+found_in = "G184"
+source = "adapter/src/semantic/rust/macros.rs (hidden declaration places)"
+subsystem = "adapter semantic::rust declaration coverage"
+reproduction = "pub fn f() { g::<{ fn in_const_arg() {} 1 }>(); }, a const-parameter default struct S<const N: usize = { fn f() {} 1 }>, a method turbofish x.m::<{ fn f() {} 1 }>() or a closure written there: the item or region is in no record and SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE stay OBSERVED"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "an item or closure is written inside a const-generic argument or default. It does not hold on the current tree nor on the verus replay: no such block holds an item or closure there"
+reopen_trigger = "a censused file with a block expression holding an item or closure in a generic argument or const-parameter default"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G184-ATTRIBUTE-ARGUMENT-DECLARATIONS"
+found_in = "G184"
+source = "adapter/src/semantic/rust/macros.rs (attribute arguments out of profile, ADR 0096)"
+subsystem = "adapter semantic::rust declaration coverage"
+reproduction = "#[dep::attr(fn written_in_attribute() {})] pub fn g() {} keeps the declaration dimensions OBSERVED: attribute arguments and attribute output are out of profile by the stated boundary of ADR 0096"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "an attribute macro whose arguments carry item declarations in a censused tree"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G184-CRATE-ROOT-BY-PATH"
+found_in = "G184"
+source = "adapter/src/source/module_dirs.rs (crate_root)"
+subsystem = "adapter source inventory policy"
+reproduction = "an output-named directory whose parent path contains a tests, examples or benches component or src/bin anywhere (src/tests/coverage/helpers.rs beside a non-root module src/tests/coverage.rs) is judged crate-root territory by path alone, so rule (c) does not apply and the directory stays the IgnoredByExplicitPolicy generated-or-external boundary, as before G184"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "written module source sits in an output-named directory under such a path: its files are absent from every record under a generated-or-external label. It does not hold on the current tree: its only output-named source directory, core/src/coverage, is recognized by its own mod.rs"
+reopen_trigger = "a donor or the self tree with written module source under tests/, examples/, benches/ or src/bin/ in a directory named build, dist, .next or coverage"
+status = "OPEN"
+pressure = 3
