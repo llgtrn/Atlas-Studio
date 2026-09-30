@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G186"
+current_generation = "G187"
 
 [[generation]]
 id = "G35"
@@ -4754,3 +4754,58 @@ after = 210
 key = "composed:relation:INVOKES"
 before = 7485
 after = 7502
+
+[[generation]]
+id = "G187"
+kind = "CREATION"
+lane = "CREATION"
+base_commit = "6b982d3be187bb055c303e61575c9540ba230bbf"
+priority = "P2"
+serves = "DEBT-ATLASX, construction node M13: the CREATION selection after G185 ([creation_selection] score 70, the only reachable candidate)"
+objective = "NA-ATLASX-VALIDATE: a ROOT_MANIFEST over the staged objects of a materialization, the AtlasX root identity computed from it, and a validator following the reader verification order over one root; falsified by the materialized G161 root validated and tampered roots refused"
+writer = "coordinator (sole writer); one implementation lane over three rounds, one independent review lane, one read-only architecture investigation of the construction graph"
+evidence = ".atlas/evidence/verification/G187-atlasx-validate.json"
+self_recensus = ".atlas/evidence/census/G187/recensus.json"
+
+[generation.verification]
+pre_census = "G186 post digest"
+atlas_first = "a staged FUNCTIONS object had no manifest, no root identity and no validator: DECODED judged bytes alone (RES-G183-DECODED-IS-NOT-VALIDATED), the parent it came from was bound only in a noncanonical result (RES-G185-LINEAGE-ROOT-IN-RESULT-ONLY); M13 MISSING"
+change = "ADR 0099: core::atlasx::manifest writes and reads manifest.atlasx (ROOT_MANIFEST, class 1) through the codec's framing, generalized to a schema table, binding the staged objects and the admitted parent's root, Genome hash, census digest, revision, seal, design and scope; the AtlasX root identity is BLAKE3 of the manifest record without field 1; the materializer writes the manifest after its objects (publication steps 1 to 6 in staging); core::atlasx::validate re-runs the admission and follows the reader order over one root, and last requires the root to reproduce byte for byte the in-memory materialization of the admitted parent (ROOT_NOT_REPRODUCED); the runtime reads a root bounded, checking each entry's type and identity at listing and at open; atlas-systemizer atlasx validate. ADR 0100: the construction graph follows the contracts -- M15 needs a validated root, a target profile and bodies, FIRST_ARTIFACT needs the real sealed parent, and six nodes are added (M19 to M24, M24 blocked on the owner)"
+oracle = "the G161 fixture materializes to a root (id 7d9e6cf9..., manifest 834 bytes) the validator accepts, deterministically, end to end through the command; the self scope refused NOT_SEALED and DESIGN_ABSENT, nothing staged"
+falsification = "flipped object and manifest bytes, missing, unlisted and misnamed objects, traversal paths, empty and non-UTF-8 entries, directories past the entry limit, lineage outside the parent, a manifest naming another parent, seal or design, a re-hashed manifest and a record edited in any field class and re-rooted each INVALID with a typed defect; a root of a non-admitted parent INVALID; an independent review found the validator core sound (no VALID root that is not the canonical materialization) and five findings in the root reader and the wording, all fixed; 58 of 59 mutants killed, one equivalent"
+boundary = "FUNCTIONS class only, no bodies, staged not published; MIN_ATLASX demonstrated only on the test fixture, whose seal rests on synthetic reports, a placeholder census digest and a test-key principal, so it stays MISSING until a real repository parent is sealed for an owner-selected design (M24); a concurrent writer racing the staging directory is outside the model; seven residuals recorded, four closed"
+debts = "DEBT-ATLASX stays M2_PARTIAL, last advance G187; M13 EXISTS; the construction graph extended (ADR 0100) so the CREATION lane has reachable work without owner action; next generation G188 FULL_OSS_REPLAY 666ghj/mirofish"
+review = "four debts reviewed at their cadence: DEBT-VERIFICATION_EVIDENCE and DEBT-SEAL_GATE CORRECTED -- the ledger missed their G185 advance (verification::check_report and the seal gate refusing a self-contradicting report or one off the pinned envelope), so their last advance moves from G161 to G185 and nothing is sealed yet; DEBT-CAUSALITY and DEBT-RESOURCE CONFIRMED against the code, no commit to their mechanisms since G174, RESOURCE records 15 to 19 with the code (evidence/census/G187/debt-review.json)"
+proof = "PROVEN (post 7e28b9ff...): proven after the last source change; the manifest, validator, root reader and the owner-blocked node check censused"
+
+[[generation.expansion]]
+finding = "every CREATION attack named an unreachable node once M13 existed, and three edges of the construction graph contradicted the contracts (M15 on a real parent, no target profile or bodies before the backend, FIRST_ARTIFACT without the sealed parent)"
+justification = "INVALIDATES_GENERATION_EVIDENCE"
+
+[generation.value]
+new_capability = "validation of an AtlasX root against its admitted parent (command: atlas-systemizer atlasx validate)"
+vertical_stage = "ATLASX"
+construction_nodes_completed = ["M13"]
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 5
+wrong_claims_removed = 0
+wall_clock_s = 9716
+machine_s = 89
+proof_s = 4514
+review_s = 808
+residuals_deferred = 7
+correctness_critical = false
+frontier_rate = 1.85
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the implementation lane's launch to the roadmap commit, measured; machine_s = the first core build 33 + the self-scope run 56; proof_s = the recorded mutation runs and gates 2,897 (the second review round's gates were not timed separately) + the self-recensus 210 + the final full suite; review_s the independent review; the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 7559
+after = 7761
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7502
+after = 7756

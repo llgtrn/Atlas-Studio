@@ -4819,6 +4819,19 @@ mod tests {
                 .collect();
             let mut ranked = Vec::new();
             let mut creation = BTreeSet::new();
+            // ADR 0100: an owner-blocked node carries the exact actions only the owner can take.
+            let mut owner_blocked = BTreeSet::new();
+            for node in blocks(&ledger.text, "construction_node") {
+                if let Some(on) = string(node, "blocked_on") {
+                    assert_eq!(on, "OWNER", "{}: blocked_on {on}", text(node, "id"));
+                    assert!(
+                        !list(node, "owner_action").is_empty(),
+                        "{}: no owner_action",
+                        text(node, "id")
+                    );
+                    owner_blocked.insert(text(node, "id"));
+                }
+            }
             for attack in blocks(&ledger.text, "native_attack") {
                 let id = text(attack, "id");
                 let node = string(attack, "construction_node");
@@ -4833,6 +4846,11 @@ mod tests {
                             .get(&node)
                             .unwrap_or_else(|| panic!("{id}: unknown node {node}"));
                         assert!(!target.exists, "{id}: {node} already exists");
+                        // ADR 0100: a node only the owner can move is never a CREATION target.
+                        assert!(
+                            !owner_blocked.contains(&node),
+                            "{id}: {node} waits on the owner"
+                        );
                         assert!(
                             target
                                 .debt

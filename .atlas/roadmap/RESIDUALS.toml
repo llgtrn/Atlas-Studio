@@ -351,7 +351,9 @@ severity = "MEDIUM"
 can_create_false_claim = true
 false_claim_condition = "DECODED is reported as a validated AtlasX object or root. It does not hold on the current tree: the verdict is DECODED, never VALID, every report lists the manifest, root identity, parent compatibility, cross-object references and lineage among what it does not verify, and M13 stays MISSING"
 reopen_trigger = "the AtlasX validator (M13), or any consumer of a decoded object"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: the AtlasX validator judges objects inside a root against their manifest and the admitted parent, and VALID requires the root to reproduce the materialization; what VALID still rests on is RES-G187-VALIDATION-BY-REPRODUCTION"
 pressure = 9
 
 [[residual]]
@@ -363,7 +365,9 @@ reproduction = "any object whose header object_class is not 4 (FUNCTIONS) is ref
 severity = "LOW"
 can_create_false_claim = false
 reopen_trigger = "the materializer (M11) or validator (M13) needs a second class, ROOT_MANIFEST first"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: ROOT_MANIFEST (class 1) has a schema beside FUNCTIONS; the other classes are RES-G187-FUNCTIONS-ONLY-ROOT"
 pressure = 1
 
 [[residual]]
@@ -464,7 +468,9 @@ severity = "MEDIUM"
 can_create_false_claim = true
 false_claim_condition = "a staged object is reported as an AtlasX root or a completed materialization. It does not hold on the current tree: the verdict is STAGED, never a root, MATERIALIZE_NOT_DONE lists publication, and M13 and MIN_ATLASX stay MISSING"
 reopen_trigger = "a ROOT_MANIFEST schema (RES-G183-SINGLE-CLASS) or the AtlasX validator (M13)"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: a ROOT_MANIFEST and the root identity exist and publication steps 1 to 6 run in staging; the remainder (atomic switch, advertise) is RES-G187-STAGED-ROOT-NOT-PUBLISHED"
 pressure = 9
 
 [[residual]]
@@ -489,7 +495,9 @@ reproduction = "a staged object's records carry only census record ids as lineag
 severity = "LOW"
 can_create_false_claim = false
 reopen_trigger = "the ROOT_MANIFEST and root identity (publication steps 4 to 6)"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: the parent root, census digest, revision, seal and design are canonical ROOT_MANIFEST fields bound by the AtlasX root identity and checked by the validator"
 pressure = 1
 
 [[residual]]
@@ -553,3 +561,89 @@ false_claim_condition = "impact's candidate or unnamed site counts, or an unreso
 reopen_trigger = "any censused file where an independent parser counts more call and new expressions than Atlas records CALL sites"
 status = "OPEN"
 pressure = 3
+
+[[residual]]
+id = "RES-G187-STAGED-ROOT-NOT-PUBLISHED"
+found_in = "G187"
+source = "runtime/src/atlasx.rs (materialize, stage_objects), core/src/atlasx/materialize.rs (MATERIALIZE_NOT_DONE)"
+subsystem = "core atlasx materializer M11, publication"
+reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx and then manifest.atlasx into the staging directory (publication steps 1 to 6, the manifest read back with its root identity recomputed); step 7 (atomically publish or switch the root directory or reference) and step 8 (advertise the root) do not exist"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a staged (even VALID) root is reported as a published or advertised AtlasX root. It does not hold on the current tree: nothing publishes or advertises, the verdicts are STAGED and VALID, MATERIALIZE_NOT_DONE lists publication steps 7-8, VALIDATE_NOT_VERIFIED lists publication, and atlasx validate reads only the directory an operator names"
+reopen_trigger = "a publish/switch step, a registry or reference to AtlasX roots, or any consumer that locates a root other than by an explicit directory"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G187-VALIDATION-BY-REPRODUCTION"
+found_in = "G187"
+source = "core/src/atlasx/validate.rs (reproduction_defect, VALIDATE_NOT_VERIFIED), core/src/atlasx/materialize.rs (select, materialize_over)"
+subsystem = "core atlasx validator M13"
+reproduction = "the validator's record-field check is reproduction by the same code: it re-materializes the admitted parent with materialize_over and requires byte equality, so a mapping error in materialize::select (a census field carried into the wrong FUNCTION_SIGNATURE field, or dropped) would be written and validated alike; and a root from any other materializer identity or version is refused SCHEMA_INCOMPATIBLE rather than validated on its own terms"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "VALID is read as an independent check that every record field equals the parent's census content, while the materializer's mapping is wrong. It does not hold on the current tree: the materializer test pins the materialized is_local record equal, field for field, to the construction IR's SR1-3 lift of the same function (all but lineage), VALIDATE_NOT_VERIFIED states that fidelity rests on the materializer's mapping, and only one materializer version exists"
+reopen_trigger = "a second materializer (identity or version), a change to materialize::select's field mapping, or a consumer (compiler) that needs field fidelity independently of the materializer"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G187-FUNCTIONS-ONLY-ROOT"
+found_in = "G187"
+source = "core/src/atlasx/validate.rs (directory_of), core/src/atlasx/codec.rs"
+subsystem = "core atlasx codec M12, validator M13"
+reproduction = "a manifest entry of any class but FUNCTIONS (4) is ENTRY_CLASS_UNSUPPORTED and never validated; the other nineteen object classes (MODULES, TYPES, ... UI) have no schema; ROOT_MANIFEST (1) has one since G187"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a second materialized object class"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-MANIFEST-SCHEMA-DEVIATIONS"
+found_in = "G187"
+source = "core/src/atlasx/manifest.rs (MANIFEST_SCHEMA), core/src/atlasx/materialize.rs (TARGET_KIND_NONE, COMPILER_IR_CONTRACT_UNKNOWN, MATERIALIZER_VERSION)"
+subsystem = "core atlasx manifest M13"
+reproduction = "ROOT_MANIFEST schema 1 adds required tags 17-19 (parent census digest, revision, seal id) beyond the contract's 16, leaves the repeated tags 11-13, 15, 16 (profiles, external bindings, semantic barriers, dynamic obligations, compatibility requirements) undeclared and refused, writes target_kind NONE and compiler_ir_contract_version UNKNOWN, and a materializer_version constant (1) rather than a build identity"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a profile, binding, barrier, dynamic obligation or compatibility requirement to materialize, a target or compiler IR contract defined (M6), or the contract revised to number the parent binding fields"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-UNLISTED-FILES-REFUSED"
+found_in = "G187"
+source = "core/src/atlasx/validate.rs (UNLISTED_FILE)"
+subsystem = "core atlasx validator M13"
+reproduction = "a staged root holding any entry the manifest does not list -- a file (notes.md, a debug projection), a directory holding no listed object (an empty types/, a .git/), a name that is not UTF-8 -- is INVALID UNLISTED_FILE, although ATLASX-BINARY-WIRE-FORMAT lets noncanonical files coexist without affecting the root"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a debug or human-readable projection written next to canonical objects"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-ROOT-READ-MEMORY"
+found_in = "G187"
+source = "runtime/src/atlasx.rs (read_root, ROOT_ENTRY_LIMIT, ROOT_BYTE_LIMIT)"
+subsystem = "runtime atlasx validator M13"
+reproduction = "read_root holds every regular file of the root in memory before validation: up to 1,024 entries (directories counted) and four maximum-size objects (about 256 MiB plus one object) before it stops with ROOT_LIMIT"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "roots with more than four maximum-size objects, or validation where memory is constrained (read listed objects one at a time)"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-CONCURRENT-WRITER"
+found_in = "G187"
+source = "runtime/src/atlasx.rs (read_root_within, read_listed)"
+subsystem = "runtime atlasx validator M13"
+reproduction = "a local writer racing the staging directory while atlasx validate reads it: read_root checks each entry's type and identity (device, inode) when it is listed (symlink_metadata) and again on the opened handle, so a link or another file swapped in is listed as not a file; but a FIFO swapped in between listing and File::open blocks the open (no O_NONBLOCK is hand-coded; the G187 review's race probe: 8 hangs in 60 runs; the identity check does not prevent the blocking open), a top-level directory swapped for a link between listing and read_dir is followed, and a file replaced by another that reuses the freed inode is read -- validation can stall or read what the writer placed"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "validation of a directory other writers can change concurrently (a shared or published root), or a non-blocking open available without a new dependency"
+status = "OPEN"
+pressure = 1
