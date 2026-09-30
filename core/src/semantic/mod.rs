@@ -28,7 +28,9 @@ pub use control_flow::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
 };
 pub use data_flow::{DataFlowResolution, ValueIdentity, ValueRole};
-pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic, OPEN_SCOPE_DIAGNOSTIC};
+pub use diagnostic::{
+    DiagnosticCode, ExtractionDiagnostic, HIDDEN_DECLARATION_DIAGNOSTIC, OPEN_SCOPE_DIAGNOSTIC,
+};
 pub use effect::{EffectCategory, EffectIdentity, std_path_effects};
 pub use function::{
     BodyNode, BodyNodeKind, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,

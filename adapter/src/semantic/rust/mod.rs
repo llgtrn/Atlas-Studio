@@ -76,6 +76,15 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
+/// G184: the dimensions a declaration hidden in an unexpanded macro or an unwalked item can make
+/// incomplete (`hidden_declarations_message`).
+const DECLARATION_DIMENSIONS: &[SemanticDimension] = &[
+    SemanticDimension::Symbol,
+    SemanticDimension::Type,
+    SemanticDimension::FunctionIdentity,
+    SemanticDimension::FunctionSignature,
+];
+
 /// Exactly the twelve dimensions this wave observes from parser-visible syntax -- every
 /// `SemanticDimension` variant that exists.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
@@ -123,7 +132,10 @@ fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
         // see R4.4's own verification record) -- but those are OUT_OF_PROFILE exclusions this
         // extractor never silently claims to cover, not unvisited reachable syntax within the
         // declared profile itself, so a zero-observation result over that declared profile is
-        // real evidence.
+        // real evidence. G184 (ADR 0096): the exclusion covers declarations a macro GENERATES,
+        // never ones WRITTEN in an unexpanded invocation's tokens (`verus! { fn f() {} }`);
+        // `finish_success` holds a file's declaration dimensions UNKNOWN when one may be
+        // (`macros::hidden_declarations`).
         SemanticDimension::Symbol
         | SemanticDimension::Type
         | SemanticDimension::FunctionIdentity
@@ -222,8 +234,19 @@ impl SemanticExtractor for RustSemanticExtractor {
                     match syn::parse_file(&input.source_text) {
                         Ok(file) => {
                             ctx.shadowed_macros = macros::shadowing_macro_names([&file]);
-                            ctx.opaque_macro_sites =
-                                Some(macros::opaque_sites(&file, &ctx.shadowed_macros));
+                            ctx.hidden_declarations =
+                                macros::hidden_declarations(&file, &ctx.shadowed_macros);
+                            // G184: a hidden function the CALL walk would not otherwise count (an
+                            // unwalked or unparsed item, a macro in an initializer) is opaque too.
+                            let hidden_functions = ctx
+                                .hidden_declarations
+                                .iter()
+                                .filter(|site| site.call_opaque)
+                                .count();
+                            ctx.opaque_macro_sites = Some(
+                                macros::opaque_sites(&file, &ctx.shadowed_macros)
+                                    + hidden_functions,
+                            );
                             let root_scope = SemanticScope::new(Vec::<String>::new());
                             // G128 (mission M2): the file's own module documentation (`//!`),
                             // DECLARED on a `self` definition at the root scope.
@@ -623,6 +646,9 @@ struct ExtractionContext<'a> {
     /// G119: macro invocations and body-rewriting attributes the walkers cannot see through
     /// (`macros::opaque_sites`); `None` until the file parsed.
     opaque_macro_sites: Option<usize>,
+    /// G184: the macro invocations (and unparsed items) whose written tokens spell a declaration
+    /// the declaration walk never records (`macros::hidden_declarations`).
+    hidden_declarations: Vec<macros::HiddenDeclarations>,
     /// G119: depth of recovered macro arguments being walked. DATA_FLOW does not walk macro
     /// arguments, so CALL never builds a `Resolved` DATA_FLOW `PlaceRef` inside them.
     macro_argument_depth: usize,
@@ -644,6 +670,7 @@ impl<'a> ExtractionContext<'a> {
             seen_record_ids: BTreeSet::new(),
             shadowed_macros: BTreeSet::new(),
             opaque_macro_sites: None,
+            hidden_declarations: Vec::new(),
             macro_argument_depth: 0,
             regions: Vec::new(),
         }
@@ -1644,6 +1671,7 @@ impl<'a> ExtractionContext<'a> {
                 );
             }
             syn::Item::Struct(item_struct) => self.handle_struct(item_struct, scope),
+            syn::Item::Union(item_union) => self.handle_union(item_union, scope),
             syn::Item::Enum(item_enum) => self.handle_enum(item_enum, scope),
             syn::Item::Trait(item_trait) => self.handle_trait(item_trait, scope),
             syn::Item::Impl(item_impl) => self.handle_impl(item_impl, scope),
@@ -1685,9 +1713,21 @@ impl<'a> ExtractionContext<'a> {
             }
             syn::Item::Mod(item_mod) => self.handle_mod(item_mod, scope),
             syn::Item::ForeignMod(foreign) => self.handle_foreign_mod(foreign, scope),
-            // Everything else (`use`, `extern crate`, macro invocations at item position, trait
-            // aliases, ...) is out of scope for R4.3's minimum symbol/type/function set; it is
-            // neither claimed nor fabricated.
+            // G184: a trait alias defines a name, recorded as a SYMBOL (its bounds are paths, like
+            // a trait's supertraits).
+            syn::Item::TraitAlias(alias) => {
+                let span = self.span_of(alias);
+                self.emit_documented_symbol(
+                    scope,
+                    &alias.ident.to_string(),
+                    SymbolRole::Definition,
+                    span,
+                    spelling::documentation(&alias.attrs),
+                );
+            }
+            // Everything else (`use`, `extern crate`, macro invocations at item position -- held
+            // by G184 when they spell a declaration) is out of scope for R4.3's minimum
+            // symbol/type/function set; it is neither claimed nor fabricated.
             _ => {}
         }
     }
@@ -1728,7 +1768,18 @@ impl<'a> ExtractionContext<'a> {
                     let type_span = self.span_of(item_static.ty.as_ref());
                     self.emit_type_identity(scope, &type_name, Some(type_span));
                 }
-                // Foreign types and macros declare no function and no value.
+                // G184: a foreign type is a written declaration, as a foreign static is.
+                syn::ForeignItem::Type(item_type) => {
+                    let span = self.span_of(item_type);
+                    self.emit_documented_symbol(
+                        scope,
+                        &item_type.ident.to_string(),
+                        SymbolRole::Declaration,
+                        span,
+                        spelling::documentation(&item_type.attrs),
+                    );
+                }
+                // Foreign macros declare nothing written here (G184 holds them if they spell).
                 _ => {}
             }
         }
@@ -1736,23 +1787,58 @@ impl<'a> ExtractionContext<'a> {
 
     fn handle_struct(&mut self, item: &syn::ItemStruct, scope: &SemanticScope) {
         let span = self.span_of(item);
-        let name = item.ident.to_string();
-        let declaration = spelling::declaration(
+        self.handle_fields_item(
             atlas_core::DeclaredItem::Struct,
-            Some(&item.vis),
+            &item.ident,
+            &item.vis,
             &item.attrs,
-            Some(spelling::field_shape(&item.fields)),
+            &item.fields,
+            span,
+            scope,
         );
+    }
+
+    /// G184 (ADR 0096): a `union` is recorded like a struct with named fields -- its SYMBOL
+    /// (item kind UNION), each field's SYMBOL and each field type's TYPE. It was a written
+    /// declaration the walk skipped while SYMBOL and TYPE claimed OBSERVED.
+    fn handle_union(&mut self, item: &syn::ItemUnion, scope: &SemanticScope) {
+        let span = self.span_of(item);
+        let fields = syn::Fields::Named(item.fields.clone());
+        self.handle_fields_item(
+            atlas_core::DeclaredItem::Union,
+            &item.ident,
+            &item.vis,
+            &item.attrs,
+            &fields,
+            span,
+            scope,
+        );
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn handle_fields_item(
+        &mut self,
+        kind: atlas_core::DeclaredItem,
+        ident: &syn::Ident,
+        vis: &syn::Visibility,
+        attrs: &[syn::Attribute],
+        fields: &syn::Fields,
+        span: atlas_core::SourceSpan,
+        scope: &SemanticScope,
+    ) {
+        let name = ident.to_string();
+        let declaration =
+            spelling::declaration(kind, Some(vis), attrs, Some(spelling::field_shape(fields)));
         self.emit_declared_symbol(
             scope,
             &name,
             SymbolRole::Definition,
             span,
-            spelling::documentation(&item.attrs),
+            spelling::documentation(attrs),
             Some(declaration),
         );
         let nested = nested_scope(scope, &name);
-        for (index, field) in item.fields.iter().enumerate() {
+        for (index, field) in fields.iter().enumerate() {
             let field_name = field
                 .ident
                 .as_ref()
@@ -2034,6 +2120,65 @@ impl<'a> ExtractionContext<'a> {
         obligation
     }
 
+    /// G184: why a declaration dimension of this file is UNKNOWN, if it is: the invocations whose
+    /// written tokens spell a declaration of that dimension (any keyword, closure or `async` block
+    /// for SYMBOL and TYPE; `fn`, or a closure or `async` block inside a body, for
+    /// FUNCTION_IDENTITY and FUNCTION_SIGNATURE). No macro class is exempt: the walk records
+    /// nothing inside any invocation, and G145's bound on an item macro's names is a bound for name
+    /// resolution, not a record.
+    fn hidden_declarations_message(&self, dimension: SemanticDimension) -> Option<String> {
+        const LISTED: usize = 8;
+        let functions = matches!(
+            dimension,
+            SemanticDimension::FunctionIdentity | SemanticDimension::FunctionSignature
+        );
+        // Only the places that can hide this dimension's records are named for it.
+        let sites: Vec<&macros::HiddenDeclarations> = self
+            .hidden_declarations
+            .iter()
+            .filter(|site| site.functions || site.regions || !functions)
+            .collect();
+        if sites.is_empty() {
+            return None;
+        }
+        let mut listed: Vec<String> = sites
+            .iter()
+            .take(LISTED)
+            .map(|site| {
+                format!(
+                    "`{}` at {}:{}{}",
+                    site.invocation,
+                    self.input.artifact_path,
+                    site.line,
+                    {
+                        let tags: Vec<&str> = [
+                            (site.template, "a local macro_rules! template"),
+                            (site.functions, "fn"),
+                            (site.regions, "closure or async"),
+                        ]
+                        .into_iter()
+                        .filter_map(|(on, tag)| on.then_some(tag))
+                        .collect();
+                        if tags.is_empty() {
+                            String::new()
+                        } else {
+                            format!(" ({})", tags.join(", "))
+                        }
+                    }
+                )
+            })
+            .collect();
+        if sites.len() > LISTED {
+            listed.push(format!("{} more", sites.len() - LISTED));
+        }
+        Some(format!(
+            "{}{} unexpanded macro invocation(s) or item(s) the walk does not enter hold declarations written in this file that no record holds (SYMBOL and TYPE UNKNOWN; FUNCTION_IDENTITY and FUNCTION_SIGNATURE too where `fn`, a closure or an `async` block is written): {}",
+            atlas_core::HIDDEN_DECLARATION_DIAGNOSTIC,
+            sites.len(),
+            listed.join(", ")
+        ))
+    }
+
     fn finish_success(mut self) -> ExtractionBatch {
         for (_, (ids, refs)) in self.dimension_records.iter_mut() {
             ids.sort_by(|a, b| a.as_str().cmp(b.as_str()));
@@ -2048,20 +2193,26 @@ impl<'a> ExtractionContext<'a> {
                 // invocation and attribute is recovered or built-in is exhaustively walked.
                 let call_exhaustive_here =
                     dimension == SemanticDimension::Call && self.opaque_macro_sites == Some(0);
-                if dimension_coverage(dimension) == DimensionCoverage::Partial
-                    && !call_exhaustive_here
-                {
+                let partial = dimension_coverage(dimension) == DimensionCoverage::Partial
+                    && !call_exhaustive_here;
+                let hidden = if DECLARATION_DIMENSIONS.contains(&dimension) {
+                    self.hidden_declarations_message(dimension)
+                } else {
+                    None
+                };
+                if partial || hidden.is_some() {
+                    let message = hidden.unwrap_or_else(|| format!(
+                        "{} currently has partial {} coverage for {}; emitted observations are valid, but absence of unmodeled forms is not proven; opaque macro/attribute sites in profile: {}",
+                        RUST_SEMANTIC_EXTRACTOR_ID,
+                        dimension.as_str(),
+                        self.input.artifact_path,
+                        self.opaque_macro_sites
+                            .map_or_else(|| "not evaluated".to_owned(), |n| n.to_string())
+                    ));
                     let diagnostic = ExtractionDiagnostic::new(
                         DiagnosticCode::IncompleteAnalysis,
                         Some(dimension),
-                        format!(
-                            "{} currently has partial {} coverage for {}; emitted observations are valid, but absence of unmodeled forms is not proven; opaque macro/attribute sites in profile: {}",
-                            RUST_SEMANTIC_EXTRACTOR_ID,
-                            dimension.as_str(),
-                            self.input.artifact_path,
-                            self.opaque_macro_sites
-                                .map_or_else(|| "not evaluated".to_owned(), |n| n.to_string())
-                        ),
+                        message,
                     );
                     let diagnostic_id = diagnostic.id.clone();
                     self.diagnostics.push(diagnostic);

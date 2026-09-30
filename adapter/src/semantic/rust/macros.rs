@@ -29,7 +29,7 @@
 //! `call_sites_equal_an_independent_syntax_enumeration_on_real_sources` proves on every workspace
 //! source.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use syn::punctuated::Punctuated;
 use syn::visit::Visit;
 
@@ -512,4 +512,438 @@ pub(super) fn opaque_sites(file: &syn::File, shadowed: &BTreeSet<String>) -> usi
     let mut opaque = Opaque { shadowed, count: 0 };
     opaque.visit_file(file);
     opaque.count
+}
+
+/// Keywords that open a declaration the declaration walk records (G184): items with a SYMBOL or
+/// TYPE record, and `fn`, whose FUNCTION_IDENTITY and FUNCTION_SIGNATURE records exist too.
+const DECLARATION_KEYWORDS: &[&str] = &[
+    "fn", "struct", "enum", "union", "trait", "impl", "type", "mod", "const", "static",
+];
+
+/// G184 (replay R18, verus): a macro invocation this extractor does not expand, or an item `syn`
+/// kept as unparsed tokens, whose written tokens spell a declaration. Nothing inside it is
+/// recorded, so the declarations written there are missing from the file's declaration records.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) struct HiddenDeclarations {
+    /// `name!` as written, or `item` for tokens `syn` did not structure.
+    pub(super) invocation: String,
+    pub(super) line: usize,
+    /// `fn` is spelled: functions may be hidden, not only symbols and types.
+    pub(super) functions: bool,
+    /// Inside a function body, a closure or `async` block is spelled: an executable region
+    /// (a FUNCTION_IDENTITY record, G133/G159) may be hidden.
+    pub(super) regions: bool,
+    /// The invocation names a `macro_rules!` of this file whose transcribers spell a declaration.
+    pub(super) template: bool,
+    /// A hidden function CALL's `opaque_sites` does not count: an item `syn` kept as tokens or
+    /// one written where the walk does not enter, or a macro in a `const`/`static` initializer.
+    pub(super) call_opaque: bool,
+}
+
+/// `None` when `tokens` spell no declaration keyword, else whether one is `fn`. An identifier
+/// after `'` is a lifetime (`'static`) and after `$` a metavariable, never a keyword.
+fn spelled_declarations(tokens: proc_macro2::TokenStream) -> Option<bool> {
+    use proc_macro2::TokenTree;
+    let mut spelled = None;
+    let mut previous: Option<char> = None;
+    for token in tokens {
+        match &token {
+            TokenTree::Ident(ident) if !matches!(previous, Some('\'' | '$')) => {
+                let text = ident.to_string();
+                if DECLARATION_KEYWORDS.contains(&text.as_str()) {
+                    spelled = Some(spelled.unwrap_or(false) || text == "fn");
+                }
+            }
+            TokenTree::Group(group) => {
+                if let Some(functions) = spelled_declarations(group.stream()) {
+                    spelled = Some(spelled.unwrap_or(false) || functions);
+                }
+            }
+            _ => {}
+        }
+        previous = match &token {
+            TokenTree::Punct(punct) => Some(punct.as_char()),
+            _ => None,
+        };
+    }
+    spelled
+}
+
+/// Whether `tokens` spell a closure or an `async` block: a `|` (or `||`) where an expression starts
+/// -- first in its group, or after an operator or separator (`,` `(` `=` `=>` `;` `&` ...), or
+/// after `return`, `move`, `async`, `break` or `yield` -- never after a name, literal or closing group, so the
+/// pattern alternation `A | B` and the bit-or `a | b` are not closures; and closed by a second
+/// `|` with a body after it, so `Token![|]` is not one either; or `async` before a brace group or
+/// `move`.
+fn spelled_region(tokens: proc_macro2::TokenStream) -> bool {
+    use proc_macro2::{Delimiter, TokenTree};
+    let tokens: Vec<TokenTree> = tokens.into_iter().collect();
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            TokenTree::Punct(punct) if punct.as_char() == '|' => {
+                let expression_start = match index.checked_sub(1).map(|i| &tokens[i]) {
+                    None => true,
+                    // The second `|` of `||` is judged with the first.
+                    Some(TokenTree::Punct(previous)) if previous.as_char() == '|' => false,
+                    Some(TokenTree::Punct(previous)) => !matches!(previous.as_char(), '?' | '\''),
+                    Some(TokenTree::Ident(previous)) => matches!(
+                        previous.to_string().as_str(),
+                        "return" | "move" | "async" | "break" | "yield"
+                    ),
+                    Some(_) => false,
+                };
+                // A closure closes its parameters and has a body: `|x| body`, `|| body`. A lone
+                // `|` or `||` (`Token![|]`, `Token![||]`) is not one.
+                let rest = &tokens[index + 1..];
+                let closes = rest
+                    .iter()
+                    .position(|t| matches!(t, TokenTree::Punct(p) if p.as_char() == '|'))
+                    .is_some_and(|close| close + 1 < rest.len());
+                if expression_start && closes {
+                    return true;
+                }
+            }
+            TokenTree::Ident(ident) if *ident == "async" => {
+                let block = match tokens.get(index + 1) {
+                    Some(TokenTree::Group(group)) => group.delimiter() == Delimiter::Brace,
+                    Some(TokenTree::Ident(next)) => *next == "move",
+                    _ => false,
+                };
+                if block {
+                    return true;
+                }
+            }
+            TokenTree::Group(group) if spelled_region(group.stream()) => return true,
+            _ => {}
+        }
+    }
+    false
+}
+
+/// What a `macro_rules!` of the file expands to, as far as its transcribers show: a declaration
+/// (a keyword, or an invocation of a template that declares), a `fn`, a closure or `async` block.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+struct Template {
+    declares: bool,
+    functions: bool,
+    regions: bool,
+}
+
+impl Template {
+    fn merge(&mut self, other: Template) -> bool {
+        let before = *self;
+        self.declares |= other.declares;
+        self.functions |= other.functions;
+        self.regions |= other.regions;
+        *self != before
+    }
+}
+
+/// The names a token stream invokes as macros: the last identifier before each `!`, so any path
+/// (`name!`, `self::name!`, `$crate::m::name!`) names its last segment.
+fn invoked_names(tokens: proc_macro2::TokenStream, out: &mut BTreeSet<String>) {
+    use proc_macro2::TokenTree;
+    let tokens: Vec<TokenTree> = tokens.into_iter().collect();
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            TokenTree::Ident(ident) if matches!(tokens.get(index + 1), Some(TokenTree::Punct(p)) if p.as_char() == '!') =>
+            {
+                let name = ident.to_string();
+                out.insert(name.strip_prefix("r#").unwrap_or(&name).to_owned());
+            }
+            TokenTree::Group(group) => invoked_names(group.stream(), out),
+            _ => {}
+        }
+    }
+}
+
+/// G184: what each `macro_rules!` of `file` expands to, as a fixpoint -- a template reaches what
+/// it spells and what every same-file template it invokes reaches (`impl_all!` through
+/// `impl_one!`), and a `use` alias (`use mk as other;`) reaches what its target does.
+fn local_templates(file: &syn::File) -> BTreeMap<String, Template> {
+    #[derive(Default)]
+    struct Definitions {
+        templates: Vec<(String, Template, BTreeSet<String>)>,
+        aliases: Vec<(String, String)>,
+    }
+    fn renames(tree: &syn::UseTree, out: &mut Vec<(String, String)>) {
+        match tree {
+            syn::UseTree::Path(path) => renames(&path.tree, out),
+            syn::UseTree::Rename(rename) => {
+                out.push((rename.ident.to_string(), rename.rename.to_string()))
+            }
+            syn::UseTree::Group(group) => group.items.iter().for_each(|t| renames(t, out)),
+            syn::UseTree::Name(_) | syn::UseTree::Glob(_) => {}
+        }
+    }
+    impl<'ast> Visit<'ast> for Definitions {
+        fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
+            if let Some(ident) = &item.ident {
+                let tokens = item.mac.tokens.clone();
+                let spelled = spelled_declarations(tokens.clone());
+                let own = Template {
+                    declares: spelled.is_some(),
+                    functions: spelled.unwrap_or(false),
+                    regions: spelled_region(tokens.clone()),
+                };
+                let mut invoked = BTreeSet::new();
+                invoked_names(tokens, &mut invoked);
+                self.templates.push((ident.to_string(), own, invoked));
+            }
+            syn::visit::visit_item_macro(self, item);
+        }
+        fn visit_item_use(&mut self, item: &'ast syn::ItemUse) {
+            renames(&item.tree, &mut self.aliases);
+        }
+    }
+    let mut definitions = Definitions::default();
+    definitions.visit_file(file);
+    // A worklist over reverse edges (callee -> callers, alias target -> alias): a name is queued
+    // when what it reaches grows, and its flags only grow (three bits), so each name is queued at
+    // most four times -- linear in templates plus invocations, not one pass per chain link.
+    let mut reach: BTreeMap<String, Template> = BTreeMap::new();
+    let mut dependents: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for (name, own, invoked) in &definitions.templates {
+        reach.entry(name.clone()).or_default().merge(*own);
+        for callee in invoked {
+            dependents.entry(callee).or_default().push(name);
+        }
+    }
+    for (target, alias) in &definitions.aliases {
+        dependents.entry(target).or_default().push(alias);
+    }
+    let mut queue: std::collections::VecDeque<String> = reach.keys().cloned().collect();
+    while let Some(name) = queue.pop_front() {
+        let Some(reached) = reach.get(&name).copied() else {
+            continue;
+        };
+        for dependent in dependents.get(name.as_str()).into_iter().flatten() {
+            if reach
+                .entry((*dependent).to_owned())
+                .or_default()
+                .merge(reached)
+            {
+                queue.push_back((*dependent).to_owned());
+            }
+        }
+    }
+    reach
+}
+
+/// Every place in `file` where the declaration walk cannot see declarations written in source
+/// (G184): an invocation of a macro this extractor does not expand -- at item, associated-item,
+/// statement or expression position; a `macro_rules!` definition is a template and declares
+/// nothing -- or an item `syn` kept as unparsed tokens, whose tokens spell a declaration keyword.
+/// A recovered standard macro's arguments are walked (G119), so they are searched instead. What
+/// an invocation expands to without spelling a declaration (`typed_id!(NodeId)`), a derive, an
+/// attribute macro's output and a monomorphized instance are generated, not written: they stay
+/// outside the declared profile, as before. `const`/`static` initializers are not walked for
+/// declarations, as for CALL.
+pub(super) fn hidden_declarations(
+    file: &syn::File,
+    shadowed: &BTreeSet<String>,
+) -> Vec<HiddenDeclarations> {
+    use quote::ToTokens;
+    struct Hidden<'s> {
+        shadowed: &'s BTreeSet<String>,
+        /// What each `macro_rules!` of the file (and each `use` alias of one) expands to.
+        templates: BTreeMap<String, Template>,
+        sites: Vec<HiddenDeclarations>,
+        /// Depth of function bodies the walk enters (closures and `async` blocks inside them are
+        /// regions too): only there is a nested item recorded and a closure a region.
+        bodies: usize,
+        /// Inside a `const`/`static` initializer, where CALL's profile does not look (G74).
+        initializer: bool,
+    }
+    impl Hidden<'_> {
+        fn push(&mut self, invocation: String, line: usize, functions: bool, regions: bool) {
+            self.sites.push(HiddenDeclarations {
+                invocation,
+                line,
+                functions,
+                regions,
+                template: false,
+                // CALL counts a hidden function it would not otherwise see as opaque: an unwalked
+                // item, or a macro in an initializer (G74 counts macros everywhere else).
+                call_opaque: false,
+            });
+        }
+        fn item(&mut self, what: &str, line: usize, tokens: proc_macro2::TokenStream) {
+            if let Some(functions) = spelled_declarations(tokens) {
+                self.push(what.to_owned(), line, functions, false);
+                if let Some(site) = self.sites.last_mut() {
+                    site.call_opaque = functions;
+                }
+            }
+        }
+        fn verbatim(&mut self, tokens: &proc_macro2::TokenStream) {
+            use syn::spanned::Spanned;
+            let line = tokens.span().start().line;
+            self.item("item", line, tokens.clone());
+        }
+        /// An expression the walk never enters (an initializer, a discriminant, a type's array
+        /// length): items there are unwalked and closures there are no regions (G133).
+        fn unwalked(&mut self, initializer: bool, visit: impl FnOnce(&mut Self)) {
+            let (bodies, outer) = (self.bodies, self.initializer);
+            self.bodies = 0;
+            self.initializer |= initializer;
+            visit(self);
+            self.bodies = bodies;
+            self.initializer = outer;
+        }
+        fn body(&mut self, visit: impl FnOnce(&mut Self)) {
+            let outer = self.initializer;
+            self.initializer = false;
+            self.bodies += 1;
+            visit(self);
+            self.bodies -= 1;
+            self.initializer = outer;
+        }
+    }
+    impl<'ast> Visit<'ast> for Hidden<'_> {
+        fn visit_macro(&mut self, mac: &'ast syn::Macro) {
+            match recovered_arguments(mac, self.shadowed) {
+                Some(arguments) => {
+                    for argument in &arguments {
+                        self.visit_expr(argument);
+                    }
+                }
+                None => {
+                    let path = mac
+                        .path
+                        .segments
+                        .iter()
+                        .map(|s| s.ident.to_string())
+                        .collect::<Vec<_>>();
+                    let colon = if mac.path.leading_colon.is_some() {
+                        "::"
+                    } else {
+                        ""
+                    };
+                    let line = mac.bang_token.span.start().line;
+                    // A `macro_rules!` of this file (or an alias of one), by any path whose last
+                    // segment names it, expands to what its transcribers spell or invoke.
+                    let local = path
+                        .last()
+                        .and_then(|name| self.templates.get(name))
+                        .copied()
+                        .unwrap_or_default();
+                    let in_body = self.bodies > 0;
+                    let regions = in_body && (local.regions || spelled_region(mac.tokens.clone()));
+                    let written = spelled_declarations(mac.tokens.clone());
+                    if written.is_some() || regions || local.declares {
+                        let functions = written.unwrap_or(false) || local.functions;
+                        self.push(
+                            format!("{colon}{}!", path.join("::")),
+                            line,
+                            functions,
+                            regions,
+                        );
+                        if let Some(site) = self.sites.last_mut() {
+                            site.template = local.declares || (in_body && local.regions);
+                            site.call_opaque = self.initializer && functions;
+                        }
+                    }
+                }
+            }
+        }
+        fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
+            // A `macro_rules!` definition is a template: it declares nothing until invoked.
+            if item.ident.is_none() {
+                syn::visit::visit_item_macro(self, item);
+            }
+        }
+        fn visit_item(&mut self, item: &'ast syn::Item) {
+            match item {
+                syn::Item::Verbatim(tokens) => self.verbatim(tokens),
+                _ => syn::visit::visit_item(self, item),
+            }
+        }
+        fn visit_impl_item(&mut self, item: &'ast syn::ImplItem) {
+            match item {
+                syn::ImplItem::Verbatim(tokens) => self.verbatim(tokens),
+                _ => syn::visit::visit_impl_item(self, item),
+            }
+        }
+        fn visit_trait_item(&mut self, item: &'ast syn::TraitItem) {
+            match item {
+                syn::TraitItem::Verbatim(tokens) => self.verbatim(tokens),
+                _ => syn::visit::visit_trait_item(self, item),
+            }
+        }
+        fn visit_foreign_item(&mut self, item: &'ast syn::ForeignItem) {
+            match item {
+                syn::ForeignItem::Verbatim(tokens) => self.verbatim(tokens),
+                _ => syn::visit::visit_foreign_item(self, item),
+            }
+        }
+        // An item written in a block the walk does not enter is in no record.
+        fn visit_stmt(&mut self, stmt: &'ast syn::Stmt) {
+            match stmt {
+                syn::Stmt::Item(item)
+                    if self.bodies == 0 && !matches!(item, syn::Item::Macro(_)) =>
+                {
+                    use syn::spanned::Spanned;
+                    let line = item.span().start().line;
+                    let what = if self.initializer {
+                        "item in an initializer"
+                    } else {
+                        "item in an unwalked block"
+                    };
+                    self.item(what, line, item.to_token_stream());
+                }
+                _ => syn::visit::visit_stmt(self, stmt),
+            }
+        }
+        fn visit_item_fn(&mut self, item: &'ast syn::ItemFn) {
+            for attribute in &item.attrs {
+                self.visit_attribute(attribute);
+            }
+            self.visit_signature(&item.sig);
+            self.body(|h| h.visit_block(&item.block));
+        }
+        fn visit_impl_item_fn(&mut self, item: &'ast syn::ImplItemFn) {
+            for attribute in &item.attrs {
+                self.visit_attribute(attribute);
+            }
+            self.visit_signature(&item.sig);
+            self.body(|h| h.visit_block(&item.block));
+        }
+        fn visit_trait_item_fn(&mut self, item: &'ast syn::TraitItemFn) {
+            for attribute in &item.attrs {
+                self.visit_attribute(attribute);
+            }
+            self.visit_signature(&item.sig);
+            if let Some(block) = &item.default {
+                self.body(|h| h.visit_block(block));
+            }
+        }
+        fn visit_item_const(&mut self, item: &'ast syn::ItemConst) {
+            self.unwalked(true, |h| syn::visit::visit_item_const(h, item));
+        }
+        fn visit_item_static(&mut self, item: &'ast syn::ItemStatic) {
+            self.unwalked(true, |h| syn::visit::visit_item_static(h, item));
+        }
+        fn visit_impl_item_const(&mut self, item: &'ast syn::ImplItemConst) {
+            self.unwalked(true, |h| syn::visit::visit_impl_item_const(h, item));
+        }
+        fn visit_trait_item_const(&mut self, item: &'ast syn::TraitItemConst) {
+            self.unwalked(true, |h| syn::visit::visit_trait_item_const(h, item));
+        }
+        fn visit_variant(&mut self, variant: &'ast syn::Variant) {
+            self.unwalked(false, |h| syn::visit::visit_variant(h, variant));
+        }
+        fn visit_type(&mut self, ty: &'ast syn::Type) {
+            self.unwalked(false, |h| syn::visit::visit_type(h, ty));
+        }
+    }
+    let mut hidden = Hidden {
+        shadowed,
+        templates: local_templates(file),
+        sites: Vec::new(),
+        bodies: 0,
+        initializer: false,
+    };
+    hidden.visit_file(file);
+    hidden.sites
 }

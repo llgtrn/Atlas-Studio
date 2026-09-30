@@ -632,6 +632,33 @@ fn run(s: &core::store::Store) { s.save(); }
         let unknowns = lens::unknowns(&index, &index.resolve("path:core/src/store.rs").unwrap());
         assert_eq!(unknowns.withheld, component.withheld);
         assert!(unknowns.gaps.contains(&"GAP-OPEN-SCOPE".to_owned()));
+        // G184 (ADR 0096): the same invocation writes `struct Made`, which no record holds, so the
+        // file's SYMBOL and TYPE coverage is UNKNOWN, named on the component, the gap and the
+        // lens; no `fn` is written there, so its function coverage stays OBSERVED.
+        let hidden = |m: &WorldModel| {
+            m.gaps
+                .iter()
+                .find(|g| g.id == "GAP-HIDDEN-DECLARATION")
+                .map(|g| g.magnitude)
+        };
+        assert_eq!(hidden(&clean), Some(0));
+        assert_eq!(hidden(&model), Some(1));
+        let coverage = |dimension: &str| component.coverage[dimension];
+        assert_eq!(coverage("SYMBOL"), EpistemicStatus::Unknown);
+        assert_eq!(coverage("TYPE"), EpistemicStatus::Unknown);
+        assert_eq!(coverage("FUNCTION_IDENTITY"), EpistemicStatus::Observed);
+        assert_eq!(coverage("FUNCTION_SIGNATURE"), EpistemicStatus::Observed);
+        assert_eq!(component.hidden_declarations.len(), 1);
+        let why = &component.hidden_declarations[0];
+        assert!(
+            why.starts_with(atlas_core::HIDDEN_DECLARATION_DIAGNOSTIC),
+            "{why}"
+        );
+        assert!(
+            why.ends_with("`dependency::make_items!` at core/src/store.rs:1"),
+            "{why}"
+        );
+        assert_eq!(unknowns.hidden_declarations, component.hidden_declarations);
     }
 
     #[test]

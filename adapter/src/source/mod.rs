@@ -4,6 +4,7 @@ use atlas_core::{
 };
 
 pub mod frontend;
+mod module_dirs;
 
 pub use frontend::{
     IncludedFragment, SourceFrontend, SourceFrontendMatch, resolve_included_fragment,
@@ -21,19 +22,19 @@ const BINARY_SAMPLE_BYTES: usize = 8 * 1024;
 /// Files above this size are inventoried and sniffed but not content-digested (ADR 0005).
 const MAX_DIGEST_BYTES: u64 = 256 * 1024 * 1024;
 
+/// Directories that never hold written source: tool state, VCS metadata and dependency or
+/// compiler output stores.
 fn ignored_directory(name: &str) -> bool {
     matches!(
         name,
-        ".atlas"
-            | ".git"
-            | ".pnpm-store"
-            | "target"
-            | "node_modules"
-            | "dist"
-            | "build"
-            | ".next"
-            | "coverage"
+        ".atlas" | ".git" | ".pnpm-store" | "target" | "node_modules"
     )
+}
+
+/// Conventional build-output names (bundles, build trees, coverage reports), ignored unless the
+/// files present show a Rust module or package directory (G184, `module_dirs`).
+fn output_directory_name(name: &str) -> bool {
+    matches!(name, "dist" | "build" | ".next" | "coverage")
 }
 
 fn relative(root: &Path, path: &Path) -> String {
@@ -47,7 +48,7 @@ fn artifact_id(path: &str) -> ArtifactId {
     ArtifactId::new(stable_id("artifact", path))
 }
 
-fn policy_boundary(root: &Path, path: &Path) -> ArtifactRecord {
+fn policy_boundary(root: &Path, path: &Path, reason: &str) -> ArtifactRecord {
     let path = relative(root, path);
     ArtifactRecord {
         id: artifact_id(&path),
@@ -56,7 +57,7 @@ fn policy_boundary(root: &Path, path: &Path) -> ArtifactRecord {
         bytes: 0,
         disposition: ArtifactDisposition::IgnoredByExplicitPolicy,
         language: None,
-        reason: Some("generated-or-external-directory-boundary".into()),
+        reason: Some(reason.into()),
         content_digest: None,
         content_digest_withheld: None,
     }
@@ -284,8 +285,15 @@ fn classify_entry(
     let file_type = entry.file_type()?;
 
     if file_type.is_dir() {
-        if ignored_directory(&name) {
-            Ok(Some(policy_boundary(root, &path)))
+        let boundary = if ignored_directory(&name) {
+            Some(module_dirs::GENERATED)
+        } else if output_directory_name(&name) {
+            module_dirs::boundary_reason(root, &path, &name)
+        } else {
+            None
+        };
+        if let Some(reason) = boundary {
+            Ok(Some(policy_boundary(root, &path, reason)))
         } else if depth >= MAX_DIRECTORY_NESTING_DEPTH {
             Ok(Some(classify_non_file(
                 root,
@@ -618,6 +626,109 @@ mod tests {
             .iter()
             .find(|artifact| artifact.path == path)
             .unwrap_or_else(|| panic!("{path} inventoried"))
+    }
+
+    /// G184 (ADR 0096): a build-output name is ignored as generated unless the files present show
+    /// a Rust module or package directory: its own `mod.rs`, its own `Cargo.toml`, or a `<name>.rs`
+    /// beside it that is not a crate root while it holds a `.rs` file. No file is read, so a
+    /// hostile deep file changes nothing; tool and dependency stores are ignored whatever they hold.
+    #[test]
+    fn a_module_directory_with_a_build_output_name_is_source() {
+        let root = scratch_root();
+        let write = |path: &str, text: &str| {
+            let path = root.join(path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, text).unwrap();
+        };
+        let deep = format!("{}{}", "mod a{".repeat(16_000), "}".repeat(16_000));
+        write(
+            "Cargo.toml",
+            "[package]\nname = \"p\"\n[package.metadata.x]\nrebuild = \"dist/app\"\n",
+        );
+        // (a) its own mod.rs; (b) its own Cargo.toml; (c) a non-root `<name>.rs` beside it.
+        write("core/src/coverage/mod.rs", "pub fn measured() {}\n");
+        write("pkg/dist/Cargo.toml", "[package]\nname = \"dist\"\n");
+        write("pkg/dist/src/lib.rs", "pub fn d() {}\n");
+        write("core/src/build.rs", &deep);
+        write("core/src/build/step.rs", "pub fn run() {}\n");
+        // (c) needs a `.rs` file inside; crate roots never count.
+        write("core/src/dist.rs", "mod bundle;\n");
+        write("core/src/dist/bundle.js", "x()\n");
+        write("build.rs", "mod helpers;\nfn main() {}\n");
+        write("helpers.rs", "pub fn go() {}\n");
+        write("build/out.rs", "fn generated() {}\n");
+        write("app/src/bin/build.rs", "mod out;\nfn main() {}\n");
+        write("app/src/bin/build/out.rs", "fn generated() {}\n");
+        write("app/examples/coverage.rs", "fn main() {}\n");
+        write("app/examples/coverage/report.rs", "fn generated() {}\n");
+        write("app/src/lib.rs", &deep);
+        write("app/src/build/x.rs", "fn unreached() {}\n");
+        write("dist/app/gen.rs", "fn generated() {}\n");
+        write("coverage/lcov.info", "SF:core/src/lib.rs\n");
+        write("target/mod.rs", "fn built() {}\n");
+        let report = inventory_source(&root).unwrap();
+        let _ = fs::remove_dir_all(&root);
+        let record = |path: &str| report.artifacts.iter().find(|a| a.path == path);
+        for walked in [
+            "core/src/coverage/mod.rs",
+            "pkg/dist/src/lib.rs",
+            "core/src/build/step.rs",
+        ] {
+            let disposition = record(walked).map(|a| a.disposition.clone());
+            assert!(
+                !matches!(
+                    disposition,
+                    None | Some(ArtifactDisposition::IgnoredByExplicitPolicy)
+                ),
+                "{walked}"
+            );
+        }
+        for boundary in [
+            "core/src/dist",
+            "build",
+            "app/src/bin/build",
+            "app/examples/coverage",
+            "app/src/build",
+            "dist",
+            "coverage",
+            "target",
+        ] {
+            let artifact = record(boundary).unwrap_or_else(|| panic!("{boundary}"));
+            assert_eq!(
+                artifact.disposition,
+                ArtifactDisposition::IgnoredByExplicitPolicy,
+                "{boundary}"
+            );
+            assert_eq!(artifact.reason.as_deref(), Some(module_dirs::GENERATED));
+        }
+        for hidden in [
+            "core/src/dist/bundle.js",
+            "build/out.rs",
+            "app/src/bin/build/out.rs",
+            "dist/app/gen.rs",
+            "target/mod.rs",
+        ] {
+            assert!(record(hidden).is_none(), "{hidden}");
+        }
+    }
+
+    /// A directory too large to examine keeps the boundary, and says why.
+    #[test]
+    fn an_output_directory_past_the_entry_cap_keeps_the_boundary_and_names_it() {
+        let root = scratch_root();
+        fs::create_dir_all(root.join("src/dist")).unwrap();
+        fs::write(root.join("src/dist.rs"), "mod x;\n").unwrap();
+        for i in 0..4100 {
+            fs::write(root.join(format!("src/dist/{i}.js")), "").unwrap();
+        }
+        let report = inventory_source(&root).unwrap();
+        let _ = fs::remove_dir_all(&root);
+        let dist = report
+            .artifacts
+            .iter()
+            .find(|a| a.path == "src/dist")
+            .unwrap();
+        assert_eq!(dist.reason.as_deref(), Some(module_dirs::CAPPED));
     }
 
     #[test]

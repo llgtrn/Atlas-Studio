@@ -287,6 +287,11 @@ pub struct ComponentBehavior {
     /// obligations (`OPEN_SCOPE_DIAGNOSTIC`), each naming the open scope's cause.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub withheld: Vec<String>,
+    /// G184: why a declaration dimension of this artifact is UNKNOWN -- the hidden-declaration
+    /// diagnostics of its obligations (`HIDDEN_DECLARATION_DIAGNOSTIC`), each naming the macro
+    /// invocations whose written tokens spell a declaration no record holds.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hidden_declarations: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -1111,6 +1116,7 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                  named from identifiers",
             ),
             withheld: Vec::new(),
+            hidden_declarations: Vec::new(),
         }
     };
     // G162: the open-scope diagnostics, by id, read back onto their artifacts' components.
@@ -1120,6 +1126,16 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
         .filter_map(|d| {
             d.message
                 .starts_with(crate::OPEN_SCOPE_DIAGNOSTIC)
+                .then_some((d.id.as_str(), d.message.as_str()))
+        })
+        .collect();
+    // G184: the hidden-declaration diagnostics, by id, read back the same way.
+    let hidden: BTreeMap<&str, &str> = census
+        .diagnostics
+        .iter()
+        .filter_map(|d| {
+            d.message
+                .starts_with(crate::HIDDEN_DECLARATION_DIAGNOSTIC)
                 .then_some((d.id.as_str(), d.message.as_str()))
         })
         .collect();
@@ -1142,6 +1158,11 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                 && !component.withheld.iter().any(|w| w == message)
             {
                 component.withheld.push((*message).to_owned());
+            }
+            if let Some(message) = hidden.get(id.as_str())
+                && !component.hidden_declarations.iter().any(|h| h == message)
+            {
+                component.hidden_declarations.push((*message).to_owned());
             }
         }
     }
@@ -1871,6 +1892,22 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
                 .filter(|c| !c.withheld.is_empty())
                 .count(),
             debt: "DEBT-CALL".into(),
+        },
+        UnderstandingGap {
+            id: "GAP-HIDDEN-DECLARATION".into(),
+            question_class: "does this file declare more than Atlas records?".into(),
+            missing: "a macro invocation Atlas does not expand (a procedural or dependency macro \
+                      such as `verus!`, a workspace `macro_rules!`, `thread_local!`) may hold \
+                      declarations written in its tokens that no record holds; the file's \
+                      SYMBOL and TYPE coverage, and FUNCTION_IDENTITY and FUNCTION_SIGNATURE \
+                      when `fn` is spelled, are UNKNOWN; magnitude counts components whose \
+                      `hidden_declarations` names the invocations (G184)"
+                .into(),
+            magnitude: components
+                .values()
+                .filter(|c| !c.hidden_declarations.is_empty())
+                .count(),
+            debt: "DEBT-SYMBOL".into(),
         },
         UnderstandingGap {
             id: "GAP-CAPABILITY-REALIZATION".into(),

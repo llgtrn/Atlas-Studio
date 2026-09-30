@@ -427,6 +427,10 @@ pub struct Unknowns {
     /// diagnostics), so an UNKNOWN names its cause instead of leaving the pilot to find it.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub withheld: Vec<String>,
+    /// G184: why a declaration dimension of the scope's components is UNKNOWN (their
+    /// hidden-declaration diagnostics).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hidden_declarations: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -552,6 +556,8 @@ pub fn unknowns(index: &Index, scope: &Scope) -> Unknowns {
         }
         u.components_without_purpose += usize::from(c.purpose.status == EpistemicStatus::Unknown);
         u.withheld.extend(c.withheld.iter().cloned());
+        u.hidden_declarations
+            .extend(c.hidden_declarations.iter().cloned());
     }
     for id in &scope.functions {
         if let Some(f) = index.function(id) {

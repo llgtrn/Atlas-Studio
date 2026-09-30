@@ -15,6 +15,13 @@ use serde::{Deserialize, Serialize};
 /// and why. The composed world model reads it back (`GAP-OPEN-SCOPE`, a component's `withheld`).
 pub const OPEN_SCOPE_DIAGNOSTIC: &str = "open scope: ";
 
+/// G184: the message prefix of an `INCOMPLETE_ANALYSIS` diagnostic that holds a declaration
+/// dimension (SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE) of an artifact UNKNOWN because
+/// a macro invocation this extractor does not expand spells a declaration in its written tokens,
+/// naming each invocation. The composed world model reads it back (`GAP-HIDDEN-DECLARATION`, a
+/// component's `hidden_declarations`).
+pub const HIDDEN_DECLARATION_DIAGNOSTIC: &str = "hidden declarations: ";
+
 /// Minimum diagnostic causes an extractor may report; see
 /// `.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`. A diagnostic never removes the
 /// artifact or the dimension from accounting — it always pairs with an explicit

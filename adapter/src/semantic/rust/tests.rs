@@ -7744,3 +7744,541 @@ fn g181_a_body_is_recorded_only_when_all_of_it_is_in_the_lowerable_subset() {
         }
     }
 }
+
+// --- G184 (ADR 0096): declarations written in an unexpanded macro's tokens --------------------
+
+const DECLARATION_DIMENSIONS: [SemanticDimension; 4] = [
+    SemanticDimension::Symbol,
+    SemanticDimension::Type,
+    SemanticDimension::FunctionIdentity,
+    SemanticDimension::FunctionSignature,
+];
+
+/// The status of each declaration dimension, in `DECLARATION_DIMENSIONS` order, and the
+/// hidden-declaration diagnostic messages.
+fn declaration_coverage(source: &str) -> (Vec<EpistemicStatus>, Vec<String>) {
+    let batch = extract("src/lib.rs", source, DECLARATION_DIMENSIONS.to_vec());
+    let statuses = DECLARATION_DIMENSIONS
+        .iter()
+        .map(|d| {
+            batch
+                .obligations
+                .iter()
+                .find(|o| o.dimension == *d)
+                .unwrap()
+                .status
+        })
+        .collect();
+    let messages: std::collections::BTreeSet<String> = batch
+        .diagnostics
+        .iter()
+        .filter(|d| {
+            d.message
+                .starts_with(atlas_core::HIDDEN_DECLARATION_DIAGNOSTIC)
+        })
+        .map(|d| d.message.clone())
+        .collect();
+    (statuses, messages.into_iter().collect())
+}
+
+/// Whether a function of this name is recorded, in any scope.
+fn has_function(batch: &ExtractionBatch, name: &str) -> bool {
+    batch.observations.iter().any(
+        |o| matches!(o, SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == name),
+    )
+}
+
+const O: EpistemicStatus = EpistemicStatus::Observed;
+const U: EpistemicStatus = EpistemicStatus::Unknown;
+
+/// A function or type written inside an item-position invocation of a macro this extractor does
+/// not expand (a procedural `verus!`, a dependency's macro) is in the file but in no record, so no
+/// declaration dimension may claim OBSERVED; the invocation is named, and what the walk did
+/// record outside it is kept.
+#[test]
+fn declarations_written_in_an_unexpanded_item_macro_hold_declaration_coverage_unknown() {
+    let source = "some_macro! {\n    fn a() {}\n    struct S;\n}\npub fn visible() {}\n";
+    let (statuses, messages) = declaration_coverage(source);
+    assert_eq!(statuses, [U, U, U, U]);
+    assert_eq!(messages.len(), 1, "one message per file: {messages:?}");
+    assert!(
+        messages[0].ends_with("`some_macro!` at src/lib.rs:1 (fn)"),
+        "{}",
+        messages[0]
+    );
+    let batch = extract_all("src/lib.rs", source);
+    assert!(has_function(&batch, "visible"));
+    assert!(!has_function(&batch, "a"), "never expanded");
+    let unknown = batch
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::FunctionIdentity)
+        .unwrap();
+    assert!(!unknown.observation_ids.is_empty(), "records are kept");
+    // One INCOMPLETE_ANALYSIS diagnostic per held dimension, each on its own obligation.
+    let hidden: Vec<_> = batch
+        .diagnostics
+        .iter()
+        .filter(|d| {
+            d.message
+                .starts_with(atlas_core::HIDDEN_DECLARATION_DIAGNOSTIC)
+        })
+        .collect();
+    assert_eq!(hidden.len(), 4);
+    for diagnostic in hidden {
+        assert_eq!(diagnostic.code, DiagnosticCode::IncompleteAnalysis);
+        let dimension = diagnostic.dimension.unwrap();
+        assert!(DECLARATION_DIMENSIONS.contains(&dimension));
+        let obligation = batch
+            .obligations
+            .iter()
+            .find(|o| o.dimension == dimension)
+            .unwrap();
+        assert_eq!(obligation.diagnostics, std::slice::from_ref(&diagnostic.id));
+    }
+
+    // The verus shape: `spec fn`/`proof fn` in a `verus!` block, nested in an inline module.
+    let verus = "use vstd::prelude::*;\nmod m {\n    verus! {\n        pub open spec fn f(x: int) -> int { x }\n        proof fn p() ensures f(1) == 1 {}\n    }\n}\n";
+    let (statuses, messages) = declaration_coverage(verus);
+    assert_eq!(statuses, [U, U, U, U]);
+    assert!(messages[0].contains("`verus!` at src/lib.rs:3 (fn)"));
+}
+
+/// Only `fn` hides a function: a macro that spells other declarations (`thread_local!` declares
+/// statics, `bitflags!` a struct and consts) holds SYMBOL and TYPE UNKNOWN and leaves
+/// FUNCTION_IDENTITY and FUNCTION_SIGNATURE as they were. A lifetime (`'static`) and a
+/// metavariable (`$fn`) spell no keyword.
+#[test]
+fn only_a_spelled_fn_holds_function_coverage_unknown() {
+    for source in [
+        "thread_local! {\n    static X: std::cell::Cell<u8> = std::cell::Cell::new(0);\n}\nfn f() {}\n",
+        "bitflags! {\n    struct F: u8 { const A = 1; }\n}\n",
+        "other!(*const u8);\n",
+    ] {
+        assert_eq!(declaration_coverage(source).0, [U, U, O, O], "{source}");
+    }
+    for source in ["other!(&'static str, $fn);\n", "other!(Fn, r#fnx);\n"] {
+        let (statuses, messages) = declaration_coverage(source);
+        assert_eq!(statuses, [O, O, O, O], "{source}");
+        assert!(messages.is_empty(), "{source}");
+    }
+}
+
+/// Every position the declaration walk visits: an associated item, a trait item, a statement in a
+/// body (a nested `fn` is recorded there), a recovered standard macro's argument, a closure body
+/// and an item `syn` keeps as tokens (a body-less associated `fn`, a foreign `fn` with a body, a
+/// `static` with no type).
+#[test]
+fn hidden_declarations_are_found_wherever_the_walk_records_declarations() {
+    for (source, line) in [
+        ("struct S;\nimpl S {\n    my_macro! { fn m() {} }\n}\n", 3),
+        ("trait T {\n    my_macro! { fn m(); }\n}\n", 2),
+        ("fn outer() {\n    my_macro! { fn inner() {} }\n}\n", 2),
+        (
+            "fn outer() {\n    let _ = my_macro!(fn inner() {});\n}\n",
+            2,
+        ),
+        (
+            "fn outer() {\n    println!(\"{}\", other! { fn hidden() {} });\n}\n",
+            2,
+        ),
+        (
+            "fn outer() {\n    let c = || {\n        m::n! { fn inner() {} }\n    };\n}\n",
+            3,
+        ),
+        ("struct S;\nimpl S {\n    fn m();\n}\n", 3),
+        ("extern \"C\" {\n    fn f() {}\n}\n", 2),
+        ("static X = {\n    fn f() {}\n    1\n};\n", 1),
+    ] {
+        let (statuses, messages) = declaration_coverage(source);
+        assert_eq!(statuses, [U, U, U, U], "{source}");
+        assert_eq!(messages.len(), 1, "{source}");
+        assert!(
+            messages[0].contains(&format!("at src/lib.rs:{line} (fn)")),
+            "{source}: {messages:?}"
+        );
+    }
+}
+
+/// What is not a hidden written declaration leaves coverage as it was: a file with no macro; a
+/// `macro_rules!` definition never invoked here (a template); a macro defined in another file
+/// whose invocation spells no declaration (the item it generates is outside the profile, like a
+/// derive's -- the extractor reads one file); a derive and an attribute macro (generated, not
+/// written); a recovered standard macro, whose arguments are walked -- a `fn` written there IS
+/// recorded.
+#[test]
+fn generated_declarations_and_walked_macro_arguments_keep_declaration_coverage() {
+    for source in [
+        "pub struct P;\npub fn visible() -> &'static P { &P }\n",
+        "typed_id!(NodeId);\npub fn visible() {}\n",
+        "#[derive(Debug, Clone, serde::Serialize)]\npub struct D { x: u8 }\n#[tokio::main]\nasync fn main() {}\n",
+        "fn outer() {\n    println!(\"{}\", { fn inner() {} 1 });\n}\n",
+    ] {
+        let (statuses, messages) = declaration_coverage(source);
+        assert_eq!(statuses, [O, O, O, O], "{source}");
+        assert!(messages.is_empty(), "{source}: {messages:?}");
+    }
+    let batch = extract_all(
+        "src/lib.rs",
+        "fn outer() {\n    println!(\"{}\", { fn inner() {} 1 });\n}\n",
+    );
+    assert!(has_function(&batch, "inner"), "walked, so recorded");
+}
+
+/// A workspace `macro_rules!` whose names G145 bounds for resolution records nothing either: a
+/// declaration written in its invocation (`vocabulary_enum! { pub enum E { .. } }`) holds SYMBOL
+/// and TYPE UNKNOWN like any other macro's.
+#[test]
+fn a_bounded_workspace_macro_hides_the_declarations_written_in_its_invocation() {
+    let source = "macro_rules! vocab {\n    ($vis:vis enum $name:ident { $($v:ident),* }) => { $vis enum $name { $($v),* } };\n}\nvocab! { pub enum E { A, B } }\nfn f() {}\n";
+    let (statuses, messages) = declaration_coverage(source);
+    assert_eq!(statuses, [U, U, O, O]);
+    assert!(
+        messages[0].ends_with("`vocab!` at src/lib.rs:4 (a local macro_rules! template)"),
+        "{messages:?}"
+    );
+}
+
+/// A `macro_rules!` of the same file whose transcribers spell a declaration writes that
+/// declaration in this file: invoking it -- by its name or `crate::name`, at item or expression
+/// position -- holds the dimensions it spells UNKNOWN, even when the invocation spells nothing.
+/// Its definition alone declares nothing.
+#[test]
+fn a_local_macro_rules_template_invoked_in_its_file_hides_what_it_spells() {
+    let template = "macro_rules! make {\n    () => { pub fn made_by_template() {} pub struct MadeStruct; };\n}\n";
+    for (invocation, line, name) in [
+        ("make!();\n", 4, "make!"),
+        ("fn f() {\n    crate::make!();\n}\n", 5, "crate::make!"),
+    ] {
+        let (statuses, messages) = declaration_coverage(&format!("{template}{invocation}"));
+        assert_eq!(statuses, [U, U, U, U], "{invocation}");
+        assert!(
+            messages[0].ends_with(&format!(
+                "`{name}` at src/lib.rs:{line} (a local macro_rules! template, fn)"
+            )),
+            "{messages:?}"
+        );
+    }
+    let types = "macro_rules! typed_id {\n    ($name:ident) => { pub struct $name(u64); };\n}\ntyped_id!(NodeId);\n";
+    assert_eq!(declaration_coverage(types).0, [U, U, O, O]);
+    let (statuses, messages) = declaration_coverage(template);
+    assert_eq!(statuses, [O, O, O, O]);
+    assert!(messages.is_empty());
+    // A local macro whose transcribers spell no declaration hides nothing.
+    let expression = "macro_rules! twice {\n    ($e:expr) => { $e + $e };\n}\nfn f() -> u8 {\n    twice!(1)\n}\n";
+    assert_eq!(declaration_coverage(expression).0, [O, O, O, O]);
+}
+
+/// The declaring templates are a fixpoint: a template that invokes a declaring template of the
+/// same file declares too (`impl_all!` through `impl_one!`), an invocation by any path whose last
+/// segment names one (`self::`, `super::`, `crate::m::`, `$crate::m::` in another template) is a
+/// hidden place, a `use` alias of one is one, and a template spelling only a closure hides a
+/// region when invoked in a body.
+#[test]
+fn declaring_templates_are_a_fixpoint_over_invocations_paths_and_aliases() {
+    for (source, dims) in [
+        (
+            "pub trait Tr { fn m(&self); }\nmacro_rules! impl_one { ($t:ty) => { impl Tr for $t { fn m(&self) {} } } }\nmacro_rules! impl_all { ($($t:ty),*) => { $( impl_one!($t); )* } }\nimpl_all!(u8, u16);\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! one { ($n:ident) => { pub fn $n() {} } }\nmacro_rules! many { ($($n:ident)*) => { $( one!($n); )* } }\nmany!(alpha beta);\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! mk { () => { pub struct Made; } }\nself::mk!();\n",
+            [U, U, O, O],
+        ),
+        (
+            "macro_rules! mk { () => { pub fn made() {} } }\nmod inner { super::mk!(); }\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! mk { () => { pub fn made() {} } }\ncrate::m::mk!();\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! mk { () => { pub fn made() {} } }\nmacro_rules! outer { () => { $crate::m::mk!(); } }\nouter!();\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! mk { () => { pub fn made() {} } }\npub(crate) use mk as other;\nother!();\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! cl { () => { let _c = || 1; } }\npub fn f() { cl!(); }\n",
+            [U, U, U, U],
+        ),
+        (
+            "macro_rules! cl { () => { let _c = || 1; } }\nconst X: () = { cl!(); };\n",
+            [O, O, O, O],
+        ),
+        (
+            "macro_rules! calls { () => { g(); } }\nmacro_rules! more { () => { calls!(); } }\npub fn f() { more!(); }\n",
+            [O, O, O, O],
+        ),
+    ] {
+        assert_eq!(declaration_coverage(source).0, dims, "{source}");
+    }
+    let (_, messages) = declaration_coverage(
+        "macro_rules! cl { () => { let _c = || 1; } }\npub fn f() { cl!(); }\n",
+    );
+    assert!(
+        messages[0]
+            .ends_with("`cl!` at src/lib.rs:2 (a local macro_rules! template, closure or async)"),
+        "{messages:?}"
+    );
+}
+
+/// The template fixpoint is a worklist: a 20,000-link chain of templates, each invoking the
+/// next and only the last declaring, resolves (in either definition order) to the declaring
+/// template, and a chain of the same length that declares nothing stays OBSERVED.
+#[test]
+fn a_long_template_chain_resolves_through_the_worklist() {
+    const LINKS: usize = 20_000;
+    let chain = |order: &mut dyn Iterator<Item = usize>, last: &str| {
+        let mut source = String::new();
+        for i in order {
+            if i + 1 == LINKS {
+                source.push_str(&format!("macro_rules! t{i} {{ () => {{ {last} }} }}\n"));
+            } else {
+                source.push_str(&format!(
+                    "macro_rules! t{i} {{ () => {{ t{}!(); }} }}\n",
+                    i + 1
+                ));
+            }
+        }
+        source.push_str("t0!();\n");
+        source
+    };
+    for declared in [
+        chain(&mut (0..LINKS), "pub fn made() {}"),
+        chain(&mut (0..LINKS).rev(), "pub fn made() {}"),
+    ] {
+        let (statuses, messages) = declaration_coverage(&declared);
+        assert_eq!(statuses, [U, U, U, U]);
+        assert!(
+            messages[0].ends_with("`t0!` at src/lib.rs:20001 (a local macro_rules! template, fn)"),
+            "{}",
+            &messages[0][messages[0].len().saturating_sub(120)..]
+        );
+    }
+    let control = chain(&mut (0..LINKS), "let _ = 1;");
+    assert_eq!(declaration_coverage(&control).0, [O, O, O, O]);
+}
+
+/// Each dimension's diagnostic names only the places that can hide its records: a struct-only
+/// place is named for SYMBOL and TYPE, not for FUNCTION_IDENTITY.
+#[test]
+fn each_dimension_names_only_the_places_that_hide_it() {
+    let batch = extract(
+        "src/lib.rs",
+        "dep::a! { pub struct S; }\ndep::b! { fn f() {} }\n",
+        DECLARATION_DIMENSIONS.to_vec(),
+    );
+    let message = |dimension| {
+        batch
+            .diagnostics
+            .iter()
+            .find(|d| d.dimension == Some(dimension))
+            .unwrap()
+            .message
+            .clone()
+    };
+    let symbol = message(SemanticDimension::Symbol);
+    let function = message(SemanticDimension::FunctionIdentity);
+    assert!(
+        symbol.contains("`dep::a!`") && symbol.contains("`dep::b!`"),
+        "{symbol}"
+    );
+    assert!(
+        !function.contains("`dep::a!`") && function.contains("`dep::b!`"),
+        "{function}"
+    );
+}
+
+/// Items written in a block the walk does not enter -- a `const`/`static` initializer (also
+/// inside a function), an enum discriminant -- and macros there that spell a declaration are in
+/// no record, so their file holds the dimensions they spell UNKNOWN; CALL counts a hidden
+/// function there as opaque. A closure in an initializer is no region (G133) and stays outside.
+#[test]
+fn items_and_macros_in_unwalked_blocks_are_hidden_declarations() {
+    for (source, line, dims) in [
+        (
+            "pub struct Visible;\nconst _: () = {\n    struct Hidden;\n    fn hidden_fn() {}\n};\n",
+            3,
+            [U, U, U, U],
+        ),
+        ("const _: () = {\n    struct Hidden;\n};\n", 2, [U, U, O, O]),
+        (
+            "pub static S: u8 = {\n    dep::wrap! { fn in_static_macro() {} };\n    0\n};\n",
+            2,
+            [U, U, U, U],
+        ),
+        (
+            "pub fn outer() {\n    const X: () = {\n        fn inner_in_const() {}\n    };\n}\n",
+            3,
+            [U, U, U, U],
+        ),
+        (
+            "pub enum E {\n    A = {\n        fn in_discriminant() {}\n        1\n    },\n}\n",
+            3,
+            [U, U, U, U],
+        ),
+        (
+            "trait T {\n    const C: u8 = {\n        fn f() {}\n        1\n    };\n}\n",
+            3,
+            [U, U, U, U],
+        ),
+        (
+            "fn host() {\n    enum E {\n        A = {\n            fn in_discriminant() {}\n            1\n        },\n    }\n}\n",
+            4,
+            [U, U, U, U],
+        ),
+    ] {
+        let (statuses, messages) = declaration_coverage(source);
+        assert_eq!(statuses, dims, "{source}");
+        assert!(
+            messages.iter().any(|m| m.contains(&format!(":{line}"))),
+            "{source}: {messages:?}"
+        );
+        let batch = extract("src/lib.rs", source, vec![SemanticDimension::Call]);
+        let call = batch
+            .obligations
+            .iter()
+            .find(|o| o.dimension == SemanticDimension::Call)
+            .unwrap();
+        if dims[2] == U {
+            assert_eq!(call.status, EpistemicStatus::Unknown, "{source}");
+        } else {
+            assert_eq!(call.status, EpistemicStatus::Observed, "{source}");
+        }
+    }
+    let (statuses, messages) = declaration_coverage(
+        "static F: fn() -> u8 = || 1;\nconst G: u8 = {\n    let c = || 1;\n    c()\n};\n",
+    );
+    assert_eq!(statuses, [O, O, O, O]);
+    assert!(messages.is_empty(), "{messages:?}");
+}
+
+/// An item `syn` keeps as tokens with a `fn` in it (`pub macro m() { fn inner() {} }`) holds the
+/// declaration dimensions UNKNOWN and is an opaque site for CALL, whose diagnostic is its own.
+#[test]
+fn an_unparsed_item_is_opaque_for_call_and_hides_declarations() {
+    let source = "pub macro m2() { fn inner() {} }\npub fn f() { g(); }\n";
+    let (statuses, messages) = declaration_coverage(source);
+    assert_eq!(statuses, [U, U, U, U]);
+    assert!(
+        messages[0].ends_with("`item` at src/lib.rs:1 (fn)"),
+        "{messages:?}"
+    );
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::Call]);
+    let call = batch
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Call)
+        .unwrap();
+    assert_eq!(call.status, EpistemicStatus::Unknown);
+    let why = batch
+        .diagnostics
+        .iter()
+        .find(|d| d.dimension == Some(SemanticDimension::Call))
+        .unwrap();
+    assert!(
+        why.message
+            .ends_with("opaque macro/attribute sites in profile: 1"),
+        "{}",
+        why.message
+    );
+}
+
+/// A foreign type and a trait alias are written declarations and are recorded as SYMBOLs.
+#[test]
+fn a_foreign_type_and_a_trait_alias_are_recorded() {
+    let batch = extract_all(
+        "src/lib.rs",
+        "extern \"C\" {\n    pub type Opaque;\n    pub fn ffi();\n}\npub trait Alias = Clone + Send;\n",
+    );
+    let opaque = find_symbol(&batch, &[], "Opaque").expect("the foreign type");
+    assert_eq!(opaque.role, SymbolRole::Declaration);
+    let alias = find_symbol(&batch, &[], "Alias").expect("the trait alias");
+    assert_eq!(alias.role, SymbolRole::Definition);
+}
+
+/// A `union` is a written declaration: it is recorded like a struct with named fields -- its
+/// SYMBOL (item kind UNION, attributes and shape), each field's SYMBOL and each field's TYPE --
+/// so its file's SYMBOL and TYPE coverage is true.
+#[test]
+fn a_union_is_recorded_like_a_struct() {
+    let batch = extract_all(
+        "src/lib.rs",
+        "/// Bits.\n#[repr(C)]\npub union U {\n    a: u32,\n    pub b: f32,\n}\n",
+    );
+    let u = find_symbol(&batch, &[], "U").expect("the union");
+    let declared = u.declaration.as_ref().unwrap();
+    assert_eq!(declared.item, atlas_core::DeclaredItem::Union);
+    assert_eq!(declared.visibility, "pub");
+    assert_eq!(declared.attributes, ["repr(C)"]);
+    assert_eq!(declared.shape, Some(atlas_core::FieldShape::Named));
+    assert_eq!(u.documentation.as_ref().unwrap().summary, "Bits.");
+    for (field, ty) in [("a", "u32"), ("b", "f32")] {
+        let symbol = find_symbol(&batch, &["U"], field).expect(field);
+        assert_eq!(
+            symbol.declaration.as_ref().unwrap().item,
+            atlas_core::DeclaredItem::Field
+        );
+        assert!(find_type(&batch, &["U"], ty).is_some(), "{ty}");
+    }
+    let (statuses, messages) = declaration_coverage("pub union U { a: u32 }\n");
+    assert_eq!(statuses, [O, O, O, O]);
+    assert!(messages.is_empty());
+}
+
+/// A closure or `async` block is an executable region with its own FUNCTION_IDENTITY (G133,
+/// G159). Written inside an unexpanded macro in a body, it is in no record, so the file's
+/// declaration dimensions are UNKNOWN; a pattern alternation, a bit-or, `Token![|]` and a closure
+/// outside any body (no region there) are not.
+#[test]
+fn a_closure_written_in_an_unexpanded_macro_in_a_body_holds_function_coverage_unknown() {
+    for source in [
+        "fn f(v: Vec<u8>) {\n    my_macro!(v.iter().map(|x| x + 1));\n}\n",
+        "fn f(x: Option<Vec<u8>>) -> bool {\n    matches!(x, Some(y) if y.iter().any(|z| *z > 0))\n}\n",
+        "fn f() {\n    my_macro!(move || 1);\n}\n",
+        "fn f() {\n    my_macro!(a, |x| x);\n}\n",
+        "fn f() {\n    my_macro!(loop { break |x: u8| x });\n}\n",
+        "fn f() {\n    my_macro!(gen { yield |x: u8| x });\n}\n",
+        "fn f() {\n    my_macro!(async { 1 });\n}\n",
+        "fn f() {\n    my_macro!(x, async move { 1 });\n}\n",
+        "fn f() {\n    let c = || {\n        m!(|| 1)\n    };\n}\n",
+    ] {
+        let (statuses, messages) = declaration_coverage(source);
+        assert_eq!(statuses, [U, U, U, U], "{source}");
+        assert!(
+            messages[0].contains(":2 (closure or async)")
+                || messages[0].contains(":3 (closure or async)"),
+            "{source}: {messages:?}"
+        );
+    }
+    for source in [
+        "fn f(x: u8) -> bool {\n    matches!(x, 1 | 2 | 3)\n}\n",
+        "fn f(a: u8, b: u8) {\n    my_macro!(a | b, (a) | b, 1 | 2);\n}\n",
+        "fn f() {\n    my_macro!(Token![|], Token![||], Token![|=]);\n}\n",
+        "other!(|| 1);\n",
+    ] {
+        let (statuses, messages) = declaration_coverage(source);
+        assert_eq!(statuses, [O, O, O, O], "{source}");
+        assert!(messages.is_empty(), "{source}: {messages:?}");
+    }
+    let batch = extract_all(
+        "src/lib.rs",
+        "fn f(v: Vec<u8>) {\n    my_macro!(v.iter().map(|x| x + 1));\n    let _ = v.iter().map(|y| y);\n}\n",
+    );
+    assert!(
+        has_function(&batch, "{closure@3:25}"),
+        "the written closure is recorded"
+    );
+    assert!(
+        !has_function(&batch, "{closure@2:27}"),
+        "the hidden one is not"
+    );
+}
