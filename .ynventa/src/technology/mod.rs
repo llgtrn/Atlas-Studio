@@ -76,7 +76,7 @@ pub fn assess(
         let unrelated_twin = d.technologies.iter().find(|o| {
             o.key != t.key
                 && o.implements.iter().any(|c| t.implements.contains(c))
-                && !related(t, o)
+                && !related(&d.technologies, t, o)
         });
         let ladder = [
             (
@@ -216,9 +216,30 @@ pub fn self_contained(files: &Files, t: &Technology) -> bool {
         })
 }
 
-/// Whether two technologies declare a relation in either direction.
-pub fn related(a: &Technology, b: &Technology) -> bool {
-    a.relations.iter().any(|r| r.target == b.key) || b.relations.iter().any(|r| r.target == a.key)
+/// Whether two technologies are connected through any chain of declared relations (in either
+/// direction, possibly through technologies declared elsewhere): one declared family.
+pub fn related(all: &[Technology], a: &Technology, b: &Technology) -> bool {
+    let mut seen = std::collections::BTreeSet::from([a.key.as_str()]);
+    let mut frontier = vec![a.key.as_str()];
+    while let Some(k) = frontier.pop() {
+        let out = all
+            .iter()
+            .filter(|t| t.key == k)
+            .flat_map(|t| t.relations.iter().map(|r| r.target.as_str()));
+        let inc = all
+            .iter()
+            .filter(|t| t.relations.iter().any(|r| r.target == k))
+            .map(|t| t.key.as_str());
+        for next in out.chain(inc).collect::<Vec<_>>() {
+            if next == b.key {
+                return true;
+            }
+            if seen.insert(next) {
+                frontier.push(next);
+            }
+        }
+    }
+    false
 }
 
 // ---------------------------------------------------------------------------------------------

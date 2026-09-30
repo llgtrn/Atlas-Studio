@@ -258,21 +258,42 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
     }
 
     // Capabilities.
+    // Related: connected through any chain of declared lineage/alternative relations, so every
+    // alternative of one canonical technology belongs to one declared family.
     let related = |g: &Graph, x: NodeId, y: NodeId| {
-        g.edges.iter().any(|e| {
-            ((e.from == x && e.to == y) || (e.from == y && e.to == x))
-                && matches!(
-                    e.kind,
-                    EdgeKind::Specializes
-                        | EdgeKind::AlternativeFor
-                        | EdgeKind::Evolves
-                        | EdgeKind::Generalizes
-                        | EdgeKind::Supersedes
-                        | EdgeKind::Replaces
-                        | EdgeKind::ForkedFrom
-                        | EdgeKind::Merges
-                )
-        })
+        let family = |e: &&crate::graph::GEdge| {
+            matches!(
+                e.kind,
+                EdgeKind::Specializes
+                    | EdgeKind::AlternativeFor
+                    | EdgeKind::Evolves
+                    | EdgeKind::Generalizes
+                    | EdgeKind::Supersedes
+                    | EdgeKind::Replaces
+                    | EdgeKind::ForkedFrom
+                    | EdgeKind::Merges
+            )
+        };
+        let mut seen = BTreeSet::from([x]);
+        let mut frontier = vec![x];
+        while let Some(n) = frontier.pop() {
+            for e in g.edges.iter().filter(family) {
+                let next = if e.from == n {
+                    e.to
+                } else if e.to == n {
+                    e.from
+                } else {
+                    continue;
+                };
+                if next == y {
+                    return true;
+                }
+                if seen.insert(next) {
+                    frontier.push(next);
+                }
+            }
+        }
+        false
     };
     let mut caps: BTreeMap<String, SystemCapability> = BTreeMap::new();
     for n in graph

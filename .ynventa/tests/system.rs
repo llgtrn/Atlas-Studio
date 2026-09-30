@@ -288,6 +288,50 @@ fn duplicated_technology_without_relation_fails_linking() {
         "{:#?}",
         image.issues
     );
+    // A third shard's alternative for the same canonical technology joins its declared family:
+    // no pairwise relation to every sibling is needed...
+    let third = commerce_shard("dup-third");
+    third.write(
+        "domain/order/src/digest.rs",
+        "pub fn digest_alt(bytes: &[u8]) -> Digest { todo!() }\n",
+    );
+    third.edit(|d| {
+        d.repository.shard = "fi-game".into();
+        d.repository.origin = "llgtrn/Fi-game".into();
+        d.repository.nodes[0].key = "finance.digest".into();
+        d.repository.nodes[0].provides = vec![];
+        d.repository.nodes[0].requires = vec![];
+        d.repository.nodes[1].key = "ynventa.fi-game".into();
+        d.technologies = vec![Technology {
+            key: "hash.alt-digest".into(),
+            name: "alternative digest".into(),
+            kind: TechnologyKind::Algorithm,
+            claimed: TechnologyLifecycle::Experimental,
+            purpose: String::new(),
+            implements: vec!["identity.digest".into()],
+            node: "finance.digest".into(),
+            sources: vec!["domain/order/src/digest.rs".into()],
+            invariants: vec![],
+            proofs: vec![],
+            lineage: vec![],
+            relations: vec![Relation {
+                kind: EdgeKind::AlternativeFor,
+                target: "hash.digest".into(),
+            }],
+            claims: vec![],
+        }];
+    });
+    let image = link_repos(&[&machine, &commerce, &third]);
+    assert!(!has(&image, "DUPLICATE_TECHNOLOGY"), "{:#?}", image.issues);
+    // ...but without its relation it is an independent duplicate of both.
+    third.edit(|d| d.technologies[0].relations.clear());
+    let image = link_repos(&[&machine, &commerce, &third]);
+    let dups = image
+        .issues
+        .iter()
+        .filter(|i| i.code == "DUPLICATE_TECHNOLOGY")
+        .count();
+    assert_eq!(dups, 2, "{:#?}", image.issues);
 }
 
 #[test]
