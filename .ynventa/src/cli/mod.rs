@@ -8,7 +8,7 @@ use crate::compact::facts::{Fact, Knowledge};
 use crate::compact::history::{Batch, History, Row};
 use crate::formats::json::Json;
 use crate::protocol::{own_subsystem_dir, Snapshot, COMMANDS, SNAPSHOT_FILE};
-use crate::schema::{DonorState, FactKind};
+use crate::schema::{DonorState, Ecosystem, FactKind};
 use crate::{
     assess, audit, compact, conformance, declare, evidence, migration, Assessment, Severity,
 };
@@ -744,6 +744,8 @@ fn migrate(args: &Args) -> Out {
                 }
             }
             d.donors.sort_by(|a, b| a.key.cmp(&b.key));
+            // Programs collapse into the project that provides them.
+            let moves = crate::migration::register::consolidate_programs(&mut d.donors);
             let active: Vec<&str> = a
                 .findings
                 .iter()
@@ -757,9 +759,23 @@ fn migrate(args: &Args) -> Out {
                 .map(PathBuf::from)
                 .or_else(cargo_home);
             let (mut registered, mut left) = (Vec::new(), Vec::new());
-            for dn in d.donors.iter_mut().filter(|dn| active.contains(&dn.key.as_str())) {
+            for dn in d.donors.iter_mut().filter(|dn| {
+                active.contains(&dn.key.as_str())
+                    && (dn.claimed < DonorState::Registered || dn.license.is_empty())
+            }) {
                 if dn.origin.trim().is_empty() {
-                    left.push((dn.key.clone(), "no origin recorded".to_string()));
+                    let native = !dn.packages.is_empty()
+                        && dn.packages.iter().all(|p| p.ecosystem == Ecosystem::Native);
+                    left.push((
+                        dn.key.clone(),
+                        if native {
+                            "a program with no single providing project on every platform: record its donor by hand".to_string()
+                        } else if dn.packages.is_empty() {
+                            "a source donor with no origin recorded: record its origin and licence by hand".to_string()
+                        } else {
+                            "no origin recorded".to_string()
+                        },
+                    ));
                     continue;
                 }
                 match donor_licence(root, &a.files, home.as_deref(), &locked, dn) {
@@ -775,11 +791,36 @@ fn migrate(args: &Args) -> Out {
                 }
             }
             let dry = args.flag("--dry-run");
-            let changed = !registered.is_empty() || !discovered.is_empty();
+            let changed = !registered.is_empty() || !discovered.is_empty() || !moves.is_empty();
             if !dry && changed {
+                if moves.iter().any(|(old, new)| old != new) {
+                    let seq = Knowledge::load(root).next_seq();
+                    let facts: Vec<Fact> = moves
+                        .iter()
+                        .filter(|(old, new)| old != new)
+                        .map(|(old, new)| {
+                            Fact::new(
+                                FactKind::LegacyRecord,
+                                old,
+                                "merged_into",
+                                new,
+                                "ynventa migrate register: a program donor is the project that provides it",
+                                seq,
+                            )
+                        })
+                        .collect();
+                    Knowledge::add(root, &facts).map_err(|e| e.to_string())?;
+                }
                 declare::store(root, &d).map_err(|e| e.to_string())?;
             }
             let mut s = String::new();
+            for (old, new) in &moves {
+                if old == new {
+                    s.push_str(&format!("  REGISTERED {new:<32} (program: its project's origin and licence)\n"));
+                } else {
+                    s.push_str(&format!("  MERGED     {old:<32} -> {new} (REGISTERED)\n"));
+                }
+            }
             for k in &discovered {
                 s.push_str(&format!("  DISCOVERED {k}\n"));
             }
@@ -790,8 +831,9 @@ fn migrate(args: &Args) -> Out {
                 s.push_str(&format!("  left       {k:<32} {why}\n"));
             }
             s.push_str(&format!(
-                "{} new donors discovered, {} donors registered from package metadata, {} left{}\n",
+                "{} new donors discovered, {} program donors merged into their projects, {} donors registered from package metadata, {} left{}\n",
                 discovered.len(),
+                moves.len(),
                 registered.len(),
                 left.len(),
                 if dry { " (dry run)" } else { "" }

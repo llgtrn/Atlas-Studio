@@ -416,3 +416,67 @@ fn register_discovers_new_externals_and_reads_npm_licences_from_the_lockfile() {
         a.findings
     );
 }
+
+#[test]
+fn program_donors_are_the_projects_that_provide_them() {
+    let r = extinct_baseline("programs");
+    r.write(
+        "core/src/lib.rs",
+        "pub fn id() -> u64 { 1 }\npub fn probe() {\n    let _ = std::process::Command::new(\"date\").status();\n    let _ = std::process::Command::new(\"df\").status();\n    let _ = std::process::Command::new(\"kill\").status();\n}\n",
+    );
+    let (code, out) = r.cli(&["migrate", "register"]);
+    assert_eq!(code, 0, "{out}");
+    let d = r.declaration();
+    // date and df are one donor, GNU coreutils, registered with its origin and licence.
+    let cu = d.donor("native-coreutils").expect("{out}");
+    assert_eq!(cu.claimed, DonorState::Registered);
+    assert_eq!(cu.license, "GPL-3.0-or-later");
+    assert_eq!(cu.origin, "https://www.gnu.org/software/coreutils");
+    let progs: Vec<&str> = cu.packages.iter().map(|p| p.name.as_str()).collect();
+    assert_eq!(progs, vec!["date", "df"]);
+    assert!(d.donor("native-date").is_none() && d.donor("native-df").is_none());
+    // kill has no single providing project: it stays unregistered, with the reason.
+    assert_eq!(
+        d.donor("native-kill").unwrap().claimed,
+        DonorState::Discovered
+    );
+    assert!(out.contains("no single providing project"), "{out}");
+    // The old keys are kept as knowledge.
+    let k = ynventa::compact::facts::Knowledge::load(r.path());
+    assert!(k.facts.iter().any(|f| f.subject == "native-date"
+        && f.key == "merged_into"
+        && f.value == "native-coreutils"));
+    // The census now finds date and df under the coreutils donor: only kill is left.
+    let a = r.assess();
+    let open: Vec<&str> = a
+        .findings
+        .iter()
+        .filter(|f| f.code == "DISCOVERED_BUT_ACTIVE" || f.code == "UNREGISTERED_EXTERNAL")
+        .map(|f| f.subject.as_str())
+        .collect();
+    assert_eq!(open, vec!["native-kill"], "{:#?}", a.findings);
+}
+
+#[test]
+fn a_program_donor_already_named_for_its_project_is_registered_in_place() {
+    let r = extinct_baseline("program-in-place");
+    r.write(
+        "core/src/lib.rs",
+        "pub fn id() -> u64 { 1 }\npub fn fetch() { let _ = std::process::Command::new(\"curl\").status(); }\n",
+    );
+    let (code, out) = r.cli(&["migrate", "register"]);
+    assert_eq!(code, 0, "{out}");
+    let dn = r
+        .declaration()
+        .donor("native-curl")
+        .cloned()
+        .expect("{out}");
+    assert_eq!(dn.claimed, DonorState::Registered, "{out}");
+    assert_eq!(dn.license, "curl");
+    let a = r.assess();
+    assert!(
+        !a.findings.iter().any(|f| f.code == "DISCOVERED_BUT_ACTIVE"),
+        "{:#?}",
+        a.findings
+    );
+}

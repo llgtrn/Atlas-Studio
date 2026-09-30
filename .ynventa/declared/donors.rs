@@ -1351,31 +1351,17 @@
         provenance: &["legacy:.atlas/references/donor-corpus.toml#mold"],
     },
     Donor {
-        key: "native-df",
-        name: "df",
-        origin: "",
-        license: "",
-        claimed: DonorState::Discovered,
+        key: "native-coreutils",
+        name: "coreutils",
+        origin: "https://www.gnu.org/software/coreutils",
+        license: "GPL-3.0-or-later",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
                 ecosystem: Ecosystem::Native,
                 name: "df",
             },
-        ],
-        source_paths: &[],
-        capabilities: &[],
-        cutover: None,
-        provenance: &["census:runtime/src/donor_storage.rs"],
-    },
-    Donor {
-        key: "native-mkfifo",
-        name: "mkfifo",
-        origin: "",
-        license: "",
-        claimed: DonorState::Discovered,
-        exception: Exception::None,
-        packages: &[
             Package {
                 ecosystem: Ecosystem::Native,
                 name: "mkfifo",
@@ -1384,14 +1370,14 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/src/source/mod.rs"],
+        provenance: &["census:adapter/src/source/mod.rs", "census:runtime/src/donor_storage.rs"],
     },
     Donor {
-        key: "native-node",
-        name: "node",
-        origin: "",
-        license: "",
-        claimed: DonorState::Discovered,
+        key: "native-nodejs",
+        name: "nodejs",
+        origin: "https://github.com/nodejs/node",
+        license: "MIT",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -1407,9 +1393,9 @@
     Donor {
         key: "native-npm",
         name: "npm",
-        origin: "",
-        license: "",
-        claimed: DonorState::Discovered,
+        origin: "https://github.com/npm/cli",
+        license: "Artistic-2.0",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {

@@ -216,3 +216,164 @@ pub fn discovered(eco: Ecosystem, name: &str, in_files: impl IntoIterator<Item =
         provenance,
     }
 }
+
+/// An external program the code runs as a process, and the project that provides it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Program {
+    pub program: &'static str,
+    pub project: &'static str,
+    pub origin: &'static str,
+    pub licence: &'static str,
+}
+
+/// Programs whose providing project is the same on every platform Chronica builds on. A program
+/// shipped by different projects on different platforms (`kill`: procps-ng or util-linux) is
+/// deliberately absent: its donor cannot be named without choosing a platform.
+pub const PROGRAMS: &[Program] = &[
+    Program {
+        program: "date",
+        project: "coreutils",
+        origin: "https://www.gnu.org/software/coreutils",
+        licence: "GPL-3.0-or-later",
+    },
+    Program {
+        program: "df",
+        project: "coreutils",
+        origin: "https://www.gnu.org/software/coreutils",
+        licence: "GPL-3.0-or-later",
+    },
+    Program {
+        program: "du",
+        project: "coreutils",
+        origin: "https://www.gnu.org/software/coreutils",
+        licence: "GPL-3.0-or-later",
+    },
+    Program {
+        program: "mkfifo",
+        project: "coreutils",
+        origin: "https://www.gnu.org/software/coreutils",
+        licence: "GPL-3.0-or-later",
+    },
+    Program {
+        program: "timeout",
+        project: "coreutils",
+        origin: "https://www.gnu.org/software/coreutils",
+        licence: "GPL-3.0-or-later",
+    },
+    Program {
+        program: "curl",
+        project: "curl",
+        origin: "https://github.com/curl/curl",
+        licence: "curl",
+    },
+    Program {
+        program: "node",
+        project: "nodejs",
+        origin: "https://github.com/nodejs/node",
+        licence: "MIT",
+    },
+    Program {
+        program: "npm",
+        project: "npm",
+        origin: "https://github.com/npm/cli",
+        licence: "Artistic-2.0",
+    },
+    Program {
+        program: "ip",
+        project: "iproute2",
+        origin: "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git",
+        licence: "GPL-2.0-or-later",
+    },
+    Program {
+        program: "nsenter",
+        project: "util-linux",
+        origin: "https://github.com/util-linux/util-linux",
+        licence: "GPL-2.0-or-later",
+    },
+    Program {
+        program: "git",
+        project: "git",
+        origin: "https://github.com/git/git",
+        licence: "GPL-2.0-only",
+    },
+];
+
+pub fn program(name: &str) -> Option<&'static Program> {
+    PROGRAMS.iter().find(|p| p.program == name)
+}
+
+/// The project every package of a DISCOVERED program donor comes from, when they agree.
+pub fn program_project(dn: &Donor) -> Option<&'static Program> {
+    let mut found: Option<&'static Program> = None;
+    for p in &dn.packages {
+        let prog = (p.ecosystem == Ecosystem::Native)
+            .then(|| program(&p.name))
+            .flatten()?;
+        match found {
+            Some(f) if f.project != prog.project => return None,
+            _ => found = Some(prog),
+        }
+    }
+    found
+}
+
+/// Collapses DISCOVERED program donors into one donor per providing project (a donor is the
+/// external project; its programs are what it provides), registered with the project's origin
+/// and licence. Returns (old key, new key) for every donor registered this way; the keys are equal
+/// when the donor already carried its project's key.
+pub fn consolidate_programs(donors: &mut Vec<Donor>) -> Vec<(String, String)> {
+    let mut moves = Vec::new();
+    let mut i = 0;
+    while i < donors.len() {
+        let dn = &donors[i];
+        let Some(prog) = (dn.claimed <= DonorState::Discovered && dn.capabilities.is_empty())
+            .then(|| program_project(dn))
+            .flatten()
+        else {
+            i += 1;
+            continue;
+        };
+        let key = format!("native-{}", prog.project);
+        if dn.key == key {
+            let dn = &mut donors[i];
+            dn.origin = prog.origin.into();
+            dn.license = prog.licence.into();
+            dn.claimed = DonorState::Registered;
+            moves.push((key.clone(), key));
+            i += 1;
+            continue;
+        }
+        let old = donors.remove(i);
+        moves.push((old.key.clone(), key.clone()));
+        match donors.iter_mut().find(|d| d.key == key) {
+            Some(target) => {
+                target.packages.extend(old.packages);
+                target.provenance.extend(old.provenance);
+            }
+            None => donors.push(Donor {
+                key: key.clone(),
+                name: prog.project.into(),
+                origin: prog.origin.into(),
+                license: prog.licence.into(),
+                claimed: DonorState::Registered,
+                exception: None,
+                packages: old.packages,
+                source_paths: Vec::new(),
+                capabilities: Vec::new(),
+                cutover: None,
+                provenance: old.provenance,
+            }),
+        }
+        // Positions shifted; restart the scan (the list is small).
+        i = 0;
+    }
+    for d in donors.iter_mut() {
+        d.packages
+            .sort_by(|a, b| (a.ecosystem, &a.name).cmp(&(b.ecosystem, &b.name)));
+        d.packages.dedup();
+        d.provenance.sort();
+        d.provenance.dedup();
+    }
+    donors.sort_by(|a, b| a.key.cmp(&b.key));
+    moves
+}
