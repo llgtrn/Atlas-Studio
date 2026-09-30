@@ -448,3 +448,45 @@ fn agent_context_knows_what_exists_elsewhere() {
     let (_, back) = commerce.cli(&["backlinks", "ynv://chronica/core", "--system", &sys]);
     assert!(back.contains("physical owner mechatron"), "{back}");
 }
+
+#[test]
+fn a_refresh_that_invalidates_evidence_names_what_to_re_prove() {
+    let birthplace = technology_shard("stale-birth");
+    let consumer = extinct_baseline("stale-consumer");
+    assert_eq!(
+        consumer.assess().analysis.donors[0].effective,
+        DonorState::Extinct
+    );
+    let from = birthplace.path().display().to_string();
+    let materialize = |r: &Repo| {
+        r.cli(&[
+            "technology",
+            "materialize",
+            "hash.digest",
+            "--from",
+            &from,
+            "--node",
+            "geo",
+            "--into",
+            "substrate/geo/src/tech",
+        ])
+    };
+    // New sources inside the donor's replacement node change what its proofs were judged on.
+    let (code, out) = materialize(&consumer);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("evidence made stale by this refresh"), "{out}");
+    assert!(out.contains("`ynventa prove geo`"), "{out}");
+    assert_ne!(
+        consumer.assess().analysis.donors[0].effective,
+        DonorState::Extinct
+    );
+    // Re-proving restores the state; refreshing identical sources then invalidates nothing.
+    consumer.prove();
+    assert_eq!(
+        consumer.assess().analysis.donors[0].effective,
+        DonorState::Extinct
+    );
+    let (code, out) = materialize(&consumer);
+    assert_eq!(code, 0, "{out}");
+    assert!(!out.contains("evidence made stale"), "{out}");
+}

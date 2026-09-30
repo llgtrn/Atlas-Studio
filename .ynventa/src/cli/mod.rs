@@ -1112,6 +1112,16 @@ fn technology(args: &Args) -> Out {
             let into = args.value("--into").ok_or("--into <directory>")?;
             let fd = declare::load(&from).map_err(|e| e.to_string())?;
             let mut d = declare::load(&args.root).map_err(|e| e.to_string())?;
+            let snapshot = |d: &declare::Declaration| -> Result<_, String> {
+                let files =
+                    crate::repository::files::Files::scan(&args.root).map_err(|e| e.to_string())?;
+                Ok(evidence::verdicts(
+                    &files,
+                    d,
+                    &evidence::Store::load(&args.root),
+                ))
+            };
+            let before = snapshot(&d)?;
             let n = d
                 .repository
                 .nodes
@@ -1124,6 +1134,15 @@ fn technology(args: &Args) -> Out {
                 n.reuses.sort();
             }
             declare::store(&args.root, &d).map_err(|e| e.to_string())?;
+            let after = snapshot(&d)?;
+            let stale: Vec<&(String, String)> = before
+                .iter()
+                .filter(|(k, v)| {
+                    **v == evidence::Verdict::Pass
+                        && after.get(*k) != Some(&evidence::Verdict::Pass)
+                })
+                .map(|(k, _)| k)
+                .collect();
             let mut s = format!(
                 "materialized {} from {} ({})\n",
                 m.technology, m.birthplace, m.source_digest
@@ -1132,6 +1151,28 @@ fn technology(args: &Args) -> Out {
                 s.push_str(&format!("  {src} -> {dest}\n"));
             }
             s.push_str(&format!("node `{node}` REUSES {key}; edits to these files are forks until re-materialized\n"));
+            if !stale.is_empty() {
+                let mut owners: Vec<&str> = stale
+                    .iter()
+                    .map(|(o, _)| o.strip_prefix("technology/").unwrap_or(o))
+                    .collect();
+                owners.dedup();
+                s.push_str(&format!(
+                    "evidence made stale by this refresh ({}); states built on it fall until re-proven:\n",
+                    stale.len()
+                ));
+                for (owner, loc) in &stale {
+                    s.push_str(&format!("  {owner}: {loc}\n"));
+                }
+                s.push_str(&format!(
+                    "  re-prove: {}\n",
+                    owners
+                        .iter()
+                        .map(|o| format!("`ynventa prove {o}`"))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ));
+            }
             Ok((0, s))
         }
         "search" | "list" | "consumers" => {

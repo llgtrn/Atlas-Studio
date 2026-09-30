@@ -157,6 +157,8 @@ pub const ROOT_FILES: &[&str] = &[
     ".gitignore",
     ".gitattributes",
     ".editorconfig",
+    // Secret scanning (ggshield) reads its configuration only from the repository root.
+    ".gitguardian.yaml",
     "THIRD-PARTY-NOTICES.md",
     "NOTICE",
 ];

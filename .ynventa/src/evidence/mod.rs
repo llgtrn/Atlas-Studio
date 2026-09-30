@@ -277,6 +277,40 @@ impl Runner for CargoRunner {
 
 /// Runs every declared proof (of donor capabilities and of technologies, optionally only those
 /// of one donor or technology key) and records content-bound results.
+/// Every declared proof's verdict, keyed by (owner, locator): owner is a donor key or
+/// `technology/<key>`. Comparing two snapshots shows which evidence a change made stale.
+pub fn verdicts(
+    files: &Files,
+    d: &Declaration,
+    store: &Store,
+) -> BTreeMap<(String, String), Verdict> {
+    let mut out = BTreeMap::new();
+    for dn in &d.donors {
+        for c in &dn.capabilities {
+            for p in &c.proofs {
+                out.insert(
+                    (dn.key.clone(), p.locator.clone()),
+                    judge(store, files, d, p, c.replacement.as_deref()),
+                );
+            }
+        }
+    }
+    for t in &d.technologies {
+        let subject = format!("technology/{}", t.key);
+        for p in t
+            .proofs
+            .iter()
+            .chain(t.claims.iter().flat_map(|c| c.evidence.iter()))
+        {
+            out.insert(
+                (subject.clone(), p.locator.clone()),
+                judge(store, files, d, p, Some(&subject)),
+            );
+        }
+    }
+    out
+}
+
 pub fn prove(
     root: &Path,
     files: &Files,
