@@ -467,6 +467,8 @@ manifest header/magic/version
 
 Failure at a required step invalidates the root.
 
+Implementation status (G183, ADR 0095): `atlas_core::atlasx::codec` (`atlas-systemizer atlasx codec`) writes and reads one object class, FUNCTIONS, with one record kind, FUNCTION_SIGNATURE. It verifies the per-object steps: header, bounds, decoded hash, record framing, field framing and class/schema constraints. It also re-encodes and requires byte equality, so no non-canonical form is accepted. Minor 0 is the only minor, so it refuses every undeclared field, optional or required. The manifest steps, root identity, cross-object closure and every other class are not implemented (M11, M13).
+
 ## Canonical versus noncanonical files
 
 Files not listed as canonical object entries are noncanonical projections/cache/debug material.

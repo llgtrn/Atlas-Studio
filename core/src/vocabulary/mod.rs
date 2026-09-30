@@ -194,6 +194,16 @@ pub const CARRIERS: &[Carrier] = &[
         "why the AtlasX precondition gate refuses a parent: unreadable, not sealed, an unbound seal record, an envelope or design that does not verify or is not the one the seal names (G179)",
     ),
     carrier(
+        "CodecVerdict",
+        CarrierRole::Verdict,
+        "an AtlasX object's bytes decoded or refused by the object codec (G183, M12)",
+    ),
+    carrier(
+        "CodecDefect",
+        CarrierRole::Verdict,
+        "why the AtlasX object codec refuses bytes or an object to write: header, bounds, digest, framing, schema or canonical-form defects, or a source construction module that does not verify (G183)",
+    ),
+    carrier(
         "Enforcement",
         CarrierRole::Enforcement,
         "an isolation property applied or not, with why",

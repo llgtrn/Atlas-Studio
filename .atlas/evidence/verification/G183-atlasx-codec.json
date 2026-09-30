@@ -1,0 +1,575 @@
+{
+  "schema": "atlas.evidence.verification.v1",
+  "generation": "G183",
+  "attack": "NA-ATLASX-CODEC",
+  "debts": [
+    "DEBT-ATLASX"
+  ],
+  "construction_node": "M12",
+  "decision": ".atlas/decisions/0095-atlasx-object-codec.md",
+  "fixture": {
+    "input": "core/src/atlasx/codec/fixture_module.json (verbatim copy of .atlas/evidence/self-reconstruction/SR1/attempt3/module.json)",
+    "object": "core/src/atlasx/codec/fixture.bin",
+    "bytes": 465,
+    "address": "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed",
+    "object_class": "FUNCTIONS (4)",
+    "records": 1,
+    "schema_digest": "blake3-256:d20d9e38072de7ff7731f328e12189b20b75d7236c8378f8c95181e377ebb047"
+  },
+  "falsifications": [
+    {
+      "claim": "the fixture round-trips byte for byte",
+      "demonstrated_by": "core atlasx::codec::tests::the_fixture_module_encodes_to_the_committed_bytes_and_reads_back"
+    },
+    {
+      "claim": "a flipped byte is refused by its digest",
+      "demonstrated_by": "core atlasx::codec::tests::every_flipped_byte_is_refused_with_its_defect: 465 positions x 3 masks; payload bytes and the hash field DIGEST_MISMATCH, every other header byte its own header defect"
+    },
+    {
+      "claim": "an undeclared field is refused",
+      "demonstrated_by": "core atlasx::codec::tests::an_undeclared_field_is_refused: before the first tag, after the last, inside an embedded record, marked required or optional"
+    }
+  ],
+  "oracles": {
+    "blake3": "native identity::blake3 against the reference blake3 crate (test-only dev-dependency, ADR 0005) on the fixture payload",
+    "layout": "an independent Python struct parse of fixture.bin matched the contract offsets"
+  },
+  "refusals_tested": [
+    "TRUNCATED",
+    "BAD_MAGIC",
+    "BAD_HEADER_LEN",
+    "UNSUPPORTED_MAJOR",
+    "UNSUPPORTED_MINOR",
+    "UNKNOWN_HEADER_FLAGS",
+    "CLASS_MISMATCH",
+    "UNSUPPORTED_SCHEMA_VERSION",
+    "UNSUPPORTED_DIGEST_ALGORITHM",
+    "UNSUPPORTED_CODEC",
+    "RESERVED_NONZERO",
+    "LENGTH_LIMIT",
+    "LENGTH_MISMATCH",
+    "DIGEST_MISMATCH",
+    "RECORD_FRAMING",
+    "FIELD_FRAMING",
+    "FIELD_ORDER",
+    "INVALID_WIRE_TYPE",
+    "DEPTH_LIMIT",
+    "UNDECLARED_RECORD_KIND",
+    "UNSUPPORTED_RECORD_VERSION",
+    "RECORD_FLAGS",
+    "UNDECLARED_REQUIRED_FIELD",
+    "UNDECLARED_OPTIONAL_FIELD",
+    "FIELD_FLAGS",
+    "WIRE_TYPE_MISMATCH",
+    "MISSING_REQUIRED_FIELD",
+    "MALFORMED_VALUE",
+    "DUPLICATE_IDENTITY",
+    "EMPTY_OBJECT",
+    "NON_CANONICAL",
+    "ADDRESS_MISMATCH",
+    "SOURCE_MODULE_UNVERIFIED",
+    "SOURCE_MODULE_INVALID"
+  ],
+  "mutants": {
+    "method": "hand mutants applied one at a time, each followed by the affected package's atlasx tests (core, runtime or atlas-cli); the source was restored after each and checked by sha256",
+    "total": 56,
+    "killed": 55,
+    "survivors": [
+      {
+        "mutant": "writer does not sort fields (call order)",
+        "classification": "EQUIVALENT",
+        "why": "the writer already emits fields in ascending tag order; the reader enforces FIELD_ORDER independently"
+      }
+    ],
+    "list": [
+      {
+        "mutant": "drop the decoded-hash check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "allow equal field tags",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "out_of_order_and_duplicate_tags_are_refused"
+        ]
+      },
+      {
+        "mutant": "skip the reserved check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "accept unknown major 2",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "re-encode compares lengths only",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "arbitrary_input_is_refused_never_a_panic"
+        ]
+      },
+      {
+        "mutant": "record-header bound off by one",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "framing_defects_are_refused",
+          "arbitrary_input_is_refused_never_a_panic"
+        ]
+      },
+      {
+        "mutant": "field-header bound off by one",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "framing_defects_are_refused",
+          "arbitrary_input_is_refused_never_a_panic"
+        ]
+      },
+      {
+        "mutant": "depth limit off by one",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "nesting_deeper_than_the_limit_is_refused"
+        ]
+      },
+      {
+        "mutant": "accept wire types above BOOL",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "wire_types_outside_the_table_or_the_schema_are_refused"
+        ]
+      },
+      {
+        "mutant": "accept wire type INVALID",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "a_rehashed_payload_edit_passes_the_digest_and_is_caught_later",
+          "wire_types_outside_the_table_or_the_schema_are_refused"
+        ]
+      },
+      {
+        "mutant": "skip undeclared optional fields (contract's MAY)",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "an_undeclared_field_is_refused"
+        ]
+      },
+      {
+        "mutant": "undeclared required reported as optional",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "an_undeclared_field_is_refused"
+        ]
+      },
+      {
+        "mutant": "skip declared required-flag check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "field_flags_must_be_the_declared_ones"
+        ]
+      },
+      {
+        "mutant": "skip undefined field-flag bits",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "field_flags_must_be_the_declared_ones"
+        ]
+      },
+      {
+        "mutant": "skip wire-type-vs-schema check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "nesting_deeper_than_the_limit_is_refused",
+          "wire_types_outside_the_table_or_the_schema_are_refused"
+        ]
+      },
+      {
+        "mutant": "skip missing-required check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "a_missing_required_field_is_refused"
+        ]
+      },
+      {
+        "mutant": "skip record schema version check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "record_kinds_versions_and_flags_are_the_declared_ones"
+        ]
+      },
+      {
+        "mutant": "skip record flags check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "record_kinds_versions_and_flags_are_the_declared_ones"
+        ]
+      },
+      {
+        "mutant": "embedded-only kinds allowed at top level",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "record_kinds_versions_and_flags_are_the_declared_ones"
+        ]
+      },
+      {
+        "mutant": "skip embedded kind check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "record_kinds_versions_and_flags_are_the_declared_ones"
+        ]
+      },
+      {
+        "mutant": "skip empty RECORD field check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "malformed_values_are_refused"
+        ]
+      },
+      {
+        "mutant": "skip length limit",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "oversized_lengths_are_refused_before_anything_is_read"
+        ]
+      },
+      {
+        "mutant": "length limit off by one",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "oversized_lengths_are_refused_before_anything_is_read"
+        ]
+      },
+      {
+        "mutant": "skip encoded==decoded under NONE",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "skip trailing-bytes check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_truncation_and_extension_is_refused",
+          "oversized_lengths_are_refused_before_anything_is_read"
+        ]
+      },
+      {
+        "mutant": "skip truncation check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_truncation_and_extension_is_refused",
+          "oversized_lengths_are_refused_before_anything_is_read"
+        ]
+      },
+      {
+        "mutant": "accept codec ZSTD",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "accept digest SHA256",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "accept any core class",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "accept minor 1",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "skip header flags check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "magic compares first 5 bytes",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "skip header_len check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "every_flipped_byte_is_refused_with_its_defect",
+          "header_fields_are_refused_each_with_its_defect"
+        ]
+      },
+      {
+        "mutant": "writer does not sort records",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "encoding_is_deterministic_and_independent_of_input_order"
+        ]
+      },
+      {
+        "mutant": "writer skips duplicate identity",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "the_writer_refuses_what_it_cannot_write_canonically"
+        ]
+      },
+      {
+        "mutant": "writer marks every field required",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "a_rehashed_payload_edit_passes_the_digest_and_is_caught_later",
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused"
+        ]
+      },
+      {
+        "mutant": "writer does not sort fields (call order)",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "SURVIVED",
+        "killed_by": []
+      },
+      {
+        "mutant": "dispatch code 0 read as 1",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "malformed_values_are_refused"
+        ]
+      },
+      {
+        "mutant": "address in uppercase hex",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_address_is_the_native_blake3_of_the_payload_and_agrees_with_the_reference_crate",
+          "the_fixture_module_encodes_to_the_committed_bytes_and_reads_back"
+        ]
+      },
+      {
+        "mutant": "filename check by prefix only",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_address_is_the_native_blake3_of_the_payload_and_agrees_with_the_reference_crate"
+        ]
+      },
+      {
+        "mutant": "writer allows empty lineage",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_writer_refuses_what_it_cannot_write_canonically"
+        ]
+      },
+      {
+        "mutant": "writer allows empty function id",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "malformed_values_are_refused",
+          "the_writer_refuses_what_it_cannot_write_canonically"
+        ]
+      },
+      {
+        "mutant": "header digest algo written as 2 (writer)",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "a_rehashed_payload_edit_passes_the_digest_and_is_caught_later",
+          "a_missing_required_field_is_refused"
+        ]
+      },
+      {
+        "mutant": "writer allows an empty object",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "the_source_module_must_verify_before_it_is_encoded"
+        ]
+      },
+      {
+        "mutant": "writer allows an empty lineage id",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "malformed_values_are_refused",
+          "the_writer_refuses_what_it_cannot_write_canonically"
+        ]
+      },
+      {
+        "mutant": "reader accepts a 31-byte hash",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "malformed_values_are_refused"
+        ]
+      },
+      {
+        "mutant": "encode_module skips the module identity check",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_source_module_must_verify_before_it_is_encoded"
+        ]
+      },
+      {
+        "mutant": "encode_module ignores validate_module",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_source_module_must_verify_before_it_is_encoded"
+        ]
+      },
+      {
+        "mutant": "encode_module validates against an empty input set",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_fixture_module_encodes_to_the_committed_bytes_and_reads_back",
+          "the_source_module_must_verify_before_it_is_encoded"
+        ]
+      },
+      {
+        "mutant": "writer accepts an empty name",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "the_writer_refuses_what_it_cannot_write_canonically",
+          "the_source_module_must_verify_before_it_is_encoded"
+        ]
+      },
+      {
+        "mutant": "canonicalize does not sort lineage",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "encoding_is_deterministic_and_independent_of_input_order"
+        ]
+      },
+      {
+        "mutant": "canonicalize does not deduplicate lineage",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "encoding_is_deterministic_and_independent_of_input_order"
+        ]
+      },
+      {
+        "mutant": "writer skips canonicalize",
+        "file": "core/src/atlasx/codec.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "duplicate_identities_empty_objects_and_non_canonical_forms_are_refused",
+          "encoding_is_deterministic_and_independent_of_input_order"
+        ]
+      },
+      {
+        "mutant": "decode_object reads without a bound",
+        "file": "runtime/src/atlasx.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "an_object_file_is_read_only_up_to_the_limit"
+        ]
+      },
+      {
+        "mutant": "read limit off by one (no extra byte)",
+        "file": "runtime/src/atlasx.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "an_object_file_is_read_only_up_to_the_limit"
+        ]
+      },
+      {
+        "mutant": "CLI encode refusal exits 0",
+        "file": "apps/cli/src/main.rs",
+        "result": "KILLED",
+        "killed_by": [
+          "atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte"
+        ]
+      }
+    ],
+    "history": [
+      "run 1 (48 mutants): 44 killed; the reader's copies of the writer's empty-object, duplicate-identity and empty-identity checks survived as equivalent (the re-encode step refuses them with the same defect) and were removed; two header off-by-ones killed only by the random test gained exact-boundary tests",
+      "after independent review: the source module is verified before encoding (identity, validate_module), the writer's lineage canonicalization goes through FunctionSignatureRecord::canonicalize, the runtime read is bounded; two lineage mutants of the removed writer copy were replaced by three canonicalize mutants, and 7 new mutants cover the new rules"
+    ]
+  },
+  "boundary": {
+    "not_verified": "CODEC_NOT_VERIFIED: the root manifest and this object's entry, AtlasX root identity and parent compatibility, cross-object references, lineage against the census and parent Atlas, that the records materialize an admitted parent (M11), function bodies, other classes, ZSTD and SHA256, and the source module's inputs against the container it names",
+    "open": [
+      "M11 materializer",
+      "M13 validator",
+      "the GLOBAL_ID byte form is provisional (schema 1)",
+      "the reader's frame tree costs a bounded multiple of the payload in memory (review item, recorded by the coordinator)"
+    ]
+  }
+}

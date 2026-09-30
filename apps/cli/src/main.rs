@@ -390,6 +390,54 @@ fn run(args: &[String]) -> Result<(), String> {
                 ));
             }
         }
+        [cmd, sub, rest @ ..] if cmd == "atlasx" && sub == "codec" => {
+            // G183 (M12, ADR 0095): `--encode <module.json> --out <dir>` writes the FUNCTIONS
+            // object of a construction module as `<dir>/<address>.atlasx`; `--decode <file>`
+            // prints the typed verdict and exits ATLASX_CODEC_REFUSED with the number of defects (every
+            // header defect together, otherwise the first found). A refused encode prints its
+            // defects the same way.
+            match (value(rest, "--encode")?, value(rest, "--decode")?) {
+                (Some(module), None) => {
+                    let out =
+                        value(rest, "--out")?.ok_or("atlasx codec --encode requires --out")?;
+                    let encoded =
+                        runtime::atlasx::encode_module(&module, &out).map_err(|e| e.to_string())?;
+                    let (encoded, path) = match encoded {
+                        Ok(written) => written,
+                        Err(defects) => {
+                            println!(
+                                "{}",
+                                json(&serde_json::json!({
+                                    "verdict": runtime::atlasx::CodecVerdict::Refused,
+                                    "defects": defects,
+                                }))?
+                            );
+                            return Err(format!("ATLASX_CODEC_REFUSED: {} defects", defects.len()));
+                        }
+                    };
+                    println!(
+                        "{}",
+                        json(&serde_json::json!({ "path": path, "object": encoded }))?
+                    );
+                }
+                (None, Some(object)) => {
+                    let report =
+                        runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;
+                    let text = json(&report)? + "\n";
+                    match value(rest, "--out")? {
+                        Some(out) => write_report_to_out(&out, &text)?,
+                        None => print!("{text}"),
+                    }
+                    if report.verdict != runtime::atlasx::CodecVerdict::Decoded {
+                        return Err(format!(
+                            "ATLASX_CODEC_REFUSED: {} defects",
+                            report.defects.len()
+                        ));
+                    }
+                }
+                _ => return Err("atlasx codec requires exactly one of --encode or --decode".into()),
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "weights" && sub == "census" => {
             // G163 (ADR 0078): the physical census of a SafeTensors weight container -- storage
             // facts and payload digests; semantic roles stay UNKNOWN.
@@ -1224,7 +1272,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }
@@ -1493,6 +1541,101 @@ mod tests {
         let err = run(&["check".to_owned(), "--root".to_owned()])
             .expect_err("a --root flag with no following value must never succeed silently");
         assert_eq!(err, "--root requires a value");
+    }
+
+    /// G183 (M12, ADR 0095): the SR1-3 construction module end to end through the CLI -- encoded
+    /// to its committed address, decoded back, and refused once a byte is flipped or the file is
+    /// not named by its address.
+    #[test]
+    fn atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte() {
+        let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();
+        let module = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/fixture_module.json"
+        );
+        let address = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
+        let dir = std::env::temp_dir().join(format!("atlas-cli-codec-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let out = dir.to_string_lossy().into_owned();
+        run(&args(&[
+            "atlasx", "codec", "--encode", module, "--out", &out,
+        ]))
+        .expect("the SR1-3 module encodes");
+        let object = dir.join(format!("{address}.atlasx"));
+        let object_path = object.to_string_lossy().into_owned();
+        let report_path = dir.join("report.json").to_string_lossy().into_owned();
+        let decode = |path: &str| {
+            run(&args(&[
+                "atlasx",
+                "codec",
+                "--decode",
+                path,
+                "--out",
+                &report_path,
+            ]))
+        };
+        let report = || -> serde_json::Value {
+            serde_json::from_str(&fs::read_to_string(&report_path).unwrap()).unwrap()
+        };
+        decode(&object_path).expect("the object decodes");
+        let decoded = report();
+        assert_eq!(decoded["verdict"], "DECODED", "{decoded:#}");
+        assert_eq!(decoded["address"], address);
+        assert_eq!(decoded["records"][0]["name"], "is_local");
+
+        let mut bytes = fs::read(&object).unwrap();
+        let last = bytes.len() - 1;
+        bytes[last] ^= 1;
+        fs::write(&object, &bytes).unwrap();
+        let err = decode(&object_path).expect_err("a flipped byte is refused");
+        assert_eq!(err, "ATLASX_CODEC_REFUSED: 1 defects");
+        assert_eq!(report()["defects"][0][0], "DIGEST_MISMATCH");
+        assert_eq!(report()["records"], serde_json::Value::Null);
+
+        bytes[last] ^= 1;
+        let renamed = dir.join("renamed.atlasx");
+        fs::write(&renamed, &bytes).unwrap();
+        let err = decode(&renamed.to_string_lossy()).expect_err("not named by its address");
+        assert_eq!(err, "ATLASX_CODEC_REFUSED: 1 defects");
+        assert_eq!(report()["defects"][0][0], "ADDRESS_MISMATCH");
+
+        // A module that does not verify is refused, and nothing is written: a forged id, no
+        // inputs, lineage outside them, an empty name.
+        let mut forged: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(module).unwrap()).unwrap();
+        forged["module_id"] = "construction-module:forged".into();
+        forged["inputs"] = serde_json::json!([]);
+        forged["functions"][0]["lineage"] = serde_json::json!(["semantic:NOT_AN_INPUT:0"]);
+        forged["functions"][0]["name"] = "".into();
+        let forged_path = dir.join("forged.json");
+        fs::write(&forged_path, forged.to_string()).unwrap();
+        let forged_out = dir.join("forged");
+        let err = run(&args(&[
+            "atlasx",
+            "codec",
+            "--encode",
+            &forged_path.to_string_lossy(),
+            "--out",
+            &forged_out.to_string_lossy(),
+        ]))
+        .expect_err("a forged module is refused");
+        assert!(err.starts_with("ATLASX_CODEC_REFUSED: "), "{err}");
+        assert!(
+            !forged_out.exists(),
+            "nothing is written for a refused module"
+        );
+
+        let err = run(&args(&["atlasx", "codec", "--encode", module]))
+            .expect_err("the output directory is explicit");
+        assert_eq!(err, "atlasx codec --encode requires --out");
+        let err = run(&args(&["atlasx", "codec"])).expect_err("one mode");
+        assert_eq!(
+            err,
+            "atlasx codec requires exactly one of --encode or --decode"
+        );
+        let err = decode(&dir.join("missing.atlasx").to_string_lossy()).expect_err("no file");
+        assert!(err.contains("missing.atlasx"), "{err}");
+        fs::remove_dir_all(&dir).ok();
     }
 
     /// G179 (M10, ADR 0093): the G161 fixture end to end through the CLI -- `seal gate` decides

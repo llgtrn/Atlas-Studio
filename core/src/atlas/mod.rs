@@ -304,7 +304,8 @@ fn reject<T>(why: impl Into<String>) -> Result<T, AtlasError> {
 
 // ---- encoding -----------------------------------------------------------------------------------
 
-fn uvarint(mut value: u64, out: &mut Vec<u8>) {
+/// Unsigned LEB128, minimal (also the AtlasX codec's UVARINT, G183).
+pub(crate) fn uvarint(mut value: u64, out: &mut Vec<u8>) {
     loop {
         let byte = (value & 0x7f) as u8;
         value >>= 7;
@@ -799,19 +800,23 @@ fn encode_content(atlas: &CensusAtlas, content: &TypedContent, id: impl Fn(u16) 
 
 // ---- decoding and verification ------------------------------------------------------------------
 
-fn u16_at(bytes: &[u8], at: usize) -> u16 {
+/// A little-endian `u16` at `at`; the caller has bounds-checked it (also the AtlasX codec, G183).
+pub(crate) fn u16_at(bytes: &[u8], at: usize) -> u16 {
     u16::from_le_bytes(bytes[at..at + 2].try_into().expect("2 bytes"))
 }
 
-fn u32_at(bytes: &[u8], at: usize) -> u32 {
+/// A little-endian `u32` at `at`; the caller has bounds-checked it (also the AtlasX codec, G183).
+pub(crate) fn u32_at(bytes: &[u8], at: usize) -> u32 {
     u32::from_le_bytes(bytes[at..at + 4].try_into().expect("4 bytes"))
 }
 
-fn u64_at(bytes: &[u8], at: usize) -> u64 {
+/// A little-endian `u64` at `at`; the caller has bounds-checked it (also the AtlasX codec, G183).
+pub(crate) fn u64_at(bytes: &[u8], at: usize) -> u64 {
     u64::from_le_bytes(bytes[at..at + 8].try_into().expect("8 bytes"))
 }
 
-fn read_uvarint(bytes: &[u8]) -> Result<u64, AtlasError> {
+/// One minimal unsigned LEB128 filling `bytes` exactly (also the AtlasX codec's UVARINT, G183).
+pub(crate) fn read_uvarint(bytes: &[u8]) -> Result<u64, AtlasError> {
     let mut value: u64 = 0;
     for (i, byte) in bytes.iter().enumerate() {
         if i == 9 && *byte > 1 {
