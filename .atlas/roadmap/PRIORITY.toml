@@ -902,7 +902,7 @@ objective = "CREATION: NA-ATLASX-VALIDATE (done: M13 EXISTS for the FUNCTIONS cl
 [[planned_generation]]
 id = "G188"
 priority = "P0"
-objective = "FULL_OSS_REPLAY 666ghj/mirofish (QUEUED, FULL-OSS-REPLAY.toml next_replay after R19): the canonical order's next NEVER_REPLAYED repository, facing the strongest Atlas (E26) at a fresh pin, its license verified at it (AGPL-3.0 recorded: census and oracle only, nothing copied); fix natively only what falsifies the tree (ADR 0092)"
+objective = "FULL_OSS_REPLAY 666ghj/mirofish (done: R20 at 39d84913; the 62 Python and 16 Vue files honestly L0 with no claim, every JavaScript function, call and anchor equal to an independent parser, and module-level bindings found missing under SYMBOL OBSERVED -- fixed natively with the same class of false same-file call edges over three implementation and three review rounds, SYMBOL definitions now equal the TypeScript compiler's and acorn's on the donor and on Atlas; capability epoch E27; ADR 0101)"
 
 [[planned_generation]]
 id = "G189"
@@ -910,6 +910,11 @@ priority = "P6"
 objective = "CREATION: NA-SANDBOX-FS-CONFINEMENT (M22, [creation_selection] winner after G187, score 137, ahead of NA-ATLAS-DESIGN-SECTION 106, NA-TARGET-PROFILE 92 and NA-ATLASX-BODIES 70; ADR 0100) -- filesystem confinement for the sandbox (reads outside declared inputs refused) without unsafe code in Atlas, and a toolchain identity (binary digests and -vV) recorded on each run; falsified by a sandboxed build that reads an absolute path outside its declared inputs and a run whose toolchain identity is absent or mismatched"
 
 [[planned_generation]]
-id = "G190+"
+id = "G190"
+priority = "P0"
+objective = "FULL_OSS_REPLAY abi/screenshot-to-code (QUEUED, FULL-OSS-REPLAY.toml next_replay after R20): the canonical order's next NEVER_REPLAYED repository, facing the strongest Atlas (E27) at a fresh pin, its license verified at it (MIT recorded); fix natively only what falsifies the tree (ADR 0092)"
+
+[[planned_generation]]
+id = "G191+"
 priority = "P0"
 objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

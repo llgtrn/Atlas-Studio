@@ -1,0 +1,604 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G188",
+  "base_revision": "6b982d3be187bb055c303e61575c9540ba230bbf",
+  "candidate_revision": "45eb07d29574e0da95740cbb7f38291d047ce448",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:7e28b9ffe4ae55b00f45736ff4a2d5049178c714017af3ad4ed15707f8aeff13",
+  "after_census_digest": "blake3-256:cdcdb35fdf9afcbbff88be141f003bace39e3c94870d58f3590b8c83a764a4f8",
+  "replay_digest": "blake3-256:cdcdb35fdf9afcbbff88be141f003bace39e3c94870d58f3590b8c83a764a4f8",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/modules.rs",
+      "adapter/src/semantic/typescript/modules/tests.rs",
+      "adapter/src/semantic/typescript/tests.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/browser/observe.js",
+      "adapter/src/browser/webdriver.js",
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/modules.rs",
+      "adapter/src/semantic/typescript/modules/tests.rs",
+      "adapter/src/semantic/typescript/tests.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 72,
+      "fact:FunctionSignature|OBSERVED": 26,
+      "fact:SemanticObligation|OBSERVED": -1,
+      "fact:SemanticObligation|UNKNOWN": 1,
+      "fact:Symbol|OBSERVED": 88,
+      "fact:Type|DERIVED": 9,
+      "fact:Type|OBSERVED": 19,
+      "record:CALL|DERIVED": 75,
+      "record:CALL|OBSERVED": 349,
+      "record:CONTROL_FLOW|INFERRED": 35,
+      "record:CONTROL_FLOW|OBSERVED": 123,
+      "record:DATA_FLOW|OBSERVED": 623,
+      "record:EFFECT|INFERRED": 35,
+      "record:FUNCTION_IDENTITY|OBSERVED": 72,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 26,
+      "record:OWNERSHIP|OBSERVED": 155,
+      "record:STATE|OBSERVED": 8,
+      "record:SYMBOL|OBSERVED": 88,
+      "record:TYPE|DERIVED": 9,
+      "record:TYPE|OBSERVED": 19
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 2223,
+    "graph_nodes": 1664
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": -1,
+    "obligation:CALL|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/bind_pattern()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/bind_pattern()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/collect_bindings()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/collect_bindings()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/defer_call()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/defer_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/finish_success()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/finish_success()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/function()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/function()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/imports()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/imports()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/new()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/new()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/resolve_calls()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/resolve_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/walk()."
+      ],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/walk()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/modules/export_facts()."
+      ],
+      "after": [
+        "adapter semantic/typescript/modules/export_facts()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/typescript/modules/module_facts()."
+      ],
+      "after": [
+        "adapter semantic/typescript/modules/module_facts()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "adapter semantic/typescript/`impl:Context<'a>`/resolve_module_function()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/assign_pattern()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/bound_by_its_declarator()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/fixed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/import_scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/pattern_symbols()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/resolve()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/`impl:Context<'a>`/symbol_gap()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/is_var_scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/modules/declared_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/modules/tests/a_destructured_or_ambient_local_export_shadows_a_star_export()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/modules/tests/block_functions_and_rebound_imports_are_not_module_facts()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/pattern_identifiers()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_bodiless_ambient_module_or_a_local_using_keeps_symbol_exhaustive()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_computed_method_body_is_a_region_not_module_level_code()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_computed_method_key_is_walked_in_the_enclosing_scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_module_namespace_and_an_overloaded_function_keep_their_callee()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_name_fixes_a_callee_only_where_its_one_binding_is_visible()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_namespace_ambient_module_or_using_makes_symbol_unknown_but_keeps_the_records()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/a_plain_module_variable_keeps_its_identity_and_anchor()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/definitions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/every_module_level_binding_of_a_javascript_file_is_a_symbol_definition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/every_module_level_binding_of_a_typescript_file_is_a_symbol_definition()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/loop_heads_and_destructuring_assignments_count_for_call_resolution()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/pairs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/tests/symbols()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/unwrap_callee()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/typescript/visible_range()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/src/semantic/typescript/modules.rs: 14 -> 15"
+    ],
+    "decreased": [],
+    "total_before": 2645,
+    "total_after": 2646
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R20 666ghj/mirofish: every JavaScript and TypeScript binding outside every function region is a SYMBOL definition and a same-file callee is fixed only where its declaration is in scope (ADR 0101, E27)",
+    "changed_paths": [
+      "adapter/src/browser/observe.js",
+      "adapter/src/browser/webdriver.js",
+      "adapter/src/semantic/typescript/mod.rs",
+      "adapter/src/semantic/typescript/modules.rs",
+      "adapter/src/semantic/typescript/modules/tests.rs",
+      "adapter/src/semantic/typescript/tests.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:STATE_FLOW",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "-obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.typescript.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/src/semantic/typescript/modules.rs: JavaScript SYMBOL records on Atlas's browser scripts 37 -> 39; Rust records unchanged"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/bind_pattern().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/collect_bindings().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/defer_call().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/finish_success().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/function().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/imports().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/new().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/resolve_calls().",
+      "CHANGED adapter semantic/typescript/`impl:Context<'a>`/walk().",
+      "CHANGED adapter semantic/typescript/modules/export_facts().",
+      "CHANGED adapter semantic/typescript/modules/module_facts().",
+      "DELETED adapter semantic/typescript/`impl:Context<'a>`/resolve_module_function().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/assign_pattern().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/bound_by_its_declarator().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/fixed().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/import_scope().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/pattern_symbols().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/resolve().",
+      "CREATED adapter semantic/typescript/`impl:Context<'a>`/symbol_gap().",
+      "CREATED adapter semantic/typescript/is_var_scope().",
+      "CREATED adapter semantic/typescript/modules/declared_names().",
+      "CREATED adapter semantic/typescript/modules/tests/a_destructured_or_ambient_local_export_shadows_a_star_export().",
+      "CREATED adapter semantic/typescript/modules/tests/block_functions_and_rebound_imports_are_not_module_facts().",
+      "CREATED adapter semantic/typescript/pattern_identifiers().",
+      "CREATED adapter semantic/typescript/tests/a_bodiless_ambient_module_or_a_local_using_keeps_symbol_exhaustive().",
+      "CREATED adapter semantic/typescript/tests/a_computed_method_body_is_a_region_not_module_level_code().",
+      "CREATED adapter semantic/typescript/tests/a_computed_method_key_is_walked_in_the_enclosing_scope().",
+      "CREATED adapter semantic/typescript/tests/a_module_namespace_and_an_overloaded_function_keep_their_callee().",
+      "CREATED adapter semantic/typescript/tests/a_name_fixes_a_callee_only_where_its_one_binding_is_visible().",
+      "CREATED adapter semantic/typescript/tests/a_namespace_ambient_module_or_using_makes_symbol_unknown_but_keeps_the_records().",
+      "CREATED adapter semantic/typescript/tests/a_plain_module_variable_keeps_its_identity_and_anchor().",
+      "CREATED adapter semantic/typescript/tests/definitions().",
+      "CREATED adapter semantic/typescript/tests/every_module_level_binding_of_a_javascript_file_is_a_symbol_definition().",
+      "CREATED adapter semantic/typescript/tests/every_module_level_binding_of_a_typescript_file_is_a_symbol_definition().",
+      "CREATED adapter semantic/typescript/tests/loop_heads_and_destructuring_assignments_count_for_call_resolution().",
+      "CREATED adapter semantic/typescript/tests/pairs().",
+      "CREATED adapter semantic/typescript/tests/symbols().",
+      "CREATED adapter semantic/typescript/unwrap_callee().",
+      "CREATED adapter semantic/typescript/visible_range()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/browser/observe.js",
+    "path adapter/src/browser/webdriver.js",
+    "path adapter/src/semantic/typescript/mod.rs",
+    "path adapter/src/semantic/typescript/modules.rs",
+    "path adapter/src/semantic/typescript/modules/tests.rs",
+    "path adapter/src/semantic/typescript/tests.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:STATE_FLOW",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total -obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.typescript.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/bind_pattern().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/collect_bindings().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/defer_call().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/finish_success().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/function().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/imports().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/new().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/resolve_calls().",
+    "entity CHANGED adapter semantic/typescript/`impl:Context<'a>`/walk().",
+    "entity CHANGED adapter semantic/typescript/modules/export_facts().",
+    "entity CHANGED adapter semantic/typescript/modules/module_facts().",
+    "entity DELETED adapter semantic/typescript/`impl:Context<'a>`/resolve_module_function().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/assign_pattern().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/bound_by_its_declarator().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/fixed().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/import_scope().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/pattern_symbols().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/resolve().",
+    "entity CREATED adapter semantic/typescript/`impl:Context<'a>`/symbol_gap().",
+    "entity CREATED adapter semantic/typescript/is_var_scope().",
+    "entity CREATED adapter semantic/typescript/modules/declared_names().",
+    "entity CREATED adapter semantic/typescript/modules/tests/a_destructured_or_ambient_local_export_shadows_a_star_export().",
+    "entity CREATED adapter semantic/typescript/modules/tests/block_functions_and_rebound_imports_are_not_module_facts().",
+    "entity CREATED adapter semantic/typescript/pattern_identifiers().",
+    "entity CREATED adapter semantic/typescript/tests/a_bodiless_ambient_module_or_a_local_using_keeps_symbol_exhaustive().",
+    "entity CREATED adapter semantic/typescript/tests/a_computed_method_body_is_a_region_not_module_level_code().",
+    "entity CREATED adapter semantic/typescript/tests/a_computed_method_key_is_walked_in_the_enclosing_scope().",
+    "entity CREATED adapter semantic/typescript/tests/a_module_namespace_and_an_overloaded_function_keep_their_callee().",
+    "entity CREATED adapter semantic/typescript/tests/a_name_fixes_a_callee_only_where_its_one_binding_is_visible().",
+    "entity CREATED adapter semantic/typescript/tests/a_namespace_ambient_module_or_using_makes_symbol_unknown_but_keeps_the_records().",
+    "entity CREATED adapter semantic/typescript/tests/a_plain_module_variable_keeps_its_identity_and_anchor().",
+    "entity CREATED adapter semantic/typescript/tests/definitions().",
+    "entity CREATED adapter semantic/typescript/tests/every_module_level_binding_of_a_javascript_file_is_a_symbol_definition().",
+    "entity CREATED adapter semantic/typescript/tests/every_module_level_binding_of_a_typescript_file_is_a_symbol_definition().",
+    "entity CREATED adapter semantic/typescript/tests/loop_heads_and_destructuring_assignments_count_for_call_resolution().",
+    "entity CREATED adapter semantic/typescript/tests/pairs().",
+    "entity CREATED adapter semantic/typescript/tests/symbols().",
+    "entity CREATED adapter semantic/typescript/unwrap_callee().",
+    "entity CREATED adapter semantic/typescript/visible_range()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -647,3 +647,66 @@ can_create_false_claim = false
 reopen_trigger = "validation of a directory other writers can change concurrently (a shared or published root), or a non-blocking open available without a new dependency"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G188-STAR-NONFUNCTION-CONFLICT"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/modules.rs (Linker::export)"
+subsystem = "adapter semantic::typescript module linking (ADR 0073)"
+reproduction = "a.ts: export * from './b'; export * from './c'; b.ts: export function x(){}; c.ts: export const x = 1 (or x behind an unresolved specifier, or more than MAX_LINK_DEPTH hops away); use.ts: import {x} from './a'; x() -- Atlas resolves x to b's function, because a star branch that does not resolve to a function is treated as not providing the name"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "an INVOKES edge through export * when another star branch of the same module really provides the name; under ES rules the name is then ambiguous and the import is a link-time SyntaxError, so the edge is claimed only for a program that does not link; no such import occurs in the censused files or the mirofish replay"
+reopen_trigger = "a replay or oracle finds an import resolved through export * while another star target of the same module also exports that name"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G188-SCRIPT-GLOBAL-SCOPE"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/mod.rs (same-file CALL resolution)"
+subsystem = "adapter semantic::typescript same-file call resolution"
+reproduction = "a.js: function f(){} f(); b.js: function f(){} -- loaded as browser script tags, b after a; Atlas resolves a's f() to a.js::f, the page calls b's f; in the same script file an indirect eval ((0, eval)(\"f = 2\"), window.eval), new Function(\"f = 2\")() or globalThis.f = .. rebinds the global f the same way; predates G188"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a DERIVED edge from a call in a script file (no top-level import or export) to a same-file function that another script sharing the global scope (script tags, a concatenated bundle) redefines, or that the same script rebinds through the global object (an indirect eval, new Function, a globalThis or window assignment); ES modules and CommonJS files are scoped per file, and Atlas does not know how scripts are loaded; no redefinition across script files occurs in the censused files or the mirofish replay"
+reopen_trigger = "a replay donor ships script-tag JavaScript whose functions are redefined across files, or Atlas learns how an HTML page loads its scripts"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G188-TDZ-NESTED-CALL"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/mod.rs (use-before-declaration point)"
+subsystem = "adapter semantic::typescript same-file call resolution"
+reproduction = "[1].map(() => f()); const f = () => 1; -- Atlas resolves f though the callback runs before the declaration statement and throws a ReferenceError; module-level calls before the declaration are withheld, calls in nested function bodies are assumed to run after the declaration"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a DERIVED edge from a nested function that module-level code invokes synchronously before the class or const/let/var-bound function it calls is declared; no such call occurs in the censused files or the mirofish replay"
+reopen_trigger = "a replay or oracle finds a resolved call executed in the temporal dead zone of its callee"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G188-PARSE-ERROR-IMPORT-REQUIRE"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/mod.rs (tree-sitter-typescript 0.23.2 error recovery)"
+subsystem = "adapter semantic::typescript syntax substrate"
+reproduction = "export import X1 = require(\"m\"); does not parse in tree-sitter-typescript 0.23.2: error recovery leaves an import_alias, the file is UNKNOWN in every dimension and X1 is recorded as a DEFINITION rather than a declaration under import m"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a grammar upgrade parses export import x = require(), or a replay needs such imports linked"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G188-IMPACT-SILENT-ON-UNPARSED-CALLERS"
+found_in = "G188"
+source = "core/src/composition (agent impact and understand)"
+subsystem = "core composition lens, agent impact and understand"
+reproduction = "on the mirofish pin, agent impact getProject reports 0 callers with the residual LOWER BOUND: resolved callers only, and understand's next questions name nothing else, while all twelve call sites of getProject sit in six unparsed Vue files (L0, GAP-UNRECOGNIZED-SOURCE); the gap is visible only through agent unknowns"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay mission whose callers sit in unparsed files that impact does not name, or impact becoming the input of a closure or construction decision"
+status = "OPEN"
+pressure = 1

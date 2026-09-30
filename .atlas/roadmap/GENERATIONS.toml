@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G187"
+current_generation = "G188"
 
 [[generation]]
 id = "G35"
@@ -4809,3 +4809,68 @@ after = 7761
 key = "composed:relation:INVOKES"
 before = 7502
 after = 7756
+
+[[generation]]
+id = "G188"
+kind = "REPLAY"
+lane = "HARDENING"
+base_commit = "45eb07d29574e0da95740cbb7f38291d047ce448"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R20: the canonical order's next NEVER_REPLAYED repository after R19, the Python and Vue application mirofish, facing E26 at a fresh pin"
+objective = "census mirofish at 39d84913 with E26; confirm Atlas claims nothing about the Python and Vue it cannot read and differential-check the JavaScript it does claim against independent parsers; fix natively only what falsifies the tree (ADR 0092); extinction"
+writer = "coordinator (sole writer); one measurement lane, one implementation lane over three rounds, one independent review lane over three rounds"
+replay = "666ghj/mirofish"
+pinned_commit = "39d849138ef254f6c737ab4c4705e5545dbe31d4"
+source_path = ".atlas/.cache/donors/mirofish"
+epoch_before = "E26"
+epoch_after = "E27"
+mission = ".atlas/evidence/replay/R20-mirofish.json"
+evidence = ".atlas/evidence/replay/R20-mirofish.json"
+self_recensus = ".atlas/evidence/census/G188/recensus.json"
+
+[generation.verification]
+pre_census = "G187 post digest"
+atlas_first = "62 Python and 16 Vue files L0 with no record, coverage or edge; 45 JavaScript functions and 61 call sites equal to an acorn parser's, every call anchored at its callee name, no INVOKES and none missing; but 69 SYMBOL records against 70 module-level bindings while the file's SYMBOL coverage is OBSERVED: a for-in loop-head binding missed"
+change = "ADR 0101: every identifier bound outside every function region (declarators and loop heads walked through their patterns, module-level catch parameters, import aliases) is a SYMBOL definition anchored at its first binding, and a file whose bindings cannot be enumerated (a module-level using, a namespace or ambient module body) holds SYMBOL UNKNOWN; a same-file callee is fixed only where its declaration is in scope at the call, bound once there, never written, not rebound by a named expression, not called by module-level code before its declaration, in a file with no with statement and no direct eval; a local export of any declaration form shadows export *; capability epoch E27"
+oracle = "the TypeScript compiler API and an acorn parser: per file, SYMBOL definitions equal both on the donor and on the 2,454 JavaScript and TypeScript files of Atlas's tree whose SYMBOL is OBSERVED (0 missing, 0 extra, 6,623 anchors); CALL records identical, resolved calls 24,483 -> 24,462 with all 21 withheld in files with a direct eval; the Rust census identical"
+falsification = "552 module-level names in Atlas's own JavaScript and TypeScript and 1 on the donor were missing under SYMBOL OBSERVED; the reviews built false same-file DERIVED edges through named function and class expressions, updates, block and namespace functions, with, direct and wrapped eval, script namespaces and unshadowed local exports, each now unresolved; 63 mutants, 62 killed, one equivalent"
+boundary = "Python and Vue have no frontend (L0, DEBT-MULTILANGUAGE); scripts sharing one global scope (RES-G188-SCRIPT-GLOBAL-SCOPE), a callback run before its callee's declaration (RES-G188-TDZ-NESTED-CALL), conflicting star exports (RES-G188-STAR-NONFUNCTION-CONFLICT), a grammar gap (RES-G188-PARSE-ERROR-IMPORT-REQUIRE) and impact's silence on unparsed callers (RES-G188-IMPACT-SILENT-ON-UNPARSED-CALLERS) recorded; 236 SYMBOL ids re-scoped under their namespace, 3 re-anchored to an earlier binding, none referenced by committed evidence"
+debts = "capability epoch E27; DEBT-MULTILANGUAGE last advance G188 without a maturity step; mirofish REFERENCE_ONLY, never decided, trigger CURRENT; E27 fires no processed replay trigger; next replay abi/screenshot-to-code G190; next generation G189 CREATION NA-SANDBOX-FS-CONFINEMENT (M22)"
+review = "DEBT-IMPACT_CLOSURE reviewed at its cadence and CONFIRMED against the code: no commit to the closure or its oracle since G175, nothing consumes it; the replay added that impact is silent on unparsed callers (RES-G188-IMPACT-SILENT-ON-UNPARSED-CALLERS) (evidence/census/G188/debt-review.json)"
+proof = "PROVEN (post cdcdb35f...): proven after the last source change; JavaScript SYMBOL records on Atlas's browser scripts 37 -> 39; the donor deleted before the recensus"
+
+[[generation.expansion]]
+finding = "the JavaScript and TypeScript SYMBOL dimension claimed OBSERVED over module-level bindings it never recorded (loop heads, destructuring, catch parameters, import aliases), 552 names in Atlas's own files"
+justification = "FALSIFIES_CURRENT_TRUTH"
+
+[[generation.expansion]]
+finding = "the same-file CALL resolver fixed callees that a nested scope, a named expression, an update, with or eval rebinds, and the module linker let a star export override a local export, both producing false DERIVED edges"
+justification = "FALSIFIES_CURRENT_TRUTH"
+
+[generation.value]
+new_capability = "complete module-level JavaScript and TypeScript SYMBOL definitions and scope-checked same-file call resolution (capability epoch E27)"
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 2
+wrong_claims_removed = 2
+wall_clock_s = 13335
+machine_s = 1567
+proof_s = 3624
+review_s = 2166
+residuals_deferred = 5
+correctness_critical = true
+frontier_rate = 0.54
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the measurement lane's launch to the roadmap commit, measured; machine_s = the measurement lane's census stages 7 + the implementation lane's builds, censuses and oracle measurements 1,560; proof_s = the lane's recorded tests, mutants and gates 2,065 (the third round's and the coordinator's wrapped-eval fix gates and the self-recensus were not timed separately) + the final full suite; review_s the three independent review rounds; two classes of WRONG claims removed (SYMBOL completeness, same-file call edges); the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:SYMBOL|atlas.typescript.source-semantic.v1"
+before = 37
+after = 39
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7756
+after = 7816
