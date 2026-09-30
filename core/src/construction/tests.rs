@@ -49,6 +49,7 @@ fn function() -> IrFunction {
         }],
         result: Some("bool".into()),
         body_fingerprint: Some("blake3-256:00".into()),
+        body: None,
         lineage: vec!["r:fn".into()],
     }
 }
@@ -320,4 +321,227 @@ fn an_oracle_is_never_a_construction_input_and_a_shadow_is_never_unverified() {
         .map(String::from)
         .collect::<Vec<_>>();
     assert!(found.contains(&"GAPS_MISMATCH".to_string()), "{found:?}");
+}
+
+// --- G181 (M14, ADR 0094): lowered bodies ------------------------------------------------------
+
+fn hir(
+    id: usize,
+    kind: HirNodeKind,
+    result_type: &str,
+    value: Option<&str>,
+    operands: Vec<usize>,
+) -> HirNode {
+    HirNode {
+        id,
+        kind,
+        result_type: result_type.into(),
+        value: value.map(String::from),
+        intrinsic: (kind == HirNodeKind::Intrinsic).then_some(HirIntrinsic::Ne),
+        operands,
+        arms: vec![],
+        lineage: vec!["r:fn".into()],
+    }
+}
+
+/// `self != Self::Remote` over a `Copy + PartialEq` Mode, and no body gap.
+fn bodied() -> ConstructionModule {
+    let mut m = module();
+    m.types[0].derives = Some(vec![
+        "Debug".into(),
+        "Clone".into(),
+        "Copy".into(),
+        "PartialEq".into(),
+        "Serialize".into(),
+    ]);
+    m.functions[0].body = Some(HirBody {
+        root: 2,
+        nodes: vec![
+            hir(0, HirNodeKind::Copy, "type:Mode", Some("self"), vec![]),
+            hir(
+                1,
+                HirNodeKind::Const,
+                "type:Mode",
+                Some("type:Mode::Remote"),
+                vec![],
+            ),
+            hir(2, HirNodeKind::Intrinsic, "bool", None, vec![0, 1]),
+        ],
+    });
+    m.gaps.clear();
+    reidentify(m)
+}
+
+fn body_codes(m: ConstructionModule) -> Vec<String> {
+    validate_module(&reidentify(m), &container())
+        .into_iter()
+        .map(|v| v.code)
+        .collect()
+}
+
+#[test]
+fn a_typed_resolved_body_is_valid_and_emitted_inside_an_impl() {
+    let m = bodied();
+    assert_eq!(validate_module(&m, &container()), vec![]);
+    let out = emit(&m);
+    assert_eq!(out.emitted, ["type:Mode", "fn:Mode::is_local"]);
+    assert!(out.omitted.is_empty(), "{:?}", out.omitted);
+    assert!(
+        out.source.contains(
+            "\nimpl Mode {\n    pub fn is_local(self) -> bool {\n        self != Self::Remote\n    }\n}\n"
+        ),
+        "{}",
+        out.source
+    );
+    assert_eq!(out, emit(&m), "deterministic");
+}
+
+#[test]
+fn a_body_and_its_gap_exclude_each_other() {
+    let mut m = bodied();
+    m.gaps = module().gaps;
+    assert!(body_codes(m).contains(&"BODY_GAP_CONTRADICTION".to_string()));
+    let mut m = bodied();
+    m.functions[0].body = None;
+    assert!(body_codes(m).contains(&"SILENT_GAP".to_string()));
+}
+
+#[test]
+fn malformed_untyped_or_unresolved_bodies_are_refused_with_their_defect() {
+    type Mutation = fn(&mut ConstructionModule);
+    let cases: Vec<(&str, Mutation)> = vec![
+        ("BODY_DANGLING_CHILD", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[2].operands[1] = 7
+        }),
+        ("BODY_DANGLING_CHILD", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[2].operands[1] = 2
+        }),
+        ("BODY_DANGLING_CHILD", |m| {
+            m.functions[0].body.as_mut().unwrap().root = 9
+        }),
+        ("BODY_UNTYPED_NODE", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[1].result_type = "type:Other".into()
+        }),
+        ("BODY_UNRESOLVED_REFERENCE", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[1].value = Some("type:Mode::Gone".into())
+        }),
+        ("BODY_UNRESOLVED_REFERENCE", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[0].value = Some("other".into())
+        }),
+        ("BODY_MALFORMED_NODE", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[2].intrinsic = None
+        }),
+        ("BODY_MALFORMED_NODE", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[1].id = 5
+        }),
+        ("BODY_CAPABILITY_UNOBSERVED", |m| {
+            m.types[0]
+                .derives
+                .as_mut()
+                .unwrap()
+                .retain(|d| d != "PartialEq")
+        }),
+        ("BODY_CAPABILITY_UNOBSERVED", |m| {
+            m.types[0].derives.as_mut().unwrap().retain(|d| d != "Copy")
+        }),
+        ("BODY_TYPE_MISMATCH", |m| {
+            m.functions[0].result = Some("u8".into())
+        }),
+        ("BODY_TYPE_MISMATCH", |m| {
+            let b = m.functions[0].body.as_mut().unwrap();
+            b.nodes[1] = hir(1, HirNodeKind::Const, "bool", Some("true"), vec![]);
+        }),
+        ("LINEAGE_OUTSIDE_INPUTS", |m| {
+            m.functions[0].body.as_mut().unwrap().nodes[1].lineage = vec!["source:mode.rs".into()]
+        }),
+    ];
+    for (code, mutate) in cases {
+        let mut m = bodied();
+        mutate(&mut m);
+        let found = body_codes(m);
+        assert!(found.contains(&code.to_string()), "{code}: {found:?}");
+    }
+}
+
+fn arm(patterns: &[&str], value: usize) -> HirArm {
+    HirArm {
+        patterns: patterns
+            .iter()
+            .map(|p| match *p {
+                "_" => HirPattern::Wildcard,
+                v => HirPattern::Variant(format!("type:Mode::{v}")),
+            })
+            .collect(),
+        value,
+    }
+}
+
+/// `match self { Self::Remote => false, _ => true }` with `arms`.
+fn matching(arms: Vec<HirArm>) -> ConstructionModule {
+    let mut m = bodied();
+    let mut node = hir(3, HirNodeKind::Match, "bool", None, vec![0]);
+    node.arms = arms;
+    m.functions[0].body = Some(HirBody {
+        root: 3,
+        nodes: vec![
+            hir(0, HirNodeKind::Copy, "type:Mode", Some("self"), vec![]),
+            hir(1, HirNodeKind::Const, "bool", Some("false"), vec![]),
+            hir(2, HirNodeKind::Const, "bool", Some("true"), vec![]),
+            node,
+        ],
+    });
+    reidentify(m)
+}
+
+#[test]
+fn a_match_must_cover_every_variant_and_emits_its_arms_in_order() {
+    let m = matching(vec![arm(&["Remote"], 1), arm(&["_"], 2)]);
+    assert_eq!(validate_module(&m, &container()), vec![]);
+    let source = emit(&m).source;
+    assert!(
+        source.contains("        match self {\n            Self::Remote => false,\n            _ => true,\n        }\n"),
+        "{source}"
+    );
+    let all = matching(vec![arm(&["Remote"], 1), arm(&["Local"], 2)]);
+    assert_eq!(validate_module(&all, &container()), vec![]);
+    let alternatives = matching(vec![arm(&["Remote", "Local"], 1)]);
+    assert!(
+        emit(&alternatives)
+            .source
+            .contains("Self::Remote | Self::Local => false,")
+    );
+    let partial = matching(vec![arm(&["Remote"], 1)]);
+    assert!(body_codes(partial).contains(&"BODY_NON_EXHAUSTIVE_MATCH".to_string()));
+    let stray = matching(vec![
+        arm(&["Remote"], 1),
+        arm(&["Elsewhere"], 2),
+        arm(&["_"], 2),
+    ]);
+    assert!(body_codes(stray).contains(&"BODY_UNRESOLVED_REFERENCE".to_string()));
+    let mixed = matching(vec![arm(&["Remote"], 1), arm(&["_"], 0)]);
+    assert!(body_codes(mixed).contains(&"BODY_TYPE_MISMATCH".to_string()));
+}
+
+#[test]
+fn the_backend_emits_a_method_only_with_its_body_its_owner_and_spellable_parameters() {
+    let mut m = bodied();
+    m.types[0].visibility = None;
+    let out = emit(&m);
+    assert!(out.emitted.is_empty(), "{out:?}");
+    assert!(
+        out.omitted
+            .iter()
+            .any(|o| o.contains("owner type is not emitted"))
+    );
+    assert!(!out.source.contains("fn is_local"));
+    let mut m = bodied();
+    m.functions[0].params.push(IrParam {
+        name: "x".into(),
+        type_spelling: "u8".into(),
+    });
+    let out = emit(&m);
+    assert_eq!(out.emitted, ["type:Mode"]);
+    assert!(out.omitted[0].contains("parameters other than `self`"));
+    let out = emit(&module());
+    assert!(out.omitted[0].contains("no lowerable body"), "{out:?}");
 }

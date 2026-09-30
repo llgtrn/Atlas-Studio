@@ -276,6 +276,7 @@ mod signature {
             is_unsafe: false,
             is_extern: false,
             body_fingerprint: None,
+            body: None,
         }
     }
 

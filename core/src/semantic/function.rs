@@ -203,6 +203,43 @@ pub struct FunctionSignature {
     /// never part of any identity key. `None` for a declaration without a body.
     #[serde(default)]
     pub body_fingerprint: Option<String>,
+    /// G181 (M14, ADR 0094): the body as a lowerable expression tree, recorded only when the
+    /// whole body is one tail expression inside the bounded subset of `BodyNodeKind`; `None` for a
+    /// body outside it (or no body). OBSERVED syntax, spelled as written and never resolved here,
+    /// and never part of any identity key.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<BodyNode>,
+}
+
+crate::vocabulary_enum! {
+    /// G181 (M14): the syntax a node of a lowerable body was observed as. The subset is pure and
+    /// call-closed by construction: nothing here can call, allocate, mutate or bind.
+    pub enum BodyNodeKind {
+        /// A `true` or `false` literal.
+        Literal => "LITERAL",
+        /// A path expression without generic arguments (`self`, `Self::Local`, `Mode::Local`).
+        Path => "PATH",
+        /// `==` or `!=` over its two children.
+        Binary => "BINARY",
+        /// A `match`: its scrutinee, then its arms.
+        Match => "MATCH",
+        /// A match arm without a guard (a guarded pattern is outside the subset): its patterns (alternatives), then its value, last.
+        Arm => "ARM",
+        /// The `_` pattern.
+        Wildcard => "WILDCARD",
+    }
+}
+
+/// G181: one node of a lowerable body, children in source order.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BodyNode {
+    pub kind: BodyNodeKind,
+    /// LITERAL and PATH: the node as written (a path's segments joined by `::`); BINARY: its
+    /// operator. Absent otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub children: Vec<BodyNode>,
 }
 
 impl FunctionSignature {
@@ -323,6 +360,7 @@ mod tests {
             is_unsafe: true,
             is_extern: false,
             body_fingerprint: None,
+            body: None,
         };
         assert_eq!(
             signature.summary(),
@@ -343,6 +381,7 @@ mod tests {
             is_unsafe: false,
             is_extern: false,
             body_fingerprint: None,
+            body: None,
         };
         assert_eq!(signature.summary(), "fn() -> ()");
     }
@@ -368,6 +407,7 @@ mod tests {
             is_unsafe: true,
             is_extern: true,
             body_fingerprint: None,
+            body: None,
         };
         assert_eq!(
             signature.summary(),

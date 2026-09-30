@@ -1,7 +1,7 @@
 # SELF_RECONSTRUCTION (G153, ADR 0069, contracts/SELF-RECONSTRUCTION.md): Atlas rebuilds bounded
 # parts of itself from its census alone and verifies them against the original. Attempts append;
 # a verdict is never rewritten. Reports and modules are typed (atlas.self-reconstruction-report.v1,
-# atlas.construction-ir.v0) and machine-checked.
+# atlas.construction-ir.v0, and v1 with lowerable bodies from G181, ADR 0094) and machine-checked.
 
 schema = "atlas.self-reconstruction-ledger.v1"
 lane = "SELF_RECONSTRUCTION"
@@ -14,9 +14,9 @@ construction_inputs = ["CENSUS_RECORD", "DESIGN", "COMPARISON"]
 oracle_uses = ["ORACLE_READ", "ORACLE_EXECUTION"]
 shadow_root = ".atlas/.cache/shadow"
 cadence = "a SELF_RECONSTRUCTION generation is a non-replay generation: at most one between FULL_OSS_REPLAY generations"
-level_reached = "SH0"
+level_reached = "SH1"
 level_attempted = "SH1"
-next = "NA-SELF-RECONSTRUCTION-BODIES: lowerable bodies for pure call-closed functions, then SR1-3 on the same target; SH1 is reached only when is_local is reconstructed and verified"
+next = "SH2: a whole module reconstructed and verified; bodies outside the G181 subset (calls, bindings, statements, receivers by reference, data-carrying variants) stay BODY_UNOBSERVED or UNSUPPORTED until their own attack"
 
 [[level]]
 id = "SH0"
@@ -26,7 +26,9 @@ status = "REACHED"
 [[level]]
 id = "SH1"
 meaning = "a bounded shadow reconstruction of one self target verified equivalent to the original"
-status = "ATTEMPTED"
+status = "REACHED"
+reached_in = "G181"
+reached_by = "SR1-3"
 
 [[level]]
 id = "SH2"
@@ -92,6 +94,27 @@ checks = 11
 checks_equivalent = 11
 note = "the type reconstructed from census records alone: 7 behavioral checks (clone, debug, equality, exhaustive, order, wire both ways) and 4 semantic checks (definition, documentation, declaration, members in order) EQUIVALENT against the compiled original; is_local omitted (BODY_UNOBSERVED); doc line wrapping not reconstructed"
 
+[[attempt]]
+id = "SR1-3"
+generation = "G181"
+level = "SH1"
+target = "core/src/donor/mod.rs::MaterializationMode"
+selected_by = ".atlas/evidence/self-reconstruction/SR1/candidates.json"
+container = "G181 census container of the pre-commit tree (root f39f59e4..., census 7c9eda68...), its self-scope verification ADMISSIBLE (.atlas/evidence/self-reconstruction/SR1/verification-G181-pre-commit.json)"
+design = ".atlas/evidence/self-reconstruction/SR1/designs3/95d95bf7228fc1d1d1183deda1b7ec132934d6c2fba6871697d24951d5f85dd3.json"
+comparison = ".atlas/evidence/self-reconstruction/SR1/comparison3.json"
+module = ".atlas/evidence/self-reconstruction/SR1/attempt3/module.json"
+report = ".atlas/evidence/self-reconstruction/SR1/attempt3/report.json"
+verdict = "RECONSTRUCTED_WITH_DECLARED_VARIATION"
+design_state = "VALIDATED"
+gaps = []
+gap_count = 0
+emitted = ["type:core/src/donor/mod.rs::MaterializationMode", "fn:core/src/donor/mod.rs::MaterializationMode::is_local"]
+checks = 14
+checks_equivalent = 14
+declared_variations = ["documentation of the type: rustdoc's one-line summary where the original's doc comment spans 2 lines"]
+note = "NA-SELF-RECONSTRUCTION-BODIES (M14, ADR 0094): is_local's body (self != Self::RemoteMetadata) lifted from its FUNCTION_SIGNATURE record, resolved against the type's and the RemoteMetadata variant's SYMBOL records into typed HIR (COPY, CONST, INTRINSIC NE), emitted in an inherent impl; 8 behavioral checks (the 7 of SR1-2 and method_is_local: the shadow's is_local against the compiled original's on all five variants) and 6 semantic checks (the 4 of SR1-2, the method's signature, and its body lowered again from the shadow's census, token-identical to the original's) EQUIVALENT; SH1 reached"
+
 [[gap_feedback]]
 gap = "ITEM_KIND_UNOBSERVED"
 debt = "DEBT-TYPE"
@@ -124,4 +147,5 @@ closed_in = "G153"
 gap = "BODY_UNOBSERVED"
 debt = "DEBT-CONSTRUCTION_IR"
 attack = "NA-SELF-RECONSTRUCTION-BODIES"
-status = "OPEN"
+status = "CLOSED"
+closed_in = "G181"

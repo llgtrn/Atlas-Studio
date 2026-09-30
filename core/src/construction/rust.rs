@@ -1,13 +1,17 @@
-//! The Rust backend of the construction IR (G153): IR in, Rust source text out, deterministic.
+//! The Rust backend of the construction IR (G153; bodies G181): IR in, Rust source text out,
+//! deterministic.
 //!
 //! The emitted text is a projection, never truth (`COMPILER-IR-PIPELINE.md`, delegated phase-1
 //! backend). The backend reads nothing but the module. It emits an element only when everything
 //! the element needs was observed. Otherwise it omits the element and says why; it never guesses
 //! a missing kind, derive, attribute or body.
 
-use super::{ConstructionModule, IrType, TypeKind};
+use super::{
+    ConstructionModule, Dispatch, HirBody, HirIntrinsic, HirNodeKind, HirPattern, IrFunction,
+    IrType, TypeKind,
+};
 
-pub const RUST_BACKEND: &str = "atlas.construction.rust-backend.v0";
+pub const RUST_BACKEND: &str = "atlas.construction.rust-backend.v1";
 
 /// Derive macros the backend knows how to bring into scope: the prelude's, and serde's. Any other
 /// derive leaves its type unemitted. This table is a declared backend assumption, recorded.
@@ -91,7 +95,119 @@ fn visibility_prefix(visibility: &str) -> String {
     }
 }
 
-/// Emits every emittable type of `module`; functions are omitted until IR bodies exist.
+/// G181: why `function` cannot be emitted, if it cannot. It needs its body, its owner type
+/// emitted, inherent dispatch and parameters it can spell: none, or `self` by value.
+fn function_refusal(function: &IrFunction, emitted_types: &[&IrType]) -> Option<String> {
+    let Some(body) = &function.body else {
+        return Some("no lowerable body".into());
+    };
+    if body.nodes.get(body.root).is_none() {
+        return Some("a body without its root".into());
+    }
+    if !matches!(
+        function.dispatch,
+        Dispatch::InherentMethod | Dispatch::AssociatedFunction
+    ) {
+        return Some(format!(
+            "{} functions are not emitted by v1",
+            function.dispatch.as_str()
+        ));
+    }
+    if !function
+        .owner
+        .as_deref()
+        .is_some_and(|o| emitted_types.iter().any(|t| t.name == o))
+    {
+        return Some("its owner type is not emitted".into());
+    }
+    if function.result.is_none() {
+        return Some("no observed result type".into());
+    }
+    match function.params.as_slice() {
+        [] => None,
+        [p] if p.name == "self" && p.type_spelling == "Self" => None,
+        _ => Some("parameters other than `self` by value".into()),
+    }
+}
+
+/// The Rust expression of node `id` of `body` inside the impl of `owner` (type id).
+fn expression(body: &HirBody, id: usize, owner: &str, indent: &str) -> String {
+    let Some(node) = body.nodes.get(id) else {
+        return String::new();
+    };
+    let variant = |reference: &str| match reference.rsplit_once("::") {
+        Some((ty, variant)) if ty == owner => format!("Self::{variant}"),
+        Some((ty, variant)) => format!("{}::{variant}", ty.rsplit("::").next().unwrap_or(ty)),
+        None => reference.to_owned(),
+    };
+    // A compound operand is parenthesized: comparisons do not chain in Rust.
+    let operand = |i: usize| {
+        let text = expression(body, i, owner, indent);
+        match body.nodes.get(i).map(|n| n.kind) {
+            Some(HirNodeKind::Intrinsic | HirNodeKind::Match) => format!("({text})"),
+            _ => text,
+        }
+    };
+    match node.kind {
+        HirNodeKind::Const => {
+            let value = node.value.as_deref().unwrap_or_default();
+            if value == "true" || value == "false" {
+                value.to_owned()
+            } else {
+                variant(value)
+            }
+        }
+        HirNodeKind::Copy => node.value.clone().unwrap_or_default(),
+        HirNodeKind::Intrinsic => {
+            let op = match node.intrinsic {
+                Some(HirIntrinsic::Eq) => "==",
+                _ => "!=",
+            };
+            let (left, right) = (node.operands[0], node.operands[1]);
+            format!("{} {op} {}", operand(left), operand(right))
+        }
+        HirNodeKind::Match => {
+            let inner = format!("{indent}    ");
+            let mut out = format!("match {} {{\n", operand(node.operands[0]));
+            for arm in &node.arms {
+                let patterns: Vec<String> = arm
+                    .patterns
+                    .iter()
+                    .map(|p| match p {
+                        HirPattern::Variant(reference) => variant(reference),
+                        HirPattern::Wildcard => "_".into(),
+                    })
+                    .collect();
+                out.push_str(&format!(
+                    "{inner}{} => {},\n",
+                    patterns.join(" | "),
+                    expression(body, arm.value, owner, &inner)
+                ));
+            }
+            out.push_str(&format!("{indent}}}"));
+            out
+        }
+    }
+}
+
+fn emit_function(out: &mut String, function: &IrFunction, owner: &IrType) {
+    let Some(body) = &function.body else {
+        return;
+    };
+    doc(out, "    ", &function.documentation);
+    let params: Vec<&str> = function.params.iter().map(|_| "self").collect();
+    out.push_str(&format!(
+        "    {}fn {}({}) -> {} {{\n        {}\n    }}\n",
+        visibility_prefix(&function.visibility),
+        function.name,
+        params.join(", "),
+        function.result.as_deref().unwrap_or_default(),
+        expression(body, body.root, &owner.id, "        ")
+    ));
+}
+
+/// Emits every emittable type of `module` and, in an inherent impl after it, every method whose
+/// body the IR carries.
 pub fn emit(module: &ConstructionModule) -> RustEmission {
     let mut body = String::new();
     let mut emitted = Vec::new();
@@ -135,8 +251,31 @@ pub fn emit(module: &ConstructionModule) -> RustEmission {
         body.push_str("}\n");
         emitted.push(ty.id.clone());
     }
+    let emitted_types: Vec<&IrType> = module
+        .types
+        .iter()
+        .filter(|t| emitted.contains(&t.id))
+        .collect();
+    for owner in &emitted_types {
+        let mut methods = String::new();
+        for function in module
+            .functions
+            .iter()
+            .filter(|f| f.owner.as_deref() == Some(owner.name.as_str()))
+        {
+            if function_refusal(function, &emitted_types).is_none() {
+                emit_function(&mut methods, function, owner);
+                emitted.push(function.id.clone());
+            }
+        }
+        if !methods.is_empty() {
+            body.push_str(&format!("\nimpl {} {{\n{methods}}}\n", owner.name));
+        }
+    }
     for function in &module.functions {
-        omitted.push(format!("{}: no lowerable body in IR v0", function.id));
+        if let Some(why) = function_refusal(function, &emitted_types) {
+            omitted.push(format!("{}: {why}", function.id));
+        }
     }
     let mut source = format!(
         "//! Shadow reconstruction of `{}` by Atlas from construction module `{}`.\n//! Generated by {RUST_BACKEND}; never admitted.\n",

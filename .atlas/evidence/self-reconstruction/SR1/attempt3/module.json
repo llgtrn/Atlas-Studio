@@ -1,0 +1,185 @@
+{
+  "schema": "atlas.construction-ir.v1",
+  "module_id": "construction-module:blake3-256:17830a838e9dbb49789ea3dfb998f12cf215154ee8425a64e5b8c8b763a6fd34",
+  "target": "core/src/donor/mod.rs::MaterializationMode",
+  "construction_target": "RUST",
+  "container_root": "blake3-256:f39f59e42fd52a3d26467375580230b8f2809cd17d6692ec10ec4febcaba7539",
+  "inputs": [
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_IDENTITY:4d0d794e81097e75"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_SIGNATURE:8ebebb875610393f"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:067c0fd5c1be2c19"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:0a05e752c70a4ab2"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:0be6bb548469a4a3"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:1b0a87df49be0d86"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:3ed390aca1db6fda"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:c369cc8f212b5d6d"
+    },
+    {
+      "kind": "DESIGN",
+      "reference": "blake3-256:95d95bf7228fc1d1d1183deda1b7ec132934d6c2fba6871697d24951d5f85dd3"
+    },
+    {
+      "kind": "COMPARISON",
+      "reference": "blake3-256:e52c9994b92a793f2a6496715612cd26b8cfcdacc32679cf60fc801c32ea018e"
+    }
+  ],
+  "types": [
+    {
+      "id": "type:core/src/donor/mod.rs::MaterializationMode",
+      "name": "MaterializationMode",
+      "kind": "ENUM",
+      "visibility": "pub",
+      "documentation": "Materialization strategies, cheapest first. The cheapest one that can produce the required evidence is chosen (`cheapest_sufficient_mode`).",
+      "derives": [
+        "Debug",
+        "Clone",
+        "Copy",
+        "Serialize",
+        "Deserialize",
+        "PartialEq",
+        "Eq",
+        "PartialOrd",
+        "Ord"
+      ],
+      "attributes": [
+        "serde(rename_all = \"SCREAMING_SNAKE_CASE\")"
+      ],
+      "variants": [
+        {
+          "name": "RemoteMetadata",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:0be6bb548469a4a3"
+          ]
+        },
+        {
+          "name": "FetchedFileSet",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:c369cc8f212b5d6d"
+          ]
+        },
+        {
+          "name": "SparseCheckout",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:1b0a87df49be0d86"
+          ]
+        },
+        {
+          "name": "ShallowCheckout",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:0a05e752c70a4ab2"
+          ]
+        },
+        {
+          "name": "FullCheckout",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:067c0fd5c1be2c19"
+          ]
+        }
+      ],
+      "lineage": [
+        "semantic:SYMBOL:3ed390aca1db6fda"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "id": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+      "name": "is_local",
+      "owner": "MaterializationMode",
+      "dispatch": "INHERENT_METHOD",
+      "visibility": "pub",
+      "documentation": null,
+      "params": [
+        {
+          "name": "self",
+          "type_spelling": "Self"
+        }
+      ],
+      "result": "bool",
+      "body_fingerprint": "blake3-256:37306332b6453e3566f711b7b4e83ae0456608689d830963378ff0f22d008639",
+      "body": {
+        "root": 2,
+        "nodes": [
+          {
+            "id": 0,
+            "kind": "COPY",
+            "result_type": "type:core/src/donor/mod.rs::MaterializationMode",
+            "value": "self",
+            "intrinsic": null,
+            "operands": [],
+            "arms": [],
+            "lineage": [
+              "semantic:FUNCTION_SIGNATURE:8ebebb875610393f"
+            ]
+          },
+          {
+            "id": 1,
+            "kind": "CONST",
+            "result_type": "type:core/src/donor/mod.rs::MaterializationMode",
+            "value": "type:core/src/donor/mod.rs::MaterializationMode::RemoteMetadata",
+            "intrinsic": null,
+            "operands": [],
+            "arms": [],
+            "lineage": [
+              "semantic:FUNCTION_SIGNATURE:8ebebb875610393f",
+              "semantic:SYMBOL:0be6bb548469a4a3"
+            ]
+          },
+          {
+            "id": 2,
+            "kind": "INTRINSIC",
+            "result_type": "bool",
+            "value": null,
+            "intrinsic": "NE",
+            "operands": [
+              0,
+              1
+            ],
+            "arms": [],
+            "lineage": [
+              "semantic:FUNCTION_SIGNATURE:8ebebb875610393f"
+            ]
+          }
+        ]
+      },
+      "lineage": [
+        "semantic:FUNCTION_IDENTITY:4d0d794e81097e75",
+        "semantic:FUNCTION_SIGNATURE:8ebebb875610393f"
+      ]
+    }
+  ],
+  "gaps": []
+}

@@ -207,6 +207,8 @@ INDEX
 INTRINSIC
 ~~~
 
+Implementation note (G181, ADR 0094): `atlas.construction-ir.v1` (`core::construction`) carries the first bounded subset of these kinds for self-reconstruction: `CONST` (`true`/`false` or a unit variant), `COPY` (a parameter read by value), `MATCH` (over a module enum, exhaustive or with a wildcard) and `INTRINSIC` (`EQ`/`NE` through a derived `PartialEq`). Nodes are stored in post-order with a result type and lineage to census records. `validate_module` refuses a malformed, dangling, untyped, unresolved, mistyped, underived or non-exhaustive body with a typed `BodyDefect`. A function without a body carries a `BODY_UNOBSERVED` gap; no body is ever partial.
+
 A construct outside this set requires a versioned schema extension or explicit unsupported compiler diagnostic.
 
 ## HIR verification

@@ -81,17 +81,18 @@ pub use schema::{
     SemanticFact, SemanticFactKind, SourceReport, SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
-    CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
-    ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
-    DataFlowResolution, Declaration, DeclaredItem, DiagnosticCode, Documentation, EffectCategory,
-    EffectIdentity, ExtractionDiagnostic, ExtractorIdentity, FieldShape, FunctionDeclarationKind,
-    FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature, OPEN_SCOPE_DIAGNOSTIC,
-    OwnershipIdentity, OwnershipKind, OwnershipResolution, PersistenceIdentity, PersistenceKind,
-    PersistenceResolution, PlaceRef, ResourceIdentity, ResourceKind, ResourceOperation,
-    ResourceRelease, SemanticDimension, SemanticObligationRecord, SemanticObservation,
-    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateAccessIdentity, StateAccessKind,
-    StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
-    std_path_concurrency, std_path_effects, std_path_persistence, std_path_resource,
+    BodyNode, BodyNodeKind, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity,
+    ConcurrencyKind, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge,
+    ControlFlowEdgeKind, DataFlowResolution, Declaration, DeclaredItem, DiagnosticCode,
+    Documentation, EffectCategory, EffectIdentity, ExtractionDiagnostic, ExtractorIdentity,
+    FieldShape, FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter,
+    FunctionSignature, OPEN_SCOPE_DIAGNOSTIC, OwnershipIdentity, OwnershipKind,
+    OwnershipResolution, PersistenceIdentity, PersistenceKind, PersistenceResolution, PlaceRef,
+    ResourceIdentity, ResourceKind, ResourceOperation, ResourceRelease, SemanticDimension,
+    SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
+    SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity,
+    SymbolRole, TypeIdentity, ValueIdentity, ValueRole, std_path_concurrency, std_path_effects,
+    std_path_persistence, std_path_resource,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

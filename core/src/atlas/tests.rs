@@ -818,6 +818,54 @@ fn every_typed_record_evidence_and_diagnostic_round_trips_field_by_field() {
     }
 }
 
+/// G181 (ADR 0094): a signature's lowerable body is carried field by field, its nested nodes as
+/// embedded `body-node` records, and read back exactly; a signature without one is unchanged.
+#[test]
+fn a_signature_body_round_trips_as_nested_body_nodes() {
+    use crate::semantic::{BodyNode, BodyNodeKind};
+    let leaf = |kind, text: &str| BodyNode {
+        kind,
+        text: Some(text.into()),
+        children: vec![],
+    };
+    let mut atlas = compact_sample();
+    let without = write(&atlas).unwrap();
+    let signature = atlas
+        .typed_records
+        .iter_mut()
+        .find_map(|r| match r {
+            SemanticObservation::FunctionSignature(h) => Some(h),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(signature.subject.body, None);
+    signature.subject.body = Some(BodyNode {
+        kind: BodyNodeKind::Match,
+        text: None,
+        children: vec![
+            leaf(BodyNodeKind::Path, "self"),
+            BodyNode {
+                kind: BodyNodeKind::Arm,
+                text: None,
+                children: vec![
+                    leaf(BodyNodeKind::Path, "Self::A"),
+                    BodyNode {
+                        kind: BodyNodeKind::Wildcard,
+                        text: None,
+                        children: vec![],
+                    },
+                    leaf(BodyNodeKind::Literal, "true"),
+                ],
+            },
+        ],
+    });
+    let bytes = write(&atlas).unwrap();
+    assert_ne!(bytes, without);
+    let (decoded, _) = read(&bytes).unwrap();
+    assert_eq!(decoded.typed_records, atlas.typed_records);
+    assert_eq!(write(&decoded).unwrap(), bytes);
+}
+
 #[test]
 fn a_typed_value_its_kind_does_not_declare_is_refused() {
     let evidence = serde_json::to_value(&sample().evidence[0]).unwrap();

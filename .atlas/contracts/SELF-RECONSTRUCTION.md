@@ -149,4 +149,6 @@ Copying the original file into the shadow is not reconstruction. A shadow's cont
 - G153 (ADR 0069): `core::construction` and `runtime::self_reconstruction`, and the CLI `self-reconstruct candidates|roots|attempt`.
 - SYMBOL definitions carry their declared shape.
 - SR1 targets `core::donor::MaterializationMode`.
-- Bodies are the open gap (NA-SELF-RECONSTRUCTION-BODIES).
+- G181 (ADR 0094): bodies inside a bounded subset (pure, call-closed tail expressions: `true`/`false`, unit variants, `self`, `==`/`!=`, matches over unit variants) are recorded on FUNCTION_SIGNATURE, lifted into typed HIR bodies (`atlas.construction-ir.v1`) and emitted as inherent methods. A body outside the subset keeps `BODY_UNOBSERVED`.
+- Verification of a method: the differential runs it against the original over every variant, and the semantic check lowers the shadow's census of it again and compares the result with the module's body. A documentation wrapping the census does not record is a declared variation.
+- SR1-3 reconstructs `MaterializationMode` with `is_local`: SH1 is reached.

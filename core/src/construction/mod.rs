@@ -18,7 +18,7 @@ use crate::vocabulary_enum;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-pub const CONSTRUCTION_IR_SCHEMA: &str = "atlas.construction-ir.v0";
+pub const CONSTRUCTION_IR_SCHEMA: &str = "atlas.construction-ir.v1";
 pub const RECONSTRUCTION_REPORT_SCHEMA: &str = "atlas.self-reconstruction-report.v1";
 /// The first construction target of the bootstrap (SYSTEM-CONTRACT `BACKEND_BOOTSTRAP_IS_RUST`).
 pub const BOOTSTRAP_CONSTRUCTION_TARGET: &str = "RUST";
@@ -132,6 +132,57 @@ vocabulary_enum! {
     }
 }
 
+vocabulary_enum! {
+    /// G181 (M14, ADR 0094): the HIR body node kinds the IR can carry so far, a bounded subset of
+    /// `COMPILER-IR-SCHEMAS.md` "Core HIR node kinds v1". Every one is pure and call-closed.
+    pub enum HirNodeKind {
+        /// A constant: `true`/`false`, or a unit variant of a type in the module.
+        Const => "CONST",
+        /// A by-value read of a parameter whose type is a `Copy` type of the module.
+        Copy => "COPY",
+        /// A comparison (`HirIntrinsic`) over two operands of one type deriving `PartialEq`.
+        Intrinsic => "INTRINSIC",
+        /// A match over a module enum: its scrutinee and its arms.
+        Match => "MATCH",
+    }
+}
+
+vocabulary_enum! {
+    /// G181: the intrinsic operations an `INTRINSIC` node can apply.
+    pub enum HirIntrinsic {
+        /// Structural equality through a derived `PartialEq`.
+        Eq => "EQ",
+        /// Its negation.
+        Ne => "NE",
+    }
+}
+
+vocabulary_enum! {
+    /// G181: why `validate_module` refuses an IR body. A body is whole and typed or it is not
+    /// carried at all: a function without one keeps its `BODY_UNOBSERVED` gap.
+    pub enum BodyDefect {
+        /// A node's fields do not fit its kind (a comparison without its operator, a match without
+        /// arms, a node id that is not its position).
+        MalformedNode => "BODY_MALFORMED_NODE",
+        /// A child reference outside the body or not before its parent (the body is a DAG in
+        /// post-order, so it has no cycle).
+        DanglingChild => "BODY_DANGLING_CHILD",
+        /// A node without a result type, or one naming no type of the module.
+        UntypedNode => "BODY_UNTYPED_NODE",
+        /// A constant, parameter or pattern that does not resolve in the module.
+        UnresolvedReference => "BODY_UNRESOLVED_REFERENCE",
+        /// Operands, arms or the root disagree with the types they must have.
+        TypeMismatch => "BODY_TYPE_MISMATCH",
+        /// A capability the node needs (`Copy`, `PartialEq`) that its type was not observed to
+        /// derive.
+        CapabilityUnobserved => "BODY_CAPABILITY_UNOBSERVED",
+        /// A match that misses a variant without a wildcard.
+        NonExhaustiveMatch => "BODY_NON_EXHAUSTIVE_MATCH",
+        /// A function carrying a body and a `BODY_UNOBSERVED` gap at once.
+        GapContradiction => "BODY_GAP_CONTRADICTION",
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ConstructionInput {
     pub kind: ConstructionInputKind,
@@ -168,8 +219,49 @@ pub struct IrParam {
     pub type_spelling: String,
 }
 
-/// A HIR function signature. IR v0 carries no body: no census record holds lowerable body
-/// semantics yet (M14), so every function has a `BODY_UNOBSERVED` gap and the backend emits none.
+/// G181: a match arm pattern: a unit variant (`<type id>::<variant>`) or the wildcard.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum HirPattern {
+    Variant(String),
+    Wildcard,
+}
+
+/// G181: one arm of a `MATCH` node: its alternatives and the node giving its value.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct HirArm {
+    pub patterns: Vec<HirPattern>,
+    pub value: usize,
+}
+
+/// G181: one HIR body node (`COMPILER-IR-SCHEMAS.md` "HIR body node"). Its children come before
+/// it, so a body is acyclic by construction and checked to be.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct HirNode {
+    /// Its position in the body.
+    pub id: usize,
+    pub kind: HirNodeKind,
+    /// `bool`, or the id of a type of the module.
+    pub result_type: String,
+    /// CONST: `true`, `false` or `<type id>::<variant>`; COPY: the parameter's name.
+    pub value: Option<String>,
+    pub intrinsic: Option<HirIntrinsic>,
+    /// INTRINSIC: its two operands; MATCH: its scrutinee.
+    pub operands: Vec<usize>,
+    pub arms: Vec<HirArm>,
+    pub lineage: Vec<String>,
+}
+
+/// G181: a lowered function body: typed nodes, children first, and the node giving its value.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct HirBody {
+    pub root: usize,
+    pub nodes: Vec<HirNode>,
+}
+
+/// A HIR function: its signature and, when its census records a body inside the lowerable subset
+/// (G181, M14), that body. A function without one carries a `BODY_UNOBSERVED` gap and the backend
+/// emits none.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct IrFunction {
     pub id: String,
@@ -183,6 +275,9 @@ pub struct IrFunction {
     /// The census's content fingerprint of the original body (G66), kept to report whether a
     /// reconstructed body is token-identical; never a construction input.
     pub body_fingerprint: Option<String>,
+    /// G181: the lowered body; `None` means not observed in the lowerable subset.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<HirBody>,
     pub lineage: Vec<String>,
 }
 
@@ -288,7 +383,13 @@ pub fn validate_module(
             std::iter::once((&t.id, &t.lineage))
                 .chain(t.variants.iter().map(move |v| (&t.id, &v.lineage)))
         })
-        .chain(module.functions.iter().map(|f| (&f.id, &f.lineage)));
+        .chain(module.functions.iter().map(|f| (&f.id, &f.lineage)))
+        .chain(module.functions.iter().flat_map(|f| {
+            f.body
+                .iter()
+                .flat_map(|b| b.nodes.iter())
+                .map(move |n| (&f.id, &n.lineage))
+        }));
     for (element, lineage) in lineages {
         if lineage.is_empty() {
             out.push(violation("NO_LINEAGE", element.clone()));
@@ -332,10 +433,239 @@ pub fn validate_module(
         }
     }
     for f in &module.functions {
-        require(&f.id, true, GapKind::BodyUnobserved);
+        require(&f.id, f.body.is_none(), GapKind::BodyUnobserved);
+    }
+    for f in &module.functions {
+        if let Some(body) = &f.body {
+            if gapped(&f.id, GapKind::BodyUnobserved) {
+                out.push(body_violation(
+                    BodyDefect::GapContradiction,
+                    &f.id,
+                    "a body and a BODY_UNOBSERVED gap",
+                ));
+            }
+            out.extend(validate_body(module, f, body));
+        }
     }
     out.sort();
     out.dedup();
+    out
+}
+
+fn body_violation(defect: BodyDefect, function: &str, detail: impl std::fmt::Display) -> Violation {
+    violation(defect.as_str(), format!("{function}: {detail}"))
+}
+
+/// The type of the module a spelling names from inside `owner`'s impl: `Self` or its name.
+pub fn resolve_type<'m>(
+    module: &'m ConstructionModule,
+    owner: Option<&str>,
+    spelling: &str,
+) -> Option<&'m IrType> {
+    let name = if spelling == "Self" { owner? } else { spelling };
+    module.types.iter().find(|t| t.name == name)
+}
+
+fn derives(ty: &IrType, capability: &str) -> bool {
+    ty.derives
+        .as_ref()
+        .is_some_and(|d| d.iter().any(|x| x == capability))
+}
+
+/// Every way `body` of `f` is malformed, untyped or unresolved within `module`.
+fn validate_body(module: &ConstructionModule, f: &IrFunction, body: &HirBody) -> Vec<Violation> {
+    let mut out = Vec::new();
+    let mut flag = |defect: BodyDefect, detail: String| {
+        out.push(body_violation(defect, &f.id, detail));
+    };
+    let type_of = |id: &str| module.types.iter().find(|t| t.id == id);
+    let variant_of = |reference: &str| {
+        let (ty, variant) = reference.rsplit_once("::")?;
+        let ty = type_of(ty)?;
+        ty.variants.iter().any(|v| v.name == variant).then_some(ty)
+    };
+    for (position, node) in body.nodes.iter().enumerate() {
+        let at = format!("node {position}");
+        if node.id != position {
+            flag(BodyDefect::MalformedNode, format!("{at}: id {}", node.id));
+        }
+        let children = node
+            .operands
+            .iter()
+            .chain(node.arms.iter().map(|a| &a.value));
+        for child in children {
+            if *child >= position {
+                flag(
+                    BodyDefect::DanglingChild,
+                    format!("{at}: child {child} is not before it"),
+                );
+            }
+        }
+        let typed = node.result_type == "bool" || type_of(&node.result_type).is_some();
+        if !typed {
+            flag(
+                BodyDefect::UntypedNode,
+                format!("{at}: result type `{}`", node.result_type),
+            );
+        }
+        let child_type = |i: &usize| {
+            body.nodes
+                .get(*i)
+                .filter(|_| *i < position)
+                .map(|n| n.result_type.as_str())
+        };
+        let shape = match node.kind {
+            HirNodeKind::Const | HirNodeKind::Copy => {
+                node.value.is_some()
+                    && node.intrinsic.is_none()
+                    && node.operands.is_empty()
+                    && node.arms.is_empty()
+            }
+            HirNodeKind::Intrinsic => {
+                node.value.is_none()
+                    && node.intrinsic.is_some()
+                    && node.operands.len() == 2
+                    && node.arms.is_empty()
+            }
+            HirNodeKind::Match => {
+                node.value.is_none()
+                    && node.intrinsic.is_none()
+                    && node.operands.len() == 1
+                    && !node.arms.is_empty()
+                    && node.arms.iter().all(|a| !a.patterns.is_empty())
+            }
+        };
+        if !shape {
+            flag(
+                BodyDefect::MalformedNode,
+                format!("{at}: fields do not fit {}", node.kind.as_str()),
+            );
+            continue;
+        }
+        match node.kind {
+            HirNodeKind::Const => {
+                let value = node.value.as_deref().unwrap_or_default();
+                let resolved = match value {
+                    "true" | "false" => node.result_type == "bool",
+                    reference => variant_of(reference).is_some_and(|t| t.id == node.result_type),
+                };
+                if !resolved {
+                    flag(
+                        BodyDefect::UnresolvedReference,
+                        format!("{at}: constant `{value}` of `{}`", node.result_type),
+                    );
+                }
+            }
+            HirNodeKind::Copy => {
+                let name = node.value.as_deref().unwrap_or_default();
+                let param = f.params.iter().find(|p| p.name == name);
+                let ty =
+                    param.and_then(|p| resolve_type(module, f.owner.as_deref(), &p.type_spelling));
+                match ty {
+                    Some(ty) if ty.id == node.result_type => {
+                        if !derives(ty, "Copy") {
+                            flag(
+                                BodyDefect::CapabilityUnobserved,
+                                format!("{at}: {} is not observed to derive Copy", ty.name),
+                            );
+                        }
+                    }
+                    Some(ty) => flag(
+                        BodyDefect::TypeMismatch,
+                        format!("{at}: `{name}` is a {}", ty.id),
+                    ),
+                    None => flag(
+                        BodyDefect::UnresolvedReference,
+                        format!("{at}: `{name}` is no parameter of a module type"),
+                    ),
+                }
+            }
+            HirNodeKind::Intrinsic => {
+                let (left, right) = (child_type(&node.operands[0]), child_type(&node.operands[1]));
+                if node.result_type != "bool" || left.is_none() || left != right {
+                    flag(
+                        BodyDefect::TypeMismatch,
+                        format!("{at}: {left:?} compared with {right:?}"),
+                    );
+                } else if let Some(ty) = left.and_then(type_of)
+                    && !derives(ty, "PartialEq")
+                {
+                    flag(
+                        BodyDefect::CapabilityUnobserved,
+                        format!("{at}: {} is not observed to derive PartialEq", ty.name),
+                    );
+                }
+            }
+            HirNodeKind::Match => {
+                let Some(scrutinee) = child_type(&node.operands[0]).and_then(type_of) else {
+                    flag(
+                        BodyDefect::TypeMismatch,
+                        format!("{at}: the scrutinee is not a module type"),
+                    );
+                    continue;
+                };
+                let mut covered = BTreeSet::new();
+                let mut wildcard = false;
+                for arm in &node.arms {
+                    if child_type(&arm.value) != Some(node.result_type.as_str()) {
+                        flag(
+                            BodyDefect::TypeMismatch,
+                            format!("{at}: an arm is not a `{}`", node.result_type),
+                        );
+                    }
+                    for pattern in &arm.patterns {
+                        match pattern {
+                            HirPattern::Wildcard => wildcard = true,
+                            HirPattern::Variant(reference) => {
+                                if variant_of(reference).is_some_and(|t| t.id == scrutinee.id) {
+                                    covered.insert(reference.as_str());
+                                } else {
+                                    flag(
+                                        BodyDefect::UnresolvedReference,
+                                        format!("{at}: pattern `{reference}`"),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                let missing = scrutinee
+                    .variants
+                    .iter()
+                    .any(|v| !covered.contains(format!("{}::{}", scrutinee.id, v.name).as_str()));
+                if missing && !wildcard {
+                    flag(
+                        BodyDefect::NonExhaustiveMatch,
+                        format!("{at}: over {}", scrutinee.name),
+                    );
+                }
+            }
+        }
+    }
+    match body.nodes.get(body.root) {
+        None => flag(
+            BodyDefect::DanglingChild,
+            format!("root {} is outside the body", body.root),
+        ),
+        Some(root) => {
+            let expected = f.result.as_deref().and_then(|r| {
+                if r == "bool" {
+                    Some("bool".to_owned())
+                } else {
+                    resolve_type(module, f.owner.as_deref(), r).map(|t| t.id.clone())
+                }
+            });
+            if expected.as_deref() != Some(root.result_type.as_str()) {
+                flag(
+                    BodyDefect::TypeMismatch,
+                    format!(
+                        "the root is a `{}` where the function returns {:?}",
+                        root.result_type, f.result
+                    ),
+                );
+            }
+        }
+    }
     out
 }
 

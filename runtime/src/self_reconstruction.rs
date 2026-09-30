@@ -12,12 +12,14 @@ use atlas_core::composition::WorldModel;
 use atlas_core::construction::{
     BOOTSTRAP_CONSTRUCTION_TARGET, CONSTRUCTION_IR_SCHEMA, CheckResult, ConstructionGap,
     ConstructionInput, ConstructionInputKind, ConstructionModule, Dispatch, EquivalenceCheck,
-    EquivalenceKind, GapKind, IrFunction, IrParam, IrType, IrVariant, OracleKind, OracleUse,
-    RECONSTRUCTION_REPORT_SCHEMA, SelfHostingLevel, SelfReconstructionReport, ShadowArtifact,
-    TypeKind, decide, module_identity, report_identity, rust::RUST_BACKEND, rust::RustEmission,
+    EquivalenceKind, GapKind, HirArm, HirBody, HirIntrinsic, HirNode, HirNodeKind, HirPattern,
+    IrFunction, IrParam, IrType, IrVariant, OracleKind, OracleUse, RECONSTRUCTION_REPORT_SCHEMA,
+    SelfHostingLevel, SelfReconstructionReport, ShadowArtifact, TypeKind, decide, module_identity,
+    report_identity, rust::RUST_BACKEND, rust::RustEmission,
 };
 use atlas_core::identity::IntegrityDigest;
 use atlas_core::semantic::{DeclaredItem, FieldShape, FunctionDeclarationKind, SymbolRole};
+use atlas_core::{BodyNode, BodyNodeKind};
 use atlas_core::{SemanticObservation, SymbolIdentity};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -226,6 +228,191 @@ fn gap(kind: GapKind, subject: &str, missing: &str, debt: &str) -> ConstructionG
     }
 }
 
+/// G181 (M14): lowers a census body (`BodyNode`, syntax as written) into typed HIR nodes, resolving
+/// every path within `types` from inside the impl of `owner` whose parameters are `params`. Refuses
+/// with the reason the body cannot be lowered; there is no partial body.
+struct Lowering<'a> {
+    types: &'a [IrType],
+    owner: &'a IrType,
+    params: &'a [IrParam],
+    record: &'a str,
+    nodes: Vec<HirNode>,
+}
+
+impl Lowering<'_> {
+    fn text(node: &BodyNode) -> &str {
+        node.text.as_deref().unwrap_or_default()
+    }
+
+    fn push(&mut self, mut node: HirNode) -> usize {
+        node.id = self.nodes.len();
+        self.nodes.push(node);
+        self.nodes.len() - 1
+    }
+
+    fn node(&self, kind: HirNodeKind, result_type: &str, lineage: Vec<String>) -> HirNode {
+        let mut lineage = lineage;
+        lineage.insert(0, self.record.to_owned());
+        lineage.sort();
+        lineage.dedup();
+        HirNode {
+            id: 0,
+            kind,
+            result_type: result_type.to_owned(),
+            value: None,
+            intrinsic: None,
+            operands: Vec::new(),
+            arms: Vec::new(),
+            lineage,
+        }
+    }
+
+    /// `Self::V` or `<Type>::V` naming a unit variant of a module type: the type and the
+    /// variant's reference and lineage.
+    fn variant(&self, path: &str) -> Result<(&IrType, String, Vec<String>), String> {
+        let unresolved = || format!("path `{path}` does not name a variant of the module");
+        let (ty, name) = path.split_once("::").ok_or_else(unresolved)?;
+        let ty = if ty == "Self" {
+            self.owner
+        } else {
+            self.types
+                .iter()
+                .find(|t| t.name == ty)
+                .ok_or_else(unresolved)?
+        };
+        let variant = ty
+            .variants
+            .iter()
+            .find(|v| v.name == name)
+            .ok_or_else(unresolved)?;
+        Ok((ty, format!("{}::{name}", ty.id), variant.lineage.clone()))
+    }
+
+    fn expression(&mut self, census: &BodyNode) -> Result<usize, String> {
+        match census.kind {
+            BodyNodeKind::Literal => {
+                let text = Self::text(census);
+                if text != "true" && text != "false" {
+                    return Err(format!("literal `{text}`"));
+                }
+                let mut node = self.node(HirNodeKind::Const, "bool", Vec::new());
+                node.value = Some(text.to_owned());
+                Ok(self.push(node))
+            }
+            BodyNodeKind::Path => {
+                let text = Self::text(census);
+                if let Some(param) = self.params.iter().find(|p| p.name == text) {
+                    if param.type_spelling != "Self" {
+                        return Err(format!("parameter `{text}` is not `Self` by value"));
+                    }
+                    let mut node = self.node(HirNodeKind::Copy, &self.owner.id, Vec::new());
+                    node.value = Some(text.to_owned());
+                    return Ok(self.push(node));
+                }
+                let (ty, reference, lineage) = self.variant(text)?;
+                let mut node = self.node(HirNodeKind::Const, &ty.id.clone(), lineage);
+                node.value = Some(reference);
+                Ok(self.push(node))
+            }
+            BodyNodeKind::Binary => {
+                let intrinsic = match Self::text(census) {
+                    "==" => HirIntrinsic::Eq,
+                    "!=" => HirIntrinsic::Ne,
+                    other => return Err(format!("operator `{other}`")),
+                };
+                let [left, right] = census.children.as_slice() else {
+                    return Err("a comparison without two operands".into());
+                };
+                let operands = vec![self.expression(left)?, self.expression(right)?];
+                let mut node = self.node(HirNodeKind::Intrinsic, "bool", Vec::new());
+                node.intrinsic = Some(intrinsic);
+                node.operands = operands;
+                Ok(self.push(node))
+            }
+            BodyNodeKind::Match => {
+                let [scrutinee, arms @ ..] = census.children.as_slice() else {
+                    return Err("a match without its scrutinee".into());
+                };
+                let scrutinee = self.expression(scrutinee)?;
+                let mut lowered = Vec::new();
+                let mut lineage = Vec::new();
+                let mut result_type = None;
+                for arm in arms {
+                    let (BodyNodeKind::Arm, [patterns @ .., value]) =
+                        (arm.kind, arm.children.as_slice())
+                    else {
+                        return Err("a match arm without patterns and a value".into());
+                    };
+                    let mut alternatives = Vec::new();
+                    for pattern in patterns {
+                        match pattern.kind {
+                            BodyNodeKind::Wildcard => alternatives.push(HirPattern::Wildcard),
+                            BodyNodeKind::Path => {
+                                let (_, reference, from) = self.variant(Self::text(pattern))?;
+                                lineage.extend(from);
+                                alternatives.push(HirPattern::Variant(reference));
+                            }
+                            other => return Err(format!("pattern {}", other.as_str())),
+                        }
+                    }
+                    let value = self.expression(value)?;
+                    result_type.get_or_insert_with(|| self.nodes[value].result_type.clone());
+                    lowered.push(HirArm {
+                        patterns: alternatives,
+                        value,
+                    });
+                }
+                let result_type = result_type.ok_or("a match without arms")?;
+                let mut node = self.node(HirNodeKind::Match, &result_type, lineage);
+                node.operands = vec![scrutinee];
+                node.arms = lowered;
+                Ok(self.push(node))
+            }
+            BodyNodeKind::Arm | BodyNodeKind::Wildcard => {
+                Err(format!("{} in expression position", census.kind.as_str()))
+            }
+        }
+    }
+}
+
+/// The HIR body of a method of `owner` from its signature record, or why it has none.
+fn lower_body(
+    signature: &atlas_core::FunctionSignature,
+    record: &str,
+    types: &[IrType],
+    owner: &IrType,
+    params: &[IrParam],
+) -> Result<HirBody, String> {
+    let Some(body) = &signature.body else {
+        return Err(
+            "lowerable body semantics: the census records no body inside the lowerable subset"
+                .into(),
+        );
+    };
+    if !signature.generics.is_empty()
+        || signature.is_async
+        || signature.is_unsafe
+        || signature.is_extern
+    {
+        return Err("a generic, async, unsafe or extern signature".into());
+    }
+    if !(params.is_empty() || params.len() == 1 && params[0].name == "self") {
+        return Err("parameters other than `self` by value".into());
+    }
+    let mut lowering = Lowering {
+        types,
+        owner,
+        params,
+        record,
+        nodes: Vec::new(),
+    };
+    let root = lowering.expression(body)?;
+    Ok(HirBody {
+        root,
+        nodes: lowering.nodes,
+    })
+}
+
 /// The construction module of `type_name` in `path` lifted from census `records` alone, over
 /// `design_id` (and `comparison_id`, if any). Whatever the census does not carry stays unobserved
 /// and becomes a gap.
@@ -354,12 +541,33 @@ pub fn lift(
                 reference: record.to_owned(),
             });
         }
-        gaps.push(gap(
-            GapKind::BodyUnobserved,
-            &id,
-            "lowerable body semantics (the census holds relational identities and a fingerprint)",
-            "DEBT-CONSTRUCTION_IR",
-        ));
+        let params: Vec<IrParam> = signature
+            .parameters
+            .iter()
+            .map(|p| IrParam {
+                name: p.name.clone(),
+                type_spelling: p.type_identity.name.clone(),
+            })
+            .collect();
+        let body = lower_body(
+            signature,
+            header.record_id.as_str(),
+            &types,
+            &types[0],
+            &params,
+        );
+        let body = match body {
+            Ok(body) => Some(body),
+            Err(why) => {
+                gaps.push(gap(
+                    GapKind::BodyUnobserved,
+                    &id,
+                    &why,
+                    "DEBT-CONSTRUCTION_IR",
+                ));
+                None
+            }
+        };
         functions.push(IrFunction {
             id,
             name: f.symbol.name.clone(),
@@ -367,16 +575,10 @@ pub fn lift(
             dispatch,
             visibility: signature.visibility.clone(),
             documentation: f.symbol.documentation.as_ref().map(|d| d.summary.clone()),
-            params: signature
-                .parameters
-                .iter()
-                .map(|p| IrParam {
-                    name: p.name.clone(),
-                    type_spelling: p.type_identity.name.clone(),
-                })
-                .collect(),
+            params,
             result: signature.return_type.as_ref().map(|t| t.name.clone()),
             body_fingerprint: signature.body_fingerprint.clone(),
+            body,
             lineage: vec![identity.clone(), header.record_id.as_str().to_owned()],
         });
     }
@@ -392,7 +594,6 @@ pub fn lift(
     }
     inputs.sort();
     inputs.dedup();
-    gaps.sort();
     let mut module = ConstructionModule {
         schema: CONSTRUCTION_IR_SCHEMA.into(),
         module_id: String::new(),
@@ -404,6 +605,26 @@ pub fn lift(
         functions,
         gaps,
     };
+    // A lowered body the IR refuses (untyped, unresolved, non-exhaustive, a capability not
+    // derived) is dropped whole and becomes the function's gap: no partial or invalid body.
+    let own: BTreeSet<String> = module.inputs.iter().map(|i| i.reference.clone()).collect();
+    let refused = atlas_core::construction::validate_module(&module, &own);
+    for f in &mut module.functions {
+        let prefix = format!("{}: ", f.id);
+        if let Some(v) = refused
+            .iter()
+            .find(|v| v.code.starts_with("BODY_") && v.detail.starts_with(&prefix))
+            && f.body.take().is_some()
+        {
+            module.gaps.push(gap(
+                GapKind::BodyUnobserved,
+                &f.id,
+                &format!("a body the IR refuses: {} {}", v.code, v.detail),
+                "DEBT-CONSTRUCTION_IR",
+            ));
+        }
+    }
+    module.gaps.sort();
     module.module_id = module_identity(&module);
     Ok(module)
 }
@@ -489,6 +710,17 @@ fn differential(module: &ConstructionModule, emission: &RustEmission, crate_name
         }
         if has("Default") && has("Debug") {
             out.push_str("\n    #[test]\n    fn default() {\n        assert_eq!(format!(\"{:?}\", Shadow::default()), format!(\"{:?}\", Oracle::default()));\n    }\n");
+        }
+        // G181: every emitted method against the original's, over every value of its domain.
+        for f in module.functions.iter().filter(|f| {
+            emission.emitted.contains(&f.id) && f.owner.as_deref() == Some(ty.name.as_str())
+        }) {
+            let name = &f.name;
+            if f.params.is_empty() {
+                out.push_str(&format!("\n    #[test]\n    fn method_{name}() {{\n        assert_eq!(format!(\"{{:?}}\", Shadow::{name}()), format!(\"{{:?}}\", Oracle::{name}()));\n    }}\n"));
+            } else {
+                out.push_str(&format!("\n    #[test]\n    fn method_{name}() {{\n        for (s, o) in pairs() {{\n            assert_eq!(format!(\"{{:?}}\", s.{name}()), format!(\"{{:?}}\", o.{name}()));\n        }}\n    }}\n"));
+            }
         }
         out.push_str("}\n");
     }
@@ -615,7 +847,11 @@ pub fn semantic_checks(
         language: "rust".into(),
         build_profile: None,
         scope_policy: None,
-        requested_dimensions: vec![atlas_core::SemanticDimension::Symbol],
+        requested_dimensions: vec![
+            atlas_core::SemanticDimension::Symbol,
+            atlas_core::SemanticDimension::FunctionIdentity,
+            atlas_core::SemanticDimension::FunctionSignature,
+        ],
     };
     let batch = adapter::semantic::rust::RustSemanticExtractor.extract(&input);
     let mut symbols: Vec<(&SymbolIdentity, (usize, usize))> = batch
@@ -730,9 +966,141 @@ pub fn semantic_checks(
                 expected.len()
             ),
         );
+        // G181: each emitted method, as Atlas's census of the shadow sees it: its signature, and
+        // its body lowered again through the same lifter against the same module.
+        for f in module.functions.iter().filter(|f| {
+            emission.emitted.contains(&f.id) && f.owner.as_deref() == Some(ty.name.as_str())
+        }) {
+            let found = batch.observations.iter().find_map(|o| match o {
+                SemanticObservation::FunctionSignature(h) => {
+                    let g = &h.subject.function;
+                    (g.symbol.name == f.name
+                        && g.owner.trait_path.is_none()
+                        && g.owner.target.as_ref().is_some_and(|t| t.name == ty.name))
+                    .then_some(h)
+                }
+                _ => None,
+            });
+            let signature = found.map(|h| {
+                (
+                    h.subject.visibility.clone(),
+                    h.subject
+                        .parameters
+                        .iter()
+                        .map(|p| (p.name.clone(), p.type_identity.name.clone()))
+                        .collect::<Vec<_>>(),
+                    h.subject.return_type.as_ref().map(|t| t.name.clone()),
+                )
+            });
+            let expected = (
+                f.visibility.clone(),
+                f.params
+                    .iter()
+                    .map(|p| (p.name.clone(), p.type_spelling.clone()))
+                    .collect::<Vec<_>>(),
+                f.result.clone(),
+            );
+            check(
+                &f.id,
+                "signature",
+                signature.as_ref() == Some(&expected),
+                format!("visibility, parameters and result: {signature:?}"),
+            );
+            let params: Vec<IrParam> = expected
+                .1
+                .iter()
+                .map(|(name, type_spelling)| IrParam {
+                    name: name.clone(),
+                    type_spelling: type_spelling.clone(),
+                })
+                .collect();
+            let relowered = found
+                .map(|h| lower_body(&h.subject, h.record_id.as_str(), &module.types, ty, &params));
+            let shape = |b: &HirBody| {
+                let mut b = b.clone();
+                for n in &mut b.nodes {
+                    n.lineage.clear();
+                }
+                b
+            };
+            let same = match (&relowered, &f.body) {
+                (Some(Ok(shadow)), Some(original)) => shape(shadow) == shape(original),
+                _ => false,
+            };
+            let tokens = found.and_then(|h| h.subject.body_fingerprint.clone());
+            check(
+                &f.id,
+                "body",
+                same,
+                format!(
+                    "the shadow's body lowered again: {}; token-identical to the original's: {}",
+                    match &relowered {
+                        Some(Ok(_)) => "lowered".to_owned(),
+                        Some(Err(why)) => why.clone(),
+                        None => "no signature".to_owned(),
+                    },
+                    tokens.is_some() && tokens == f.body_fingerprint
+                ),
+            );
+        }
     }
     checks.sort();
     checks
+}
+
+/// What the shadow does not reconstruct of what the census recorded, declared rather than hidden:
+/// documentation is carried as rustdoc's one-line summary, so a doc comment the census records over
+/// several lines is re-wrapped.
+pub fn declared_variations(
+    records: &[SemanticObservation],
+    module: &ConstructionModule,
+    emission: &RustEmission,
+) -> Vec<String> {
+    let lines: BTreeMap<&str, usize> = records
+        .iter()
+        .filter_map(|r| match r {
+            SemanticObservation::Symbol(h) => h
+                .subject
+                .documentation
+                .as_ref()
+                .map(|d| (h.record_id.as_str(), d.lines)),
+            SemanticObservation::FunctionIdentity(h) => h
+                .subject
+                .symbol
+                .documentation
+                .as_ref()
+                .map(|d| (h.record_id.as_str(), d.lines)),
+            _ => None,
+        })
+        .collect();
+    let mut elements: Vec<(String, &Vec<String>)> = Vec::new();
+    for t in module
+        .types
+        .iter()
+        .filter(|t| emission.emitted.contains(&t.id))
+    {
+        elements.push((t.id.clone(), &t.lineage));
+        for v in &t.variants {
+            elements.push((format!("{}::{}", t.id, v.name), &v.lineage));
+        }
+    }
+    for f in module
+        .functions
+        .iter()
+        .filter(|f| emission.emitted.contains(&f.id))
+    {
+        elements.push((f.id.clone(), &f.lineage));
+    }
+    let mut out = Vec::new();
+    for (element, lineage) in elements {
+        let spans = lineage.first().and_then(|r| lines.get(r.as_str())).copied();
+        if let Some(n) = spans.filter(|n| *n > 1) {
+            out.push(format!(
+                "documentation of {element}: rustdoc's summary on one line where the original's doc comment spans {n} lines (the census records the summary and a line count, not the wrapping)"
+            ));
+        }
+    }
+    out
 }
 
 /// Everything one attempt needs besides the container.
@@ -805,7 +1173,11 @@ pub fn attempt(
         shadow,
         checks,
         gaps: module.gaps.clone(),
-        declared_variations: Vec::new(),
+        declared_variations: if emission.emitted.is_empty() {
+            Vec::new()
+        } else {
+            declared_variations(&a.container.typed_records, &module, &emission)
+        },
         verdict: atlas_core::construction::ReconstructionVerdict::Unsupported,
     };
     report.verdict = decide(&report);
@@ -894,7 +1266,7 @@ pub enum Shape {
     const PATH: &str = "core/src/mode.rs";
 
     #[test]
-    fn a_declared_enum_lifts_whole_and_only_its_body_is_a_gap() {
+    fn a_declared_enum_lifts_whole_with_its_lowerable_body() {
         let records = census(PATH, SOURCE);
         let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
         assert_eq!(
@@ -917,12 +1289,47 @@ pub enum Shape {
         assert_eq!(names, ["Remote", "Local"]);
         assert_eq!(ty.variants[1].attributes.as_deref().unwrap(), ["default"]);
         assert_eq!(ty.variants[0].documentation.as_deref(), Some("Far away."));
-        let kinds: Vec<GapKind> = module.gaps.iter().map(|g| g.kind).collect();
-        assert_eq!(kinds, [GapKind::BodyUnobserved]);
+        // G181: `self != Self::Remote` is lifted from the signature record, so nothing is a gap.
+        assert_eq!(module.gaps, vec![]);
         let f = &module.functions[0];
         assert_eq!(
             (f.name.as_str(), f.result.as_deref()),
             ("is_local", Some("bool"))
+        );
+        let body = f.body.as_ref().expect("the body is lifted");
+        let shape: Vec<(HirNodeKind, &str, Option<&str>)> = body
+            .nodes
+            .iter()
+            .map(|n| (n.kind, n.result_type.as_str(), n.value.as_deref()))
+            .collect();
+        assert_eq!(
+            shape,
+            [
+                (HirNodeKind::Copy, ty.id.as_str(), Some("self")),
+                (
+                    HirNodeKind::Const,
+                    ty.id.as_str(),
+                    Some("type:core/src/mode.rs::Mode::Remote")
+                ),
+                (HirNodeKind::Intrinsic, "bool", None),
+            ]
+        );
+        assert_eq!(
+            (body.root, body.nodes[2].intrinsic),
+            (2, Some(HirIntrinsic::Ne))
+        );
+        // Every node's lineage is census records the module declares as inputs.
+        let signature = f.lineage[1].clone();
+        assert!(body.nodes.iter().all(|n| n.lineage.contains(&signature)));
+        assert!(body.nodes[1].lineage.contains(&ty.variants[0].lineage[0]));
+        let emission = atlas_core::construction::rust::emit(&module);
+        assert_eq!(emission.emitted, [ty.id.clone(), f.id.clone()]);
+        assert!(
+            emission
+                .source
+                .contains("impl Mode {\n    pub fn is_local(self) -> bool {\n        self != Self::Remote\n    }\n}\n"),
+            "{}",
+            emission.source
         );
         // The roots a design selects are the same records.
         let roots = target_roots(&records, PATH, "Mode");
@@ -983,7 +1390,8 @@ pub enum Shape {
         let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
         let emission = atlas_core::construction::rust::emit(&module);
         let checks = semantic_checks(&module, &emission, &emission.source);
-        assert_eq!(checks.len(), 4, "{checks:?}");
+        // G181: the type's four, and the method's signature and body.
+        assert_eq!(checks.len(), 6, "{checks:?}");
         assert!(
             checks.iter().all(|c| c.result == CheckResult::Equivalent),
             "{checks:?}"
@@ -1007,6 +1415,136 @@ pub enum Shape {
                 .iter()
                 .any(|c| c.property == "declaration" && c.result == CheckResult::Mismatch)
         );
+        // G181: a shadow method with another body, or one the census cannot lower, is caught.
+        for wrong in [
+            emission
+                .source
+                .replace("self != Self::Remote", "self == Self::Remote"),
+            emission
+                .source
+                .replace("self != Self::Remote", "self != Self::Local"),
+            emission
+                .source
+                .replace("self != Self::Remote", "!(self == Self::Remote)"),
+        ] {
+            let found = semantic_checks(&module, &emission, &wrong);
+            assert!(
+                found
+                    .iter()
+                    .any(|c| c.property == "body" && c.result == CheckResult::Mismatch),
+                "{found:?}"
+            );
+        }
+        let resigned = emission.source.replace("pub fn is_local", "fn is_local");
+        let found = semantic_checks(&module, &emission, &resigned);
+        assert!(
+            found
+                .iter()
+                .any(|c| c.property == "signature" && c.result == CheckResult::Mismatch)
+        );
+    }
+
+    /// G181: a body the census records but the IR refuses (here a comparison over a type not
+    /// observed to derive `PartialEq`) is dropped whole and stays a gap, never emitted.
+    #[test]
+    fn a_lowered_body_the_ir_refuses_is_dropped_whole_and_stays_a_gap() {
+        let source = "/// Plain.\npub enum Plain {\n    A,\n    B,\n}\n\nimpl Plain {\n    pub fn is_a(self) -> bool {\n        self == Self::A\n    }\n}\n";
+        let records = census(PATH, source);
+        let module = lift(&records, "root", PATH, "Plain", "design:1", None).unwrap();
+        assert_eq!(
+            atlas_core::construction::validate_module(&module, &ids(&records)),
+            vec![]
+        );
+        assert_eq!(module.functions[0].body, None);
+        let gap = module
+            .gaps
+            .iter()
+            .find(|g| g.kind == GapKind::BodyUnobserved)
+            .expect("the body is a gap");
+        assert!(
+            gap.missing.contains("BODY_CAPABILITY_UNOBSERVED"),
+            "{gap:?}"
+        );
+        assert!(
+            !atlas_core::construction::rust::emit(&module)
+                .emitted
+                .contains(&module.functions[0].id)
+        );
+        // A census whose `self` is not `Self` by value (another extractor's record, say) is
+        // refused by the lifter itself, before validation could see a mistyped copy.
+        let mut records = census(PATH, SOURCE);
+        for record in &mut records {
+            if let SemanticObservation::FunctionSignature(h) = record {
+                h.subject.parameters[0].type_identity.name = "&Self".into();
+            }
+        }
+        let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
+        assert_eq!(module.functions[0].body, None);
+        assert!(
+            module.gaps.iter().any(|g| g.kind == GapKind::BodyUnobserved
+                && g.missing.contains("is not `Self` by value")),
+            "{:?}",
+            module.gaps
+        );
+    }
+
+    /// G181, on the real target: `MaterializationMode::is_local` lifts with its body and nothing
+    /// else missing, while every method of `StorageState` in the same file keeps its gap (string
+    /// literals, a call, `Some(..)`, a macro: all outside the lowerable subset).
+    #[test]
+    fn the_real_target_lifts_its_body_and_a_body_outside_the_subset_keeps_its_gap() {
+        const DONOR: &str = "core/src/donor/mod.rs";
+        let records = census(DONOR, include_str!("../../core/src/donor/mod.rs"));
+        let module = lift(
+            &records,
+            "root",
+            DONOR,
+            "MaterializationMode",
+            "design:1",
+            None,
+        )
+        .unwrap();
+        assert_eq!(
+            atlas_core::construction::validate_module(&module, &ids(&records)),
+            vec![]
+        );
+        assert_eq!(module.gaps, vec![]);
+        let names: Vec<(&str, bool)> = module
+            .functions
+            .iter()
+            .map(|f| (f.name.as_str(), f.body.is_some()))
+            .collect();
+        assert_eq!(names, [("is_local", true)]);
+        let emission = atlas_core::construction::rust::emit(&module);
+        assert!(
+            emission.source.contains(
+                "    pub fn is_local(self) -> bool {\n        self != Self::RemoteMetadata\n    }\n"
+            ),
+            "{}",
+            emission.source
+        );
+        // The doc comment's wrapping is not reconstructed, and that is declared.
+        let variations = declared_variations(&records, &module, &emission);
+        assert_eq!(variations.len(), 1, "{variations:?}");
+        assert!(
+            variations[0]
+                .starts_with("documentation of type:core/src/donor/mod.rs::MaterializationMode")
+        );
+        let other = lift(&records, "root", DONOR, "StorageState", "design:1", None).unwrap();
+        assert_eq!(
+            atlas_core::construction::validate_module(&other, &ids(&records)),
+            vec![]
+        );
+        let unobserved: BTreeSet<&str> = other
+            .gaps
+            .iter()
+            .filter(|g| g.kind == GapKind::BodyUnobserved)
+            .map(|g| g.subject.rsplit("::").next().unwrap())
+            .collect();
+        for method in ["as_str", "parse", "source_present", "in_progress"] {
+            assert!(unobserved.contains(method), "{method}: {unobserved:?}");
+        }
+        assert!(other.functions.iter().all(|f| f.body.is_none()));
     }
 
     #[test]
@@ -1028,6 +1566,10 @@ pub enum Shape {
             assert!(harness.contains(&format!("fn {test}()")), "{test}");
         }
         assert!(harness.contains("use atlas_core::mode::Mode as Oracle;"));
+        // G181: the emitted method against the original's, over every variant.
+        assert!(harness.contains(
+            "fn method_is_local() {\n        for (s, o) in pairs() {\n            assert_eq!(format!(\"{:?}\", s.is_local()), format!(\"{:?}\", o.is_local()));"
+        ), "{harness}");
         assert!(
             !harness.contains("_ =>"),
             "a wildcard would hide a missing variant"

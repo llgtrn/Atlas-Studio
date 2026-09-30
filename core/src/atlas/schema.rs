@@ -142,6 +142,8 @@ pub const PERSISTENCE: u16 = 122;
 pub const DECLARATION: u16 = 123;
 /// G157 (ADR 0072): an acquisition or release of a resource.
 pub const RESOURCE: u16 = 124;
+/// G181 (ADR 0094): a node of a function's lowerable body (`BodyNode`), nesting its children.
+pub const BODY_NODE: u16 = 125;
 /// Record kinds at and above this one are only ever embedded in a `RECORD` field.
 pub const FIRST_EMBEDDED_KIND: u16 = 100;
 
@@ -401,6 +403,16 @@ pub const SECTIONS: &[SectionDef] = &[
                     req("is_unsafe", 8, WIRE_BOOL),
                     req("is_extern", 9, WIRE_BOOL),
                     opt("body_fingerprint", 10, WIRE_LOCAL_INDEX),
+                    maybe("body", 11, BODY_NODE),
+                ],
+            ),
+            typed(
+                "body-node",
+                BODY_NODE,
+                &[
+                    req("kind", 1, WIRE_LOCAL_INDEX),
+                    opt("text", 2, WIRE_LOCAL_INDEX),
+                    many("children", 3, BODY_NODE),
                 ],
             ),
             typed(

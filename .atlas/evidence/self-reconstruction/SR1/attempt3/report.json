@@ -1,0 +1,176 @@
+{
+  "schema": "atlas.self-reconstruction-report.v1",
+  "report_id": "self-reconstruction:blake3-256:10b731c96346e72d6f23342a6c3ffda4d09e5e79eb5f895ff82d91689748b8ba",
+  "level": "SH1",
+  "target": "core/src/donor/mod.rs::MaterializationMode",
+  "construction_target": "RUST",
+  "module_id": "construction-module:blake3-256:17830a838e9dbb49789ea3dfb998f12cf215154ee8425a64e5b8c8b763a6fd34",
+  "design_ref": "blake3-256:95d95bf7228fc1d1d1183deda1b7ec132934d6c2fba6871697d24951d5f85dd3",
+  "design_state": "VALIDATED",
+  "comparison_ref": "blake3-256:e52c9994b92a793f2a6496715612cd26b8cfcdacc32679cf60fc801c32ea018e",
+  "construction_inputs": [
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_IDENTITY:4d0d794e81097e75"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_SIGNATURE:8ebebb875610393f"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:067c0fd5c1be2c19"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:0a05e752c70a4ab2"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:0be6bb548469a4a3"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:1b0a87df49be0d86"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:3ed390aca1db6fda"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:c369cc8f212b5d6d"
+    },
+    {
+      "kind": "DESIGN",
+      "reference": "blake3-256:95d95bf7228fc1d1d1183deda1b7ec132934d6c2fba6871697d24951d5f85dd3"
+    },
+    {
+      "kind": "COMPARISON",
+      "reference": "blake3-256:e52c9994b92a793f2a6496715612cd26b8cfcdacc32679cf60fc801c32ea018e"
+    }
+  ],
+  "oracle_uses": [
+    {
+      "kind": "ORACLE_EXECUTION",
+      "reference": "crate:atlas_core::donor::MaterializationMode",
+      "purpose": "behavioral differential: the compiled original, every variant pair"
+    }
+  ],
+  "shadow": {
+    "path": ".atlas/.cache/shadow/materialization_mode/src/lib.rs",
+    "content_hash": "blake3-256:70e3383c0eee93b6d52bf2b2b21c231416911ab8960e41449a9de981ab62c6de",
+    "backend": "atlas.construction.rust-backend.v1",
+    "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "emitted": [
+      "type:core/src/donor/mod.rs::MaterializationMode",
+      "fn:core/src/donor/mod.rs::MaterializationMode::is_local"
+    ],
+    "omitted": []
+  },
+  "checks": [
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "clone",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "debug",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "equality",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "exhaustive",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "method_is_local",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "order",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "wire_deserialize",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "materialization_mode",
+      "property": "wire_serialize",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+      "property": "body",
+      "result": "EQUIVALENT",
+      "detail": "the shadow's body lowered again: lowered; token-identical to the original's: true"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "fn:core/src/donor/mod.rs::MaterializationMode::is_local",
+      "property": "signature",
+      "result": "EQUIVALENT",
+      "detail": "visibility, parameters and result: Some((\"pub\", [(\"self\", \"Self\")], Some(\"bool\")))"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "property": "declaration",
+      "result": "EQUIVALENT",
+      "detail": "kind, visibility, derives and attributes: Some(Declaration { item: Enum, visibility: \"pub\", derives: [\"Debug\", \"Clone\", \"Copy\", \"Serialize\", \"Deserialize\", \"PartialEq\", \"Eq\", \"PartialOrd\", \"Ord\"], attributes: [\"serde(rename_all = \\\"SCREAMING_SNAKE_CASE\\\")\"], shape: None })"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "property": "definition",
+      "result": "EQUIVALENT",
+      "detail": "the shadow defines the type at its root"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "property": "documentation",
+      "result": "EQUIVALENT",
+      "detail": "Some(\"Materialization strategies, cheapest first. The cheapest one that can produce the required evidence is chosen (`cheapest_sufficient_mode`).\") against Some(\"Materialization strategies, cheapest first. The cheapest one that can produce the required evidence is chosen (`cheapest_sufficient_mode`).\")"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/donor/mod.rs::MaterializationMode",
+      "property": "members_in_order",
+      "result": "EQUIVALENT",
+      "detail": "5 members (name, documentation, attributes, shape) against 5"
+    }
+  ],
+  "gaps": [],
+  "declared_variations": [
+    "documentation of type:core/src/donor/mod.rs::MaterializationMode: rustdoc's summary on one line where the original's doc comment spans 2 lines (the census records the summary and a line count, not the wrapping)"
+  ],
+  "verdict": "RECONSTRUCTED_WITH_DECLARED_VARIATION"
+}

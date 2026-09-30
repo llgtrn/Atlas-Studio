@@ -31,7 +31,8 @@ pub use data_flow::{DataFlowResolution, ValueIdentity, ValueRole};
 pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic, OPEN_SCOPE_DIAGNOSTIC};
 pub use effect::{EffectCategory, EffectIdentity, std_path_effects};
 pub use function::{
-    FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature,
+    BodyNode, BodyNodeKind, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+    FunctionParameter, FunctionSignature,
 };
 pub use obligation::SemanticObligationRecord;
 pub use observation::SemanticObservation;

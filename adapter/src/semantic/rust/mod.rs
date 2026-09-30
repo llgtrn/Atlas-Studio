@@ -46,6 +46,7 @@
 //! never silently disappears: parse failure yields a `ParseFailure` diagnostic plus
 //! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
+mod body;
 mod cfg;
 mod concurrency;
 mod dataflow;
@@ -1618,6 +1619,7 @@ impl<'a> ExtractionContext<'a> {
             is_unsafe: matches!(sig.safety, syn::Safety::Unsafe(_)),
             is_extern,
             body_fingerprint: body.map(body_fingerprint),
+            body: body.and_then(body::lowerable_body),
         };
         self.emit_function_signature(signature);
     }

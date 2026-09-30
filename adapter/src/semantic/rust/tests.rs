@@ -7646,3 +7646,101 @@ fn an_extern_block_declares_foreign_functions_with_their_abi_and_no_body() {
     let version = find_symbol(&batch, &[], "VERSION").expect("the foreign static is declared");
     assert_eq!(version.role, SymbolRole::Declaration);
 }
+
+// --- G181 (M14, ADR 0094): lowerable bodies on FUNCTION_SIGNATURE -------------------------------
+
+/// A body that is one tail expression over literals, paths, `==`/`!=` and matches with path or
+/// wildcard patterns is recorded as written; any other body, however close, is not recorded at
+/// all, and the record's identity never depends on it.
+#[test]
+fn g181_a_body_is_recorded_only_when_all_of_it_is_in_the_lowerable_subset() {
+    use atlas_core::{BodyNode, BodyNodeKind};
+    let source = "impl M {\n    fn ne(self) -> bool { self != Self::A }\n    fn eq(self) -> bool { self == M::B }\n    fn yes() -> bool { true }\n    fn arms(self) -> bool { match self { Self::A | Self::B => false, _ => true } }\n    fn call(self) -> bool { self.ne() }\n    fn arith(self) -> u8 { 1 + 2 }\n    fn macro_(self) -> bool { matches!(self, Self::A) }\n    fn stmt(self) -> bool { let x = true; x }\n    fn guard(self) -> bool { match self { Self::A if true => true, _ => false } }\n    fn binding(self) -> bool { match self { other => true } }\n    fn paren(self) -> bool { (self != Self::A) }\n    fn number(self) -> u8 { 1 }\n    fn generic_path(self) -> bool { self != Wrap::<u8>::A }\n    fn not(self) -> bool { !true }\n    fn and(self) -> bool { true && false }\n    fn lt(self) -> bool { self < Self::A }\n}\n";
+    let batch = extract(
+        "src/lib.rs",
+        source,
+        vec![SemanticDimension::FunctionSignature],
+    );
+    let body = |name: &str| -> Option<BodyNode> {
+        batch
+            .observations
+            .iter()
+            .find_map(|o| match o {
+                SemanticObservation::FunctionSignature(h)
+                    if h.subject.function.symbol.name == name =>
+                {
+                    Some(h.subject.body.clone())
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| panic!("{name}"))
+    };
+    let leaf = |kind, text: &str| BodyNode {
+        kind,
+        text: Some(text.into()),
+        children: vec![],
+    };
+    assert_eq!(
+        body("ne"),
+        Some(BodyNode {
+            kind: BodyNodeKind::Binary,
+            text: Some("!=".into()),
+            children: vec![
+                leaf(BodyNodeKind::Path, "self"),
+                leaf(BodyNodeKind::Path, "Self::A")
+            ],
+        })
+    );
+    assert_eq!(
+        body("eq").unwrap().children[1],
+        leaf(BodyNodeKind::Path, "M::B")
+    );
+    assert_eq!(body("yes"), Some(leaf(BodyNodeKind::Literal, "true")));
+    let arms = body("arms").unwrap();
+    assert_eq!(arms.kind, BodyNodeKind::Match);
+    let kinds: Vec<Vec<BodyNodeKind>> = arms.children[1..]
+        .iter()
+        .map(|a| a.children.iter().map(|c| c.kind).collect())
+        .collect();
+    assert_eq!(
+        kinds,
+        [
+            vec![
+                BodyNodeKind::Path,
+                BodyNodeKind::Path,
+                BodyNodeKind::Literal
+            ],
+            vec![BodyNodeKind::Wildcard, BodyNodeKind::Literal],
+        ]
+    );
+    for outside in [
+        "call",
+        "arith",
+        "macro_",
+        "stmt",
+        "guard",
+        "binding",
+        "paren",
+        "number",
+        "generic_path",
+        "not",
+        "and",
+        "lt",
+    ] {
+        assert_eq!(body(outside), None, "{outside}");
+    }
+    // Content, not identity: the record id is the same with or without the body.
+    for o in &batch.observations {
+        if let SemanticObservation::FunctionSignature(h) = o {
+            let mut bare = h.subject.clone();
+            bare.body = None;
+            assert_eq!(
+                h.record_id,
+                SemanticRecordId::new(
+                    SemanticDimension::FunctionSignature,
+                    &super::function_signature_identity_key(&bare)
+                )
+            );
+        }
+    }
+}

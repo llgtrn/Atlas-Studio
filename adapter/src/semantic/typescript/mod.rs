@@ -721,6 +721,7 @@ impl<'a> Context<'a> {
             is_unsafe: false,
             is_extern: false,
             body_fingerprint,
+            body: None,
         }
     }
 
@@ -791,6 +792,7 @@ impl<'a> Context<'a> {
             is_unsafe: false,
             is_extern: false,
             body_fingerprint: None,
+            body: None,
         };
         self.emit_function(identity, signature);
         self.module_region = Some(id.clone());
