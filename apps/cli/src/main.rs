@@ -42,6 +42,7 @@ fn write_report_to_out(out: &str, text: &str) -> Result<(), String> {
 /// container, design, verification report and integrity report files, under the declarations of
 /// the repository at `--root` -- its seal policy, pinned integrity envelope and principals. Neither
 /// the parent nor the operator may supply their own: `--policy` and `--envelope` are refused.
+/// G187: `atlasx validate`, whose `--root` is the AtlasX root, reads them from `--root-declared`.
 struct ParentArgs {
     atlas: String,
     design: Option<String>,
@@ -52,17 +53,27 @@ struct ParentArgs {
 
 impl ParentArgs {
     fn parse(rest: &[String], command: &str) -> Result<Self, String> {
+        Self::parse_declared_at(rest, command, "--root")
+    }
+
+    /// The parent arguments, the repository's declarations read from the root `declared_at`
+    /// names (the current directory by default).
+    fn parse_declared_at(
+        rest: &[String],
+        command: &str,
+        declared_at: &str,
+    ) -> Result<Self, String> {
         for overriding in ["--policy", "--envelope"] {
             if rest.iter().any(|arg| arg == overriding) {
                 return Err(format!(
-                    "{command} does not take {overriding}: the repository at --root declares it"
+                    "{command} does not take {overriding}: the repository at {declared_at} declares it"
                 ));
             }
         }
         let required = |name: &str| -> Result<String, String> {
             value(rest, name)?.ok_or(format!("{command} requires {name}"))
         };
-        let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+        let root = value(rest, declared_at)?.unwrap_or_else(|| ".".into());
         let atlas = required("--atlas")?;
         let (verification, integrity) = (required("--verification")?, required("--integrity")?);
         let declared = runtime::atlasx::read_declared(&root).map_err(|e| format!("{root}: {e}"))?;
@@ -447,7 +458,8 @@ fn run(args: &[String]) -> Result<(), String> {
         [cmd, sub, rest @ ..] if cmd == "atlasx" && sub == "materialize" => {
             // G185 (M11, ADR 0097): the FUNCTIONS object of the parent's selected functions,
             // staged under `--out` as `functions/<address>.atlasx` when the precondition admits
-            // the parent; prints the typed result and exits ATLASX_MATERIALIZATION_REFUSED with
+            // the parent -- G187 (ADR 0099): then `manifest.atlasx`, carrying the AtlasX root
+            // identity; prints the typed result and exits ATLASX_MATERIALIZATION_REFUSED with
             // the number of defects. A refused parent writes nothing. Nothing is published.
             let parent = ParentArgs::parse(rest, "atlasx materialize")?;
             let out = value(rest, "--out")?.ok_or("atlasx materialize requires --out")?;
@@ -458,6 +470,29 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err(format!(
                     "ATLASX_MATERIALIZATION_REFUSED: {} defects",
                     result.defects.len()
+                ));
+            }
+        }
+        [cmd, sub, rest @ ..] if cmd == "atlasx" && sub == "validate" => {
+            // G187 (M13, ADR 0099): whether the staged AtlasX root `--root` is valid against the
+            // parent `--atlas`, `--design`, `--verification`, `--integrity` under the
+            // declarations of the repository at `--root-declared`: manifest, root identity,
+            // parent admission and binding, entry paths, object presence and codec, lineage
+            // closure. Prints the typed verdict and exits ATLASX_ROOT_INVALID with the number of
+            // defects.
+            let root = value(rest, "--root")?.ok_or("atlasx validate requires --root")?;
+            let parent = ParentArgs::parse_declared_at(rest, "atlasx validate", "--root-declared")?;
+            let verdict =
+                runtime::atlasx::validate(&parent.files(), &root).map_err(|e| e.to_string())?;
+            let text = json(&verdict)? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if verdict.verdict != runtime::atlasx::ValidationVerdict::Valid {
+                return Err(format!(
+                    "ATLASX_ROOT_INVALID: {} defects",
+                    verdict.defects.len()
                 ));
             }
         }
@@ -1343,7 +1378,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx materialize|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx materialize|atlasx validate|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }
@@ -1717,7 +1752,9 @@ mod tests {
     /// the container carries real census records of `MaterializationMode::is_local`, the design
     /// selects that function, and `atlasx materialize` stages its FUNCTIONS object, which reads
     /// back through `atlasx codec --decode` with lineage into the container; a self-certified
-    /// seal record and the unsealed container are refused and nothing is staged.
+    /// seal record and the unsealed container are refused and nothing is staged. G187 (M13, ADR
+    /// 0099): the staged root, with its manifest, is VALID under `atlasx validate`; against the
+    /// unsealed parent, with a flipped object byte or with an unlisted file it is INVALID.
     #[test]
     fn atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed() {
         // Through the runtime's re-exports: the CLI depends on Core only through Runtime.
@@ -2121,6 +2158,93 @@ mod tests {
         // Staging is never reused: a second run into the same directory is refused.
         let err = materialize("sealed.atlas", "staging").expect_err("occupied");
         assert!(err.contains("the staging directory is not empty"), "{err}");
+
+        // G187: the staged root -- the object, then its manifest -- validates against its parent.
+        assert!(dir.join("staging/manifest.atlasx").is_file());
+        let validate = |root: &str, parent: &str, out: &str| {
+            let mut list = args(&["atlasx", "validate", "--root", &path(root)]);
+            list.extend(
+                parent_args("validate", parent)
+                    .into_iter()
+                    .skip(2)
+                    .map(|arg| {
+                        if arg == "--root" {
+                            "--root-declared".to_owned()
+                        } else {
+                            arg
+                        }
+                    }),
+            );
+            list.extend(args(&["--out", &path(out)]));
+            run(&list)
+        };
+        validate("staging", "sealed.atlas", "valid.json").expect("the staged root is VALID");
+        let valid = read_out("valid.json");
+        assert_eq!(valid["verdict"], "VALID", "{valid:#}");
+        assert_eq!(valid["defects"], serde_json::json!([]));
+        assert!(
+            valid["root_id"]
+                .as_str()
+                .unwrap()
+                .starts_with("blake3-256:")
+        );
+        assert_eq!(valid["precondition"]["verdict"], "ADMITTED");
+        // Against the unsealed parent: the precondition refuses it.
+        let err = validate("staging", "unsealed.atlas", "not-admitted.json").expect_err("refused");
+        assert_eq!(err, "ATLASX_ROOT_INVALID: 1 defects");
+        let refused = read_out("not-admitted.json");
+        assert_eq!(refused["verdict"], "INVALID");
+        assert_eq!(refused["defects"][0][0], "PARENT_NOT_ADMITTED");
+        assert_eq!(refused["root_id"], serde_json::Value::Null);
+        // A copy with a flipped object byte, then with an unlisted file.
+        let tampered = dir.join("tampered");
+        fs::create_dir_all(tampered.join("functions")).unwrap();
+        fs::copy(
+            dir.join("staging/manifest.atlasx"),
+            tampered.join("manifest.atlasx"),
+        )
+        .unwrap();
+        let mut bytes = fs::read(&object).unwrap();
+        let name = Path::new(&object).file_name().unwrap();
+        fs::write(tampered.join("functions").join(name), &bytes).unwrap();
+        validate("tampered", "sealed.atlas", "copy.json").expect("an exact copy is VALID");
+        fs::write(tampered.join("notes.md"), b"debug").unwrap();
+        let err = validate("tampered", "sealed.atlas", "unlisted.json").expect_err("unlisted");
+        assert_eq!(err, "ATLASX_ROOT_INVALID: 1 defects");
+        assert_eq!(read_out("unlisted.json")["defects"][0][0], "UNLISTED_FILE");
+        fs::remove_file(tampered.join("notes.md")).unwrap();
+        bytes[100] ^= 1;
+        fs::write(tampered.join("functions").join(name), &bytes).unwrap();
+        let err = validate("tampered", "sealed.atlas", "flipped.json").expect_err("flipped");
+        assert_eq!(err, "ATLASX_ROOT_INVALID: 1 defects");
+        let flipped = read_out("flipped.json");
+        assert_eq!(flipped["defects"][0][0], "OBJECT_REFUSED");
+        assert!(
+            flipped["defects"][0][1]
+                .as_str()
+                .unwrap()
+                .contains("DIGEST_MISMATCH")
+        );
+        // The same arguments as the other parent commands, with the declarations at
+        // --root-declared; no override, and the root is required.
+        let mut list = args(&["atlasx", "validate", "--root", &path("staging")]);
+        list.extend(args(&["--policy", &path("policy.json")]));
+        assert_eq!(
+            run(&list).expect_err("no override"),
+            "atlasx validate does not take --policy: the repository at --root-declared declares it"
+        );
+        let err = run(&args(&[
+            "atlasx",
+            "validate",
+            "--atlas",
+            &path("sealed.atlas"),
+            "--verification",
+            &path("verification.json"),
+            "--integrity",
+            &path("integrity.json"),
+        ]))
+        .expect_err("no root");
+        assert_eq!(err, "atlasx validate requires --root");
 
         // A self-certified seal: the sealed record re-stamped to name another policy still binds
         // the container, but no gate decided it. Refused, and nothing is staged.

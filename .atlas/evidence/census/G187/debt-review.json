@@ -1,0 +1,38 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G187",
+ "trigger": "review cadence: DEBT-VERIFICATION_EVIDENCE, DEBT-SEAL_GATE and DEBT-CAUSALITY (last reviewed G174) and DEBT-RESOURCE (last reviewed G155) -- each stale for at least 13 generations since its last advance and its last review -- fell due at G187",
+ "method": "git log since the G174 commit d79dde38 over core/src/seal, core/src/verification, core/src/integrity, core/src/graph, core/src/semantic/resource.rs and adapter/src/semantic/rust; the G185 commit 46caa953 read for the seal gate and verification changes; RESOURCE record counts from the G174 and G187 post.json",
+ "reviews": [
+  {
+   "debt": "DEBT-VERIFICATION_EVIDENCE",
+   "verdict": "CORRECTED",
+   "finding": "the ledger's last advance G161 was stale: G185 added verification::check_report (a report's summary, counts and verdict re-derived from its outcomes), applied by the seal gate and the AtlasX admission; command evidence still runs with ambient authority and only the library-package policy is defined, so NA-SANDBOX-FS-CONFINEMENT stays next",
+   "correction": {
+    "last_advance_generation": "corrected in the ledger from G161 to G185",
+    "current_evidence": "corrected in the ledger: the G185 advance appended"
+   }
+  },
+  {
+   "debt": "DEBT-SEAL_GATE",
+   "verdict": "CORRECTED",
+   "finding": "the ledger's last advance G161 was stale: G185 made the seal gate refuse a report that contradicts itself or the pinned integrity envelope, and the AtlasX admission re-runs the gate; nothing is sealed, the self scope is still NOT_ELIGIBLE under its own policy and no SELECTED design exists; the real seal is construction node M24, blocked on the owner (ADR 0100); NA-ATLAS-DESIGN-SECTION stays next",
+   "correction": {
+    "last_advance_generation": "corrected in the ledger from G161 to G185",
+    "current_evidence": "corrected in the ledger: the G185 advance appended"
+   }
+  },
+  {
+   "debt": "DEBT-CAUSALITY",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/graph's only commit since G174 (G181) added one edge constant for the construction IR's body nodes; EdgeKind still types every relation and no kind is causal; no counterfactual record exists; NA-COUNTERFACTUAL-RECORD stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-RESOURCE",
+   "verdict": "CONFIRMED",
+   "finding": "the resource table (core::semantic::resource) and the resolver's holder tracking have no commit since G174; RESOURCE records grew from 15 at G174 to 19 at G187 with the code they read, from the one path-resolution engine; scope-end releases stay INFERRED and no reconciliation with OWNERSHIP exists; NA-RESOURCE-RESIDUAL stays next",
+   "correction": {}
+  }
+ ]
+}

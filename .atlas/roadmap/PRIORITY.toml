@@ -897,7 +897,7 @@ objective = "FULL_OSS_REPLAY 666ghj/bettafish (done: R19 at c4ca6360; the 174 Py
 [[planned_generation]]
 id = "G187"
 priority = "P2"
-objective = "CREATION: NA-ATLASX-VALIDATE (M13, [creation_selection] winner after G185, score 70, the only reachable candidate; M11 and M12 exist) -- a ROOT_MANIFEST over the staged objects of a materialization, the AtlasX root identity computed from it, and a validator that follows the reader verification order over one root; falsified by the materialized G161 root validated and a tampered root (a flipped object byte, a missing object, a lineage outside the parent) refused -> MIN_ATLASX"
+objective = "CREATION: NA-ATLASX-VALIDATE (done: M13 EXISTS for the FUNCTIONS class -- a root manifest and root identity bind the staged objects and the admitted parent, and the validator accepts a root only when it reproduces byte for byte the admitted parent's materialization; MIN_ATLASX demonstrated only on the synthetic test fixture and stays MISSING until a real parent is sealed for an owner-selected design; the construction graph extended from the contracts; 58 of 59 mutants killed; ADR 0099, ADR 0100)"
 
 [[planned_generation]]
 id = "G188"
@@ -905,6 +905,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY 666ghj/mirofish (QUEUED, FULL-OSS-REPLAY.toml next_replay after R19): the canonical order's next NEVER_REPLAYED repository, facing the strongest Atlas (E26) at a fresh pin, its license verified at it (AGPL-3.0 recorded: census and oracle only, nothing copied); fix natively only what falsifies the tree (ADR 0092)"
 
 [[planned_generation]]
-id = "G189+"
+id = "G189"
+priority = "P6"
+objective = "CREATION: NA-SANDBOX-FS-CONFINEMENT (M22, [creation_selection] winner after G187, score 137, ahead of NA-ATLAS-DESIGN-SECTION 106, NA-TARGET-PROFILE 92 and NA-ATLASX-BODIES 70; ADR 0100) -- filesystem confinement for the sandbox (reads outside declared inputs refused) without unsafe code in Atlas, and a toolchain identity (binary digests and -vV) recorded on each run; falsified by a sandboxed build that reads an absolute path outside its declared inputs and a run whose toolchain identity is absent or mismatched"
+
+[[planned_generation]]
+id = "G190+"
 priority = "P0"
 objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

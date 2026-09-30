@@ -1,7 +1,9 @@
 //! The AtlasX object codec (G183, construction node M12, ADR 0095; `contracts/
 //! ATLASX-BINARY-WIRE-FORMAT.md`).
 //!
-//! One object class exists: FUNCTIONS (4), with one top-level record kind, FUNCTION_SIGNATURE. A
+//! This module reads and writes one semantic object class, FUNCTIONS (4), with one top-level
+//! record kind, FUNCTION_SIGNATURE; since G187 its framing, header and per-object reader steps
+//! also carry ROOT_MANIFEST (1), whose schema is in `manifest` (ADR 0099). A
 //! record is one construction-IR function signature (`construction::IrFunction`): its identity,
 //! name, owner, dispatch, visibility, documentation, parameters, result, body fingerprint and
 //! census lineage. The function's HIR body is not a field of this record kind and is not encoded.
@@ -36,7 +38,8 @@
 //!
 //! This is the codec only (M12). What a decoded object does not prove is listed in every report
 //! (`CODEC_NOT_VERIFIED`): the manifest and root identity, cross-object references, lineage to the
-//! parent Atlas, and every other class. The materializer (M11) and the validator (M13) do not exist.
+//! parent Atlas, and every other class. Those are judged, for a staged root, by the validator
+//! (`validate`, M13, G187) over what the materializer (`materialize`, M11, G185) stages.
 
 use crate::atlas::{read_uvarint, u16_at, u32_at, u64_at, uvarint};
 use crate::construction::{
@@ -194,11 +197,16 @@ pub const FUNCTIONS_SCHEMA: &[RecordDef] = &[
 ];
 
 fn record_def(kind: u16) -> Option<&'static RecordDef> {
-    FUNCTIONS_SCHEMA.iter().find(|d| d.kind == kind)
+    def_in(FUNCTIONS_SCHEMA, kind)
+}
+
+/// The declaration of record `kind` in the schema table `schema`.
+pub(super) fn def_in(schema: &'static [RecordDef], kind: u16) -> Option<&'static RecordDef> {
+    schema.iter().find(|d| d.kind == kind)
 }
 
 impl RecordDef {
-    fn field(&self, name: &str) -> &'static FieldDef {
+    pub(super) fn field(&self, name: &str) -> &'static FieldDef {
         self.fields
             .iter()
             .find(|f| f.name == name)
@@ -210,9 +218,24 @@ impl RecordDef {
 /// a field's tag, name, wire type, required flag or nested kind, and a test pins it to
 /// `FUNCTIONS_SCHEMA_VERSION`: a changed table needs a new schema version.
 pub fn schema_digest() -> IntegrityDigest {
-    let mut text =
-        format!("atlasx class {CLASS_FUNCTIONS} FUNCTIONS schema {FUNCTIONS_SCHEMA_VERSION}\n");
-    for def in FUNCTIONS_SCHEMA {
+    schema_digest_of(
+        CLASS_FUNCTIONS,
+        "FUNCTIONS",
+        FUNCTIONS_SCHEMA_VERSION,
+        FUNCTIONS_SCHEMA,
+    )
+}
+
+/// The digest of the definition of the schema table `schema`, version `version`, of class
+/// `class` (`name`): the text every table's version is pinned by.
+pub(super) fn schema_digest_of(
+    class: u16,
+    name: &str,
+    version: u16,
+    schema: &[RecordDef],
+) -> IntegrityDigest {
+    let mut text = format!("atlasx class {class} {name} schema {version}\n");
+    for def in schema {
         text.push_str(&format!(
             "record {} {} top_level={}\n",
             def.kind, def.name, def.top_level
@@ -319,11 +342,11 @@ crate::vocabulary_enum! {
 
 pub type Defects = Vec<(CodecDefect, String)>;
 
-fn defect<T>(kind: CodecDefect, detail: impl Into<String>) -> Result<T, Defects> {
+pub(super) fn defect<T>(kind: CodecDefect, detail: impl Into<String>) -> Result<T, Defects> {
     Err(vec![(kind, detail.into())])
 }
 
-fn settle(mut defects: Defects) -> Defects {
+pub(super) fn settle(mut defects: Defects) -> Defects {
     defects.sort();
     defects.dedup();
     defects
@@ -391,6 +414,11 @@ pub struct ObjectHeader {
 impl ObjectHeader {
     /// The header a canonical FUNCTIONS object with `payload` carries.
     pub fn functions(payload: &[u8]) -> Self {
+        Self::of(CLASS_FUNCTIONS, FUNCTIONS_SCHEMA_VERSION, payload)
+    }
+
+    /// The header a canonical object of `class`, schema `schema`, with `payload` carries.
+    pub fn of(class: u16, schema: u16, payload: &[u8]) -> Self {
         let length = payload.len() as u64;
         Self {
             magic: MAGIC,
@@ -398,8 +426,8 @@ impl ObjectHeader {
             format_major: FORMAT_MAJOR,
             format_minor: FORMAT_MINOR,
             flags: HEADER_FLAGS,
-            object_class: CLASS_FUNCTIONS,
-            object_schema_version: FUNCTIONS_SCHEMA_VERSION,
+            object_class: class,
+            object_schema_version: schema,
             digest_algorithm: DIGEST_BLAKE3_256,
             codec: CODEC_NONE,
             encoded_length: length,
@@ -464,8 +492,9 @@ impl ObjectHeader {
         IntegrityDigest::blake3_256(&self.decoded_content_hash)
     }
 
-    /// Every header field that is not what a v1 FUNCTIONS object carries.
-    fn defects(&self) -> Defects {
+    /// Every header field that is not what a v1 object of `class` (`name`), schema `schema`,
+    /// carries.
+    fn defects(&self, class: u16, name: &str, schema: u16) -> Defects {
         use CodecDefect as D;
         let mut out = Defects::new();
         if self.magic != MAGIC {
@@ -483,12 +512,12 @@ impl ObjectHeader {
         if self.flags != HEADER_FLAGS {
             out.push((D::UnknownHeaderFlags, format!("flags {:#06x}", self.flags)));
         }
-        if self.object_class != CLASS_FUNCTIONS {
+        if self.object_class != class {
             let known = (1..=CORE_CLASSES).contains(&self.object_class);
             out.push((
                 D::ClassMismatch,
                 format!(
-                    "class {} ({}), expected FUNCTIONS ({CLASS_FUNCTIONS})",
+                    "class {} ({}), expected {name} ({class})",
                     self.object_class,
                     if known {
                         "a core class this codec does not read"
@@ -497,10 +526,10 @@ impl ObjectHeader {
                     }
                 ),
             ));
-        } else if self.object_schema_version != FUNCTIONS_SCHEMA_VERSION {
+        } else if self.object_schema_version != schema {
             out.push((
                 D::UnsupportedSchemaVersion,
-                format!("FUNCTIONS schema {}", self.object_schema_version),
+                format!("{name} schema {}", self.object_schema_version),
             ));
         }
         if self.digest_algorithm != DIGEST_BLAKE3_256 {
@@ -540,20 +569,25 @@ pub fn object_address(hash: &[u8; 32]) -> String {
 // ---- writing ------------------------------------------------------------------------------------
 
 /// One record's fields, written by name through the table and emitted in ascending tag order.
-struct RecordWriter {
+pub(super) struct RecordWriter {
     def: &'static RecordDef,
     fields: Vec<(u16, Vec<u8>)>,
 }
 
 impl RecordWriter {
     fn new(kind: u16) -> Self {
+        Self::of(FUNCTIONS_SCHEMA, kind)
+    }
+
+    /// A record of `kind` declared in the schema table `schema`.
+    pub(super) fn of(schema: &'static [RecordDef], kind: u16) -> Self {
         Self {
-            def: record_def(kind).expect("a record kind of the table"),
+            def: def_in(schema, kind).expect("a record kind of the table"),
             fields: Vec::new(),
         }
     }
 
-    fn put(&mut self, name: &str, bytes: &[u8]) -> Result<(), Defects> {
+    pub(super) fn put(&mut self, name: &str, bytes: &[u8]) -> Result<(), Defects> {
         let def = self.def.field(name);
         let Ok(len) = u32::try_from(bytes.len()) else {
             return defect(
@@ -571,7 +605,7 @@ impl RecordWriter {
         Ok(())
     }
 
-    fn text(&mut self, name: &str, value: &str) -> Result<(), Defects> {
+    pub(super) fn text(&mut self, name: &str, value: &str) -> Result<(), Defects> {
         self.put(name, value.as_bytes())
     }
 
@@ -579,8 +613,19 @@ impl RecordWriter {
         value.map_or(Ok(()), |v| self.text(name, v))
     }
 
+    /// A UVARINT field, minimally encoded.
+    pub(super) fn uvarint(&mut self, name: &str, value: u64) -> Result<(), Defects> {
+        let mut varint = Vec::new();
+        uvarint(value, &mut varint);
+        self.put(name, &varint)
+    }
+
     /// A RECORD field of the embedded `records`; absent when there are none.
-    fn embedded(&mut self, name: &str, records: Vec<RecordWriter>) -> Result<(), Defects> {
+    pub(super) fn embedded(
+        &mut self,
+        name: &str,
+        records: Vec<RecordWriter>,
+    ) -> Result<(), Defects> {
         if records.is_empty() {
             return Ok(());
         }
@@ -591,7 +636,8 @@ impl RecordWriter {
         self.put(name, &bytes)
     }
 
-    fn payload(mut self) -> Vec<u8> {
+    /// The fields, framed in ascending tag order: the record's payload.
+    pub(super) fn payload(mut self) -> Vec<u8> {
         self.fields.sort_by_key(|(tag, _)| *tag);
         self.fields
             .into_iter()
@@ -599,7 +645,7 @@ impl RecordWriter {
             .collect()
     }
 
-    fn frame(self, out: &mut Vec<u8>) {
+    pub(super) fn frame(self, out: &mut Vec<u8>) {
         let kind = self.def.kind;
         let payload = self.payload();
         out.extend_from_slice(&kind.to_le_bytes());
@@ -639,9 +685,7 @@ fn signature_record(record: &FunctionSignatureRecord) -> Result<RecordWriter, De
         .find(|(d, _)| *d == record.dispatch)
         .map(|(_, c)| *c)
         .expect("every Dispatch has a code");
-    let mut varint = Vec::new();
-    uvarint(code, &mut varint);
-    w.put("dispatch", &varint)?;
+    w.uvarint("dispatch", code)?;
     w.text("visibility", &record.visibility)?;
     w.optional_text("documentation", record.documentation.as_deref())?;
     let mut params = Vec::with_capacity(record.params.len());
@@ -660,20 +704,7 @@ fn signature_record(record: &FunctionSignatureRecord) -> Result<RecordWriter, De
                 format!("{id}: body_fingerprint `{fingerprint}` is not a blake3-256 digest"),
             );
         };
-        // `parse` admits exactly 64 lowercase hex digits after the prefix.
-        let hex = &digest.as_str().as_bytes()[IntegrityDigest::BLAKE3_256_PREFIX.len()..];
-        let nibble = |c: u8| {
-            if c.is_ascii_digit() {
-                c - b'0'
-            } else {
-                c - b'a' + 10
-            }
-        };
-        let bytes: Vec<u8> = hex
-            .chunks(2)
-            .map(|pair| (nibble(pair[0]) << 4) | nibble(pair[1]))
-            .collect();
-        w.put("body_fingerprint", &bytes)?;
+        w.put("body_fingerprint", &digest_bytes(&digest))?;
     }
     let mut refs = Vec::with_capacity(record.lineage.len());
     for id in &record.lineage {
@@ -683,6 +714,24 @@ fn signature_record(record: &FunctionSignatureRecord) -> Result<RecordWriter, De
     }
     w.embedded("lineage", refs)?;
     Ok(w)
+}
+
+/// The 32 bytes a BLAKE3-256 digest spells in hex: what a HASH32 field carries.
+pub(super) fn digest_bytes(digest: &IntegrityDigest) -> [u8; 32] {
+    // `parse` admits exactly 64 lowercase hex digits after the prefix.
+    let hex = &digest.as_str().as_bytes()[IntegrityDigest::BLAKE3_256_PREFIX.len()..];
+    let nibble = |c: u8| {
+        if c.is_ascii_digit() {
+            c - b'0'
+        } else {
+            c - b'a' + 10
+        }
+    };
+    let mut out = [0; 32];
+    for (byte, pair) in out.iter_mut().zip(hex.chunks(2)) {
+        *byte = (nibble(pair[0]) << 4) | nibble(pair[1]);
+    }
+    out
 }
 
 /// The canonical bytes of the FUNCTIONS object holding `records`, header included. The same set
@@ -723,10 +772,15 @@ pub fn encode_functions(records: &[FunctionSignatureRecord]) -> Result<Vec<u8>, 
             format!("payload of {} bytes", payload.len()),
         );
     }
+    Ok(object(ObjectHeader::functions(&payload), &payload))
+}
+
+/// `header` followed by `payload`: the bytes of one object.
+pub(super) fn object(header: ObjectHeader, payload: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(HEADER_LEN + payload.len());
-    out.extend_from_slice(&ObjectHeader::functions(&payload).to_bytes());
-    out.extend_from_slice(&payload);
-    Ok(out)
+    out.extend_from_slice(&header.to_bytes());
+    out.extend_from_slice(payload);
+    out
 }
 
 /// A FUNCTIONS object written from a construction module.
@@ -809,8 +863,8 @@ pub fn encode_module(module: &ConstructionModule) -> Result<EncodedObject, Defec
 // ---- reading ------------------------------------------------------------------------------------
 
 /// One record as framed, before its schema is consulted.
-struct Frame<'a> {
-    kind: u16,
+pub(super) struct Frame<'a> {
+    pub(super) kind: u16,
     version: u16,
     flags: u32,
     fields: Vec<FieldFrame<'a>>,
@@ -827,7 +881,7 @@ struct FieldFrame<'a> {
 
 /// Record and field framing of `content` at nesting `depth`: bounds, strictly ascending tags,
 /// wire types in the v1 table, embedded records framed in turn. No schema is consulted.
-fn frames(content: &[u8], depth: usize) -> Result<Vec<Frame<'_>>, Defects> {
+pub(super) fn frames(content: &[u8], depth: usize) -> Result<Vec<Frame<'_>>, Defects> {
     use CodecDefect as D;
     if depth > MAX_DEPTH {
         return defect(D::DepthLimit, format!("records nested {depth} deep"));
@@ -920,12 +974,12 @@ fn frames(content: &[u8], depth: usize) -> Result<Vec<Frame<'_>>, Defects> {
 
 /// One framed record checked against its declaration: supported version, no record flag, every
 /// field declared with its flags and wire type, every required field present.
-struct Declared<'f, 'a> {
+pub(super) struct Declared<'f, 'a> {
     def: &'static RecordDef,
     frame: &'f Frame<'a>,
 }
 
-fn declared<'f, 'a>(
+pub(super) fn declared<'f, 'a>(
     frame: &'f Frame<'a>,
     def: &'static RecordDef,
 ) -> Result<Declared<'f, 'a>, Defects> {
@@ -1016,7 +1070,7 @@ impl<'f, 'a> Declared<'f, 'a> {
         self.frame.fields.iter().find(|f| f.tag == tag)
     }
 
-    fn optional_text(&self, name: &str) -> Result<Option<String>, Defects> {
+    pub(super) fn optional_text(&self, name: &str) -> Result<Option<String>, Defects> {
         let Some(field) = self.raw(name) else {
             return Ok(None);
         };
@@ -1031,11 +1085,11 @@ impl<'f, 'a> Declared<'f, 'a> {
 
     /// A required UTF8 or GLOBAL_ID field (presence is checked by `declared`; an empty identity
     /// is refused by the writer when the reader re-encodes).
-    fn text(&self, name: &str) -> Result<String, Defects> {
+    pub(super) fn text(&self, name: &str) -> Result<String, Defects> {
         Ok(self.optional_text(name)?.unwrap_or_default())
     }
 
-    fn uvarint(&self, name: &str) -> Result<u64, Defects> {
+    pub(super) fn uvarint(&self, name: &str) -> Result<u64, Defects> {
         let bytes = self.raw(name).map_or(&[][..], |f| f.bytes);
         read_uvarint(bytes).or_else(|e| {
             defect(
@@ -1043,6 +1097,23 @@ impl<'f, 'a> Declared<'f, 'a> {
                 format!("{}: `{name}`: {e}", self.def.name),
             )
         })
+    }
+
+    /// A required HASH32 field (presence is checked by `declared`).
+    pub(super) fn hash(&self, name: &str) -> Result<[u8; 32], Defects> {
+        Ok(self.optional_hash(name)?.unwrap_or_default())
+    }
+
+    /// A BOOL field: one byte, 0 or 1.
+    pub(super) fn boolean(&self, name: &str) -> Result<bool, Defects> {
+        match self.raw(name).map_or(&[][..], |f| f.bytes) {
+            [0] => Ok(false),
+            [1] => Ok(true),
+            other => defect(
+                CodecDefect::MalformedValue,
+                format!("{}: `{name}` is {other:02x?}, not a BOOL", self.def.name),
+            ),
+        }
     }
 
     fn optional_hash(&self, name: &str) -> Result<Option<[u8; 32]>, Defects> {
@@ -1062,7 +1133,7 @@ impl<'f, 'a> Declared<'f, 'a> {
         }
     }
 
-    fn embedded(&self, name: &str) -> &'f [Frame<'a>] {
+    pub(super) fn embedded(&self, name: &str) -> &'f [Frame<'a>] {
         self.raw(name).map_or(&[], |f| f.embedded.as_slice())
     }
 }
@@ -1117,6 +1188,40 @@ fn decode_signature(frame: &Frame) -> Result<FunctionSignatureRecord, Defects> {
 /// its header; or every header defect together, otherwise the first defect found.
 pub fn read(bytes: &[u8]) -> Result<(ObjectHeader, Vec<FunctionSignatureRecord>), Defects> {
     use CodecDefect as D;
+    let (header, payload) = payload_of(
+        bytes,
+        CLASS_FUNCTIONS,
+        "FUNCTIONS",
+        FUNCTIONS_SCHEMA_VERSION,
+    )?;
+    // 4. Record and field framing.
+    let frames = frames(payload, 1)?;
+    // 5. Class/schema constraints.
+    let records = frames
+        .iter()
+        .map(decode_signature)
+        .collect::<Result<Vec<_>, _>>()?;
+    // 6. Canonical form: exactly the bytes the writer gives for what was decoded. The writer's
+    // refusals apply to what is read by this one rule: an empty object (EMPTY_OBJECT), two records
+    // with one identity (DUPLICATE_IDENTITY), an empty identity or lineage id (MALFORMED_VALUE).
+    if encode_functions(&records)? != bytes {
+        return defect(
+            D::NonCanonical,
+            "not the canonical encoding of its records (record or lineage order)",
+        );
+    }
+    Ok((header, records))
+}
+
+/// Steps 1 to 3 of the contract's order for one object of `class` (`name`), schema `schema`:
+/// the header, the bounds and the decoded hash; the header and the payload it authenticates.
+pub(super) fn payload_of<'b>(
+    bytes: &'b [u8],
+    class: u16,
+    name: &str,
+    schema: u16,
+) -> Result<(ObjectHeader, &'b [u8]), Defects> {
+    use CodecDefect as D;
     // 1. The header.
     let Some(header) = ObjectHeader::parse(bytes) else {
         return defect(
@@ -1124,7 +1229,7 @@ pub fn read(bytes: &[u8]) -> Result<(ObjectHeader, Vec<FunctionSignatureRecord>)
             format!("{} bytes, shorter than the header", bytes.len()),
         );
     };
-    let defects = header.defects();
+    let defects = header.defects(class, name, schema);
     if !defects.is_empty() {
         return Err(settle(defects));
     }
@@ -1170,23 +1275,7 @@ pub fn read(bytes: &[u8]) -> Result<(ObjectHeader, Vec<FunctionSignatureRecord>)
             format!("the payload does not hash to {}", header.address()),
         );
     }
-    // 4. Record and field framing.
-    let frames = frames(payload, 1)?;
-    // 5. Class/schema constraints.
-    let records = frames
-        .iter()
-        .map(decode_signature)
-        .collect::<Result<Vec<_>, _>>()?;
-    // 6. Canonical form: exactly the bytes the writer gives for what was decoded. The writer's
-    // refusals apply to what is read by this one rule: an empty object (EMPTY_OBJECT), two records
-    // with one identity (DUPLICATE_IDENTITY), an empty identity or lineage id (MALFORMED_VALUE).
-    if encode_functions(&records)? != bytes {
-        return defect(
-            D::NonCanonical,
-            "not the canonical encoding of its records (record or lineage order)",
-        );
-    }
-    Ok((header, records))
+    Ok((header, payload))
 }
 
 /// The typed result of reading one object.

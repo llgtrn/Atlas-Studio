@@ -1,0 +1,890 @@
+{
+ "schema": "atlas.evidence.verification.v1",
+ "generation": "G187",
+ "attack": "NA-ATLASX-VALIDATE",
+ "debts": [
+  "DEBT-ATLASX"
+ ],
+ "construction_node": "M13",
+ "decision": ".atlas/decisions/0099-atlasx-root-manifest-and-validator.md",
+ "closes": [
+  "RES-G185-LINEAGE-ROOT-IN-RESULT-ONLY (parent root, census digest, revision, seal and design are canonical ROOT_MANIFEST fields bound by the root identity and checked by the validator)",
+  "RES-G185-STAGED-NOT-PUBLISHED (superseded: publication steps 4-6 done in staging; steps 7-8 remain as RES-G187-STAGED-ROOT-NOT-PUBLISHED)",
+  "RES-G183-SINGLE-CLASS (ROOT_MANIFEST has a schema; the other nineteen classes remain as RES-G187-FUNCTIONS-ONLY-ROOT)",
+  "RES-G183-DECODED-IS-NOT-VALIDATED (its trigger, the validator, exists; a DECODED object is judged inside a root down to reproduction from the admitted parent; what remains is RES-G187-VALIDATION-BY-REPRODUCTION)"
+ ],
+ "opens": [
+  "RES-G187-STAGED-ROOT-NOT-PUBLISHED",
+  "RES-G187-VALIDATION-BY-REPRODUCTION",
+  "RES-G187-FUNCTIONS-ONLY-ROOT",
+  "RES-G187-MANIFEST-SCHEMA-DEVIATIONS",
+  "RES-G187-UNLISTED-FILES-REFUSED",
+  "RES-G187-ROOT-READ-MEMORY",
+  "RES-G187-CONCURRENT-WRITER"
+ ],
+ "manifest_schema": {
+  "object_class": "ROOT_MANIFEST (1)",
+  "object_schema_version": 1,
+  "schema_digest": "blake3-256:2a37c35fde0e9dfa05c6eb3428273a34a83ed90bc91fc5ed1d5f4fa1820c3eb4",
+  "root_manifest_tags": {
+   "1": "atlasx_root_id HASH32",
+   "2": "parent_atlas_root_id HASH32",
+   "3": "genome_hash HASH32 (the parent's, carried)",
+   "4": "selected_design_id GLOBAL_ID",
+   "5": "materialized_scope_id UTF8",
+   "6": "target_kind UTF8 (NONE)",
+   "7": "materializer_identity UTF8",
+   "8": "materializer_version UTF8",
+   "9": "materialization_schema_version UTF8",
+   "10": "compiler_ir_contract_version UTF8 (UNKNOWN)",
+   "14": "object_entry RECORD (>=1)",
+   "17": "parent_census_digest HASH32 (extension)",
+   "18": "parent_revision UTF8 (extension)",
+   "19": "parent_seal_id GLOBAL_ID (extension)"
+  },
+  "undeclared_contract_tags": [
+   11,
+   12,
+   13,
+   15,
+   16
+  ],
+  "object_entry_tags": {
+   "1": "relative_path UTF8",
+   "2": "object_class UVARINT(u16)",
+   "3": "object_schema_version UVARINT(u16)",
+   "4": "decoded_content_hash HASH32",
+   "5": "decoded_length UVARINT",
+   "6": "required BOOL",
+   "7": "logical_record_count UVARINT"
+  },
+  "entry_order": "object_class, decoded_content_hash, relative_path",
+  "root_identity": "BLAKE3-256 of the canonical root-manifest record payload with field 1 omitted (every other field framed, ascending tags; the record header excluded)"
+ },
+ "fixture_root": {
+  "object": "functions/6e6af317bfa2df1957f19149fab9bdea2cbd1c582eb6ed4d6cbfd56545199e39.atlasx (465 bytes)",
+  "manifest": "manifest.atlasx (834 bytes)",
+  "root_id": "blake3-256:7d9e6cf960320931703ad3d9b767af1f188ea866ac2185096c19c349ed463393",
+  "scope_id": "fixture/FUNCTIONS/design-function-roots",
+  "verdict": "VALID",
+  "demonstrated_by": "core atlasx::validate::tests::the_materialized_g161_root_is_valid_with_its_root_identity_pinned; atlas-cli atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed (atlasx materialize then atlasx validate VALID)",
+  "root_id_note": "moved from the first pass's blake3-256:6c091b70... when MATERIALIZATION_SCHEMA_VERSION went to atlas.atlasx-materialization.v2 (the result gained manifest and root_id; the version is manifest tag 9)"
+ },
+ "publication": {
+  "done_in_staging": [
+   "1 objects written (create_new)",
+   "2 synced and read back under the address name",
+   "3 hashes",
+   "4 manifest built",
+   "5 root identity computed",
+   "6 manifest.atlasx written last, synced, read back, root identity recomputed"
+  ],
+  "not_done": [
+   "7 atomic publish/switch",
+   "8 advertise"
+  ]
+ },
+ "validator_order": [
+  "ROOT_LIMIT",
+  "MANIFEST_ABSENT / MANIFEST_REFUSED (stops)",
+  "ROOT_ID_MISMATCH",
+  "PARENT_NOT_ADMITTED (precondition re-run) / PARENT_MISMATCH / SCHEMA_INCOMPATIBLE",
+  "ENTRY_PATH_INVALID / ENTRY_CLASS_UNSUPPORTED",
+  "OBJECT_MISSING / UNLISTED_FILE (a file, a directory holding no listed object, a non-UTF-8 name)",
+  "OBJECT_REFUSED / ENTRY_MISMATCH",
+  "DUPLICATE_IDENTITY",
+  "LINEAGE_OUTSIDE_PARENT / LINEAGE_NOT_SELECTED",
+  "ROOT_NOT_REPRODUCED (last, only over a root every earlier step accepts: materialize_over on the admission already decided, in memory; records, object bytes, manifest bytes)"
+ ],
+ "falsifications": [
+  {
+   "claim": "a flipped object byte is INVALID",
+   "demonstrated_by": "validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid (OBJECT_REFUSED DIGEST_MISMATCH; every byte flipped refused); CLI flipped copy ATLASX_ROOT_INVALID"
+  },
+  {
+   "claim": "a flipped manifest byte is INVALID and stops validation",
+   "demonstrated_by": "same test (MANIFEST_REFUSED DIGEST_MISMATCH, precondition not run; every byte flipped refused)"
+  },
+  {
+   "claim": "missing, unlisted, misnamed objects are INVALID",
+   "demonstrated_by": "validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid (OBJECT_MISSING, UNLISTED_FILE, OBJECT_REFUSED ADDRESS_MISMATCH, ENTRY_PATH_INVALID+UNLISTED_FILE, MANIFEST_ABSENT, ROOT_LIMIT)"
+  },
+  {
+   "claim": "traversal and non-canonical paths, other classes are INVALID",
+   "demonstrated_by": "validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+  },
+  {
+   "claim": "entries must describe their objects",
+   "demonstrated_by": "validate::tests::an_entry_that_does_not_describe_its_object_is_invalid (ENTRY_MISMATCH)"
+  },
+  {
+   "claim": "lineage outside the parent and duplicate identities are INVALID",
+   "demonstrated_by": "validate::tests::lineage_outside_the_parent_and_duplicate_identities_are_invalid (LINEAGE_OUTSIDE_PARENT, LINEAGE_NOT_SELECTED, DUPLICATE_IDENTITY)"
+  },
+  {
+   "claim": "a record edited beyond its lineage, in any field class, canonically re-encoded and re-rooted, is INVALID (VALID before the reproduction step)",
+   "demonstrated_by": "validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced: name, owner, dispatch, visibility, documentation, params, result, body_fingerprint, lineage (an extra parent record), function id -> exactly ROOT_NOT_REPRODUCED naming the field; reversed lineage re-hashed -> OBJECT_REFUSED NON_CANONICAL; materializer version 2 re-rooted -> SCHEMA_INCOMPATIBLE; unedited re-encode -> VALID; a_missing_unlisted_or_misnamed_object_is_invalid: an entry marked not required (object present or absent) -> ROOT_NOT_REPRODUCED"
+  },
+  {
+   "claim": "a manifest naming another parent/seal/design, or edited without its root id recomputed, is INVALID",
+   "demonstrated_by": "validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid (PARENT_MISMATCH x7 fields, SCHEMA_INCOMPATIBLE x5, ROOT_ID_MISMATCH)"
+  },
+  {
+   "claim": "a root of a non-admitted parent is INVALID; a root of another admitted parent is PARENT_MISMATCH",
+   "demonstrated_by": "validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid (NOT_SEALED, SEAL_RECORD_NOT_DECIDED)"
+  },
+  {
+   "claim": "no panic on arbitrary bytes",
+   "demonstrated_by": "manifest::tests::arbitrary_input_is_refused_never_a_panic (4000 rounds); validate::tests::arbitrary_roots_are_invalid_never_a_panic (600 rounds)"
+  },
+  {
+   "claim": "the self scope stays refused",
+   "demonstrated_by": "atlas-systemizer atlasx materialize --root . --atlas .atlas/.cache/atlas-studio.census.atlas --verification .atlas/evidence/verification/G186-self-scope.json --integrity .atlas/evidence/census/G186/integrity-report.json --out <scratch>: exit 2, nothing staged; atlasx validate --root <empty dir> --root-declared . (same parent): exit 2",
+   "result": {
+    "materialize": {
+     "verdict": "REFUSED",
+     "defects": [
+      [
+       "PARENT_NOT_ADMITTED",
+       "DESIGN_ABSENT: no SelectedDesign was supplied"
+      ],
+      [
+       "PARENT_NOT_ADMITTED",
+       "NOT_SEALED: seal status UNSEALED_CENSUS_CONTAINER"
+      ]
+     ]
+    },
+    "validate": {
+     "verdict": "INVALID",
+     "defects": [
+      [
+       "MANIFEST_ABSENT",
+       "no manifest.atlasx file"
+      ]
+     ]
+    }
+   }
+  }
+ ],
+ "min_atlasx": "NOT recorded as reached. The mechanism is demonstrated end to end on the test fixture only (admitted, staged, validated; every tampered root tested rejected, including a re-rooted record edit). The fixture seal rests on synthetic inputs: verification evidence with producer.tool 'fixture', a hand-set Satisfied ADL constraint result, the placeholder census digest [9;32] and a test-key principal. MIN_ATLASX as a construction milestone stays MISSING until a real repository parent (a declared principal, a SELECTED design over a real census) is sealed, admitted, materialized and validated. M13 EXISTS for the FUNCTIONS class; the self scope stays NOT_SEALED and DESIGN_ABSENT",
+ "mutants": {
+  "method": "hand mutants applied one at a time, each followed by the affected package's atlasx tests (cargo test -q -p core --lib atlasx; -p runtime --lib atlasx; -p atlas-cli atlasx); source restored after each and checked by sha256",
+  "total_on_final_code": 59,
+  "killed_on_final_code": 58,
+  "equivalent": [
+   {
+    "id": "MR7",
+    "mutant": "object bytes not compared in the reproduction step",
+    "why": "equivalent: the manifest bytes are compared too, so equal manifests list equal entry hashes, and each object has already decoded under its address name, so the object bytes are equal; kept because the review asks every entry's bytes to be compared"
+   }
+  ],
+  "superseded_first_pass": {
+   "M19": "M19b",
+   "M20": "M20b",
+   "M25": "M25b",
+   "R05": "S05",
+   "R06": "R06b"
+  },
+  "rerun_after_second_review": [
+   "S01",
+   "S02",
+   "S03",
+   "S04",
+   "S05",
+   "S06",
+   "S07",
+   "S08",
+   "S09",
+   "S10",
+   "M19b",
+   "M20b",
+   "M25b",
+   "R01",
+   "R02",
+   "R03",
+   "R04",
+   "R06b",
+   "R07",
+   "MR1",
+   "MR2",
+   "MR3",
+   "MR4",
+   "MR5",
+   "MR6",
+   "MR7",
+   "MR8",
+   "MR9",
+   "M16",
+   "M17",
+   "M18",
+   "M21",
+   "M22",
+   "M23",
+   "M24",
+   "M26",
+   "M27",
+   "M28",
+   "M29",
+   "M30",
+   "M31",
+   "M32"
+  ],
+  "list": [
+   {
+    "id": "M01",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "root identity preimage includes tag 1",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_manifest_round_trips_and_its_root_identity_excludes_tag_1",
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid",
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M02",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "entry sort key ignores the class",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_manifest_round_trips_and_its_root_identity_excludes_tag_1"
+    ]
+   },
+   {
+    "id": "M03",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "two entries with one path accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_writer_refuses_what_it_cannot_write_canonically"
+    ]
+   },
+   {
+    "id": "M04",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "empty identity/text field accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_writer_refuses_what_it_cannot_write_canonically"
+    ]
+   },
+   {
+    "id": "M05",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "manifest without object entries accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_writer_refuses_what_it_cannot_write_canonically"
+    ]
+   },
+   {
+    "id": "M06",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "a second top-level record ignored",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_reader_refuses_undeclared_fields_records_and_malformed_values"
+    ]
+   },
+   {
+    "id": "M07",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "embedded-only kind accepted at top level",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_reader_refuses_undeclared_fields_records_and_malformed_values"
+    ]
+   },
+   {
+    "id": "M08",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "class/schema varint truncated to u16",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_reader_refuses_undeclared_fields_records_and_malformed_values"
+    ]
+   },
+   {
+    "id": "M09",
+    "file": "core/src/atlasx/manifest.rs",
+    "mutant": "non-canonical manifest accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_reader_refuses_undeclared_fields_records_and_malformed_values",
+     "atlasx::manifest::tests::arbitrary_input_is_refused_never_a_panic"
+    ]
+   },
+   {
+    "id": "M10",
+    "file": "core/src/atlasx/codec.rs",
+    "mutant": "BOOL other than 0/1 read as true",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_reader_refuses_undeclared_fields_records_and_malformed_values"
+    ]
+   },
+   {
+    "id": "M11",
+    "file": "core/src/atlasx/codec.rs",
+    "mutant": "header class checked against FUNCTIONS only",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::manifest::tests::the_manifest_round_trips_and_its_root_identity_excludes_tag_1",
+     "atlasx::manifest::tests::every_flipped_byte_is_refused",
+     "atlasx::manifest::tests::the_reader_refuses_undeclared_fields_records_and_malformed_values",
+     "atlasx::materialize::tests::an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid"
+    ]
+   },
+   {
+    "id": "M12",
+    "file": "core/src/atlasx/materialize.rs",
+    "mutant": "manifest genome hash not the parent's",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::the_materialized_g161_root_is_valid_with_its_root_identity_pinned"
+    ]
+   },
+   {
+    "id": "M13",
+    "file": "core/src/atlasx/materialize.rs",
+    "mutant": "materialized scope not narrowed",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::the_materialized_g161_root_is_valid_with_its_root_identity_pinned"
+    ]
+   },
+   {
+    "id": "M14",
+    "file": "core/src/atlasx/materialize.rs",
+    "mutant": "entries written not required",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid",
+     "atlasx::validate::tests::the_materialized_g161_root_is_valid_with_its_root_identity_pinned"
+    ]
+   },
+   {
+    "id": "M15",
+    "file": "core/src/atlasx/materialize.rs",
+    "mutant": "STAGED without its manifest",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::materialize::tests::an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent",
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid",
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid"
+    ]
+   },
+   {
+    "id": "M16",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "root id not recomputed",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid"
+    ]
+   },
+   {
+    "id": "M17",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "seal id binding not compared",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid"
+    ]
+   },
+   {
+    "id": "M18",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a refused parent not reported",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid"
+    ]
+   },
+   {
+    "id": "M19",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "unlisted files accepted",
+    "result": "KILLED (first pass; superseded by M19b)",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M20",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "the manifest itself counted unlisted",
+    "result": "KILLED (first pass; superseded by M20b)",
+    "killed_by": [
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced",
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M21",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "traversal rule not applied",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M22",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "any class read as FUNCTIONS",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M23",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "canonical path not required",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid",
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "M24",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a missing required object skipped",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid"
+    ]
+   },
+   {
+    "id": "M25",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a non-file where an object belongs skipped",
+    "result": "KILLED (first pass; superseded by M25b)",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "M26",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "entry/object agreement not checked",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::an_entry_that_does_not_describe_its_object_is_invalid"
+    ]
+   },
+   {
+    "id": "M27",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "decoded length not compared",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::an_entry_that_does_not_describe_its_object_is_invalid"
+    ]
+   },
+   {
+    "id": "M28",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "duplicate identities across objects accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::lineage_outside_the_parent_and_duplicate_identities_are_invalid"
+    ]
+   },
+   {
+    "id": "M29",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "lineage defect mistyped",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::lineage_outside_the_parent_and_duplicate_identities_are_invalid"
+    ]
+   },
+   {
+    "id": "M30",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "lineage closure not checked",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::lineage_outside_the_parent_and_duplicate_identities_are_invalid"
+    ]
+   },
+   {
+    "id": "M31",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "root id reported for an invalid root",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced",
+     "atlasx::validate::tests::arbitrary_roots_are_invalid_never_a_panic"
+    ]
+   },
+   {
+    "id": "M32",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "object not decoded under its address name",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "R01",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "staged manifest not verified",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_manifest_that_does_not_read_back_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "R02",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "carried root id not compared on read back",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_manifest_that_does_not_read_back_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "R03",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "manifest not written",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_manifest_that_does_not_read_back_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "R04",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "root read deeper than one directory",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "R05",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "links followed",
+    "result": "KILLED (first pass; superseded by S05)",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_and_links_are_not_followed"
+    ]
+   },
+   {
+    "id": "R06",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "entry limit not enforced",
+    "result": "KILLED (first pass; superseded by R06b)",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_and_links_are_not_followed"
+    ]
+   },
+   {
+    "id": "R07",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "byte limit not enforced",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "C01",
+    "file": "apps/cli/src/main.rs",
+    "mutant": "INVALID exits zero",
+    "result": "KILLED",
+    "killed_by": [
+     "tests::atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed"
+    ]
+   },
+   {
+    "id": "C02",
+    "file": "apps/cli/src/main.rs",
+    "mutant": "declarations read from the AtlasX root",
+    "result": "KILLED",
+    "killed_by": [
+     "tests::atlasx_precondition_admits_the_sealed_g161_fixture_and_refuses_it_unsealed"
+    ]
+   },
+   {
+    "id": "MR1",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "reproduction check dropped",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced"
+    ]
+   },
+   {
+    "id": "MR2",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "reproduction compares only the manifest",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced"
+    ]
+   },
+   {
+    "id": "MR3",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "reproduction compares only object addresses",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced"
+    ]
+   },
+   {
+    "id": "MR4",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "reproduction run over roots already refused",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid",
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid",
+     "atlasx::validate::tests::an_entry_that_does_not_describe_its_object_is_invalid"
+    ]
+   },
+   {
+    "id": "MR5",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a differing params field not named",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced"
+    ]
+   },
+   {
+    "id": "MR6",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a record the parent materializes but the root lacks not named",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "MR7",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "object bytes not compared (expected equivalent: equal records at a verified address are equal bytes)",
+    "result": "SURVIVED",
+    "killed_by": []
+   },
+   {
+    "id": "MR8",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "manifest bytes not compared",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "MR9",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a record differing from the parent's accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced"
+    ]
+   },
+   {
+    "id": "S01",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "identity at open not checked",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "S02",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "type at open not checked (expected equivalent on unix: same device and inode is the listed regular file)",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "S03",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "identity compares the device only",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "S04",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "directories not counted toward the entry limit",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "S05",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "listing follows links",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "S06",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "a non-UTF-8 name not typed",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   },
+   {
+    "id": "S07",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "top-level directories not listed",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open",
+     "atlasx::tests::a_manifest_that_does_not_read_back_leaves_nothing_behind"
+    ]
+   },
+   {
+    "id": "S08",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a non-UTF-8 name accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "S09",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a directory holding no listed object accepted",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "S10",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a directory held by a listed path that only shares its prefix",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M19b",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "unlisted files accepted (final code)",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M20b",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "the manifest itself counted unlisted (final code)",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_flipped_byte_in_an_object_or_the_manifest_is_invalid",
+     "atlasx::validate::tests::a_manifest_naming_another_parent_or_edited_without_its_root_id_is_invalid",
+     "atlasx::validate::tests::a_record_edited_beyond_its_lineage_is_not_reproduced",
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid",
+     "atlasx::validate::tests::a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid",
+     "atlasx::validate::tests::an_entry_path_outside_the_canonical_mapping_is_invalid"
+    ]
+   },
+   {
+    "id": "M25b",
+    "file": "core/src/atlasx/validate.rs",
+    "mutant": "a non-file where an object belongs skipped (final code)",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::validate::tests::a_missing_unlisted_or_misnamed_object_is_invalid"
+    ]
+   },
+   {
+    "id": "R06b",
+    "file": "runtime/src/atlasx.rs",
+    "mutant": "entry limit not enforced (final code)",
+    "result": "KILLED",
+    "killed_by": [
+     "atlasx::tests::a_root_is_read_bounded_with_types_and_identity_checked_at_listing_and_open"
+    ]
+   }
+  ]
+ },
+ "boundary": {
+  "not_verified": "VALIDATE_NOT_VERIFIED: precondition's unverified steps (Genome compatibility); dynamic/external boundaries, semantic barriers, profiles/bindings; compiler-contract compatibility; cross-object references beyond lineage; the materializer's own census-to-field mapping (VALID = byte-for-byte what materializer version 1 writes for the admitted parent); the design's full closure; bodies; every other class; publication"
+ },
+ "fixed_in_generation": [
+  "RES-G187-VALID-NOT-REPRODUCED (first-pass residual: a record edited beyond its lineage and re-rooted validated VALID; the review required the fix in G187: the validator now re-materializes the admitted parent in memory and requires byte equality, ROOT_NOT_REPRODUCED)"
+ ],
+ "reproduction_cost": {
+  "fixture": "G161",
+  "reproduction_per_validation": {
+   "debug_test_build_ms": 0.42,
+   "release_ms": 0.08
+  },
+  "whole_validation": {
+   "debug_test_build_ms": 91,
+   "release_ms": 15
+  },
+  "note": "the whole validation is dominated by the precondition's re-run seal gate and container re-encode; reproduction reuses that admission (materialize_over), never re-running the gate"
+ },
+ "construction_status": {
+  "M13": "EXISTS (FUNCTIONS class)",
+  "MIN_ATLASX": "MISSING (mechanism demonstrated on the synthetic test fixture only)"
+ },
+ "second_review": {
+  "fixed": [
+   "SF1: read_root checks type and identity (dev, ino) at listing (symlink_metadata) and on the opened handle (File::metadata); a link, another file or a directory swapped in after listing is not read; a FIFO swapped in can still block the open (RES-G187-CONCURRENT-WRITER)",
+   "SF2: every entry, directories included, counts toward the 1,024-entry limit; more than 1,024 empty directories -> ROOT_LIMIT",
+   "empty or foreign directories (types/, .git/, func/) and non-UTF-8 names -> UNLISTED_FILE",
+   "hard links: VALID judges the bytes read, link structure is not judged (ADR)",
+   "step 10 worded as a same-code, same-process re-materialization, not M11's independent reproduction",
+   "MR7 reason corrected",
+   "codec docs updated",
+   "MATERIALIZATION_SCHEMA_VERSION v2, root id pin moved",
+   "SF3: MIN_ATLASX not recorded as reached"
+  ]
+ }
+}
