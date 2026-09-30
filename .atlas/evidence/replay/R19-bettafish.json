@@ -1,0 +1,146 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R19",
+ "generation": "G186",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "666ghj/bettafish",
+  "remote": "https://github.com/666ghj/BettaFish.git",
+  "pin": "c4ca6360489b53c38d3d41d213a67b50d2fcb883",
+  "pin_choice": "the upstream head resolved at execution (2026-09-30, committed 2026-09-04) is the ledger's recorded candidate pin: one tree; the donor was never decided, so no historical pin carries a verdict",
+  "license": "GPL-2.0 (root LICENSE, the GNU GPL version 2 text); nested MindSpider MIT, static/Switch ISC, bundled Adobe Source font license; no package metadata declares a license",
+  "code_reuse": "NONE (census and an acorn AST oracle over scratch reads; nothing copied -- the fix is Atlas-native)",
+  "selection": "canonical order after R18: every REVALIDATION_REQUIRED rank replayed, the first NEVER_REPLAYED repository",
+  "dependency_class": "NONE (a Python multi-agent opinion-analysis application; no Atlas mechanism depends on it)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/bettafish (302 tracked files, 239 MB of blobs, mostly data: csv, model weights, fonts), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E25",
+  "after": "E26"
+ },
+ "engines": {
+  "N": "the E25 release binary",
+  "N_plus_1": "E26: the working tree of the G186 native change (ADR 0098)"
+ },
+ "support_levels": {
+  "note": "python L0_DISCOVERED (174 files, none parsed, GAP-UNRECOGNIZED-SOURCE, DEBT-MULTILANGUAGE); javascript L6_AGENT_USABLE (7 files: six vendored minified libraries and one handwritten script); html, json, markdown, yaml L2_SYNTAX; the rest L0"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (9,642 functions, 11 s)",
+   "recensus snapshot and coverage levels",
+   "agent trace --from moveElementRandomly --to getRandomDirection (static/Switch/js/script.js)",
+   "agent trace, understand and impact on ForumEngine/monitor.py"
+  ],
+  "atlas_knew": {
+   "functions": 9642,
+   "invokes": 18,
+   "encloses": 6462,
+   "call_records": 29100,
+   "python_files": 174,
+   "python_records": 0
+  },
+  "challenge": "which function decides when the forum's LLM host speaks (ForumEngine LogMonitor triggering ForumHost.generate_host_speech), and what does changing it put at risk?",
+  "answer": "UNDECIDABLE for Atlas and said so: the mechanism is Python, L0 with no component; agent trace, understand and impact on its paths refuse with no censused component; on the JavaScript Atlas covers, traces answer NO_PATH_OBSERVED with status UNKNOWN, never absence established"
+ },
+ "differential": {
+  "oracle": "an acorn ECMAScript parser over the 7 JavaScript files (call, new and function nodes), and source reads; no Rust or TypeScript in the repository",
+  "summary": {
+   "N": {
+    "functions_atlas": 9642,
+    "functions_oracle": 9642,
+    "call_records_atlas": 29100,
+    "call_nodes_oracle": 30118,
+    "invokes": 18,
+    "invokes_correct": 18,
+    "python_claims": 0
+   },
+   "N_plus_1": {
+    "call_records_atlas": 30118,
+    "call_nodes_oracle": 30118,
+    "invokes": 19,
+    "invokes_correct": 19,
+    "invokes_lost": 0
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT",
+    "n": 18,
+    "what": "every resolved edge at N: new Class(...) to its constructor in chart.js, each read in source"
+   },
+   {
+    "class": "ATLAS_WRONG",
+    "n": 0,
+    "what": "no wrong edge, record or coverage on any file; the 174 Python files carry no record, no OBSERVED coverage and no edge"
+   },
+   {
+    "class": "ATLAS_SILENT (falsification)",
+    "n": 1018,
+    "what": "call and new sites in a chain (the inner call of f(x).m(), calls whose callee is a call, new C().m()) collided on one call-site identity anchored at the expression start and were dropped -- neither resolved nor unresolved; the same held on Atlas's own browser scripts (21 of 210 sites)"
+   }
+  ]
+ },
+ "falsification": {
+  "claim": "the G74 call-site identity (a call site is anchored at its callee's name so the calls of a chain stay distinct) for JavaScript and TypeScript, and the counts built on it",
+  "evidence": "1,018 of the donor's 30,118 call and new sites and 21 of the 210 in adapter/src/browser/*.js recorded nowhere; impact's candidate and unnamed site counts, hypothesis invokes' note and the unresolved-site notes of trace and understand understated them (mini repro: function viaChain() { return inner().m(); } recorded no inner call, impact inner said 0 callers and 0 candidate sites)",
+  "kind": "WRONG counts and a contract violation (no false NO_PATH: trace has no absence verdict and JavaScript CALL coverage is UNKNOWN)"
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing to absorb: the donor is an application in a language Atlas does not model",
+  "change": "ADR 0098: the JavaScript and TypeScript frontend anchors each call at its callee's name token (bare name, member property, constructor name, super or import keyword), a callee that is not a name at its argument list, as the Rust extractor and the G74 contract do; resolution keyed on the callee expression is unchanged",
+  "falsification": "per file, CALL records equal the oracle's call and new nodes on the donor, on Atlas's 476 censused JavaScript and TypeScript files and on 57 probe forms; 12 mutants killed",
+  "review": "an independent review found no collision, no wrong edge and no committed evidence depending on JavaScript call ids; four wording nits fixed"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "c4ca6360489b (the whole repository)",
+  "N": {
+   "epoch": "E25",
+   "call_records": 29100,
+   "invokes": 18
+  },
+  "N_plus_1": {
+   "epoch": "E26",
+   "call_records": 30118,
+   "invokes": 19,
+   "new_edge": "chart.js te -> Jt::constructor (new Jt(t).saturate(.5)), read correct"
+  },
+  "edge_delta": {
+   "invokes_gained": 1,
+   "invokes_lost": 0,
+   "gained_wrong": 0
+  },
+  "atlas_itself": "JavaScript and TypeScript CALL records 43,961 -> 47,048 and INVOKES 6,252 -> 6,437, none lost, eight new edges read correct; the Rust census identical (59,217 CALL records, 7,472 INVOKES, every Rust artifact digest unchanged); about 21,000 JavaScript call ids retired by the anchor the contract requires"
+ },
+ "manual_reads": [
+  {
+   "what": "static/Switch/js/script.js",
+   "why": "the one handwritten script: unresolved same-file calls, the dropped matchMedia",
+   "gap": "inner calls of chains"
+  },
+  {
+   "what": "chart.js line 13",
+   "why": "the 18 constructor edges and the new te -> Jt edge",
+   "gap": "none"
+  }
+ ],
+ "revalidation": {
+  "record": "none: the donor was never decided (candidate, consumer-gated), so no historical verdict exists to revalidate",
+  "historical_decision": "none",
+  "outcome": "NOT_A_HISTORICAL_DECISION",
+  "finding": "relevant to Atlas only if DEBT-MULTILANGUAGE selects a Python frontend"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY at E26: an application in a language Atlas does not model, nothing absorbed",
+  "capability_delta": "CAPABILITY_ADVANCED (E25 -> E26: every JavaScript and TypeScript call of a chain is its own call site)",
+  "trigger": "CURRENT; re-opened by a Python frontend (DEBT-MULTILANGUAGE): re-census the same pin"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/bettafish, after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "no donor file remains in scratch: the reviewers' copies of the seven JavaScript files deleted; census models and oracle counts kept as derived data",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record; no bettafish text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

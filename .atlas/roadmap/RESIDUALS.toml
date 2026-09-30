@@ -540,3 +540,16 @@ can_create_false_claim = false
 reopen_trigger = "a container schema generation bump while a SEALED container is in use (carry the pre-seal root in the seal record, or re-encode under the parent's own schema ids)"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G186-TS-UNWALKED-CALL-POSITIONS"
+found_in = "G186"
+source = "adapter/src/semantic/typescript/mod.rs (the CALL walker)"
+subsystem = "adapter semantic::typescript call extraction"
+reproduction = "class A extends mixin(B) {} at module level records no CALL for mixin, and @dec(f()) class K {} records none for dec or f: calls in class heritage and in class-level decorators are outside the walker (calls in computed keys and in field and method decorators are recorded); predates G186"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "impact's candidate or unnamed site counts, or an unresolved-site note, understate a function whose calls sit in class heritage or a class-level decorator. It does not hold on the current tree nor on the bettafish replay: per file, Atlas's CALL records equal an independent parser's call and new nodes on the donor's JavaScript and on every censused JavaScript and TypeScript file of Atlas, and JavaScript CALL coverage is UNKNOWN, so no FALSIFIED verdict rests on the counts"
+reopen_trigger = "any censused file where an independent parser counts more call and new expressions than Atlas records CALL sites"
+status = "OPEN"
+pressure = 3

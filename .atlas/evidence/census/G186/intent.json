@@ -1,0 +1,62 @@
+{
+  "objective": "FULL_OSS_REPLAY R19 666ghj/bettafish: every JavaScript and TypeScript call of a chain is its own call site (E26, ADR 0098)",
+  "changed_paths": [
+    "adapter/src/browser/measure_layout.js",
+    "adapter/src/browser/observe.js",
+    "adapter/src/browser/webdriver.js",
+    "adapter/src/semantic/typescript/mod.rs",
+    "adapter/src/semantic/typescript/tests.rs",
+    "runtime/src/agent.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:ENCLOSES",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "-obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CALL|atlas.typescript.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.resolution.rust-paths",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:PERSISTENCE|atlas.resolution.rust-paths",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+records:TYPE|atlas.resolution.rust-paths",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "entity_changes": [
+    "CHANGED adapter semantic/typescript/`impl:Context<'a>`/defer_call().",
+    "CREATED adapter semantic/typescript/call_anchor().",
+    "CREATED adapter semantic/typescript/tests/a_bare_call_keeps_its_identity().",
+    "CREATED adapter semantic/typescript/tests/call_anchors().",
+    "CREATED adapter semantic/typescript/tests/every_call_of_a_chain_is_its_own_call_site_anchored_at_the_callee_name().",
+    "CREATED adapter semantic/typescript/tests/every_call_of_the_browser_scripts_is_a_call_record().",
+    "CREATED adapter semantic/typescript/tests/the_inner_call_of_a_chain_is_resolved_and_the_outer_stays_unresolved().",
+    "CREATED runtime agent/tests/the_inner_calls_of_a_javascript_chain_reach_impact_and_hypotheses()."
+  ],
+  "adl_changes": [],
+  "dependency_changes": [],
+  "explained_unknowns": [
+    "adapter/src/semantic/typescript/tests.rs: JavaScript and TypeScript call sites anchored at the callee name: their CALL records and semantic digests change and inner calls of chains are recorded; the Rust census is unchanged"
+  ]
+}

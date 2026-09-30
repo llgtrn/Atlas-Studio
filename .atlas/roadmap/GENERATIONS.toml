@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G185"
+current_generation = "G186"
 
 [[generation]]
 id = "G35"
@@ -4689,3 +4689,68 @@ after = 7536
 key = "composed:relation:INVOKES"
 before = 7314
 after = 7485
+
+[[generation]]
+id = "G186"
+kind = "REPLAY"
+lane = "HARDENING"
+base_commit = "6a2896e1cbe9f3f38e74be3822a6406c7327979d"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R19: the canonical order resumed after every REVALIDATION_REQUIRED rank was replayed; its first NEVER_REPLAYED repository, the Python application bettafish, facing E25 at a fresh pin"
+objective = "census bettafish at c4ca6360 with E25; confirm Atlas claims nothing about the Python it cannot read and differential-check the JavaScript it does claim against an independent parser; fix natively only what falsifies the tree (ADR 0092); extinction"
+writer = "coordinator (sole writer); one measurement lane, one implementation lane, one independent review lane"
+replay = "666ghj/bettafish"
+pinned_commit = "c4ca6360489b53c38d3d41d213a67b50d2fcb883"
+source_path = ".atlas/.cache/donors/bettafish"
+epoch_before = "E25"
+epoch_after = "E26"
+mission = ".atlas/evidence/replay/R19-bettafish.json"
+evidence = ".atlas/evidence/replay/R19-bettafish.json"
+self_recensus = ".atlas/evidence/census/G186/recensus.json"
+
+[generation.verification]
+pre_census = "G185 post digest"
+atlas_first = "174 Python files L0 with no record, coverage or edge; 9,642 JavaScript functions equal to an acorn parser's, 18 constructor edges all read correct; but 29,100 CALL records against the parser's 30,118 call and new sites: the inner calls of chains recorded nowhere, on the donor and on Atlas's own browser scripts (21 of 210)"
+change = "ADR 0098: the JavaScript and TypeScript frontend anchors each call site at its callee's name token (bare name, member property, constructor name, super or import keyword) and a callee that is not a name at its argument list, as the G74 contract and the Rust extractor define it, so every call of a chain is its own site; resolution keyed on the callee expression unchanged; capability epoch E26"
+oracle = "an acorn ECMAScript parser and, in review, the TypeScript compiler: per file, CALL records now equal the call and new nodes on the donor (30,118), on every censused JavaScript and TypeScript file of Atlas (476 files) and on 57 probe forms, all identities distinct; INVOKES 18 -> 19 on the donor and 6,252 -> 6,437 on Atlas's JavaScript, none lost, new edges read correct; the Rust census identical"
+falsification = "inner calls of chains (f(x).m(), a()(), new C().m(), an IIFE's .catch) dropped from every count while impact's candidate and unnamed site counts, the invokes hypothesis note and the unresolved-site notes stated them complete; no false NO_PATH was reachable (trace has no absence verdict and JavaScript CALL coverage is UNKNOWN); 12 mutants killed"
+boundary = "Python has no frontend (L0, DEBT-MULTILANGUAGE); calls in class heritage and class-level decorators stay outside the walker (RES-G186-TS-UNWALKED-CALL-POSITIONS); about 21,000 JavaScript call identities retired by the anchor the contract requires, none referenced by committed evidence"
+debts = "capability epoch E26; DEBT-MULTILANGUAGE last advance G186 without a maturity step; bettafish REFERENCE_ONLY, never decided, trigger CURRENT; the revalidation milestones now carry the languages they observe (the TypeScript and JavaScript milestones had been written as Rust engines); next replay 666ghj/mirofish G188; next generation G187 CREATION NA-ATLASX-VALIDATE (M13)"
+review = "DEBT-EPISTEMIC_UNIFICATION and DEBT-ATLAS_COMPLETENESS reviewed at their cadence and CONFIRMED against the code: the vocabulary mechanism unchanged since G173 (only new carriers registered), the census container still without a DESIGN section (evidence/census/G186/debt-review.json)"
+proof = "PROVEN (post 208f6a0d...): proven after the last source change; the browser scripts' CALL records 189 -> 210; the donor deleted before the recensus"
+
+[[generation.expansion]]
+finding = "the JavaScript and TypeScript call-site anchor merged the calls of a chain and dropped the inner ones, understating impact, hypothesis and trace counts on Atlas's own browser scripts"
+justification = "FALSIFIES_CURRENT_TRUTH"
+
+[[generation.expansion]]
+finding = "the revalidation ledger wrote every capability milestone as a Rust engine, telling each non-Rust donor that the TypeScript and JavaScript milestones could not observe it"
+justification = "FALSIFIES_CURRENT_TRUTH"
+
+[generation.value]
+new_capability = "every JavaScript and TypeScript call of a chain is its own call site (capability epoch E26)"
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 2
+wrong_claims_removed = 2
+wall_clock_s = 6166
+machine_s = 278
+proof_s = 2579
+review_s = 822
+residuals_deferred = 1
+correctness_critical = true
+frontier_rate = 1.17
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the measurement lane's launch to the roadmap commit, measured; machine_s = the measurement lane's census stages 44 + the implementation lane's builds and censuses 234; proof_s = the lane's tests, mutants and gates 1,002 + the self-recensus 184 + the final full suite 1,393; review_s the independent review; two classes of WRONG claims removed (chained-call counts, milestone languages); the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:CALL|atlas.typescript.source-semantic.v1"
+before = 189
+after = 210
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7485
+after = 7502

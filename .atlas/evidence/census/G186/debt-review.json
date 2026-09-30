@@ -1,0 +1,20 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G186",
+ "trigger": "review cadence: DEBT-EPISTEMIC_UNIFICATION and DEBT-ATLAS_COMPLETENESS -- each stale for at least 13 generations since its last advance and its last review (G173) -- fell due at G186",
+ "method": "git log since the G173 commit 64d24e92 over core/src/vocabulary and core/src/atlas; a search of core/src/atlas for a DESIGN section",
+ "reviews": [
+  {
+   "debt": "DEBT-EPISTEMIC_UNIFICATION",
+   "verdict": "CONFIRMED",
+   "finding": "core::vocabulary's mechanism (CARRIERS, BOUNDARY_TEXT, NOT_A_STATUS, admits, vocabulary_enum!) is unchanged since G173: its only commits (G179, G183, G185) registered the new AtlasX verdict and defect enums as carriers, the use the unification was built for, and the workspace-wide carrier test keeps every status-carrying enum mapped; since G184 the vocabulary_enum! declarations are honestly held SYMBOL UNKNOWN in the census; NA-VOCABULARY-COMPLETION stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-ATLAS_COMPLETENESS",
+   "verdict": "CONFIRMED",
+   "finding": "the census container (core/src/atlas) still carries typed record kinds with EVIDENCE and DIAGNOSTICS sections and no DESIGN section; since G173 it gained an optional lowerable body on FUNCTION_SIGNATURE records (G181, schema generation G181) and exposed two byte helpers to the AtlasX codec (G183) -- neither is design, weights or transformation content; NA-ATLAS-DESIGN-SECTION stays next",
+   "correction": {}
+  }
+ ]
+}

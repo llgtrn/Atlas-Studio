@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G185"
+evaluated_at = "G186"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -21,6 +21,14 @@ rule = "A historical donor verdict is valid evidence only for the semantic capab
 # the historical decision stays recorded. priority = sum over the delta of the age of each debt the
 # milestone advanced and the donor depended on (essential debt pressure x capability delta x relevance).
 # language is recorded knowledge unless language_verified (established by a materialization).
+
+[[capability_milestone]]
+id = "JS_CALL_SITE_IDENTITY"
+generation = "G186"
+debts = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+languages = ["typescript", "javascript"]
+observes = "every call and new site of a JavaScript or TypeScript chain is its own call site, anchored at the callee name"
+evidence = ".atlas/decisions/0098-javascript-call-sites-anchored-at-the-callee-name.md"
 
 [[capability_milestone]]
 id = "IMPORT_FIXED_POINT_CONVERGENCE"
@@ -234,7 +242,7 @@ evidence = ".atlas/decisions/0077-import-cycles-and-open-scope-causes.md"
 id = "COMPILED_PACKAGE_ENTRIES"
 generation = "G160"
 debts = ["DEBT-MULTILANGUAGE"]
-languages = ["rust"]
+languages = ["typescript", "javascript"]
 observes = "imports of workspace packages declaring only compiled entries resolve through the declared compiler directories"
 evidence = ".atlas/decisions/0075-compiled-package-entries.md"
 
@@ -250,7 +258,7 @@ evidence = ".atlas/decisions/0074-async-block-regions.md"
 id = "TS_MODULE_LINKING"
 generation = "G158"
 debts = ["DEBT-MULTILANGUAGE"]
-languages = ["rust"]
+languages = ["typescript", "javascript"]
 observes = "TypeScript and JavaScript calls of imported functions resolve across files and workspace packages"
 evidence = ".atlas/decisions/0073-typescript-module-linking.md"
 
@@ -274,7 +282,7 @@ evidence = ".atlas/evidence/replay/R4-salsa.json"
 id = "TS_JS_PROFILE"
 generation = "G152"
 debts = ["DEBT-MULTILANGUAGE"]
-languages = ["rust"]
+languages = ["typescript", "javascript"]
 observes = "TypeScript and JavaScript functions, signatures, symbols and same-file calls are typed records under the common obligation contract"
 evidence = ".atlas/decisions/0068-typescript-javascript-bounded-profile.md"
 
@@ -458,7 +466,7 @@ capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = []
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -504,10 +512,10 @@ last_materialized_generation = "G168"
 last_deep_census_generation = "G168"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
-semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
+semantic_delta = ["JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
 status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1050
+reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is rust source IMPORT_FIXED_POINT_CONVERGENCE, DEPENDENCY_ITEM_TRAITS, LEXICAL_LOCAL_SCOPES, STANDARD_MACRO_ARGUMENT_RESOLUTION, LOCKED_DEPENDENCY_TRAIT_NAMES, CERTAIN_GLOB_NAMES, SETTLED_IMPORT_OPENING can observe"
+priority = 1208
 rank = 1
 
 [[donor]]
@@ -536,9 +544,9 @@ last_materialized_generation = "G65"
 last_deep_census_generation = "G65"
 capabilities_examined = ["DEBT-MULTILANGUAGE"]
 capabilities_available_then = []
-semantic_delta = ["FOREIGN_FUNCTIONS", "COMPILED_PACKAGE_ENTRIES", "TS_MODULE_LINKING", "TS_JS_PROFILE"]
+semantic_delta = ["JS_CALL_SITE_IDENTITY", "FOREIGN_FUNCTIONS", "COMPILED_PACKAGE_ENTRIES", "TS_MODULE_LINKING", "TS_JS_PROFILE"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a c source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes c source: javascript, rust, typescript engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -554,7 +562,7 @@ capabilities_examined = ["DEBT-SYMBOL"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY"]
 semantic_delta = ["IDENTITY_CARRIES_LOCATION"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a go source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes go source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -570,7 +578,7 @@ capabilities_examined = ["DEBT-SYMBOL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
 semantic_delta = ["CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "ITEM_MACRO_NAMES"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -586,7 +594,7 @@ capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
 semantic_delta = ["TYPED_ATLAS_SECTIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a haskell source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes haskell source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -600,9 +608,9 @@ last_materialized_generation = "G69"
 last_deep_census_generation = "G69"
 capabilities_examined = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a scala source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes scala source: javascript, rust, typescript engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -618,7 +626,7 @@ capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a ocaml source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes ocaml source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -664,10 +672,10 @@ last_materialized_generation = "G170"
 last_deep_census_generation = "G170"
 capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
+semantic_delta = ["JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
 status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 900
+reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is rust source IMPORT_FIXED_POINT_CONVERGENCE, DEPENDENCY_ITEM_TRAITS, LEXICAL_LOCAL_SCOPES, STANDARD_MACRO_ARGUMENT_RESOLUTION, LOCKED_DEPENDENCY_TRAIT_NAMES, CERTAIN_GLOB_NAMES can observe"
+priority = 1057
 rank = 2
 
 [[donor]]
@@ -696,7 +704,7 @@ last_materialized_generation = "G78"
 last_deep_census_generation = "G78"
 capabilities_examined = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS"]
-semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "COMPILED_PACKAGE_ENTRIES", "ASYNC_BLOCK_REGIONS", "TS_MODULE_LINKING", "IMPL_SHAPE_BY_APPLIED_TYPES", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+semantic_delta = ["JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "COMPILED_PACKAGE_ENTRIES", "ASYNC_BLOCK_REGIONS", "TS_MODULE_LINKING", "IMPL_SHAPE_BY_APPLIED_TYPES", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
 status = "LANGUAGE_UNDETERMINED"
 reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
 priority = 0
@@ -762,7 +770,7 @@ capabilities_examined = ["DEBT-SEAL_GATE", "DEBT-ATLAS_COMPLETENESS"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
 semantic_delta = ["SEAL_POLICY", "TYPED_ATLAS_SECTIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -794,7 +802,7 @@ capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
 semantic_delta = ["TYPED_ATLAS_SECTIONS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -970,7 +978,7 @@ capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-SEAL_GATE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
 semantic_delta = ["SEAL_POLICY"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a ocaml source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes ocaml source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -986,7 +994,7 @@ capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-IDENTITY_AUTHORITY"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
 semantic_delta = ["SELECTED_DESIGN"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a specification source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes specification source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -1130,7 +1138,7 @@ capabilities_examined = ["DEBT-SEAL_GATE", "DEBT-ARTIFACT_IDENTITY"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
 semantic_delta = ["SEAL_POLICY"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a go source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes go source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -1146,7 +1154,7 @@ capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "CAPABILITY_NOT_APPLICABLE"
-reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -1240,9 +1248,9 @@ last_materialized_generation = "G174"
 last_deep_census_generation = "G174"
 capabilities_examined = ["DEBT-MULTILANGUAGE", "DEBT-TRANSFORMATION"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = []
-status = "REVALIDATED"
-reason = "revalidated with every capability gained since its decision"
+semantic_delta = ["JS_CALL_SITE_IDENTITY"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes rust source: javascript, typescript engines only (condition 3 fails)"
 priority = 0
 rank = 0
 
