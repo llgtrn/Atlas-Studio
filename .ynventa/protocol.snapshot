@@ -2,5 +2,5 @@
 protocol ynventa
 version 1
 schema sha256:43c89ceb096891427db8c426cbae9914dd04ab7b35a6cacb04fd93d4dba63c41
-subsystem sha256:14a79e946fa3fe877a82f8aa37ee6a782c7d92a76fef6c237532808797b76840
+subsystem sha256:866f96021f328c876bf0725e9f9deb7b372a080f9ae43163beefa0ed7b3d44ee
 commands audit backlinks capsule census compact conformance context extinction graph link metrics migrate protocol prove show status technology verify

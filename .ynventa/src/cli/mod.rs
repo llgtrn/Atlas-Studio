@@ -4,11 +4,11 @@
 //! cargo run --manifest-path .ynventa/Cargo.toml -- <command> [--root <repo>] [options]
 //! ```
 
-use crate::compact::facts::Knowledge;
+use crate::compact::facts::{Fact, Knowledge};
 use crate::compact::history::{Batch, History, Row};
 use crate::formats::json::Json;
 use crate::protocol::{own_subsystem_dir, Snapshot, COMMANDS, SNAPSHOT_FILE};
-use crate::schema::DonorState;
+use crate::schema::{DonorState, FactKind};
 use crate::{
     assess, audit, compact, conformance, declare, evidence, migration, Assessment, Severity,
 };
@@ -724,6 +724,97 @@ fn migrate(args: &Args) -> Out {
                 ),
             ))
         }
+        "reclaim" => {
+            // A donor claim above its evidence (typically inherited from `.atlas`) is lowered to
+            // the effective state; the retired claim stays as a LEGACY_CLAIM fact (provenance
+            // kept), so nothing is lost and the declaration states only what is proven.
+            let a = crate::assess(root)?;
+            let over: Vec<(String, DonorState, DonorState)> = a
+                .analysis
+                .donors
+                .iter()
+                .filter(|x| {
+                    a.findings
+                        .iter()
+                        .any(|f| f.code == "CLAIM_EXCEEDS_EVIDENCE" && f.subject == x.key)
+                })
+                .map(|x| (x.key.clone(), x.claimed, x.effective))
+                .collect();
+            // An exception (REJECTED, BLOCKED, SUPERSEDED) the evidence does not allow is the same
+            // kind of false claim: it is withdrawn and kept as a fact too.
+            let mut d = a.declaration.clone();
+            let illegal: Vec<(String, String)> = d
+                .donors
+                .iter()
+                .filter(|dn| {
+                    a.findings
+                        .iter()
+                        .any(|f| f.code == "ILLEGAL_EXCEPTION" && f.subject == dn.key)
+                })
+                .filter_map(|dn| {
+                    let (kind, why) = dn.exception.as_ref()?;
+                    Some((dn.key.clone(), format!("{}: {why}", kind.wire())))
+                })
+                .collect();
+            let mut s = String::new();
+            if over.is_empty() && illegal.is_empty() {
+                s.push_str("every donor claim is within its evidence\n");
+                return Ok((0, s));
+            }
+            let seq = Knowledge::load(root).next_seq();
+            let prov = "ynventa migrate reclaim: claim above evidence";
+            let facts: Vec<Fact> =
+                over.iter()
+                    .map(|(k, claimed, _)| {
+                        Fact::new(
+                            FactKind::LegacyClaim,
+                            k,
+                            "claimed",
+                            claimed.wire(),
+                            prov,
+                            seq,
+                        )
+                    })
+                    .chain(illegal.iter().map(|(k, e)| {
+                        Fact::new(FactKind::LegacyClaim, k, "exception", e, prov, seq)
+                    }))
+                    .collect();
+            for (k, _, effective) in &over {
+                if let Some(dn) = d.donors.iter_mut().find(|dn| &dn.key == k) {
+                    dn.claimed = *effective;
+                }
+            }
+            for (k, _) in &illegal {
+                if let Some(dn) = d.donors.iter_mut().find(|dn| &dn.key == k) {
+                    dn.exception = None;
+                }
+            }
+            if !args.flag("--dry-run") {
+                Knowledge::add(root, &facts).map_err(|e| e.to_string())?;
+                declare::store(root, &d).map_err(|e| e.to_string())?;
+            }
+            for (k, claimed, effective) in &over {
+                s.push_str(&format!(
+                    "  {k:<32} {} -> {}\n",
+                    claimed.wire(),
+                    effective.wire()
+                ));
+            }
+            for (k, e) in &illegal {
+                s.push_str(&format!("  {k:<32} exception withdrawn ({e})\n"));
+            }
+            s.push_str(&format!(
+                "{} donor claims lowered, {} exceptions withdrawn{}\n",
+                over.len(),
+                illegal.len(),
+                if args.flag("--dry-run") {
+                    " (dry run)"
+                } else {
+                    "; retired claims kept as LEGACY_CLAIM facts"
+                }
+            ));
+            Ok((0, s))
+        }
         "import" => {
             let files = crate::repository::files::Files::scan(root).map_err(|e| e.to_string())?;
             let imp = migration::atlas::import(
@@ -835,7 +926,10 @@ fn migrate(args: &Args) -> Out {
                 }
             }
         }
-        _ => Err("migrate import | map | plan [--write] | apply <wave> | scaffold".into()),
+        _ => Err(
+            "migrate import | map | plan [--write] | apply <wave> | scaffold | reclaim [--dry-run]"
+                .into(),
+        ),
     }
 }
 

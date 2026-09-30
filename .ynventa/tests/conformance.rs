@@ -6,6 +6,7 @@ mod common;
 use common::*;
 use ynventa::graph::NodeId;
 use ynventa::protocol::{own_subsystem_dir, Snapshot};
+use ynventa::schema::{DonorState, FactKind};
 
 #[test]
 fn protocol_snapshot_is_current() {
@@ -259,4 +260,65 @@ fn identity_survives_physical_moves() {
     assert!(r
         .read("substrate/geo/Cargo.toml")
         .contains("\"../../core\""));
+}
+
+#[test]
+fn reclaim_lowers_claims_above_evidence_and_keeps_them_as_facts() {
+    let r = extinct_baseline("reclaim");
+    // The replacement changes after its proofs ran: EXTINCT is now a claim above the evidence.
+    r.write(
+        "substrate/geo/src/lib.rs",
+        "pub fn distance(a: (f64, f64), b: (f64, f64)) -> f64 { (a.0 - b.0).abs() + (a.1 - b.1).abs() }\n",
+    );
+    let a = r.assess();
+    let effective = a.analysis.donors[0].effective;
+    assert_ne!(effective, DonorState::Extinct);
+    assert!(finding(&a, "CLAIM_EXCEEDS_EVIDENCE", "geo").is_some());
+
+    let (code, out) = r.cli(&["migrate", "reclaim", "--dry-run"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("(dry run)"), "{out}");
+    assert_eq!(r.declaration().donors[0].claimed, DonorState::Extinct);
+
+    let (code, out) = r.cli(&["migrate", "reclaim"]);
+    assert_eq!(code, 0, "{out}");
+    assert_eq!(r.declaration().donors[0].claimed, effective);
+    let a = r.assess();
+    assert!(finding(&a, "CLAIM_EXCEEDS_EVIDENCE", "geo").is_none());
+    // The retired claim is kept, with provenance, as knowledge.
+    let k = ynventa::compact::facts::Knowledge::load(r.path());
+    assert!(k.facts.iter().any(|f| f.kind == FactKind::LegacyClaim
+        && f.subject == "geo"
+        && f.value == "EXTINCT"
+        && f.provenance.iter().any(|p| p.contains("reclaim"))));
+    let (_, out) = r.cli(&["migrate", "reclaim"]);
+    assert!(
+        out.contains("every donor claim is within its evidence"),
+        "{out}"
+    );
+}
+
+#[test]
+fn reclaim_withdraws_an_exception_the_evidence_does_not_allow() {
+    let r = extinct_baseline("reclaim-exception");
+    // "Studied, never adopted", while the donor package is in fact a dependency.
+    r.write("core/Cargo.toml", "[package]\nname = \"core-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\ngeo = \"0.33\"\n");
+    r.edit(|d| {
+        d.donors[0].exception = Some((
+            ynventa::schema::ExceptionKind::Rejected,
+            "never adopted".into(),
+        ))
+    });
+    assert!(finding(&r.assess(), "ILLEGAL_EXCEPTION", "geo").is_some());
+    let (code, out) = r.cli(&["migrate", "reclaim"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("exception withdrawn"), "{out}");
+    assert!(r.declaration().donors[0].exception.is_none());
+    let a = r.assess();
+    assert!(finding(&a, "ILLEGAL_EXCEPTION", "geo").is_none());
+    assert!(finding(&a, "CLAIM_EXCEEDS_EVIDENCE", "geo").is_none());
+    let k = ynventa::compact::facts::Knowledge::load(r.path());
+    assert!(k.facts.iter().any(|f| f.subject == "geo"
+        && f.key == "exception"
+        && f.value == "REJECTED: never adopted"));
 }
