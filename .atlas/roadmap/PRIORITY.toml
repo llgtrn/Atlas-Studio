@@ -872,7 +872,7 @@ objective = "CREATION: NA-SELF-RECONSTRUCTION-BODIES (done: M14 EXISTS -- body s
 [[planned_generation]]
 id = "G182"
 priority = "P0"
-objective = "FULL_OSS_REPLAY timelydataflow/differential-dataflow (QUEUED, FULL-OSS-REPLAY.toml next_replay after R16): rank 5 of the recursive revalidation, facing the strongest Atlas at a fresh pin, its license verified at it; fix natively only what falsifies the tree (ADR 0092)"
+objective = "FULL_OSS_REPLAY timelydataflow/differential-dataflow (done: R17 at aa8745f9, which is also the G80 pin; 1,096 of 1,099 function-level edges confirmed by its SCIP index, the other three read correct, recall 37.2%, no falsification and no change; Cargo's auto-discovered targets recorded as a residual; REFERENCE_ONLY revalidated (R10); LOW_FRONTIER_PROGRESS by design of a clean replay)"
 
 [[planned_generation]]
 id = "G183"
@@ -880,6 +880,11 @@ priority = "P2"
 objective = "CREATION: NA-ATLASX-CODEC (M12, [creation_selection] winner after G181, score 81, ahead of NA-ATLASX-MATERIALIZE by attack id) -- one .atlasx object kind (a header and one typed record section) encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a byte-identical fixture round-trip, a flipped byte refused by its digest and an undeclared field refused (ATLASX-FORMAT)"
 
 [[planned_generation]]
-id = "G184+"
+id = "G184"
+priority = "P0"
+objective = "FULL_OSS_REPLAY verus-lang/verus (QUEUED, FULL-OSS-REPLAY.toml next_replay after R17): the next rank of the recursive revalidation, facing the strongest Atlas at a fresh pin, its license verified at it; fix natively only what falsifies the tree (ADR 0092)"
+
+[[planned_generation]]
+id = "G185+"
 priority = "P0"
 objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

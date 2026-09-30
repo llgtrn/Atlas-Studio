@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G181"
+evaluated_at = "G182"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -507,7 +507,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 1022
+priority = 1029
 rank = 1
 
 [[donor]]
@@ -667,7 +667,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 876
+priority = 882
 rank = 2
 
 [[donor]]
@@ -708,15 +708,15 @@ first_50_ordinal = 17
 language = "rust"
 language_verified = false
 historical_decision_generation = "G80"
-last_materialized_generation = "G80"
-last_deep_census_generation = "G80"
+last_materialized_generation = "G182"
+last_deep_census_generation = "G182"
 capabilities_examined = ["SCALE-INCREMENTAL_RECOMPUTE", "DEBT-IMPACT_CLOSURE"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
-semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
-status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 146
-rank = 3
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
 
 [[donor]]
 donor = "buck2"
@@ -1099,8 +1099,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 143
-rank = 4
+priority = 144
+rank = 3
 
 [[donor]]
 donor = "podman"
@@ -1614,4 +1614,22 @@ status = "COMPLETE"
 evidence = ".atlas/evidence/revalidation/R9-datafrog.json"
 outcome = "REVALIDATED"
 finding = "verdict holds: the fixed point stays absorbed and native, the multi-way join, antijoin and galloping storage stay REFERENCE_ONLY with no Atlas caller; on the exact G35 source every call edge Atlas claims (54 of 54 at function level) is the index's"
+follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R10"
+donor = "differential-dataflow"
+generation = "G182"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["IMPACT_CLOSURE_WITH_ORACLE"]
+question = "with every capability gained since G80, does Atlas now have a consumer for incremental recomputation on the exact G80 source, and does the scale premise still hold?"
+remote = "https://github.com/TimelyDataflow/differential-dataflow.git"
+pinned_commit = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G80 pin, which is also replay R17 pin, censused by E24"
+source_path = ".atlas/.cache/donors/differential-dataflow"
+status = "COMPLETE"
+evidence = ".atlas/evidence/revalidation/R10-differential-dataflow.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: arrangements, traces and incremental joins stay REFERENCE_ONLY -- Atlas has no incremental consumer; on the exact G80 source 1,096 of 1,099 member call edges Atlas claims are the index's and the rest read correct; the G80 scale evidence (about 117 artifacts, a 7.8 s self-recensus) is stale and its fanout trigger unmeasured"
 follow_up = "NA-CLOSURE-CONSUMER"

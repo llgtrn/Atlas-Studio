@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G182",
+  "base_revision": "8f88588b91608058f9acadeacd551a8daff924ae",
+  "candidate_revision": "82b09e905b75ae34ce0e94e897b2869d57acea7e",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+  "after_census_digest": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+  "replay_digest": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+  "inventory_delta": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [],
+    "counts": {}
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {},
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2401,
+    "total_after": 2401
+  },
+  "intent": {
+    "objective": "FULL_OSS_REPLAY R17 timelydataflow/differential-dataflow",
+    "changed_paths": [],
+    "total_changes": [],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": []
+  },
+  "intended_changes": [],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

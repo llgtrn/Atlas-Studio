@@ -1,0 +1,111 @@
+{
+ "schema": "atlas.evidence.revalidation.v1",
+ "revalidation": "R10",
+ "generation": "G182",
+ "donor": "differential-dataflow",
+ "historical_decision": {
+  "generation": "G80",
+  "terminal_state": "REFERENCE_ONLY",
+  "detail": "collections/arrangements/traces, lattice-timed updates and iterative incremental joins REFERENCE_ONLY: no Atlas derivation needs them at measured scale (about 117 artifacts, a 7.8 s self-recensus); trigger SCALE-INCREMENTAL_RECOMPUTE firing with a derived-view fanout above 10^6 edges re-derived per edit",
+  "evidence": ".atlas/evidence/campaign/17-differential-dataflow.json"
+ },
+ "trigger": {
+  "status_before": "REVALIDATION_REQUIRED, rank 5",
+  "reason": "its decision depended on SCALE-INCREMENTAL_RECOMPUTE and DEBT-IMPACT_CLOSURE, advanced since G80 by the impact closure with its full-recompute oracle (G129)"
+ },
+ "question": "with every capability gained since G80, does Atlas now have a consumer for incremental recomputation -- arrangements, lattice-timed traces, iterative joins -- on the exact G80 source, and does the scale premise still hold?",
+ "materialization": {
+  "pinned_commit": "aa8745f93ea8abe131104fc7885ba4fd47e63902",
+  "remote": "https://github.com/TimelyDataflow/differential-dataflow.git",
+  "mode": "SHALLOW_BLOBLESS",
+  "path": ".atlas/.cache/donors/differential-dataflow",
+  "note": "the exact G80 pin, which is also upstream master at execution and replay R17's pin: one materialization; 360 tracked files, 207 rs; MIT"
+ },
+ "engines": {
+  "historical": "Atlas E24 at 82b09e90",
+  "current": "the same engine: no change this generation",
+  "same_source": true
+ },
+ "crate_census": {
+  "basis": "world-model accounting of typed records by dimension over the whole repository at the pin",
+  "historical_records": {
+   "CALL": 24305,
+   "CONCURRENCY": 6,
+   "CONTROL_FLOW": 9750,
+   "DATA_FLOW": 45287,
+   "EFFECT": 425,
+   "FUNCTION_IDENTITY": 4719,
+   "FUNCTION_SIGNATURE": 1987,
+   "OWNERSHIP": 11040,
+   "PERSISTENCE": 142,
+   "RESOURCE": 5,
+   "STATE": 715,
+   "SYMBOL": 6950,
+   "TYPE": 4248
+  },
+  "current_records": {
+   "CALL": 24305,
+   "CONCURRENCY": 6,
+   "CONTROL_FLOW": 9750,
+   "DATA_FLOW": 45287,
+   "EFFECT": 425,
+   "FUNCTION_IDENTITY": 4719,
+   "FUNCTION_SIGNATURE": 1987,
+   "OWNERSHIP": 11040,
+   "PERSISTENCE": 142,
+   "RESOURCE": 5,
+   "STATE": 715,
+   "SYMBOL": 6950,
+   "TYPE": 4248
+  },
+  "historical_total": 109579,
+  "current_total": 109579,
+  "mechanism_slices": {
+   "INVOKES by member (E24)": {
+    "differential-dataflow (collections, arrangements, traces)": "498",
+    "interactive": "597",
+    "tpchlike": "60",
+    "diagnostics": "33",
+    "doop": "20",
+    "dogsdogsdogs (worst-case optimal joins)": "20",
+    "mdbook": "2",
+    "experiments": "0",
+    "advent_of_code_2017": "0",
+    "server": "0"
+   }
+  },
+  "repository": {
+   "E24": {
+    "functions": 4719,
+    "invokes": 1230,
+    "withheld_path_calls": 181,
+    "open_scope_components": 28,
+    "unresolved_call_sites": 20078
+   }
+  }
+ },
+ "premises_rechecked": {
+  "incremental_consumer": "none: no arrangement, trace or lattice-time code in adapter, core, runtime or apps; core/src/integrity/mod.rs still states closure by full recompute; NA-CLOSURE-CONSUMER queued",
+  "scale": "stale evidence base: G80's 117 artifacts and 7.8 s self-recensus no longer describe Atlas (thousands of tracked files; the self-recensus runs of G179 to G181 took 74 to 81 s); ADR 0008 measured graph construction as about 95% of a census run, which points at graph building, not view maintenance; the 10^6 fanout trigger is unmeasured",
+  "language": "Rust, verified at the pin (207 .rs files)"
+ },
+ "mechanism_through_atlas": "at the G80 pin Atlas's view of the engine is 4,719 functions and 1,230 INVOKES at E24, 1,096 of 1,099 member edges confirmed by the language server index and the rest read correct; the arrangement path of join and the variable of iterate stay withheld",
+ "semantic_delta": [
+  "IMPACT_CLOSURE_WITH_ORACLE"
+ ],
+ "outcome": "REVALIDATED",
+ "finding": "verdict holds: arrangements, traces and incremental joins stay REFERENCE_ONLY -- Atlas has no incremental consumer; the scale evidence G80 rested on is stale and its fanout trigger unmeasured, recorded for the closure consumer to measure",
+ "follow_up": "NA-CLOSURE-CONSUMER",
+ "decision_layer": {
+  "historical_record_rewritten": false,
+  "appended": "G182 REVALIDATED at E24 (replay R17, revalidation R10)"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/differential-dataflow (one materialization shared with replay R17)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and replay R17",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ },
+ "engine_change_this_generation": "none"
+}

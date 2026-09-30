@@ -1,0 +1,188 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R17",
+ "generation": "G182",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "timelydataflow/differential-dataflow",
+  "remote": "https://github.com/TimelyDataflow/differential-dataflow.git",
+  "pin": "aa8745f93ea8abe131104fc7885ba4fd47e63902",
+  "pin_choice": "the upstream master head resolved at execution (2026-09-30) is the G80 decision pin itself: the fresh pin and the historical pin are one tree",
+  "license": "MIT (LICENSE at the pin, byte-identical to .atlas/licenses/differential-dataflow/LICENSE; license = MIT in differential-dataflow, differential-dogs3 and interactive; the other members declare none)",
+  "code_reuse": "NONE (rust-analyzer 1.90.0 from the pinned toolchain ran as the SCIP oracle over a scratch copy of the .rs files; nothing copied)",
+  "selection": "rank 5 of RECURSIVE-DONOR-REVALIDATION after R16 (REVALIDATION_REQUIRED); its G80 decision rested on SCALE-INCREMENTAL_RECOMPUTE and DEBT-IMPACT_CLOSURE",
+  "dependency_class": "MECHANISM_INTERNAL (collections, arrangements and traces over lattice-timed updates; iterative incremental joins; timely dataflow)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/differential-dataflow (360 tracked files, 207 rs, 8.5 MB), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E24",
+  "after": "E24 (no capability change this generation)"
+ },
+ "engines": {
+  "N": "the E24 release binary (HEAD 82b09e90)",
+  "N_plus_1": "the same binary: no falsification, no change"
+ },
+ "support_levels": {
+  "note": "Rust L6 by presence; language now verified (207 .rs files; the revalidation ledger had language_verified = false)"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (4,719 functions, 8.3 s)",
+   "component withheld notes (28 open-scope components, 181 withheld path calls: external globs of timely::dataflow::* in tpchlike and the core crate, derive(Columnar), thread_local!)",
+   "agent trace --from Collection::join (collection.rs:1109) --to Spine::insert (spine_fueled.rs:270)",
+   "agent trace --from iterate (iterate.rs:82) --to Variable::set (iterate.rs:258)",
+   "agent trace --from Collection::join --to arrange_by_key_named (positive control)"
+  ],
+  "atlas_knew": {
+   "functions": 4719,
+   "invokes": 1230,
+   "dispatches_to": 450,
+   "call_records": 24305,
+   "unresolved_call_sites": 20078,
+   "withheld_path_calls": 181,
+   "open_scope_components": 28
+  },
+  "challenge": "does a join reach the trace merge through its arrangement (Collection::join -> Spine::insert), and does iterate feed its variable back (iterate -> Variable::set) -- the mechanisms G80 kept REFERENCE_ONLY?",
+  "answer": "E24: NO_PATH_OBSERVED, UNKNOWN for both, and correctly not NO_PATH: join -> join_map -> arrange_by_key -> arrange_by_key_named is observed (the positive control, three INVOKES steps, read correct) and stops where arrange_named has three same-named candidates; iterate binds its Variable by destructuring a call result Atlas does not type. No trace returned NO_PATH"
+ },
+ "differential": {
+  "oracle": "rust-analyzer 1.90.0 scip over a scratch copy of the .rs files at the donor's relative paths, a hand-written rust-project.json of 72 crates (every member library and every example, test, bench, src/bin and build.rs root, members depending on each other as their manifests say, registry dependencies including timely omitted on both sides), sysroot and sysroot_src; 178.5 s; a supplementary index of the non-member directories (tpchlike, doop, advent_of_code_2017) in 127.8 s",
+  "summary": {
+   "workspace members": {
+    "N": {
+     "atlas_edges": 1099,
+     "oracle_edges": 2946,
+     "agree": 1096,
+     "atlas_only": 3,
+     "oracle_only": 1850,
+     "precision": 0.9973,
+     "recall": 0.372,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 1848,
+      "ATLAS_SILENT": 2
+     }
+    },
+    "N_plus_1": {
+     "atlas_edges": 1099,
+     "oracle_edges": 2946,
+     "agree": 1096,
+     "atlas_only": 3,
+     "oracle_only": 1850,
+     "precision": 0.9973,
+     "recall": 0.372,
+     "oracle_only_by_atlas_account": {
+      "ATLAS_UNKNOWN_NAMED": 1848,
+      "ATLAS_SILENT": 2
+     }
+    }
+   },
+   "non-member directories": {
+    "agree": 68,
+    "atlas_only": 0,
+    "oracle_only": 283
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT (oracle limitation)",
+    "n": 3,
+    "what": "container.rs:209 RecordedUpdates::from_bytes to the one impl at :42 (the oracle lacks the omitted timely trait); chunk.rs:680 and vec.rs:598 calls of the fn gen nested in the same test body, which the oracle conflates with the sibling test's nested gen -- the same two are the oracle's two ATLAS_SILENT rows"
+   },
+   {
+    "class": "ATLAS_WRONG",
+    "n": 0,
+    "what": "none"
+   },
+   {
+    "class": "ATLAS_UNKNOWN (honest)",
+    "n": 1848,
+    "what": "every missing edge is named unresolved at its caller (1,806 of 1,808 caller and callee-name groups checked by count, the other two the gen artifact); a sample of 20 read in source: qualified trait paths, generic T: Lattice receivers, locals typed by default(), fields of generic structs, untyped receiver chains -- and 731 edges (39%) from examples/, tests/, benches/ and src/bin/ files, which no Cargo target of Atlas's reading reaches (RES-G182-AUTODISCOVERED-TARGETS)"
+   }
+  ],
+  "cases": [
+   {
+    "question": "why does Atlas resolve nothing in examples/, tests/, benches/ and src/bin/?",
+    "answer": "manifest_targets reads [lib], [[bin]] path, src/main.rs, src/lib.rs and build.rs but not Cargo's auto-discovered targets, so 124 of 207 .rs files are crate roots Atlas never enters; they are reported not evaluated, their calls unresolved -- honest, and the donor's largest recall limiter"
+   }
+  ]
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing to absorb or fix: no falsification",
+  "change": "none",
+  "falsification": "none: 1,096 of 1,099 function-level edges confirmed, the other three read correct",
+  "review": "none required"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "aa8745f93ea8 (the whole repository)",
+  "N": {
+   "epoch": "E24",
+   "functions": 4719,
+   "invokes": 1230,
+   "dispatches_to": 450,
+   "supplies_data": 836,
+   "call_records": 24305,
+   "unresolved": 20078,
+   "withheld_path_calls": 181,
+   "open_scope_components": 28,
+   "oracle_agree": 1096
+  },
+  "N_plus_1": {
+   "epoch": "E24",
+   "functions": 4719,
+   "invokes": 1230,
+   "dispatches_to": 450,
+   "supplies_data": 836,
+   "call_records": 24305,
+   "unresolved": 20078,
+   "withheld_path_calls": 181,
+   "open_scope_components": 28,
+   "oracle_agree": 1096
+  },
+  "edge_delta": {
+   "invokes_gained": 0,
+   "invokes_lost": 0,
+   "gained_wrong": 0
+  },
+  "what_atlas_n_saw": "1,096 of 1,099 function-level edges confirmed by the index and the rest read correct; 37.2% of its edges",
+  "what_atlas_n_missed": "every call from Cargo's auto-discovered targets; receivers of generic parameters and untyped chains; same-named candidates",
+  "what_atlas_n_plus_1_sees": "the same: no change this generation",
+  "still_unknown": "the arrangement path of join and the variable of iterate",
+  "magnitude": "none: a replay without falsification"
+ },
+ "manual_reads": [
+  {
+   "what": "src/collection.rs 1060-1140, src/operators/arrange/*.rs, src/trace/implementations/spine_fueled.rs 260-280",
+   "why": "ground truth for the join mission",
+   "gap": "arrange_named same-named candidates (withheld)"
+  },
+  {
+   "what": "src/operators/iterate.rs 80-110, 250-260",
+   "why": "ground truth for the iterate mission",
+   "gap": "destructured call-result binding (withheld)"
+  },
+  {
+   "what": "src/columnar/collection/container.rs 40-45, 205-212; src/columnar/trace/chunk.rs 580-700; src/trace/chunk/vec.rs 555-615",
+   "why": "the three edges only Atlas holds",
+   "gap": "none: oracle limitations"
+  }
+ ],
+ "revalidation": {
+  "record": "RECURSIVE-DONOR-REVALIDATION R10 (evidence/revalidation/R10-differential-dataflow.json): at the exact G80 pin, which is also this replay's pin",
+  "historical_decision": "G80 REFERENCE_ONLY: collections, arrangements, traces, lattice-timed updates and iterative incremental joins (no Atlas derivation needs them at measured scale)",
+  "outcome": "REVALIDATED",
+  "finding": "verdict holds: Atlas has no incremental or differential consumer (the impact closure is checked against a full recompute and NA-CLOSURE-CONSUMER stays queued); the evidence base is stale -- G80 measured about 117 artifacts and a 7.8 s self-recensus, and nothing measures the 10^6 re-derivation fanout of its trigger"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY at E24: unchanged",
+  "capability_delta": "NO_CAPABILITY_DELTA (E24; no change this generation)",
+  "trigger": "CURRENT; re-opened by a consumer recomputing inside the impact closure (NA-CLOSURE-CONSUMER, NA-VERIFICATION-REUSE), a measured re-derivation fanout above the G80 threshold, or Cargo auto-discovered targets entering the census: re-census the same pin against its own SCIP index"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/differential-dataflow, after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory is outside it",
+  "scratch_deleted": "the oracle copies, the SCIP indexes, fn extents, census models, differentials and traces (scratch, outside the repository)",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record and revalidation R10; no differential-dataflow text in Atlas beyond its preserved LICENSE under .atlas/licenses",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

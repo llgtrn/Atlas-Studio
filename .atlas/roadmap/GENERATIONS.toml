@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G181"
+current_generation = "G182"
 
 [[generation]]
 id = "G35"
@@ -4471,3 +4471,50 @@ after = 7093
 key = "composed:relation:INVOKES"
 before = 6957
 after = 7013
+
+[[generation]]
+id = "G182"
+kind = "REPLAY"
+lane = "HARDENING"
+base_commit = "82b09e905b75ae34ce0e94e897b2869d57acea7e"
+priority = "P0"
+serves = "FULL_OSS_REPLAY R17: rank 5 of the recursive revalidation, the incremental dataflow engine differential-dataflow (REVALIDATION_REQUIRED), facing E24; its upstream head is the G80 decision pin"
+objective = "census differential-dataflow at aa8745f9 with E24 against rust-analyzer's SCIP index of its crates with the standard library loaded; decide whether REFERENCE_ONLY holds; fix natively only what falsifies the tree (ADR 0092); revalidation R10 at the same pin; extinction"
+writer = "coordinator (sole writer); one measurement lane"
+replay = "timelydataflow/differential-dataflow"
+pinned_commit = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+source_path = ".atlas/.cache/donors/differential-dataflow"
+epoch_before = "E24"
+epoch_after = "E24"
+mission = ".atlas/evidence/replay/R17-differential-dataflow.json"
+evidence = ".atlas/evidence/replay/R17-differential-dataflow.json"
+self_recensus = ".atlas/evidence/census/G182/recensus.json"
+
+[generation.verification]
+pre_census = "G181 post digest"
+atlas_first = "4,719 functions, 1,230 INVOKES; a join reaching the trace merge (Collection::join -> Spine::insert) and iterate feeding its variable back (iterate -> Variable::set) answer NO_PATH_OBSERVED, UNKNOWN -- correctly withheld at arrange_named's three same-named candidates and a destructured call result; the control Collection::join -> arrange_by_key_named PATH_OBSERVED in three steps"
+change = "none: no falsification"
+oracle = "rust-analyzer 1.90.0 SCIP with sysroot_src over a scratch copy (72 crates of the workspace members, and a supplementary index of the non-member directories): 1,096 of 1,099 function-level edges confirmed, the other three read correct (oracle limitations), precision 99.73%, recall 37.2%; 1,848 of the 1,850 missing edges named unresolved at their callers, the other two the oracle's own conflation"
+falsification = "none"
+boundary = "Cargo's auto-discovered targets (examples/, tests/, benches/, src/bin/) are never entered: 124 of 207 files, 39% of the missing edges (RES-G182-AUTODISCOVERED-TARGETS); qualified trait paths, generic Lattice receivers and default()-typed locals stay unresolved"
+debts = "no capability epoch; differential-dataflow REFERENCE_ONLY revalidated (R10), trigger CURRENT; next replay verus-lang/verus G184; next generation G183 CREATION NA-ATLASX-CODEC (M12)"
+review = "no debt review fell due"
+proof = "PROVEN (post 7c9eda68..., unchanged): no source changed; the clone, the oracle copies and the indexes deleted before the recensus"
+
+[generation.value]
+new_capability = ""
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 0
+maturity_steps = 0
+capability_delta = 0
+wrong_claims_removed = 0
+wall_clock_s = 1468
+machine_s = 318
+proof_s = 84
+review_s = 0
+residuals_deferred = 1
+correctness_critical = false
+frontier_rate = 0.0
+frontier_class = "LOW_FRONTIER_PROGRESS"
+note = "a replay that falsified nothing: machine stages 318 s (materialize 3, census 8, the two SCIP indexes 178 and 128, differential 1), honestly LOW_FRONTIER_PROGRESS; wall clock from the measurement lane's launch to the roadmap commit, measured; the clean-HEAD evidence run follows the roadmap commit and is not included"

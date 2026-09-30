@@ -14,22 +14,22 @@ materialization_root = ".atlas/.cache/donors"
 max_materialized = 1
 max_non_replay_between = 1
 current_epoch = "E24"
-next_replay = "timelydataflow/differential-dataflow"
-next_replay_reason = "priority after R16: no processed replay has a fired trigger at E24 (R16 changed no capability); ranks 1 to 4 of RECURSIVE-DONOR-REVALIDATION (rust-analyzer, rust, egglog, datafrog) were replayed at R10, R11/R14, R15 and R16 with triggers CURRENT, so rank 5, the incremental dataflow engine differential-dataflow (REVALIDATION_REQUIRED), faces the strongest Atlas (E24) at a fresh pin; license verified at the pin when selected; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
+next_replay = "verus-lang/verus"
+next_replay_reason = "priority after R17: no processed replay has a fired trigger at E24 (R17 changed no capability); ranks 1 to 5 of RECURSIVE-DONOR-REVALIDATION were replayed at R10, R11/R14, R15, R16 and R17 with triggers CURRENT, so the next rank, the verifier verus (REVALIDATION_REQUIRED), faces the strongest Atlas (E24) at a fresh pin; license verified at the pin when selected; starvation: every NEVER_REPLAYED donor keeps its place in the canonical order behind it"
 
 [counts]
 total = 166
-never_replayed = 152
+never_replayed = 151
 queued = 1
 materialized = 0
-processed = 13
+processed = 14
 capability_advanced = 12
-no_capability_delta = 1
+no_capability_delta = 2
 revalidation_required = 0
 license_review_required = 0
-source_extinct = 13
+source_extinct = 14
 blocked_on_user = 6
-remaining = 153
+remaining = 152
 
 [[epoch]]
 id = "E0"
@@ -2230,7 +2230,29 @@ historical_verdicts = ["G80: REFERENCE_ONLY (terminal_state)", "-: CLONED (inges
 license = "RECORDED_FILES"
 historical_pins = ["aa8745f93ea8abe131104fc7885ba4fd47e63902"]
 physically_present_legacy = false
-replay_status = "QUEUED"
+replay_status = "PROCESSED"
+replay_generation = "G182"
+pinned_commit = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+license_status = "MIT (LICENSE at the pin, byte-identical to .atlas/licenses/differential-dataflow/LICENSE): the toolchain rust-analyzer ran as the SCIP oracle over a scratch copy, nothing copied"
+code_reuse = "NONE"
+materialization = "blobless depth-1 fetch at the current master head, which is the G80 decision pin itself (360 files, 8.5 MB), the whole repository censused; rust-analyzer SCIP over 72 crates of the members with the standard library loaded (sysroot_src), and over the non-member directories"
+epoch_before = "E24"
+epoch_after = "E24"
+levels_reached = "E24: Rust L6 by presence (language verified); 4,719 functions, 1,230 INVOKES; 1,096 of 1,099 member edges confirmed by the index and the other three read correct (recall 37.2%); 28 open components withholding 181 path calls; no falsification; Cargo auto-discovered targets unread (39% of the missing edges)"
+mission = ".atlas/evidence/replay/R17-differential-dataflow.json"
+capability_delta = "NO_CAPABILITY_DELTA"
+n_plus_1 = ".atlas/evidence/replay/R17-differential-dataflow.json"
+mechanisms = ["collections, arrangements and traces over lattice-timed updates -- REFERENCE_ONLY (no incremental consumer in Atlas)", "iterative incremental joins and worst-case optimal joins (dogsdogsdogs) -- REFERENCE_ONLY", "SCIP emission by the language server (the oracle)"]
+gaps = ["DEBT-CALL: Cargo auto-discovered targets (src/bin, examples, tests, benches) are not crate roots, so their 124 files stay unevaluated (RES-G182-AUTODISCOVERED-TARGETS)", "DEBT-CALL: receivers of generic parameters and untyped chains; same-named candidates (arrange_named); external globs of timely::dataflow::*"]
+verdict_history = ["G80: REFERENCE_ONLY (collections, arrangements, traces, lattice-timed updates, iterative incremental joins; no derivation needs them at measured scale)", "G150: REVALIDATION_REQUIRED (capability milestones on DEBT-IMPACT_CLOSURE)", "E24 (G182, R17): REFERENCE_ONLY re-verified -- no incremental consumer in Atlas; every call edge Atlas claims confirmed by the language server index or read correct, no falsification; revalidation R10 at the same pin found the G80 scale evidence stale; nothing copied"]
+replays = ["R17 G182 E24 .atlas/evidence/replay/R17-differential-dataflow.json (with revalidation R10)"]
+terminal_state = "REFERENCE_ONLY"
+decided_at_epoch = "E24"
+trigger_status = "CURRENT"
+trigger_checked_at_epoch = "E24"
+revalidation_trigger = "a consumer recomputing inside the impact closure (NA-CLOSURE-CONSUMER, NA-VERIFICATION-REUSE), a measured re-derivation fanout above the G80 threshold, or Cargo auto-discovered targets entering the census re-opens this verdict: re-census the same pin against its own SCIP index"
+source_path = ".atlas/.cache/donors/differential-dataflow"
+source_extinct = true
 
 [[repository]]
 key = "tlaplus/tlaplus"
@@ -2300,7 +2322,7 @@ historical_verdicts = ["G105: EXTERNAL_BOUNDARY (terminal_state)", "-: CLONED (i
 license = "RECORDED_FILES"
 historical_pins = ["5f0930a0b820425aa857269070362ddcf7c29672", "b9416fad06904c6023d93ba79fcf2d06dd7db4fe"]
 physically_present_legacy = false
-replay_status = "NEVER_REPLAYED"
+replay_status = "QUEUED"
 
 [[repository]]
 key = "vustudio/opendesign"

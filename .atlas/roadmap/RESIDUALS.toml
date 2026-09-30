@@ -298,3 +298,15 @@ false_claim_condition = "a bodied target whose body carries inner comments or fo
 reopen_trigger = "the first bodied target whose token-identical flag is false"
 status = "OPEN"
 pressure = 3
+
+[[residual]]
+id = "RES-G182-AUTODISCOVERED-TARGETS"
+found_in = "G182"
+source = "adapter/src/dependency/cargo.rs (manifest_targets), runtime/src/census/resolution.rs"
+subsystem = "adapter dependency::cargo (crate targets) and runtime census::resolution"
+reproduction = "differential-dataflow at aa8745f9: files under src/bin/, examples/, tests/ and benches/ are Cargo auto-discovered targets; manifest_targets reads [lib], [[bin]] path, src/main.rs, src/lib.rs and build.rs only, so 124 of 207 .rs files are reported not evaluated (no Cargo target's module tree reaches them) and 731 of the 1,850 call edges the index has and Atlas lacks come from them"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "a replay's mission or the self census needs calls in an auto-discovered target, or the HARDENING lane reopens native resolution by policy"
+status = "OPEN"
+pressure = 3
