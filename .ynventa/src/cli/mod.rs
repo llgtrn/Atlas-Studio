@@ -44,6 +44,7 @@ impl Args {
             "--from",
             "--node",
             "--into",
+            "--cargo-home",
         ];
         let lists = ["--merge", "--aggregate"];
         let mut i = 0;
@@ -724,6 +725,79 @@ fn migrate(args: &Args) -> Out {
                 ),
             ))
         }
+        "register" => {
+            // Discovered donors that participate are registered from their own package metadata.
+            use crate::migration::register::{cargo_home, donor_licence, locked_versions, Licence};
+            let a = crate::assess(root)?;
+            let mut d = a.declaration.clone();
+            // New externals enter the graph as DISCOVERED donors first.
+            let mut discovered = Vec::new();
+            for ((eco, name), obs) in &a.analysis.unregistered {
+                let dn = crate::migration::register::discovered(
+                    *eco,
+                    name,
+                    obs.iter().map(|o| o.file.clone()),
+                );
+                if d.donor(&dn.key).is_none() {
+                    discovered.push(dn.key.clone());
+                    d.donors.push(dn);
+                }
+            }
+            d.donors.sort_by(|a, b| a.key.cmp(&b.key));
+            let active: Vec<&str> = a
+                .findings
+                .iter()
+                .filter(|f| f.code == "DISCOVERED_BUT_ACTIVE")
+                .map(|f| f.subject.as_str())
+                .chain(discovered.iter().map(String::as_str))
+                .collect();
+            let locked = locked_versions(&a.files);
+            let home = args
+                .value("--cargo-home")
+                .map(PathBuf::from)
+                .or_else(cargo_home);
+            let (mut registered, mut left) = (Vec::new(), Vec::new());
+            for dn in d.donors.iter_mut().filter(|dn| active.contains(&dn.key.as_str())) {
+                if dn.origin.trim().is_empty() {
+                    left.push((dn.key.clone(), "no origin recorded".to_string()));
+                    continue;
+                }
+                match donor_licence(root, &a.files, home.as_deref(), &locked, dn) {
+                    Licence::Found { licence, sources } => {
+                        dn.license = licence.clone();
+                        dn.claimed = dn.claimed.max(DonorState::Registered);
+                        dn.provenance.extend(sources);
+                        dn.provenance.sort();
+                        dn.provenance.dedup();
+                        registered.push((dn.key.clone(), licence));
+                    }
+                    Licence::Unavailable(why) => left.push((dn.key.clone(), why)),
+                }
+            }
+            let dry = args.flag("--dry-run");
+            let changed = !registered.is_empty() || !discovered.is_empty();
+            if !dry && changed {
+                declare::store(root, &d).map_err(|e| e.to_string())?;
+            }
+            let mut s = String::new();
+            for k in &discovered {
+                s.push_str(&format!("  DISCOVERED {k}\n"));
+            }
+            for (k, l) in &registered {
+                s.push_str(&format!("  REGISTERED {k:<32} {l}\n"));
+            }
+            for (k, why) in &left {
+                s.push_str(&format!("  left       {k:<32} {why}\n"));
+            }
+            s.push_str(&format!(
+                "{} new donors discovered, {} donors registered from package metadata, {} left{}\n",
+                discovered.len(),
+                registered.len(),
+                left.len(),
+                if dry { " (dry run)" } else { "" }
+            ));
+            Ok((0, s))
+        }
         "reclaim" => {
             // A donor claim above its evidence (typically inherited from `.atlas`) is lowered to
             // the effective state; the retired claim stays as a LEGACY_CLAIM fact (provenance
@@ -927,7 +1001,7 @@ fn migrate(args: &Args) -> Out {
             }
         }
         _ => Err(
-            "migrate import | map | plan [--write] | apply <wave> | scaffold | reclaim [--dry-run]"
+            "migrate import | map | plan [--write] | apply <wave> | scaffold | reclaim [--dry-run] | register [--dry-run] [--cargo-home <dir>]"
                 .into(),
         ),
     }

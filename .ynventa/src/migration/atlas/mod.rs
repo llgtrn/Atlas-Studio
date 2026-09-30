@@ -455,34 +455,7 @@ pub fn import(root: &Path, files: &Files, shard: Option<&str>, origin: Option<&s
         });
     }
     for ((eco, name), in_files) in externals {
-        let key = format!("{}-{}", eco.wire().to_ascii_lowercase(), slug(&name));
-        let origin = match eco {
-            Ecosystem::Cargo => format!("https://crates.io/crates/{name}"),
-            Ecosystem::Npm => format!("https://www.npmjs.com/package/{name}"),
-            Ecosystem::Python => format!("https://pypi.org/project/{name}"),
-            Ecosystem::Native => String::new(),
-        };
-        donors.push(Donor {
-            key,
-            name: name.clone(),
-            origin,
-            license: String::new(),
-            // Registration is an explicit claim: an importer cannot verify a licence, so observed
-            // externals enter as DISCOVERED, active technology that someone must register.
-            claimed: DonorState::Discovered,
-            exception: None,
-            packages: vec![Package {
-                ecosystem: eco,
-                name,
-            }],
-            source_paths: Vec::new(),
-            capabilities: Vec::new(),
-            cutover: None,
-            provenance: in_files
-                .into_iter()
-                .map(|f| format!("census:{f}"))
-                .collect(),
-        });
+        donors.push(crate::migration::register::discovered(eco, &name, in_files));
     }
     donors.sort_by(|a, b| a.key.cmp(&b.key));
 

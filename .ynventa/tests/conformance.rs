@@ -322,3 +322,97 @@ fn reclaim_withdraws_an_exception_the_evidence_does_not_allow() {
         && f.key == "exception"
         && f.value == "REJECTED: never adopted"));
 }
+
+#[test]
+fn register_reads_the_licence_from_the_pinned_package_not_from_a_person() {
+    let r = extinct_baseline("register");
+    r.write("core/Cargo.toml", "[package]\nname = \"core-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nhashbrown = \"0.15\"\n");
+    r.write("Cargo.lock", "version = 4\n\n[[package]]\nname = \"hashbrown\"\nversion = \"0.15.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n");
+    r.edit(|d| {
+        let mut dn = donor("cargo-hashbrown", "hashbrown");
+        dn.claimed = DonorState::Discovered;
+        dn.license = String::new();
+        dn.origin = "https://crates.io/crates/hashbrown".into();
+        dn.capabilities.clear();
+        dn.cutover = None;
+        d.donors.push(dn);
+    });
+    assert!(finding(&r.assess(), "DISCOVERED_BUT_ACTIVE", "cargo-hashbrown").is_some());
+    let home = r.path().with_extension("cargo-home");
+    let dir = home.join("registry/src/index.crates.io-0000/hashbrown-0.15.2");
+    std::fs::create_dir_all(dir.parent().unwrap()).unwrap();
+    let args = |home: &std::path::Path| {
+        vec![
+            "migrate".to_string(),
+            "register".into(),
+            "--cargo-home".into(),
+            home.display().to_string(),
+        ]
+    };
+    // Without the package's own manifest nothing is registered, and the reason is given.
+    let a: Vec<String> = args(&home);
+    let (code, out) = r.cli(&a.iter().map(String::as_str).collect::<Vec<_>>());
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("hashbrown-0.15.2 is not in the local registry"),
+        "{out}"
+    );
+    assert_eq!(
+        r.declaration().donor("cargo-hashbrown").unwrap().claimed,
+        DonorState::Discovered
+    );
+    // With it, the licence and its provenance come from the pinned version's manifest.
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join("Cargo.toml"),
+        "[package]\nname = \"hashbrown\"\nversion = \"0.15.2\"\nlicense = \"MIT OR Apache-2.0\"\n",
+    )
+    .unwrap();
+    let (code, out) = r.cli(&a.iter().map(String::as_str).collect::<Vec<_>>());
+    assert_eq!(code, 0, "{out}");
+    let dn = r.declaration().donor("cargo-hashbrown").unwrap().clone();
+    assert_eq!(dn.claimed, DonorState::Registered);
+    assert_eq!(dn.license, "MIT OR Apache-2.0");
+    assert!(dn
+        .provenance
+        .iter()
+        .any(|p| p == "registry:hashbrown-0.15.2/Cargo.toml"));
+    assert!(finding(&r.assess(), "DISCOVERED_BUT_ACTIVE", "cargo-hashbrown").is_none());
+}
+
+#[test]
+fn register_discovers_new_externals_and_reads_npm_licences_from_the_lockfile() {
+    let r = extinct_baseline("register-npm");
+    r.write(
+        "package.json",
+        "{\"name\": \"ui\", \"private\": true, \"devDependencies\": {\"vite\": \"^5.0.0\"}}\n",
+    );
+    r.write("package-lock.json", "{\"lockfileVersion\": 3, \"packages\": {\"\": {\"name\": \"ui\"}, \"node_modules/vite\": {\"version\": \"5.4.0\", \"license\": \"MIT\"}}}\n");
+    let a = r.assess();
+    assert!(
+        a.findings.iter().any(|f| f.code == "UNREGISTERED_EXTERNAL"),
+        "{:#?}",
+        a.findings
+    );
+    let (code, out) = r.cli(&["migrate", "register"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("DISCOVERED npm-vite"), "{out}");
+    let d = r.declaration();
+    let dn = d
+        .donor("npm-vite")
+        .expect("new external entered the graph as a donor");
+    assert_eq!(dn.claimed, DonorState::Registered);
+    assert_eq!(dn.license, "MIT");
+    assert!(dn
+        .provenance
+        .iter()
+        .any(|p| p == "npm:package-lock.json#node_modules/vite"));
+    let a = r.assess();
+    assert!(
+        !a.findings
+            .iter()
+            .any(|f| f.code == "UNREGISTERED_EXTERNAL" || f.code == "DISCOVERED_BUT_ACTIVE"),
+        "{:#?}",
+        a.findings
+    );
+}

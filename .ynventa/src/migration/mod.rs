@@ -11,6 +11,7 @@
 
 pub mod atlas;
 pub mod pathmap;
+pub mod register;
 pub mod scaffold;
 
 use crate::audit::DocAudit;

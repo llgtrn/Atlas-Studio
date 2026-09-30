@@ -249,8 +249,8 @@
         key: "cargo-ed25519-compact",
         name: "ed25519-compact",
         origin: "https://crates.io/crates/ed25519-compact",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -265,14 +265,15 @@
             "census:apps/cli/Cargo.toml",
             "census:core/Cargo.toml",
             "census:runtime/Cargo.toml",
+            "registry:ed25519-compact-2.6.0/Cargo.toml",
         ],
     },
     Donor {
         key: "cargo-proc-macro2",
         name: "proc-macro2",
         origin: "https://crates.io/crates/proc-macro2",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT OR Apache-2.0",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -283,14 +284,14 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/Cargo.toml"],
+        provenance: &["census:adapter/Cargo.toml", "registry:proc-macro2-1.0.107/Cargo.toml"],
     },
     Donor {
         key: "cargo-quote",
         name: "quote",
         origin: "https://crates.io/crates/quote",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT OR Apache-2.0",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -301,14 +302,14 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/Cargo.toml"],
+        provenance: &["census:adapter/Cargo.toml", "registry:quote-1.0.47/Cargo.toml"],
     },
     Donor {
         key: "cargo-serde",
         name: "serde",
         origin: "https://crates.io/crates/serde",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT OR Apache-2.0",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -324,14 +325,15 @@
             "census:apps/cli/Cargo.toml",
             "census:core/Cargo.toml",
             "census:runtime/Cargo.toml",
+            "registry:serde-1.0.229/Cargo.toml",
         ],
     },
     Donor {
         key: "cargo-serde-json",
         name: "serde_json",
         origin: "https://crates.io/crates/serde_json",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT OR Apache-2.0",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -347,14 +349,15 @@
             "census:apps/cli/Cargo.toml",
             "census:core/Cargo.toml",
             "census:runtime/Cargo.toml",
+            "registry:serde_json-1.0.151/Cargo.toml",
         ],
     },
     Donor {
         key: "cargo-syn",
         name: "syn",
         origin: "https://crates.io/crates/syn",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT OR Apache-2.0",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -365,14 +368,14 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/Cargo.toml"],
+        provenance: &["census:adapter/Cargo.toml", "registry:syn-3.0.6/Cargo.toml"],
     },
     Donor {
         key: "cargo-tree-sitter-javascript",
         name: "tree-sitter-javascript",
         origin: "https://crates.io/crates/tree-sitter-javascript",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -383,14 +386,17 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/Cargo.toml"],
+        provenance: &[
+            "census:adapter/Cargo.toml",
+            "registry:tree-sitter-javascript-0.23.1/Cargo.toml",
+        ],
     },
     Donor {
         key: "cargo-tree-sitter-typescript",
         name: "tree-sitter-typescript",
         origin: "https://crates.io/crates/tree-sitter-typescript",
-        license: "",
-        claimed: DonorState::Discovered,
+        license: "MIT",
+        claimed: DonorState::Registered,
         exception: Exception::None,
         packages: &[
             Package {
@@ -401,7 +407,10 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/Cargo.toml"],
+        provenance: &[
+            "census:adapter/Cargo.toml",
+            "registry:tree-sitter-typescript-0.23.2/Cargo.toml",
+        ],
     },
     Donor {
         key: "clair",
