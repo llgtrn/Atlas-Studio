@@ -41,7 +41,14 @@ impl Sha256 {
         }
     }
 
-    pub fn update(&mut self, mut data: &[u8]) {
+    /// The digest of `data` in one call.
+    pub fn digest(data: impl AsRef<[u8]>) -> [u8; 32] {
+        sha256(data.as_ref())
+    }
+
+    /// Feeds bytes: anything that is a byte slice (arrays, vectors, strings).
+    pub fn update(&mut self, data: impl AsRef<[u8]>) {
+        let mut data = data.as_ref();
         self.length = self.length.wrapping_add(data.len() as u64);
         if self.buffered > 0 {
             let take = (64 - self.buffered).min(data.len());
@@ -68,8 +75,13 @@ impl Sha256 {
 
     /// Feeds a length-prefixed field, so that concatenations of fields are unambiguous.
     pub fn field(&mut self, data: &[u8]) {
-        self.update(&(data.len() as u64).to_be_bytes());
+        self.update((data.len() as u64).to_be_bytes());
         self.update(data);
+    }
+
+    /// Same as [`Sha256::finish`], under the name streaming hash interfaces use.
+    pub fn finalize(self) -> [u8; 32] {
+        self.finish()
     }
 
     pub fn finish(mut self) -> [u8; 32] {
@@ -142,6 +154,29 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
     h.finish()
 }
 
+/// HMAC-SHA256 (RFC 2104): a keyed digest, so no external MAC crate participates either.
+pub fn hmac_sha256(key: &[u8], message: &[u8]) -> [u8; 32] {
+    let mut block = [0u8; 64];
+    if key.len() > 64 {
+        block[..32].copy_from_slice(&sha256(key));
+    } else {
+        block[..key.len()].copy_from_slice(key);
+    }
+    let mut inner = Sha256::new();
+    inner.update(block.map(|b| b ^ 0x36));
+    inner.update(message);
+    let mut outer = Sha256::new();
+    outer.update(block.map(|b| b ^ 0x5c));
+    outer.update(inner.finish());
+    outer.finish()
+}
+
+/// Equality whose running time depends only on the lengths, never on where the inputs differ:
+/// the comparison for verifying a MAC.
+pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    a.len() == b.len() && a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+}
+
 pub fn hex(bytes: &[u8]) -> String {
     const DIGITS: &[u8; 16] = b"0123456789abcdef";
     let mut s = String::with_capacity(bytes.len() * 2);
@@ -153,7 +188,8 @@ pub fn hex(bytes: &[u8]) -> String {
 }
 
 pub fn unhex(s: &str) -> Option<Vec<u8>> {
-    if !s.len().is_multiple_of(2) {
+    // Bitwise rather than `is_multiple_of` (Rust 1.87): consumers build at older MSRVs.
+    if s.len() & 1 == 1 {
         return None;
     }
     let digit = |c: u8| match c {
@@ -208,6 +244,37 @@ mod tests {
             h.update(&data[split..]);
             assert_eq!(h.finish(), sha256(&data), "split {split}");
         }
+    }
+
+    #[test]
+    fn streaming_interface_accepts_any_byte_source() {
+        let mut h = Sha256::new();
+        h.update(b"ab");
+        h.update([b'c']);
+        h.update(Vec::<u8>::new());
+        h.update("");
+        assert_eq!(h.finalize(), Sha256::digest("abc"));
+        assert_eq!(Sha256::digest(b"abc"), sha256(b"abc"));
+    }
+
+    #[test]
+    fn rfc4231_hmac_vectors() {
+        let long_key = [0xaa; 131];
+        for (key, data, mac) in [
+            (&[0x0b; 20][..], &b"Hi There"[..], "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"),
+            (b"Jefe", b"what do ya want for nothing?", "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"),
+            (&[0xaa; 20], &[0xdd; 50], "773ea91e36800e46854db8ebd09181a72959098b3ef8c122d9635514ced565fe"),
+            (&long_key, b"Test Using Larger Than Block-Size Key - Hash Key First", "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54"),
+            (&long_key, b"This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm.", "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2"),
+        ] {
+            assert_eq!(hex(&hmac_sha256(key, data)), mac);
+        }
+        let m = hmac_sha256(b"k", b"m");
+        assert!(constant_time_eq(&m, &m));
+        let mut other = m;
+        other[31] ^= 1;
+        assert!(!constant_time_eq(&m, &other));
+        assert!(!constant_time_eq(&m, &m[..31]));
     }
 
     #[test]

@@ -227,6 +227,29 @@ fn technology_is_reused_by_materialization_not_by_service() {
         "pub fn digest(bytes: &[u8]) -> Digest { unimplemented!() }\n",
     );
     assert!(finding(&commerce.assess(), "MATERIALIZED_FORK", "hash.digest").is_some());
+    // The canonical source evolves at its birthplace; re-materializing supersedes the old lock.
+    machine.write(
+        "core/src/digest.rs",
+        "pub fn digest(bytes: &[u8]) -> Digest { todo!(\"v2\") }\n",
+    );
+    let (code, out) = commerce.cli(&[
+        "technology",
+        "materialize",
+        "hash.digest",
+        "--from",
+        &machine.path().display().to_string(),
+        "--node",
+        "commerce.order",
+        "--into",
+        "domain/order/src/tech",
+    ]);
+    assert_eq!(code, 0, "{out}");
+    let a = commerce.assess();
+    assert!(finding(&a, "MATERIALIZED_FORK", "hash.digest").is_none());
+    let locks = std::fs::read_dir(commerce.path().join(".ynventa/materialized"))
+        .unwrap()
+        .count();
+    assert_eq!(locks, 1);
 }
 
 #[test]

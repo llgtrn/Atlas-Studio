@@ -337,6 +337,21 @@ pub fn materialize(
         source_digest: source_digest(&files, t),
         files: out,
     };
+    // A re-materialization supersedes the earlier lock of the same technology at the same
+    // destinations; left in place, the old lock would call the fresh copy a fork.
+    for (name, bytes) in crate::compact::read_addressed(to_root, MATERIALIZED_DIR, &mut Vec::new())
+    {
+        if let Ok(old) = Materialization::decode(&bytes) {
+            let overlaps = old
+                .files
+                .iter()
+                .any(|(d, _, _)| m.files.iter().any(|(n, _, _)| n == d));
+            if old.technology == m.technology && overlaps {
+                std::fs::remove_file(to_root.join(MATERIALIZED_DIR).join(&name))
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+    }
     crate::compact::write_addressed(to_root, MATERIALIZED_DIR, &m.encode())
         .map_err(|e| e.to_string())?;
     Ok(m)
