@@ -350,5 +350,16 @@ vocabulary! {
         LegacyClaim = "LEGACY_CLAIM": "a lifecycle claim imported from a legacy registry; never evidence",
         LegacyRecord = "LEGACY_RECORD": "a legacy registry field preserved for provenance",
         Document = "DOCUMENT": "the digest of a document whose knowledge was extracted",
+        Milestone = "MILESTONE": "roadmap state of a milestone/<id> or gap/<id>, one key per field (scope, status, evidence, rank); a newer value supersedes an older one",
     }
+}
+
+/// Fact kinds an agent may assert directly (`ynventa fact add`). DOCUMENT digests license the
+/// deletion of documents and legacy kinds license the expiry of legacy shims, so those are
+/// written only by extraction and import.
+pub fn is_assertable(kind: FactKind) -> bool {
+    !matches!(
+        kind,
+        FactKind::Document | FactKind::LegacyClaim | FactKind::LegacyRecord
+    )
 }

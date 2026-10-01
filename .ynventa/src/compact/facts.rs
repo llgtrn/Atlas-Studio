@@ -187,6 +187,35 @@ impl Knowledge {
         Ok((removed, Some(written)))
     }
 
+    /// Current facts, optionally of one kind and under a subject prefix, in a deterministic
+    /// order: vocabulary rank, subject, key.
+    pub fn current(&self, kind: Option<FactKind>, subject_prefix: Option<&str>) -> Vec<&Fact> {
+        let mut out: Vec<&Fact> = self
+            .facts
+            .iter()
+            .filter(|f| kind.is_none_or(|k| f.kind == k))
+            .filter(|f| subject_prefix.is_none_or(|p| f.subject.starts_with(p)))
+            .collect();
+        out.sort_by(|a, b| (a.kind, &a.subject, &a.key).cmp(&(b.kind, &b.subject, &b.key)));
+        out
+    }
+
+    /// The current fact of one identity.
+    pub fn get(&self, kind: FactKind, subject: &str, key: &str) -> Option<&Fact> {
+        self.facts
+            .iter()
+            .find(|f| f.kind == kind && f.subject == subject && f.key == key)
+    }
+
+    /// Current facts per kind, in vocabulary order, kinds without facts omitted.
+    pub fn counts(&self) -> Vec<(FactKind, usize)> {
+        FactKind::ALL
+            .iter()
+            .map(|k| (*k, self.facts.iter().filter(|f| f.kind == *k).count()))
+            .filter(|(_, n)| *n > 0)
+            .collect()
+    }
+
     /// The recorded digest of a document whose knowledge was extracted.
     pub fn document_digest(&self, path: &str) -> Option<&str> {
         self.facts
@@ -194,6 +223,100 @@ impl Knowledge {
             .find(|f| f.kind == FactKind::Document && f.subject == path)
             .map(|f| f.value.as_str())
     }
+}
+
+/// How [`assert_fact`] treats an existing fact of the same identity.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Assert {
+    /// Record the value: new, the same (provenance is united) or a newer one (supersedes).
+    Add,
+    /// Record a newer value of an existing fact; refused when there is none or it is equal.
+    Supersede,
+}
+
+/// Validates one asserted fact. Provenance is mandatory: every fact says where it came from.
+pub fn validate(
+    kind: FactKind,
+    subject: &str,
+    key: &str,
+    value: &str,
+    provenance: &[String],
+) -> Result<(), String> {
+    if !crate::schema::is_assertable(kind) {
+        return Err(format!(
+            "{kind} facts are written only by extraction and import, never asserted"
+        ));
+    }
+    if key.trim().is_empty() {
+        return Err("a fact needs a non-empty key".into());
+    }
+    if value.trim().is_empty() {
+        return Err("a fact needs a non-empty value".into());
+    }
+    if provenance.is_empty() || provenance.iter().any(|p| p.trim().is_empty()) {
+        return Err(
+            "provenance is mandatory: --provenance <where this fact comes from> (repeatable)"
+                .into(),
+        );
+    }
+    match kind {
+        FactKind::Milestone => {
+            let id = subject
+                .strip_prefix("milestone/")
+                .or_else(|| subject.strip_prefix("gap/"));
+            if id.is_none_or(|id| id.trim().is_empty()) {
+                return Err(format!(
+                    "a MILESTONE subject is milestone/<id> or gap/<id>, not `{subject}`"
+                ));
+            }
+        }
+        FactKind::Decision | FactKind::Definition if subject.trim().is_empty() => {
+            return Err(format!("a {kind} fact needs a subject"));
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+/// Writes one asserted fact as its own knowledge batch at the next logical time, so a newer
+/// value of the same (kind, subject, key) supersedes the older one, which is kept in
+/// `superseded`. Returns the batch written and the fact as it now folds.
+pub fn assert_fact(
+    root: &Path,
+    mode: Assert,
+    kind: FactKind,
+    subject: &str,
+    key: &str,
+    value: &str,
+    provenance: &[String],
+) -> Result<(String, Fact), String> {
+    validate(kind, subject, key, value, provenance)?;
+    let k = Knowledge::load(root);
+    if !k.unreadable.is_empty() {
+        return Err(format!(
+            "unreadable knowledge; refusing to write: {}",
+            k.unreadable.join("; ")
+        ));
+    }
+    if mode == Assert::Supersede {
+        match k.get(kind, subject, key) {
+            None => {
+                return Err(format!(
+                    "nothing to supersede: no current {kind} {subject} {key} (use `fact add`)"
+                ))
+            }
+            Some(f) if f.value == value => {
+                return Err(format!("{kind} {subject} {key} already has this value"))
+            }
+            Some(_) => {}
+        }
+    }
+    let mut f = Fact::new(kind, subject, key, value, &provenance[0], k.next_seq());
+    f.provenance.extend(provenance.iter().cloned());
+    let batch = Knowledge::add(root, &[f.clone()]).map_err(|e| e.to_string())?;
+    let now = Knowledge::load(root);
+    let folded = now.get(kind, subject, key).cloned().unwrap_or(f);
+    Ok((batch, folded))
 }
 
 #[cfg(test)]
@@ -247,5 +370,26 @@ mod tests {
         let st = x.iter().find(|f| f.kind == FactKind::Statement).unwrap();
         assert_eq!(st.provenance.len(), 2);
         assert_eq!(decode(&encode(&x)).unwrap(), x);
+    }
+    #[test]
+    fn asserted_facts_require_provenance_and_a_legal_subject() {
+        let p = vec!["agent:session".to_string()];
+        assert!(validate(FactKind::Milestone, "milestone/v1", "status", "DONE", &p).is_ok());
+        assert!(validate(FactKind::Milestone, "gap/x", "status", "OPEN", &p).is_ok());
+        let err = validate(FactKind::Milestone, "milestone/v1", "status", "DONE", &[]).unwrap_err();
+        assert!(err.contains("provenance is mandatory"), "{err}");
+        assert!(validate(FactKind::Decision, "d", "status", "x", &["  ".to_string()]).is_err());
+        assert!(validate(FactKind::Milestone, "v1", "status", "DONE", &p).is_err());
+        assert!(validate(FactKind::Milestone, "milestone/", "status", "DONE", &p).is_err());
+        assert!(validate(FactKind::Decision, "", "status", "x", &p).is_err());
+        assert!(validate(FactKind::Decision, "d", "", "x", &p).is_err());
+        assert!(validate(FactKind::Decision, "d", "status", " ", &p).is_err());
+        for k in [
+            FactKind::Document,
+            FactKind::LegacyRecord,
+            FactKind::LegacyClaim,
+        ] {
+            assert!(validate(k, "x", "y", "z", &p).is_err(), "{k}");
+        }
     }
 }

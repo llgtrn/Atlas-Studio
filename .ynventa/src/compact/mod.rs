@@ -17,6 +17,7 @@
 pub mod codec;
 pub mod facts;
 pub mod history;
+pub mod view;
 
 use crate::digest::{hex, sha256};
 use std::path::Path;
