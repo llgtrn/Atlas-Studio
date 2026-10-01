@@ -1,10 +1,16 @@
 //! Executable shape validation: legal roots, canonical node placement, declared workspace
 //! members, owned code, the plane dependency order, research isolation, and untracked
 //! generated state.
+//!
+//! `repository_shape_conformance` = conformant units / units, where the units are the physical
+//! shape only: one per root entry, one per active node, and one failing unit per violation not
+//! tied to a root entry or a node (an undeclared workspace member, a directory of unowned code, a
+//! plane violation, research on the build path, tracked generated state, a forbidden container).
+//! Documents are not shape units: the document budget is measured by `documents_over_budget`,
+//! which is its own V1 gate row.
 
 use super::files::Files;
 use super::{check_canonical_path, role_of_path, role_spec, root_file_allowed, ROLES};
-use crate::audit::DocAudit;
 use crate::census::{is_excluded, Census};
 use crate::declare::Declaration;
 use crate::donors::NodeIndex;
@@ -34,7 +40,7 @@ const CODE_SUFFIXES: &[&str] = &[
     ".rs", ".ts", ".tsx", ".js", ".py", ".c", ".cc", ".cpp", ".go",
 ];
 
-pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -> ShapeReport {
+pub fn check(files: &Files, d: &Declaration, census: &Census) -> ShapeReport {
     let mut r = ShapeReport::default();
     let excluded = crate::census::excluded_roots(d);
     let legacy_shim = d
@@ -162,6 +168,7 @@ pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -
                 dir,
                 &format!("workspace package `{}` is not a declared node", m.package),
             ));
+            r.unit(false);
         }
     }
 
@@ -225,6 +232,7 @@ pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -
                 &from,
                 &format!("depends on research node `{to}`"),
             ));
+            r.unit(false);
             continue;
         }
         let test_like = scope == Scope::Test || matches!(fk, NodeKind::Test | NodeKind::Fixture);
@@ -245,6 +253,7 @@ pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -
                         .collect::<Vec<_>>()
                 ),
             ));
+            r.unit(false);
         }
     }
     for m in &census.members {
@@ -256,16 +265,12 @@ pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -
                     &m.dir,
                     "a research node is a workspace member",
                 ));
+                r.unit(false);
             }
         }
     }
 
-    // 6. Documents.
-    for doc in &docs.docs {
-        r.unit(doc.allowed);
-    }
-
-    // 7. Generated state is never tracked; generic containers never appear.
+    // 6. Generated state is never tracked; generic containers never appear.
     let tracked_generated: Vec<&String> = files
         .paths
         .iter()
@@ -283,6 +288,7 @@ pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -
                 tracked_generated.len()
             ),
         ));
+        r.unit(false);
     }
     for f in &files.paths {
         if !is_excluded(f, &excluded) && f.split('/').any(|s| s == "crates") {
@@ -292,6 +298,7 @@ pub fn check(files: &Files, d: &Declaration, census: &Census, docs: &DocAudit) -
                 f,
                 "`crates/` is never legal",
             ));
+            r.unit(false);
             break;
         }
     }

@@ -171,7 +171,7 @@ pub fn assess_core(
         &mut technology_findings,
     );
     let docs = audit::audit(&files, &declaration, &knowledge);
-    let shape = repository::shape::check(&files, &declaration, &census, &docs);
+    let shape = repository::shape::check(&files, &declaration, &census);
     let migration = migration::status(&files, &declaration, &analysis, &knowledge, &docs);
     overlay(&mut graph, &declaration, &census, &analysis);
 

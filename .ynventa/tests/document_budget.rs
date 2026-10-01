@@ -81,7 +81,9 @@ fn sprawl_is_classified_extracted_then_pruned() {
     assert!(issues(&a, "core/decisions/0001-old.md").contains(&Issue::Superseded));
     assert!(issues(&a, "core/architecture/overview.md").contains(&Issue::StaleArchitecture(2, 3)));
     assert_eq!(a.metric("documents_over_budget"), "7");
-    assert_ne!(a.metric("repository_shape_conformance"), "1.000000");
+    // Documents are not physical shape; the budget is its own V1 gate row.
+    assert_eq!(a.metric("repository_shape_conformance"), "1.000000");
+    assert!(!budget_gate(&a));
 
     // Pruning before extraction deletes nothing.
     assert_eq!(r.cli(&["compact", "--prune-docs"]).0, 0);
@@ -121,4 +123,113 @@ fn sprawl_is_classified_extracted_then_pruned() {
         .any(|f| f.value == "A new, unique remark."));
     assert_eq!(a.metric("documents_over_budget"), "0");
     assert_eq!(a.metric("repository_shape_conformance"), "1.000000");
+    assert!(budget_gate(&a));
+}
+
+/// The V1 gate row of the document budget: `documents_over_budget == 0`.
+fn budget_gate(a: &ynventa::Assessment) -> bool {
+    a.counts
+        .v1_gate()
+        .iter()
+        .find(|(m, want, _, _)| m == "documents_over_budget" && want == "0")
+        .expect("the document budget is a V1 gate row")
+        .3
+}
+
+#[test]
+fn shape_conformance_counts_physical_shape_not_documents() {
+    let r = extinct_baseline("shape-units");
+    let a = r.assess();
+    let roots = ynventa::repository::files::Files::scan(r.path())
+        .unwrap()
+        .root_entries()
+        .len() as u64;
+    // Clean: every root entry and each of the 4 active nodes is one conformant unit.
+    assert_eq!((a.shape.units, a.shape.conformant), (roots + 4, roots + 4));
+
+    // Documents over budget change the budget, never the shape.
+    r.write("core/NOTES.md", "# Notes\n\n- A remark about the kernel.\n");
+    r.write("tests/plan.md", "# Plan\n\n- A remark about the tests.\n");
+    r.write(
+        "substrate/geo/design.md",
+        "# Design\n\n- A remark about geometry.\n",
+    );
+    let a = r.assess();
+    assert_eq!(a.metric("documents_over_budget"), "3");
+    assert_eq!((a.shape.units, a.shape.conformant), (roots + 4, roots + 4));
+    assert_eq!(a.metric("repository_shape_conformance"), "1.000000");
+    assert!(!budget_gate(&a));
+
+    // Physical violations each cost one unit: an illegal root file (a root entry), an
+    // undeclared workspace member and its directory of unowned code (no root entry or node).
+    r.write("NOTES.txt", "scratch\n");
+    r.write(
+        "Cargo.toml",
+        "[workspace]\nresolver = \"2\"\nmembers = [\"core\", \"substrate/geo\", \"tests\", \"tools/gen\"]\n",
+    );
+    r.write(
+        "tools/gen/Cargo.toml",
+        "[package]\nname = \"gen\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    );
+    r.write("tools/gen/src/main.rs", "fn main() {}\n");
+    let a = r.assess();
+    for (code, subject) in [
+        ("ILLEGAL_ROOT_FILE", "NOTES.txt"),
+        ("UNDECLARED_MEMBER", "tools/gen"),
+        ("UNOWNED_CODE", "tools/gen/src"),
+    ] {
+        assert!(finding(&a, code, subject).is_some(), "{code} {subject}");
+    }
+    // Root entries: + NOTES.txt (illegal) + tools/ (a canonical role).
+    let units = (roots + 2) + 4 + 1 + 1;
+    let conformant = (roots + 1) + 4;
+    assert_eq!((a.shape.units, a.shape.conformant), (units, conformant));
+    assert_eq!(
+        a.metric("repository_shape_conformance"),
+        format!("{:.6}", conformant as f64 / units as f64)
+    );
+}
+
+#[test]
+fn decision_records_keep_the_paths_of_their_time() {
+    let r = extinct_baseline("decisions");
+    // `geo/` moved to `substrate/geo/`; every document below names only the old paths.
+    let old = "# Geometry lives at the root\n\nStatus: Accepted\n\n- See `geo/src/lib.rs` and `geo/Cargo.toml`.\n";
+    for p in [
+        ".atlas/decisions/0015-geo-root.md",
+        "docs/decisions/0002-geo.md",
+        "docs/ADR/use-planar-geo.md",
+        "core/adrs/0001-geo.md",
+    ] {
+        r.write(p, old);
+    }
+    r.write("docs/architecture/overview.md", old);
+    r.write("ARCHITECTURE.md", old);
+    r.write("docs/decisions/README.md", old);
+    let a = r.assess();
+    let stale = |p: &str| {
+        issues(&a, p)
+            .iter()
+            .any(|i| matches!(i, Issue::StaleArchitecture(2, 2)))
+    };
+    for p in [
+        ".atlas/decisions/0015-geo-root.md",
+        "docs/decisions/0002-geo.md",
+        "docs/ADR/use-planar-geo.md",
+        "core/adrs/0001-geo.md",
+    ] {
+        assert!(ynventa::audit::is_decision_record(p), "{p}");
+        assert!(!stale(p), "a decision record is history: {p}");
+    }
+    // Living documents that name the moved paths are stale, a decision index included.
+    for p in [
+        "docs/architecture/overview.md",
+        "ARCHITECTURE.md",
+        "docs/decisions/README.md",
+    ] {
+        assert!(!ynventa::audit::is_decision_record(p), "{p}");
+        assert!(stale(p), "living architecture must follow the move: {p}");
+    }
+    // Decision records are still in the document budget like any other document.
+    assert!(issues(&a, "docs/decisions/0002-geo.md").contains(&Issue::OverBudget));
 }

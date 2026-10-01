@@ -79,6 +79,26 @@ pub fn is_document(path: &str) -> bool {
     lower.ends_with(".md") || lower.ends_with(".markdown") || lower.ends_with(".mdx")
 }
 
+/// Directories whose documents are decision records (compared case-insensitively).
+pub const DECISION_RECORD_DIRS: &[&str] = &["decisions", "decision-records", "adr", "adrs"];
+
+/// Index documents of a decision directory: living navigation, not decision records.
+pub const DECISION_INDEX_NAMES: &[&str] = &["readme.md", "index.md", "_index.md"];
+
+/// The one definition of a decision record (an ADR): a document with a directory segment in
+/// [`DECISION_RECORD_DIRS`] (`.atlas/decisions/0015-x.md`, `docs/adr/0003-y.md`), other than
+/// that directory's index. A decision record is history: it keeps the paths of its time, so
+/// paths it names that were later moved are neither stale architecture nor stale references.
+pub fn is_decision_record(path: &str) -> bool {
+    let lower = path.to_ascii_lowercase();
+    let Some((dir, name)) = lower.rsplit_once('/') else {
+        return false;
+    };
+    is_document(&lower)
+        && !DECISION_INDEX_NAMES.contains(&name)
+        && dir.split('/').any(|s| DECISION_RECORD_DIRS.contains(&s))
+}
+
 fn allowed(path: &str, node_paths: &BTreeSet<String>) -> bool {
     if ALLOWED_DOCUMENTS.contains(&path) || path.starts_with(".github/") {
         return true;
@@ -258,10 +278,11 @@ pub fn audit(files: &Files, d: &Declaration, knowledge: &Knowledge) -> DocAudit 
         if segs.contains(&"census") {
             issues.push(Issue::CensusDescription);
         }
-        if segs
-            .iter()
-            .any(|s| matches!(*s, "architecture" | "blueprints" | "decisions" | "adr"))
-            || name == "architecture.md"
+        // Living architecture must name paths that exist; a decision record keeps its history.
+        if (segs.iter().any(|s| {
+            matches!(*s, "architecture" | "blueprints") || DECISION_RECORD_DIRS.contains(s)
+        }) || name == "architecture.md")
+            && !is_decision_record(p)
         {
             let refs = referenced_paths(text);
             let dead = refs.iter().filter(|r| !files.exists(r)).count() as u64;
@@ -317,7 +338,7 @@ pub fn extract(path: &str, text: &str, seq: u64) -> Vec<Fact> {
     let mut headings: Vec<String> = Vec::new();
     let mut in_code = false;
     let mut code = String::new();
-    let decision = path.split('/').any(|s| matches!(s, "decisions" | "adr"));
+    let decision = is_decision_record(path);
     let stem = path
         .rsplit('/')
         .next()

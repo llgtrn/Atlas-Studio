@@ -259,6 +259,8 @@ pub struct Materialization {
     pub source_digest: String,
     /// (destination path here, canonical source path in the birthplace, content digest)
     pub files: Vec<(String, String, String)>,
+    /// The consuming node (empty in locks written before the node was recorded).
+    pub node: String,
 }
 
 impl Materialization {
@@ -271,6 +273,10 @@ impl Materialization {
         for (a, b, c) in &self.files {
             e.str(a).str(b).str(c);
         }
+        // Trailing and optional, so locks written before it decode and re-encode unchanged.
+        if !self.node.is_empty() {
+            e.str(&self.node);
+        }
         e.finish()
     }
     pub fn decode(b: &[u8]) -> Result<Materialization, DecodeError> {
@@ -282,13 +288,37 @@ impl Materialization {
         for _ in 0..d.u64()? {
             files.push((d.str()?, d.str()?, d.str()?));
         }
+        let node = if d.end().is_ok() {
+            String::new()
+        } else {
+            d.str()?
+        };
         d.end()?;
         Ok(Materialization {
             technology,
             birthplace,
             source_digest,
             files,
+            node,
         })
+    }
+    /// The node owning this lock: the recorded one, or (for older locks) the deepest declared
+    /// physical node containing its first destination.
+    pub fn consumer<'a>(&'a self, d: &'a Declaration) -> Option<&'a str> {
+        if !self.node.is_empty() {
+            return Some(&self.node);
+        }
+        let dest = &self.files.first()?.0;
+        d.repository
+            .nodes
+            .iter()
+            .filter(|n| {
+                crate::schema::is_physical(n.kind)
+                    && !n.path.is_empty()
+                    && dest.starts_with(&format!("{}/", n.path))
+            })
+            .max_by_key(|n| n.path.len())
+            .map(|n| n.key.as_str())
     }
     pub fn load_all(root: &Path, unreadable: &mut Vec<String>) -> Vec<Materialization> {
         crate::compact::read_addressed(root, MATERIALIZED_DIR, unreadable)
@@ -305,12 +335,15 @@ impl Materialization {
 }
 
 /// Copies a technology's canonical sources from its birthplace shard into `into`, records the
-/// lock, and returns it. The consumer compiles the sources natively; nothing runs remotely.
+/// lock for the consuming `node` of `to` (the declaration here), and returns it. The consumer
+/// compiles the sources natively; nothing runs remotely.
 pub fn materialize(
     from_root: &Path,
-    from: &crate::declare::Declaration,
+    from: &Declaration,
     key: &str,
     to_root: &Path,
+    to: &Declaration,
+    node: &str,
     into: &str,
 ) -> Result<Materialization, String> {
     let t = from
@@ -336,9 +369,11 @@ pub fn materialize(
         birthplace: from.repository.shard.clone(),
         source_digest: source_digest(&files, t),
         files: out,
+        node: node.to_string(),
     };
-    // A re-materialization supersedes the earlier lock of the same technology at the same
-    // destinations; left in place, the old lock would call the fresh copy a fork.
+    // A re-materialization supersedes every earlier lock of the same technology at the same
+    // destinations or for the same consuming node: left in place, an old lock would call the
+    // fresh copy a fork, or name a copy that was moved or replaced as missing.
     for (name, bytes) in crate::compact::read_addressed(to_root, MATERIALIZED_DIR, &mut Vec::new())
     {
         if let Ok(old) = Materialization::decode(&bytes) {
@@ -346,7 +381,8 @@ pub fn materialize(
                 .files
                 .iter()
                 .any(|(d, _, _)| m.files.iter().any(|(n, _, _)| n == d));
-            if old.technology == m.technology && overlaps {
+            let same_node = old.consumer(to) == Some(node);
+            if old.technology == m.technology && (overlaps || same_node) {
                 std::fs::remove_file(to_root.join(MATERIALIZED_DIR).join(&name))
                     .map_err(|e| e.to_string())?;
             }
@@ -355,6 +391,37 @@ pub fn materialize(
     crate::compact::write_addressed(to_root, MATERIALIZED_DIR, &m.encode())
         .map_err(|e| e.to_string())?;
     Ok(m)
+}
+
+/// Re-addresses every lock whose destinations `relocate` maps elsewhere (a node moved): the
+/// lock is re-encoded with the new destinations and the old file removed, so a moved copy keeps
+/// verifying without re-materialization. Returns the technologies whose locks moved.
+pub fn relocate_locks(
+    root: &Path,
+    relocate: impl Fn(&str) -> String,
+) -> Result<Vec<String>, String> {
+    let mut moved = Vec::new();
+    for (name, bytes) in crate::compact::read_addressed(root, MATERIALIZED_DIR, &mut Vec::new()) {
+        let Ok(mut m) = Materialization::decode(&bytes) else {
+            continue;
+        };
+        let mut changed = false;
+        for (dest, _, _) in m.files.iter_mut() {
+            let new = relocate(dest);
+            if new != *dest {
+                *dest = new;
+                changed = true;
+            }
+        }
+        if changed {
+            crate::compact::write_addressed(root, MATERIALIZED_DIR, &m.encode())
+                .map_err(|e| format!("write lock of {}: {e}", m.technology))?;
+            std::fs::remove_file(root.join(MATERIALIZED_DIR).join(&name))
+                .map_err(|e| format!("remove {MATERIALIZED_DIR}/{name}: {e}"))?;
+            moved.push(m.technology);
+        }
+    }
+    Ok(moved)
 }
 
 /// A materialized copy edited locally is a silent fork: an error until it is re-materialized or
@@ -373,5 +440,31 @@ pub fn check_materialized(files: &Files, locks: &[Materialization], findings: &m
                 _ => {}
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_lock_without_a_node_keeps_its_encoding() {
+        let mut m = Materialization {
+            technology: "hash.digest".into(),
+            birthplace: "mechatron".into(),
+            source_digest: "sha256:00".into(),
+            files: vec![(
+                "geo/src/tech/d.rs".into(),
+                "core/src/d.rs".into(),
+                "c".into(),
+            )],
+            node: String::new(),
+        };
+        let legacy = m.encode();
+        assert_eq!(Materialization::decode(&legacy).unwrap(), m);
+        m.node = "geo".into();
+        let current = m.encode();
+        assert!(current.starts_with(&legacy) && current.len() > legacy.len());
+        assert_eq!(Materialization::decode(&current).unwrap(), m);
     }
 }

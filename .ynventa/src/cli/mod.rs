@@ -616,6 +616,14 @@ fn compact_cmd(args: &Args) -> Out {
         }
     }
     s.push_str(&format!("evidence: pruned {pruned} stale records\n"));
+    // A record whose locator no longer names a declared proof is history, not evidence.
+    let commit = crate::repository::files::head_commit(root).unwrap_or_default();
+    let (retired, file) =
+        evidence::retire(root, &a.declaration, &commit).map_err(|e| e.to_string())?;
+    s.push_str(&format!(
+        "evidence: retired {retired} records of undeclared proofs into history -> {}\n",
+        file.unwrap_or_else(|| "(none)".into())
+    ));
     if args.flag("--prune-docs") {
         // Judge extraction on the knowledge as it is now, including what was just extracted.
         let a = assess(root)?;
@@ -1006,19 +1014,52 @@ fn migrate(args: &Args) -> Out {
                     for w in &waves {
                         s.push_str(&format!("{} {}: {}\n", w.key, w.status, w.nodes.join(", ")));
                     }
+                    if waves.is_empty() {
+                        // Nothing new to plan is not the same as nothing left to move.
+                        let pending = migration::pathmap::pending(&d);
+                        let n: usize = pending.iter().map(|(_, m)| m.len()).sum();
+                        if n == 0 {
+                            s.push_str("nothing to plan: every node is at its canonical path\n");
+                        } else {
+                            s.push_str(&format!(
+                                "nothing new to plan: {}, each already in a wave\n",
+                                if n == 1 {
+                                    "1 node is not at its canonical path".to_string()
+                                } else {
+                                    format!("{n} nodes are not at their canonical paths")
+                                }
+                            ));
+                            for (w, ms) in &pending {
+                                let nodes: Vec<String> = ms
+                                    .iter()
+                                    .map(|m| {
+                                        format!(
+                                            "{} ({} -> {})",
+                                            m.node, m.legacy_path, m.canonical_path
+                                        )
+                                    })
+                                    .collect();
+                                let state = if w.status == crate::schema::WaveStatus::Applied {
+                                    "marked APPLIED but unfinished"
+                                } else {
+                                    "pending"
+                                };
+                                s.push_str(&format!(
+                                    "{state} {} {}: {}\n",
+                                    w.key,
+                                    w.status,
+                                    nodes.join(", ")
+                                ));
+                            }
+                            s.push_str("apply each with `ynventa migrate apply <wave>`\n");
+                        }
+                    }
                     if args.flag("--write") && !waves.is_empty() {
                         d.migration.waves.extend(waves);
                         declare::store(root, &d).map_err(|e| e.to_string())?;
                         s.push_str("waves written to .ynventa/declared/migration.rs\n");
                     }
-                    Ok((
-                        0,
-                        if s.is_empty() {
-                            "nothing to plan: every node is at its canonical path\n".into()
-                        } else {
-                            s
-                        },
-                    ))
+                    Ok((0, s))
                 }
                 _ => {
                     let wave = args.positional.get(1).ok_or("migrate apply <wave>")?;
@@ -1032,9 +1073,36 @@ fn migrate(args: &Args) -> Out {
                     for m in &r.manifests {
                         s.push_str(&format!("rewrote {m}\n"));
                     }
+                    for t in &r.locks {
+                        s.push_str(&format!("relocated materialization lock of {t}\n"));
+                    }
+                    for w in &r.declared {
+                        s.push_str(&format!(
+                            "declared {} `{}` {}: {} -> {}\n",
+                            w.owner, w.key, w.field, w.before, w.after
+                        ));
+                    }
+                    let mut reprove: Vec<&str> = r
+                        .declared
+                        .iter()
+                        .filter(|w| w.field == "proof" || w.field == "source")
+                        .map(|w| w.key.as_str())
+                        .collect();
+                    reprove.sort();
+                    reprove.dedup();
+                    if !reprove.is_empty() {
+                        s.push_str(&format!(
+                            "evidence recorded under the old locators stays history and proves nothing for the new ones; re-prove: {}\n",
+                            reprove
+                                .iter()
+                                .map(|k| format!("`ynventa prove {k}`"))
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        ));
+                    }
                     for (f, p) in &r.stale_references {
                         s.push_str(&format!(
-                            "stale reference to `{p}` in {f} (fix within this wave)\n"
+                            "stale reference to {p} in {f} (fix within this wave)\n"
                         ));
                     }
                     s.push_str(&format!("wave {wave} APPLIED; node ids unchanged\n"));
@@ -1332,13 +1400,16 @@ fn technology(args: &Args) -> Out {
                 ))
             };
             let before = snapshot(&d)?;
+            if d.node(node).is_none() {
+                return Err(format!("no node `{node}` here"));
+            }
+            let m = crate::technology::materialize(&from, &fd, key, &args.root, &d, node, into)?;
             let n = d
                 .repository
                 .nodes
                 .iter_mut()
                 .find(|n| n.key == node)
                 .ok_or(format!("no node `{node}` here"))?;
-            let m = crate::technology::materialize(&from, &fd, key, &args.root, into)?;
             if !n.reuses.contains(key) {
                 n.reuses.push(key.clone());
                 n.reuses.sort();

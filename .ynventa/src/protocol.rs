@@ -202,6 +202,11 @@ pub fn schema_text() -> String {
     ));
     s.push_str("documents_allowed_pattern <node path>/README.md,.github/**\n");
     s.push_str(&format!(
+        "decision_records documents under a {} directory, except {} (case-insensitive); history, never stale\n",
+        crate::audit::DECISION_RECORD_DIRS.join("|"),
+        crate::audit::DECISION_INDEX_NAMES.join("|")
+    ));
+    s.push_str(&format!(
         "platform_libraries {}\n",
         crate::donors::PLATFORM_LIBRARIES.join(",")
     ));
