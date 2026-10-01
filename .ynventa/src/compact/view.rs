@@ -33,6 +33,23 @@ pub fn clip(v: &str, max: usize) -> String {
     }
 }
 
+/// Where a fact comes from, compactly, as a trailing ` — <provenance>`: its first provenance
+/// and how many more it has. A `git:<sha>:<path>…` provenance twinned with the same
+/// `doc:<path>…` one is not counted again.
+pub fn provenance_brief(f: &Fact) -> String {
+    let twin = |p: &str| {
+        p.strip_prefix("git:")
+            .and_then(|r| r.split_once(':'))
+            .is_some_and(|(_, rest)| f.provenance.contains(&format!("doc:{rest}")))
+    };
+    let ps: Vec<&String> = f.provenance.iter().filter(|p| !twin(p)).collect();
+    match ps.split_first() {
+        None => String::new(),
+        Some((first, [])) => format!(" — {first}"),
+        Some((first, rest)) => format!(" — {first} (+{} more)", rest.len()),
+    }
+}
+
 /// Current facts of one kind grouped by subject, subjects in roadmap order for MILESTONE
 /// (milestones before gaps, then numeric `rank`, then subject) and by subject otherwise; the
 /// keys of a subject in [`LEADING_KEYS`] order.
@@ -145,13 +162,14 @@ pub fn markdown(k: &Knowledge, kind: Option<FactKind>) -> String {
                     format!("**{}**: ", f.key)
                 };
                 s.push_str(&format!(
-                    "- {label}{}{}\n",
+                    "- {label}{}{}{}\n",
                     one_line(&f.value),
                     if f.superseded.is_empty() {
                         String::new()
                     } else {
                         format!(" _(supersedes {})_", f.superseded.len())
-                    }
+                    },
+                    provenance_brief(f)
                 ));
             }
         }
@@ -171,10 +189,10 @@ pub fn text(k: &Knowledge, kind: Option<FactKind>) -> String {
     s
 }
 
-/// One fact on one line, with its provenance and supersession counts.
+/// One fact on one line, with its provenance and supersession counts and where it comes from.
 pub fn line(f: &Fact) -> String {
     format!(
-        "{} {} {} = {}  [seq {}, {} provenance{}]\n",
+        "{} {} {} = {}  [seq {}, {} provenance{}]{}\n",
         f.kind,
         if f.subject.is_empty() {
             "-"
@@ -189,6 +207,7 @@ pub fn line(f: &Fact) -> String {
             String::new()
         } else {
             format!(", supersedes {}", f.superseded.len())
-        }
+        },
+        provenance_brief(f)
     )
 }

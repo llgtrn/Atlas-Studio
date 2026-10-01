@@ -274,7 +274,7 @@ fn view_writes_nothing_under_ynventa() {
     let (_, only) = r.cli(&["knowledge", "view", "--kind", "DECISION", "--text"]);
     assert_eq!(
         only,
-        "DECISION 0001-pages status = Accepted  [seq 2, 1 provenance]\n"
+        "DECISION 0001-pages status = Accepted  [seq 2, 1 provenance] — agent:t\n"
     );
     assert_eq!(before, tree(r.path()), "a view to stdout writes nothing");
 
@@ -393,4 +393,51 @@ fn extraction_provenance_names_the_checked_out_commit() {
         st.provenance
     );
     assert!(st.provenance.contains("doc:docs/plan.md#L3-L4"));
+}
+
+#[test]
+fn views_show_where_each_fact_comes_from() {
+    let r = extinct_baseline("knowledge-provenance");
+    let sha = "89abcdef0123456789abcdef0123456789abcdef";
+    r.write(".git/HEAD", "ref: refs/heads/main\n");
+    r.write(".git/refs/heads/main", &format!("{sha}\n"));
+    r.write("docs/plan.md", "# Plan\n\n- One step that\n  wraps.\n");
+    assert_eq!(r.cli(&["knowledge", "extract", "docs/plan.md"]).0, 0);
+    let (code, out) = r.cli(&[
+        "fact",
+        "add",
+        "MILESTONE",
+        "milestone/v1",
+        "status",
+        "DONE",
+        "--provenance",
+        "agent:a",
+        "--provenance",
+        "agent:b",
+    ]);
+    assert_eq!(code, 0, "{out}");
+
+    let (_, md) = r.cli(&["knowledge", "view"]);
+    // The git provenance twin of a doc provenance is not repeated.
+    assert!(
+        md.contains("- One step that wraps. — doc:docs/plan.md#L3-L4\n"),
+        "{md}"
+    );
+    assert!(
+        md.contains("- **status**: DONE — agent:a (+1 more)\n"),
+        "{md}"
+    );
+    let (_, text) = r.cli(&["knowledge", "view", "--text"]);
+    assert!(
+        text.contains("[seq 1, 2 provenance] — doc:docs/plan.md#L3-L4\n"),
+        "{text}"
+    );
+    // The generated VIEW.md says it too.
+    assert_eq!(r.cli(&["compact"]).0, 0);
+    let view = r.read("target/ynventa/VIEW.md");
+    assert!(
+        view.contains("One step that wraps. — doc:docs/plan.md#L3-L4\n"),
+        "{view}"
+    );
+    assert!(view.contains("DONE — agent:a (+1 more)\n"), "{view}");
 }

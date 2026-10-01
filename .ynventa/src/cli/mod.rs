@@ -604,37 +604,11 @@ fn compact_cmd(args: &Args) -> Out {
         kw.unwrap_or_else(|| "(empty)".into()),
         hw.unwrap_or_else(|| "(empty)".into())
     ));
-    // Evidence: a stale record is dropped once a fresh record of the same proof exists.
-    let mut pruned = 0;
-    for dn in &a.declaration.donors {
-        for c in &dn.capabilities {
-            let Some(subject) = &c.replacement else {
-                continue;
-            };
-            for p in &c.proofs {
-                let (pd, sd) = evidence::current_digests(&a.files, &a.declaration, p, subject);
-                let Some(records) = a.evidence.records.get(&p.locator) else {
-                    continue;
-                };
-                let fresh = |r: &evidence::Record| r.proof_digest == pd && r.subject_digest == sd;
-                if records.iter().any(fresh) {
-                    for r in records.iter().filter(|r| !fresh(r)) {
-                        let name = format!(
-                            "{}.ynv",
-                            &crate::digest::hex(&crate::digest::sha256(&r.encode()))[..32]
-                        );
-                        if std::fs::remove_file(root.join(evidence::EVIDENCE_DIR).join(name))
-                            .is_ok()
-                        {
-                            pruned += 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // Evidence: a stale record is dropped once a fresh record of the same evidence key
+    // (locator, subject) exists.
+    let pruned = evidence::prune_stale(root, &a.files, &a.declaration, &a.evidence);
     s.push_str(&format!("evidence: pruned {pruned} stale records\n"));
-    // A record whose locator no longer names a declared proof is history, not evidence.
+    // A record whose (locator, subject) no longer names a declared proof is history, not evidence.
     let commit = crate::repository::files::head_commit(root).unwrap_or_default();
     let (retired, file) =
         evidence::retire(root, &a.declaration, &commit).map_err(|e| e.to_string())?;
@@ -941,7 +915,7 @@ pub fn view(a: &Assessment) -> String {
         .filter(|f| f.kind != crate::schema::FactKind::Document)
     {
         s.push_str(&format!(
-            "- {} {} {}: {}{}\n",
+            "- {} {} {}: {}{}{}\n",
             f.kind,
             f.subject,
             f.key,
@@ -950,7 +924,8 @@ pub fn view(a: &Assessment) -> String {
                 String::new()
             } else {
                 format!(" (supersedes {})", f.superseded.len())
-            }
+            },
+            compact::view::provenance_brief(f)
         ));
     }
     s

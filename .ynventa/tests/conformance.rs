@@ -20,17 +20,62 @@ fn protocol_snapshot_is_current() {
     assert_eq!(current.version, ynventa::YNVENTA_PROTOCOL_VERSION);
 }
 
+/// Runs in every repository carrying `.ynventa/tests`: the template shard must meet V1 with no
+/// error finding; a product shard must conform to the protocol (its V1 gate is its target).
 #[test]
 fn dogfood_repository_conforms() {
     let a = ynventa::assess(&ynventa::default_root()).unwrap();
-    let checks = ynventa::conformance::protocol_checks(&a, None);
-    let failed: Vec<_> = checks.iter().filter(|c| !c.pass).collect();
-    assert!(failed.is_empty(), "{failed:#?}");
-    assert!(a.errors().next().is_none(), "{:#?}", a.findings);
+    let failures = ynventa::conformance::self_conformance(&a);
+    assert!(failures.is_empty(), "{failures:#?}");
+    if ynventa::conformance::is_template(&a.declaration) {
+        assert!(a.errors().next().is_none(), "{:#?}", a.findings);
+        assert!(a.counts.v1_gate().iter().all(|(_, _, _, pass)| *pass));
+    }
+}
+
+#[test]
+fn self_conformance_asserts_v1_only_in_the_template_shard() {
+    let r = extinct_baseline("self-conformance");
+    assert_eq!(r.cli(&["migrate", "scaffold"]).0, 0);
+    // A product shard short of V1: its proofs are not yet recorded, and it claims no more.
+    r.remove(".ynventa/evidence");
+    r.edit(|d| d.donors[0].claimed = DonorState::NativeShadow);
+    let a = r.assess();
+    assert_ne!(a.declaration.repository.shard, "ynventa");
+    assert!(!ynventa::conformance::is_template(&a.declaration));
     assert!(
-        a.counts.v1_gate().iter().all(|(_, _, _, pass)| *pass),
-        "{:#?}",
-        a.counts.v1_gate()
+        !a.counts.v1_gate().iter().all(|(_, _, _, pass)| *pass),
+        "the fixture is short of V1"
+    );
+    let product = ynventa::conformance::self_conformance(&a);
+    assert!(product.is_empty(), "a product shard conforms: {product:#?}");
+    // A broken protocol check fails a product shard too.
+    let lib = r.read(".ynventa/src/extinction/mod.rs");
+    r.write(".ynventa/src/extinction/mod.rs", &format!("{lib}\n"));
+    let broken = ynventa::conformance::self_conformance(&r.assess());
+    assert!(
+        broken
+            .iter()
+            .any(|f| f.starts_with("check protocol.subsystem_integrity")),
+        "{broken:#?}"
+    );
+    r.write(".ynventa/src/extinction/mod.rs", &lib);
+
+    // The same state in the template shard falls short: there V1 is asserted.
+    r.edit(|d| d.repository.shard = "ynventa".into());
+    let a = r.assess();
+    assert!(ynventa::conformance::is_template(&a.declaration));
+    let template = ynventa::conformance::self_conformance(&a);
+    assert!(
+        template.iter().any(|f| f.starts_with("V1 gate ")),
+        "{template:#?}"
+    );
+    // Proven, the template shard meets V1.
+    r.prove();
+    let proven = ynventa::conformance::self_conformance(&r.assess());
+    assert!(
+        !proven.iter().any(|f| f.starts_with("V1 gate ")),
+        "{proven:#?}"
     );
 }
 
@@ -479,4 +524,22 @@ fn a_program_donor_already_named_for_its_project_is_registered_in_place() {
         "{:#?}",
         a.findings
     );
+}
+
+#[test]
+fn namespace_programs_are_one_util_linux_donor() {
+    let r = extinct_baseline("namespace-programs");
+    r.write(
+        "core/src/lib.rs",
+        "pub fn id() -> u64 { 1 }\npub fn isolate() {\n    let _ = std::process::Command::new(\"nsenter\").status();\n    let _ = std::process::Command::new(\"unshare\").status();\n}\n",
+    );
+    let (code, out) = r.cli(&["migrate", "register"]);
+    assert_eq!(code, 0, "{out}");
+    let d = r.declaration();
+    let ul = d.donor("native-util-linux").expect("{out}");
+    assert_eq!(ul.claimed, DonorState::Registered);
+    assert_eq!(ul.license, "GPL-2.0-or-later");
+    let progs: Vec<&str> = ul.packages.iter().map(|p| p.name.as_str()).collect();
+    assert_eq!(progs, vec!["nsenter", "unshare"]);
+    assert!(d.donor("native-unshare").is_none() && d.donor("native-nsenter").is_none());
 }

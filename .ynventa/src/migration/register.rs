@@ -291,6 +291,12 @@ pub const PROGRAMS: &[Program] = &[
         licence: "GPL-2.0-or-later",
     },
     Program {
+        program: "unshare",
+        project: "util-linux",
+        origin: "https://github.com/util-linux/util-linux",
+        licence: "GPL-2.0-or-later",
+    },
+    Program {
         program: "git",
         project: "git",
         origin: "https://github.com/git/git",

@@ -355,6 +355,42 @@ pub fn probes() -> Vec<Check> {
     v
 }
 
+/// The shard whose `.ynventa/` is the canonical source of the subsystem; every other shard
+/// carries an installed, byte-identical copy.
+pub const TEMPLATE_SHARD: &str = "ynventa";
+
+/// Whether a declaration is the template shard's.
+pub fn is_template(d: &declare::Declaration) -> bool {
+    d.repository.shard == TEMPLATE_SHARD
+}
+
+/// What the subsystem's own test suite requires of the repository carrying it (its
+/// `dogfood_repository_conforms` runs in every repository with `.ynventa/tests`). Every
+/// repository: the protocol checks. The template shard also: no error finding and the full V1
+/// gate. A product shard's V1 gate is its target, not its current state, and is not asserted.
+/// Returns the failures; empty when the repository conforms.
+pub fn self_conformance(a: &Assessment) -> Vec<String> {
+    let mut out: Vec<String> = protocol_checks(a, None)
+        .into_iter()
+        .filter(|c| !c.pass)
+        .map(|c| format!("check {}: {}", c.id, c.detail))
+        .collect();
+    if is_template(&a.declaration) {
+        out.extend(
+            a.errors()
+                .map(|f| format!("error finding {} {}: {}", f.code, f.subject, f.detail)),
+        );
+        out.extend(
+            a.counts
+                .v1_gate()
+                .into_iter()
+                .filter(|(_, _, _, pass)| !pass)
+                .map(|(k, want, got, _)| format!("V1 gate {k} = {got} (required {want})")),
+        );
+    }
+    out
+}
+
 pub struct Suite {
     pub checks: Vec<Check>,
 }

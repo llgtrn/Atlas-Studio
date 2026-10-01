@@ -1,9 +1,10 @@
 //! Proof evidence. A proof record binds a result to the exact bytes it judged: the proof file and
 //! the replacement node's tree. When either changes, the record is stale and proves nothing.
 //! Records are content-addressed files in `.ynventa/evidence/`, so concurrent branches never
-//! conflict. A record whose locator no longer names any declared proof (its proof was moved or
-//! dropped) is retired by `compact` into a history file in the same directory: kept with its
-//! provenance, never counted as evidence again.
+//! conflict. Evidence is keyed by `(locator, subject)`: one test may prove several subjects. A
+//! record whose key no longer names any declared proof (its proof was moved or dropped, or no
+//! longer judges that subject) is retired by `compact` into a history file in the same
+//! directory: kept with its provenance, never counted as evidence again.
 
 use crate::compact::codec::{DecodeError, Decoder, Encoder};
 use crate::declare::{Declaration, Proof};
@@ -341,36 +342,79 @@ impl Runner for CargoRunner {
     }
 }
 
-/// Every locator a declared proof names: donor capabilities' proofs, technologies' proofs and
-/// their claims' evidence.
-pub fn declared_locators(d: &Declaration) -> BTreeSet<String> {
-    let donors = d
-        .donors
-        .iter()
-        .flat_map(|dn| &dn.capabilities)
-        .flat_map(|c| &c.proofs);
-    let technologies = d.technologies.iter().flat_map(|t| {
-        t.proofs
+/// Every declared proof with the subject it judges, as `(proof, subject)`: donor capabilities'
+/// proofs judge their replacement node (a capability without one has no subject and nothing to
+/// record), technologies' proofs and claims' evidence judge `technology/<key>`.
+pub fn declared_proofs(d: &Declaration) -> Vec<(&Proof, String)> {
+    let mut out = Vec::new();
+    for c in d.donors.iter().flat_map(|dn| &dn.capabilities) {
+        if let Some(subject) = &c.replacement {
+            out.extend(c.proofs.iter().map(|p| (p, subject.clone())));
+        }
+    }
+    for t in &d.technologies {
+        let subject = format!("technology/{}", t.key);
+        for p in t
+            .proofs
             .iter()
             .chain(t.claims.iter().flat_map(|c| c.evidence.iter()))
-    });
-    donors
-        .chain(technologies)
-        .map(|p| p.locator.clone())
+        {
+            out.push((p, subject.clone()));
+        }
+    }
+    out
+}
+
+/// The evidence keys of every declared proof: `(locator, subject)`. One locator can prove
+/// several subjects (one test shared by two replacement nodes); a record counts only for its own.
+pub fn declared_keys(d: &Declaration) -> BTreeSet<(String, String)> {
+    declared_proofs(d)
+        .into_iter()
+        .map(|(p, s)| (p.locator.clone(), s))
         .collect()
 }
 
-/// Retires every record whose locator names no declared proof: it is folded, with its
+/// Removes every stale record of a declared proof once a fresh record of the same evidence key
+/// `(locator, subject)` exists. Records of another subject under the same locator are never
+/// judged against this subject's bytes, so no verdict changes. Returns the records removed.
+pub fn prune_stale(root: &Path, files: &Files, d: &Declaration, store: &Store) -> usize {
+    let mut done = BTreeSet::new();
+    let mut pruned = 0;
+    for (p, subject) in declared_proofs(d) {
+        if !done.insert((p.locator.clone(), subject.clone())) {
+            continue;
+        }
+        let Some(records) = store.records.get(&p.locator) else {
+            continue;
+        };
+        let (pd, sd) = current_digests(files, d, p, &subject);
+        let own: Vec<&Record> = records.iter().filter(|r| r.subject == subject).collect();
+        let fresh = |r: &Record| !sd.is_empty() && r.proof_digest == pd && r.subject_digest == sd;
+        if !own.iter().any(|r| fresh(r)) {
+            continue;
+        }
+        for r in own.into_iter().filter(|r| !fresh(r)) {
+            let file = root.join(EVIDENCE_DIR).join(address(&r.encode()));
+            if std::fs::remove_file(file).is_ok() {
+                pruned += 1;
+            }
+        }
+    }
+    pruned
+}
+
+/// Retires every record whose evidence key `(locator, subject)` names no declared proof (its
+/// proof was moved or dropped, or no longer judges that subject): it is folded, with its
 /// provenance, into one history file (earlier history files are folded in too) and its own file
-/// is removed. Records of declared proofs are untouched, so no verdict changes. Returns
-/// (records retired, history file).
+/// is removed. A record stays evidence while any declared proof of its locator judges its
+/// subject, so no verdict changes. Returns (records retired, history file).
 pub fn retire(
     root: &Path,
     d: &Declaration,
     commit: &str,
 ) -> std::io::Result<(usize, Option<String>)> {
     let store = Store::load(root);
-    let declared = declared_locators(d);
+    let declared = declared_keys(d);
     let seq = store
         .retired
         .iter()
@@ -379,20 +423,18 @@ pub fn retire(
         .map_or(1, |m| m + 1);
     let mut rows = store.retired.clone();
     let mut retiring = Vec::new();
-    for (locator, records) in &store.records {
-        if declared.contains(locator) {
+    for r in store.records.values().flatten() {
+        if declared.contains(&(r.locator.clone(), r.subject.clone())) {
             continue;
         }
-        for r in records {
-            let address = address(&r.encode());
-            retiring.push(address.clone());
-            rows.push(Retired {
-                seq,
-                commit: commit.to_string(),
-                address,
-                record: r.clone(),
-            });
-        }
+        let address = address(&r.encode());
+        retiring.push(address.clone());
+        rows.push(Retired {
+            seq,
+            commit: commit.to_string(),
+            address,
+            record: r.clone(),
+        });
     }
     let history = |f: &String| format!("{EVIDENCE_DIR}/{f}");
     if retiring.is_empty() && store.retired_files.len() <= 1 {

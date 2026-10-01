@@ -742,6 +742,87 @@ fn compact_retires_evidence_of_undeclared_locators_into_history() {
     assert_eq!(verdicts(&r), before);
 }
 
+/// Records of one locator, as (subject, passed), sorted.
+fn records_of(r: &Repo, locator: &str) -> Vec<(String, bool)> {
+    let store = ynventa::evidence::Store::load(r.path());
+    let mut v: Vec<(String, bool)> = store
+        .records
+        .get(locator)
+        .into_iter()
+        .flatten()
+        .map(|x| (x.subject.clone(), x.passed))
+        .collect();
+    v.sort();
+    v
+}
+
+#[test]
+fn compact_keeps_evidence_of_every_subject_sharing_a_locator() {
+    use ynventa::evidence::Verdict;
+    const SHARED: &str = "tests/tests/parity.rs::distance_matches_donor";
+    let r = extinct_baseline("shared-locator");
+    // A second donor whose capability is replaced by another node, proven by the same test.
+    r.edit(|d| {
+        let mut second = donor("proj", "proj");
+        second.capabilities[0].replacement = Some("core".into());
+        second.capabilities[0].proofs.truncate(1);
+        assert_eq!(second.capabilities[0].proofs[0].locator, SHARED);
+        d.donors.push(second);
+    });
+    r.prove();
+    // The proof file changes: every record of the shared locator goes stale; re-proving records
+    // fresh ones for both subjects beside the stale ones.
+    r.write(
+        "tests/tests/parity.rs",
+        &format!(
+            "{}// one more frozen case to come\n",
+            r.read("tests/tests/parity.rs")
+        ),
+    );
+    r.prove();
+    let before = verdicts(&r);
+    assert_eq!(
+        before.get(&("geo".to_string(), SHARED.to_string())),
+        Some(&Verdict::Pass)
+    );
+    assert_eq!(
+        before.get(&("proj".to_string(), SHARED.to_string())),
+        Some(&Verdict::Pass)
+    );
+    let proven_before = r.assess().counts.values();
+    assert_eq!(
+        records_of(&r, SHARED).len(),
+        4,
+        "{:?}",
+        records_of(&r, SHARED)
+    );
+
+    let (code, out) = r.cli(&["compact"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("evidence: pruned 2 stale records"), "{out}");
+    assert!(out.contains("evidence: retired 0 records"), "{out}");
+    assert_eq!(
+        records_of(&r, SHARED),
+        vec![("core".to_string(), true), ("geo".to_string(), true)],
+        "each subject keeps its fresh passing record"
+    );
+    assert_eq!(verdicts(&r), before, "no verdict changes");
+    assert_eq!(r.assess().counts.values(), proven_before);
+    // Compacting again changes nothing.
+    let (_, out) = r.cli(&["compact"]);
+    assert!(out.contains("evidence: pruned 0 stale records"), "{out}");
+    assert_eq!(verdicts(&r), before);
+
+    // Once no declared proof judges `core` with that locator, its record is history; the other
+    // subject's record of the same locator stays evidence.
+    r.edit(|d| d.donors.retain(|x| x.key != "proj"));
+    let before = verdicts(&r);
+    let (_, out) = r.cli(&["compact"]);
+    assert!(out.contains("evidence: retired 1 records"), "{out}");
+    assert_eq!(records_of(&r, SHARED), vec![("geo".to_string(), true)]);
+    assert_eq!(verdicts(&r), before);
+}
+
 #[test]
 fn planning_names_misplaced_nodes_whose_waves_are_pending() {
     let r = legacy_geo("pending-plan");
