@@ -27,10 +27,13 @@ pub enum FactKind {
     LegacyRecord,
     Document,
     Milestone,
+    /// One verbatim block of an extracted document (heading, paragraph, list, code, table, ...),
+    /// keyed by its position: a document's blocks rebuild it byte for byte.
+    Block,
 }
 
 impl FactKind {
-    const ALL: [FactKind; 7] = [
+    const ALL: [FactKind; 8] = [
         FactKind::Statement,
         FactKind::Definition,
         FactKind::Decision,
@@ -38,6 +41,7 @@ impl FactKind {
         FactKind::LegacyRecord,
         FactKind::Document,
         FactKind::Milestone,
+        FactKind::Block,
     ];
 }
 
@@ -294,6 +298,20 @@ pub(crate) mod tests {
         let mut wrong_tag = bytes.clone();
         wrong_tag[4] = 3;
         assert!(decode(&wrong_tag).is_err(), "not a knowledge record");
+        assert_eq!(
+            decode(&encode(&[(
+                7,
+                ".atlas/README.md",
+                "00000",
+                "h1 # A",
+                &[],
+                3
+            )]))
+            .unwrap()[0]
+                .kind,
+            FactKind::Block,
+            "a lossless extraction's BLOCK facts are rank 7"
+        );
         assert!(
             decode(&encode(&[(9, "s", "k", "v", &[], 1)])).is_err(),
             "unknown kind rank"
