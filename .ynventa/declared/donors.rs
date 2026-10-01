@@ -417,10 +417,10 @@
         name: "Clair",
         origin: "https://github.com/quay/clair.git",
         license: "file:.atlas/licenses/donors/clair/LICENSE file:.atlas/licenses/donors/clair/NOTICE",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/security/clair"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "security",
@@ -445,7 +445,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#clair"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/security/clair (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#clair",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/security/clair",
+            "origin:.atlas/provenance/donors/clair.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/security/clair at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/quay/clair.git@c9ac9a0aa5651670a690854fc2c12adfc951243f compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "clef",
@@ -613,10 +620,10 @@
         name: "Cytoscape.js",
         origin: "https://github.com/cytoscape/cytoscape.js.git",
         license: "file:.atlas/licenses/cytoscape-js/LICENSE file:.atlas/licenses/cytoscape-js/license-update.mjs",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/cytoscape-js"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "graph-rendering",
@@ -634,7 +641,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#cytoscape-js"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/cytoscape-js (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#cytoscape-js",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/cytoscape-js",
+            "origin:.atlas/provenance/donors/cytoscape-js.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/cytoscape-js at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/cytoscape/cytoscape.js.git@7ba634095d8954089ee5dc09ada0030f2dca134c compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "datafrog",
@@ -809,10 +823,10 @@
         name: "ELK.js",
         origin: "https://github.com/kieler/elkjs.git",
         license: "file:.atlas/licenses/elkjs/LICENSE.md",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/elkjs"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "graph-layout",
@@ -830,7 +844,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#elkjs"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/elkjs (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#elkjs",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/elkjs",
+            "origin:.atlas/provenance/donors/elkjs.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/elkjs at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/kieler/elkjs.git@722f1a3f63016e64f534a8b445283d4d31a88d0e compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "flatbuffers",
@@ -1033,10 +1054,10 @@
         name: "Keycloak",
         origin: "https://github.com/keycloak/keycloak.git",
         license: "file:.atlas/licenses/donors/keycloak/LICENSE.txt",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/security/keycloak"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "security",
@@ -1068,17 +1089,24 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#keycloak"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/security/keycloak (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#keycloak",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/security/keycloak",
+            "origin:.atlas/provenance/donors/keycloak.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/security/keycloak at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/keycloak/keycloak.git@dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "keylime",
         name: "Keylime",
         origin: "https://github.com/keylime/keylime.git",
         license: "file:.atlas/licenses/donors/keylime/LICENSE",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/security/keylime"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "security",
@@ -1110,7 +1138,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#keylime"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/security/keylime (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#keylime",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/security/keylime",
+            "origin:.atlas/provenance/donors/keylime.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/security/keylime at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/keylime/keylime.git@3476366881d7931407154597d88577895f2f818e compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "kythe",
@@ -1489,10 +1524,10 @@
         name: "OpenDesign",
         origin: "https://github.com/vustudio/opendesign.git",
         license: "file:.atlas/licenses/donors/opendesign/LICENSE",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/opendesign"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "design-authoring",
@@ -1531,7 +1566,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#opendesign"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/opendesign (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#opendesign",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/opendesign",
+            "origin:.atlas/provenance/donors/opendesign.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/opendesign at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/vustudio/opendesign.git@b4e69ac61b50576298f9f564603e5a4beb27417f compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "openrewrite",
@@ -1573,10 +1615,10 @@
         name: "OpenSCAP",
         origin: "https://github.com/OpenSCAP/openscap.git",
         license: "file:.atlas/licenses/donors/openscap/COPYING",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/security/openscap"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "security",
@@ -1608,7 +1650,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#openscap"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/security/openscap (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#openscap",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/security/openscap",
+            "origin:.atlas/provenance/donors/openscap.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/security/openscap at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/OpenSCAP/openscap.git@6942b59fc861ad77ebcea93e70f32832d88e20f9 compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "podman",
@@ -1657,13 +1706,10 @@
         name: "py2many",
         origin: "https://github.com/py2many/py2many.git",
         license: "file:.atlas/licenses/py2many/LICENSE",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[
-            ".atlas/temporary/donors/py2many",
-            ".atlas/temporary/donors/py2many/py2many",
-        ],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "source-translation",
@@ -1681,7 +1727,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#py2many"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/py2many (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#py2many",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/py2many",
+            "origin:.atlas/provenance/donors/py2many.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/py2many at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/py2many/py2many.git@a3c39224e71430bf99057f473c4b4542971daa9d compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "regalloc2",
@@ -1898,10 +1951,10 @@
         name: "SELinux",
         origin: "https://github.com/SELinuxProject/selinux.git",
         license: "file:.atlas/licenses/donors/selinux/LICENSE",
-        claimed: DonorState::Registered,
+        claimed: DonorState::Censused,
         exception: Exception::None,
         packages: &[],
-        source_paths: &[".atlas/temporary/donors/security/selinux"],
+        source_paths: &[],
         capabilities: &[
             Capability {
                 key: "security",
@@ -1933,7 +1986,14 @@
             },
         ],
         cutover: None,
-        provenance: &["legacy:.atlas/references/donor-corpus.toml#selinux"],
+        provenance: &[
+            "knowledge:DEFINITION .atlas/temporary/donors/security/selinux (ynventa fact list --subject)",
+            "legacy:.atlas/references/donor-corpus.toml#selinux",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/security/selinux",
+            "origin:.atlas/provenance/donors/selinux.json at 656075693d9b28dd1480f0d76ad07ae2845b725b",
+            "tree:.atlas/temporary/donors/security/selinux at 656075693d9b28dd1480f0d76ad07ae2845b725b (source removed)",
+            "verified:https://github.com/SELinuxProject/selinux.git@3361233fa3cb0c27f68f682f195accefb69d06c0 compared path by path by git blob id on 2026-10-01",
+        ],
     },
     Donor {
         key: "semgrep",
@@ -2233,6 +2293,25 @@
             "origin:.atlas-donor-source.toml at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f:.atlas/temporary/donors/restic",
             "tree:.atlas/temporary/donors/restic at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f (source removed)",
             "verified:https://github.com/restic/restic.git@6adedec6b48ae9ff0ffbc37bd675ccebd02c728f compared path by path by git blob id on 2026-10-01",
+        ],
+    },
+    Donor {
+        key: "unadmitted-xz",
+        name: "xz",
+        origin: "https://github.com/tukaani-project/xz.git",
+        license: "LicenseRef-public-domain AND LGPL-2.1-or-later AND GPL-2.0-or-later AND GPL-3.0-or-later",
+        claimed: DonorState::Registered,
+        exception: Exception::None,
+        packages: &[],
+        source_paths: &[],
+        capabilities: &[],
+        cutover: None,
+        provenance: &[
+            "gitlink:.atlas/temporary/donors/xz at 656075693d9b28dd1480f0d76ad07ae2845b725b (mode 160000, no .gitmodules; source removed)",
+            "knowledge:DEFINITION .atlas/temporary/donors/xz (ynventa fact list --subject)",
+            "legacy:.atlas/roadmap/DONOR-WORKING-SET.toml#retired_checkout:.atlas/temporary/donors/xz",
+            "licence:COPYING at https://github.com/tukaani-project/xz.git@74c3449d8b816a724b12ebce7417e00fb597309a",
+            "verified:https://github.com/tukaani-project/xz.git@74c3449d8b816a724b12ebce7417e00fb597309a fetched by object id; ancestor of master 3b1efb04d17c3a9ef7f473d73af13f1531428ffe on 2026-10-01",
         ],
     },
     Donor {

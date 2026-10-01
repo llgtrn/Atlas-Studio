@@ -611,7 +611,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["7ba634095d8954089ee5dc09ada0030f2dca134c"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1253,7 +1254,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["08f960d0dd5e99912253d7a7aeba4772ae174e86", "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1265,7 +1267,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["3476366881d7931407154597d88577895f2f818e"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1277,7 +1280,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["722f1a3f63016e64f534a8b445283d4d31a88d0e"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1487,15 +1491,15 @@ replay_status = "NEVER_REPLAYED"
 
 [[repository]]
 key = "name:xz"
-remote = ""
+remote = "https://github.com/tukaani-project/xz.git"
 names = ["xz"]
 sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
 historical_generations = []
 historical_verdicts = ["-: DANGLING_GITLINK (unadmitted_checkout.classification)"]
-license = "UNRECORDED"
-historical_pins = []
+license = "LicenseRef-public-domain AND LGPL-2.1-or-later AND GPL-2.0-or-later AND GPL-3.0-or-later"
+historical_pins = ["74c3449d8b816a724b12ebce7417e00fb597309a"]
 physically_present_legacy = false
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: the dangling gitlink (an empty directory) was removed; its commit id resolves in the upstream repository (DONOR-WORKING-SET.toml retired_checkout); the gitlink stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1652,7 +1656,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["6942b59fc861ad77ebcea93e70f32832d88e20f9"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1748,7 +1753,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: PENDING (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["a3c39224e71430bf99057f473c4b4542971daa9d"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1808,7 +1814,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["c9ac9a0aa5651670a690854fc2c12adfc951243f"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -2147,7 +2154,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_SECURITY_LANE (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["3361233fa3cb0c27f68f682f195accefb69d06c0", "98aefb43b002ad5ebc39d21e50e344dac5dc3c10"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -2417,7 +2425,8 @@ historical_generations = ["G118"]
 historical_verdicts = ["-: CLONED (ingestion_status)", "-: CLONED (ingestion_status)", "-: APPROVED_DONOR_GAP (decision_status)", "-: CLONED (ingestion_status)", "-: MATERIALIZED_CHECKOUT (storage_state)", "G118: CAPABILITY_NOT_REQUIRED (capability_decision)", "G118: DEFERRED (mechanism_decision)", "-: ADMITTED (lifecycle)", "-: MATERIALIZED (working_set)", "G150: NOT_A_HISTORICAL_DECISION (status)"]
 license = "RECORDED_FILES"
 historical_pins = ["b4e69ac61b50576298f9f564603e5a4beb27417f"]
-physically_present_legacy = true
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 656075693d9b28dd1480f0d76ad07ae2845b725b"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]

@@ -415,11 +415,34 @@ mod tests {
 
     #[test]
     fn the_recorded_policy_is_valid_and_every_blocker_has_a_remedy() {
-        let config = load_working_set_config(&workspace_root()).unwrap();
+        let text = fs::read_to_string(workspace_root().join(WORKING_SET_FILE)).unwrap();
+        let config = parse_working_set_config(&text).unwrap();
         assert!(config.policy.validate().is_ok());
-        assert!(!config.blockers.is_empty());
+        // Every recorded blocker is parsed; the list is empty once every one is resolved.
+        assert_eq!(
+            config.blockers.len(),
+            text.lines()
+                .filter(|l| l.trim() == "[[unadmitted_checkout]]")
+                .count()
+        );
         let broken = "[policy]\nhealthy_min_free_permille = 100\n";
         assert!(parse_working_set_config(broken).is_err());
+        // A blocker is parsed with its remedy, and one without a remedy is refused.
+        let policy = text
+            .split("\n[policy]\n")
+            .nth(1)
+            .and_then(|rest| rest.split("\n[").next())
+            .expect("[policy]");
+        let blocker = format!(
+            "[policy]\n{policy}\n[[unadmitted_checkout]]\ndirectory = \"x\"\n\
+             classification = \"ORPHAN\"\nremedy = \"DELETE\"\n"
+        );
+        let parsed = parse_working_set_config(&blocker).unwrap();
+        assert_eq!(parsed.blockers.len(), 1);
+        assert_eq!(parsed.blockers[0].directory, "x");
+        assert_eq!(parsed.blockers[0].remedy, "DELETE");
+        let unremedied = blocker.replace("remedy = \"DELETE\"\n", "");
+        assert!(parse_working_set_config(&unremedied).is_err());
     }
 
     /// Storage integrity of the real repository: every record agrees with the disk and every
@@ -477,19 +500,24 @@ mod tests {
                 "buck2",
                 "c2rust",
                 "capnproto",
+                "clair",
                 "clef",
                 "composer",
                 "containers-image",
                 "crubit",
+                "cytoscape-js",
                 "datafrog",
                 "differential-dataflow",
                 "duumbi",
                 "egglog",
+                "elkjs",
                 "flatbuffers",
                 "glean",
                 "iris",
                 "joern",
                 "kani",
+                "keycloak",
+                "keylime",
                 "kythe",
                 "ladybird",
                 "llvm-project",
@@ -497,14 +525,18 @@ mod tests {
                 "mlir",
                 "mold",
                 "object",
+                "opendesign",
                 "openrewrite",
+                "openscap",
                 "podman",
+                "py2many",
                 "regalloc2",
                 "rkyv",
                 "rust",
                 "rust-analyzer",
                 "salsa",
                 "scip",
+                "selinux",
                 "semgrep",
                 "sigil-lang",
                 "souffle",

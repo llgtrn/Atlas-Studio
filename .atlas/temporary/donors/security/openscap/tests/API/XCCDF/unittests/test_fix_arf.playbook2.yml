@@ -1,6 +1,0 @@
----
-- hosts: all
-  vars:
-  tasks:
-    - name: correct the failing case
-        shell: /bin/false

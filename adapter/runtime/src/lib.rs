@@ -1409,7 +1409,10 @@ mod tests {
         /// Extinction is physical (`.atlas/roadmap/DONOR-ABSORPTION-PLAN.toml`:
         /// `extinct_requires_source_path_absent = true`): an `EXTINCT` claim with the checkout still
         /// on disk would be a status-field extinction, exactly what the donor lifecycle forbids. The
-        /// converse holds too: a `CLONED` claim with no checkout anywhere is a stale record.
+        /// converse holds too: a `CLONED` claim with no checkout anywhere is a stale record. A
+        /// `SOURCE_REMOVED` donor (its held source retired without absorption, origin pinned in
+        /// `DONOR-WORKING-SET.toml` `[[retired_checkout]]`) is no extinction, but its source is gone
+        /// just the same.
         #[test]
         fn every_extinct_donor_checkout_is_absent_and_every_cloned_one_present() {
             let root = workspace_root();
@@ -1433,6 +1436,11 @@ mod tests {
                     "CLONED" => assert!(
                         !present.is_empty(),
                         "donor `{}` claims CLONED but none of {paths:?} exists",
+                        entry.id
+                    ),
+                    "SOURCE_REMOVED" => assert!(
+                        present.is_empty(),
+                        "donor `{}` is SOURCE_REMOVED but its source still exists at {present:?}",
                         entry.id
                     ),
                     // Censused remotely (ADR 0021): never materialized under an Atlas donor root.
@@ -1486,8 +1494,11 @@ mod tests {
                         .map(str::to_owned)
                 })
                 .collect();
+            // The legacy root holds no checkout once every held one is retired; a fresh clone then
+            // has no such directory at all.
             let mut on_disk: Vec<String> = std::fs::read_dir(root.join(".atlas/temporary/donors"))
-                .expect(".atlas/temporary/donors must exist")
+                .into_iter()
+                .flatten()
                 .filter_map(Result::ok)
                 .filter(|entry| entry.path().is_dir())
                 .map(|entry| entry.file_name().to_string_lossy().into_owned())
@@ -1500,7 +1511,14 @@ mod tests {
                      donor-corpus entry and no recorded debt: admit it, or delete it"
                 );
             }
-            assert!(!debt.is_empty(), "no recorded blocker parsed");
+            let recorded = std::fs::read_to_string(
+                workspace_root().join(".atlas/roadmap/DONOR-WORKING-SET.toml"),
+            )
+            .expect("DONOR-WORKING-SET.toml")
+            .lines()
+            .filter(|line| line.trim() == "[[unadmitted_checkout]]")
+            .count();
+            assert_eq!(debt.len(), recorded, "every recorded blocker is parsed");
             for debt in &debt {
                 assert!(
                     on_disk.iter().any(|dir| dir == debt) && !admitted_top_level.contains(debt),
@@ -1993,6 +2011,7 @@ mod tests {
                 let expected_working_set = match lifecycle.as_str() {
                     "ADMITTED" => "MATERIALIZED",
                     "ADMITTED_REMOTE" => "REMOTE_ONLY",
+                    "ADMITTED_SOURCE_REMOVED" => "SOURCE_REMOVED",
                     "EXTINCT" => "EXTINCT",
                     "CANDIDATE" | "CANDIDATE_OVERLAPPING" => "CONSUMER_GATED",
                     "EXTERNAL_ORACLE" => "ORACLE_ONLY",
@@ -2052,6 +2071,7 @@ mod tests {
                 let expected = match ingestion.as_str() {
                     "EXTINCT" => "EXTINCT",
                     "REMOTE_CENSUSED" => "ADMITTED_REMOTE",
+                    "SOURCE_REMOVED" => "ADMITTED_SOURCE_REMOVED",
                     _ => "ADMITTED",
                 };
                 slices
@@ -3870,9 +3890,29 @@ mod tests {
                 number(frontier_gate, "pinned_repositories"),
                 "the frontier grew while expansion is BLOCKED"
             );
+            // Retiring an admitted donor's held checkout (owner decision 2026-10-01) is no
+            // expansion: such a repository still counts as ADMITTED against the pin, and every one
+            // of its corpus donors names a `[[retired_checkout]]` in the working set.
+            let retired: BTreeSet<String> = blocks(
+                &read(crate::donor_storage::WORKING_SET_FILE),
+                "retired_checkout",
+            )
+            .iter()
+            .map(|r| text(r, "ynventa_donor"))
+            .collect();
             let mut lifecycles: BTreeMap<String, i64> = BTreeMap::new();
             for block in &repositories {
-                *lifecycles.entry(text(block, "lifecycle")).or_default() += 1;
+                let mut lifecycle = text(block, "lifecycle");
+                if lifecycle == "ADMITTED_SOURCE_REMOVED" {
+                    let ids = list(block, "corpus_ids");
+                    assert!(
+                        !ids.is_empty() && ids.iter().all(|id| retired.contains(id)),
+                        "{}: ADMITTED_SOURCE_REMOVED without a retired checkout",
+                        text(block, "canonical_url")
+                    );
+                    lifecycle = "ADMITTED".into();
+                }
+                *lifecycles.entry(lifecycle).or_default() += 1;
             }
             for (lifecycle, count) in &lifecycles {
                 assert_eq!(
@@ -3906,22 +3946,58 @@ mod tests {
             if !blocked {
                 return;
             }
-            // No donor-corpus record moves while progression is blocked.
+            // No donor-corpus record moves while progression is blocked. The one storage move that
+            // is no progression is retiring a held checkout (owner decision 2026-10-01): decision
+            // and census stay pinned, the pinned CLONED / MATERIALIZED_CHECKOUT record reads
+            // SOURCE_REMOVED / SOURCE_DELETED, the audit record names the retired path, the
+            // working set records that path as a `[[retired_checkout]]` of this donor, and the path
+            // is gone.
             let corpus = read(".atlas/references/donor-corpus.toml");
             let records: BTreeMap<String, &str> = blocks(&corpus, "donor")
                 .into_iter()
                 .map(|b| (text(b, "id"), b))
                 .collect();
+            let working_set = read(crate::donor_storage::WORKING_SET_FILE);
+            let retired = blocks(&working_set, "retired_checkout");
             for donor in donors() {
                 let Some(record) = records.get(&donor.name) else {
                     continue;
                 };
-                for field in [
-                    "decision_status",
-                    "ingestion_status",
-                    "census_status",
-                    "storage_state",
-                ] {
+                let mut fields = vec!["decision_status", "census_status"];
+                match string(&donor.block, "storage_retirement") {
+                    Some(path) => {
+                        for (field, pinned, now) in [
+                            ("ingestion_status", "CLONED", "SOURCE_REMOVED"),
+                            ("storage_state", "MATERIALIZED_CHECKOUT", "SOURCE_DELETED"),
+                        ] {
+                            assert_eq!(
+                                string(&donor.block, &format!("corpus_{field}")).as_deref(),
+                                Some(pinned),
+                                "{}: only a held checkout is retired",
+                                donor.name
+                            );
+                            assert_eq!(
+                                string(record, field).as_deref(),
+                                Some(now),
+                                "{}: a retired checkout reads {now}",
+                                donor.name
+                            );
+                        }
+                        assert!(
+                            retired.iter().any(|r| text(r, "path") == path
+                                && text(r, "ynventa_donor") == donor.name),
+                            "{}: `{path}` is no retired_checkout of this donor",
+                            donor.name
+                        );
+                        assert!(
+                            !root().join(&path).exists(),
+                            "{}: retired `{path}` still exists",
+                            donor.name
+                        );
+                    }
+                    None => fields.extend(["ingestion_status", "storage_state"]),
+                }
+                for field in fields {
                     assert_eq!(
                         string(record, field).unwrap_or_default(),
                         string(&donor.block, &format!("corpus_{field}")).unwrap_or_default(),

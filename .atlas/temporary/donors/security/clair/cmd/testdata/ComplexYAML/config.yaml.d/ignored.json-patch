@@ -1,8 +1,0 @@
-# This file is ignored -- look at all this invalid JSON!
-[
-  {
-    "op": "add",
-    "path": "/updaters/sets/-",
-    "value": "osv",
-  },
-]

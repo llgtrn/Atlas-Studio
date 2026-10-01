@@ -1,1 +1,0 @@
-../../build/cytoscape.umd.js

@@ -1,8 +1,0 @@
-module unknown_type 1.0;
-
-require {
-	type foo_t;
-	class file { read };
-}
-
-allow foo_t undeclared_t:file read;
