@@ -97,12 +97,12 @@ questions = [
 ]
 all_false = "DEFER"
 frontier_expansion_frozen = true
-hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and frontier expansion BLOCKED, machine-enforced since G118)"
+hard_stop = "tools/atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and frontier expansion BLOCKED, machine-enforced since G118)"
 # G116 (ADR 0038): selection obeys both rules, and the essential-complexity debt queue comes
 # before any donor while FOUNDATIONAL_ATLAS_READY is NOT_MET.
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
-debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 next_native_attack = "NA-CALL-TYPE-RESIDUAL"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
@@ -111,11 +111,11 @@ interface_generation = "G122"
 generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY", "SELF_RECONSTRUCTION", "CREATION"]
 # G151 (ADR 0067): REPLAY is the FULL_OSS_REPLAY lane (roadmap/FULL-OSS-REPLAY.toml); every replay is an
 # Agent-Worn mission, and no more than one non-replay generation passes between replays.
-full_oss_replay = ".atlas/roadmap/FULL-OSS-REPLAY.toml"
+full_oss_replay = "tools/atlas/roadmap/FULL-OSS-REPLAY.toml"
 # G153 (ADR 0069): SELF_RECONSTRUCTION is the permanent lane in which Atlas rebuilds bounded parts of
 # itself from its census alone and verifies them against the original; a non-replay generation that
 # interleaves with FULL_OSS_REPLAY under its cadence (contracts/SELF-RECONSTRUCTION.md).
-self_reconstruction = ".atlas/roadmap/SELF-RECONSTRUCTION.toml"
+self_reconstruction = "tools/atlas/roadmap/SELF-RECONSTRUCTION.toml"
 native_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AUDIT"]
 interleaving_classes = ["REVALIDATION", "AGENT_MISSION", "DEBT_TRIGGERED_DONOR_ATTACK"]
 max_consecutive_interleaving = 2
@@ -140,8 +140,8 @@ correctness_exemption = "the only exemption: a HARDENING generation carrying cor
 cadence_interplay = "the replay cadence (ADR 0067, FULL-OSS-REPLAY.toml max_non_replay_between = 1) is an owner gate and stays exactly as it was: CREATION and a correctness blocker are non-replay generations. With max_consecutive_hardening = 1 the two cadences give REPLAY, CREATION, REPLAY, CREATION: replays keep every other generation and native resolver hardening pauses unless a false-claim residual blocks correctness; reopening regular native slots needs a new policy decision, not drift"
 hardening_head_deferred = "the HARDENING queue head is still selected by pressure and named by next_native_attack; its planned_generation is LANE_DEFERRED unless an OPEN residual with can_create_false_claim = true names it (attack = <its id>), and then it is planned in the next CREATION slot as CORRECTNESS_BLOCKER <residual id>"
 plan_rule = "when the HARDENING run at the ledger head equals max_consecutive_hardening, the next generation is planned as CREATION; the numbered planned generations after the head keep both cadences; the next CREATION generation names the pressure map's selected_creation_attack"
-creation_selection = ".atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml [creation_selection]"
-residuals = ".atlas/roadmap/RESIDUALS.toml"
+creation_selection = "tools/atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml [creation_selection]"
+residuals = "tools/atlas/roadmap/RESIDUALS.toml"
 complexity_budget = "a donor exposes A, A exposes B, B exposes C, D, E and F: fix everything required to eliminate the current tree's known-wrong claims and record the rest as residuals (RESIDUALS.toml); a generation may expand beyond its objective only when the new issue can falsify the current tree's claimed truth or invalidate the current generation's evidence, each expansion recorded as [[generation.expansion]] with its justification"
 expansion_justifications = ["FALSIFIES_CURRENT_TRUTH", "INVALIDATES_GENERATION_EVIDENCE"]
 vertical_stages = ["ADL", "DESIGN", "ATLAS", "CONSTRUCTION", "ATLASX", "EXECUTABLE", "SELF_RECONSTRUCTION", "NONE"]
@@ -156,7 +156,7 @@ frontier_class_rule = "LOW_FRONTIER_PROGRESS when frontier_rate < low_frontier_r
 # The last generation before the policy, measured (not G178's ledger entry, which stays as written).
 [generation_lanes.baseline]
 generation = "G178"
-evidence = ".atlas/evidence/verification/G178-verification-cost.json"
+evidence = "tools/atlas/evidence/verification/G178-verification-cost.json"
 lane = "HARDENING"
 new_capability = "capability epoch E24: the import fixed point converges wherever rustc's does (ADR 0091)"
 vertical_stage = "NONE"

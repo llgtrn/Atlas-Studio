@@ -669,7 +669,7 @@ fn validate_body(module: &ConstructionModule, f: &IrFunction, body: &HirBody) ->
     out
 }
 
-/// A shadow artifact: generated where nothing is admitted from (`.atlas/.cache/shadow`).
+/// A shadow artifact: generated where nothing is admitted from (`target/atlas/shadow`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ShadowArtifact {
     pub path: String,

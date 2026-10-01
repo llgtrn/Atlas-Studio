@@ -660,7 +660,7 @@ pub fn cross_instrument_layout(
 }
 
 /// The machine-readable Creator instrument registry (ADR 0022).
-pub const INSTRUMENT_REGISTRY: &str = ".atlas/roadmap/CREATOR-INSTRUMENTS.toml";
+pub const INSTRUMENT_REGISTRY: &str = "tools/atlas/roadmap/CREATOR-INSTRUMENTS.toml";
 
 /// `[[section]]` blocks of the registry as key -> raw value maps (hand-parsed, line-oriented).
 fn registry_blocks(text: &str, header: &str) -> Vec<BTreeMap<String, String>> {

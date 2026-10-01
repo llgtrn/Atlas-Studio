@@ -1,5 +1,5 @@
 //! M12 falsified on a real construction-IR input: the SR1-3 module (G181,
-//! `.atlas/evidence/self-reconstruction/SR1/attempt3/module.json`, copied as
+//! `tools/atlas/evidence/self-reconstruction/SR1/attempt3/module.json`, copied as
 //! `fixture_module.json`) encodes to the committed `fixture.bin` byte for byte and reads back to
 //! the same records at the committed address; every flipped byte, every truncation, every
 //! undeclared field and every non-canonical form is refused with its typed defect; arbitrary

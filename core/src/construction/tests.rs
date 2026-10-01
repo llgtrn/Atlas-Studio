@@ -217,7 +217,7 @@ fn report(module: &ConstructionModule) -> SelfReconstructionReport {
             purpose: "behavioral differential".into(),
         }],
         shadow: Some(ShadowArtifact {
-            path: ".atlas/.cache/shadow/mode/src/lib.rs".into(),
+            path: "target/atlas/shadow/mode/src/lib.rs".into(),
             content_hash: "blake3-256:11".into(),
             backend: rust::RUST_BACKEND.into(),
             toolchain: "rustc 1.90.0".into(),

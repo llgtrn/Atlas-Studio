@@ -1,7 +1,7 @@
 schema = "atlas.architecture-pressure-map.v1"
 canonical = true
 established_in = "G118"
-debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 as_of = "G189"
 vertical_weight = 10
 

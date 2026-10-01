@@ -5,7 +5,7 @@
 //! Construction reads records of the container only (`lift` takes no path to source). The
 //! original is used by verification alone: its compiled crate is the behavioral oracle, and the
 //! shadow's census is compared with the records construction started from. The shadow workspace
-//! lives under `.atlas/.cache/shadow`, which is ignored and never admitted.
+//! lives under `target/atlas/shadow`, which is ignored and never admitted.
 
 use atlas_core::atlas::CensusAtlas;
 use atlas_core::composition::WorldModel;
@@ -26,7 +26,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::{fs, io, process::Command};
 
-pub const SHADOW_ROOT: &str = ".atlas/.cache/shadow";
+pub const SHADOW_ROOT: &str = "target/atlas/shadow";
 pub const CANDIDATES_SCHEMA: &str = "atlas.self-reconstruction-candidates.v1";
 
 /// A self target Atlas could reconstruct: a type and its methods, as the world model sees them.

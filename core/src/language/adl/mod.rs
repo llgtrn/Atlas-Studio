@@ -1587,7 +1587,7 @@ constraint BackendIsRust {
         assert_eq!(bar.attributes.get("input").map(String::as_str), Some("X"));
     }
 
-    // `.atlas/evidence/verification/large-stack-worker-mitigates-recursion-dos-residual-risk.json`
+    // `tools/atlas/evidence/verification/large-stack-worker-mitigates-recursion-dos-residual-risk.json`
     // named, as an explicitly open question for a future generation, whether the same
     // recursion-depth-driven stack-overflow DoS class `adapter::semantic::rust`'s own
     // `max_structural_recursion_risk`/`EXTRACTION_STACK_SIZE` mitigate for `syn::parse_file` also

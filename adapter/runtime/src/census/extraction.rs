@@ -245,7 +245,7 @@ fn unsupported_language_batch(input: &ExtractionInput) -> ExtractionBatch {
 /// obligation batch a filesystem read failure already produces, rather than unwinding out of this
 /// module and aborting extraction of every artifact that comes after this one.
 ///
-/// This is the prerequisite named in `.atlas/evidence/verification/
+/// This is the prerequisite named in `tools/atlas/evidence/verification/
 /// rust-extractor-dimension-consistency-debug-assert-deferred.json`: before that record, this
 /// codebase had `assert!`-based invariant checks nowhere in production code and `debug_assert!`
 /// (a release-mode no-op) at the 5 dimension-consistency call sites specifically because promoting
@@ -1630,7 +1630,7 @@ mod production_wiring_tests {
 
     // --- Extractor-panic isolation --------------------------------------------------------------
     //
-    // `extract_with_panic_isolation` is the prerequisite named in `.atlas/evidence/verification/
+    // `extract_with_panic_isolation` is the prerequisite named in `tools/atlas/evidence/verification/
     // rust-extractor-dimension-consistency-debug-assert-deferred.json`: with this boundary in
     // place, an extractor-internal panic (including the dimension-consistency `assert!` sites in
     // `adapter::semantic::rust`, promoted from `debug_assert!` in the same generation this test was

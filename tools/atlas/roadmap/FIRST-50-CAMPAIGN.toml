@@ -87,7 +87,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "ABSORBED (vfs) ; remaining: DECIDED"
 completed_in = "G75"
-evidence = ".atlas/evidence/campaign/04-rust-analyzer.json"
+evidence = "tools/atlas/evidence/campaign/04-rust-analyzer.json"
 note = "absorbed ['vfs-change-taxonomy' (G37), 'hir-def-path-resolution' (G75): native name resolution of path calls, a second CALL engine, 3,731/3,731 confirmed by the pinned SCIP oracle]; hir-ty inference REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -104,7 +104,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "ABSORBED (memo) ; invalidation: REFERENCE_ONLY at the measured scale (G115)"
 completed_in = "G115"
-evidence = ".atlas/evidence/campaign/05-salsa.json"
+evidence = "tools/atlas/evidence/campaign/05-salsa.json"
 note = "memoized-derivation-reuse absorbed (G39, ADR 0008); G115 measured the P4 workload: whole recompute ~9-10 s (release), no dominant stage, per-artifact extraction ~14% already memoized, changed sets median 1 of 118 artifacts -- dependency-tracked invalidation would save at most ~8.5 s per run, so it stays REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -121,7 +121,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "ABSORB or REFERENCE_ONLY per mechanism"
 completed_in = "G65"
-evidence = ".atlas/evidence/campaign/06-tree-sitter.json"
+evidence = "tools/atlas/evidence/campaign/06-tree-sitter.json"
 note = "incremental parsing falsified by measurement (whole-file re-extraction behind the per-artifact cache is noise-level); grammar runtime, error recovery and query language REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -138,7 +138,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "ABSORB or REFERENCE_ONLY"
 completed_in = "G66"
-evidence = ".atlas/evidence/campaign/07-scip.json"
+evidence = "tools/atlas/evidence/campaign/07-scip.json"
 note = "measured identity loss (line shifts, every commit, file-granular recensus); absorbed position-free descriptor identity natively (core::recensus::entity) with Atlas-native correspondence; occurrences/roles/relationships/exchange format REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -155,7 +155,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "REFERENCE_ONLY expected (schema ideas)"
 completed_in = "G67"
-evidence = ".atlas/evidence/campaign/08-kythe.json"
+evidence = "tools/atlas/evidence/campaign/08-kythe.json"
 note = "expected REFERENCE_ONLY, falsified: 203 symbol/type ids conflated definitions across files (graph dropped them); absorbed VName path as identity field; corpus/root/language/Entry store REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -172,7 +172,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "DECIDED"
 completed_in = "G68"
-evidence = ".atlas/evidence/campaign/09-glean.json"
+evidence = "tools/atlas/evidence/campaign/09-glean.json"
 note = "the G64 name-derived schema_id let a tag-repurposing version be silently misread (measured); absorbed definition-derived schema identity; Angle/fact DB/query IR REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -189,7 +189,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G69"
-evidence = ".atlas/evidence/campaign/10-joern.json"
+evidence = "tools/atlas/evidence/campaign/10-joern.json"
 note = "coverage hypothesis falsified (rust2cpg resolves through external rust_ast_gen, falls back to Any); graph 650-4,500x below the columnar trigger; REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -206,7 +206,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G70"
-evidence = ".atlas/evidence/campaign/11-semgrep.json"
+evidence = "tools/atlas/evidence/campaign/11-semgrep.json"
 note = "import-aware pattern matching changes zero effect classifications in Atlas (measured); no rule-as-data consumer; REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -223,7 +223,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G71"
-evidence = ".atlas/evidence/campaign/12-ast-grep.json"
+evidence = "tools/atlas/evidence/campaign/12-ast-grep.json"
 note = "no Atlas stage rewrites source; token-level comparison already native (G66); REFERENCE_ONLY until a native mutation/construction capability; source physically deleted"
 
 [[donor]]
@@ -240,7 +240,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "REFERENCE_ONLY expected"
 completed_in = "G72"
-evidence = ".atlas/evidence/campaign/13-sourcetrail.json"
+evidence = "tools/atlas/evidence/campaign/13-sourcetrail.json"
 note = "element/occurrence model already native (G66 descriptors + per-site records); no navigation consumer; REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -257,7 +257,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "EXTERNAL_BOUNDARY (oracle) + REFERENCE_ONLY"
 completed_in = "G73"
-evidence = ".atlas/evidence/campaign/14-rust.json"
+evidence = "tools/atlas/evidence/campaign/14-rust.json"
 note = "Atlas resolves 0 of 12,671 calls; pinned rust-analyzer (SCIP) resolves ~89%: EXTERNAL_BOUNDARY oracle (verification oracle of native resolution, not a census input: CI has no rust-analyzer); rustc internals REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -274,7 +274,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G76"
-evidence = ".atlas/evidence/campaign/15-miri.json"
+evidence = "tools/atlas/evidence/campaign/15-miri.json"
 note = "0 unsafe constructs in Atlas (the UB interpreter has no target) and nightly-only; shims model effects at libc level while Atlas's EFFECT gap is 504 effectful std calls -- P0 input for std-path effect derivation (G77); source physically deleted"
 
 [[donor]]
@@ -291,7 +291,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G78"
-evidence = ".atlas/evidence/campaign/16-clef.json"
+evidence = "tools/atlas/evidence/campaign/16-clef.json"
 note = "no F# workload, not standalone, F# member lookup is not Rust's method probe; the residual method-call gap has a bounded native slice (self.m(), 595 calls) planned as G79; source physically deleted"
 
 [[donor]]
@@ -308,7 +308,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G80"
-evidence = ".atlas/evidence/campaign/17-differential-dataflow.json"
+evidence = "tools/atlas/evidence/campaign/17-differential-dataflow.json"
 note = "edit-to-recensus workload measured over G57-G79 (median 3 of ~117 artifacts per generation; full recompute ~7.8 s; analyzer changes invalidate everything): shallow invalidation plus recompute suffices; P4 input: extraction cache unused by self-recensus; source physically deleted"
 
 [[donor]]
@@ -325,7 +325,7 @@ lifecycle = "TERMINAL"
 terminal_state = "DEFERRED"
 terminal_goal = "DEFERRED_WITH_CONCRETE_BLOCKER (AIF1)"
 completed_in = "G81"
-evidence = ".atlas/evidence/campaign/18-buck2.json"
+evidence = "tools/atlas/evidence/campaign/18-buck2.json"
 note = "DICE keyed invalidation REFERENCE_ONLY (not needed at G80's measured scale); DICE branching DEFERRED to AIF1 (frozen), re-admitted from the pinned commit; source physically deleted"
 
 [[donor]]
@@ -342,7 +342,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G82"
-evidence = ".atlas/evidence/campaign/19-egglog.json"
+evidence = "tools/atlas/evidence/campaign/19-egglog.json"
 note = "0 normalization conflicts; the 49 multi-spelling type classes are equal by name resolution (bottom-up canonicalization gives congruence without an e-graph; string stripping would conflate &std::path::Path with &syn::Path); no decision-layer workload; P0 input: canonical type identity (G83); source physically deleted"
 
 [[donor]]
@@ -359,7 +359,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G84"
-evidence = ".atlas/evidence/campaign/20-capnproto.json"
+evidence = "tools/atlas/evidence/campaign/20-capnproto.json"
 note = "checklist compared against the executing reader/writer: canonical form and fail-closed framing stated and enforced; the unstated item (unknown optional fields under a different root) became a SEALED-publication clause; pointer/packing machinery REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -376,7 +376,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G85"
-evidence = ".atlas/evidence/campaign/21-rkyv.json"
+evidence = "tools/atlas/evidence/campaign/21-rkyv.json"
 note = "the .atlas wire has no internal pointers (file-start offsets, flat records); the real extraction cache (ADR 0008) loads its 96 MB JSON in ~0.35 s of a 7.3 s run, so the conditional rkyv dependency lapses; source physically deleted"
 
 [[donor]]
@@ -393,7 +393,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "DECIDED"
 completed_in = "G86"
-evidence = ".atlas/evidence/campaign/22-flatbuffers.json"
+evidence = "tools/atlas/evidence/campaign/22-flatbuffers.json"
 note = "absorbed ['schema-evolution-conformance' (flatc --conform)]: recorded definition history, conformance rules, reader acceptance of conforming identities; vtables/flexbuffers/reflection REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -410,7 +410,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G87"
-evidence = ".atlas/evidence/campaign/23-zstd.json"
+evidence = "tools/atlas/evidence/campaign/23-zstd.json"
 note = "no container is committed or transmitted, so the measured 5.8x saving serves no consumer; the contract now pins a bounded ZSTD section profile (single-segment frame, Frame_Content_Size = decoded_length, no dictionary) because a streaming frame cannot be bounded before decompression; source physically deleted"
 
 [[donor]]
@@ -427,7 +427,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G88"
-evidence = ".atlas/evidence/campaign/24-arrow.json"
+evidence = "tools/atlas/evidence/campaign/24-arrow.json"
 note = "census facts are 80% TLV framing; columnar grouping saves 5.0x raw but only 1.4x after generic compression and leaves the string table untouched; the container has no consumer; the dictionary is the string table; source physically deleted"
 
 [[donor]]
@@ -444,7 +444,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G89"
-evidence = ".atlas/evidence/campaign/25-mlir.json"
+evidence = "tools/atlas/evidence/campaign/25-mlir.json"
 note = "the external-model registry answers two C++/dynamic-loading constraints Atlas does not have (Rust trait impls attach statically; no runtime code loading; ACP attach_capability is data); ADAPT dispositions stay design references for the TARGET ASIR; the mlir slice physically deleted, the shared llvm-project repository stays materialized for #32"
 
 [[donor]]
@@ -461,7 +461,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G90"
-evidence = ".atlas/evidence/campaign/26-xdsl.json"
+evidence = "tools/atlas/evidence/campaign/26-xdsl.json"
 note = "the merged dispatch default is plain Rust traits (no registry, G89); the eager-vs-checkpoint verification fork is settled by the ASIR admission pipeline (value checks eager at the schema stage, structure at the transaction checkpoint and at seal); source physically deleted"
 
 [[donor]]
@@ -478,7 +478,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "DECIDED"
 completed_in = "G91"
-evidence = ".atlas/evidence/campaign/27-iris.json"
+evidence = "tools/atlas/evidence/campaign/27-iris.json"
 note = "the census's recensus trigger fired (EFFECT is real): IRIS's split of ambient inputs (EnvGet, ClockNs) from I/O absorbed as ENVIRONMENT_READ / CLOCK_READ, observing 59 resolved std calls (all SCIP-confirmed); graph model, content addressing, Lean kernel, evolution engine REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -495,7 +495,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G92"
-evidence = ".atlas/evidence/campaign/28-sigil-lang.json"
+evidence = "tools/atlas/evidence/campaign/28-sigil-lang.json"
 note = "no open census item and no fired recensus trigger (no Sigil V2, no AtlasX/HIR stage); per-behavior guarantee checks belong to the unimplemented MIR contract; 32-bit truncated contract hash REJECTED as a pattern; source physically deleted"
 
 [[donor]]
@@ -512,7 +512,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G93"
-evidence = ".atlas/evidence/campaign/29-duumbi.json"
+evidence = "tools/atlas/evidence/campaign/29-duumbi.json"
 note = "no open census item; JSON-LD REJECTED; write-iff-valid mutation is already the ACP admission pipeline; Cranelift evidence belongs to wasmtime (#36); source physically deleted (DC1 real-donor Cargo tests pass at exactly 7 of 15)"
 
 [[donor]]
@@ -529,7 +529,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G94"
-evidence = ".atlas/evidence/campaign/30-composer.json"
+evidence = "tools/atlas/evidence/campaign/30-composer.json"
 note = "PHG hyperedges falsified: all 17,421 real CallSite join nodes reconstruct their N-ary claim (3,244 join >2 identities, max arity 9); the thin-middle-end doctrine constrains lowering code that does not exist; source physically deleted"
 
 [[donor]]
@@ -546,7 +546,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G95"
-evidence = ".atlas/evidence/campaign/31-agentir.json"
+evidence = "tools/atlas/evidence/campaign/31-agentir.json"
 note = "no loss-disclosure consumer: the fact projection is downstream of typed records, and the one narrowing export (the .atlas census container, typed records deferred) has no consumer; typed loss disclosure held by the genome record for the first external export; source physically deleted"
 
 [[donor]]
@@ -563,7 +563,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "EXTERNAL_BOUNDARY (backend) + REFERENCE_ONLY"
 completed_in = "G96"
-evidence = ".atlas/evidence/campaign/32-llvm-project.json"
+evidence = "tools/atlas/evidence/campaign/32-llvm-project.json"
 note = "backend and differential codegen oracle are installed-toolchain boundaries (clang/llc/opt 18.1.3, rustc LLVM 20.1.8) consumed through the contract's declared backend adapter once an Atlas LIR exists; algorithms REFERENCE_ONLY; source physically deleted (184,819 files, 2.7 GB)"
 
 [[donor]]
@@ -580,7 +580,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G97"
-evidence = ".atlas/evidence/campaign/33-wasm-spec.json"
+evidence = "tools/atlas/evidence/campaign/33-wasm-spec.json"
 note = "type canonicalization is native since G83; the wire contract now pins section_flags = 0 (every section required; no skippable sections without a cross-version reader), enforced by the reader-steps test; source physically deleted"
 
 [[donor]]
@@ -597,7 +597,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G98"
-evidence = ".atlas/evidence/campaign/34-wasm-component-model.json"
+evidence = "tools/atlas/evidence/campaign/34-wasm-component-model.json"
 note = "no capability boundary exists to test owned-vs-borrowed handles; the question, its falsification and the ADAPT vocabulary move into ASIR-CONSTRUCTION-MODEL.md for the first atlas.interface.* construction; source physically deleted"
 
 [[donor]]
@@ -614,7 +614,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G99"
-evidence = ".atlas/evidence/campaign/35-wasm-tools.json"
+evidence = "tools/atlas/evidence/campaign/35-wasm-tools.json"
 note = "no Wasm artifact, code path or dependency in Atlas; its Cargo-census contribution is locked by a synthetic fixture; the DC1 real-donor Cargo tests now follow the corpus ledger (an absence must be a recorded extinction); source physically deleted"
 
 [[donor]]
@@ -631,7 +631,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G100"
-evidence = ".atlas/evidence/campaign/36-wasmtime.json"
+evidence = "tools/atlas/evidence/campaign/36-wasmtime.json"
 note = "Cranelift (LIR backend) and the Wasm/WASI sandbox (a candidate SandboxBackend) are crate-dependency boundaries with no consumer yet; Cargo-census cases locked by synthetic fixtures; the wasmtime-specific real-donor test follows the corpus ledger; source physically deleted"
 
 [[donor]]
@@ -648,7 +648,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G101"
-evidence = ".atlas/evidence/campaign/37-object.json"
+evidence = "tools/atlas/evidence/campaign/37-object.json"
 note = "no Machine IR -> object stage and no ELF/Mach-O/COFF consumer exist; glob-member census case locked by synthetic fixtures; the object-specific real-donor test follows the corpus ledger; source physically deleted"
 
 [[donor]]
@@ -665,7 +665,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G102"
-evidence = ".atlas/evidence/campaign/38-regalloc2.json"
+evidence = "tools/atlas/evidence/campaign/38-regalloc2.json"
 note = "no LIR or Machine IR stage exists; external backends (G96, G100) allocate registers themselves; a native stage would evaluate the crate then; source physically deleted"
 
 [[donor]]
@@ -682,7 +682,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "REFERENCE_ONLY expected"
 completed_in = "G103"
-evidence = ".atlas/evidence/campaign/39-mold.json"
+evidence = "tools/atlas/evidence/campaign/39-mold.json"
 note = "own-vs-integrate decided as integrate: installed linkers (GNU ld 2.42, LLD 18.1.3) at the boundary until BLUEPRINT-EVOLUTION evidence justifies owning one; parallel layout REFERENCE_ONLY; source physically deleted (DC1 tests follow the ledger)"
 
 [[donor]]
@@ -699,7 +699,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G104"
-evidence = ".atlas/evidence/campaign/40-kani.json"
+evidence = "tools/atlas/evidence/campaign/40-kani.json"
 note = "external verifier (CBMC) already emitting SARIF 2.1.0; no VerificationEvidence consumer exists in code and the contract's class vocabulary lacks a proof class; harness/contract designs REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -716,7 +716,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G105"
-evidence = ".atlas/evidence/campaign/41-verus.json"
+evidence = "tools/atlas/evidence/campaign/41-verus.json"
 note = "external verifier (rustc fork + Z3) reporting via --output-json; no proof-evidence consumer in code (as for kani, G104); VIR design REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -733,7 +733,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G106"
-evidence = ".atlas/evidence/campaign/42-podman.json"
+evidence = "tools/atlas/evidence/campaign/42-podman.json"
 note = "one probed, optional SandboxBackend (the host-runtime contract forbids assuming user namespaces or nested containers); no SandboxBackend code exists; rootless mechanics REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
@@ -750,7 +750,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G107"
-evidence = ".atlas/evidence/campaign/43-containers-image.json"
+evidence = "tools/atlas/evidence/campaign/43-containers-image.json"
 note = "no signature consumer: seal-time attestation roots are content hashes at an unimplemented seal gate, donors are pinned by git hashes, nothing is published to third parties; the default-deny per-scope admission policy is the design reference for seal/publication policy; source physically deleted"
 
 [[donor]]
@@ -767,7 +767,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G108"
-evidence = ".atlas/evidence/campaign/44-z3.json"
+evidence = "tools/atlas/evidence/campaign/44-z3.json"
 note = "no consumer: Atlas's only derivation engine is monotone semi-naive Datalog over ground tuples, and SMT appears only as a future option in contract text; an SMT solver is always an external boundary for Atlas (as Z3 is for Verus, G105); decided without admission, so the frontier keeps it CONSUMER_GATED and there is no source to extinguish"
 
 [[donor]]
@@ -784,7 +784,7 @@ lifecycle = "TERMINAL"
 terminal_state = "ABSORBED"
 terminal_goal = "DECIDED"
 completed_in = "G109"
-evidence = ".atlas/evidence/campaign/45-in-toto.json"
+evidence = "tools/atlas/evidence/campaign/45-in-toto.json"
 note = "the MATCH rule on products absorbed into the self-recensus chain: a generation's proven post-change census must equal the committed tree's census (its clean-HEAD atlas.json inspection), 44/44 generations with evidence match; layouts, signed link metadata and functionary keys REFERENCE_ONLY; never admitted"
 
 [[donor]]
@@ -801,7 +801,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G110"
-evidence = ".atlas/evidence/campaign/46-git.json"
+evidence = "tools/atlas/evidence/campaign/46-git.json"
 note = "Atlas already observes revisions through the installed git binary (adapter/src/vcs, git 2.43.0); census storage identity is native BLAKE3 and committed evidence already lives in git's own object store and packs, so no consumer needs git's object model or pack format natively; the tracked unadmitted checkout is untouched (deletion BLOCKED_ON_USER)"
 
 [[donor]]
@@ -818,7 +818,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G111"
-evidence = ".atlas/evidence/campaign/47-nix.json"
+evidence = "tools/atlas/evidence/campaign/47-nix.json"
 note = "input-closure derivation identity is already native: the ADR 0008 extraction cache keys each batch by BLAKE3 over its full input (ExtractionInput, bytes, extractor id/version, build digest over all adapter/core source + Cargo.lock), and the one cross-file derivation (path resolution) is never cached; hermetic construction belongs to the unimplemented P6 pipeline; never admitted"
 
 [[donor]]
@@ -835,7 +835,7 @@ lifecycle = "TERMINAL"
 terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
 completed_in = "G112"
-evidence = ".atlas/evidence/campaign/48-tlaplus.json"
+evidence = "tools/atlas/evidence/campaign/48-tlaplus.json"
 note = "no TLA+ specification and no model-checking consumer exist (VerificationEvidence is contract text without a proof/model-checking class, as recorded at G104/G105); TLC would be an external verifier producing counterexample traces; never admitted"
 
 [[donor]]
@@ -852,7 +852,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
 completed_in = "G113"
-evidence = ".atlas/evidence/campaign/49-openrewrite.json"
+evidence = "tools/atlas/evidence/campaign/49-openrewrite.json"
 note = "Atlas never writes source back and its change model is TARGET, so lossless trees and the recipe engine have no consumer; adl derive (G63) is the census -> declared-change path that exists; source physically deleted"
 
 [[donor]]
@@ -869,7 +869,7 @@ lifecycle = "TERMINAL"
 terminal_state = "REFERENCE_ONLY"
 terminal_goal = "REFERENCE_ONLY expected"
 completed_in = "G114"
-evidence = ".atlas/evidence/campaign/50-c2rust.json"
+evidence = "tools/atlas/evidence/campaign/50-c2rust.json"
 note = "no C semantic frontend and no migration pipeline in Atlas, so translation, refactoring and pointer-permission analysis have no consumer; clang is the donor's own boundary; source physically deleted (DC1 tests pass without it)"
 
 [[outside_first_50]]

@@ -2,7 +2,7 @@ schema = "atlas.foundational-atlas-ready.v1"
 canonical = true
 established_in = "G118"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
-debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 
 # FIRST_50_CAMPAIGN_COMPLETE (donor campaign) and FOUNDATIONAL_ATLAS_READY (architecture) are separate
 # gates; the first may be true while the second is false. Accounting (G118): 50 First-50 donors,
@@ -11,7 +11,7 @@ debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 [first_50_campaign_complete]
 status = "MET_G115"
 value = true
-evidence = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml"
+evidence = "tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml"
 
 [foundational_atlas_ready]
 status = "NOT_MET"
@@ -93,7 +93,7 @@ materialized_checkouts = []
 [historical_revalidation]
 status = "ALLOWED_WHEN_TRIGGERED"
 distinct_from = "NEW_DONOR_PROGRESSION"
-ledger = ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"
+ledger = "tools/atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"
 
 [frontier_expansion]
 status = "BLOCKED"

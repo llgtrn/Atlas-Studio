@@ -30,7 +30,7 @@ base_commit = "a53c52e76ccd00495812d9765853d30e80943c59"
 objective = "prove the donor absorption/extinction loop generalizes beyond souffle: resolve every open W3 (R5) donor blocking question with a parallel wave and absorb one mechanism if evidence supports it"
 writer = "coordinator (sole production writer); all lanes read-only"
 result_commits = ["2f6b2525d21e48a26b4d238075baeecdf4554603", "511105266d94607e795bacbc7ebb763b722480f5"]
-evidence = ".atlas/evidence/verification/r5-semi-naive-dependency-closure-absorption.json"
+evidence = "tools/atlas/evidence/verification/r5-semi-naive-dependency-closure-absorption.json"
 
 [[generation.lane]]
 id = "salsa"
@@ -97,7 +97,7 @@ performed = true
 deleted = "datafrog checkout under .atlas/temporary/donors (20 tracked files, 164K; git rm -r); path now absent"
 post_delete_verification = "622 workspace tests, fmt, clippy -D warnings, docs audit, verify-donor-quarantine.sh, atlas-cli systemize reachability identical to pre-deletion baseline"
 guards_added = "EXTINCT implies every candidate checkout path absent / CLONED implies present; every materialized checkout admitted or recorded debt -- both falsified (restored datafrog checkout; planted stray dir)"
-evidence = ".atlas/evidence/verification/datafrog-donor-checkout-extinction.json"
+evidence = "tools/atlas/evidence/verification/datafrog-donor-checkout-extinction.json"
 
 [[generation.deferred]]
 id = "unadmitted-donor-checkouts"
@@ -143,7 +143,7 @@ base_commit = "511105266d94607e795bacbc7ebb763b722480f5"
 objective = "fix the defect G35's recensus exposed in the edges reachability runs over, then attack salsa's narrowed blocker: give every inventoried artifact a content identity"
 writer = "coordinator (sole production writer); all lanes read-only"
 result_commits = ["6f08313a3a560f70b5fe306d45ca10c87ab319f9", "ce5ed2d612d704adae93f8aaf4245fd8ea99fa0d", "afabae80de6f1772b19fa09fafab5e816d42fca9"]
-evidence = ".atlas/evidence/verification/r5-native-blake3-content-digest-absorption.json"
+evidence = "tools/atlas/evidence/verification/r5-native-blake3-content-digest-absorption.json"
 
 [[generation.lane]]
 id = "frontier-classification"
@@ -183,7 +183,7 @@ performed = true
 deleted = "blake3 checkout under .atlas/temporary/donors (104 tracked files, 2.1M; git rm -r); path now absent"
 post_delete_verification = "642 workspace tests, fmt, clippy, docs audit, verify-donor-quarantine.sh, systemize digests byte-identical to a same-tree baseline with the checkout restored"
 guards_added = "none new; the G35 EXTINCT/CLONED guard falsified again in both directions on blake3"
-evidence = ".atlas/evidence/verification/blake3-donor-checkout-extinction.json"
+evidence = "tools/atlas/evidence/verification/blake3-donor-checkout-extinction.json"
 
 [[generation.deferred]]
 id = "frontier-record-staleness"
@@ -204,7 +204,7 @@ base_commit = "afabae80de6f1772b19fa09fafab5e816d42fca9"
 objective = "inventory change detection on content_digest (R5 'changed source'); apply unadmitted-checkout deletions; stale frontier records"
 writer = "coordinator (sole production writer); all lanes read-only"
 result_commits = ["d9a6f643fbc28649e5558dc6d41c73a34aca4bb2", "3cdfccbddcb75b07d09fbfd418421a0b7583038c"]
-evidence = ".atlas/evidence/verification/r5-inventory-change-detection-absorption.json"
+evidence = "tools/atlas/evidence/verification/r5-inventory-change-detection-absorption.json"
 
 [[generation.lane]]
 id = "rust-analyzer-vfs"
@@ -244,12 +244,12 @@ base_commit = "3cdfccbddcb75b07d09fbfd418421a0b7583038c"
 objective = "user frontier directive (intent -> logic -> verified binary; donor superset): Phase A inventory of the requested frontier, architecture join, and the one foundational primitive with a real production consumer"
 writer = "coordinator (sole production writer); all lanes read-only"
 result_commits = ["229c543ffa2a45fc469c0aaa42390b57cdd8bb5f"]
-evidence = ".atlas/roadmap/FRONTIER.toml"
+evidence = "tools/atlas/roadmap/FRONTIER.toml"
 
 [[generation.lane]]
 id = "frontier-inventory"
 objective = "requested donor frontier vs admitted corpus: status, HEAD sha, SPDX license, size, mechanism dirs"
-result = "8 ALREADY_ADMITTED, 3 OVERLAPPING, 43 MISSING (.atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv); leverage ranking Z3 > Nix > in-toto attestation > QBE > BoTorch; robotics family has no link to a current primitive; MiroFish (AGPL-3.0) and BettaFish (GPL-2.0) exist but expose no foundational primitive"
+result = "8 ALREADY_ADMITTED, 3 OVERLAPPING, 43 MISSING (tools/atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv); leverage ranking Z3 > Nix > in-toto attestation > QBE > BoTorch; robotics family has no link to a current primitive; MiroFish (AGPL-3.0) and BettaFish (GPL-2.0) exist but expose no foundational primitive"
 
 [[generation.lane]]
 id = "logic-to-binary-architecture"
@@ -273,7 +273,7 @@ base_commit = "229c543ffa2a45fc469c0aaa42390b57cdd8bb5f"
 objective = "R5 cached derivation: salsa's cheapest falsification -- cache one derivation, prove it reproduces recompute, measure it"
 writer = "coordinator (sole production writer)"
 result_commits = ["14cc307b9d235a4a90f3d04d18938dd0273dd6f3"]
-evidence = ".atlas/evidence/verification/r5-extraction-derivation-cache.json"
+evidence = "tools/atlas/evidence/verification/r5-extraction-derivation-cache.json"
 
 [generation.join]
 absorb_now_exists = true
@@ -300,7 +300,7 @@ base_commit = "14cc307b9d235a4a90f3d04d18938dd0273dd6f3"
 objective = "fix the measured recensus cost centre: engineering-graph construction (~95% of systemize)"
 writer = "coordinator (sole production writer)"
 result_commits = ["50638583f9e9e69d05fb3a0c87db348f4f8f61f8"]
-evidence = ".atlas/evidence/verification/r5-graph-construction-quadratic-dedup.json"
+evidence = "tools/atlas/evidence/verification/r5-graph-construction-quadratic-dedup.json"
 
 [generation.join]
 absorb_now_exists = false
@@ -321,7 +321,7 @@ base_commit = "50638583f9e9e69d05fb3a0c87db348f4f8f61f8"
 objective = "measure recensus at corpus scale; select the next foundational unlock for the frontier directive"
 writer = "coordinator (sole production writer); lanes read-only"
 result_commits = ["e64ddbf2758d75e36aec0a4e7c9f02e3e5d9374e"]
-evidence = ".atlas/evidence/verification/r5-corpus-scale-recensus-measurement.json"
+evidence = "tools/atlas/evidence/verification/r5-corpus-scale-recensus-measurement.json"
 
 [[generation.deferred]]
 id = "systemize-report-size-at-corpus-scale"
@@ -344,12 +344,12 @@ result = "no reader/writer exists; contracts leave varint encoding, flag bits, s
 [[generation.lane]]
 id = "physical-frontier"
 objective = "verify 16 requested physical donors + units references"
-result = "none admitted; uom (Apache-2.0/MIT) best units reference, pint (BSD-3) oracle; Drake/MuJoCo/Pinocchio/tf2 permissive; KiCad/FreeCAD/OCCT/OpenFOAM/LinuxCNC/OpenModelica copyleft (principles only); several requested slice paths were stale and corrected (.atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv)"
+result = "none admitted; uom (Apache-2.0/MIT) best units reference, pint (BSD-3) oracle; Drake/MuJoCo/Pinocchio/tf2 permissive; KiCad/FreeCAD/OCCT/OpenFOAM/LinuxCNC/OpenModelica copyleft (principles only); several requested slice paths were stale and corrected (tools/atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv)"
 
 [[generation.lane]]
 id = "creator-frontier"
 objective = "verify requested Creator donors, prove the browser substrate, resolve Higgsfield"
-result = "none admitted; Playwright 1.56.1 + Chromium 141 observation proven in-container (computed style + boxes at 375/1280 px, ariaSnapshot); Higgsfield has no open-source generation code (EXTERNAL provider only); container ffmpeg is a stripped LGPL build; slices in .atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"
+result = "none admitted; Playwright 1.56.1 + Chromium 141 observation proven in-container (computed style + boxes at 375/1280 px, ariaSnapshot); Higgsfield has no open-source generation code (EXTERNAL provider only); container ffmpeg is a stripped LGPL build; slices in tools/atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"
 
 [generation.join]
 absorb_now_exists = false
@@ -543,7 +543,7 @@ id = "G53"
 base_commit = "4f6f03e7ea58665261681b9483cacef37754b519"
 objective = "materialize the user-recorded RECOMMENDED-OSS-FRONTIER baseline into repo-exact entries keyed by canonical remote URL and recompute the exact unique-repository total"
 writer = "coordinator (sole writer); three read-only name-extraction lanes (FUTURIST; CREATOR+PHYSICAL; earlier directives), deterministic join by canonical URL"
-evidence = ".atlas/evidence/verification/g53-recommended-frontier-materialization.json"
+evidence = "tools/atlas/evidence/verification/g53-recommended-frontier-materialization.json"
 result_commits = ["fd39dcd3d4a772873cc683ab642d1bb5e44ae011"]
 
 [[generation.lane]]
@@ -601,7 +601,7 @@ id = "G55"
 base_commit = "dbbf5186f475e5586368b97a0da7e6d8062531c9"
 objective = "browser-engine-independent Creator instrument architecture: BrowserInstrument abstraction, Chromium preserved as reference, W3C WebDriver backend, cross-instrument differential evidence, Ladybird admission and promotion gate"
 writer = "coordinator (sole writer); read-only lanes: Chromium coupling audit, Ladybird feasibility + slice census"
-evidence = ".atlas/evidence/verification/g55-cross-instrument-differential.json"
+evidence = "tools/atlas/evidence/verification/g55-cross-instrument-differential.json"
 result_commits = ["f6bf0f2df5f5aa478dac70d920f8ccd5fad4a069"]
 
 [[generation.lane]]
@@ -634,7 +634,7 @@ id = "G56"
 base_commit = "f6bf0f2df5f5aa478dac70d920f8ccd5fad4a069"
 objective = "open PRODUCT_FOUNDRY: 29 machine-readable lanes, repo-exact donor frontier, and the first native primitive (Product Semantic IR + evidence-typed unit economics)"
 writer = "coordinator (sole writer); read-only lane: Product Foundry donor verification (10 candidates, remote census)"
-evidence = ".atlas/evidence/verification/g56-product-foundry.json"
+evidence = "tools/atlas/evidence/verification/g56-product-foundry.json"
 result_commits = ["4fcb0d68198c58860106cf9d79c573c18637864d"]
 
 [[generation.lane]]
@@ -666,7 +666,7 @@ serves = "P1 SELF_RECENSUS_N_TO_N_PLUS_1 (and the P0 baseline it measures)"
 objective = "priority reset; make self-recensus the mandatory, chained proof of every generation; record the Atlas self-census baseline"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
-self_recensus = ".atlas/evidence/census/G57/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G57/recensus.json"
 result_commits = ["481c61fa224e010336d1fa2a581fb8a079edc628"]
 
 [generation.verification]
@@ -685,8 +685,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN (exit criterion F)"
 objective = "make the first-50 donor campaign canonical, stable and machine-checked; reconcile historical proofs"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml"
-self_recensus = ".atlas/evidence/census/G58/recensus.json"
+evidence = "tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml"
+self_recensus = "tools/atlas/evidence/census/G58/recensus.json"
 result_commits = ["f9ca9c4ed0b503a00f65f0fc01e7b87890e80c20"]
 
 [generation.verification]
@@ -705,7 +705,7 @@ serves = "P0 CENSUS_KERNEL_CLOSURE (exit criterion B: reconciliation certificate
 objective = "compute the CensusCertificate v2 from the census so closure is measured, never claimed"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0025-census-certificate.md"
-self_recensus = ".atlas/evidence/census/G59/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G59/recensus.json"
 result_commits = ["4f85fcfce6dac089cc064ed3a62f314aef4f8c16", "f706c44784bb17bcfd7a6b10b51a2e61a6e4f297"]
 
 [generation.verification]
@@ -724,8 +724,8 @@ priority = "P0"
 serves = "P0 CENSUS_KERNEL_CLOSURE: closes certificate blocker WORKSPACE_MEMBER_OUTSIDE_INVENTORY"
 objective = "bring the atlas-systemizer crate (apps/cli, a workspace member) into the census scope"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G60/recensus.json"
-self_recensus = ".atlas/evidence/census/G60/recensus.json"
+evidence = "tools/atlas/evidence/census/G60/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G60/recensus.json"
 result_commits = ["fdc7a4c1acbacad5ad4bde633a2fd4d26cf9454b"]
 
 [generation.verification]
@@ -743,8 +743,8 @@ priority = "P0"
 serves = "P0 CENSUS_KERNEL_CLOSURE: closes certificate blocker ARTIFACTS_WITHOUT_SOURCE_FRONTEND"
 objective = "register html and css source frontends; classify include!-spliced files as rust-include-fragment by observation, never by path"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G61/recensus.json"
-self_recensus = ".atlas/evidence/census/G61/recensus.json"
+evidence = "tools/atlas/evidence/census/G61/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G61/recensus.json"
 result_commits = ["00702832fdb57e53dfb6b016644fba6a4e01a9e6", "e9ee3a0874b04493170feeb5da3a503830e57763"]
 
 [generation.verification]
@@ -764,8 +764,8 @@ priority = "P0"
 serves = "P0 CENSUS_KERNEL_CLOSURE: closes certificate blocker PROVENANCE_INCOMPLETE; the self-scope certificate advances CENSUSED -> RECONCILED"
 objective = "every census fact carries the census revision and a named producer; independent engines count only evaluated obligations"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G62/recensus.json"
-self_recensus = ".atlas/evidence/census/G62/recensus.json"
+evidence = "tools/atlas/evidence/census/G62/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G62/recensus.json"
 result_commits = ["d6a13e07b59d4659ec56addd5578ada5dbae04e6", "74adaef3e9a360989e9ff828d6192a58e9272a95"]
 
 [generation.verification]
@@ -784,8 +784,8 @@ priority = "P2"
 serves = "P2 ADL_ATLAS_ATLASX_END_TO_END: exit criterion C (ADL consumes census truth)"
 objective = "authored depends_on reconciled against the dependency census; census truth the authored ADL lacks derived into .atlas/declared/census.adl"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G63/recensus.json"
-self_recensus = ".atlas/evidence/census/G63/recensus.json"
+evidence = "tools/atlas/evidence/census/G63/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G63/recensus.json"
 result_commits = ["860fcc7903ff1bb2050546a0d39d243542a799c1", "b3e2ec75e2854a687c36cd5af094e62f90b0a472"]
 
 [generation.verification]
@@ -804,8 +804,8 @@ priority = "P2"
 serves = "P2 ADL_ATLAS_ATLASX_END_TO_END: exit criterion D (minimum .atlas writer/reader/validator)"
 objective = "census state packaged into a verified, explicitly unsealed ATLAS wire v1 census container; the certificate records its root identity"
 writer = "coordinator (sole writer); a read-only lane surveyed the .atlas contracts and existing code"
-evidence = ".atlas/evidence/census/G64/recensus.json"
-self_recensus = ".atlas/evidence/census/G64/recensus.json"
+evidence = "tools/atlas/evidence/census/G64/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G64/recensus.json"
 result_commits = ["b0a8d9cdf9cfb5bf700528b83f8d7c4e806a14c5", "7e4e88e76e1d097ee44d1143cb555b44ec285c82"]
 
 [generation.verification]
@@ -825,8 +825,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #6 tree-sitter to a terminal state (and P4 input from its measurement)"
 objective = "falsify tree-sitter's incremental parsing by measurement, decide every mechanism, physically extinct the checkout, and verify Atlas unchanged with the donor absent"
 writer = "coordinator (sole writer); a read-only lane surveyed the AtlasX contracts first"
-evidence = ".atlas/evidence/campaign/06-tree-sitter.json"
-self_recensus = ".atlas/evidence/census/G65/recensus.json"
+evidence = "tools/atlas/evidence/campaign/06-tree-sitter.json"
+self_recensus = "tools/atlas/evidence/census/G65/recensus.json"
 result_commits = ["65bacafbd8997e07e8fcbe776115cc5730073655"]
 
 [generation.verification]
@@ -848,8 +848,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #7 scip to a terminal state; P1 SELF_RECENSUS precision (entity-level proof)"
 objective = "measure revision identity loss, absorb SCIP's position-free descriptor identity natively with Atlas-native correspondence, prove entity-level recensus, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/07-scip.json"
-self_recensus = ".atlas/evidence/census/G66/recensus.json"
+evidence = "tools/atlas/evidence/campaign/07-scip.json"
+self_recensus = "tools/atlas/evidence/census/G66/recensus.json"
 result_commits = ["d28f18f6917d7aef9069ed33eb10ec8b85f97aba", "a23ae6607feb08663c3e852b96e701b14a06380f"]
 
 [generation.verification]
@@ -869,8 +869,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #8 kythe to a terminal state; P0 census correctness (cross-file identity conflation)"
 objective = "test Kythe's recorded absorption condition on the real census, absorb VName path into symbol/type identity, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/08-kythe.json"
-self_recensus = ".atlas/evidence/census/G67/recensus.json"
+evidence = "tools/atlas/evidence/campaign/08-kythe.json"
+self_recensus = "tools/atlas/evidence/census/G67/recensus.json"
 result_commits = ["ecf74a3a6c22183ef2a37c6140940c74b312b34f", "dd703cd509b032202d3f2fdf70f5b99639fea2c2"]
 
 [generation.verification]
@@ -890,8 +890,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #9 glean to a terminal state; P2 .atlas artifact integrity (wire evolution rule)"
 objective = "run Glean's recorded falsification against the G64 codec, absorb definition-derived schema identity, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/09-glean.json"
-self_recensus = ".atlas/evidence/census/G68/recensus.json"
+evidence = "tools/atlas/evidence/campaign/09-glean.json"
+self_recensus = "tools/atlas/evidence/census/G68/recensus.json"
 result_commits = ["87162e0f9ea53c02d47c44f674186c1c04e9ffd0", "d131527e3e1680397ea54296caeaceee9b894c88"]
 
 [generation.verification]
@@ -911,8 +911,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #10 joern to a terminal state (P0 input: what closes coverage UNKNOWN)"
 objective = "falsify joern's coverage and layout hypotheses, decide REFERENCE_ONLY, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/10-joern.json"
-self_recensus = ".atlas/evidence/census/G69/recensus.json"
+evidence = "tools/atlas/evidence/campaign/10-joern.json"
+self_recensus = "tools/atlas/evidence/census/G69/recensus.json"
 result_commits = ["a3f1ea4553b969f6630b02d0234094717f1e88b6", "2cc753f354c1a3c8b5f211e01a088a2f957a22f2"]
 
 [generation.verification]
@@ -931,8 +931,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #11 semgrep to a terminal state"
 objective = "deep-census semgrep's matching slice, falsify the pattern-matching hypothesis against Atlas's effect-spelling consumer, decide REFERENCE_ONLY, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/11-semgrep.json"
-self_recensus = ".atlas/evidence/census/G70/recensus.json"
+evidence = "tools/atlas/evidence/campaign/11-semgrep.json"
+self_recensus = "tools/atlas/evidence/census/G70/recensus.json"
 result_commits = ["68ab0c0d2c7801033ff0942611c631e34cf172a2", "442734422ea81e2742de0e564f2cc248026d1661"]
 
 [generation.verification]
@@ -951,8 +951,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #12 ast-grep to a terminal state"
 objective = "deep-census ast-grep's core slice, search for an Atlas structural search/rewrite consumer, decide REFERENCE_ONLY, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/12-ast-grep.json"
-self_recensus = ".atlas/evidence/census/G71/recensus.json"
+evidence = "tools/atlas/evidence/campaign/12-ast-grep.json"
+self_recensus = "tools/atlas/evidence/census/G71/recensus.json"
 result_commits = ["964526c060049001c1a1e6cb17a3d7e22d2683a0", "a4c31293adfc93444fb99768405f2d79e4d53cdd"]
 
 [generation.verification]
@@ -971,8 +971,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #13 sourcetrail to a terminal state"
 objective = "deep-census sourcetrail's storage slice, test the element/occurrence model against Atlas, decide REFERENCE_ONLY, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/13-sourcetrail.json"
-self_recensus = ".atlas/evidence/census/G72/recensus.json"
+evidence = "tools/atlas/evidence/campaign/13-sourcetrail.json"
+self_recensus = "tools/atlas/evidence/census/G72/recensus.json"
 result_commits = ["36191e45d03b2c9b705c558e612b5ec9a40772e4", "e7f1b2ee762a3019edd1803d60a6807223bc09b4"]
 
 [generation.verification]
@@ -991,8 +991,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #14 rust to a terminal state"
 objective = "measure compiler-grade resolution against Atlas's CALL coverage, decide the terminal state of the rust checkout, physically extinct it"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/14-rust.json"
-self_recensus = ".atlas/evidence/census/G73/recensus.json"
+evidence = "tools/atlas/evidence/campaign/14-rust.json"
+self_recensus = "tools/atlas/evidence/census/G73/recensus.json"
 result_commits = ["25c6b907a8669131744841ad3e3b018f8fef8bfa", "ecbb3d8f14ede4a9b0973783e7a004a5f8cb6d3b"]
 
 [generation.verification]
@@ -1011,8 +1011,8 @@ priority = "P0"
 serves = "P0 CENSUS_KERNEL_CLOSURE: CALL site identity (the prerequisite for any callee resolution or second CALL engine)"
 objective = "anchor every CALL site at a token that belongs to exactly one call expression, so no call is erased by an identity collision"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G74/recensus.json"
-self_recensus = ".atlas/evidence/census/G74/recensus.json"
+evidence = "tools/atlas/evidence/census/G74/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G74/recensus.json"
 result_commits = ["71e1713635808348ccecaae77f78f8157809c07d", "f30780775569e9956cacbf3b42a5c673ad405b3b"]
 
 [generation.verification]
@@ -1034,8 +1034,8 @@ priority = "P0"
 serves = "P0 CENSUS_KERNEL_CLOSURE: CALL callee resolution; P3 FIRST_50_DONOR_CAMPAIGN: donor #4 rust-analyzer to a terminal state"
 objective = "absorb hir-def name resolution natively as a second CALL engine that resolves path calls to their FunctionIdentity, verified against the pinned rust-analyzer SCIP oracle; terminal state and physical extinction of the rust-analyzer checkout"
 writer = "coordinator (sole writer); one read-only research agent summarized hir-def nameres with citations"
-evidence = ".atlas/evidence/campaign/04-rust-analyzer.json"
-self_recensus = ".atlas/evidence/census/G75/recensus.json"
+evidence = "tools/atlas/evidence/campaign/04-rust-analyzer.json"
+self_recensus = "tools/atlas/evidence/census/G75/recensus.json"
 result_commits = ["27b88d7c03b5353400035107e274099935de16cf", "fd1c91edf2e3dd40f7c2b6e79bec951269eb958c"]
 
 [generation.verification]
@@ -1057,8 +1057,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #15 miri to a terminal state"
 objective = "falsify interpreter-backed UB/effect evidence against Atlas, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/15-miri.json"
-self_recensus = ".atlas/evidence/census/G76/recensus.json"
+evidence = "tools/atlas/evidence/campaign/15-miri.json"
+self_recensus = "tools/atlas/evidence/census/G76/recensus.json"
 result_commits = ["2f41a48af7dde108bec42ff857e1386703ae25b5", "be5237641fd58ff356ae54fe4934980d28e9780e"]
 
 [generation.verification]
@@ -1078,7 +1078,7 @@ serves = "P0 CENSUS_KERNEL_CLOSURE: EFFECT coverage (input from the miri cycle, 
 objective = "derive filesystem EFFECT sites from path calls resolved to standard-library paths through a declared std-path effect table"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0032-effects-from-resolved-std-paths.md"
-self_recensus = ".atlas/evidence/census/G77/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G77/recensus.json"
 result_commits = ["0bf29e010eab4aaa43e5c416c125aaec5fc9dd68", "b2f5175fc2d3e1148459c0b5c52e646c3c5ff0f9"]
 
 [generation.verification]
@@ -1099,8 +1099,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #16 clef to a terminal state"
 objective = "falsify language-service type resolution against Atlas's residual CALL gap (method calls), decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/16-clef.json"
-self_recensus = ".atlas/evidence/census/G78/recensus.json"
+evidence = "tools/atlas/evidence/campaign/16-clef.json"
+self_recensus = "tools/atlas/evidence/census/G78/recensus.json"
 result_commits = ["e9db35b54462a5ea8e6b53430b4f60266afe73ed", "f5e40ddc3127580d643615a206a53b573b8c8b18"]
 
 [generation.verification]
@@ -1121,7 +1121,7 @@ serves = "P0 CENSUS_KERNEL_CLOSURE: CALL method-call resolution (input from the 
 objective = "resolve self.m() method calls natively by the method probe's first step"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0033-self-receiver-method-resolution.md"
-self_recensus = ".atlas/evidence/census/G79/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G79/recensus.json"
 result_commits = ["f61b6dd134929865031784dd1b24ca2d247c56bb", "83448ab3a09c9b9ac8f486696d036dbef9aca2f4"]
 
 [generation.verification]
@@ -1141,8 +1141,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #17 differential-dataflow to a terminal state (P4 question)"
 objective = "answer the recorded question (does Atlas's edit-to-recensus workload need incremental view maintenance?) by measurement, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/17-differential-dataflow.json"
-self_recensus = ".atlas/evidence/census/G80/recensus.json"
+evidence = "tools/atlas/evidence/campaign/17-differential-dataflow.json"
+self_recensus = "tools/atlas/evidence/census/G80/recensus.json"
 result_commits = ["61af90583a42296a98776b3533089d79d5dbd880", "1c4c3f2f4cf37e96f967b8d3ae7628e0090e85c9"]
 
 [generation.verification]
@@ -1161,8 +1161,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #18 buck2 to a terminal state (P4 question)"
 objective = "decide DICE's two mechanisms separately (keyed invalidation against G80's measured workload; branching against AIF1), physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/18-buck2.json"
-self_recensus = ".atlas/evidence/census/G81/recensus.json"
+evidence = "tools/atlas/evidence/campaign/18-buck2.json"
+self_recensus = "tools/atlas/evidence/census/G81/recensus.json"
 result_commits = ["7c30a408480208cf62f3415f2b5e9d367b986209", "aceaf1f48fa6069c2c7d02db62d73f2053de264b"]
 
 [generation.verification]
@@ -1181,8 +1181,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #19 egglog to a terminal state"
 objective = "falsify e-graph equivalence against the census's actual equivalence problems, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/19-egglog.json"
-self_recensus = ".atlas/evidence/census/G82/recensus.json"
+evidence = "tools/atlas/evidence/campaign/19-egglog.json"
+self_recensus = "tools/atlas/evidence/census/G82/recensus.json"
 result_commits = ["592409a9d53dfe86b37e50bf0e24616260b34553", "1f5fc69eb718513f821c58118f3a03a2346a84c6"]
 
 [generation.verification]
@@ -1202,7 +1202,7 @@ serves = "P0 CENSUS_KERNEL_CLOSURE: TYPE identity precision (input from the eggl
 objective = "canonical type identity through native name resolution, bottom-up, never guessing"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0034-canonical-type-identity.md"
-self_recensus = ".atlas/evidence/census/G83/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G83/recensus.json"
 result_commits = ["fbc4858f29588c460ca8aaf7954cf9103b6e16e5", "c36416d25dd1d9b9fc9355cadac84c552323ec76"]
 
 [generation.verification]
@@ -1223,8 +1223,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #20 capnproto to a terminal state (P2 wire question)"
 objective = "answer the recorded clause-by-clause question against the executing .atlas reader/writer, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/20-capnproto.json"
-self_recensus = ".atlas/evidence/census/G84/recensus.json"
+evidence = "tools/atlas/evidence/campaign/20-capnproto.json"
+self_recensus = "tools/atlas/evidence/census/G84/recensus.json"
 result_commits = ["95aff9e47de40a9617a542f737dcda0b676e7545", "72c5cb88d667d0a77d11f25d21f807720a0f51d9"]
 
 [generation.verification]
@@ -1244,8 +1244,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #21 rkyv to a terminal state (P2 wire / cache question)"
 objective = "answer both recorded questions (self-relative pointers; the conditional cache dependency, now that a cache exists) by comparison and benchmark, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/21-rkyv.json"
-self_recensus = ".atlas/evidence/census/G85/recensus.json"
+evidence = "tools/atlas/evidence/campaign/21-rkyv.json"
+self_recensus = "tools/atlas/evidence/census/G85/recensus.json"
 result_commits = ["417e7f8475f9078341526c81621d81f7120d28fb", "9d88f29fc4777006c5abb6caf7a0f265f86c6c0e"]
 
 [generation.verification]
@@ -1264,8 +1264,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #22 flatbuffers to a terminal state (P2 schema-evolution question)"
 objective = "answer the recorded vtable/conformance question against the executing .atlas reader/writer, absorb the smallest missing mechanism, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/22-flatbuffers.json"
-self_recensus = ".atlas/evidence/census/G86/recensus.json"
+evidence = "tools/atlas/evidence/campaign/22-flatbuffers.json"
+self_recensus = "tools/atlas/evidence/census/G86/recensus.json"
 result_commits = ["38a3147040682ea560782de90f254fe6fd3f02ad", "726fe496c12abb11d0949f522c77f7ada935f035"]
 
 [generation.verification]
@@ -1287,8 +1287,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #23 zstd to a terminal state (P2 codec question)"
 objective = "answer the recorded native-vs-external codec question now that a section writer exists (G64), decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/23-zstd.json"
-self_recensus = ".atlas/evidence/census/G87/recensus.json"
+evidence = "tools/atlas/evidence/campaign/23-zstd.json"
+self_recensus = "tools/atlas/evidence/census/G87/recensus.json"
 result_commits = ["cf706daea4cdef6e6b629a72560688c20de06e57", "dc53c36f4c72bfc508a75ae2e047694a3005f2c2"]
 
 [generation.verification]
@@ -1309,8 +1309,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #24 arrow to a terminal state (P2 columnar question)"
 objective = "answer the recorded columnar-volume question by measuring the real census container, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/24-arrow.json"
-self_recensus = ".atlas/evidence/census/G88/recensus.json"
+evidence = "tools/atlas/evidence/campaign/24-arrow.json"
+self_recensus = "tools/atlas/evidence/census/G88/recensus.json"
 result_commits = ["d7c1205e4a15058412a778ef4bc3b4d19313dc59", "91600c97ceae88351ba30316be826cf56af1d9d0"]
 
 [generation.verification]
@@ -1331,8 +1331,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #25 mlir to a terminal state (P6 dialect-extensibility question)"
 objective = "answer the recorded external-model registry question against Rust, Cargo.lock and the ACP contract, decide the terminal state, physically extinct the mlir slice without touching the shared llvm-project slice"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/25-mlir.json"
-self_recensus = ".atlas/evidence/census/G89/recensus.json"
+evidence = "tools/atlas/evidence/campaign/25-mlir.json"
+self_recensus = "tools/atlas/evidence/census/G89/recensus.json"
 result_commits = ["fb26f9d7d2b5822c831db58ac14f128008e86c55", "4050e8e3904890d87e9b7a22f32c66853bbbc3ff"]
 
 [generation.verification]
@@ -1354,8 +1354,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #26 xdsl to a terminal state (P6 dialect-definition question)"
 objective = "settle both recorded forks (dispatch default; eager vs checkpoint verification) against G89 and the ASIR contract, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/26-xdsl.json"
-self_recensus = ".atlas/evidence/census/G90/recensus.json"
+evidence = "tools/atlas/evidence/campaign/26-xdsl.json"
+self_recensus = "tools/atlas/evidence/census/G90/recensus.json"
 result_commits = ["03910f4e3d9ba23186effe37858017447c407827", "c42a68376f8e6f13a65a8969b16db0cb2d486efd"]
 
 [generation.verification]
@@ -1376,7 +1376,7 @@ serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #27 iris to a terminal state; P0 inp
 objective = "execute the census's fired recensus requirement (IRIS's effect taxonomy against the now-real EFFECT dimension), absorb the smallest missing mechanism, physically extinct the checkout"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0036-ambient-input-effects.md"
-self_recensus = ".atlas/evidence/census/G91/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G91/recensus.json"
 result_commits = ["93f2527fb070ce9b4dc5bbac49b9a839379e071c", "91c7032f74657436a0be7866262aaf8af072fbea"]
 
 [generation.verification]
@@ -1399,8 +1399,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #28 sigil-lang to a terminal state (P6 graph-language lane)"
 objective = "check the census's open items and recensus triggers, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/28-sigil-lang.json"
-self_recensus = ".atlas/evidence/census/G92/recensus.json"
+evidence = "tools/atlas/evidence/campaign/28-sigil-lang.json"
+self_recensus = "tools/atlas/evidence/census/G92/recensus.json"
 result_commits = ["0d84da84197b6c1a3fc39eb89ff804a826ca78e6", "a6e7e9a09c4cfb9d17c852485a121b6fda7a5ff7"]
 
 [generation.verification]
@@ -1420,8 +1420,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #29 duumbi to a terminal state (P6 graph-language lane)"
 objective = "check the census's open items and recensus triggers, run the DC1 extinction trial, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/29-duumbi.json"
-self_recensus = ".atlas/evidence/census/G93/recensus.json"
+evidence = "tools/atlas/evidence/campaign/29-duumbi.json"
+self_recensus = "tools/atlas/evidence/census/G93/recensus.json"
 result_commits = ["d867333a930156464954382db601392e1fa1831d", "51b1499ab60a94992059b15ffee624a836da7f84"]
 
 [generation.verification]
@@ -1442,8 +1442,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #30 composer to a terminal state (P6 graph-language lane)"
 objective = "execute the recorded hyperedge falsification on the real system graph, decide the thin-middle-end doctrine, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/30-composer.json"
-self_recensus = ".atlas/evidence/census/G94/recensus.json"
+evidence = "tools/atlas/evidence/campaign/30-composer.json"
+self_recensus = "tools/atlas/evidence/census/G94/recensus.json"
 result_commits = ["415e1c268bee43b4fc0a2ef444e08972890bf87e", "618dab027312db0580e210c50a967ca4b690c491"]
 
 [generation.verification]
@@ -1463,8 +1463,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #31 agentir to a terminal state (P6 pipeline-staging lane)"
 objective = "run the recorded loss-disclosure falsification against the fact projection and the .atlas container, decide the terminal state, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/31-agentir.json"
-self_recensus = ".atlas/evidence/census/G95/recensus.json"
+evidence = "tools/atlas/evidence/campaign/31-agentir.json"
+self_recensus = "tools/atlas/evidence/census/G95/recensus.json"
 result_commits = ["a698017df8a89f09fd8aeab2c33d25571fc275fc", "c85ea766f84c5f25c98c2c4101b110885c1c30ef"]
 
 [generation.verification]
@@ -1484,8 +1484,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #32 llvm-project to a terminal state (P6 native backend)"
 objective = "decide the recorded backend/oracle roles against the pipeline contract and the environment, physically extinct the checkout and, with the mlir slice gone, the shared repository"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/32-llvm-project.json"
-self_recensus = ".atlas/evidence/census/G96/recensus.json"
+evidence = "tools/atlas/evidence/campaign/32-llvm-project.json"
+self_recensus = "tools/atlas/evidence/census/G96/recensus.json"
 result_commits = ["1ec85570b7c844fa2a4d9d5840644c2bd9e27f8a", "80c74308b8adc407b6ae85adf805e8f1c92621db"]
 
 [generation.verification]
@@ -1505,8 +1505,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #33 wasm-spec to a terminal state (P6 verify-then-encode; P2 wire)"
 objective = "check the census's ADAPT dispositions against Atlas, pin what the wire contract left undefined, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/33-wasm-spec.json"
-self_recensus = ".atlas/evidence/census/G97/recensus.json"
+evidence = "tools/atlas/evidence/campaign/33-wasm-spec.json"
+self_recensus = "tools/atlas/evidence/census/G97/recensus.json"
 result_commits = ["85b171270f1c7bfd261fe08a5db41920a9123287", "c2eec7e27eed5b339104a66359046d892e4703c4"]
 
 [generation.verification]
@@ -1528,8 +1528,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #34 wasm-component-model to a terminal state (P6 interface boundary)"
 objective = "check whether a capability boundary exists to test the recorded owned-vs-borrowed question, keep the question alive in the contract, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/34-wasm-component-model.json"
-self_recensus = ".atlas/evidence/census/G98/recensus.json"
+evidence = "tools/atlas/evidence/campaign/34-wasm-component-model.json"
+self_recensus = "tools/atlas/evidence/census/G98/recensus.json"
 result_commits = ["db6087ba0c1f43b45cb6373834cc9b0fafc435a4", "68af8beb23d17407edc5b744d32704d4fa815c99"]
 
 [generation.verification]
@@ -1550,8 +1550,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #35 wasm-tools to a terminal state (P6 binary validation); P5 extinction discipline for test inputs"
 objective = "decide wasm-tools, re-base the DC1 real-donor Cargo tests so extinction of a test input is recorded rather than silently tolerated, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/35-wasm-tools.json"
-self_recensus = ".atlas/evidence/census/G99/recensus.json"
+evidence = "tools/atlas/evidence/campaign/35-wasm-tools.json"
+self_recensus = "tools/atlas/evidence/census/G99/recensus.json"
 result_commits = ["2773598039d3d1d8d8a139c183869f5d2729753f", "4cb3dfa6ba79884b8b7553dd2856b39965ba4287"]
 
 [generation.verification]
@@ -1573,8 +1573,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #36 wasmtime to a terminal state (P6 backend and sandbox)"
 objective = "decide the Cranelift and sandbox roles against the pipeline and host-runtime contracts, move the last silently-skipping real-donor test onto the corpus ledger, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/36-wasmtime.json"
-self_recensus = ".atlas/evidence/census/G100/recensus.json"
+evidence = "tools/atlas/evidence/campaign/36-wasmtime.json"
+self_recensus = "tools/atlas/evidence/census/G100/recensus.json"
 result_commits = ["c91098e811b4182958332736837f3d67b54c6b96", "86b157a9cfa0b5afcb26a67c0d23cb5cb40bca24"]
 
 [generation.verification]
@@ -1595,8 +1595,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #37 object to a terminal state (P6 object emission)"
 objective = "decide object against the pipeline's object stage, move its dedicated real-donor test onto the corpus ledger, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/37-object.json"
-self_recensus = ".atlas/evidence/census/G101/recensus.json"
+evidence = "tools/atlas/evidence/campaign/37-object.json"
+self_recensus = "tools/atlas/evidence/census/G101/recensus.json"
 result_commits = ["941537e735b9917b3af8028dd86f0b93c8bed037", "43e8f1f8c4431b0d3e7ad985391b01bafe956096"]
 
 [generation.verification]
@@ -1617,8 +1617,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #38 regalloc2 to a terminal state (P6 register allocation)"
 objective = "decide regalloc2 against the pipeline's Machine IR stage and the external backend boundaries, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/38-regalloc2.json"
-self_recensus = ".atlas/evidence/census/G102/recensus.json"
+evidence = "tools/atlas/evidence/campaign/38-regalloc2.json"
+self_recensus = "tools/atlas/evidence/census/G102/recensus.json"
 result_commits = ["80ca0fc6246ee75d7996bf14e424a7440cc1a670", "71561f2d9aab8388945173b2ee98ccdae078d5d8"]
 
 [generation.verification]
@@ -1638,8 +1638,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #39 mold to a terminal state (P6 linking)"
 objective = "decide the recorded own-vs-integrate linker question against the pipeline contract and the host, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/39-mold.json"
-self_recensus = ".atlas/evidence/census/G103/recensus.json"
+evidence = "tools/atlas/evidence/campaign/39-mold.json"
+self_recensus = "tools/atlas/evidence/census/G103/recensus.json"
 result_commits = ["36594a9d3771e131b54dcceb01bc40dfc7979c40", "87aa8f1d67105edaf750f83b0a34d448fe672d35"]
 
 [generation.verification]
@@ -1659,8 +1659,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #40 kani to a terminal state (P0 proof evidence)"
 objective = "run a bounded census over the SKELETON record, test the P0 'proofs as constraint evidence' role against Atlas's evidence model, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/40-kani.json"
-self_recensus = ".atlas/evidence/census/G104/recensus.json"
+evidence = "tools/atlas/evidence/campaign/40-kani.json"
+self_recensus = "tools/atlas/evidence/census/G104/recensus.json"
 result_commits = ["a934a5d43bbd741be3e0dd423362f0ab2fdb18c1", "6ec019729bd56c8dd5afc80fe620117065b67af5"]
 
 [generation.verification]
@@ -1680,8 +1680,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #41 verus to a terminal state (P0 proof obligations)"
 objective = "run a bounded census over the SKELETON record, test the P0 role against Atlas's obligation and evidence code, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/41-verus.json"
-self_recensus = ".atlas/evidence/census/G105/recensus.json"
+evidence = "tools/atlas/evidence/campaign/41-verus.json"
+self_recensus = "tools/atlas/evidence/census/G105/recensus.json"
 result_commits = ["e85eaf96c529214d67d4db58b3ee5166e890041e", "06c69c4a5162940cbc2acc1cdb559888c06a2d0b"]
 
 [generation.verification]
@@ -1701,8 +1701,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #42 podman to a terminal state (P6 sandboxed construction)"
 objective = "decide podman against the host-runtime contract's SandboxBackend and OuterSandbox clauses, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/42-podman.json"
-self_recensus = ".atlas/evidence/census/G106/recensus.json"
+evidence = "tools/atlas/evidence/campaign/42-podman.json"
+self_recensus = "tools/atlas/evidence/census/G106/recensus.json"
 result_commits = ["ff367352a640b227879ac08964d7f55850191d81", "7cb4d30128fd6ea4606665f42719575560737df9"]
 
 [generation.verification]
@@ -1722,8 +1722,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #43 containers-image to a terminal state (P5 signed provenance)"
 objective = "test the signed-provenance hypothesis against Atlas's seal/attestation contracts and code, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/43-containers-image.json"
-self_recensus = ".atlas/evidence/census/G107/recensus.json"
+evidence = "tools/atlas/evidence/campaign/43-containers-image.json"
+self_recensus = "tools/atlas/evidence/census/G107/recensus.json"
 result_commits = ["9ee10e90517b9ec334bf029b0a9e1efaec0fc353", "478803367b8aa412fb8c3eff5de06f75edf64607"]
 
 [generation.verification]
@@ -1743,8 +1743,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #44 z3 to a terminal state (P0 SMT constraints); P5 working-set discipline"
 objective = "decide the consumer-gated z3 without admitting it, and let the campaign record a decision made at the consumer gate"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/44-z3.json"
-self_recensus = ".atlas/evidence/census/G108/recensus.json"
+evidence = "tools/atlas/evidence/campaign/44-z3.json"
+self_recensus = "tools/atlas/evidence/census/G108/recensus.json"
 result_commits = ["307e474c0e927e9155dd1a976f1f8269b5eedf65", "bcd21f45c4227263f0014b2f8da5f083263067d1"]
 
 [generation.verification]
@@ -1767,7 +1767,7 @@ serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #45 in-toto to a terminal state; P1 
 objective = "test in-toto's step-attestation mechanisms against Atlas's own construction chain and absorb the smallest missing one"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0037-generation-product-match.md"
-self_recensus = ".atlas/evidence/census/G109/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G109/recensus.json"
 result_commits = ["d99f6d339414e93365df182ef9feb5276b0d0050", "9392941e494633fdc62e7a1ff2b049eeb0c65a84"]
 
 [generation.verification]
@@ -1789,8 +1789,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #46 git to a terminal state (P5 content-addressed storage)"
 objective = "decide the consumer-gated git/git without admission and without touching the tracked unadmitted git checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/46-git.json"
-self_recensus = ".atlas/evidence/census/G110/recensus.json"
+evidence = "tools/atlas/evidence/campaign/46-git.json"
+self_recensus = "tools/atlas/evidence/census/G110/recensus.json"
 result_commits = ["46ceab8154f19f6ef676f418d41e656fd64f9002", "788767fc10658c097a6f6f9d0e463bcc5dee7134"]
 
 [generation.verification]
@@ -1810,8 +1810,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #47 nix to a terminal state (P6 hermetic derivations; P4 cache soundness)"
 objective = "test Nix's input-closure derivation identity against Atlas's extraction cache and cross-file derivations, decide without admission"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/47-nix.json"
-self_recensus = ".atlas/evidence/census/G111/recensus.json"
+evidence = "tools/atlas/evidence/campaign/47-nix.json"
+self_recensus = "tools/atlas/evidence/census/G111/recensus.json"
 result_commits = ["61fb39f983b8d579d834ae9a306abf299666aa93", "2c61cee72cd15326f672accbb79cc0aab6dc168d"]
 
 [generation.verification]
@@ -1831,8 +1831,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #48 tlaplus to a terminal state (P0 state-space exploration)"
 objective = "decide the consumer-gated tlaplus without admission"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/48-tlaplus.json"
-self_recensus = ".atlas/evidence/census/G112/recensus.json"
+evidence = "tools/atlas/evidence/campaign/48-tlaplus.json"
+self_recensus = "tools/atlas/evidence/census/G112/recensus.json"
 result_commits = ["49207c1d4f997fb2df5ac3fe8c707e95bd94c74c", "110b1132a4865ef6908ba79fa1c9b3c25574243d"]
 
 [generation.verification]
@@ -1852,8 +1852,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #49 openrewrite to a terminal state (P2 census -> declared change)"
 objective = "run a bounded census over the SKELETON record, test lossless trees and recipes against Atlas's change paths, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/49-openrewrite.json"
-self_recensus = ".atlas/evidence/census/G113/recensus.json"
+evidence = "tools/atlas/evidence/campaign/49-openrewrite.json"
+self_recensus = "tools/atlas/evidence/census/G113/recensus.json"
 result_commits = ["c9147fa48ea82714255cecfca12b6f83bffbbf1e", "10709699641f081d1a3670d4de81d54ede55ac5b"]
 
 [generation.verification]
@@ -1873,8 +1873,8 @@ priority = "P3"
 serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #50 c2rust to a terminal state (P6 translation IR)"
 objective = "run a bounded census over the SKELETON record, test translation/migration mechanisms against Atlas's frontends, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/50-c2rust.json"
-self_recensus = ".atlas/evidence/census/G114/recensus.json"
+evidence = "tools/atlas/evidence/campaign/50-c2rust.json"
+self_recensus = "tools/atlas/evidence/census/G114/recensus.json"
 result_commits = ["8991374da0a529dbc7825c082c0302e2d8f6b200", "9df5789b70236ee7cfc8357a72c06af132b681a5"]
 
 [generation.verification]
@@ -1894,8 +1894,8 @@ priority = "P4"
 serves = "P4 INCREMENTAL_RECENSUS: the salsa (#5) invalidation question against the measured workload; P3: the last non-terminal first-50 donor"
 objective = "measure where recensus time goes and how large edits are, decide Salsa's remaining invalidation mechanisms, physically extinct the checkout"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/campaign/05-salsa.json"
-self_recensus = ".atlas/evidence/census/G115/recensus.json"
+evidence = "tools/atlas/evidence/campaign/05-salsa.json"
+self_recensus = "tools/atlas/evidence/census/G115/recensus.json"
 result_commits = ["fd603365765d26605bfb18dcfd7dcd85a695842d", "ff4f425b2c9758bfb3cedc5052583ffd695b44f1"]
 
 [generation.verification]
@@ -1917,8 +1917,8 @@ priority = "P0"
 serves = "P0 census closure first, and every essential debt: generation selection draws from the native attack queue before any donor (ADR 0038); P2/P6 exit E becomes a finite graph"
 objective = "retrospective architecture audit: separate donor mechanism from capability from current scale, record essential complexity as debt with derived age and skip-budget alarms, re-audit all 50 decisions, map the end-state and frontier onto debts, order the native attack queue"
 writer = "coordinator (sole writer); three read-only lanes (ledger timeline, end-state/ontology, construction graph)"
-evidence = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-self_recensus = ".atlas/evidence/census/G116/recensus.json"
+evidence = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+self_recensus = "tools/atlas/evidence/census/G116/recensus.json"
 result_commits = ["3447c49bad289012b0da055ef29d0da00259b962", "0a9bce13eff1ec9d54ac6d2282f4814c7a5f9460"]
 
 [generation.lanes]
@@ -1947,7 +1947,7 @@ serves = "P0 census closure: native attack queue head NA-CONCURRENCY-RESOLVED (D
 objective = "turn the falsified CONCURRENCY zero into observed truth: a declared std-path concurrency table and the path-resolution engine deriving concurrency sites, verified against the SCIP oracle"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0039-concurrency-from-resolved-std-paths.md"
-self_recensus = ".atlas/evidence/census/G117/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G117/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 3447c49bad = G116 post digest 3bca06c2... (0a9bce13ef adds only out-of-scope evidence)"
@@ -1969,8 +1969,8 @@ priority = "P0"
 serves = "P0 census closure first and every essential debt: the HARD STOP anti-avoidance audit makes the debt discipline a CI property before any further donor or frontier work (ADR 0040)"
 objective = "audit all 63 donors (58 corpus records + 5 First-50 donors never admitted) with separate mechanism and capability decisions; extend the debt ledger to the full field set, 15 dimensions, construction ownership, drift, P4 thresholds, physical and epistemic primitives; pressure map; FOUNDATIONAL-ATLAS-READY gate; machine-enforced donor and frontier stop"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml"
-self_recensus = ".atlas/evidence/census/G118/recensus.json"
+evidence = "tools/atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml"
+self_recensus = "tools/atlas/evidence/census/G118/recensus.json"
 result_commits = ["f8868daab02a465beb2cc248467732bf396ef2fe", "88114927018f3d9494682dbfa922c46e42087258"]
 
 [generation.verification]
@@ -1994,7 +1994,7 @@ serves = "P0 census closure: the mandatory native attack after the G118 hard-sto
 objective = "close CALL's only in-profile gap: recover the arguments of standard expression macros, claim per-file CALL coverage only where nothing is opaque, and prove it against an independent enumeration of every workspace source"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0041-call-macro-argument-recovery.md"
-self_recensus = ".atlas/evidence/census/G119/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G119/recensus.json"
 result_commits = ["af0f89e626b4f70d885dedca53b226739155d5e2", "95319c4f61b33019c9d7e0e69ef1ec161a5e6696"]
 correction = "G120: the CALL metric was measured against the G117 tree; exact G119 delta is +4,561 syntactic CALL records (18,001 -> 22,562), of which 4,363 inside recovered macro arguments and 198 in G119 new code (evidence/census/G119/call-metric-reconciliation.json)"
 
@@ -2020,7 +2020,7 @@ serves = "P0 census closure: native attack queue head NA-MACRO-ARGUMENTS-WALKERS
 objective = "carry G119's recovered standard macro arguments into the seven non-CALL walkers with each dimension's own semantics, keep opaque macros opaque with an explicit residual, and derive generation metrics from census snapshots"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
-self_recensus = ".atlas/evidence/census/G120/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G120/recensus.json"
 result_commits = ["4bcabe62fd374df7b383da37560d2dbd504e6254", "b61e0c4e49f4c19d76395b468fc8bff36add5351"]
 
 [generation.verification]
@@ -2090,8 +2090,8 @@ priority = "P0"
 serves = "P0 census closure through recursive epistemic verification: DEBT-CALL's historical donor evidence (rust, G73) re-examined with the capabilities gained since (ADR 0043); NEW_DONOR_PROGRESSION stays BLOCKED"
 objective = "establish HISTORICAL_DONOR_REVALIDATION (capability-based triggers for every audited donor) and prove it on one real extinct donor: re-materialize at its pinned commit, census with the historical and the current engine, decide, delete again"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/revalidation/R1-rust.json"
-self_recensus = ".atlas/evidence/census/G121/recensus.json"
+evidence = "tools/atlas/evidence/revalidation/R1-rust.json"
+self_recensus = "tools/atlas/evidence/census/G121/recensus.json"
 result_commits = ["f5aaff6e5b4710d2150f94578a189f839278f8bf", "c111cd90f06d7542196d57605afcfa55990e4d18"]
 
 [generation.verification]
@@ -2118,7 +2118,7 @@ serves = "Agent-Worn Atlas (ADR 0044): new essential debt DEBT-SEMANTIC-COMPOSIT
 objective = "compose the census into function, component, subsystem, capability and architecture models with typed relations, invariants and understanding gaps; expose the agent interface (understand -> MissionContext, explain, impact, trace, why, hypothesis, verify); recensus the composed totals"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0044-agent-worn-atlas-semantic-composition.md"
-self_recensus = ".atlas/evidence/census/G122/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G122/recensus.json"
 result_commits = ["a498df2e747f9eb545c1d9cf8bf7365f37618bf5", "281445a4e287dd48db17d3481bda976f88e2fed8"]
 
 [generation.verification]
@@ -2202,9 +2202,9 @@ priority = "P0"
 serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the first agent mission worked through Atlas, closing the gap the G122 composition routed (GAP-UNRESOLVED-CALLEE) and measuring what Atlas knew, what stayed UNKNOWN and what source was read by hand"
 objective = "mission M1: record the callee spelling on every call site so impact residuals narrow; understand -> explain -> impact -> change -> verify -> benchmark -> recensus"
 writer = "coordinator (sole writer)"
-mission = ".atlas/evidence/agent/M1-callee-spelling.json"
-evidence = ".atlas/evidence/agent/benchmark.json"
-self_recensus = ".atlas/evidence/census/G123/recensus.json"
+mission = "tools/atlas/evidence/agent/M1-callee-spelling.json"
+evidence = "tools/atlas/evidence/agent/benchmark.json"
+self_recensus = "tools/atlas/evidence/census/G123/recensus.json"
 result_commits = ["7e90a0e91edddf340644fe693d8c9ce182563d02", "71b0ddf0d16d19c9b67924d12914c733fcfb0302"]
 
 [generation.verification]
@@ -2252,7 +2252,7 @@ serves = "P0 native attack queue head NA-QUANTITY-IN-CORE (DEBT-QUANTITY_UNITS, 
 objective = "quantity kinds that never combine across kinds, exact interval uncertainty through arithmetic, and declared quantities carried by census facts and graph nodes"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0045-quantity-kinds-and-intervals-in-core.md"
-self_recensus = ".atlas/evidence/census/G124/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G124/recensus.json"
 result_commits = ["db3a71e8b20c5f4e4ea0321d88080ebbf45ccc03", "be291db2f634f49dbbe4dc6e3076e7a5cd735792"]
 
 [generation.verification]
@@ -2299,7 +2299,7 @@ serves = "P0 native attack queue head NA-PERSISTENCE-RESOLVED (DEBT-PERSISTENCE;
 objective = "PERSISTENCE from resolved std paths as a DERIVED engine beside the spelling guesses, confirmed by the pinned SCIP oracle"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0046-persistence-from-resolved-std-paths.md"
-self_recensus = ".atlas/evidence/census/G125/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G125/recensus.json"
 result_commits = ["9fffcbda69b140d0932ec5942e91575fcad86c6e", "63f1ed91c10104f83afcae73da151524c6de24cf"]
 
 [generation.verification]
@@ -2342,7 +2342,7 @@ serves = "P6 native attack queue head NA-SANDBOX-SUBPROCESS (DEBT-SANDBOXED_EXEC
 objective = "a restricted-subprocess sandbox backend that records every isolation property it enforces and names what it cannot"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0047-restricted-subprocess-sandbox.md"
-self_recensus = ".atlas/evidence/census/G126/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G126/recensus.json"
 result_commits = ["791021fe8217174b37d8bf984a6022ec5353eb0d", "7e91ae9c25a27a8e3fc74c293f7175f8a31904e7"]
 
 [generation.verification]
@@ -2388,7 +2388,7 @@ serves = "P2 native attack queue head NA-VERIFICATION-EVIDENCE (DEBT-VERIFICATIO
 objective = "typed verification obligations, evidence and reports with state computed only from evidence admissible for the exact candidate, and the self scope evaluated"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0048-verification-obligations-and-evidence.md"
-self_recensus = ".atlas/evidence/census/G127/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G127/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 791021fe8217174b37d8bf984a6022ec5353eb0d = G126 post digest 8dd30de7... (7e91ae9c25a27a8e3fc74c293f7175f8a31904e7 adds only out-of-scope evidence)"
@@ -2428,9 +2428,9 @@ priority = "P0"
 serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the second agent mission worked through Atlas (cadence: within five generations of G123), closing the gap the composition routed as GAP-COMPONENT-PURPOSE (NA-COMPONENT-PURPOSE)"
 objective = "mission M2: census module documentation as DECLARED purpose; understand -> explain -> impact -> change -> verify -> benchmark -> recensus"
 writer = "coordinator (sole writer)"
-mission = ".atlas/evidence/agent/M2-component-purpose.json"
-evidence = ".atlas/evidence/agent/benchmark.json"
-self_recensus = ".atlas/evidence/census/G128/recensus.json"
+mission = "tools/atlas/evidence/agent/M2-component-purpose.json"
+evidence = "tools/atlas/evidence/agent/benchmark.json"
+self_recensus = "tools/atlas/evidence/census/G128/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 52aaa0fcaf = G127 post digest 4c711fd9... (dda507e660 adds only out-of-scope evidence)"
@@ -2477,8 +2477,8 @@ priority = "P4"
 serves = "P4 native attack queue head NA-IMPACT-CLOSURE (DEBT-IMPACT_CLOSURE, stale since G40)"
 objective = "the affected-impact closure of a change, checked against the full-recompute diff by an oracle over revision-normalized world models"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G129/impact-closure-oracle.json"
-self_recensus = ".atlas/evidence/census/G129/recensus.json"
+evidence = "tools/atlas/evidence/census/G129/impact-closure-oracle.json"
+self_recensus = "tools/atlas/evidence/census/G129/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 08f25daf25 = G128 post digest 5a3eba1a... (160579e513 adds only out-of-scope evidence)"
@@ -2520,7 +2520,7 @@ serves = "P2 native attack queue head NA-CONSTRAINT-NONGROUND (DEBT-CONSTRAINT_R
 objective = "the first invariants quantified over census truth, decided with three-valued verdicts, and Atlas's own layering declared with them"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0050-census-quantified-invariants.md"
-self_recensus = ".atlas/evidence/census/G130/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G130/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of e7b2a2d806 = G129 post digest a59ed374... (ebc0b5f49d adds only out-of-scope evidence)"
@@ -2547,7 +2547,7 @@ serves = "P0 native attack queue head NA-UNCERTAINTY-PREDICTIONS (DEBT-UNCERTAIN
 objective = "one exact uncertainty carrier for quantity bounds and product money, every f64 drop recorded, and physical verdicts that honor declared uncertainty"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0051-one-uncertainty-carrier-and-marked-float-drops.md"
-self_recensus = ".atlas/evidence/census/G131/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G131/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 17b058d37e = G130 post digest b30ce162... (7a77740e05 adds only out-of-scope evidence)"
@@ -2586,9 +2586,9 @@ priority = "P0"
 serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the third agent mission worked through Atlas (cadence: within five generations of G128), closing the gap mission M2 opened (GAP-ITEM-DOCUMENTATION, NA-ITEM-DOCUMENTATION)"
 objective = "mission M3: carry function documentation as DECLARED function purpose; unknowns -> explain -> impact -> change -> verify -> benchmark -> recensus"
 writer = "coordinator (sole writer)"
-mission = ".atlas/evidence/agent/M3-function-purpose.json"
-evidence = ".atlas/evidence/agent/benchmark.json"
-self_recensus = ".atlas/evidence/census/G132/recensus.json"
+mission = "tools/atlas/evidence/agent/M3-function-purpose.json"
+evidence = "tools/atlas/evidence/agent/benchmark.json"
+self_recensus = "tools/atlas/evidence/census/G132/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 848a5ee7ea = G131 post digest 2d117be0... (16381d2f71 adds only out-of-scope evidence)"
@@ -2625,7 +2625,7 @@ serves = "P0 native attack queue head NA-CLOSURE-REGIONS (DEBT-CALL, DEBT-CONCUR
 objective = "closure bodies as their own executable regions: identity, every dimension walked and attributed, resolution inside them, and the link to the enclosing region"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0052-closure-regions.md"
-self_recensus = ".atlas/evidence/census/G133/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G133/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 1cd1ff7f16 = G132 post digest 362b0984... (4d715ab5b1 adds only out-of-scope evidence)"
@@ -2671,7 +2671,7 @@ serves = "P0 native attack queue head NA-EPISTEMIC-UNIFICATION (DEBT-EPISTEMIC_U
 objective = "one epistemic vocabulary: every status carrier mapped by role and a workspace-wide test rejecting any outside the map; the known bypasses removed; futures states decided"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0053-one-epistemic-vocabulary.md"
-self_recensus = ".atlas/evidence/census/G134/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G134/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of a3d52b0dc7 = G133 post digest 0779bd33... (7ceb73805c adds only out-of-scope evidence)"
@@ -2711,7 +2711,7 @@ serves = "P0 native attack queue head NA-TYPED-RELATIONS (DEBT-CAUSALITY, unbloc
 objective = "every graph relation a closed kind with category, cardinality and ownership; an untyped relation rejected; causation decided"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0054-typed-relations.md"
-self_recensus = ".atlas/evidence/census/G135/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G135/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 00b8871985 = G134 post digest 3ec82608... (the evidence commit adds only out-of-scope evidence)"
@@ -2744,9 +2744,9 @@ priority = "P0"
 serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the fourth agent mission (cadence: within five generations of G132) and the first donor Gundam proof -- Atlas worn on foreign source -- as revalidation R2 of datafrog (DEBT-IMPACT_CLOSURE advanced at G129)"
 objective = "mission M4: materialize datafrog at its pinned commit, understand it through the agent interface, answer R2, and run the G129 impact closure with its oracle over the donor's own history"
 writer = "coordinator (sole writer)"
-mission = ".atlas/evidence/agent/M4-donor-datafrog.json"
-evidence = ".atlas/evidence/revalidation/R2-datafrog.json"
-self_recensus = ".atlas/evidence/census/G136/recensus.json"
+mission = "tools/atlas/evidence/agent/M4-donor-datafrog.json"
+evidence = "tools/atlas/evidence/revalidation/R2-datafrog.json"
+self_recensus = "tools/atlas/evidence/census/G136/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of a27b8d8417 = G135 post digest (the evidence commit 994b949b29 adds only out-of-scope evidence)"
@@ -2785,7 +2785,7 @@ serves = "native attack queue head NA-ADL-BEYOND-DEPENDENCIES (DEBT-ADL_BEYOND_D
 objective = "lower effect envelopes from the census into ADL and reconcile them every census; the declared/observed check catches a seeded mismatch"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0055-effect-envelopes-reconciled-with-census.md"
-self_recensus = ".atlas/evidence/census/G137/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G137/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of a89ab4a75b = G136 post digest (the evidence commit 051453b326 adds only out-of-scope evidence)"
@@ -2820,7 +2820,7 @@ serves = "native attack queue head NA-INTEGRITY-ENVELOPE (DEBT-INTEGRITY_ENVELOP
 objective = "the architectural integrity envelope record and its evaluated report: a seeded HARD violation fails the gate; the clean tree passes"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0056-architectural-integrity-envelope-and-report.md"
-self_recensus = ".atlas/evidence/census/G138/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G138/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of f2108e03b4 = G137 post digest (the evidence commit d04e101f17 adds only out-of-scope evidence)"
@@ -2854,8 +2854,8 @@ priority = "P0"
 serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE), first step"
 objective = "method calls on locals whose type is declared, decided by the method probe's first step like self.m() (G79)"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G139/method-call-scip-differential.json"
-self_recensus = ".atlas/evidence/census/G139/recensus.json"
+evidence = "tools/atlas/evidence/census/G139/method-call-scip-differential.json"
+self_recensus = "tools/atlas/evidence/census/G139/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 80a7ce3588 = G138 post digest (the evidence commit 61d2bfae59 adds only out-of-scope evidence)"
@@ -2899,8 +2899,8 @@ priority = "P0"
 serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL), second step; the gap mission M4 found on datafrog (dispatch through dyn VariableTrait)"
 objective = "method calls through workspace-trait bounds recorded as dynamic dispatch to the trait method declaration"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G140/dynamic-call-scip-differential.json"
-self_recensus = ".atlas/evidence/census/G140/recensus.json"
+evidence = "tools/atlas/evidence/census/G140/dynamic-call-scip-differential.json"
+self_recensus = "tools/atlas/evidence/census/G140/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of c674ea79ff = G139 post digest (the evidence commit f397b6400f adds only out-of-scope evidence)"
@@ -2939,9 +2939,9 @@ priority = "P0"
 serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the fifth agent mission (cadence: within five generations of G136), making G140's dynamic calls usable for understanding"
 objective = "mission M5: 'can the census pipeline reach the Rust extractor, and who calls RustSemanticExtractor::extract?' answered through the agent interface with its certainty"
 writer = "coordinator (sole writer)"
-mission = ".atlas/evidence/agent/M5-trait-dispatch.json"
-evidence = ".atlas/evidence/agent/benchmark.json"
-self_recensus = ".atlas/evidence/census/G141/recensus.json"
+mission = "tools/atlas/evidence/agent/M5-trait-dispatch.json"
+evidence = "tools/atlas/evidence/agent/benchmark.json"
+self_recensus = "tools/atlas/evidence/census/G141/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 81054fb991 = G140 post digest (the evidence commit 9576a96a54 adds only out-of-scope evidence)"
@@ -2981,8 +2981,8 @@ priority = "P0"
 serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL), third step"
 objective = "let bindings typed by their callee's declared output, and the method probe's autoref step claimed where no by-value method can come first"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G142/method-call-scip-differential.json"
-self_recensus = ".atlas/evidence/census/G142/recensus.json"
+evidence = "tools/atlas/evidence/census/G142/method-call-scip-differential.json"
+self_recensus = "tools/atlas/evidence/census/G142/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of c1dbd87efd = G141 post digest (the evidence commit d44f11573c adds only out-of-scope evidence)"
@@ -3016,8 +3016,8 @@ priority = "P0"
 serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL), fourth step"
 objective = "receivers typed forward through declared struct fields and resolved call results, with lets bound to them typed in order"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G143/method-call-scip-differential.json"
-self_recensus = ".atlas/evidence/census/G143/recensus.json"
+evidence = "tools/atlas/evidence/census/G143/method-call-scip-differential.json"
+self_recensus = "tools/atlas/evidence/census/G143/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 49ae294189 = G142 post digest (the evidence commit b692cfa21f adds only out-of-scope evidence)"
@@ -3051,8 +3051,8 @@ priority = "P0"
 serves = "DEBT-PERSISTENCE and DEBT-CONCURRENCY method-level residual (planned under NA-CALL-TYPE-RESIDUAL since G138): std receivers"
 objective = "declared inherent std methods on receivers whose std type is known reach the declared persistence and concurrency tables"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/census/G144/std-receiver-scip-differential.json"
-self_recensus = ".atlas/evidence/census/G144/recensus.json"
+evidence = "tools/atlas/evidence/census/G144/std-receiver-scip-differential.json"
+self_recensus = "tools/atlas/evidence/census/G144/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 99b8c38aad = G143 post digest (the evidence commit e71cb0394b adds only out-of-scope evidence)"
@@ -3086,8 +3086,8 @@ priority = "P0"
 serves = "planned NA-FIRST-ARTIFACT (P6), found not construction-reachable; re-selected queue head NA-CALL-TYPE-RESIDUAL (DEBT-TYPE, 61 stale generations)"
 objective = "queue selection respects the construction graph; an item-position workspace macro_rules! invocation makes only the names its transcribers can define uncertain, so the rest of its module resolves"
 writer = "coordinator (sole writer); one read-only lane scoped M1 (typed-record .atlas sections) for the next construction attack"
-evidence = ".atlas/evidence/census/G145/macro-names-scip-differential.json"
-self_recensus = ".atlas/evidence/census/G145/recensus.json"
+evidence = "tools/atlas/evidence/census/G145/macro-names-scip-differential.json"
+self_recensus = "tools/atlas/evidence/census/G145/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 0e68ebe0ff = G144 post digest (the evidence commit b8819e08a0 adds only out-of-scope evidence)"
@@ -3121,9 +3121,9 @@ priority = "P0"
 serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the sixth agent mission (cadence: within five generations of G141), preparing the next construction attack NA-ATLAS-TYPED-SECTIONS (M1) Atlas-first"
 objective = "mission M6: 'which parts of the census report does atlas_of read, do the typed semantic records reach the .atlas container, and what would changing its model impact?' answered through the agent interface with its certainty"
 writer = "coordinator (sole writer)"
-mission = ".atlas/evidence/agent/M6-field-projections.json"
-evidence = ".atlas/evidence/agent/benchmark.json"
-self_recensus = ".atlas/evidence/census/G146/recensus.json"
+mission = "tools/atlas/evidence/agent/M6-field-projections.json"
+evidence = "tools/atlas/evidence/agent/benchmark.json"
+self_recensus = "tools/atlas/evidence/census/G146/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 88798d9bd0 = G145 post digest (the evidence commit 6684267873 adds only out-of-scope evidence)"
@@ -3160,8 +3160,8 @@ priority = "P2"
 serves = "DEBT-ATLAS_COMPLETENESS: NA-ATLAS-TYPED-SECTIONS, construction node M1 -- the first missing node on the FIRST_ARTIFACT critical path, reachable since G145"
 objective = "the census container carries every typed semantic record, evidence record and extraction diagnostic field by field through declared record kinds, read back and verified"
 writer = "coordinator (sole writer); two read-only lanes: M1 scoping (G145) and the exact serde shapes of every typed record type"
-evidence = ".atlas/evidence/census/G147/typed-sections.json"
-self_recensus = ".atlas/evidence/census/G147/recensus.json"
+evidence = "tools/atlas/evidence/census/G147/typed-sections.json"
+self_recensus = "tools/atlas/evidence/census/G147/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 09e10b527e = G146 post digest (the evidence commit fa8bf573c6 adds only out-of-scope evidence)"
@@ -3193,8 +3193,8 @@ priority = "P2"
 serves = "DEBT-SELECTED_DESIGN and DEBT-IDENTITY_AUTHORITY: NA-SELECTED-DESIGN, construction node M7 -- next on the FIRST_ARTIFACT critical path after M1"
 objective = "a SelectedDesign record with a digest identity, validated against a verified container, the evidence for its candidate and a declared principal registry, selectable only through an authority event of a declared human principal"
 writer = "coordinator (sole writer); one read-only lane scoped M7 from the contracts and the code"
-evidence = ".atlas/evidence/design/G148-selection-boundary.json"
-self_recensus = ".atlas/evidence/census/G148/recensus.json"
+evidence = "tools/atlas/evidence/design/G148-selection-boundary.json"
+self_recensus = "tools/atlas/evidence/census/G148/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of d2e416af56 = G147 post digest (the evidence commit d0cb0dff6f adds only out-of-scope evidence)"
@@ -3225,8 +3225,8 @@ priority = "P2"
 serves = "DEBT-SEAL_GATE and DEBT-DEPENDENCY: NA-SEAL-POLICY, construction nodes M3 and M4 -- the policy inputs the seal eligibility gate M8 needs"
 objective = "every certificate blocker a typed kind disposed of by a scope policy, and a SealPolicy record pinned by digest identity that no provider can weaken past its bounds"
 writer = "coordinator (sole writer); contracts CENSUS-CERTIFICATE and SEALED-ATLAS read for the blocker vocabulary and the policy field set"
-evidence = ".atlas/evidence/seal/G149-seal-policy.json"
-self_recensus = ".atlas/evidence/census/G149/recensus.json"
+evidence = "tools/atlas/evidence/seal/G149-seal-policy.json"
+self_recensus = "tools/atlas/evidence/census/G149/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 0efe89476a = G148 post digest (the evidence commit 657c1a0de1 adds only out-of-scope evidence)"
@@ -3257,8 +3257,8 @@ priority = "P2"
 serves = "DEBT-DESIGN_GENERATION: NA-DESIGN-CANDIDATES, unadvanced since G52 and the queue head by pressure (97)"
 objective = "candidate designs at one coordinate over one verified container compared by criteria Atlas measures from the container, the Pareto front kept as a set, and a selection resting on a comparison of at least two measured candidates"
 writer = "coordinator (sole writer); one read-only lane scoped the contracts (SELECTED-DESIGN, CREATOR-FABRIC, VERIFICATION-METRICS-PERFORMANCE, decision-proposal schema), the Creator Pareto code and the composition's per-function measures"
-evidence = ".atlas/evidence/design/G150-candidate-comparison.json"
-self_recensus = ".atlas/evidence/census/G150/recensus.json"
+evidence = "tools/atlas/evidence/design/G150-candidate-comparison.json"
+self_recensus = "tools/atlas/evidence/census/G150/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of 90bc70abdd = G149 post digest (the evidence commit 24cd94aac8 adds only out-of-scope evidence)"
@@ -3294,9 +3294,9 @@ pinned_commit = "06ce60beb67494cac7801c0bdf97a4e9a4b65862"
 source_path = ".atlas/.cache/donors/gitnexus"
 epoch_before = "E0"
 epoch_after = "E1"
-mission = ".atlas/evidence/replay/R1-gitnexus.json"
-evidence = ".atlas/evidence/replay/R1-gitnexus.json"
-self_recensus = ".atlas/evidence/census/G151/recensus.json"
+mission = "tools/atlas/evidence/replay/R1-gitnexus.json"
+evidence = "tools/atlas/evidence/replay/R1-gitnexus.json"
+self_recensus = "tools/atlas/evidence/census/G151/recensus.json"
 
 [generation.verification]
 pre_census = "clean-HEAD census of db711846e5 = G150 post digest (the evidence commit 362faa3e68 adds only out-of-scope evidence)"
@@ -3328,8 +3328,8 @@ serves = "DEBT-MULTILANGUAGE: the bounded first TypeScript/JavaScript profile, w
 replay_prerequisite = "abhigyanpatwari/gitnexus"
 objective = "a second language under the common typed-record contract -- Atlas-native TypeScript/JavaScript functions, signatures, symbols and calls over a tree-sitter syntax substrate -- and the same GitNexus pin re-censused at the new epoch"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/replay/R2-gitnexus.json"
-self_recensus = ".atlas/evidence/census/G152/recensus.json"
+evidence = "tools/atlas/evidence/replay/R2-gitnexus.json"
+self_recensus = "tools/atlas/evidence/census/G152/recensus.json"
 
 [generation.verification]
 pre_census = "G151 post digest; the census changes since include the whole-repository census lock of 2ff2612720 (the G151 verification had been OOM-killed)"
@@ -3359,8 +3359,8 @@ priority = "P0"
 serves = "SELF_RECONSTRUCTION lane (owner directive): DEBT-CONSTRUCTION_IR, DEBT-TYPE, DEBT-BACKEND_ADAPTER"
 objective = "canonicalize SELF_RECONSTRUCTION (SH0-SH6, Rust bootstrap target, construction input boundary, typed construction gaps, shadow artifacts, computed verdicts) and attempt SH1 on a target Atlas chooses; feed the first gap back natively"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/self-reconstruction/SR1"
-self_recensus = ".atlas/evidence/census/G153/recensus.json"
+evidence = "tools/atlas/evidence/self-reconstruction/SR1"
+self_recensus = "tools/atlas/evidence/census/G153/recensus.json"
 
 [generation.verification]
 pre_census = "G152 post digest"
@@ -3395,9 +3395,9 @@ pinned_commit = "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406"
 source_path = ".atlas/.cache/donors/tree-sitter"
 epoch_before = "E3"
 epoch_after = "E4"
-mission = ".atlas/evidence/replay/R3-tree-sitter.json"
-evidence = ".atlas/evidence/replay/R3-tree-sitter.json"
-self_recensus = ".atlas/evidence/census/G154/recensus.json"
+mission = "tools/atlas/evidence/replay/R3-tree-sitter.json"
+evidence = "tools/atlas/evidence/replay/R3-tree-sitter.json"
+self_recensus = "tools/atlas/evidence/census/G154/recensus.json"
 
 [generation.verification]
 pre_census = "G153 post digest"
@@ -3427,8 +3427,8 @@ priority = "P0"
 serves = "universal engineering-world directive: DEBT-MULTILANGUAGE (support measured, not declared), DEBT-ARTIFACT_SEMANTICS and DEBT-TARGET_PROFILE opened"
 objective = "NA-SUPPORT-LEVELS: every language and artifact class measured on the L0-L6 ladder from its own evidence, syntax never semantics, claims above the measured level refused; the universal engineering-world contract fixed with its invariants and its conceptual parts labelled"
 writer = "coordinator (sole writer); one read-only lane surveyed the .atlas/.atlasx definitions, artifact model, target concepts, debts and construction nodes"
-evidence = ".atlas/evidence/coverage/G155-self-levels.json"
-self_recensus = ".atlas/evidence/census/G155/recensus.json"
+evidence = "tools/atlas/evidence/coverage/G155-self-levels.json"
+self_recensus = "tools/atlas/evidence/census/G155/recensus.json"
 
 [generation.verification]
 pre_census = "G154 post digest (re-proven with ADR 0070 in scope)"
@@ -3464,9 +3464,9 @@ pinned_commit = "5d8eaf1fa372a73d44f9b717407de41f19ef59d7"
 source_path = ".atlas/.cache/donors/salsa"
 epoch_before = "E4"
 epoch_after = "E5"
-mission = ".atlas/evidence/replay/R4-salsa.json"
-evidence = ".atlas/evidence/replay/R4-salsa.json"
-self_recensus = ".atlas/evidence/census/G156/recensus.json"
+mission = "tools/atlas/evidence/replay/R4-salsa.json"
+evidence = "tools/atlas/evidence/replay/R4-salsa.json"
+self_recensus = "tools/atlas/evidence/census/G156/recensus.json"
 
 [generation.verification]
 pre_census = "G155 post digest"
@@ -3502,7 +3502,7 @@ serves = "DEBT-RESOURCE (M0_ABSENT since the G118 audit): the native queue head,
 objective = "NA-RESOURCE-DIMENSION: RESOURCE is the thirteenth semantic dimension -- acquisitions of files, sockets, std lock guards and threads derived at resolved calls, releases claimed where a let-bound holder that is never moved gives them back"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0072-resource-dimension.md"
-self_recensus = ".atlas/evidence/census/G157/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G157/recensus.json"
 
 [generation.verification]
 pre_census = "G156 post digest"
@@ -3546,9 +3546,9 @@ pinned_commit = "0a1f9575b25679f2880175de8d3eae21aedde921"
 source_path = ".atlas/.cache/donors/xyflow"
 epoch_before = "E6"
 epoch_after = "E7"
-mission = ".atlas/evidence/replay/R5-xyflow.json"
-evidence = ".atlas/evidence/replay/R5-xyflow.json"
-self_recensus = ".atlas/evidence/census/G158/recensus.json"
+mission = "tools/atlas/evidence/replay/R5-xyflow.json"
+evidence = "tools/atlas/evidence/replay/R5-xyflow.json"
+self_recensus = "tools/atlas/evidence/census/G158/recensus.json"
 
 [generation.verification]
 pre_census = "G157 post digest"
@@ -3584,7 +3584,7 @@ serves = "DEBT-CALL, DEBT-EFFECT and DEBT-CONCURRENCY: the native queue head, be
 objective = "NA-ASYNC-REGIONS: an async block is its own executable region like a closure -- ASYNC_BLOCK functions under their enclosing region, every dimension of the body attributed to them, calls resolved with the enclosing locals, enclosed in composition"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0074-async-block-regions.md"
-self_recensus = ".atlas/evidence/census/G159/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G159/recensus.json"
 
 [generation.verification]
 pre_census = "G158 post digest"
@@ -3625,9 +3625,9 @@ pinned_commit = "06ce60beb67494cac7801c0bdf97a4e9a4b65862"
 source_path = ".atlas/.cache/donors/gitnexus"
 epoch_before = "E8"
 epoch_after = "E9"
-mission = ".atlas/evidence/replay/R6-gitnexus.json"
-evidence = ".atlas/evidence/replay/R6-gitnexus.json"
-self_recensus = ".atlas/evidence/census/G160/recensus.json"
+mission = "tools/atlas/evidence/replay/R6-gitnexus.json"
+evidence = "tools/atlas/evidence/replay/R6-gitnexus.json"
+self_recensus = "tools/atlas/evidence/census/G160/recensus.json"
 
 [generation.verification]
 pre_census = "G159 post digest"
@@ -3659,7 +3659,7 @@ serves = "DEBT-SEAL_GATE and DEBT-VERIFICATION_EVIDENCE: the native queue head, 
 objective = "NA-SEAL-GATE: one seal gate (M8) joins the seal policy, the container's own certificate (verdict recomputed), the verification and integrity reports and a SELECTED design on one candidate; the SEALED census container (M9) is written and read only with a record binding its certificate, census and revision, and a sealed root is exactly its own canonical encoding"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0076-seal-gate-and-sealed-container.md"
-self_recensus = ".atlas/evidence/census/G161/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G161/recensus.json"
 
 [generation.verification]
 pre_census = "G160 post digest"
@@ -3700,9 +3700,9 @@ pinned_commit = "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4"
 source_path = ".atlas/.cache/donors/zed"
 epoch_before = "E10"
 epoch_after = "E11"
-mission = ".atlas/evidence/replay/R7-zed.json"
-evidence = ".atlas/evidence/replay/R7-zed.json"
-self_recensus = ".atlas/evidence/census/G162/recensus.json"
+mission = "tools/atlas/evidence/replay/R7-zed.json"
+evidence = "tools/atlas/evidence/replay/R7-zed.json"
+self_recensus = "tools/atlas/evidence/census/G162/recensus.json"
 
 [generation.verification]
 pre_census = "G161 post digest"
@@ -3739,7 +3739,7 @@ serves = "DEBT-ARTIFACT_SEMANTICS: the owner-directed weight-artifact upgrade, b
 objective = "NA-ARTIFACT-SEMANTICS-WEIGHTS: weights as an artifact class -- a physical census (atlas.weight-census.v1: dtype, shape, payload range and BLAKE3 digest per tensor, ranges tiling the payload) apart from semantic roles left UNKNOWN; SafeTensors read streamed and data-only; construction mechanical from the record and digest-verified payload ranges, content preservation checked by re-census; LOSSLESS, REVERSIBLE_WITH_RETAINED and LOSSY typed"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0078-weight-artifacts-physical-census-and-mechanical-construction.md"
-self_recensus = ".atlas/evidence/census/G163/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G163/recensus.json"
 
 [generation.verification]
 pre_census = "G162 post digest"
@@ -3780,9 +3780,9 @@ pinned_commit = "34c96fb368e1a734c06425172f810ca1371eb705"
 source_path = ".atlas/.cache/donors/crubit"
 epoch_before = "E12"
 epoch_after = "E13"
-mission = ".atlas/evidence/replay/R8-crubit.json"
-evidence = ".atlas/evidence/replay/R8-crubit.json"
-self_recensus = ".atlas/evidence/census/G164/recensus.json"
+mission = "tools/atlas/evidence/replay/R8-crubit.json"
+evidence = "tools/atlas/evidence/replay/R8-crubit.json"
+self_recensus = "tools/atlas/evidence/census/G164/recensus.json"
 
 [generation.verification]
 pre_census = "G163 post digest"
@@ -3819,7 +3819,7 @@ serves = "DEBT-QUANTITY_UNITS: the native queue head, between replays R8 and R9"
 objective = "NA-QUANTITY-SIDE-REPORTS: what the physical and product models derive from declarations enters the census, the graph, the certificate counts and the census container as typed quantity facts with status and lineage, not side JSON"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0080-derived-quantities-enter-the-census.md"
-self_recensus = ".atlas/evidence/census/G165/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G165/recensus.json"
 
 [generation.verification]
 pre_census = "G164 post digest"
@@ -3855,9 +3855,9 @@ pinned_commit = "e246a2560645b7525f5775669ed816eb57c5bcc8"
 source_path = ".atlas/.cache/donors/safetensors"
 epoch_before = "E14"
 epoch_after = "E15"
-mission = ".atlas/evidence/replay/R9-safetensors.json"
-evidence = ".atlas/evidence/replay/R9-safetensors.json"
-self_recensus = ".atlas/evidence/census/G166/recensus.json"
+mission = "tools/atlas/evidence/replay/R9-safetensors.json"
+evidence = "tools/atlas/evidence/replay/R9-safetensors.json"
+self_recensus = "tools/atlas/evidence/census/G166/recensus.json"
 
 [generation.verification]
 pre_census = "G165 post digest"
@@ -3888,8 +3888,8 @@ priority = "P0"
 serves = "DEBT-CALL: the native queue head, between replays R9 and R10"
 objective = "NA-CALL-TYPE-RESIDUAL: find the bounded step that shrinks the method-call residual, measured Atlas-first; ship it only if it moves resolution"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/coverage/G167-call-residual.json"
-self_recensus = ".atlas/evidence/census/G167/recensus.json"
+evidence = "tools/atlas/evidence/coverage/G167-call-residual.json"
+self_recensus = "tools/atlas/evidence/census/G167/recensus.json"
 
 [generation.verification]
 pre_census = "G166 post digest"
@@ -3925,9 +3925,9 @@ pinned_commit = "86493cee4d8902389c3217d8e95a3aae9368fd98"
 source_path = ".atlas/.cache/donors/rust-analyzer"
 epoch_before = "E15"
 epoch_after = "E16"
-mission = ".atlas/evidence/replay/R10-rust-analyzer.json"
-evidence = ".atlas/evidence/replay/R10-rust-analyzer.json"
-self_recensus = ".atlas/evidence/census/G168/recensus.json"
+mission = "tools/atlas/evidence/replay/R10-rust-analyzer.json"
+evidence = "tools/atlas/evidence/replay/R10-rust-analyzer.json"
+self_recensus = "tools/atlas/evidence/census/G168/recensus.json"
 
 [generation.verification]
 pre_census = "G167 post digest"
@@ -3958,8 +3958,8 @@ priority = "P0"
 serves = "DEBT-RESOURCE: the native queue head the pressure map selected after replay R10, between replays R10 and R11"
 objective = "NA-RESOURCE-RESIDUAL step one: the release points the first resource profile left unknown on Atlas itself, each placed where rustc's MIR drops the resource"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/verification/G169-resource-mir-oracle.json"
-self_recensus = ".atlas/evidence/census/G169/recensus.json"
+evidence = "tools/atlas/evidence/verification/G169-resource-mir-oracle.json"
+self_recensus = "tools/atlas/evidence/census/G169/recensus.json"
 
 [generation.verification]
 pre_census = "G168 post digest"
@@ -3995,9 +3995,9 @@ pinned_commit = "75a75c3e0a67d3fa3d03982775f5bb0356e7b510"
 source_path = ".atlas/.cache/donors/rust"
 epoch_before = "E17"
 epoch_after = "E18"
-mission = ".atlas/evidence/replay/R11-rust.json"
-evidence = ".atlas/evidence/replay/R11-rust.json"
-self_recensus = ".atlas/evidence/census/G170/recensus.json"
+mission = "tools/atlas/evidence/replay/R11-rust.json"
+evidence = "tools/atlas/evidence/replay/R11-rust.json"
+self_recensus = "tools/atlas/evidence/census/G170/recensus.json"
 
 [generation.verification]
 pre_census = "G169 post digest"
@@ -4034,8 +4034,8 @@ priority = "P0"
 serves = "DEBT-IDENTITY_AUTHORITY and DEBT-SELECTED_DESIGN: the native queue head the pressure map selected after replay R11 (pressure 44), between replays R11 and R12"
 objective = "NA-PRINCIPAL-AUTHENTICATION: principals authenticated beyond a declared registry, so the SELECTED design the seal gate requires rests on an authenticated principal"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/verification/G171-principal-authentication.json"
-self_recensus = ".atlas/evidence/census/G171/recensus.json"
+evidence = "tools/atlas/evidence/verification/G171-principal-authentication.json"
+self_recensus = "tools/atlas/evidence/census/G171/recensus.json"
 
 [generation.verification]
 pre_census = "G170 post digest"
@@ -4071,9 +4071,9 @@ pinned_commit = "c8c5364581b00a65613f17df2d953db80111bb74"
 source_path = ".atlas/.cache/donors/miri"
 epoch_before = "E18"
 epoch_after = "E19"
-mission = ".atlas/evidence/replay/R12-miri.json"
-evidence = ".atlas/evidence/replay/R12-miri.json"
-self_recensus = ".atlas/evidence/census/G172/recensus.json"
+mission = "tools/atlas/evidence/replay/R12-miri.json"
+evidence = "tools/atlas/evidence/replay/R12-miri.json"
+self_recensus = "tools/atlas/evidence/census/G172/recensus.json"
 
 [generation.verification]
 pre_census = "G171 post digest"
@@ -4105,8 +4105,8 @@ priority = "P0"
 serves = "DEBT-CALL (with DEBT-DEPENDENCY): the native queue head the pressure map selected after replay R12 (pressure 73), its largest measured residual the external-declaration boundary G167 found (NA-DEPENDENCY-DECLARATIONS), between replays R12 and R13"
 objective = "NA-CALL-TYPE-RESIDUAL / NA-DEPENDENCY-DECLARATIONS step one: the autoref guard stops withholding claims beside registry imports whose locked closure provably declares no trait method of the called name"
 writer = "coordinator (sole writer)"
-evidence = ".atlas/evidence/coverage/G173-locked-trait-names.json"
-self_recensus = ".atlas/evidence/census/G173/recensus.json"
+evidence = "tools/atlas/evidence/coverage/G173-locked-trait-names.json"
+self_recensus = "tools/atlas/evidence/census/G173/recensus.json"
 epoch_before = "E19"
 epoch_after = "E20"
 
@@ -4154,9 +4154,9 @@ pinned_commit = "7fe0cf95d0ff1414b6aa93b17ca328f56b4c450f"
 source_path = ".atlas/.cache/donors/c2rust"
 epoch_before = "E20"
 epoch_after = "E21"
-mission = ".atlas/evidence/replay/R13-c2rust.json"
-evidence = ".atlas/evidence/replay/R13-c2rust.json"
-self_recensus = ".atlas/evidence/census/G174/recensus.json"
+mission = "tools/atlas/evidence/replay/R13-c2rust.json"
+evidence = "tools/atlas/evidence/replay/R13-c2rust.json"
+self_recensus = "tools/atlas/evidence/census/G174/recensus.json"
 
 [generation.verification]
 pre_census = "G173 post digest"
@@ -4197,8 +4197,8 @@ priority = "P0"
 serves = "DEBT-CALL: the native queue head the pressure map selected after replay R13 (pressure 81), its residual measured on Atlas first, between replays R13 and R14"
 objective = "NA-CALL-TYPE-RESIDUAL: measure the residual against rust-analyzer's index and remove its most precise bounded class -- a local shadowing a same-named function wherever the function binds it, instead of where the binding is in scope"
 writer = "coordinator (sole writer); one implementation lane and one read-only adversarial review lane"
-evidence = ".atlas/evidence/coverage/G175-local-binding-scopes.json"
-self_recensus = ".atlas/evidence/census/G175/recensus.json"
+evidence = "tools/atlas/evidence/coverage/G175-local-binding-scopes.json"
+self_recensus = "tools/atlas/evidence/census/G175/recensus.json"
 epoch_before = "E21"
 epoch_after = "E22"
 
@@ -4236,9 +4236,9 @@ pinned_commit = "75a75c3e0a67d3fa3d03982775f5bb0356e7b510"
 source_path = ".atlas/.cache/donors/rust"
 epoch_before = "E18"
 epoch_after = "E22"
-mission = ".atlas/evidence/replay/R14-rust.json"
-evidence = ".atlas/evidence/replay/R14-rust.json"
-self_recensus = ".atlas/evidence/census/G176/recensus.json"
+mission = "tools/atlas/evidence/replay/R14-rust.json"
+evidence = "tools/atlas/evidence/replay/R14-rust.json"
+self_recensus = "tools/atlas/evidence/census/G176/recensus.json"
 
 [generation.verification]
 pre_census = "G175 post digest"
@@ -4259,8 +4259,8 @@ priority = "P0"
 serves = "DEBT-CALL (with DEBT-DEPENDENCY): the native queue head the pressure map selected after replay R14 (pressure 85), its largest measured residual on Atlas the 431 autoref refusals beside serde imports (NA-DEPENDENCY-DECLARATIONS step two)"
 objective = "NA-CALL-TYPE-RESIDUAL / NA-DEPENDENCY-DECLARATIONS step two: the autoref guard reads the one item a registry import names, through the locked package's module tree, instead of the package's whole closure"
 writer = "coordinator (sole writer); one implementation lane and one read-only adversarial review lane (two passes)"
-evidence = ".atlas/evidence/coverage/G177-dependency-item-traits.json"
-self_recensus = ".atlas/evidence/census/G177/recensus.json"
+evidence = "tools/atlas/evidence/coverage/G177-dependency-item-traits.json"
+self_recensus = "tools/atlas/evidence/census/G177/recensus.json"
 epoch_before = "E22"
 epoch_after = "E23"
 
@@ -4298,9 +4298,9 @@ pinned_commit = "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
 source_path = ".atlas/.cache/donors/egglog"
 epoch_before = "E23"
 epoch_after = "E24"
-mission = ".atlas/evidence/replay/R15-egglog.json"
-evidence = ".atlas/evidence/replay/R15-egglog.json"
-self_recensus = ".atlas/evidence/census/G178/recensus.json"
+mission = "tools/atlas/evidence/replay/R15-egglog.json"
+evidence = "tools/atlas/evidence/replay/R15-egglog.json"
+self_recensus = "tools/atlas/evidence/census/G178/recensus.json"
 
 [generation.verification]
 pre_census = "G177 post digest"
@@ -4333,7 +4333,7 @@ serves = "DEBT-ATLASX, construction node M10: the first CREATION generation (ADR
 objective = "NA-ATLASX-PRECONDITION: one gate admitting a parent for AtlasX only when it reads back SEALED, its seal record binds it and the envelope and SELECTED design it names verify, every refusal typed"
 writer = "coordinator (sole writer); one implementation lane"
 evidence = ".atlas/decisions/0093-atlasx-precondition-gate.md"
-self_recensus = ".atlas/evidence/census/G179/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G179/recensus.json"
 
 [generation.verification]
 pre_census = "G178 post digest"
@@ -4388,9 +4388,9 @@ pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
 source_path = ".atlas/.cache/donors/datafrog"
 epoch_before = "E24"
 epoch_after = "E24"
-mission = ".atlas/evidence/replay/R16-datafrog.json"
-evidence = ".atlas/evidence/replay/R16-datafrog.json"
-self_recensus = ".atlas/evidence/census/G180/recensus.json"
+mission = "tools/atlas/evidence/replay/R16-datafrog.json"
+evidence = "tools/atlas/evidence/replay/R16-datafrog.json"
+self_recensus = "tools/atlas/evidence/census/G180/recensus.json"
 
 [generation.verification]
 pre_census = "G179 post digest"
@@ -4431,7 +4431,7 @@ serves = "DEBT-CONSTRUCTION_IR, construction node M14, and the SELF_RECONSTRUCTI
 objective = "NA-SELF-RECONSTRUCTION-BODIES: bounded lowerable body semantics lifted from census records, carried by the construction IR and emitted by the Rust backend; SR1 reconstructs MaterializationMode::is_local with its body"
 writer = "coordinator (sole writer); one implementation lane, restarted once after a container restart from its snapshot"
 evidence = ".atlas/decisions/0094-lowerable-bodies-reach-sh1.md"
-self_recensus = ".atlas/evidence/census/G181/recensus.json"
+self_recensus = "tools/atlas/evidence/census/G181/recensus.json"
 
 [generation.verification]
 pre_census = "G180 post digest"
@@ -4486,9 +4486,9 @@ pinned_commit = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
 source_path = ".atlas/.cache/donors/differential-dataflow"
 epoch_before = "E24"
 epoch_after = "E24"
-mission = ".atlas/evidence/replay/R17-differential-dataflow.json"
-evidence = ".atlas/evidence/replay/R17-differential-dataflow.json"
-self_recensus = ".atlas/evidence/census/G182/recensus.json"
+mission = "tools/atlas/evidence/replay/R17-differential-dataflow.json"
+evidence = "tools/atlas/evidence/replay/R17-differential-dataflow.json"
+self_recensus = "tools/atlas/evidence/census/G182/recensus.json"
 
 [generation.verification]
 pre_census = "G181 post digest"
@@ -4528,8 +4528,8 @@ priority = "P2"
 serves = "DEBT-ATLASX, construction node M12: the CREATION selection after G181 ([creation_selection] score 81)"
 objective = "NA-ATLASX-CODEC: the .atlasx object codec for one object class (FUNCTIONS: a header and one typed record section) encoded canonically, addressed by its BLAKE3 digest and read back; falsified by a fixture round-trip byte for byte, a flipped byte refused by its digest and an undeclared field refused"
 writer = "coordinator (sole writer); one implementation lane, one independent review lane"
-evidence = ".atlas/evidence/verification/G183-atlasx-codec.json"
-self_recensus = ".atlas/evidence/census/G183/recensus.json"
+evidence = "tools/atlas/evidence/verification/G183-atlasx-codec.json"
+self_recensus = "tools/atlas/evidence/census/G183/recensus.json"
 
 [generation.verification]
 pre_census = "G182 post digest"
@@ -4584,9 +4584,9 @@ pinned_commit = "d85f75780de687461a30e7771985c4a3e9ea0e58"
 source_path = ".atlas/.cache/donors/verus"
 epoch_before = "E24"
 epoch_after = "E25"
-mission = ".atlas/evidence/replay/R18-verus.json"
-evidence = ".atlas/evidence/replay/R18-verus.json"
-self_recensus = ".atlas/evidence/census/G184/recensus.json"
+mission = "tools/atlas/evidence/replay/R18-verus.json"
+evidence = "tools/atlas/evidence/replay/R18-verus.json"
+self_recensus = "tools/atlas/evidence/census/G184/recensus.json"
 
 [generation.verification]
 pre_census = "G183 post digest"
@@ -4648,8 +4648,8 @@ priority = "P2"
 serves = "DEBT-ATLASX, construction node M11: the CREATION selection after G183 ([creation_selection] score 80, the only reachable candidate)"
 objective = "NA-ATLASX-MATERIALIZE: close RES-G179-SEAL-SELF-CERTIFYING so an admitted parent is one the seal gate decided, then the smallest materializer slice -- the selected design's function roots staged as one canonical FUNCTIONS object from an admitted parent, every record traced back to it"
 writer = "coordinator (sole writer); one implementation lane over three rounds, one independent review lane over three rounds"
-evidence = ".atlas/evidence/verification/G185-atlasx-materialize.json"
-self_recensus = ".atlas/evidence/census/G185/recensus.json"
+evidence = "tools/atlas/evidence/verification/G185-atlasx-materialize.json"
+self_recensus = "tools/atlas/evidence/census/G185/recensus.json"
 
 [generation.verification]
 pre_census = "G184 post digest"
@@ -4704,9 +4704,9 @@ pinned_commit = "c4ca6360489b53c38d3d41d213a67b50d2fcb883"
 source_path = ".atlas/.cache/donors/bettafish"
 epoch_before = "E25"
 epoch_after = "E26"
-mission = ".atlas/evidence/replay/R19-bettafish.json"
-evidence = ".atlas/evidence/replay/R19-bettafish.json"
-self_recensus = ".atlas/evidence/census/G186/recensus.json"
+mission = "tools/atlas/evidence/replay/R19-bettafish.json"
+evidence = "tools/atlas/evidence/replay/R19-bettafish.json"
+self_recensus = "tools/atlas/evidence/census/G186/recensus.json"
 
 [generation.verification]
 pre_census = "G185 post digest"
@@ -4764,8 +4764,8 @@ priority = "P2"
 serves = "DEBT-ATLASX, construction node M13: the CREATION selection after G185 ([creation_selection] score 70, the only reachable candidate)"
 objective = "NA-ATLASX-VALIDATE: a ROOT_MANIFEST over the staged objects of a materialization, the AtlasX root identity computed from it, and a validator following the reader verification order over one root; falsified by the materialized G161 root validated and tampered roots refused"
 writer = "coordinator (sole writer); one implementation lane over three rounds, one independent review lane, one read-only architecture investigation of the construction graph"
-evidence = ".atlas/evidence/verification/G187-atlasx-validate.json"
-self_recensus = ".atlas/evidence/census/G187/recensus.json"
+evidence = "tools/atlas/evidence/verification/G187-atlasx-validate.json"
+self_recensus = "tools/atlas/evidence/census/G187/recensus.json"
 
 [generation.verification]
 pre_census = "G186 post digest"
@@ -4824,9 +4824,9 @@ pinned_commit = "39d849138ef254f6c737ab4c4705e5545dbe31d4"
 source_path = ".atlas/.cache/donors/mirofish"
 epoch_before = "E26"
 epoch_after = "E27"
-mission = ".atlas/evidence/replay/R20-mirofish.json"
-evidence = ".atlas/evidence/replay/R20-mirofish.json"
-self_recensus = ".atlas/evidence/census/G188/recensus.json"
+mission = "tools/atlas/evidence/replay/R20-mirofish.json"
+evidence = "tools/atlas/evidence/replay/R20-mirofish.json"
+self_recensus = "tools/atlas/evidence/census/G188/recensus.json"
 
 [generation.verification]
 pre_census = "G187 post digest"
@@ -4884,8 +4884,8 @@ priority = "P6"
 serves = "DEBT-SANDBOXED_EXECUTION, construction node M22: the CREATION selection after G187 (score 137), the confined sandbox with per-run toolchain identity that M16 and verification inside the sandbox need"
 objective = "NA-SANDBOX-FS-CONFINEMENT: filesystem confinement for the sandbox (absolute-path and parent-directory reads outside the declared inputs refused) without unsafe code in Atlas, and the toolchain identity recorded on every run with a differing pin refused; falsified by a confined run reading a host path outside its declarations and by a pinned run executing another toolchain"
 writer = "coordinator (sole writer); one implementation lane over six rounds, one independent review lane over seven rounds; the coordinator wrote the last fix"
-evidence = ".atlas/evidence/verification/G189-confined-sandbox.json"
-self_recensus = ".atlas/evidence/census/G189/recensus.json"
+evidence = "tools/atlas/evidence/verification/G189-confined-sandbox.json"
+self_recensus = "tools/atlas/evidence/census/G189/recensus.json"
 
 [generation.verification]
 pre_census = "G188 post digest"

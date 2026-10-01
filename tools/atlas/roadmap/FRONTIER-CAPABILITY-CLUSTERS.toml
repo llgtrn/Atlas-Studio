@@ -2,8 +2,8 @@ schema = "atlas.frontier-capability-clusters.v1"
 canonical = true
 established_in = "G116"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
-frontier = ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"
-debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+frontier = "tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 
 # The 153-repository frontier classified by the capability it could attack (G116 audit). This is
 # not a deep census: each repository is placed through its recorded `families`, and each cluster

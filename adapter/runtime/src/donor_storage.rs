@@ -16,9 +16,9 @@ use std::{
 
 /// Legacy tracked donor trees (pre-ADR 0021; drained by extinction, never extended).
 pub const LEGACY_DONOR_ROOT: &str = ".atlas/temporary/donors";
-/// Where every new materialization goes: untracked, git-ignored scratch.
-pub const SCRATCH_DONOR_ROOT: &str = ".atlas/.cache/donors";
-pub const WORKING_SET_FILE: &str = ".atlas/roadmap/DONOR-WORKING-SET.toml";
+/// Where every new materialization goes: untracked, git-ignored build state.
+pub const SCRATCH_DONOR_ROOT: &str = "target/donors";
+pub const WORKING_SET_FILE: &str = "tools/atlas/roadmap/DONOR-WORKING-SET.toml";
 
 /// Measures the filesystem holding `path` with POSIX `df -P -k`. Capacity is used + available,
 /// the basis of `df`'s own Use%, so reserved blocks and per-session allowances do not inflate it.
@@ -87,7 +87,7 @@ pub struct DonorStorage {
 /// Reads `storage_state` for every `[[donor]]` in `donor-corpus.toml`; locations are the legacy
 /// root, the scratch root, and the provenance record's own `clone_path`.
 pub fn load_donor_storage(root: &Path) -> io::Result<Vec<DonorStorage>> {
-    let text = fs::read_to_string(root.join(".atlas/references/donor-corpus.toml"))?;
+    let text = fs::read_to_string(root.join("tools/atlas/references/donor-corpus.toml"))?;
     let field = |block: &str, name: &str| {
         block.lines().find_map(|line| {
             let rest = line.trim().strip_prefix(name)?.strip_prefix(" = \"")?;
@@ -109,7 +109,7 @@ pub fn load_donor_storage(root: &Path) -> io::Result<Vec<DonorStorage>> {
             format!("{LEGACY_DONOR_ROOT}/{id}"),
             format!("{SCRATCH_DONOR_ROOT}/{id}"),
         ];
-        let provenance = root.join(format!(".atlas/provenance/donors/{id}.json"));
+        let provenance = root.join(format!("tools/atlas/provenance/donors/{id}.json"));
         if let Ok(text) = fs::read_to_string(provenance)
             && let Ok(value) = serde_json::from_str::<serde_json::Value>(&text)
             && let Some(clone_path) = value.get("clone_path").and_then(|v| v.as_str())
@@ -259,8 +259,8 @@ fn local_directories(root: &Path) -> io::Result<Vec<String>> {
 /// G152 (ADR 0067): the source paths the FULL_OSS_REPLAY ledger records MATERIALIZED -- a
 /// checkout there is the replay lane's, held under its one-donor window, not an orphan.
 fn replay_materialized_paths(root: &Path) -> Vec<String> {
-    let text =
-        fs::read_to_string(root.join(".atlas/roadmap/FULL-OSS-REPLAY.toml")).unwrap_or_default();
+    let text = fs::read_to_string(root.join("tools/atlas/roadmap/FULL-OSS-REPLAY.toml"))
+        .unwrap_or_default();
     text.split("\n[[repository]]\n")
         .filter(|block| block.contains("\nreplay_status = \"MATERIALIZED\""))
         .filter_map(|block| {

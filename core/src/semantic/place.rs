@@ -16,7 +16,7 @@
 //! instead of inventing a new string-keyed target, without requiring DATA_FLOW/STATE/OWNERSHIP to
 //! migrate their own stable identity shapes first. A single first-class `PlaceIdentity` (or
 //! equivalent) shared natively by every dimension that needs one remains future TARGET work --
-//! tracked in `.atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json` --
+//! tracked in `tools/atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json` --
 //! and would likely absorb `PlaceRef::Resolved`'s role once it exists.
 
 use super::{SemanticDimension, SemanticRecordId};

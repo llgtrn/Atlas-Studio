@@ -7,7 +7,7 @@ pub use atlas_core::certificate::{
 use atlas_core::{IntegrityDigest, recensus::CensusSnapshot};
 use std::{fs, io, path::Path};
 
-pub const GENOME_PATH: &str = ".atlas/genome/atlas.genome.toml";
+pub const GENOME_PATH: &str = "tools/atlas/genome/atlas.genome.toml";
 
 /// The Genome's `schema` line and the BLAKE3 of its bytes.
 pub fn genome_identity(root: &Path) -> io::Result<(String, IntegrityDigest)> {
@@ -343,7 +343,7 @@ mod tests {
     fn the_certificate_conforms_to_its_json_schema_field_sets() {
         let _census = crate::whole_repo_census_lock();
         let schema: serde_json::Value = serde_json::from_str(
-            &fs::read_to_string(root().join(".atlas/schemas/census-certificate.schema.json"))
+            &fs::read_to_string(root().join("tools/atlas/schemas/census-certificate.schema.json"))
                 .unwrap(),
         )
         .unwrap();

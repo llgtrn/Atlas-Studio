@@ -6,8 +6,8 @@
 # promoted only by executable evidence cited in `atlas_implementation`.
 #
 # The requested-donor inventory behind the `donors` fields (status, HEAD sha, SPDX license, size,
-# mechanism directories) is .atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv. A donor listed
-# here is a frontier CANDIDATE; it enters .atlas/references/donor-corpus.toml only when admitted.
+# mechanism directories) is tools/atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv. A donor listed
+# here is a frontier CANDIDATE; it enters tools/atlas/references/donor-corpus.toml only when admitted.
 
 schema = "atlas.engineering-frontier.v1"
 recorded_at = "2026-09-24"
@@ -205,7 +205,7 @@ falsification = "rebuild-from-inputs digest equality"
 dependency_status = "cargo/rustc build Atlas (bootstrapping)"
 next_action = "not scheduled"
 
-# ---- CREATOR_FABRIC lanes (G42). Donor rows: .atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv ----
+# ---- CREATOR_FABRIC lanes (G42). Donor rows: tools/atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv ----
 
 [[lane]]
 id = "creator_browser"
@@ -378,7 +378,7 @@ extinction_state = "n/a"
 
 # Higgsfield: no open-source generation code exists (higgsfield-ai/higgsfield is an LLM training framework); treated as an EXTERNAL provider only, not a donor.
 
-# ---- PHYSICAL_ENGINEERING lanes (G42). Donor rows: .atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv ----
+# ---- PHYSICAL_ENGINEERING lanes (G42). Donor rows: tools/atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv ----
 
 [[lane]]
 id = "units"

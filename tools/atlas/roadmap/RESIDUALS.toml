@@ -77,7 +77,7 @@ pressure = 1
 [[residual]]
 id = "RES-G178-EDITION-2015"
 found_in = "G178"
-source = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml (NA-EDITION-2015)"
+source = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml (NA-EDITION-2015)"
 subsystem = "adapter semantic::rust::resolve (path resolution per edition)"
 reproduction = "a workspace crate with edition = 2015 in its manifest and mod a { pub fn f() {} } mod b { use a::f; pub fn t() { f(); } } -- rustc 1.90.0 builds it and binds f() to a::f (2015 paths are crate-relative); Atlas E24 reads every crate as 2018 or newer and leaves f() unresolved (scratch policy/rep3, crate old)"
 severity = "MEDIUM"
@@ -89,7 +89,7 @@ pressure = 3
 [[residual]]
 id = "RES-G178-NONCONVERGENCE-OPENS-WORKSPACE"
 found_in = "G178"
-source = ".atlas/evidence/replay/R15-egglog.json"
+source = "tools/atlas/evidence/replay/R15-egglog.json"
 subsystem = "adapter semantic::rust::resolve (import fixed point, 64-round fallback)"
 reproduction = "a workspace whose import fixed point does not settle within 64 rounds in one crate: the fallback makes every non-item entry Unknown in every module of every crate, because the resolver iterates the workspace as one state. At E23 egglog at 90635860 withheld 2,310 path calls in 102 components this way; E24 settles egglog, and no input known at G179 still fails to converge"
 severity = "MEDIUM"

@@ -10,9 +10,10 @@ decision = ".atlas/decisions/0021-bounded-donor-working-set.md"
 # (`storage_state`, `materialization_mode`), orthogonal to decision_status.
 
 [roots]
-# Every new materialization: untracked, git-ignored scratch (.gitignore: .atlas/.cache/).
-scratch = ".atlas/.cache/donors"
-# Pre-ADR-0021 tracked trees: drained by extinction, never extended.
+# Every new materialization: untracked, git-ignored build state (.gitignore: /target/). It was
+# .atlas/.cache/donors until .atlas was retired.
+scratch = "target/donors"
+# Pre-ADR-0021 tracked trees: drained by extinction, never extended; empty since 2026-10-01.
 legacy_tracked = ".atlas/temporary/donors"
 
 # Ratios with absolute floors (permille / bytes); never one machine's numbers. Free fraction is

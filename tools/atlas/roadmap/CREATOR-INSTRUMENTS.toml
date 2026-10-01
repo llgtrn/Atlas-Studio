@@ -40,7 +40,7 @@ motion_sampling = "ABSENT"
 network_isolation = "PARTIAL"
 accessibility_tree = "ABSENT"
 public_url = "ABSENT"
-evidence = ".atlas/evidence/verification/g55-cross-instrument-differential.json"
+evidence = "tools/atlas/evidence/verification/g55-cross-instrument-differential.json"
 note = "chromedriver 141.0.7390.37 + Chromium 141.0.7390.37 (scratch toolchain, ATLAS_CHROMEDRIVER). Same engine as chromium-playwright: agreement is driver independence, never cross-engine evidence. network: unresolvable hosts, but sibling local files load"
 
 [[creator_instrument]]

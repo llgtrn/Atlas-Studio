@@ -149,7 +149,7 @@ pub fn model_digest(model: &WorldModel) -> String {
     IntegrityDigest::of_bytes(&bytes).as_str().to_owned()
 }
 
-/// One Agent-Utility benchmark case (`.atlas/evidence/agent/benchmark.json`): a question an agent
+/// One Agent-Utility benchmark case (`tools/atlas/evidence/agent/benchmark.json`): a question an agent
 /// asks while working, the Atlas operation that answers it, and the answer the case expects.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct BenchmarkCase {
@@ -2226,7 +2226,7 @@ fn run(s: &core::store::Store) { s.save(); }
         );
         // The Agent-Utility benchmark: every case answered correctly from the model, and every
         // positive answer carries evidence.
-        let cases = read_benchmark(root.join(".atlas/evidence/agent/benchmark.json")).unwrap();
+        let cases = read_benchmark(root.join("tools/atlas/evidence/agent/benchmark.json")).unwrap();
         assert!(cases.len() >= 12);
         for result in run_benchmark(&model, &cases) {
             assert!(result.correct, "{}: {:?}", result.id, result.answer);

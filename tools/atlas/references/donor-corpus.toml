@@ -12,7 +12,7 @@ resolved_url = "https://github.com/ast-grep/ast-grep.git"
 commit_sha = "6175e07b668b388a1a326d8fc543c4856eb5f54b"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/ast-grep/LICENSE"]
+license = ["tools/atlas/licenses/ast-grep/LICENSE"]
 technology_domains = ["structural_search", "structural_rewrite"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -23,7 +23,7 @@ native_replacement = "runtime/refactor structural rewrite primitives"
 runtime_dependency_status = "REFERENCE_ONLY"
 blocking_question = "resolved G71: no Atlas stage rewrites source (construction P6 is blocked behind .atlasx); textual-edit friction in the external self-build tooling was always detected; re-evaluate with a native mutation or construction capability"
 implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/12-ast-grep.json", ".atlas/provenance/donors/ast-grep.json", ".atlas/census/ast-grep.md"]
+evidence = ["tools/atlas/evidence/campaign/12-ast-grep.json", "tools/atlas/provenance/donors/ast-grep.json", ".atlas/census/ast-grep.md"]
 
 [[donor]]
 id = "buck2"
@@ -33,7 +33,7 @@ resolved_url = "https://github.com/facebook/buck2.git"
 commit_sha = "78ec517305d8214d6160f6c99b1d0a3554879878"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/buck2/LICENSE-APACHE", ".atlas/licenses/buck2/LICENSE-MIT", ".atlas/licenses/buck2/NOTICE"]
+license = ["tools/atlas/licenses/buck2/LICENSE-APACHE", "tools/atlas/licenses/buck2/LICENSE-MIT", "tools/atlas/licenses/buck2/NOTICE"]
 technology_domains = ["build_graph", "target_identity", "dependency_scheduling"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -41,14 +41,14 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "DEFERRED"
 blocking_question = "resolved G81: DICE keyed invalidation is not needed at measured scale (G80: median 3 of ~117 artifacts per generation, ~7.8 s full recensus, extraction memoizable per ADR 0008) -- REFERENCE_ONLY; DICE branching maps to AIF1 (frozen) -- DEFERRED until AIF1 design needs a concurrent-branch state mechanism, re-admitted from the pinned commit"
-evidence_needed = "AIF1 design work reaching the point of needing a concurrent-branch state-tracking mechanism (.atlas/evidence/campaign/18-buck2.json)"
+evidence_needed = "AIF1 design work reaching the point of needing a concurrent-branch state-tracking mechanism (tools/atlas/evidence/campaign/18-buck2.json)"
 cheapest_falsification = "performed G81 for the keyed-invalidation half (G80 workload measurement); none available for branching before AIF1 begins -- a genuine sequencing block"
 blocks_absorption = true
 native_replacement = "adapter/build and runtime build graph"
 runtime_dependency_status = "REFERENCE_ONLY"
 next_action = "TERMINAL DEFERRED (branching -> AIF1); source physically deleted; re-fetch commit 78ec517305d8214d6160f6c99b1d0a3554879878 on re-admission"
 implementation_status = "DEFERRED"
-evidence = [".atlas/evidence/campaign/18-buck2.json", ".atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md", ".atlas/genome/technology/buck2-dice-branching-incrementality.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
+evidence = ["tools/atlas/evidence/campaign/18-buck2.json", "tools/atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md", ".atlas/genome/technology/buck2-dice-branching-incrementality.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "c2rust"
@@ -58,7 +58,7 @@ resolved_url = "https://github.com/immunant/c2rust.git"
 commit_sha = "1d37ebbf4d505c947f20947edc264f47e33ed14b"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/c2rust/LICENSE"]
+license = ["tools/atlas/licenses/c2rust/LICENSE"]
 technology_domains = ["source_translation", "migration_ir"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -66,13 +66,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G114 (bounded census over a SKELETON record): c2rust translates C to unsafe Rust through a clang AST exporter (c2rust-ast-exporter -> c2rust-transpile), refactors the result (c2rust-refactor), and infers pointer ownership/permissions statically (c2rust-analyze) and dynamically (pdg, dynamic_instrumentation). Atlas has no C semantic frontend (semantic extraction is Rust-only; other languages get an UnsupportedLanguageOrProfile diagnostic, and the self-census holds no C artifact) and no migration pipeline (P6, secondary), so no mechanism has a consumer; clang is the donor's own external boundary. It was a DC1 real-donor Cargo test input; the ledger-driven tests pass without it"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/50-c2rust.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/50-c2rust.json)"
 cheapest_falsification = "performed G114: Atlas's language frontends and migration code checked (Rust-only extraction, no migration pipeline); workspace crates listed; DC1 tests run from the corpus record after extinction"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "runtime migration planning and semantic preservation"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/50-c2rust.json", ".atlas/provenance/donors/c2rust.json", ".atlas/census/c2rust.md"]
+evidence = ["tools/atlas/evidence/campaign/50-c2rust.json", "tools/atlas/provenance/donors/c2rust.json", ".atlas/census/c2rust.md"]
 
 [[donor]]
 id = "crubit"
@@ -82,7 +82,7 @@ resolved_url = "https://github.com/google/crubit.git"
 commit_sha = "34c96fb368e1a734c06425172f810ca1371eb705"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/crubit/LICENSE"]
+license = ["tools/atlas/licenses/crubit/LICENSE"]
 technology_domains = ["cxx_rust_interop", "source_translation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -91,7 +91,7 @@ census_status = "SKELETON"
 decision_status = "PENDING"
 native_replacement = "adapter/language-interop migration boundary"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/crubit.json", ".atlas/census/crubit.md"]
+evidence = ["tools/atlas/provenance/donors/crubit.json", ".atlas/census/crubit.md"]
 
 [[donor]]
 id = "cytoscape-js"
@@ -101,7 +101,7 @@ resolved_url = "https://github.com/cytoscape/cytoscape.js.git"
 commit_sha = "7ba634095d8954089ee5dc09ada0030f2dca134c"
 default_branch = "unstable"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/cytoscape-js/LICENSE", ".atlas/licenses/cytoscape-js/license-update.mjs"]
+license = ["tools/atlas/licenses/cytoscape-js/LICENSE", "tools/atlas/licenses/cytoscape-js/license-update.mjs"]
 technology_domains = ["graph_rendering", "large_graph_interaction"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -111,7 +111,7 @@ census_status = "SKELETON"
 decision_status = "PENDING"
 native_replacement = "apps/ui graph visualization"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/cytoscape-js.json", ".atlas/census/cytoscape-js.md"]
+evidence = ["tools/atlas/provenance/donors/cytoscape-js.json", ".atlas/census/cytoscape-js.md"]
 
 [[donor]]
 id = "datafrog"
@@ -121,7 +121,7 @@ resolved_url = "https://github.com/rust-lang/datafrog.git"
 commit_sha = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/datafrog/LICENSE-APACHE", ".atlas/licenses/datafrog/LICENSE-MIT"]
+license = ["tools/atlas/licenses/datafrog/LICENSE-APACHE", "tools/atlas/licenses/datafrog/LICENSE-MIT"]
 technology_domains = ["relational_inference", "fixed_point"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -138,7 +138,7 @@ extinction_scope = "physical source checkout only (.atlas/temporary/donors/dataf
 extinction_verified_by = "with the checkout absent: cargo build, cargo test --workspace, cargo fmt --check, cargo clippy -D warnings, docs audit, verify-donor-quarantine.sh, donor_corpus_integrity (incl. new EXTINCT-implies-absent guard), atlas-cli systemize -- all re-run and passing; atlas-cli systemize reproduced the identical dependency_closure.reachability (14 reached, 0 unreached, converged in 5 rounds) before and after deletion"
 native_replacement = "core::closure semi-naive fixed-point driver"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md", ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md", ".atlas/census/discoveries/r5-semi-naive-dependency-closure.md", ".atlas/decisions/0004-semi-naive-dependency-closure.md"]
+evidence = ["tools/atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md", ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md", ".atlas/census/discoveries/r5-semi-naive-dependency-closure.md", ".atlas/decisions/0004-semi-naive-dependency-closure.md"]
 
 [[donor]]
 id = "differential-dataflow"
@@ -148,7 +148,7 @@ resolved_url = "https://github.com/TimelyDataflow/differential-dataflow.git"
 commit_sha = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/differential-dataflow/LICENSE"]
+license = ["tools/atlas/licenses/differential-dataflow/LICENSE"]
 technology_domains = ["differential_computation", "incremental_graph_derivation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -156,14 +156,14 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G80 by measurement: no -- across 23 proven generations edits touch 1-19 of ~117 artifacts (median 3), full self-recensus is ~7.8 s (extraction ~3.8 s of it, memoizable per artifact), corpus scale was report-limited, and the large invalidations come from analyzer changes no view-maintenance engine avoids; shallow invalidation plus recompute suffices"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/17-differential-dataflow.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/17-differential-dataflow.json)"
 cheapest_falsification = "performed G80: edit-to-recensus workload of G57-G79 from the proof chain, plus wall-clock timing of warm/one-edit recensus and cold/warm cached systemize"
 blocks_absorption = false
 native_replacement = "runtime incremental graph maintenance"
 runtime_dependency_status = "REFERENCE_ONLY"
 next_action = "none: TERMINAL REFERENCE_ONLY; P4 input: wire the per-artifact extraction cache into self-recensus; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/17-differential-dataflow.json", ".atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md", ".atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
+evidence = ["tools/atlas/evidence/campaign/17-differential-dataflow.json", "tools/atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md", ".atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "elkjs"
@@ -173,7 +173,7 @@ resolved_url = "https://github.com/kieler/elkjs.git"
 commit_sha = "722f1a3f63016e64f534a8b445283d4d31a88d0e"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/elkjs/LICENSE.md"]
+license = ["tools/atlas/licenses/elkjs/LICENSE.md"]
 technology_domains = ["graph_layout", "automatic_layout"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -183,7 +183,7 @@ census_status = "SKELETON"
 decision_status = "PENDING"
 native_replacement = "apps/ui layout adapter"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/elkjs.json", ".atlas/census/elkjs.md"]
+evidence = ["tools/atlas/provenance/donors/elkjs.json", ".atlas/census/elkjs.md"]
 
 [[donor]]
 id = "glean"
@@ -193,7 +193,7 @@ resolved_url = "https://github.com/facebookincubator/Glean.git"
 commit_sha = "2a48dea4cddb316d3b8bd65b54965cb9a7855c52"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/glean/LICENSE"]
+license = ["tools/atlas/licenses/glean/LICENSE"]
 technology_domains = ["source_facts", "cross_reference", "fact_database"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -201,7 +201,7 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "ABSORBED"
 blocking_question = "resolved G68: the .atlas section writer now exists (G64) and its name-derived schema_id let a tag-repurposing version be silently misread by the current reader (measured)"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/09-glean.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/09-glean.json)"
 cheapest_falsification = "performed G68: lockstep tag repurposing emulated, verified with the current reader before and after"
 next_action = "none: TERMINAL ABSORBED (definition-derived schema identity, core::atlas::schema); Angle/derived predicates, fact DB and query IR REFERENCE_ONLY; source physically deleted"
 native_replacement = "core::atlas::schema (declared record schemas, definition-derived schema_id)"
@@ -209,7 +209,7 @@ runtime_dependency_status = "REFERENCE_ONLY"
 principles_status = "PRINCIPLES_EXTRACTED"
 implementation_status = "ABSORBED_NATIVE"
 target_owners = ["core/model", "runtime/query"]
-evidence = [".atlas/evidence/campaign/09-glean.json", ".atlas/provenance/donors/glean.json", ".atlas/census/glean.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/glean-transitive-schema-identity-hashing.md"]
+evidence = ["tools/atlas/evidence/campaign/09-glean.json", "tools/atlas/provenance/donors/glean.json", ".atlas/census/glean.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/glean-transitive-schema-identity-hashing.md"]
 
 [[donor]]
 id = "joern"
@@ -219,7 +219,7 @@ resolved_url = "https://github.com/joernio/joern.git"
 commit_sha = "b381922638ae436fcb6862a90241c8f7ce508894"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/joern/LICENSE"]
+license = ["tools/atlas/licenses/joern/LICENSE"]
 technology_domains = ["code_property_graph", "data_flow", "call_graph"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -227,7 +227,7 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G69: Atlas graph measured at 73,848 nodes / 94,446 edges (650-4,500x below the donor reference); rust2cpg resolves Rust through an external rust_ast_gen binary and falls back to Defines.Any, so the CPG cannot close Atlas coverage UNKNOWN"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/10-joern.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/10-joern.json)"
 cheapest_falsification = "performed G69: graph scale/traversal measurement and rust2cpg resolution source reading"
 next_action = "none: TERMINAL REFERENCE_ONLY (CPG layering, reachingDefs, flatgraph re-evaluate at 10^6+ nodes); source physically deleted"
 native_replacement = "core graph projections"
@@ -235,7 +235,7 @@ runtime_dependency_status = "REFERENCE_ONLY"
 principles_status = "PRINCIPLES_EXTRACTED"
 implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
 target_owners = ["runtime/link", "runtime/query"]
-evidence = [".atlas/evidence/campaign/10-joern.json", ".atlas/provenance/donors/joern.json", ".atlas/census/joern.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/joern-columnar-property-graph-layout.md"]
+evidence = ["tools/atlas/evidence/campaign/10-joern.json", "tools/atlas/provenance/donors/joern.json", ".atlas/census/joern.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/joern-columnar-property-graph-layout.md"]
 
 [[donor]]
 id = "kani"
@@ -245,7 +245,7 @@ resolved_url = "https://github.com/model-checking/kani.git"
 commit_sha = "80f3cc98af976a54b9dd0614e877e4d2f1f5a58d"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/kani/LICENSE-APACHE", ".atlas/licenses/kani/LICENSE-MIT"]
+license = ["tools/atlas/licenses/kani/LICENSE-APACHE", "tools/atlas/licenses/kani/LICENSE-MIT"]
 technology_domains = ["model_checking", "proof_constraints"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -253,13 +253,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
 decision_status = "EXTERNAL_BOUNDARY"
 blocking_question = "resolved G104 (bounded census over a SKELETON record): Kani is an external verifier (CBMC backend) whose per-harness results it already emits as SARIF 2.1.0 (kani-driver/src/sarif.rs), with counterexamples replayable as unit tests (concrete_playback). Its P0 role, proofs as constraint evidence, needs a consumer Atlas does not have: VERIFICATION-METRICS-PERFORMANCE.md's VerificationEvidence/VerificationObligation model exists only as contract text (core/src/evidence holds a generic Evidence record), and that contract's named class vocabulary has no proof/model-checking class although it lists proof/model checking as an evidence source. Neither Kani nor CBMC is installed here. When VerificationEvidence is implemented, a SARIF adapter consumes Kani (and other analyzers) at the boundary; no Kani source is needed"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/40-kani.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/40-kani.json)"
 cheapest_falsification = "performed G104: VerificationEvidence / verification-class code searched (none); Kani's output surfaces read (SARIF, CBMC output parser, concrete playback, autoharness, function contracts)"
 next_action = "none: TERMINAL EXTERNAL_BOUNDARY (Kani/CBMC as external verifiers via SARIF) + REFERENCE_ONLY (harness, contract, stubbing and playback designs); source physically deleted"
 implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "runtime verification/proof engine"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/40-kani.json", ".atlas/provenance/donors/kani.json", ".atlas/census/kani.md"]
+evidence = ["tools/atlas/evidence/campaign/40-kani.json", "tools/atlas/provenance/donors/kani.json", ".atlas/census/kani.md"]
 
 [[donor]]
 id = "kythe"
@@ -269,7 +269,7 @@ resolved_url = "https://github.com/kythe/kythe.git"
 commit_sha = "69141f022689a611e8a4a1d9b08a3783a2e8a9ed"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/kythe/LICENSE"]
+license = ["tools/atlas/licenses/kythe/LICENSE"]
 technology_domains = ["semantic_cross_reference", "schema_indexing"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -277,7 +277,7 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "ABSORBED"
 blocking_question = "resolved G67: the recorded evidence condition occurred -- SymbolIdentity/TypeIdentity keys lacked a location, so 203 ids were shared by definitions/spellings in different files and the graph dropped all but the first"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/08-kythe.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/08-kythe.json)"
 cheapest_falsification = "performed G67: collision + cross-file conflation census of all typed records"
 next_action = "none: TERMINAL ABSORBED (VName path as identity field); corpus/root/language fields, opaque signatures and the Entry store REFERENCE_ONLY; source physically deleted"
 native_replacement = "core::semantic SymbolIdentity.path / TypeIdentity.path"
@@ -285,7 +285,7 @@ runtime_dependency_status = "REFERENCE_ONLY"
 principles_status = "PRINCIPLES_EXTRACTED"
 implementation_status = "ABSORBED_NATIVE"
 target_owners = ["core/identity", "core/model", "runtime/link"]
-evidence = [".atlas/evidence/campaign/08-kythe.json", ".atlas/provenance/donors/kythe.json", ".atlas/census/kythe.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/kythe-vname-identity-and-entry-unification.md"]
+evidence = ["tools/atlas/evidence/campaign/08-kythe.json", "tools/atlas/provenance/donors/kythe.json", ".atlas/census/kythe.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/kythe-vname-identity-and-entry-unification.md"]
 
 [[donor]]
 id = "miri"
@@ -295,7 +295,7 @@ resolved_url = "https://github.com/rust-lang/miri.git"
 commit_sha = "c63eee41f54d6a4b414af7b22ab717063da0c50a"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/miri/LICENSE-APACHE", ".atlas/licenses/miri/LICENSE-MIT"]
+license = ["tools/atlas/licenses/miri/LICENSE-APACHE", "tools/atlas/licenses/miri/LICENSE-MIT"]
 technology_domains = ["undefined_behavior_detection", "rust_execution_semantics"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -305,11 +305,11 @@ decision_status = "REFERENCE_ONLY"
 native_replacement = "runtime verification evidence adapters"
 runtime_dependency_status = "REFERENCE_ONLY"
 blocking_question = "resolved G76 by measurement: Atlas has 0 unsafe constructs, so the UB interpreter has no target, and Miri is nightly-only (absent from the pinned 1.90.0 toolchain); its shims model effects at the libc boundary while Atlas's EFFECT gap is at the std API (504 effectful std calls unobserved)"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/15-miri.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/15-miri.json)"
 cheapest_falsification = "performed G76: syn enumeration of unsafe constructs (0), toolchain component availability, SCIP join of CALL anchors to effectful std modules"
 next_action = "none: TERMINAL REFERENCE_ONLY; the P0 EFFECT input (std-path effect derivation on top of G75 resolution) is planned natively; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/15-miri.json", ".atlas/provenance/donors/miri.json", ".atlas/census/miri.md"]
+evidence = ["tools/atlas/evidence/campaign/15-miri.json", "tools/atlas/provenance/donors/miri.json", ".atlas/census/miri.md"]
 
 [[donor]]
 id = "openrewrite"
@@ -319,7 +319,7 @@ resolved_url = "https://github.com/openrewrite/rewrite.git"
 commit_sha = "f7372139f62f62a66e5b78d70bbad50aaea7d8ee"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/openrewrite/LICENSE"]
+license = ["tools/atlas/licenses/openrewrite/LICENSE"]
 technology_domains = ["semantic_recipes", "large_scale_migration", "repeatable_transforms"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -327,13 +327,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G113 (bounded census over a SKELETON record): OpenRewrite's lossless semantic trees exist so a transform prints source back byte-faithfully (formatting and comments kept), and its recipes (visitors composed declaratively, preconditions, data tables, Changeset/Result diffs) drive source rewrites. Atlas never writes source back: its census reads source through syn, and the construction change model (CandidateChangeSet, ASIR-CONSTRUCTION-MODEL.md) is TARGET with no code. So neither the lossless tree nor the recipe engine has a consumer. The P2 'census -> declared change' path Atlas does have, adl derive (G63), produces declarations, not source edits. JVM toolchain boundary"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/49-openrewrite.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/49-openrewrite.json)"
 cheapest_falsification = "performed G113: source-writing and change-set code searched (none); rewrite-core's recipe/Changeset/DataTable/LST surfaces listed"
 next_action = "none: TERMINAL REFERENCE_ONLY (design reference for the TARGET CandidateChangeSet and any future source-writing transform); source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "runtime/refactor recipe and ChangeSet model"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/49-openrewrite.json", ".atlas/provenance/donors/openrewrite.json", ".atlas/census/openrewrite.md"]
+evidence = ["tools/atlas/evidence/campaign/49-openrewrite.json", "tools/atlas/provenance/donors/openrewrite.json", ".atlas/census/openrewrite.md"]
 
 [[donor]]
 id = "py2many"
@@ -343,7 +343,7 @@ resolved_url = "https://github.com/py2many/py2many.git"
 commit_sha = "a3c39224e71430bf99057f473c4b4542971daa9d"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/py2many/LICENSE"]
+license = ["tools/atlas/licenses/py2many/LICENSE"]
 technology_domains = ["source_translation", "language_conversion"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -353,7 +353,7 @@ census_status = "SKELETON"
 decision_status = "PENDING"
 native_replacement = "runtime migration planning and semantic preservation"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/py2many.json", ".atlas/census/py2many.md"]
+evidence = ["tools/atlas/provenance/donors/py2many.json", ".atlas/census/py2many.md"]
 
 [[donor]]
 id = "rust-analyzer"
@@ -363,7 +363,7 @@ resolved_url = "https://github.com/rust-lang/rust-analyzer.git"
 commit_sha = "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/rust-analyzer/LICENSE-APACHE", ".atlas/licenses/rust-analyzer/LICENSE-MIT"]
+license = ["tools/atlas/licenses/rust-analyzer/LICENSE-APACHE", "tools/atlas/licenses/rust-analyzer/LICENSE-MIT"]
 technology_domains = ["rust_semantics", "incremental_analysis", "refactoring"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -371,7 +371,7 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "ABSORBED"
 blocking_question = "resolved G75: yes -- path calls resolve by hir-def's module/import rules alone (module tree, items, use imports to a fixed point, block scopes, extern prelude, inherent/trait-impl associated functions); 3,731 of Atlas's path calls resolved, all 3,731 confirmed by the pinned rust-analyzer SCIP oracle, 95.1% recall; method calls need hir-ty inference and stay REFERENCE_ONLY"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/04-rust-analyzer.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/04-rust-analyzer.json)"
 cheapest_falsification = "performed G75: every Atlas path call resolved natively and compared at its anchor with rust-analyzer 1.90.0 SCIP (3,731/3,731 agree; the oracle exposed one mis-resolution through an unresolved block import, fixed before promotion)"
 next_action = "none: TERMINAL ABSORBED (mechanisms: vfs-change-taxonomy, hir-def-path-resolution); hir-ty inference/method resolution, macro expansion, salsa IDE queries and base-db/project-model REFERENCE_ONLY; source physically deleted"
 native_replacement = "core::census::delta (vfs taxonomy); adapter::semantic::rust::resolve + runtime::census::resolution (path resolution, CALL engine atlas.resolution.rust-paths)"
@@ -384,7 +384,7 @@ absorption_native_owner = "core::census::delta::diff_inventories (Created/Modifi
 absorption_decision_record = ".atlas/census/discoveries/r5-inventory-change-detection.md"
 donor_source_remaining_surface = "vfs within-cycle merge table, FxHasher content hash, PathInterner/FileId, loader/notify, FileSet/source roots -- REJECT (see discovery record); hir-ty inference and method resolution, macro/proc-macro expansion, salsa-backed IDE queries, base-db/project-model -- REFERENCE_ONLY"
 extinction_blocker = "cleared G75: 11 of 15 known Cargo donors remain for the DC1 real-donor test (threshold 7); dependency cycles stay covered by crubit/wasm-tools/wasmtime/zed and the (source)-suffix shape by the synthetic two-sources fixture; adapter dependency tests pass with the checkout absent"
-evidence = [".atlas/evidence/campaign/04-rust-analyzer.json", ".atlas/provenance/donors/rust-analyzer.json", ".atlas/census/rust-analyzer.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/rust-analyzer-tree-sitter-source-identity.md", ".atlas/census/discoveries/r5-inventory-change-detection.md", ".atlas/decisions/0006-inventory-change-detection.md"]
+evidence = ["tools/atlas/evidence/campaign/04-rust-analyzer.json", "tools/atlas/provenance/donors/rust-analyzer.json", ".atlas/census/rust-analyzer.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/rust-analyzer-tree-sitter-source-identity.md", ".atlas/census/discoveries/r5-inventory-change-detection.md", ".atlas/decisions/0006-inventory-change-detection.md"]
 
 [[donor]]
 id = "salsa"
@@ -394,7 +394,7 @@ resolved_url = "https://github.com/salsa-rs/salsa.git"
 commit_sha = "5d8eaf1fa372a73d44f9b717407de41f19ef59d7"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/salsa/LICENSE-APACHE", ".atlas/licenses/salsa/LICENSE-MIT"]
+license = ["tools/atlas/licenses/salsa/LICENSE-APACHE", "tools/atlas/licenses/salsa/LICENSE-MIT"]
 technology_domains = ["incremental_queries", "dependency_invalidation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -405,12 +405,12 @@ absorbed_mechanisms = ["memoized-derivation-reuse"]
 absorption_native_owner = "runtime::census::extraction::ExtractionCache, adapter::EXTRACTOR_BUILD_DIGEST, systemize --cache"
 absorption_decision_record = ".atlas/decisions/0008-extraction-derivation-cache.md"
 blocking_question = "resolved G115: (1) the 166 s graph-summarization hotspot ADR 0008 measured (debug) was algorithmic and is gone -- a whole release systemize of this repository takes 10.45 s cold and 8.9-9.0 s with a warm extraction cache, and gdb stack sampling spreads that time over whole-program stages (normalization 5/17 samples, graph build 4/17, closure checks 2/17, report serialization/write/drop 5/17, census 1/17) with no dominant one; (2) the edit-to-recensus delta is small (changed paths per generation, G86-G114: median 1 of 118 artifacts, max 16), but the per-artifact derivation (extraction, ~1.5 s, 14%) is already reused for unchanged artifacts by the absorbed memo, and the rest is whole-program work over cross-artifact dependencies. Salsa-style dependency tracking, early cutoff and durability would have to restructure normalization and graph construction into tracked queries to save at most ~8.5 s per run at this scale -- the same call made for differential-dataflow (G80). Invalidation stays REFERENCE_ONLY; reopen when a real workload's whole-program recensus stages dominate an edit loop (e.g. tens of seconds per edit)"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/05-salsa.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/05-salsa.json)"
 cheapest_falsification = "performed G115: release timing cold vs warm cache, gdb stack sampling of systemize, changed-set sizes of G86-G114"
 next_action = "none: TERMINAL ABSORBED (memoized-derivation-reuse); invalidation, early cutoff, durability and cycle handling REFERENCE_ONLY; source physically deleted"
 native_replacement = "runtime incremental query cache"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/05-salsa.json", ".atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md", ".atlas/genome/technology/salsa-durability-gated-incremental-verification.md", ".atlas/genome/technology/salsa-fixpoint-cycle-iteration.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
+evidence = ["tools/atlas/evidence/campaign/05-salsa.json", "tools/atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md", ".atlas/genome/technology/salsa-durability-gated-incremental-verification.md", ".atlas/genome/technology/salsa-fixpoint-cycle-iteration.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "scip"
@@ -420,7 +420,7 @@ resolved_url = "https://github.com/sourcegraph/scip.git"
 commit_sha = "4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/scip/LICENSE"]
+license = ["tools/atlas/licenses/scip/LICENSE"]
 technology_domains = ["semantic_index_exchange", "symbol_identity"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -428,7 +428,7 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "ABSORBED"
 blocking_question = "resolved G66 by measurement: FunctionIdentity embedded revision and span, so an inserted line cost unchanged functions their identity, every commit re-identified all 1,811 functions, and self-recensus could not see entity-level change; the occurrence-import sequencing block was not the real question"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/07-scip.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/07-scip.json)"
 cheapest_falsification = "performed G66: A-H edit cases on real Atlas source before and after, plus comment-only and collateral cases"
 next_action = "none: TERMINAL ABSORBED (mechanism: position-free descriptor identity, core::recensus::entity); occurrences, roles, relationships and the exchange format REFERENCE_ONLY; source physically deleted"
 native_replacement = "core::recensus::entity (EntityState descriptors, correspondence)"
@@ -436,7 +436,7 @@ runtime_dependency_status = "REFERENCE_ONLY"
 principles_status = "PRINCIPLES_EXTRACTED"
 implementation_status = "ABSORBED_NATIVE"
 target_owners = ["adapter/exchange/source_index", "core/identity", "core/model"]
-evidence = [".atlas/evidence/campaign/07-scip.json", ".atlas/provenance/donors/scip.json", ".atlas/census/scip.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/scip-symbol-role-bitset-and-position-encoding.md"]
+evidence = ["tools/atlas/evidence/campaign/07-scip.json", "tools/atlas/provenance/donors/scip.json", ".atlas/census/scip.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/scip-symbol-role-bitset-and-position-encoding.md"]
 
 [[donor]]
 id = "semgrep"
@@ -446,7 +446,7 @@ resolved_url = "https://github.com/semgrep/semgrep.git"
 commit_sha = "0516c0f23a3dceac5c8f5ff3fecd402af4450182"
 default_branch = "develop"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/semgrep/LICENSE"]
+license = ["tools/atlas/licenses/semgrep/LICENSE"]
 technology_domains = ["semantic_search", "pattern_matching", "static_analysis"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -457,7 +457,7 @@ native_replacement = "runtime/query semantic pattern projection"
 runtime_dependency_status = "REFERENCE_ONLY"
 blocking_question = "resolved G70: import-aware pattern matching changes zero effect classifications in Atlas (0 std::fs functions imported by name, 0 aliases, 0 shadowing types; 320 qualified calls already matched); no rule-as-data consumer exists"
 implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/11-semgrep.json", ".atlas/provenance/donors/semgrep.json", ".atlas/census/semgrep.md"]
+evidence = ["tools/atlas/evidence/campaign/11-semgrep.json", "tools/atlas/provenance/donors/semgrep.json", ".atlas/census/semgrep.md"]
 
 [[donor]]
 id = "souffle"
@@ -467,7 +467,7 @@ resolved_url = "https://github.com/souffle-lang/souffle.git"
 commit_sha = "a1303be3c0166400dee3d1f36f0d96abe03e6901"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/souffle/LICENSE"]
+license = ["tools/atlas/licenses/souffle/LICENSE"]
 technology_domains = ["datalog", "static_analysis", "fixed_point"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -484,7 +484,7 @@ extinction_scope = "physical source checkout only (.atlas/temporary/donors/souff
 extinction_verified_by = "cargo test --workspace, cargo fmt --check, cargo clippy -D warnings, docs audit, atlas-cli systemize, atlas-cli graph, verify-donor-quarantine.sh -- all re-run and passing with the checkout absent; atlas-cli graph reproduced the identical 4 ConstraintResult nodes / 3 SUPPORTED_BY edges before and after deletion"
 native_replacement = "runtime rule/inference substrate"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md", ".atlas/genome/technology/souffle-provenance-backed-derivation.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md", ".atlas/census/discoveries/r5-constraint-derivation-provenance.md"]
+evidence = ["tools/atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md", ".atlas/genome/technology/souffle-provenance-backed-derivation.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md", ".atlas/census/discoveries/r5-constraint-derivation-provenance.md"]
 
 [[donor]]
 id = "sourcetrail"
@@ -494,7 +494,7 @@ resolved_url = "https://github.com/CoatiSoftware/Sourcetrail.git"
 commit_sha = "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/sourcetrail/LICENSE.txt"]
+license = ["tools/atlas/licenses/sourcetrail/LICENSE.txt"]
 technology_domains = ["source_graph_visualization", "symbol_navigation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -505,7 +505,7 @@ native_replacement = "apps/ui graph and source navigation"
 runtime_dependency_status = "REFERENCE_ONLY"
 blocking_question = "resolved G72: Atlas already separates element identity (G66 descriptors) from per-site occurrences (CALL/DATA_FLOW records); no navigation consumer exists"
 implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/13-sourcetrail.json", ".atlas/provenance/donors/sourcetrail.json", ".atlas/census/sourcetrail.md"]
+evidence = ["tools/atlas/evidence/campaign/13-sourcetrail.json", "tools/atlas/provenance/donors/sourcetrail.json", ".atlas/census/sourcetrail.md"]
 
 [[donor]]
 id = "tree-sitter"
@@ -515,7 +515,7 @@ resolved_url = "https://github.com/tree-sitter/tree-sitter.git"
 commit_sha = "5b951eff4f8b1431e933ed0fe45e48fcd4036a38"
 default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/tree-sitter/LICENSE"]
+license = ["tools/atlas/licenses/tree-sitter/LICENSE"]
 technology_domains = ["incremental_parsing", "syntax_trees", "query_languages"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -523,7 +523,7 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G65: the per-artifact ExtractionCache (ADR 0008) already restricts re-extraction to changed artifacts, and measured whole-file re-extraction of the largest non-test file is indistinguishable from run-to-run noise (~40 ms/artifact vs ~6 s warm run) -- sub-file incremental parsing has no consumer"
-evidence_needed = "none outstanding: all four mechanisms REFERENCE_ONLY (.atlas/evidence/campaign/06-tree-sitter.json)"
+evidence_needed = "none outstanding: all four mechanisms REFERENCE_ONLY (tools/atlas/evidence/campaign/06-tree-sitter.json)"
 cheapest_falsification = "performed G65: cold/warm/one-edit systemize --cache timings; FALSIFIED"
 next_action = "none: TERMINAL REFERENCE_ONLY, source physically deleted (re-materialize by commit_sha if a later cycle needs to re-read it)"
 native_replacement = "adapter/parser SourceParser boundary"
@@ -531,7 +531,7 @@ runtime_dependency_status = "REFERENCE_ONLY"
 principles_status = "PRINCIPLES_EXTRACTED"
 implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
 target_owners = ["adapter/source", "runtime/ingest"]
-evidence = [".atlas/evidence/campaign/06-tree-sitter.json", ".atlas/provenance/donors/tree-sitter.json", ".atlas/census/tree-sitter.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/rust-analyzer-tree-sitter-source-identity.md"]
+evidence = ["tools/atlas/evidence/campaign/06-tree-sitter.json", "tools/atlas/provenance/donors/tree-sitter.json", ".atlas/census/tree-sitter.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/rust-analyzer-tree-sitter-source-identity.md"]
 
 [[donor]]
 id = "verus"
@@ -541,7 +541,7 @@ resolved_url = "https://github.com/verus-lang/verus.git"
 commit_sha = "5f0930a0b820425aa857269070362ddcf7c29672"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/verus/LICENSE"]
+license = ["tools/atlas/licenses/verus/LICENSE"]
 technology_domains = ["formal_verification", "proof_oriented_constraints"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -549,13 +549,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
 decision_status = "EXTERNAL_BOUNDARY"
 blocking_question = "resolved G105 (bounded census over a SKELETON record): Verus verifies Rust annotated with spec/proof/exec modes by lowering rustc HIR through VIR -> SST -> AIR to SMT queries discharged by Z3 (source/vir, source/air), and reports results with --output-json. Its P0 role, proof obligations over Rust as constraint evidence, needs the same missing consumer as Kani (G104): no VerificationEvidence/obligation code exists and the contract's class vocabulary lacks a proof class. Verus is a verifier with its own rustc fork and Z3 boundary; Atlas's census obligations (per-dimension extraction closure) are a different notion from Verus's proof obligations"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/41-verus.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/41-verus.json)"
 cheapest_falsification = "performed G105: Verus's pipeline and output surface read; Atlas's obligation and evidence code compared (none consumes proof results)"
 next_action = "none: TERMINAL EXTERNAL_BOUNDARY (Verus + Z3 as an external verifier via --output-json) + REFERENCE_ONLY (modes, triggers, pruning, SMT encoding); source physically deleted"
 implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "core constraint/proof model"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/41-verus.json", ".atlas/provenance/donors/verus.json", ".atlas/census/verus.md"]
+evidence = ["tools/atlas/evidence/campaign/41-verus.json", "tools/atlas/provenance/donors/verus.json", ".atlas/census/verus.md"]
 
 [[donor]]
 id = "xyflow"
@@ -565,7 +565,7 @@ resolved_url = "https://github.com/xyflow/xyflow.git"
 commit_sha = "0a1f9575b25679f2880175de8d3eae21aedde921"
 default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
-license = [".atlas/licenses/xyflow/LICENSE"]
+license = ["tools/atlas/licenses/xyflow/LICENSE"]
 technology_domains = ["node_editor", "graph_interaction"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -574,7 +574,7 @@ census_status = "SKELETON"
 decision_status = "PENDING"
 native_replacement = "apps/ui graph interaction"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/xyflow.json", ".atlas/census/xyflow.md"]
+evidence = ["tools/atlas/provenance/donors/xyflow.json", ".atlas/census/xyflow.md"]
 
 [[donor]]
 id = "opendesign"
@@ -584,7 +584,7 @@ resolved_url = "https://github.com/vustudio/opendesign.git"
 commit_sha = "b4e69ac61b50576298f9f564603e5a4beb27417f"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/opendesign/LICENSE"]
+license = ["tools/atlas/licenses/donors/opendesign/LICENSE"]
 technology_domains = ["design_authoring", "visual_system", "design_systems", "prototype_generation", "studio_workspace"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -594,7 +594,7 @@ census_status = "DEEP_CENSUSED"
 decision_status = "APPROVED_DONOR_GAP"
 native_replacement = "apps/ui design workspace and core/rule design semantics after deep census"
 runtime_dependency_status = "DEEP_FORK_TRANSITION_ALLOWED"
-evidence = [".atlas/provenance/donors/opendesign.json", ".atlas/census/donors/opendesign.md"]
+evidence = ["tools/atlas/provenance/donors/opendesign.json", ".atlas/census/donors/opendesign.md"]
 
 [[donor]]
 id = "containers-image"
@@ -604,7 +604,7 @@ resolved_url = "https://github.com/containers/image.git"
 commit_sha = "df7e80d2d19872b61f352a8a182ec934dc0c2346"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/containers-image/LICENSE"]
+license = ["tools/atlas/licenses/donors/containers-image/LICENSE"]
 technology_domains = ["security", "trust", "supply_chain", "admission_policy"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -612,13 +612,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "PENDING_DEEP_CENSUS"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G107: no consumer for signature verification. Atlas's contracts require content-hash evidence/attestation root identities at seal time (ATLAS-BINARY-WIRE-FORMAT.md, ATLAS-CREATION-PIPELINE.md), and the seal gate itself is unimplemented (exit criterion E). Donors are pinned by git commit and tree hash, and no Atlas code signs or verifies signatures. Sigstore's keyless signing (Fulcio certificates) and Rekor transparency-log inclusion serve publishing artifacts to third parties, which Atlas does not do. The declarative admission policy (signature/policy_config.go: per-transport and per-scope requirements such as reject, signedBy and sigstoreSigned, evaluated default-deny in policy_eval.go) is the design reference for a future seal/publication policy"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/43-containers-image.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/43-containers-image.json)"
 cheapest_falsification = "performed G107: contracts searched for signing/sigstore/attestation requirements (content-hash attestation roots only, at an unimplemented seal gate); code searched for signature handling (none)"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted; revisit with sealing/publication (exit criterion E)"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "core/security policy and runtime/security admission"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/43-containers-image.json", ".atlas/provenance/donors/containers-image.json"]
+evidence = ["tools/atlas/evidence/campaign/43-containers-image.json", "tools/atlas/provenance/donors/containers-image.json"]
 
 [[donor]]
 id = "podman"
@@ -628,7 +628,7 @@ resolved_url = "https://github.com/containers/podman.git"
 commit_sha = "0d12a23e7bc94460f7986c01c79636b63ab6cd36"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/podman/LICENSE"]
+license = ["tools/atlas/licenses/donors/podman/LICENSE"]
 technology_domains = ["security", "trust", "sandboxing", "rootless_isolation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -636,13 +636,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "PENDING_DEEP_CENSUS"
 decision_status = "EXTERNAL_BOUNDARY"
 blocking_question = "resolved G106: podman is one environment-dependent SandboxBackend implementation (AGENT-HOST-EMBEDDED-RUNTIME.md), invoked as an external container runtime, never absorbed. That contract forbids assuming the OuterSandbox permits user namespaces or nested containers, so rootless podman can only be a probed, optional backend. This host happens to allow unprivileged user namespaces (unshare --user --map-root-user succeeds; max_user_namespaces 64313) and ships a docker client, but that is environment evidence, not a guarantee. No SandboxBackend code exists and Atlas runs no candidate build/test job today, so there is no consumer; the rootless mechanics (user-namespace ID mapping, rootless networking, cgroup v2 delegation) stay REFERENCE_ONLY"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/42-podman.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/42-podman.json)"
 cheapest_falsification = "performed G106: SandboxBackend code searched (none); the host-runtime contract's OuterSandbox clause read; the host's user-namespace and container tooling probed"
 next_action = "none: TERMINAL EXTERNAL_BOUNDARY (a probed, optional SandboxBackend) + REFERENCE_ONLY (rootless mechanics); source physically deleted"
 implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "adapter/security sandbox and runtime/security isolation policy"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/42-podman.json", ".atlas/provenance/donors/podman.json"]
+evidence = ["tools/atlas/evidence/campaign/42-podman.json", "tools/atlas/provenance/donors/podman.json"]
 
 [[donor]]
 id = "selinux"
@@ -652,7 +652,7 @@ resolved_url = "https://github.com/SELinuxProject/selinux.git"
 commit_sha = "3361233fa3cb0c27f68f682f195accefb69d06c0"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/selinux/LICENSE"]
+license = ["tools/atlas/licenses/donors/selinux/LICENSE"]
 technology_domains = ["security", "trust", "access_control", "least_privilege"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -662,7 +662,7 @@ census_status = "PENDING_DEEP_CENSUS"
 decision_status = "APPROVED_SECURITY_LANE"
 native_replacement = "core/security policy and adapter/security sandbox boundaries"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/selinux.json"]
+evidence = ["tools/atlas/provenance/donors/selinux.json"]
 
 [[donor]]
 id = "openscap"
@@ -672,7 +672,7 @@ resolved_url = "https://github.com/OpenSCAP/openscap.git"
 commit_sha = "6942b59fc861ad77ebcea93e70f32832d88e20f9"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/openscap/COPYING"]
+license = ["tools/atlas/licenses/donors/openscap/COPYING"]
 technology_domains = ["security", "trust", "compliance", "policy"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -682,7 +682,7 @@ census_status = "PENDING_DEEP_CENSUS"
 decision_status = "APPROVED_SECURITY_LANE"
 native_replacement = "core/security compliance profiles and runtime/security evaluation"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/openscap.json"]
+evidence = ["tools/atlas/provenance/donors/openscap.json"]
 
 [[donor]]
 id = "keycloak"
@@ -692,7 +692,7 @@ resolved_url = "https://github.com/keycloak/keycloak.git"
 commit_sha = "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/keycloak/LICENSE.txt"]
+license = ["tools/atlas/licenses/donors/keycloak/LICENSE.txt"]
 technology_domains = ["security", "identity", "authorization", "policy"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -702,7 +702,7 @@ census_status = "PENDING_DEEP_CENSUS"
 decision_status = "APPROVED_SECURITY_LANE"
 native_replacement = "core/security principal/role/scope/policy semantics"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/keycloak.json"]
+evidence = ["tools/atlas/provenance/donors/keycloak.json"]
 
 [[donor]]
 id = "keylime"
@@ -712,7 +712,7 @@ resolved_url = "https://github.com/keylime/keylime.git"
 commit_sha = "3476366881d7931407154597d88577895f2f818e"
 default_branch = "master"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/keylime/LICENSE"]
+license = ["tools/atlas/licenses/donors/keylime/LICENSE"]
 technology_domains = ["security", "trust", "attestation", "integrity"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -722,7 +722,7 @@ census_status = "PENDING_DEEP_CENSUS"
 decision_status = "APPROVED_SECURITY_LANE"
 native_replacement = "runtime/security attestation and core/security integrity evidence"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/keylime.json"]
+evidence = ["tools/atlas/provenance/donors/keylime.json"]
 
 [[donor]]
 id = "clair"
@@ -732,7 +732,7 @@ resolved_url = "https://github.com/quay/clair.git"
 commit_sha = "c9ac9a0aa5651670a690854fc2c12adfc951243f"
 default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
-license = [".atlas/licenses/donors/clair/LICENSE", ".atlas/licenses/donors/clair/NOTICE"]
+license = ["tools/atlas/licenses/donors/clair/LICENSE", "tools/atlas/licenses/donors/clair/NOTICE"]
 technology_domains = ["security", "supply_chain", "vulnerability_intelligence"]
 ingestion_status = "SOURCE_REMOVED"
 storage_state = "SOURCE_DELETED"
@@ -742,7 +742,7 @@ census_status = "PENDING_DEEP_CENSUS"
 decision_status = "APPROVED_SECURITY_LANE"
 native_replacement = "adapter/security vulnerability feeds and runtime/security finding model"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/clair.json"]
+evidence = ["tools/atlas/provenance/donors/clair.json"]
 
 [[donor]]
 id = "zed"
@@ -753,10 +753,10 @@ commit_sha = "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4"
 default_branch = "main"
 retrieved_at = "2026-09-20T14:29:16.9765313Z"
 license = [
-  ".atlas/licenses/donors/zed/LICENSE-APACHE",
-  ".atlas/licenses/donors/zed/LICENSE-GPL",
-  ".atlas/licenses/donors/zed/ASSET-ICON-LICENSES",
-  ".atlas/licenses/donors/zed/ASSET-THEME-LICENSES"
+  "tools/atlas/licenses/donors/zed/LICENSE-APACHE",
+  "tools/atlas/licenses/donors/zed/LICENSE-GPL",
+  "tools/atlas/licenses/donors/zed/ASSET-ICON-LICENSES",
+  "tools/atlas/licenses/donors/zed/ASSET-THEME-LICENSES"
 ]
 technology_domains = ["ide", "editor", "workspace", "agent_interaction", "ui_runtime"]
 ingestion_status = "EXTINCT"
@@ -770,8 +770,8 @@ principles_status = "PENDING_DEEP_CENSUS"
 implementation_status = "PENDING_ATLAS_NATIVE"
 target_owners = ["apps/ui", "runtime/work", "adapter/provider", "core/binding"]
 evidence = [
-  ".atlas/provenance/donors/zed.json",
-  ".atlas/provenance/donors/zed/license-map.json",
+  "tools/atlas/provenance/donors/zed.json",
+  "tools/atlas/provenance/donors/zed/license-map.json",
   ".atlas/census/donors/zed.md"
 ]
 
@@ -786,7 +786,7 @@ git_tree_sha = "7973821daa75236c9247c12881c39053a3a7cd47"
 default_branch = "dev"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/zstd/COPYING", ".atlas/licenses/donors/zstd/LICENSE"]
+license = ["tools/atlas/licenses/donors/zstd/COPYING", "tools/atlas/licenses/donors/zstd/LICENSE"]
 technology_domains = ["compression", "binary_payloads", "compiler_artifact_compression"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -794,13 +794,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G87: neither an Atlas-native nor a vetted external codec now -- no .atlas container is committed or transmitted (the census container is a gitignored 3.4 MB local cache), so the measured 5.8x saving (level 3; gzip -9 is equal) serves no consumer. Because identity is over decoded content, only a decoder is ever a trust surface; the contract now pins a bounded ZSTD section profile (one single-segment frame, Frame_Content_Size = decoded_length, no dictionary) that any future implementation must satisfy"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/23-zstd.json); re-materialize the pinned commit if a published container (sealing / FAT mode, exit criterion E) makes size a measured need"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/23-zstd.json); re-materialize the pinned commit if a published container (sealing / FAT mode, exit criterion E) makes size a measured need"
 cheapest_falsification = "performed G87: per-section compression of the real census container (a scratch build of the donor as measurement oracle only) and frame-header inspection of file vs streaming output"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "none needed: codec 0 (NONE) is the only codec the writer emits and the reader accepts; the ZSTD section profile is pinned in ATLAS-BINARY-WIRE-FORMAT.md"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/23-zstd.json", ".atlas/provenance/donors/zstd.json", ".atlas/census/donors/zstd.md"]
+evidence = ["tools/atlas/evidence/campaign/23-zstd.json", "tools/atlas/provenance/donors/zstd.json", ".atlas/census/donors/zstd.md"]
 
 [[donor]]
 id = "blake3"
@@ -812,7 +812,7 @@ git_tree_sha = "9f05f8d64c9c2d64965f60d4f72a40852de4e072"
 default_branch = "master"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/blake3/LICENSE_A2", ".atlas/licenses/donors/blake3/LICENSE_A2LLVM", ".atlas/licenses/donors/blake3/LICENSE_CC0"]
+license = ["tools/atlas/licenses/donors/blake3/LICENSE_A2", "tools/atlas/licenses/donors/blake3/LICENSE_A2LLVM", "tools/atlas/licenses/donors/blake3/LICENSE_CC0"]
 technology_domains = ["hashing", "content_addressing", "integrity"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -829,7 +829,7 @@ extinction_scope = "physical source checkout only (.atlas/temporary/donors/blake
 extinction_verified_by = "with the checkout absent: cargo test --workspace, cargo fmt --check, cargo clippy -D warnings, docs audit, verify-donor-quarantine.sh, donor_corpus_integrity (EXTINCT-implies-absent guard), atlas-cli systemize -- all re-run and passing; systemize reproduced byte-identical content digests for every inventoried artifact before and after deletion"
 native_replacement = "core::identity::blake3 unkeyed hash; ArtifactRecord.content_digest"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/blake3.json", ".atlas/census/donors/blake3.md", ".atlas/genome/technology/blake3-content-addressing.md", ".atlas/census/discoveries/r5-content-digest-change-identity.md", ".atlas/decisions/0005-native-blake3-content-digest.md"]
+evidence = ["tools/atlas/provenance/donors/blake3.json", ".atlas/census/donors/blake3.md", ".atlas/genome/technology/blake3-content-addressing.md", ".atlas/census/discoveries/r5-content-digest-change-identity.md", ".atlas/decisions/0005-native-blake3-content-digest.md"]
 
 [[donor]]
 id = "rust"
@@ -841,7 +841,7 @@ git_tree_sha = "42480d7fe225a464090d5f55839c4b49bdd4963c"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/rust/COPYRIGHT", ".atlas/licenses/donors/rust/LICENSE-APACHE", ".atlas/licenses/donors/rust/license-metadata.json", ".atlas/licenses/donors/rust/LICENSE-MIT"]
+license = ["tools/atlas/licenses/donors/rust/COPYRIGHT", "tools/atlas/licenses/donors/rust/LICENSE-APACHE", "tools/atlas/licenses/donors/rust/license-metadata.json", "tools/atlas/licenses/donors/rust/LICENSE-MIT"]
 technology_domains = ["compiler", "borrow_checker", "codegen", "standard_toolchain"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -852,7 +852,7 @@ native_replacement = "compiler roadmap rust parity oracle and AtlasX bootstrap r
 runtime_dependency_status = "EXTERNAL_BOUNDARY_ORACLE"
 blocking_question = "resolved G73: Atlas resolves 0 of 12,671 call sites; the pinned toolchain rust-analyzer resolves ~89% (SCIP); compiler-grade resolution is an oracle boundary, integrated in G74"
 implementation_status = "EXTERNAL_BOUNDARY_ORACLE"
-evidence = [".atlas/evidence/campaign/14-rust.json", ".atlas/provenance/donors/rust.json", ".atlas/census/donors/rust.md"]
+evidence = ["tools/atlas/evidence/campaign/14-rust.json", "tools/atlas/provenance/donors/rust.json", ".atlas/census/donors/rust.md"]
 
 [[donor]]
 id = "flatbuffers"
@@ -864,7 +864,7 @@ git_tree_sha = "0b3c731daf52a90658ab86e4912075ea4b7da735"
 default_branch = "master"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/flatbuffers/LICENSE"]
+license = ["tools/atlas/licenses/donors/flatbuffers/LICENSE"]
 technology_domains = ["schema", "serialization", "zero_copy_binary_format", "rust_native_reader_writer"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -872,14 +872,14 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "ABSORBED"
 blocking_question = "resolved G86: vtables add nothing over the contract's tag-length-value framing; the conformance checker and append-only discipline were the real gap (G68 identities made any schema change orphan every container) and are absorbed natively (ADR 0035)"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/22-flatbuffers.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/22-flatbuffers.json)"
 cheapest_falsification = "performed G86: clause-by-clause comparison against the wire contract and the G68 reader; the one surviving item absorbed and mutation-tested"
 next_action = "none: TERMINAL ABSORBED (schema-evolution-conformance); vtables, flexbuffers, reflection, codegen REFERENCE_ONLY; source physically deleted"
 implementation_status = "ABSORBED_NATIVE"
 absorbed_mechanisms = ["schema-evolution-conformance"]
 native_replacement = "atlas binary schema/layout lessons and deterministic interchange boundaries"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/22-flatbuffers.json", ".atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md", ".atlas/genome/technology/flatbuffers-vtable-schema-evolution.md"]
+evidence = ["tools/atlas/evidence/campaign/22-flatbuffers.json", "tools/atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md", ".atlas/genome/technology/flatbuffers-vtable-schema-evolution.md"]
 
 [[donor]]
 id = "llvm-project"
@@ -891,7 +891,7 @@ git_tree_sha = "7989848d07457d796890b09d4c7b0f34219e7dba"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/llvm-project/LICENSE.TXT"]
+license = ["tools/atlas/licenses/donors/llvm-project/LICENSE.TXT"]
 technology_domains = ["compiler_backend", "ir", "optimizer", "codegen", "debug_info"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -899,13 +899,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "EXTERNAL_BOUNDARY"
 blocking_question = "resolved G96: both recorded roles are external boundaries a source tree does not serve. As a native backend, LLVM consumes LIR through a declared adapter (COMPILER-IR-PIPELINE.md#external-native-backends: accepted IR version, semantics, targets, ABI, unsupported operations, verification) -- and Atlas has no LIR or codegen yet. As a differential codegen oracle it is an installed toolchain, exactly as rust-analyzer SCIP is the CALL/TYPE oracle today: the environment carries clang/llc/opt/llvm-config 18.1.3 and rustc's LLVM 20.1.8. No LLVM mechanism is absorbed; its algorithms (SelectionDAG/GlobalISel, register allocation, MC layer) stay REFERENCE_ONLY until an Atlas LIR exists"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/32-llvm-project.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/32-llvm-project.json)"
 cheapest_falsification = "performed G96: COMPILER-IR-PIPELINE.md's backend clause read, core/src checked for LIR/codegen (none), the installed LLVM toolchains located"
 next_action = "none: TERMINAL EXTERNAL_BOUNDARY (backend and oracle as installed toolchains) + REFERENCE_ONLY (algorithms); source physically deleted (the mlir slice went at G89)"
 implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "external native backend roadmap and differential codegen oracle"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/32-llvm-project.json", ".atlas/provenance/donors/llvm-project.json", ".atlas/census/donors/llvm-project.md"]
+evidence = ["tools/atlas/evidence/campaign/32-llvm-project.json", "tools/atlas/provenance/donors/llvm-project.json", ".atlas/census/donors/llvm-project.md"]
 
 [[donor]]
 id = "wasmtime"
@@ -917,7 +917,7 @@ git_tree_sha = "81feb43a4f161837256cd4b23f4c05b9b7ff2608"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/wasmtime/LICENSE"]
+license = ["tools/atlas/licenses/donors/wasmtime/LICENSE"]
 technology_domains = ["wasm_runtime", "sandboxing", "cranelift", "component_model"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -925,13 +925,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "EXTERNAL_BOUNDARY"
 blocking_question = "resolved G100: both recorded roles are external boundaries with no consumer yet. Cranelift is a native backend that consumes LIR through COMPILER-IR-PIPELINE.md's declared adapter, and Atlas has no LIR (as with llvm-project, G96). The Wasm/WASI capability sandbox is one candidate SandboxBackend (AGENT-HOST-EMBEDDED-RUNTIME.md), and no SandboxBackend code exists; Atlas executes no candidate job today. Either would be a vetted crate dependency (cranelift-*, wasmtime) when a consumer appears, never absorbed source. Its Cargo-census contributions (a mixed root package + workspace manifest, dotted [dev-dependencies.X] headers) are locked by synthetic fixtures, and the wasmtime-specific real-donor test now follows the corpus ledger"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/36-wasmtime.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/36-wasmtime.json)"
 cheapest_falsification = "performed G100: LIR/codegen and SandboxBackend code searched (none); Cargo-census fixtures confirmed; the real-donor tests run with the corpus record before extinction"
 next_action = "none: TERMINAL EXTERNAL_BOUNDARY (Cranelift backend, Wasm sandbox backend) + REFERENCE_ONLY (engine internals); source physically deleted"
 implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "runtime wasm backend/sandbox and Cranelift integration reference"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/36-wasmtime.json", ".atlas/provenance/donors/wasmtime.json", ".atlas/census/donors/wasmtime.md"]
+evidence = ["tools/atlas/evidence/campaign/36-wasmtime.json", "tools/atlas/provenance/donors/wasmtime.json", ".atlas/census/donors/wasmtime.md"]
 
 [[donor]]
 id = "wasm-tools"
@@ -943,7 +943,7 @@ git_tree_sha = "0f5620ec63d2dbe9de8d67714509867f7201af99"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/wasm-tools/LICENSE-APACHE", ".atlas/licenses/donors/wasm-tools/LICENSE-Apache-2.0_WITH_LLVM-exception", ".atlas/licenses/donors/wasm-tools/LICENSE-MIT"]
+license = ["tools/atlas/licenses/donors/wasm-tools/LICENSE-APACHE", "tools/atlas/licenses/donors/wasm-tools/LICENSE-Apache-2.0_WITH_LLVM-exception", "tools/atlas/licenses/donors/wasm-tools/LICENSE-MIT"]
 technology_domains = ["wasm", "component_model", "binary_tools", "validation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -951,13 +951,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G99: no consumer -- Atlas has no Wasm artifact, no Wasm code path and no Wasm dependency (no .wasm/.wat/.wit file, no wasm crate), so wasmparser validation and the component tooling serve nothing yet; a future Wasm exchange path would take wasmparser as a vetted dependency or re-derive validation natively, decided then. Its one contribution to Atlas -- the real-world TOML literal-string workspace.members case behind the Cargo census fix -- is locked by the synthetic fixture toml_literal_string_workspace_members_are_read, so no coverage is lost"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/35-wasm-tools.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/35-wasm-tools.json)"
 cheapest_falsification = "performed G99: Wasm usage searched across code, manifests and tracked files; the DC1 real-donor Cargo tests re-based to the corpus ledger and an unrecorded absence shown to fail them"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "adapter/exchange wasm encoding validation and component-model tooling"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/35-wasm-tools.json", ".atlas/provenance/donors/wasm-tools.json", ".atlas/census/donors/wasm-tools.md"]
+evidence = ["tools/atlas/evidence/campaign/35-wasm-tools.json", "tools/atlas/provenance/donors/wasm-tools.json", ".atlas/census/donors/wasm-tools.md"]
 
 [[donor]]
 id = "object"
@@ -969,7 +969,7 @@ git_tree_sha = "bbdb9df7598d287d321de6f6db69056331834a65"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/object/LICENSE-APACHE", ".atlas/licenses/donors/object/LICENSE-MIT"]
+license = ["tools/atlas/licenses/donors/object/LICENSE-APACHE", "tools/atlas/licenses/donors/object/LICENSE-MIT"]
 technology_domains = ["object_files", "elf", "macho", "coff", "debug"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -977,13 +977,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G101: no consumer -- object emission and binary inspection belong to COMPILER-IR-PIPELINE.md's Machine IR -> object stage, and no compiler code exists; no Atlas path reads or writes ELF/Mach-O/COFF. When that stage is scheduled, object is a registry crate to evaluate as a dependency, or a design to re-derive, not a source checkout to hold. Its Cargo-census contribution (glob workspace.members) is locked by synthetic fixtures, and its dedicated real-donor test follows the corpus ledger"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/37-object.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/37-object.json)"
 cheapest_falsification = "performed G101: object-file use searched across Atlas code and manifests (none); glob-member fixtures confirmed; the real-donor tests run from the corpus record"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "compiler object emission and binary inspection primitives"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/37-object.json", ".atlas/provenance/donors/object.json", ".atlas/census/donors/object.md"]
+evidence = ["tools/atlas/evidence/campaign/37-object.json", "tools/atlas/provenance/donors/object.json", ".atlas/census/donors/object.md"]
 
 [[donor]]
 id = "regalloc2"
@@ -995,7 +995,7 @@ git_tree_sha = "1c6edf753513b879f27b61515db153c46ac23844"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/regalloc2/LICENSE"]
+license = ["tools/atlas/licenses/donors/regalloc2/LICENSE"]
 technology_domains = ["register_allocation", "compiler_backend", "machine_ir"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1003,13 +1003,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G102: no consumer -- register allocation and spilling are Machine IR passes (COMPILER-IR-PIPELINE.md), and no LIR or Machine IR code exists; a native backend adapter (Cranelift or LLVM, both EXTERNAL_BOUNDARY: G96, G100) allocates registers itself. A native Machine IR stage would evaluate the regalloc2 crate as a dependency or re-derive its SSA-based allocator then; holding the checkout serves neither"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/38-regalloc2.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/38-regalloc2.json)"
 cheapest_falsification = "performed G102: Machine IR / register-allocation code searched (none); no Atlas test or build references the checkout"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "native backend register allocation and spill strategy reference"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/38-regalloc2.json", ".atlas/provenance/donors/regalloc2.json", ".atlas/census/donors/regalloc2.md"]
+evidence = ["tools/atlas/evidence/campaign/38-regalloc2.json", "tools/atlas/provenance/donors/regalloc2.json", ".atlas/census/donors/regalloc2.md"]
 
 [[donor]]
 id = "mold"
@@ -1021,7 +1021,7 @@ git_tree_sha = "f2f8a0e22a34573c503540577b759831f0b6de96"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/mold/LICENSE"]
+license = ["tools/atlas/licenses/donors/mold/LICENSE"]
 technology_domains = ["linker", "elf", "parallel_linking", "binary_layout"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1029,13 +1029,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "EXTERNAL_BOUNDARY"
 blocking_question = "resolved G103: own-vs-integrate is decided as integrate. No Machine IR -> object/link stage exists. Atlas links only through its rustc/cargo bootstrap boundary, and installed linkers serve that boundary (GNU ld 2.42, LLD 18.1.3 on this host). COMPILER-IR-PIPELINE.md lists linkers among blueprint-revisable choices, so owning one needs BLUEPRINT-EVOLUTION evidence -- a measured link-time or layout-control cost -- that no workload produces. The checkout (upstream's Rust rewrite at the pin) is also a DC1 real-donor Cargo test input, and its glob-member case is locked by synthetic fixtures"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/39-mold.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/39-mold.json)"
 cheapest_falsification = "performed G103: link/object code searched (none), installed linkers located, the pipeline's blueprint-revision clause read; the DC1 tests run from the corpus record after extinction"
 next_action = "none: TERMINAL EXTERNAL_BOUNDARY (installed linker) + REFERENCE_ONLY (parallel layout, post-link optimization); source physically deleted"
 implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "compiler linker integration and post-link layout reference"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/39-mold.json", ".atlas/provenance/donors/mold.json", ".atlas/census/donors/mold.md"]
+evidence = ["tools/atlas/evidence/campaign/39-mold.json", "tools/atlas/provenance/donors/mold.json", ".atlas/census/donors/mold.md"]
 
 [[donor]]
 id = "arrow"
@@ -1047,7 +1047,7 @@ git_tree_sha = "8dcd79b2f5b2f745642541fdbe8177beeb1daf0b"
 default_branch = "main"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
-license = [".atlas/licenses/donors/arrow/LICENSE.txt", ".atlas/licenses/donors/arrow/NOTICE.txt"]
+license = ["tools/atlas/licenses/donors/arrow/LICENSE.txt", "tools/atlas/licenses/donors/arrow/NOTICE.txt"]
 technology_domains = ["columnar_memory", "ipc", "binary_layout", "analytics"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1055,13 +1055,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G88: no family forces a columnar section. The container holds 15,155 census facts (107.5 bytes each, 80% TLV framing); columnar grouping shrinks that section 5.0x raw but only 1.4x after zlib/xz, leaves the 1.7 MB string table (half the container) untouched, and the container has no consumer (gitignored local cache). Arrow adds nothing beyond the generic columnar idea: its dictionary encoding is the existing string table, and its IPC/flatbuffers framing duplicates the wire contract"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/24-arrow.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/24-arrow.json)"
 cheapest_falsification = "performed G88: per-family volumes of the real census and a row vs columnar layout of the real census-facts and obligations sections, raw and compressed"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "none needed: row records plus the string table; ATLAS-SEMANTIC-COMPACTION.md now records codec compression as the first size lever"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/24-arrow.json", ".atlas/provenance/donors/arrow.json", ".atlas/census/donors/arrow.md"]
+evidence = ["tools/atlas/evidence/campaign/24-arrow.json", "tools/atlas/provenance/donors/arrow.json", ".atlas/census/donors/arrow.md"]
 
 [[donor]]
 id = "iris"
@@ -1072,7 +1072,7 @@ commit_sha = "743491588edf21ace27a1c331f6ff8e3b75d492d"
 git_tree_sha = "b07f3abdb77b72fb4d9bc8735530e6ee0fde2dc8"
 default_branch = "main"
 retrieved_at = "2026-09-22T14:05:07.919309095Z"
-license = [".atlas/licenses/donors/iris/LICENSE"]
+license = ["tools/atlas/licenses/donors/iris/LICENSE"]
 technology_domains = ["semantic_graph", "content_addressing", "compiler", "self_evolution", "formal_verification", "bytecode_vm"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1080,14 +1080,14 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
 decision_status = "ABSORBED"
 blocking_question = "resolved G91: the census's first recensus requirement fired (Atlas's EFFECT dimension is real since G77); IRIS's effect tags separate ambient inputs (EnvGet, ClockNs, Timestamp) from I/O, which is exactly the gap ADR 0032 recorded -- environment and time reads had no EffectCategory, so 59 resolved std calls stayed unobserved"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/27-iris.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/27-iris.json)"
 cheapest_falsification = "performed G91: every resolved std::env / std::time path call of the workspace enumerated (59: env 50, time 9), shown unobservable without mislabeling, and confirmed against rust-analyzer SCIP at the same anchors (59/59)"
 next_action = "none: TERMINAL ABSORBED (ambient-input effect categories); every other mechanism REFERENCE_ONLY; source physically deleted"
 implementation_status = "ABSORBED"
 absorbed_mechanisms = ["ambient-input-effect-categories"]
 native_replacement = "atlas_core::EffectCategory::{EnvironmentRead, ClockRead} and the declared std-path effect table (core/src/semantic/effect.rs); no IRIS code copied (AGPL-3.0-or-later)"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/27-iris.json", ".atlas/decisions/0036-ambient-input-effects.md", ".atlas/provenance/donors/iris.json", ".atlas/census/donors/iris.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = ["tools/atlas/evidence/campaign/27-iris.json", ".atlas/decisions/0036-ambient-input-effects.md", "tools/atlas/provenance/donors/iris.json", ".atlas/census/donors/iris.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "sigil-lang"
@@ -1098,7 +1098,7 @@ commit_sha = "9c7de956d926fba2f9d5c0598b35c57fb6399f7f"
 git_tree_sha = "39e4e7de6a449648ba66521e4a082deb7aa13220"
 default_branch = "main"
 retrieved_at = "2026-09-22T14:02:00Z"
-license = [".atlas/licenses/donors/sigil-lang/LICENSE"]
+license = ["tools/atlas/licenses/donors/sigil-lang/LICENSE"]
 technology_domains = ["graph_native_language", "content_addressing", "compiler", "contract_verification"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1106,13 +1106,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G92: the census left no open item (blueprint revision candidates: none) and neither recensus trigger has fired -- Sigil V2 has not landed at the pin, and Atlas has no materialized AtlasX/HIR stage to compare against. The one capability Atlas lacks (per-behavior structural guarantee checks: pure/no_alloc/writes_output) belongs to the unimplemented MIR contract, whose barrier set is wider than Sigil's three guarantees; the 32-bit truncated SHA-256 contract hash is REJECTED as a pattern"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/28-sigil-lang.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/28-sigil-lang.json)"
 cheapest_falsification = "performed G92: both recorded recensus triggers checked (no AtlasX/HIR module in core/src; the donor pin is fixed); the DC1 real-donor Cargo test does not use this checkout"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "none selected -- REFERENCE_ONLY across every censused mechanism, see lane synthesis"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/28-sigil-lang.json", ".atlas/provenance/donors/sigil-lang.json", ".atlas/census/donors/sigil-lang.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = ["tools/atlas/evidence/campaign/28-sigil-lang.json", "tools/atlas/provenance/donors/sigil-lang.json", ".atlas/census/donors/sigil-lang.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "duumbi"
@@ -1123,7 +1123,7 @@ commit_sha = "ab4c8776f795052d3669774a7ff12bdd3231fd02"
 git_tree_sha = "6f6b259c909619657053af8cdfbf4788b57ed9cf"
 default_branch = "main"
 retrieved_at = "2026-09-22T14:04:48.531781213Z"
-license = [".atlas/licenses/donors/duumbi/LICENSE"]
+license = ["tools/atlas/licenses/donors/duumbi/LICENSE"]
 technology_domains = ["graph_native_language", "cranelift_lowering", "ai_graph_mutation", "jsonld_surface_representation", "intent_driven_development", "mcp_graph_tools"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1131,13 +1131,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G93: the census left no open item (blueprint revision candidates: none). JSON-LD is REJECTED (no @context expansion exists; it would only cost Atlas its binary content-addressed representation). The one design precedent, mutate -> revalidate -> write only if valid, is already the ACP admission pipeline (ASIR-CONSTRUCTION-MODEL.md: every transaction is verified as an isolated candidate before it applies). Cranelift evidence belongs to the external backend, not to this donor"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/29-duumbi.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/29-duumbi.json)"
 cheapest_falsification = "performed G93: the recorded recensus requirements checked (no Atlas AI-mutation surface is implemented; ACP already requires validate-before-apply); extinction trial with the checkout moved aside -- the DC1 real-donor Cargo tests still pass with 7 of 15 donors present, exactly the half threshold"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "none selected -- JSON-LD surface explicitly REJECTed, see lane synthesis"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/29-duumbi.json", ".atlas/provenance/donors/duumbi.json", ".atlas/census/donors/duumbi.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = ["tools/atlas/evidence/campaign/29-duumbi.json", "tools/atlas/provenance/donors/duumbi.json", ".atlas/census/donors/duumbi.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "composer"
@@ -1148,7 +1148,7 @@ commit_sha = "c46485096c38dc2c9fef9db4ae60caa1905ca1a3"
 git_tree_sha = "f3a1d7e468bf5dd8dcb4935587ee6b6b0c1e9009"
 default_branch = "main"
 retrieved_at = "2026-09-22T14:08:05.000000Z"
-license = [".atlas/licenses/donors/composer/LICENSE", ".atlas/licenses/donors/composer/Commercial.md", ".atlas/licenses/donors/composer/PATENTS.md"]
+license = ["tools/atlas/licenses/donors/composer/LICENSE", "tools/atlas/licenses/donors/composer/Commercial.md", "tools/atlas/licenses/donors/composer/PATENTS.md"]
 technology_domains = ["program_semantic_graph", "nanopass_compiler", "mlir_lowering", "coeffect_analysis", "escape_analysis", "semantic_preservation_verification"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1156,13 +1156,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G94: (2) PHG hyperedges falsified by execution -- the real system graph already encodes N-ary claims pairwise through a reified join node: all 17,421 CallSite nodes reconstruct their claim (one caller, callees, position-keyed arguments, at most one result) with no ambiguity, 3,244 of them joining more than two identities (max arity 9), so no joint-claim failure mode remains; (1) the thin-middle-end doctrine (zero semantic dialects below the witness boundary, a named checkable round-trip law) constrains lowering code that does not exist, and COMPILER-IR-PIPELINE.md's semantic-equivalence section already anticipates translation validation -- a design reference, not a mechanism to absorb"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/30-composer.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/30-composer.json)"
 cheapest_falsification = "performed G94: the recorded join-node encoding checked on the real system graph (atlas-systemizer graph: 85,696 nodes, 113,217 edges)"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "compiler/hir, compiler/mir, compiler/lir reference once Atlas's own IR pipeline is implemented"
 runtime_dependency_status = "NOT_APPLICABLE"
-evidence = [".atlas/evidence/campaign/30-composer.json", ".atlas/provenance/donors/composer.json", ".atlas/census/donors/composer.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = ["tools/atlas/evidence/campaign/30-composer.json", "tools/atlas/provenance/donors/composer.json", ".atlas/census/donors/composer.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "clef"
@@ -1173,7 +1173,7 @@ commit_sha = "e94fa905f7f13c2b8216b355e9d84b17dceef5c8"
 git_tree_sha = "872e641465cc3b1df8dcb21901d0a7315e89f0be"
 default_branch = "main"
 retrieved_at = "2026-09-22T14:05:13Z"
-license = [".atlas/licenses/donors/clef/LICENSE"]
+license = ["tools/atlas/licenses/donors/clef/LICENSE"]
 technology_domains = ["compiler_frontend", "type_resolution", "language_service"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1183,11 +1183,11 @@ decision_status = "REFERENCE_ONLY"
 native_replacement = "reference architecture only -- not a bounded path to real Atlas CALL resolution, see lane synthesis"
 runtime_dependency_status = "REFERENCE_ONLY"
 blocking_question = "resolved G78 by measurement: no F# in Atlas's census scope, CCS is not standalone (sibling Composer/BAREWire/Fidelity.Data), and F# member lookup is not Rust's method probe; the residual CALL gap (method calls) has a bounded native slice (`self.m()` with matching receiver forms, 595 calls) planned as G79"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/16-clef.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/16-clef.json)"
 cheapest_falsification = "performed G78: F# file count (0), buildability from the census record, SCIP join of method-call receivers"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/16-clef.json", ".atlas/provenance/donors/clef.json", ".atlas/census/donors/clef.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = ["tools/atlas/evidence/campaign/16-clef.json", "tools/atlas/provenance/donors/clef.json", ".atlas/census/donors/clef.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "mlir"
@@ -1197,7 +1197,7 @@ resolved_url = "https://github.com/llvm/llvm-project.git"
 commit_sha = "4790b21292d10b2cab1037ebef100e7f595e4209"
 default_branch = "main"
 retrieved_at = "2026-09-22T15:50:00Z"
-license = [".atlas/licenses/donors/mlir/LICENSE.TXT"]
+license = ["tools/atlas/licenses/donors/mlir/LICENSE.TXT"]
 technology_domains = ["ir_design", "dialect_definition", "bytecode_serialization", "pattern_rewriting", "compiler_pass_infrastructure", "verifier_infrastructure"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1205,13 +1205,13 @@ materialization_mode = "SPARSE_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G89: the external-model TypeId registry exists because a C++ class cannot gain an interface after its definition and dialects load at runtime. Atlas has neither constraint: a Rust trait impl in the capability-owning crate attaches behavior to a type it does not own, statically; Atlas loads no code at runtime (no libloading/dlopen in Cargo.lock); and ACP already models capability attachment as an explicit data operation (attach_capability) over dialect-qualified opcode names mapped onto the closed HIR vocabulary. The per-concept ADAPT dispositions are design references for the unimplemented (TARGET) ASIR, held by this census, its genome record and ASIR-CONSTRUCTION-MODEL.md"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/25-mlir.json); ASIR implementation re-reads the pinned commit if the census record is insufficient"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/25-mlir.json); ASIR implementation re-reads the pinned commit if the census record is insufficient"
 cheapest_falsification = "performed G89: the registry's two preconditions (post-definition interface attachment impossible in the host language; runtime-loaded dialects) checked against Rust, Cargo.lock and the ACP contract -- neither holds"
 next_action = "none: TERMINAL REFERENCE_ONLY; the mlir slice physically deleted (the llvm-project slice, #32, is a separate checkout and stays until its own cycle)"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/25-mlir.json", ".atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md", ".atlas/genome/technology/mlir-external-model-interface-registration.md"]
+evidence = ["tools/atlas/evidence/campaign/25-mlir.json", "tools/atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md", ".atlas/genome/technology/mlir-external-model-interface-registration.md"]
 
 [[donor]]
 id = "xdsl"
@@ -1221,7 +1221,7 @@ resolved_url = "https://github.com/xdslproject/xdsl.git"
 commit_sha = "00703508e37a2b4ef06687b3bbbe4cd78c41c740"
 default_branch = "main"
 retrieved_at = "2026-09-22T15:50:00Z"
-license = [".atlas/licenses/donors/xdsl/LICENSE"]
+license = ["tools/atlas/licenses/donors/xdsl/LICENSE"]
 technology_domains = ["ir_design", "dialect_definition", "pattern_rewriting", "declarative_operation_definition", "parser_printer_design"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1229,13 +1229,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G90: (1) the dispatch default needs no registry -- G89 showed neither registry precondition holds in Rust/ACP, so the merged trait model is plain Rust traits; (2) the verification fork is already settled by ASIR-CONSTRUCTION-MODEL.md (CONTRACT): every ACP transaction is verified as an isolated post-transaction candidate (schema, type, semantic, architectural, security, obligation stages) before it applies, and again at seal -- value-level checks run eagerly at the schema stage (xDSL), structural and semantic checks at the transaction checkpoint (MLIR); intermediate states inside a transaction are never observable, so neither pure form is needed"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/26-xdsl.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/26-xdsl.json)"
 cheapest_falsification = "performed G90: both recorded forks checked against the G89 finding and the ASIR admission pipeline"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/26-xdsl.json", ".atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md", ".atlas/genome/technology/xdsl-merged-trait-interface-dispatch.md"]
+evidence = ["tools/atlas/evidence/campaign/26-xdsl.json", "tools/atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md", ".atlas/genome/technology/xdsl-merged-trait-interface-dispatch.md"]
 
 [[donor]]
 id = "egglog"
@@ -1245,7 +1245,7 @@ resolved_url = "https://github.com/egraphs-good/egglog.git"
 commit_sha = "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
 default_branch = "main"
 retrieved_at = "2026-09-22T15:51:00Z"
-license = [".atlas/licenses/donors/egglog/LICENSE"]
+license = ["tools/atlas/licenses/donors/egglog/LICENSE"]
 technology_domains = ["equality_saturation", "e_graph_equivalence_classes", "datalog_relational_query", "cost_based_extraction", "union_find", "worst_case_optimal_join"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1253,13 +1253,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G82 by measurement: 0 normalization conflicts; the 49 multi-spelling type classes are all equal by name resolution, so bottom-up canonicalization gives congruence without an e-graph; no DecisionProposal workload exists -- REFERENCE_ONLY, re-admit from the pinned commit if a decision layer needs alternative ranking"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/19-egglog.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/19-egglog.json)"
 cheapest_falsification = "performed G82: certificate conflict counts and TYPE spelling equivalence classes of the self-census"
 next_action = "none: TERMINAL REFERENCE_ONLY; P0 input: canonical type identity via resolution (G83); source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
-evidence = [".atlas/evidence/campaign/19-egglog.json", ".atlas/provenance/donors/egglog.json", ".atlas/census/donors/egglog.md"]
+evidence = ["tools/atlas/evidence/campaign/19-egglog.json", "tools/atlas/provenance/donors/egglog.json", ".atlas/census/donors/egglog.md"]
 
 [[donor]]
 id = "wasm-component-model"
@@ -1269,7 +1269,7 @@ resolved_url = "https://github.com/WebAssembly/component-model.git"
 commit_sha = "5b724da8c634c4f2b2d2b3f6a4e9e13b4eb01596"
 default_branch = "main"
 retrieved_at = "2026-09-22T15:51:30Z"
-license = [".atlas/licenses/donors/wasm-component-model/LICENSE", ".atlas/licenses/donors/wasm-component-model/LICENSE-APACHE"]
+license = ["tools/atlas/licenses/donors/wasm-component-model/LICENSE", "tools/atlas/licenses/donors/wasm-component-model/LICENSE-APACHE"]
 technology_domains = ["interface_definition_language", "component_boundary", "canonical_abi", "type_constructors", "world_and_interface_composition"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1277,13 +1277,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G98: the owned-vs-borrowed question is an Atlas construction-design decision, not a donor-source question -- no capability boundary exists to test it (core/src/capability holds work-request contracts, not resource handles; atlas.interface.*/atlas.cap.* construction is TARGET). It is recorded in ASIR-CONSTRUCTION-MODEL.md with its falsification (model the first construction with and without the split; a Rust-derived interface already carries move-vs-borrow in its OWNERSHIP facts) and the census's ADAPT shapes as target vocabulary; the WIT specification stays pinned"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/34-wasm-component-model.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/34-wasm-component-model.json)"
 cheapest_falsification = "carried by ASIR-CONSTRUCTION-MODEL.md to the first atlas.interface.*/atlas.cap.* construction (G98)"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
-evidence = [".atlas/evidence/campaign/34-wasm-component-model.json", ".atlas/provenance/donors/wasm-component-model.json", ".atlas/census/donors/wasm-component-model.md"]
+evidence = ["tools/atlas/evidence/campaign/34-wasm-component-model.json", "tools/atlas/provenance/donors/wasm-component-model.json", ".atlas/census/donors/wasm-component-model.md"]
 
 [[donor]]
 id = "wasm-spec"
@@ -1293,7 +1293,7 @@ resolved_url = "https://github.com/WebAssembly/spec.git"
 commit_sha = "ba9fd9f5c23e569201265d5bda6fb8dde18ad8c0"
 default_branch = "main"
 retrieved_at = "2026-09-22T15:51:45Z"
-license = [".atlas/licenses/donors/wasm-spec/LICENSE", ".atlas/licenses/donors/wasm-spec/LICENSE-document", ".atlas/licenses/donors/wasm-spec/LICENSE-interpreter", ".atlas/licenses/donors/wasm-spec/LICENSE-papers", ".atlas/licenses/donors/wasm-spec/LICENSE-test"]
+license = ["tools/atlas/licenses/donors/wasm-spec/LICENSE", "tools/atlas/licenses/donors/wasm-spec/LICENSE-document", "tools/atlas/licenses/donors/wasm-spec/LICENSE-interpreter", "tools/atlas/licenses/donors/wasm-spec/LICENSE-papers", "tools/atlas/licenses/donors/wasm-spec/LICENSE-test"]
 technology_domains = ["instruction_validation_algorithm", "stack_machine_type_checking", "sectioned_binary_format", "semantic_binary_separation"]
 ingestion_status = "EXTINCT"
 storage_state = "SOURCE_DELETED"
@@ -1301,13 +1301,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G97: both ADAPT items are settled in Atlas. (1) Canonicalize types once for cheap equality is native since G83 (bottom-up canonical type identity through name resolution). (2) The sectioned envelope with skippable unknown sections: the wire contract allowed 'explicitly skippable' sections but defined no section flag. The reader already refused non-zero section flags and unknown section types, and no cross-version reader exists (the container is a regenerated local cache, G87). The contract now pins section_flags = 0 (every section required), and the reader-steps test enforces both refusals. Everything else stays STUDY/REFERENCE_ONLY (three-document split, single-pass validation, bottom type) or REJECTED (opcodes and their numbering)"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/33-wasm-spec.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/33-wasm-spec.json)"
 cheapest_falsification = "performed G97: the two ADAPT dispositions checked against the resolver (G83) and the .atlas reader; two mutants (accept section flags; skip unknown sections) killed by the new assertions"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
-evidence = [".atlas/evidence/campaign/33-wasm-spec.json", ".atlas/provenance/donors/wasm-spec.json", ".atlas/census/donors/wasm-spec.md"]
+evidence = ["tools/atlas/evidence/campaign/33-wasm-spec.json", "tools/atlas/provenance/donors/wasm-spec.json", ".atlas/census/donors/wasm-spec.md"]
 
 [[donor]]
 id = "capnproto"
@@ -1325,13 +1325,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G84 by executing the comparison against the G64/G68 reader: byte-for-byte canonical form, fail-closed framing and bounds are stated and enforced; the one unstated item -- unknown optional fields accepted by the reader under a different root -- became a SEALED-publication clause in ATLAS-BINARY-WIRE-FORMAT.md"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/20-capnproto.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/20-capnproto.json)"
 cheapest_falsification = "performed G84: clause-by-clause comparison executed against the reader, writer and their tests"
 next_action = "none: TERMINAL REFERENCE_ONLY; the SEALED unknown-field clause is enforced when the seal gate exists (exit criterion E); source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
-evidence = [".atlas/evidence/campaign/20-capnproto.json", ".atlas/provenance/donors/capnproto.json", ".atlas/census/donors/capnproto.md", ".atlas/genome/technology/capnproto-canonicalization-and-untrusted-reader-safety.md"]
+evidence = ["tools/atlas/evidence/campaign/20-capnproto.json", "tools/atlas/provenance/donors/capnproto.json", ".atlas/census/donors/capnproto.md", ".atlas/genome/technology/capnproto-canonicalization-and-untrusted-reader-safety.md"]
 
 [[donor]]
 id = "rkyv"
@@ -1349,13 +1349,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G85: (1) the .atlas wire is flat and length-delimited with file-start offsets, so self-relative pointers address nothing; (2) the cache consumer now exists (ADR 0008) and loads its 96 MB JSON encoding in ~0.35 s of a 7.3 s run, so the conditional rkyv dependency exception lapses"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/21-rkyv.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/21-rkyv.json)"
 cheapest_falsification = "performed G85: wire-contract comparison and a release-build load benchmark of the real extraction cache"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/evidence/campaign/21-rkyv.json", ".atlas/provenance/donors/rkyv.json", ".atlas/census/donors/rkyv.md", ".atlas/genome/technology/rkyv-relative-pointer-archiving.md"]
+evidence = ["tools/atlas/evidence/campaign/21-rkyv.json", "tools/atlas/provenance/donors/rkyv.json", ".atlas/census/donors/rkyv.md", ".atlas/genome/technology/rkyv-relative-pointer-archiving.md"]
 
 [[donor]]
 id = "agentir"
@@ -1373,13 +1373,13 @@ materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
 decision_status = "REFERENCE_ONLY"
 blocking_question = "resolved G95: the recorded falsification finds no loss-disclosure consumer. The SemanticFact compatibility projection is lossy but downstream (removing_the_compatibility_fact_projection_would_not_erase_typed_semantic_truth: typed records are never derived from facts, and no consumer treats facts as complete). The .atlas census container is the one real narrowing export -- facts and obligations only, typed records deferred (ADR 0027) -- but it has no consumer (a gitignored local cache, G87/G88) and the certificate reads only its root identity. The trigger stays an external export; the mechanism (typed Exact/Lossy/Partial/Unsupported status computed from a per-field loss list, reusing DiagnosticCode) is held by the genome record, which needs no donor source"
-evidence_needed = "none outstanding (.atlas/evidence/campaign/31-agentir.json)"
+evidence_needed = "none outstanding (tools/atlas/evidence/campaign/31-agentir.json)"
 cheapest_falsification = "performed G95: the compatibility projection's consumers and the .atlas census container's consumers inspected"
 next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted; the first external export of a narrower format applies agentir-lossy-lowering-disclosure.md"
 implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
-evidence = [".atlas/evidence/campaign/31-agentir.json", ".atlas/provenance/donors/agentir.json", ".atlas/census/donors/agentir.md", ".atlas/genome/technology/agentir-lossy-lowering-disclosure.md"]
+evidence = ["tools/atlas/evidence/campaign/31-agentir.json", "tools/atlas/provenance/donors/agentir.json", ".atlas/census/donors/agentir.md", ".atlas/genome/technology/agentir-lossy-lowering-disclosure.md"]
 
 [[donor]]
 id = "ladybird"
@@ -1389,7 +1389,7 @@ resolved_url = "https://github.com/LadybirdBrowser/ladybird.git"
 commit_sha = "1647fd9789ef06a6200d6a52b9aa5f3366c480b3"
 default_branch = "master"
 retrieved_at = "2026-09-24T16:33:00Z"
-license = [".atlas/licenses/donors/ladybird/LICENSE"]
+license = ["tools/atlas/licenses/donors/ladybird/LICENSE"]
 technology_domains = ["browser_engine", "webdriver_automation", "creator_browser_instrument"]
 ingestion_status = "REMOTE_CENSUSED"
 storage_state = "SOURCE_DELETED"
@@ -1402,4 +1402,4 @@ cheapest_falsification = "run atlas-systemizer observe --differential chromium-p
 blocks_absorption = true
 native_replacement = "adapter::browser::WebDriverInstrument (W3C protocol, already native); engine itself stays an external instrument"
 runtime_dependency_status = "EXTERNAL_BOUNDARY_INSTRUMENT_WHEN_AVAILABLE"
-evidence = [".atlas/provenance/donors/ladybird.json", ".atlas/census/ladybird.md"]
+evidence = ["tools/atlas/provenance/donors/ladybird.json", ".atlas/census/ladybird.md"]

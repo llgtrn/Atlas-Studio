@@ -3,7 +3,7 @@ canonical = true
 established_in = "G116"
 revised_in = "G118"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
-debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 sources = [".atlas/architecture/constitution/NORTH-STAR.md", ".atlas/architecture/CAPABILITY-ARCHITECTURE.md", ".atlas/architecture/INVENTION-PIPELINE.md", ".atlas/roadmap/ROADMAP.md", ".atlas/roadmap/SELF-BUILDING-R4-R8.md"]
 
 # The reference architecture every decision is judged against (G116 retrospective audit). It is NOT

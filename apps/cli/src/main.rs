@@ -1368,7 +1368,7 @@ fn run(args: &[String]) -> Result<(), String> {
                 }
                 "benchmark" => {
                     let cases = value(rest, "--cases")?
-                        .unwrap_or_else(|| ".atlas/evidence/agent/benchmark.json".into());
+                        .unwrap_or_else(|| "tools/atlas/evidence/agent/benchmark.json".into());
                     let cases = runtime::agent::read_benchmark(&cases)
                         .map_err(|e| format!("{cases}: {e}"))?;
                     json(&runtime::agent::run_benchmark(&model, &cases))?

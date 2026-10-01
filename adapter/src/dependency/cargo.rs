@@ -3373,7 +3373,7 @@ version = "0.1.0"
             .parent()
             .expect("adapter/ has a parent directory");
         let corpus =
-            std::fs::read_to_string(repository.join(".atlas/references/donor-corpus.toml"))
+            std::fs::read_to_string(repository.join("tools/atlas/references/donor-corpus.toml"))
                 .expect("donor-corpus.toml");
         let mut donors = Vec::new();
         for name in KNOWN_CARGO_DONORS {

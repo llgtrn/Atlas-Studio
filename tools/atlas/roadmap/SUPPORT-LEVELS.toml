@@ -4,7 +4,7 @@
 
 schema = "atlas.support-claims.v1"
 measured_in = "G155"
-measured_report = ".atlas/evidence/coverage/G155-self-levels.json"
+measured_report = "tools/atlas/evidence/coverage/G155-self-levels.json"
 semantically_supported = ["javascript", "rust"]
 not_claimed = "TypeScript (no TypeScript artifact in Atlas Studio to measure); every non-code artifact class (L0: image, video, audio, document, UI design, CAD/3D, electronics); C, C++, Python, Go, Swift, Zig (no frontend); target profiles and AtlasX (not implemented)"
 

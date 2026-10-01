@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Verifies the invariant in .atlas/contracts/DONOR-WORKBENCH-ISOLATION.md: no path under
-# .atlas/temporary/donors/** is live/discoverable as agent-tooling configuration (a `.claude`,
+# Verifies the invariant of the donor-workbench isolation contract (.atlas/contracts/
+# DONOR-WORKBENCH-ISOLATION.md, now ynventa knowledge): no path under the donor workbench
+# (target/donors/**) is live/discoverable as agent-tooling configuration (a `.claude`,
 # `.codex` or `.cursor` directory; a bare CLAUDE.md/AGENTS.md/.mcp.json file; or a GitHub Copilot
 # ambient-instruction file, copilot-instructions.md or .github/instructions/*.instructions.md).
 # Donor content is census-visible but must never be repository or agent authority.
@@ -8,12 +9,12 @@
 # Exit 0: clean. Exit 1: a live agent-tooling-shaped path was found under donors -- quarantine it
 # (see the contract doc for the exact rename convention) before merging.
 set -euo pipefail
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 
 # Overridable so this script is directly testable against a scratch fixture (see
 # adapter/runtime/src/lib.rs's own donor_quarantine_script_symlink_detection test module) without ever
 # touching this repository's own real donor corpus during a test run.
-donors_root="${1:-.atlas/temporary/donors}"
+donors_root="${1:-target/donors}"
 
 violations=()
 
@@ -54,7 +55,7 @@ while IFS= read -r -d '' path; do
 done < <(find "$donors_root" -path "*/.github/instructions/*.instructions.md" -print0 2>/dev/null)
 
 if [ "${#violations[@]}" -eq 0 ]; then
-  echo "verify-donor-quarantine: clean -- no live agent-tooling-shaped paths under .atlas/temporary/donors/"
+  echo "verify-donor-quarantine: clean -- no live agent-tooling-shaped paths under $donors_root/"
   exit 0
 fi
 
