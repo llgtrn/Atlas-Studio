@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G189",
+ "trigger": "review cadence: DEBT-MULTI_ENGINE, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-DESIGN_GENERATION -- each stale for at least 13 generations since its last advance and its last review (G176) -- fell due at G189",
+ "method": "git log since the G176 commit 64d24e92 over core/src/certificate, core/src/language/adl, core/src/design and adapter/src/semantic; the engines named by the census record totals of G176 and G189",
+ "reviews": [
+  {
+   "debt": "DEBT-MULTI_ENGINE",
+   "verdict": "CONFIRMED",
+   "finding": "the census still runs the same three engines it ran at G176 (the Rust source-semantic extractor, the Rust path resolver and the TypeScript and JavaScript extractor); the resolver work of G177 and G178, the bodies of G181, the hidden declarations of G184 and the JavaScript fixes of G186 and G188 refined single engines and added no second engine to any dimension; CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, RESOURCE, STATE and SYMBOL keep one engine; NA-SECOND-ENGINE stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-ADL_BEYOND_DEPENDENCIES",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/language/adl has no commit since G176: members, dependencies and effect envelopes are lowered and reconciled, symbols, state, resources, concurrency and external packages are not; NA-ADL-STATE-AND-PACKAGES stays next",
+   "correction": {}
+  },
+  {
+   "debt": "DEBT-DESIGN_GENERATION",
+   "verdict": "CONFIRMED",
+   "finding": "core/src/design has no commit since G176: candidate designs over a verified container are compared by measured criteria and handed to selection, but every candidate is authored, none generated from the world model; NA-DESIGN-CANDIDATE-GENERATION stays next",
+   "correction": {}
+  }
+ ]
+}
