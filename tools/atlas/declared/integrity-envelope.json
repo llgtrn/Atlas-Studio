@@ -12,7 +12,7 @@
       "classification": "LOAD_BEARING",
       "rationale": "named by a HARD invariant",
       "evidence_refs": [
-        ".atlas/declared/system.adl:78"
+        "tools/atlas/declared/system.adl:78"
       ]
     },
     {
@@ -20,7 +20,7 @@
       "classification": "LOAD_BEARING",
       "rationale": "named by a HARD invariant",
       "evidence_refs": [
-        ".atlas/declared/census.adl:14"
+        "tools/atlas/declared/census.adl:14"
       ]
     },
     {
@@ -28,7 +28,7 @@
       "classification": "LOAD_BEARING",
       "rationale": "named by a HARD invariant",
       "evidence_refs": [
-        ".atlas/declared/system.adl:72"
+        "tools/atlas/declared/system.adl:72"
       ]
     },
     {
@@ -36,7 +36,7 @@
       "classification": "LOAD_BEARING",
       "rationale": "named by a HARD invariant",
       "evidence_refs": [
-        ".atlas/declared/system.adl:84"
+        "tools/atlas/declared/system.adl:84"
       ]
     },
     {
@@ -44,7 +44,7 @@
       "classification": "STRUCTURAL",
       "rationale": "materialized, named by no HARD invariant",
       "evidence_refs": [
-        ".atlas/declared/system.adl:90"
+        "tools/atlas/declared/system.adl:90"
       ]
     }
   ],
@@ -64,7 +64,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:131"
+        "tools/atlas/declared/system.adl:131"
       ]
     },
     {
@@ -82,7 +82,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:127"
+        "tools/atlas/declared/system.adl:127"
       ]
     },
     {
@@ -99,7 +99,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/census.adl:30"
+        "tools/atlas/declared/census.adl:30"
       ]
     },
     {
@@ -116,7 +116,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/census.adl:36"
+        "tools/atlas/declared/census.adl:36"
       ]
     },
     {
@@ -134,7 +134,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:115"
+        "tools/atlas/declared/system.adl:115"
       ]
     },
     {
@@ -152,7 +152,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:123"
+        "tools/atlas/declared/system.adl:123"
       ]
     },
     {
@@ -170,7 +170,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:119"
+        "tools/atlas/declared/system.adl:119"
       ]
     },
     {
@@ -187,7 +187,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/census.adl:42"
+        "tools/atlas/declared/census.adl:42"
       ]
     },
     {
@@ -205,7 +205,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/census.adl:24"
+        "tools/atlas/declared/census.adl:24"
       ]
     },
     {
@@ -223,7 +223,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/census.adl:26"
+        "tools/atlas/declared/census.adl:26"
       ]
     },
     {
@@ -241,7 +241,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:57"
+        "tools/atlas/declared/system.adl:57"
       ]
     },
     {
@@ -259,7 +259,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:56"
+        "tools/atlas/declared/system.adl:56"
       ]
     },
     {
@@ -277,7 +277,7 @@
       ],
       "violation_action": "DIAGNOSTIC_ONLY",
       "evidence_refs": [
-        ".atlas/declared/system.adl:58"
+        "tools/atlas/declared/system.adl:58"
       ]
     },
     {
@@ -295,7 +295,7 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/system.adl:135"
+        "tools/atlas/declared/system.adl:135"
       ]
     },
     {
@@ -312,13 +312,13 @@
       ],
       "violation_action": "REJECT",
       "evidence_refs": [
-        ".atlas/declared/census.adl:48"
+        "tools/atlas/declared/census.adl:48"
       ]
     }
   ],
   "provenance_refs": [
-    ".atlas/declared/census.adl",
-    ".atlas/declared/system.adl"
+    "tools/atlas/declared/census.adl",
+    "tools/atlas/declared/system.adl"
   ],
   "notes": [
     "WebUI -> Runtime is declared between entities the dependency census cannot observe (not both Rust materializations): SOFT, evaluated as UNKNOWN"

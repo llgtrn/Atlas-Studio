@@ -24,7 +24,7 @@ use std::collections::{BTreeMap, BTreeSet};
 /// classifies entity correspondence between revisions.
 pub const SNAPSHOT_SCHEMA: &str = "atlas.census-snapshot.v3";
 /// Facts whose provenance lies under this root are ADL semantics, not inventoried artifacts.
-const ADL_ROOT: &str = ".atlas/declared";
+const ADL_ROOT: &str = "tools/atlas/declared";
 pub const RECENSUS_SCHEMA: &str = "atlas.self-recensus-report.v1";
 
 /// One artifact's census state, free of revision-dependent identifiers.
@@ -65,7 +65,7 @@ pub struct AdlState {
     pub diagnostics: usize,
     /// constraint name -> verdict.
     pub constraints: BTreeMap<String, String>,
-    /// ADL source path (or `.atlas/declared` for compiler-level results) -> BLAKE3 over the
+    /// ADL source path (or `tools/atlas/declared` for compiler-level results) -> BLAKE3 over the
     /// projections of every fact attributed to it (v2). Any change to a source's semantics --
     /// bindings, materializations and spans included -- changes its digest.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

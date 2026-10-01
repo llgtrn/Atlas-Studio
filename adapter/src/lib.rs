@@ -1,6 +1,9 @@
 //! Atlas adapters for external repository mechanics.
 
-use atlas_core::{AdlSource, DocsReport, DocumentFact, RepoAudit, RepoManifest, validate_manifest};
+use atlas_core::{
+    AdlSource, CONTROL_ROOT, DECLARED_ROOT, DocsReport, DocumentFact, REPO_MANIFEST_PATH,
+    RepoAudit, RepoManifest, validate_manifest,
+};
 use std::{collections::BTreeMap, fs, io, path::Path};
 
 pub mod browser;
@@ -38,7 +41,7 @@ pub const EXTRACTOR_BUILD_DIGEST: &str = env!("ATLAS_EXTRACTOR_BUILD_DIGEST");
 
 pub fn read_adl_sources(root: impl AsRef<Path>) -> io::Result<Vec<AdlSource>> {
     let root = root.as_ref().canonicalize()?;
-    let declared = root.join(".atlas").join("declared");
+    let declared = root.join(DECLARED_ROOT);
     let mut sources = Vec::new();
     if declared.is_dir() {
         visit_adl_sources(&root, &declared, &mut sources, 0)?;
@@ -78,7 +81,7 @@ fn visit_adl_sources(
         if file_type.is_dir() {
             // Same empirically-justified guard as `adapter::source::visit_inventory`'s own
             // `MAX_DIRECTORY_NESTING_DEPTH` (see its doc comment): unbounded recursion here is the
-            // identical stack-overflow-in-debug-profile risk, just on the `.atlas/declared` tree
+            // identical stack-overflow-in-debug-profile risk, just on the `tools/atlas/declared` tree
             // instead of a repository's own source tree. Best-effort skip past the limit (no
             // per-directory accounting channel exists here, matching this function's own existing
             // best-effort-skip discipline for every other directory failure mode).
@@ -236,17 +239,17 @@ pub fn parse_repo_manifest(text: &str) -> Result<RepoManifest, Vec<String>> {
 
 pub fn audit_repository(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
     let root = root.as_ref();
-    let atlas_root = root.join(".atlas");
-    let repo_manifest = atlas_root.join("repo.toml");
+    let control_root = root.join(CONTROL_ROOT);
+    let repo_manifest = root.join(REPO_MANIFEST_PATH);
     let mut missing_required_roles = Vec::new();
     let mut missing_mapped_paths = Vec::new();
-    if !atlas_root.is_dir() {
-        missing_required_roles.push("canonical_knowledge_root".into());
-        missing_mapped_paths.push(".atlas".into());
+    if !control_root.is_dir() {
+        missing_required_roles.push("atlas_control_root".into());
+        missing_mapped_paths.push(CONTROL_ROOT.into());
     }
     if !repo_manifest.is_file() {
         missing_required_roles.push("repository_manifest".into());
-        missing_mapped_paths.push(".atlas/repo.toml".into());
+        missing_mapped_paths.push(REPO_MANIFEST_PATH.into());
     }
 
     let mut archetype = "UNKNOWN".to_owned();
@@ -286,7 +289,7 @@ pub fn audit_repository(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
         && forbidden_roots_present.is_empty()
         && manifest_ready;
     Ok(RepoAudit {
-        schema: "atlas.systemizer.repo-audit.v6".into(),
+        schema: "atlas.systemizer.repo-audit.v7".into(),
         archetype,
         manifest,
         manifest_ready,
@@ -652,7 +655,7 @@ mod tests {
     #[test]
     fn a_non_utf8_adl_file_does_not_abort_reading_the_rest_of_the_declared_tree() {
         let root = scratch_root();
-        let declared = root.join(".atlas").join("declared");
+        let declared = root.join(DECLARED_ROOT);
         std::fs::create_dir_all(&declared).unwrap();
         std::fs::write(
             declared.join("valid.adl"),
@@ -669,29 +672,33 @@ mod tests {
         assert!(
             sources
                 .iter()
-                .any(|source| source.path == ".atlas/declared/valid.adl"
+                .any(|source| source.path == "tools/atlas/declared/valid.adl"
                     && source.text.contains("component Foo")),
             "the well-formed sibling file must still be read intact"
         );
         assert!(
             sources
                 .iter()
-                .any(|source| source.path == ".atlas/declared/corrupt.adl"),
+                .any(|source| source.path == "tools/atlas/declared/corrupt.adl"),
             "the corrupt file must still be accounted for, never silently dropped"
         );
 
         std::fs::remove_dir_all(&root).unwrap();
     }
 
-    // Same defect, one layer up the stack: `.atlas/repo.toml` is read before `read_adl_sources`
+    // Same defect, one layer up the stack: `tools/atlas/repo.toml` is read before `read_adl_sources`
     // even runs, so a non-UTF-8 manifest previously aborted `audit_repository` -- and therefore
     // every caller of it (`systemize`, `code_analyze`) -- before any report could be built at all.
     #[test]
     fn a_non_utf8_repo_manifest_does_not_abort_the_repository_audit() {
         let root = scratch_root();
-        let atlas_root = root.join(".atlas");
-        std::fs::create_dir_all(&atlas_root).unwrap();
-        std::fs::write(atlas_root.join("repo.toml"), [b'a', b'\xff', b'\xfe', b'z']).unwrap();
+        let control_root = root.join(CONTROL_ROOT);
+        std::fs::create_dir_all(&control_root).unwrap();
+        std::fs::write(
+            root.join(REPO_MANIFEST_PATH),
+            [b'a', b'\xff', b'\xfe', b'z'],
+        )
+        .unwrap();
 
         let audit = audit_repository(&root)
             .expect("a non-UTF-8 repo.toml must not abort the repository audit");
@@ -748,7 +755,7 @@ mod tests {
         use std::os::unix::fs::PermissionsExt;
 
         let root = scratch_root();
-        let declared = root.join(".atlas").join("declared");
+        let declared = root.join(DECLARED_ROOT);
         std::fs::create_dir_all(&declared).unwrap();
         std::fs::write(declared.join("valid.adl"), "atlas 1\n").unwrap();
         let locked = declared.join("locked.adl");
@@ -763,7 +770,7 @@ mod tests {
             "the unreadable file is skipped (no accounting channel exists here); the readable \
              sibling must still be read: {sources:?}"
         );
-        assert_eq!(sources[0].path, ".atlas/declared/valid.adl");
+        assert_eq!(sources[0].path, "tools/atlas/declared/valid.adl");
 
         std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o644)).unwrap();
         std::fs::remove_dir_all(&root).unwrap();
@@ -782,10 +789,10 @@ mod tests {
         use std::os::unix::fs::PermissionsExt;
 
         let root = scratch_root();
-        let atlas_root = root.join(".atlas");
-        std::fs::create_dir_all(&atlas_root).unwrap();
-        let manifest = atlas_root.join("repo.toml");
-        std::fs::write(&manifest, "schema = \"atlas.repo.v2\"\n").unwrap();
+        let control_root = root.join(CONTROL_ROOT);
+        std::fs::create_dir_all(&control_root).unwrap();
+        let manifest = root.join(REPO_MANIFEST_PATH);
+        std::fs::write(&manifest, "schema = \"atlas.repo.v3\"\n").unwrap();
         std::fs::set_permissions(&manifest, std::fs::Permissions::from_mode(0o000)).unwrap();
 
         let audit = audit_repository(&root)
@@ -878,7 +885,7 @@ mod tests {
     #[test]
     fn parses_atlas_manifest_policy_fields() {
         let manifest = parse_repo_manifest(
-            r#"schema = "atlas.repo.v2"
+            r#"schema = "atlas.repo.v3"
 repo = "org/repo"
 system_kind = "SYSTEM_INVENTION_FORGE"
 backend_language = "rust"
@@ -887,10 +894,10 @@ coding_requires_docs_gate = true
 graph_before_code_required = true
 exact_base_sha_required = true
 single_repository_target_required = true
-knowledge_root = ".atlas"
-temporary_root = ".atlas/temporary"
-provenance_root = ".atlas/provenance"
-license_root = ".atlas/licenses"
+knowledge_root = ".ynventa"
+temporary_root = "target/donors"
+provenance_root = "tools/atlas/provenance"
+license_root = "tools/atlas/licenses"
 
 [code]
 source_roots = ["core"]
@@ -970,7 +977,7 @@ test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/studio/src"]
     fn deeply_nested_adl_declared_tree_does_not_abort_the_process() {
         let base = scratch_root();
         let _ = fs::remove_dir_all(&base);
-        let declared = base.join(".atlas").join("declared");
+        let declared = base.join(DECLARED_ROOT);
         fs::create_dir_all(&declared).unwrap();
         let mut cursor = declared.clone();
         for _ in 0..600 {

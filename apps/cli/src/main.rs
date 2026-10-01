@@ -186,7 +186,7 @@ fn run(args: &[String]) -> Result<(), String> {
             // every blocker this pipeline can raise (REPO_GATE_NOT_READY, DOCS_GATE_NOT_READY,
             // ADL_DIAGNOSTICS_PRESENT, ADL_CONSTRAINT_VIOLATED, and every *_ACCOUNTING_NOT_CLOSED/
             // DEPENDENCY_CLOSURE_NOT_CLOSED coverage gap) -- yet this was the one handler that
-            // silently dropped the check its three siblings all have: `.atlas/repo.toml`'s own
+            // silently dropped the check its three siblings all have: `tools/atlas/repo.toml`'s own
             // `compile` command invokes exactly this subcommand, so any orchestration step gating
             // on this process's exit code (rather than re-parsing the JSON body itself) previously
             // treated a blocked repository as a successful compile.
@@ -1585,9 +1585,9 @@ mod tests {
     // Falsification: `docs audit`, `check`, and `work prepare` each enforce their own report's
     // readiness field with a distinct error (`DOCS_GATE_NOT_READY`/`ADL_CHECK_NOT_READY`/
     // `WORK_PREPARE_NOT_ALLOWED`) so a blocked repository makes the process exit non-zero.
-    // `systemize` -- the one subcommand `.atlas/repo.toml`'s own `compile` command invokes --
+    // `systemize` -- the one subcommand `tools/atlas/repo.toml`'s own `compile` command invokes --
     // silently dropped this check: no branch in its handler could ever return `Err`, so a
-    // repository with `coding_admission.allowed == false` (e.g. no admitted `.atlas/repo.toml` at
+    // repository with `coding_admission.allowed == false` (e.g. no admitted `tools/atlas/repo.toml` at
     // all, `REPO_GATE_NOT_READY`) still exited 0. Confirmed against the unfixed code before
     // writing this fix.
     #[test]
@@ -1602,7 +1602,7 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         // `runtime::systemize` requires a real git repository (it pins identity via
         // `git rev-parse HEAD`) -- this scratch repo has a commit but deliberately no
-        // `.atlas/repo.toml` at all, the exact `REPO_GATE_NOT_READY` shape.
+        // `tools/atlas/repo.toml` at all, the exact `REPO_GATE_NOT_READY` shape.
         let run_git = |args: &[&str]| {
             let status = std::process::Command::new("git")
                 .args(args)
@@ -1637,7 +1637,7 @@ mod tests {
         // coverage anywhere in the runtime crate -- this was the only test exercising it at all,
         // and its assertion above proves only that SOME blocker fired, which is trivially true
         // here regardless of whether the other 7 conditions are computed correctly (this bare
-        // repository's missing `.atlas/repo.toml` alone guarantees `blockers` is non-empty). A
+        // repository's missing `tools/atlas/repo.toml` alone guarantees `blockers` is non-empty). A
         // bug swapping two blocker labels, or wrongly raising/suppressing an unrelated condition,
         // would leave this test passing unchanged. Reading the report back and asserting the
         // EXACT blocker list this real, minimal fixture produces closes that gap.
@@ -1687,7 +1687,7 @@ mod tests {
             args.extend_from_slice(extra);
             run(&args.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>())
         };
-        // Not admitted (no .atlas/repo.toml), but the report is still written.
+        // Not admitted (no tools/atlas/repo.toml), but the report is still written.
         let _ = systemize(&[], &first);
         let baseline: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&first).unwrap()).unwrap();
@@ -1886,7 +1886,7 @@ mod tests {
         };
         let dir = std::env::temp_dir().join(format!("atlas-cli-atlasx-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(dir.join(".atlas/declared")).unwrap();
+        fs::create_dir_all(dir.join("tools/atlas/declared")).unwrap();
         let path = |name: &str| dir.join(name).to_string_lossy().into_owned();
         let write_json = |name: &str, value: &serde_json::Value| {
             fs::write(dir.join(name), value.to_string()).unwrap();
@@ -1957,7 +1957,7 @@ mod tests {
         envelope.envelope_id = envelope_identity(&envelope);
         // G185: the envelope the scratch repository pins.
         write_json(
-            ".atlas/declared/integrity-envelope.json",
+            "tools/atlas/declared/integrity-envelope.json",
             &serde_json::to_value(&envelope).unwrap(),
         );
         // G185: a report consistent in itself: one satisfied obligation per required class.
@@ -2066,7 +2066,7 @@ mod tests {
             ..PrincipalRegistry::empty()
         };
         write_json(
-            ".atlas/declared/principals.json",
+            "tools/atlas/declared/principals.json",
             &serde_json::to_value(&registry).unwrap(),
         );
         write_json(
@@ -2074,7 +2074,7 @@ mod tests {
             &serde_json::to_value(runtime::seal::self_scope_policy()).unwrap(),
         );
         write_json(
-            ".atlas/declared/seal-policy.json",
+            "tools/atlas/declared/seal-policy.json",
             &serde_json::to_value(runtime::seal::self_scope_policy()).unwrap(),
         );
         let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();

@@ -260,7 +260,7 @@ fn reconcile_adl_with_dependency_census(
 pub use atlas_core::CENSUS_ADL_PATH;
 
 /// The census-derived ADL for `root` (G63): what the dependency census observes that the
-/// authored ADL -- every `.atlas/declared` source except `atlas_core::CENSUS_ADL_PATH` itself --
+/// authored ADL -- every `tools/atlas/declared` source except `atlas_core::CENSUS_ADL_PATH` itself --
 /// does not declare, and (G137) the effect envelope of every subsystem the authored ADL leaves
 /// unbounded. Regenerating it is a fixed point: the envelopes come from a model composed with the
 /// authored ADL plus the derived membership, never the committed file. `adl derive --check` and
@@ -624,9 +624,9 @@ pub fn prepare_work(
         scope: vec!["single-repository".into()],
         allowed_paths: work_allowed_paths(system.repository.manifest.as_ref()),
         forbidden_paths: vec![
-            ".atlas/temporary".into(),
-            ".atlas/provenance".into(),
-            ".atlas/licenses".into(),
+            "target/donors".into(),
+            "tools/atlas/provenance".into(),
+            "tools/atlas/licenses".into(),
         ],
         required_verification: required_verification_commands(),
     };
@@ -723,7 +723,7 @@ mod tests {
         test_roots: Vec<&str>,
     ) -> RepoManifest {
         RepoManifest {
-            schema: "atlas.repo.v2".into(),
+            schema: "atlas.repo.v3".into(),
             repo: "org/repo".into(),
             system_kind: "SYSTEM_INVENTION_FORGE".into(),
             backend_language: "rust".into(),
@@ -732,10 +732,10 @@ mod tests {
             graph_before_code_required: true,
             exact_base_sha_required: true,
             single_repository_target_required: true,
-            knowledge_root: ".atlas".into(),
-            temporary_root: ".atlas/temporary".into(),
-            provenance_root: ".atlas/provenance".into(),
-            license_root: ".atlas/licenses".into(),
+            knowledge_root: ".ynventa".into(),
+            temporary_root: "target/donors".into(),
+            provenance_root: "tools/atlas/provenance".into(),
+            license_root: "tools/atlas/licenses".into(),
             source_roots: source_roots.into_iter().map(String::from).collect(),
             backend_roots: backend_roots.into_iter().map(String::from).collect(),
             frontend_roots: frontend_roots.into_iter().map(String::from).collect(),
@@ -5973,7 +5973,7 @@ mod tests {
             snapshot
                 .adl
                 .sources
-                .contains_key(".atlas/declared/system.adl")
+                .contains_key("tools/atlas/declared/system.adl")
         );
 
         // G66: every function has a revision-stable descriptor, and descriptors never collide
@@ -6050,7 +6050,7 @@ mod tests {
             files: Vec::new(),
         };
         let authored = [atlas_core::AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem T\nentity Runtime A {}\nentity Runtime B {}\n\
                    A ->depends_on-> B\nmaterialize A {\n    path = \"core\"\n}\n\
                    materialize B {\n    path = \"adapter/runtime\"\n}\n"

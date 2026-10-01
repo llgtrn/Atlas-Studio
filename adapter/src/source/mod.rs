@@ -23,12 +23,20 @@ const BINARY_SAMPLE_BYTES: usize = 8 * 1024;
 const MAX_DIGEST_BYTES: u64 = 256 * 1024 * 1024;
 
 /// Directories that never hold written source: tool state, VCS metadata and dependency or
-/// compiler output stores.
+/// compiler output stores. `.atlas` is the retired control root (ADR 0104) other repositories may
+/// still carry.
 fn ignored_directory(name: &str) -> bool {
     matches!(
         name,
         ".atlas" | ".git" | ".pnpm-store" | "target" | "node_modules"
     )
+}
+
+/// An Atlas control root (`tools/atlas`, ADR 0104) -- a repository's manifest, declared
+/// architecture and records -- is tool state, never written source, wherever it is nested (a
+/// fixture repository carries its own), exactly as `.atlas` was.
+fn control_root(path: &Path) -> bool {
+    path.ends_with(atlas_core::CONTROL_ROOT)
 }
 
 /// Conventional build-output names (bundles, build trees, coverage reports), ignored unless the
@@ -285,7 +293,7 @@ fn classify_entry(
     let file_type = entry.file_type()?;
 
     if file_type.is_dir() {
-        let boundary = if ignored_directory(&name) {
+        let boundary = if ignored_directory(&name) || control_root(&path) {
             Some(module_dirs::GENERATED)
         } else if output_directory_name(&name) {
             module_dirs::boundary_reason(root, &path, &name)
@@ -441,7 +449,7 @@ pub fn inventory_source(root: impl AsRef<Path>) -> io::Result<InventoryReport> {
 /// Rejects any absolute path: `Path::join` returns an absolute joinee verbatim, silently
 /// discarding the intended root entirely (`root.join("/etc")` == `/etc`). Also rejects any path
 /// whose `..` components would net-escape above where it started (e.g. `"../../etc"` against a
-/// shallow root). A `.atlas/repo.toml` manifest is not necessarily pre-admitted, trusted config:
+/// shallow root). A `tools/atlas/repo.toml` manifest is not necessarily pre-admitted, trusted config:
 /// `ADL-TO-ATLAS.md`'s candidate reconciliation path and this session's own donor-corpus census
 /// sweeps can both point `inventory_declared_source` at externally-authored trees, so a hostile
 /// or careless `source_roots`/`backend_roots`/`frontend_roots`/`test_roots` entry must never cause
@@ -483,7 +491,7 @@ fn rejected_declared_root(declared: &str) -> ArtifactRecord {
     }
 }
 
-/// Walks every root a `.atlas/repo.toml` manifest declares -- `source_roots`, `backend_roots`,
+/// Walks every root a `tools/atlas/repo.toml` manifest declares -- `source_roots`, `backend_roots`,
 /// `frontend_roots`, and `test_roots` -- per `.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md`'s own
 /// documented rule that all four are "joined against the repository root before walking the
 /// filesystem". `backend_roots` was validated for path-escape by `core::constraint::validate_manifest`
@@ -666,6 +674,13 @@ mod tests {
         write("dist/app/gen.rs", "fn generated() {}\n");
         write("coverage/lcov.info", "SF:core/src/lib.rs\n");
         write("target/mod.rs", "fn built() {}\n");
+        // The Atlas control root, at the top or nested in a fixture repository (ADR 0104).
+        write("tools/atlas/repo.toml", "schema = \"atlas.repo.v3\"\n");
+        write(
+            "tests/fixtures/arm/tools/atlas/declared/arm.adl",
+            "atlas 1\n",
+        );
+        write("tests/fixtures/arm/tools/atlases.rs", "fn written() {}\n");
         let report = inventory_source(&root).unwrap();
         let _ = fs::remove_dir_all(&root);
         let record = |path: &str| report.artifacts.iter().find(|a| a.path == path);
@@ -673,6 +688,7 @@ mod tests {
             "core/src/coverage/mod.rs",
             "pkg/dist/src/lib.rs",
             "core/src/build/step.rs",
+            "tests/fixtures/arm/tools/atlases.rs",
         ] {
             let disposition = record(walked).map(|a| a.disposition.clone());
             assert!(
@@ -692,6 +708,8 @@ mod tests {
             "dist",
             "coverage",
             "target",
+            "tools/atlas",
+            "tests/fixtures/arm/tools/atlas",
         ] {
             let artifact = record(boundary).unwrap_or_else(|| panic!("{boundary}"));
             assert_eq!(
@@ -707,6 +725,8 @@ mod tests {
             "app/src/bin/build/out.rs",
             "dist/app/gen.rs",
             "target/mod.rs",
+            "tools/atlas/repo.toml",
+            "tests/fixtures/arm/tools/atlas/declared/arm.adl",
         ] {
             assert!(record(hidden).is_none(), "{hidden}");
         }
@@ -906,7 +926,7 @@ mod tests {
 
     fn manifest_with_declared_roots(source_roots: Vec<&str>) -> RepoManifest {
         RepoManifest {
-            schema: "atlas.repo.v2".into(),
+            schema: "atlas.repo.v3".into(),
             repo: "org/repo".into(),
             system_kind: "SYSTEM_INVENTION_FORGE".into(),
             backend_language: "rust".into(),
@@ -915,10 +935,10 @@ mod tests {
             graph_before_code_required: true,
             exact_base_sha_required: true,
             single_repository_target_required: true,
-            knowledge_root: ".atlas".into(),
-            temporary_root: ".atlas/temporary".into(),
-            provenance_root: ".atlas/provenance".into(),
-            license_root: ".atlas/licenses".into(),
+            knowledge_root: ".ynventa".into(),
+            temporary_root: "target/donors".into(),
+            provenance_root: "tools/atlas/provenance".into(),
+            license_root: "tools/atlas/licenses".into(),
             source_roots: source_roots.into_iter().map(String::from).collect(),
             backend_roots: Vec::new(),
             frontend_roots: Vec::new(),

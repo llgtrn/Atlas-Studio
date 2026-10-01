@@ -26,7 +26,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub const ENVELOPE_SCHEMA_VERSION: &str = "atlas.architectural-integrity-envelope.v1";
 pub const REPORT_SCHEMA_VERSION: &str = "atlas.architectural-integrity-report.v1";
 /// Where a repository pins its envelope.
-pub const PINNED_ENVELOPE_PATH: &str = ".atlas/declared/integrity-envelope.json";
+pub const PINNED_ENVELOPE_PATH: &str = "tools/atlas/declared/integrity-envelope.json";
 /// No Genome record is pinned yet (`DEBT-SELECTED_DESIGN`): said, never invented.
 pub const GENOME_UNPINNED: &str = "UNPINNED (no Genome or SelectedDesign record exists yet)";
 

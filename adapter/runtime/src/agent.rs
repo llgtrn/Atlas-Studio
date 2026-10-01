@@ -522,7 +522,7 @@ fn run(s: &core::store::Store) { s.save(); }
             ("core/src/lib.rs", core_lib),
             ("core/src/store.rs", store),
             ("app/src/main.rs", MAIN),
-            (".atlas/declared/system.adl", adl),
+            ("tools/atlas/declared/system.adl", adl),
         ];
         for (path, text) in files {
             let path = dir.join(path);

@@ -1,4 +1,4 @@
-schema = "atlas.repo.v2"
+schema = "atlas.repo.v3"
 repo = "llgtrn/Atlas-Studio"
 system_kind = "SYSTEM_INVENTION_FORGE"
 kind = "SYSTEM_INVENTION_FORGE"
@@ -11,16 +11,16 @@ graph_before_code_required = true
 exact_base_sha_required = true
 single_repository_target_required = true
 
-knowledge_root = ".atlas"
-temporary_root = ".atlas/temporary"
-provenance_root = ".atlas/provenance"
-license_root = ".atlas/licenses"
-artifact_root = ".atlas/artifacts"
+knowledge_root = ".ynventa"
+temporary_root = "target/donors"
+provenance_root = "tools/atlas/provenance"
+license_root = "tools/atlas/licenses"
+artifact_root = "target/atlas"
 legacy_docs_root_forbidden = true
 
 [genome]
-source = ".atlas/genome/atlas.genome.toml"
-compiled_artifact = ".atlas/artifacts/atlas-genome.atlas"
+source = "tools/atlas/genome/atlas.genome.toml"
+compiled_artifact = "target/atlas/atlas-genome.atlas"
 hash_required = true
 pin_on_census = true
 pin_on_plan = true
@@ -66,25 +66,23 @@ frontend_roots = ["apps/studio"]
 test_roots = ["core/tests", "adapter/runtime/tests", "adapter/tests", "apps/studio/src"]
 
 [commands]
-compile = "cargo run -p atlas-cli --bin atlas-systemizer -- systemize --root . --out .atlas/.cache/systemize-report.json"
+compile = "cargo run -p atlas-cli --bin atlas-systemizer -- systemize --root . --out target/atlas/systemize-report.json"
 test = "cargo test --workspace"
 format = "cargo fmt --all"
 
 [atlas]
+# ADR 0104: documents (architecture, blueprints, contracts, decisions, guides, standards, census)
+# are .ynventa knowledge; the records below are files.
 durable_roots = [
-  ".atlas/architecture",
-  ".atlas/blueprints",
-  ".atlas/contracts",
-  ".atlas/decisions",
-  ".atlas/genome",
-  ".atlas/guides",
-  ".atlas/standards",
-  ".atlas/declared",
-  ".atlas/census",
-  ".atlas/provenance",
-  ".atlas/licenses",
-  ".atlas/references",
-  ".atlas/evidence",
-  ".atlas/artifacts"
+  ".ynventa",
+  "tools/atlas/declared",
+  "tools/atlas/genome",
+  "tools/atlas/roadmap",
+  "tools/atlas/references",
+  "tools/atlas/provenance",
+  "tools/atlas/licenses",
+  "tools/atlas/evidence",
+  "tools/atlas/schemas",
+  "tools/atlas/contracts"
 ]
-transient_roots = [".atlas/.cache", ".atlas/tmp", ".atlas/temporary"]
+transient_roots = ["target/atlas", "target/donors"]

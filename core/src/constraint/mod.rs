@@ -63,7 +63,7 @@ impl ConstraintVerdict {
 pub fn validate_manifest(manifest: &RepoManifest) -> Vec<String> {
     let mut violations = Vec::new();
     let expected = [
-        ("schema", &manifest.schema, "atlas.repo.v2"),
+        ("schema", &manifest.schema, "atlas.repo.v3"),
         (
             "system_kind",
             &manifest.system_kind,
@@ -75,18 +75,18 @@ pub fn validate_manifest(manifest: &RepoManifest) -> Vec<String> {
             &manifest.frontend_language,
             "typescript",
         ),
-        ("knowledge_root", &manifest.knowledge_root, ".atlas"),
-        (
-            "temporary_root",
-            &manifest.temporary_root,
-            ".atlas/temporary",
-        ),
+        ("knowledge_root", &manifest.knowledge_root, ".ynventa"),
+        ("temporary_root", &manifest.temporary_root, "target/donors"),
         (
             "provenance_root",
             &manifest.provenance_root,
-            ".atlas/provenance",
+            "tools/atlas/provenance",
         ),
-        ("license_root", &manifest.license_root, ".atlas/licenses"),
+        (
+            "license_root",
+            &manifest.license_root,
+            "tools/atlas/licenses",
+        ),
     ];
     for (field, actual, required) in expected {
         if actual != required {
@@ -171,7 +171,7 @@ mod tests {
 
     fn manifest_with_roots(source_roots: Vec<&str>) -> RepoManifest {
         RepoManifest {
-            schema: "atlas.repo.v2".into(),
+            schema: "atlas.repo.v3".into(),
             repo: "org/repo".into(),
             system_kind: "SYSTEM_INVENTION_FORGE".into(),
             backend_language: "rust".into(),
@@ -180,10 +180,10 @@ mod tests {
             graph_before_code_required: true,
             exact_base_sha_required: true,
             single_repository_target_required: true,
-            knowledge_root: ".atlas".into(),
-            temporary_root: ".atlas/temporary".into(),
-            provenance_root: ".atlas/provenance".into(),
-            license_root: ".atlas/licenses".into(),
+            knowledge_root: ".ynventa".into(),
+            temporary_root: "target/donors".into(),
+            provenance_root: "tools/atlas/provenance".into(),
+            license_root: "tools/atlas/licenses".into(),
             source_roots: source_roots.into_iter().map(String::from).collect(),
             backend_roots: Vec::new(),
             frontend_roots: Vec::new(),

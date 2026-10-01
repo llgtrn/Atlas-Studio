@@ -76,9 +76,10 @@ pub use language::adl::{
 pub use provenance::{Provenance, provenance};
 pub use quantity::{Dimension, Quantity, QuantityError, Rational};
 pub use schema::{
-    CensusReport, ConflictCandidate, DocsReport, DocumentFact, EpistemicStatus,
-    ExtractionCacheStats, FileFact, GraphSummary, NormalizationReport, RepoAudit, RepoManifest,
-    SemanticFact, SemanticFactKind, SourceReport, SystemizeReport, TypedClosureAccounting,
+    CONTROL_ROOT, CensusReport, ConflictCandidate, DECLARED_ROOT, DocsReport, DocumentFact,
+    EpistemicStatus, ExtractionCacheStats, FileFact, GraphSummary, KNOWLEDGE_ROOT,
+    NormalizationReport, REPO_MANIFEST_PATH, RepoAudit, RepoManifest, SemanticFact,
+    SemanticFactKind, SourceReport, SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
     BodyNode, BodyNodeKind, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity,

@@ -22,7 +22,10 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
         kind: "Repository".into(),
         identity: source.root.clone(),
         attributes: BTreeMap::new(),
-        provenance: provenance(".atlas/repo.toml", "atlas-core.graph-source-projection"),
+        provenance: provenance(
+            "tools/atlas/repo.toml",
+            "atlas-core.graph-source-projection",
+        ),
         revision: None,
     });
 
@@ -35,7 +38,10 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
             kind: "Technology".into(),
             identity: language.clone(),
             attributes: BTreeMap::from([("domain".into(), "language".into())]),
-            provenance: provenance(".atlas/repo.toml", "atlas-core.graph-source-projection"),
+            provenance: provenance(
+                "tools/atlas/repo.toml",
+                "atlas-core.graph-source-projection",
+            ),
             revision: None,
         });
     }
@@ -1582,7 +1588,7 @@ fn constraint_result_node_id(name: &str) -> String {
 pub fn add_constraint_derivations(graph: &mut EngineeringGraph, results: &[ConstraintResult]) {
     for result in results {
         let result_id = constraint_result_node_id(&result.name);
-        let prov = provenance(".atlas/declared", "atlas.constraint-derivation.v1");
+        let prov = provenance("tools/atlas/declared", "atlas.constraint-derivation.v1");
         let materialization_targets: Vec<String> = result
             .derivation
             .iter()
@@ -1809,7 +1815,7 @@ mod tests {
             predicate: predicate.into(),
             object: object.into(),
             provenance: Provenance {
-                source_path: ".atlas/declared/system.adl".into(),
+                source_path: "tools/atlas/declared/system.adl".into(),
                 source_revision: None,
                 extractor: "test".into(),
                 content_hash: None,
@@ -4393,7 +4399,7 @@ mod tests {
             "Entity".into(),
             "Compiler".into(),
             BTreeMap::new(),
-            &provenance(".atlas/declared", "test"),
+            &provenance("tools/atlas/declared", "test"),
         );
 
         let results = vec![constraint_result(
@@ -4447,7 +4453,7 @@ mod tests {
             "Entity".into(),
             "Compiler".into(),
             BTreeMap::new(),
-            &provenance(".atlas/declared", "test"),
+            &provenance("tools/atlas/declared", "test"),
         );
         let results = vec![constraint_result(
             "BackendMustBeRust",

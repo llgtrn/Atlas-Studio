@@ -507,7 +507,7 @@ pub fn build_census(
             predicate: "passed".into(),
             object: result.passed.to_string(),
             provenance: Provenance {
-                source_path: ".atlas/declared".into(),
+                source_path: "tools/atlas/declared".into(),
                 source_revision: Some(revision.clone()),
                 extractor: "atlas.adl.constraint-evaluator.v1".into(),
                 content_hash: None,
@@ -525,7 +525,7 @@ pub fn build_census(
             predicate: delta.code.clone(),
             object: delta.message.clone(),
             provenance: Provenance {
-                source_path: ".atlas/declared".into(),
+                source_path: "tools/atlas/declared".into(),
                 source_revision: Some(revision.clone()),
                 extractor: "atlas.adl.delta.v1".into(),
                 content_hash: None,
@@ -812,7 +812,7 @@ mod tests {
         };
         let adl = compile_adl(
             &[atlas_core::AdlSource {
-                path: ".atlas/declared/system.adl".into(),
+                path: "tools/atlas/declared/system.adl".into(),
                 text: "atlas 1\nsystem Example\n\nentity Runtime Compiler {\n    kind = backend\n    language = rust\n}\n\ncapability CompileGraph {\n    input = AST\n    output = SystemGraph\n}\n\nCompiler ->provides-> CompileGraph\n\nbinding CompilerBinding {\n    consumer = Compiler\n    provider = Compiler\n    capability = CompileGraph\n}\n\nmaterialize Compiler {\n    path = \"core\"\n    language = rust\n}\n\nconstraint BackendIsRust {\n    forall x: Runtime\n        where x.kind == backend\n\n    require x.language == rust\n}\n".into(),
             }],
             &source,
@@ -2010,7 +2010,7 @@ mod tests {
                     shaft = 12 ± 0.5 mm\n    stored = 2 kJ\n    sweep = 90 deg\n    gear_ratio = 50\n}\n";
         let adl = compile_adl(
             &[atlas_core::AdlSource {
-                path: ".atlas/declared/rig.adl".into(),
+                path: "tools/atlas/declared/rig.adl".into(),
                 text: text.into(),
             }],
             &source,
@@ -2248,7 +2248,7 @@ mod tests {
         let text = "atlas 1\nsystem Shop\n\nentity Product Bare {\n    currency = USD\n}\n";
         let adl = compile_adl(
             &[atlas_core::AdlSource {
-                path: ".atlas/declared/shop.adl".into(),
+                path: "tools/atlas/declared/shop.adl".into(),
                 text: text.into(),
             }],
             &source,
@@ -2265,7 +2265,10 @@ mod tests {
             .expect("the price metric of the implicit variant");
         assert_eq!(price.status, EpistemicStatus::Unknown);
         assert!(price.object.starts_with("UNKNOWN"), "{}", price.object);
-        assert_eq!(price.provenance.source_path, ".atlas/declared/shop.adl");
+        assert_eq!(
+            price.provenance.source_path,
+            "tools/atlas/declared/shop.adl"
+        );
     }
 
     fn span() -> SourceSpan {

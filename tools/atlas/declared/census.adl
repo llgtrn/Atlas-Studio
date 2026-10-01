@@ -1,7 +1,7 @@
 atlas 1
 
 # Census-derived architecture (atlas.adl.census-derivation.v1). Generated -- do not edit.
-# Regenerate: atlas-systemizer adl derive --root . --out .atlas/declared/census.adl
+# Regenerate: atlas-systemizer adl derive --root . --out tools/atlas/declared/census.adl
 # Declares only what the dependency census observes and the authored ADL does not; every later
 # census re-checks it (ADL-TO-ATLAS.md).
 

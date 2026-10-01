@@ -83,7 +83,7 @@ pub struct ClosureOracle {
 /// (it may be an undeclared member), or the system's own ADL. A fixture's manifest or ADL nested
 /// inside a subsystem is not the workspace's.
 fn is_global_path(path: &str, subsystem_roots: &BTreeSet<&str>) -> bool {
-    if path.starts_with(".atlas/declared/") && path.ends_with(".adl") {
+    if path.starts_with("tools/atlas/declared/") && path.ends_with(".adl") {
         return true;
     }
     let (dir, name) = path.rsplit_once('/').unwrap_or(("", path));

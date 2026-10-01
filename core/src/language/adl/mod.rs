@@ -1197,7 +1197,7 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
             name: format!("ObservedMaterialization:{}", delta.subject),
             passed: false,
             verdict: ConstraintVerdict::Violated,
-            diagnostics: vec![adl_diag(code, &delta.message, ".atlas/declared", 1, 1)],
+            diagnostics: vec![adl_diag(code, &delta.message, "tools/atlas/declared", 1, 1)],
             derivation: vec![ConstraintCheckDerivation {
                 rule: ConstraintCheckKind::ObservedMaterializationDelta,
                 supporting_node_names: Vec::new(),
@@ -1451,7 +1451,7 @@ mod tests {
     #[test]
     fn parser_accepts_vertical_slice() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 
@@ -1501,7 +1501,7 @@ constraint BackendIsRust {
         // legal-looking ADL syntax with no grammar rule forbidding it -- had its entire content
         // silently discarded: `body` came back empty, with zero diagnostic anywhere.
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem Example\ncapability Foo { input = A }\n".into(),
         };
         let program = parse_adl_source(&source);
@@ -1528,7 +1528,7 @@ constraint BackendIsRust {
         // flip a real `check`/`systemize` MISSING_MATERIALIZATION result based on a parser
         // artifact rather than the actual repository state.
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem Example\nmaterialize Compiler { path = \"core\" language = rust }\n"
                 .into(),
         };
@@ -1557,7 +1557,7 @@ constraint BackendIsRust {
         // subsequent declaration until something else happens to rebalance it -- `Bar` below must
         // never be silently absorbed into `Foo`'s body.
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem Example\ncapability Foo { description = \"See issue #42 for details\" }\ncapability Bar {\n    input = X\n}\n"
                 .into(),
         };
@@ -1685,7 +1685,7 @@ constraint BackendIsRust {
     #[test]
     fn semantics_reports_unknown_relation_target() {
         let source = AdlSource {
-            path: ".atlas/declared/broken.adl".into(),
+            path: "tools/atlas/declared/broken.adl".into(),
             text: "atlas 1\nsystem Broken\nentity Runtime Compiler {}\nCompiler ->depends_on-> Missing\n"
                 .into(),
         };
@@ -1712,7 +1712,7 @@ constraint BackendIsRust {
         // literal `:`. Two genuinely different relations, joined unescaped with `:` for the
         // edge's `stable_id`, could otherwise produce the identical id.
         let source = AdlSource {
-            path: ".atlas/declared/broken.adl".into(),
+            path: "tools/atlas/declared/broken.adl".into(),
             text: "atlas 1\nsystem Broken\nA ->r:B-> C\nA ->r-> B:C\n".into(),
         };
         let observed = SourceReport {
@@ -1737,7 +1737,7 @@ constraint BackendIsRust {
     #[test]
     fn constraint_and_materialization_use_observed_graph() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 entity Runtime Compiler {
@@ -1778,7 +1778,7 @@ constraint BackendIsRust {
     #[test]
     fn an_untyped_relation_is_rejected() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem Example\nentity Runtime A {\n    kind = backend\n}\n\
                    entity Runtime B {\n    kind = backend\n}\nA ->depends_on-> B\nA ->causes-> B\n"
                 .into(),
@@ -1806,7 +1806,7 @@ constraint BackendIsRust {
     #[test]
     fn effect_envelopes_parse_sorted_and_reject_malformed_lists() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem Example\n\
                    invariant Io {\n    forall f: function in Core observed effect within FILESYSTEM_WRITE,\n        CLOCK_READ, FILESYSTEM_WRITE\n}\n\
                    invariant Pure {\n    forall f: function in Core observed effect within none\n}\n\
@@ -1852,7 +1852,7 @@ constraint BackendIsRust {
     #[test]
     fn census_quantified_invariants_parse_and_stay_unknown_without_the_census() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem Example\n\
                    invariant NoSpawn {\n    forall f: function in Core forbid effect PROCESS_SPAWN\n}\n\
                    invariant Layered {\n    forall f: function in Core\n        forbid call to Runtime\n}\n\
@@ -1931,7 +1931,7 @@ constraint BackendIsRust {
     #[test]
     fn unrecognized_constraint_syntax_is_diagnosed_not_silently_admitted() {
         let source = AdlSource {
-            path: ".atlas/declared/broken.adl".into(),
+            path: "tools/atlas/declared/broken.adl".into(),
             text: "atlas 1\nsystem Broken\nconstraint Nonsense {\n    this is not valid constraint syntax\n}\n"
                 .into(),
         };
@@ -1965,7 +1965,7 @@ constraint BackendIsRust {
         // at the real `require` keyword, corrupting the clause and rejecting an otherwise valid
         // constraint as unrecognized syntax.
         let source = AdlSource {
-            path: ".atlas/declared/substring.adl".into(),
+            path: "tools/atlas/declared/substring.adl".into(),
             text: "atlas 1\nsystem Example\nconstraint C {\n    forall x: Runtime\n        \
                    where x.requires_review == true\n    require x.language == rust\n}\n"
                 .into(),
@@ -2009,7 +2009,7 @@ constraint BackendIsRust {
         // "ALL Runtime nodes must have language == rust", a silent semantic change that can flip a
         // real `check`/`systemize` pass/fail outcome.
         let source = AdlSource {
-            path: ".atlas/declared/substring.adl".into(),
+            path: "tools/atlas/declared/substring.adl".into(),
             text: "atlas 1\nsystem Example\nconstraint C {\n    forall x: Runtime\n        \
                    where x.elsewhere == true\n    require x.language == rust\n}\n"
                 .into(),
@@ -2041,7 +2041,7 @@ constraint BackendIsRust {
     #[test]
     fn unrecognized_constraint_syntax_never_reports_as_passed() {
         let source = AdlSource {
-            path: ".atlas/declared/broken.adl".into(),
+            path: "tools/atlas/declared/broken.adl".into(),
             text: "atlas 1\nsystem Broken\nconstraint Nonsense {\n    this is not valid constraint syntax\n}\n"
                 .into(),
         };
@@ -2077,7 +2077,7 @@ constraint BackendIsRust {
     #[test]
     fn empty_constraint_body_is_diagnosed_not_treated_as_vacuously_true() {
         let source = AdlSource {
-            path: ".atlas/declared/empty.adl".into(),
+            path: "tools/atlas/declared/empty.adl".into(),
             text: "atlas 1\nsystem Empty\nconstraint DoesNothing {\n}\n".into(),
         };
         let program = parse_adl_source(&source);
@@ -2091,7 +2091,7 @@ constraint BackendIsRust {
 
     fn verdict_of(entities: &str, name: &str) -> ConstraintResult {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: format!(
                 "atlas 1\nsystem Example\n{entities}invariant BackendMustBeRust {{\n    forall x: Runtime\n        where x.kind == backend\n    require x.language == rust\n}}\n"
             ),
@@ -2114,7 +2114,7 @@ constraint BackendIsRust {
     /// declared plate with the given attribute lines.
     fn plate_verdict(attributes: &str, require: &str) -> ConstraintResult {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: format!(
                 "atlas 1\nsystem Bracket\nentity Plate Mount {{\n{attributes}}}\ninvariant PlateRule {{\n    forall p: Plate\n    require p.{require}\n}}\n"
             ),
@@ -2213,7 +2213,7 @@ constraint BackendIsRust {
     #[test]
     fn a_comparison_operator_is_parsed_into_the_declared_check() {
         let program = parse_adl_source(&AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem S\ninvariant Thick {\n    forall p: Plate\n    require p.thickness >= 2 mm\n}\n".into(),
         });
         let checks: Vec<_> = program
@@ -2276,7 +2276,7 @@ constraint BackendIsRust {
     #[test]
     fn invariants_are_evaluated_just_like_constraints_not_silently_skipped() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 entity Runtime Compiler {
@@ -2342,7 +2342,7 @@ invariant BackendMustBeRust {
     #[test]
     fn attribute_equals_derivation_names_every_supporting_node_when_the_check_passes() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 entity Runtime Compiler {
@@ -2386,7 +2386,7 @@ constraint BackendIsRust {
     #[test]
     fn materialization_exists_derivation_names_its_target() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 constraint CompilerIsMaterialized {
@@ -2435,7 +2435,7 @@ constraint CompilerIsMaterialized {
         // ObservedMaterialization: name prefix) must carry derivation too, not just the two
         // authored-constraint code paths.
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 materialize Compiler {
@@ -2472,7 +2472,7 @@ materialize Compiler {
     #[test]
     fn a_satisfied_invariant_passes_exactly_like_a_satisfied_constraint() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 entity Runtime Compiler {
@@ -2508,7 +2508,7 @@ invariant BackendMustBeRust {
     #[test]
     fn materialization_language_mismatch_is_a_failing_constraint_result_not_only_an_inert_delta() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 materialize Compiler {
@@ -2556,7 +2556,7 @@ materialize Compiler {
     #[test]
     fn a_wholly_missing_materialization_path_produces_exactly_one_failing_result_not_two() {
         let source = AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: r#"atlas 1
 system Example
 materialize Compiler {
