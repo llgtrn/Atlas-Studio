@@ -1412,6 +1412,30 @@
         provenance: &["census:adapter/src/browser/mod.rs"],
     },
     Donor {
+        key: "native-util-linux",
+        name: "util-linux",
+        origin: "https://github.com/util-linux/util-linux",
+        license: "GPL-2.0-or-later",
+        claimed: DonorState::Registered,
+        exception: Exception::None,
+        packages: &[
+            Package {
+                ecosystem: Ecosystem::Native,
+                name: "unshare",
+            },
+        ],
+        source_paths: &[],
+        capabilities: &[],
+        cutover: None,
+        provenance: &[
+            "census:adapter/runtime/src/sandbox.rs",
+            "host:`dpkg -S /usr/bin/unshare` = util-linux; `unshare --version` = unshare from util-linux 2.39.3",
+            "host:/usr/share/doc/util-linux/copyright Upstream-Name util-linux, Files * License GPL-2+ (sys-utils/unshare.c has no separate stanza)",
+            "legacy:.atlas/decisions/0102-confined-sandbox-with-per-run-toolchain-identity.md (util-linux 2.39.3 unshare, chosen so Atlas carries no unsafe code)",
+            "origin:ynventa program table, util-linux as the project of nsenter",
+        ],
+    },
+    Donor {
         key: "object",
         name: "object",
         origin: "https://github.com/gimli-rs/object.git",

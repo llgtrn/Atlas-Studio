@@ -2491,9 +2491,17 @@ mod tests {
             alive(&["sleep", &nonce]),
             "the restricted class does not kill a descendant that left its group"
         );
-        let _ = Command::new("pkill")
-            .args(["-KILL", "-xf", &format!("sleep {nonce}")])
-            .status();
+        // The escaped descendant is bounded by construction: it sleeps `7.<pid>` seconds, under
+        // eight. It is awaited through /proc rather than signalled by an external program, so the
+        // test leaves nothing running and needs neither `pkill` nor `unsafe` code.
+        let deadline = Instant::now() + Duration::from_secs(20);
+        while alive(&["sleep", &nonce]) && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        assert!(
+            !alive(&["sleep", &nonce]),
+            "the escaped descendant outlived its own duration"
+        );
     }
 
     /// Inputs are staged as copies, never as links, and a link that leaves the source root is
