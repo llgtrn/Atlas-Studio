@@ -710,3 +710,142 @@ can_create_false_claim = false
 reopen_trigger = "a replay mission whose callers sit in unparsed files that impact does not name, or impact becoming the input of a closure or construction decision"
 status = "OPEN"
 pressure = 1
+
+[[residual]]
+id = "RES-G189-TOOLCHAIN-SOCKETS"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (toolchain_binds)"
+subsystem = "runtime sandbox confined class, toolchain binds"
+reproduction = "declare a toolchain directory outside /run, /var/run, /tmp, /var/tmp and /dev/shm that holds a unix socket or FIFO: the read-only bind exposes it and connect() succeeds inside the confinement"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a host service listening on a socket inside a declared toolchain directory serves host data to a run whose FILESYSTEM_CONFINED is ENFORCED; no declared directory of the demonstration or the tests holds one"
+reopen_trigger = "a declared directory known to hold sockets, or a socket scan of declared trees becoming affordable"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-NO-SECCOMP-NO-CGROUP"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the confined class)"
+subsystem = "runtime sandbox confined class"
+reproduction = "a confined program may make any system call and fork without bound; only the timeout limits it"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a kernel defect reachable from an unprivileged user namespace breaks the chroot while the record says FILESYSTEM_CONFINED ENFORCED"
+reopen_trigger = "an admissible seccomp or cgroup mechanism, or confined output admitted as evidence for an untrusted program"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-CHROOT-NOT-PIVOT"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (CONFINE_SCRIPT, the nested unshare --root)"
+subsystem = "runtime sandbox confined class"
+reproduction = "during a run the mountinfo of the run's process read from the host shows the host mount tree below the chroot; the root is a chroot, not a pivot_root"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "the program regains CAP_SYS_CHROOT or CAP_SYS_ADMIN, or inherits a directory descriptor outside the root, and reads the host while the record says ENFORCED; the tests show it holds no capability and inherits only fds 0 to 2"
+reopen_trigger = "a pivot_root step that can run inside the new root without unsafe code"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-LOADER-ENV-LIST"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (refused_env_name)"
+subsystem = "runtime sandbox environment declaration"
+reproduction = "the nested unshare runs before the chroot with the declared environment; dynamic-loader variables are refused only by a fixed list (LD_*, GCONV_PATH, GLIBC_TUNABLES, LOCPATH, NLSPATH)"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a glibc start-up variable missing from the list loads or reads host content before the chroot while the record says ENFORCED"
+reopen_trigger = "glibc adds such a variable, or the environment can be applied after the chroot"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-NETWORK-OPTIONAL"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (deny_network in the confined class)"
+subsystem = "runtime sandbox confined class"
+reproduction = "a confined request with deny_network false reaches the host network and abstract unix sockets"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "FILESYSTEM_CONFINED read as the run cannot obtain host file content while a host service on the network or an abstract socket serves files"
+reopen_trigger = "M16 or any consumer relying on confinement without denying the network"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-TOOLCHAIN-DIRS-UNHASHED"
+found_in = "G189"
+source = "core/src/sandbox/mod.rs (ToolchainIdentity), adapter/runtime/src/sandbox.rs"
+subsystem = "core and runtime sandbox toolchain identity"
+reproduction = "swap librustc_driver while keeping the rustc binary and its -vV output: the pin still matches; the helpers (unshare, sh, mount, mkdir, ln) are not identified; cargo -vV identifies cargo, not the rustc it invokes (RUSTC, RUSTC_WRAPPER, PATH select it); a wrapper answering --print sysroot and -vV falsely passes as the requester's own pinned program"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a pin read as identifying the whole toolchain while a library, a helper or the compiler cargo invokes differs"
+reopen_trigger = "M16 hermetic build inputs, or a pin used to admit a build as evidence"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-CALLER-KUID"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the nested user namespace)"
+subsystem = "runtime sandbox confined class"
+reproduction = "the confined program runs with the caller's kernel uid (root in this container) mapped to uid 1000 of a nested user namespace"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a writable host path becoming visible inside the root, or subordinate ids becoming available"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-ROOT-CONTAINER-ONLY"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the confined class and its tests)"
+subsystem = "runtime sandbox confined class"
+reproduction = "run the confined tests as a non-root user on a host with unprivileged user namespaces: so far they have run only as root in this container"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a non-root or non-container host"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-HOST-PATH-TOCTOU"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (toolchain_binds, CONFINE_SCRIPT, Program::resolve)"
+subsystem = "runtime sandbox declaration checks"
+reproduction = "swap a declared toolchain path between the declaration check and the bind or link creation, or a link on the program's found path between resolution and exec"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "more of the host becomes visible than declared, or a different file runs than the one identified, while the probe still passes; only a party able to write the declared toolchain paths can do it"
+reopen_trigger = "toolchain paths writable by an untrusted party"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G189-PROBE-STDERR-MATCH-UNKILLED"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the confinement probe)"
+subsystem = "runtime sandbox confinement probe"
+reproduction = "mutant M02 (the probe checks exit codes only, ignoring unshare's exact error line) survives every test"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a helper change that could answer exit 127 without ENOENT while the control answers 126"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-VERIFICATION-AMBIENT"
+found_in = "G189"
+source = "adapter/runtime/src/verification.rs (command evidence)"
+subsystem = "runtime verification command evidence"
+reproduction = "runtime::verification command evidence still runs with ambient authority, outside the confined sandbox"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "M16 (NA-CONFINED-DELEGATED-BUILD) or verification evidence produced inside the confined sandbox"
+status = "OPEN"
+pressure = 3

@@ -907,7 +907,7 @@ objective = "FULL_OSS_REPLAY 666ghj/mirofish (done: R20 at 39d84913; the 62 Pyth
 [[planned_generation]]
 id = "G189"
 priority = "P6"
-objective = "CREATION: NA-SANDBOX-FS-CONFINEMENT (M22, [creation_selection] winner after G187, score 137, ahead of NA-ATLAS-DESIGN-SECTION 106, NA-TARGET-PROFILE 92 and NA-ATLASX-BODIES 70; ADR 0100) -- filesystem confinement for the sandbox (reads outside declared inputs refused) without unsafe code in Atlas, and a toolchain identity (binary digests and -vV) recorded on each run; falsified by a sandboxed build that reads an absolute path outside its declared inputs and a run whose toolchain identity is absent or mismatched"
+objective = "CREATION: NA-SANDBOX-FS-CONFINEMENT (done: M22 EXISTS -- a confined class runs the command chrooted in fresh user, mount and pid namespaces through util-linux unshare, probed per run and refused when the probe fails, and every run records the toolchain identity it executed, a rustc or cargo required to be its sysroot's own binary and a differing pin refused; seven independent review rounds closed eight pin and identity bypasses; 51 of 55 mutants killed; ADR 0102)"
 
 [[planned_generation]]
 id = "G190"
@@ -915,6 +915,11 @@ priority = "P0"
 objective = "FULL_OSS_REPLAY abi/screenshot-to-code (QUEUED, FULL-OSS-REPLAY.toml next_replay after R20): the canonical order's next NEVER_REPLAYED repository, facing the strongest Atlas (E27) at a fresh pin, its license verified at it (MIT recorded); fix natively only what falsifies the tree (ADR 0092)"
 
 [[planned_generation]]
-id = "G191+"
+id = "G191"
+priority = "P6"
+objective = "CREATION: NA-TARGET-PROFILE (M21, [creation_selection] winner after G189, score 94, ahead of NA-ATLAS-DESIGN-SECTION 86 and NA-ATLASX-BODIES 72; ADR 0100) -- a typed TargetProfile (family, architecture, ABI, capabilities, packaging) frozen into the AtlasX root, and a compatibility check of a selected design's required capabilities against it; the first profile is the host's Rust target that FIRST_ARTIFACT builds for; falsified by a design requiring a capability the profile lacks being admitted, and by a compiler input whose target is read from host defaults"
+
+[[planned_generation]]
+id = "G192+"
 priority = "P0"
 objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

@@ -1249,16 +1249,61 @@ fn run(args: &[String]) -> Result<(), String> {
                 ));
             }
         }
-        [cmd, sub, ..] if cmd == "sandbox" && sub == "probe" => {
+        [cmd, sub, rest @ ..] if cmd == "sandbox" && sub == "probe" => {
             // G126 (ADR 0047): the isolation the restricted-subprocess backend can enforce here.
+            // G189 (ADR 0102): and whether the confined class can confine here, by its own probe
+            // (a confinement with no toolchain path, staged under `--staging`, default the temp
+            // directory).
             let network = runtime::sandbox::network_isolation_available();
+            let staging = value(rest, "--staging")?
+                .map(PathBuf::from)
+                .unwrap_or_else(env::temp_dir);
+            let confined = runtime::sandbox::confinement_available(
+                &runtime::sandbox::HostTools::from_host(),
+                &staging,
+            );
             let probe = serde_json::json!({
                 "backend": runtime::sandbox::RESTRICTED_SUBPROCESS,
                 "enforced": ["ENVIRONMENT_CLEARED", "INPUTS_STAGED", "WORKING_DIRECTORY_CONFINED", "STDIN_CLOSED", "TIME_LIMITED"],
                 "network_denied": if network { "ENFORCED" } else { "UNENFORCED: unprivileged user namespaces are unavailable on this host" },
                 "filesystem_confined": "UNENFORCED: no filesystem namespace or Landlock ruleset in this class",
+                "confined": {
+                    "backend": runtime::sandbox::CONFINED_SUBPROCESS,
+                    "filesystem_confined": confined,
+                },
             });
             println!("{}", json(&probe)?);
+        }
+        [cmd, sub, rest @ ..] if cmd == "sandbox" && sub == "run" => {
+            // G189 (ADR 0102): run one `SandboxRequest` (JSON) with its inputs read from
+            // `--source`, staged under `--staging` (default the temp directory). A request with
+            // `confinement` runs in the confined class; one without, in the restricted-subprocess
+            // class, as before. Prints the `SandboxRun` with the run's output; exits non-zero when
+            // the request was refused.
+            let request_path =
+                value(rest, "--request")?.ok_or("sandbox run requires --request <request.json>")?;
+            let source = value(rest, "--source")?.ok_or("sandbox run requires --source <dir>")?;
+            let staging = value(rest, "--staging")?
+                .map(PathBuf::from)
+                .unwrap_or_else(env::temp_dir);
+            let text =
+                fs::read_to_string(&request_path).map_err(|e| format!("{request_path}: {e}"))?;
+            let request: runtime::sandbox::Request =
+                serde_json::from_str(&text).map_err(|e| format!("{request_path}: {e}"))?;
+            let execution = runtime::sandbox::run(&request, Path::new(&source), &staging)
+                .map_err(|e| format!("sandbox run: {e}"))?;
+            let text = json(&serde_json::json!({
+                "run": execution.run,
+                "stdout": String::from_utf8_lossy(&execution.stdout),
+                "stderr": String::from_utf8_lossy(&execution.stderr),
+            }))? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if execution.run.outcome == runtime::sandbox::SandboxOutcome::Refused {
+                return Err(format!("SANDBOX_REFUSED: {}", execution.run.refusal));
+            }
         }
         [cmd, op, rest @ ..] if cmd == "agent" => {
             // G122 (ADR 0044): the Agent-Worn Atlas operations over the composed world model.
@@ -1378,7 +1423,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx materialize|atlasx validate|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|integrity envelope|integrity report|atlas pack|atlas verify|atlas seal|seal gate|atlasx precondition|atlasx materialize|atlasx validate|atlasx codec|weights census|weights construct|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|sandbox run|verification self> ..."
                     .into(),
             );
         }
@@ -1400,6 +1445,78 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// G189 (ADR 0102): `sandbox run` runs a confined request from its JSON; the record carries
+    /// the probed confinement and the toolchain identity, a host path stays unreadable, and a
+    /// refused request exits non-zero with its record written.
+    #[test]
+    fn sandbox_run_confines_a_request_and_refuses_a_tampered_one() {
+        let dir = env::temp_dir().join(format!("atlas-cli-sandbox-run-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("src")).unwrap();
+        fs::create_dir_all(dir.join("stage")).unwrap();
+        fs::write(dir.join("src/a.txt"), "declared\n").unwrap();
+        let toolchain: Vec<_> = ["/usr/bin", "/usr/lib", "/usr/lib64", "/lib", "/lib64"]
+            .into_iter()
+            .filter(|p| Path::new(p).exists())
+            .map(|p| serde_json::json!({ "path": p }))
+            .collect();
+        let mut request = serde_json::json!({
+            "program": "sh",
+            "args": ["-c", "cat a.txt; cat /etc/passwd || echo DENIED"],
+            "inputs": runtime::sandbox::declare_inputs(&dir.join("src"), &["a.txt"]).unwrap(),
+            "env": { "PATH": "/usr/bin" },
+            "outputs": [],
+            "timeout_ms": 20000,
+            "deny_network": true,
+            "confinement": { "toolchain": toolchain },
+        });
+        let path = |name: &str| dir.join(name).to_string_lossy().into_owned();
+        fs::write(dir.join("request.json"), request.to_string()).unwrap();
+        let args = |out: &str| {
+            [
+                "sandbox",
+                "run",
+                "--request",
+                &path("request.json"),
+                "--source",
+                &path("src"),
+                "--staging",
+                &path("stage"),
+                "--out",
+                out,
+            ]
+            .map(str::to_owned)
+            .to_vec()
+        };
+        let result = run(&args(&path("run.json")));
+        let record: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(dir.join("run.json")).unwrap()).unwrap();
+        let confined = &record["run"]["isolation"]["FILESYSTEM_CONFINED"];
+        if confined["enforcement"] == "ENFORCED" {
+            result.unwrap();
+            assert_eq!(record["stdout"], "declared\nDENIED\n", "{record}");
+            assert_eq!(
+                record["run"]["backend"],
+                runtime::sandbox::CONFINED_SUBPROCESS
+            );
+            assert_eq!(record["run"]["toolchain"]["program"]["path"], "/usr/bin/sh");
+        } else {
+            assert_eq!(
+                record["run"]["refusal_kind"], "CONFINEMENT_UNAVAILABLE",
+                "{record}"
+            );
+            assert!(result.unwrap_err().starts_with("SANDBOX_REFUSED"));
+        }
+        request["inputs"][0]["digest"] = serde_json::json!(runtime::sandbox::input_digest(b"x"));
+        fs::write(dir.join("request.json"), request.to_string()).unwrap();
+        let refused = run(&args(&path("refused.json"))).unwrap_err();
+        assert!(refused.starts_with("SANDBOX_REFUSED"), "{refused}");
+        let record: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(dir.join("refused.json")).unwrap()).unwrap();
+        assert_eq!(record["run"]["refusal_kind"], "INPUT_DIGEST_MISMATCH");
+        fs::remove_dir_all(&dir).unwrap();
+    }
 
     // Falsification: `io::Error::to_string()` never includes the path that failed -- it is purely
     // the OS message ("No such file or directory (os error 2)"). Every subcommand handler passed

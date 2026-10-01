@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G188"
+evaluated_at = "G189"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -523,7 +523,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is rust source IMPORT_FIXED_POINT_CONVERGENCE, DEPENDENCY_ITEM_TRAITS, LEXICAL_LOCAL_SCOPES, STANDARD_MACRO_ARGUMENT_RESOLUTION, LOCKED_DEPENDENCY_TRAIT_NAMES, CERTAIN_GLOB_NAMES, SETTLED_IMPORT_OPENING can observe"
-priority = 1377
+priority = 1386
 rank = 1
 
 [[donor]]
@@ -683,7 +683,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is rust source IMPORT_FIXED_POINT_CONVERGENCE, DEPENDENCY_ITEM_TRAITS, LEXICAL_LOCAL_SCOPES, STANDARD_MACRO_ARGUMENT_RESOLUTION, LOCKED_DEPENDENCY_TRAIT_NAMES, CERTAIN_GLOB_NAMES can observe"
-priority = 1224
+priority = 1232
 rank = 2
 
 [[donor]]

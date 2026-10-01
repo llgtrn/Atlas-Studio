@@ -22,7 +22,7 @@
 # are history and are not rewritten.
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G188"
+current_generation = "G189"
 
 [[generation]]
 id = "G35"
@@ -4874,3 +4874,54 @@ after = 39
 key = "composed:relation:INVOKES"
 before = 7756
 after = 7816
+
+[[generation]]
+id = "G189"
+kind = "CREATION"
+lane = "CREATION"
+base_commit = "4af16ecf33e922dbf1c2ac4837d9fe986a6b5971"
+priority = "P6"
+serves = "DEBT-SANDBOXED_EXECUTION, construction node M22: the CREATION selection after G187 (score 137), the confined sandbox with per-run toolchain identity that M16 and verification inside the sandbox need"
+objective = "NA-SANDBOX-FS-CONFINEMENT: filesystem confinement for the sandbox (absolute-path and parent-directory reads outside the declared inputs refused) without unsafe code in Atlas, and the toolchain identity recorded on every run with a differing pin refused; falsified by a confined run reading a host path outside its declarations and by a pinned run executing another toolchain"
+writer = "coordinator (sole writer); one implementation lane over six rounds, one independent review lane over seven rounds; the coordinator wrote the last fix"
+evidence = ".atlas/evidence/verification/G189-confined-sandbox.json"
+self_recensus = ".atlas/evidence/census/G189/recensus.json"
+
+[generation.verification]
+pre_census = "G188 post digest"
+atlas_first = "the restricted-subprocess class recorded FILESYSTEM_CONFINED UNENFORCED: a run could read any absolute host path or climb out of its stage with .., and no run recorded which toolchain it executed"
+change = "ADR 0102: a confined class runs the command chrooted in fresh user, mount and pid namespaces through util-linux unshare (no unsafe code, no dependency), its root a read-only tmpfs holding only the stage, /dev/null, the declared toolchain paths (canonical, bound read-only nosuid,nodev, declared links recreated as links whose targets must be declared, socket directories refused) and an optional private procfs; FILESYSTEM_CONFINED is ENFORCED only after a per-run probe in the same confinement, and the run is refused when it fails; every run in either class records the identity of the program and declared toolchain binaries it executed (found path, resolved path, BLAKE3 digest, rustc and cargo -vV run as the run executes), a rustc or cargo must be its sysroot's own binary (a toolchain dispatcher is refused), and a pinned identity that differs or cannot be established is refused; requests carrying control characters or ambiguous fields are refused, so the request digest is injective up to list order; sandbox run schema v2, v1 records and digests unchanged"
+oracle = "a confined rustc 1.90.0 compile and link reproduces its output digest (d7d50fdd...) twice; include_str! of /etc/hostname and of the repository's Cargo.toml fails only inside the confinement; the run's own mountinfo shows exactly the declared mounts, private, ro,nosuid,nodev; every recorded request digest recomputed by an independent implementation"
+falsification = "absolute, .., /proc/self/root and /proc/1/root reads, writes outside the stage, remounts and a double-chroot escape fail inside the confinement; three broken confinements fail the probe and nothing runs; seven review rounds found and closed a relative-program pin bypass, a request-digest collision, a single-empty-argument collision, a multi-call link mislabelled, and four toolchain-dispatcher pin bypasses (a linked, a copied and a cargo-named rustup proxy, +toolchain and a staged rust-toolchain.toml); 55 hand mutants, 51 killed, four equivalent or redundant"
+boundary = "one mechanism, no seccomp or cgroup limits, chroot not pivot_root, sockets in declared directories reachable, loader variables refused by a fixed list, the network optional, toolchain libraries and helpers not hashed (RES-G189-*); M16 (a delegated build inside the confinement) and verification evidence produced inside it stay missing"
+debts = "DEBT-SANDBOXED_EXECUTION last advance G189 without a maturity step; construction node M22 EXISTS; next CREATION selection recomputed after G190; next generation G190 replay abi/screenshot-to-code"
+review = "DEBT-MULTI_ENGINE, DEBT-ADL_BEYOND_DEPENDENCIES and DEBT-DESIGN_GENERATION reviewed at their cadence and CONFIRMED against the code: the census runs the same three engines as at G176 and no second engine was added, no commit to the ADL lowering or the design comparison since G176 (evidence/census/G189/debt-review.json)"
+proof = "PROVEN (post 71c768ca...): proven after the last source change"
+
+[generation.value]
+new_capability = "a confined sandbox run with per-run toolchain identity (construction node M22)"
+vertical_stage = "CONSTRUCTION"
+construction_nodes_completed = ["M22"]
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 5
+wrong_claims_removed = 0
+wall_clock_s = 12238
+machine_s = 172
+proof_s = 4868
+review_s = 1726
+residuals_deferred = 11
+correctness_critical = false
+frontier_rate = 1.47
+frontier_class = "FRONTIER_PROGRESS"
+note = "wall clock from the implementation lane's launch to the roadmap commit, measured; machine_s = the lane's first runtime build 113 + the CLI test build 10 + the demonstration runs over six rounds 49; proof_s = the lane's mutant runs and gates over six rounds 3,461 (the coordinator's round-7 test and gate runs and the self-recensus were not timed separately) + the final full suite; review_s the seven independent review rounds; the clean-HEAD evidence run follows the roadmap commit"
+
+[[generation.metric]]
+key = "records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1"
+before = 7833
+after = 8033
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 7816
+after = 7994
