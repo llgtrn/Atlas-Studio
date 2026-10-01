@@ -14,11 +14,10 @@ use std::{
     process::Command,
 };
 
-/// Legacy tracked donor trees (pre-ADR 0021; drained by extinction, never extended).
-pub const LEGACY_DONOR_ROOT: &str = ".atlas/temporary/donors";
-/// Where every new materialization goes: untracked, git-ignored scratch.
-pub const SCRATCH_DONOR_ROOT: &str = ".atlas/.cache/donors";
-pub const WORKING_SET_FILE: &str = ".atlas/roadmap/DONOR-WORKING-SET.toml";
+/// Where every materialization goes: untracked, git-ignored build state. The legacy tracked root
+/// (`.atlas/temporary/donors`, pre-ADR 0021) was drained and retired with `.atlas` (ADR 0104).
+pub const SCRATCH_DONOR_ROOT: &str = "target/donors";
+pub const WORKING_SET_FILE: &str = "tools/atlas/roadmap/DONOR-WORKING-SET.toml";
 
 /// Measures the filesystem holding `path` with POSIX `df -P -k`. Capacity is used + available,
 /// the basis of `df`'s own Use%, so reserved blocks and per-session allowances do not inflate it.
@@ -84,10 +83,11 @@ pub struct DonorStorage {
     pub paths: Vec<String>,
 }
 
-/// Reads `storage_state` for every `[[donor]]` in `donor-corpus.toml`; locations are the legacy
-/// root, the scratch root, and the provenance record's own `clone_path`.
+/// Reads `storage_state` for every `[[donor]]` in `donor-corpus.toml`; locations are the scratch
+/// root and the provenance record's own `clone_path` (where the source was recorded, which for a
+/// deleted donor must stay absent).
 pub fn load_donor_storage(root: &Path) -> io::Result<Vec<DonorStorage>> {
-    let text = fs::read_to_string(root.join(".atlas/references/donor-corpus.toml"))?;
+    let text = fs::read_to_string(root.join("tools/atlas/references/donor-corpus.toml"))?;
     let field = |block: &str, name: &str| {
         block.lines().find_map(|line| {
             let rest = line.trim().strip_prefix(name)?.strip_prefix(" = \"")?;
@@ -105,11 +105,8 @@ pub fn load_donor_storage(root: &Path) -> io::Result<Vec<DonorStorage>> {
                 "donor `{id}`: unknown storage_state `{state_text}`"
             ))
         })?;
-        let mut paths = vec![
-            format!("{LEGACY_DONOR_ROOT}/{id}"),
-            format!("{SCRATCH_DONOR_ROOT}/{id}"),
-        ];
-        let provenance = root.join(format!(".atlas/provenance/donors/{id}.json"));
+        let mut paths = vec![format!("{SCRATCH_DONOR_ROOT}/{id}")];
+        let provenance = root.join(format!("tools/atlas/provenance/donors/{id}.json"));
         if let Ok(text) = fs::read_to_string(provenance)
             && let Ok(value) = serde_json::from_str::<serde_json::Value>(&text)
             && let Some(clone_path) = value.get("clone_path").and_then(|v| v.as_str())
@@ -241,7 +238,7 @@ pub struct WorkingSetReport {
 
 fn local_directories(root: &Path) -> io::Result<Vec<String>> {
     let mut directories = Vec::new();
-    for base in [LEGACY_DONOR_ROOT, SCRATCH_DONOR_ROOT] {
+    for base in [SCRATCH_DONOR_ROOT] {
         let Ok(entries) = fs::read_dir(root.join(base)) else {
             continue;
         };
@@ -259,8 +256,8 @@ fn local_directories(root: &Path) -> io::Result<Vec<String>> {
 /// G152 (ADR 0067): the source paths the FULL_OSS_REPLAY ledger records MATERIALIZED -- a
 /// checkout there is the replay lane's, held under its one-donor window, not an orphan.
 fn replay_materialized_paths(root: &Path) -> Vec<String> {
-    let text =
-        fs::read_to_string(root.join(".atlas/roadmap/FULL-OSS-REPLAY.toml")).unwrap_or_default();
+    let text = fs::read_to_string(root.join("tools/atlas/roadmap/FULL-OSS-REPLAY.toml"))
+        .unwrap_or_default();
     text.split("\n[[repository]]\n")
         .filter(|block| block.contains("\nreplay_status = \"MATERIALIZED\""))
         .filter_map(|block| {
@@ -352,7 +349,7 @@ pub fn working_set_report(
                 config
                     .blockers
                     .iter()
-                    .any(|b| format!("{LEGACY_DONOR_ROOT}/{}", b.directory) == *directory)
+                    .any(|b| format!("{SCRATCH_DONOR_ROOT}/{}", b.directory) == *directory)
                     || replay_materialized.contains(directory)
             }
             _ => false,
@@ -415,11 +412,34 @@ mod tests {
 
     #[test]
     fn the_recorded_policy_is_valid_and_every_blocker_has_a_remedy() {
-        let config = load_working_set_config(&workspace_root()).unwrap();
+        let text = fs::read_to_string(workspace_root().join(WORKING_SET_FILE)).unwrap();
+        let config = parse_working_set_config(&text).unwrap();
         assert!(config.policy.validate().is_ok());
-        assert!(!config.blockers.is_empty());
+        // Every recorded blocker is parsed; the list is empty once every one is resolved.
+        assert_eq!(
+            config.blockers.len(),
+            text.lines()
+                .filter(|l| l.trim() == "[[unadmitted_checkout]]")
+                .count()
+        );
         let broken = "[policy]\nhealthy_min_free_permille = 100\n";
         assert!(parse_working_set_config(broken).is_err());
+        // A blocker is parsed with its remedy, and one without a remedy is refused.
+        let policy = text
+            .split("\n[policy]\n")
+            .nth(1)
+            .and_then(|rest| rest.split("\n[").next())
+            .expect("[policy]");
+        let blocker = format!(
+            "[policy]\n{policy}\n[[unadmitted_checkout]]\ndirectory = \"x\"\n\
+             classification = \"ORPHAN\"\nremedy = \"DELETE\"\n"
+        );
+        let parsed = parse_working_set_config(&blocker).unwrap();
+        assert_eq!(parsed.blockers.len(), 1);
+        assert_eq!(parsed.blockers[0].directory, "x");
+        assert_eq!(parsed.blockers[0].remedy, "DELETE");
+        let unremedied = blocker.replace("remedy = \"DELETE\"\n", "");
+        assert!(parse_working_set_config(&unremedied).is_err());
     }
 
     /// Storage integrity of the real repository: every record agrees with the disk and every
@@ -454,7 +474,7 @@ mod tests {
                 report.recorded_violations.iter().any(|v| matches!(
                     v,
                     StorageViolation::UnownedCheckout { directory }
-                        if *directory == format!("{LEGACY_DONOR_ROOT}/{}", blocker.directory)
+                        if *directory == format!("{SCRATCH_DONOR_ROOT}/{}", blocker.directory)
                 )),
                 "blocker `{}` no longer violates; remove it from {WORKING_SET_FILE}",
                 blocker.directory
@@ -477,19 +497,24 @@ mod tests {
                 "buck2",
                 "c2rust",
                 "capnproto",
+                "clair",
                 "clef",
                 "composer",
                 "containers-image",
                 "crubit",
+                "cytoscape-js",
                 "datafrog",
                 "differential-dataflow",
                 "duumbi",
                 "egglog",
+                "elkjs",
                 "flatbuffers",
                 "glean",
                 "iris",
                 "joern",
                 "kani",
+                "keycloak",
+                "keylime",
                 "kythe",
                 "ladybird",
                 "llvm-project",
@@ -497,14 +522,18 @@ mod tests {
                 "mlir",
                 "mold",
                 "object",
+                "opendesign",
                 "openrewrite",
+                "openscap",
                 "podman",
+                "py2many",
                 "regalloc2",
                 "rkyv",
                 "rust",
                 "rust-analyzer",
                 "salsa",
                 "scip",
+                "selinux",
                 "semgrep",
                 "sigil-lang",
                 "souffle",

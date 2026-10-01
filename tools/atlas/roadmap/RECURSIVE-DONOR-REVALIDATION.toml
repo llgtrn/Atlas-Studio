@@ -1,0 +1,1669 @@
+schema = "atlas.recursive-donor-revalidation.v1"
+canonical = true
+established_in = "G121"
+evaluated_at = "G189"
+contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
+decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
+donor_audit = "tools/atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+rule = "A historical donor verdict is valid evidence only for the semantic capabilities available at the time it was produced. When Atlas gains a materially stronger capability that could change that verdict, the verdict becomes REVALIDATION_REQUIRED for uses depending on that capability."
+
+# Recursive epistemic verification, not new-donor progression (FOUNDATIONAL-ATLAS-READY.toml keeps
+# NEW_DONOR_PROGRESSION BLOCKED; HISTORICAL_DONOR_REVALIDATION is allowed only when triggered here).
+# A historical First-50 donor is REVALIDATION_REQUIRED when all three hold, recomputed by runtime test
+# essential_complexity::historical_donor_revalidation_triggers_are_capability_based:
+#   1. its decision depended on capability X (its debts in DONOR-CAPABILITY-AUDIT.toml);
+#   2. a [[capability_milestone]] for X landed after its last deep census (generation age alone never
+#      triggers);
+#   3. the milestone can observe the donor: its languages include the donor language.
+# SOURCE_EXTINCT is not EVIDENCE_ETERNALLY_CURRENT; REFERENCE_ONLY_AT_Gx is not REFERENCE_ONLY_AT_Gy;
+# ABSORBED_AT_Gx is not NO_FURTHER_MECHANISM. A revalidation adds a decision layer ([[revalidation]]);
+# the historical decision stays recorded. priority = sum over the delta of the age of each debt the
+# milestone advanced and the donor depended on (essential debt pressure x capability delta x relevance).
+# language is recorded knowledge unless language_verified (established by a materialization).
+
+[[capability_milestone]]
+id = "JS_MODULE_BINDINGS_AND_SCOPED_CALLS"
+generation = "G188"
+debts = ["DEBT-SYMBOL", "DEBT-CALL", "DEBT-MULTILANGUAGE"]
+languages = ["typescript", "javascript"]
+observes = "every JavaScript and TypeScript binding outside every function region is a SYMBOL definition, and a same-file callee is fixed only where its declaration is in scope at the call"
+evidence = ".atlas/decisions/0101-javascript-module-level-bindings-are-every-declared-identifier.md"
+
+[[capability_milestone]]
+id = "JS_CALL_SITE_IDENTITY"
+generation = "G186"
+debts = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+languages = ["typescript", "javascript"]
+observes = "every call and new site of a JavaScript or TypeScript chain is its own call site, anchored at the callee name"
+evidence = ".atlas/decisions/0098-javascript-call-sites-anchored-at-the-callee-name.md"
+
+[[capability_milestone]]
+id = "IMPORT_FIXED_POINT_CONVERGENCE"
+generation = "G178"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "the import fixed point converges wherever rustc's does: same-origin bindings keep the wider visibility, an import never reads its own binding, extern crate items name their crate, an external import may bind nothing in a namespace"
+evidence = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+
+[[capability_milestone]]
+id = "DEPENDENCY_ITEM_TRAITS"
+generation = "G177"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "the autoref guard reads the one item a registry import names, resolved through the locked package's module tree, instead of its whole closure"
+evidence = ".atlas/decisions/0090-an-import-of-a-known-item-brings-that-item-alone.md"
+
+[[capability_milestone]]
+id = "LEXICAL_LOCAL_SCOPES"
+generation = "G175"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "a local shadows a same-named function only where one of its bindings is in scope by the reference's lexical rules; opaque statement macros bind what they spell"
+evidence = ".atlas/decisions/0089-a-local-shadows-a-function-only-where-it-is-in-scope.md"
+
+[[capability_milestone]]
+id = "STANDARD_MACRO_ARGUMENT_RESOLUTION"
+generation = "G174"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "the arguments of a recovered standard macro are resolved in place by every resolver pass; conditionally evaluated arguments release no holder; bare names the crate may rebind stay opaque"
+evidence = ".atlas/decisions/0088-standard-macro-arguments-reach-every-resolver-pass.md"
+
+[[capability_milestone]]
+id = "LOCKED_DEPENDENCY_TRAIT_NAMES"
+generation = "G173"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "the autoref step is claimed beside a registry import whose locked closure, read as data, declares no trait method of the called name; unresolved or ambiguous bindings that may be traits withhold it"
+evidence = ".atlas/decisions/0087-locked-dependency-trait-names-relieve-the-autoref-guard.md"
+
+[[capability_milestone]]
+id = "CERTAIN_GLOB_NAMES"
+generation = "G172"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "a module opened only because a glob reads an open or unknown source keeps the glob-provided names its sources bind by an item or a named import"
+evidence = ".atlas/decisions/0086-certain-names-survive-a-glob-of-an-open-module.md"
+
+[[capability_milestone]]
+id = "SETTLED_IMPORT_OPENING"
+generation = "G170"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "a glob import opens its module only for a cause found in a round of the import fixed point computed on settled scopes, so a glob through a named import (an enum a parent imports) reads its names"
+evidence = ".atlas/decisions/0084-import-fixed-point-opens-on-settled-scopes.md"
+
+[[capability_milestone]]
+id = "RESOURCE_TEMPORARIES_AND_WRAPPERS"
+generation = "G169"
+debts = ["DEBT-RESOURCE"]
+languages = ["rust"]
+observes = "a temporary is released at its statement end, an owning std reader or writer wrapper carries its resource, and a holder handed on by a let is followed -- each where rustc MIR drops it"
+evidence = ".atlas/decisions/0083-resource-temporaries-and-owning-wrappers.md"
+
+[[capability_milestone]]
+id = "CARGO_AND_COHERENCE_BINDINGS"
+generation = "G168"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "a dependency binds the package directory its declaration names, a generic trait's impl is never picked by method name, and files of long flat chains are extracted"
+evidence = ".atlas/decisions/0082-rust-analyzer-oracle-falsifies-trace-guard-and-bindings.md"
+
+[[capability_milestone]]
+id = "REALIZABLE_TRACE"
+generation = "G168"
+debts = ["DEBT-SEMANTIC-COMPOSITION"]
+languages = ["rust"]
+observes = "the trace lens reports only paths whose returned values go back toward callers they did not descend from"
+evidence = ".atlas/decisions/0082-rust-analyzer-oracle-falsifies-trace-guard-and-bindings.md"
+
+[[capability_milestone]]
+id = "REVISION_STABLE_IDENTITY"
+generation = "G66"
+debts = ["DEBT-SYMBOL"]
+languages = ["rust"]
+observes = "position-free, revision-stable function identity"
+evidence = ".atlas/decisions/0028-revision-stable-function-identity.md"
+
+[[capability_milestone]]
+id = "IDENTITY_CARRIES_LOCATION"
+generation = "G67"
+debts = ["DEBT-SYMBOL"]
+languages = ["rust"]
+observes = "definition identity carries its file"
+evidence = ".atlas/decisions/0029-identity-carries-location.md"
+
+[[capability_milestone]]
+id = "CALL_ANCHOR_IDENTITY"
+generation = "G74"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "every call of a chain is its own call site, anchored at the callee name"
+evidence = "tools/atlas/roadmap/GENERATIONS.toml"
+
+[[capability_milestone]]
+id = "NATIVE_PATH_RESOLUTION"
+generation = "G75"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "path calls resolved to their callee identity"
+evidence = ".atlas/decisions/0031-native-rust-path-resolution.md"
+
+[[capability_milestone]]
+id = "STD_PATH_EFFECTS"
+generation = "G77"
+debts = ["DEBT-EFFECT"]
+languages = ["rust"]
+observes = "filesystem effects from resolved std paths"
+evidence = ".atlas/decisions/0032-effects-from-resolved-std-paths.md"
+
+[[capability_milestone]]
+id = "SELF_RECEIVER_METHODS"
+generation = "G79"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "self.m() resolved by the method probe's first step"
+evidence = ".atlas/decisions/0033-self-receiver-method-resolution.md"
+
+[[capability_milestone]]
+id = "CANONICAL_TYPE_IDENTITY"
+generation = "G83"
+debts = ["DEBT-TYPE"]
+languages = ["rust"]
+observes = "type spellings united under canonical identities"
+evidence = ".atlas/decisions/0034-canonical-type-identity.md"
+
+[[capability_milestone]]
+id = "AMBIENT_INPUT_EFFECTS"
+generation = "G91"
+debts = ["DEBT-EFFECT"]
+languages = ["rust"]
+observes = "environment and clock reads"
+evidence = ".atlas/decisions/0036-ambient-input-effects.md"
+
+[[capability_milestone]]
+id = "RESOLVED_CONCURRENCY"
+generation = "G117"
+debts = ["DEBT-CONCURRENCY"]
+languages = ["rust"]
+observes = "thread scopes, spawns and channels from resolved std paths"
+evidence = ".atlas/decisions/0039-concurrency-from-resolved-std-paths.md"
+
+[[capability_milestone]]
+id = "CALL_MACRO_ARGUMENTS"
+generation = "G119"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "calls inside standard macro arguments, per-file CALL coverage"
+evidence = ".atlas/decisions/0041-call-macro-argument-recovery.md"
+
+[[capability_milestone]]
+id = "ROLE_AWARE_MACRO_ARGUMENTS"
+generation = "G120"
+debts = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP"]
+languages = ["rust"]
+observes = "each dimension's semantics inside standard macro arguments, implicit format captures"
+evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
+
+[[capability_milestone]]
+id = "DECLARED_SHAPES"
+generation = "G153"
+debts = ["DEBT-TYPE"]
+languages = ["rust"]
+observes = "struct, enum, variant and field definitions carry item kind, visibility, derives, attributes and field shape"
+evidence = ".atlas/decisions/0069-self-reconstruction-lane.md"
+
+[[capability_milestone]]
+id = "FOREIGN_FUNCTIONS"
+generation = "G154"
+debts = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+languages = ["rust"]
+observes = "functions declared in extern blocks are call targets and a literal include splices its file"
+evidence = ".atlas/decisions/0070-foreign-functions-and-unrecognized-source.md"
+
+[[capability_milestone]]
+id = "DERIVED_QUANTITIES_IN_CENSUS"
+generation = "G165"
+debts = ["DEBT-QUANTITY_UNITS"]
+languages = ["rust"]
+observes = "quantities derived from declarations are census facts with lineage and graph nodes, and scaling by a pure number keeps a kind"
+evidence = ".atlas/decisions/0080-derived-quantities-enter-the-census.md"
+
+[[capability_milestone]]
+id = "MANIFEST_TARGETS_NORMALIZED"
+generation = "G164"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "crates whose manifest targets lie outside the manifest directory (../ paths) have crate roots and resolve"
+evidence = ".atlas/decisions/0079-manifest-targets-outside-their-directory.md"
+
+[[capability_milestone]]
+id = "IMPORT_CYCLE_CONVERGENCE"
+generation = "G162"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "imports that re-export around a cycle resolve to a fixed point instead of opening every module, and every withheld path names why its scope is open"
+evidence = ".atlas/decisions/0077-import-cycles-and-open-scope-causes.md"
+
+[[capability_milestone]]
+id = "COMPILED_PACKAGE_ENTRIES"
+generation = "G160"
+debts = ["DEBT-MULTILANGUAGE"]
+languages = ["typescript", "javascript"]
+observes = "imports of workspace packages declaring only compiled entries resolve through the declared compiler directories"
+evidence = ".atlas/decisions/0075-compiled-package-entries.md"
+
+[[capability_milestone]]
+id = "ASYNC_BLOCK_REGIONS"
+generation = "G159"
+debts = ["DEBT-CALL", "DEBT-EFFECT", "DEBT-CONCURRENCY"]
+languages = ["rust"]
+observes = "calls, effects and concurrency inside async blocks are attributed to their own region"
+evidence = ".atlas/decisions/0074-async-block-regions.md"
+
+[[capability_milestone]]
+id = "TS_MODULE_LINKING"
+generation = "G158"
+debts = ["DEBT-MULTILANGUAGE"]
+languages = ["typescript", "javascript"]
+observes = "TypeScript and JavaScript calls of imported functions resolve across files and workspace packages"
+evidence = ".atlas/decisions/0073-typescript-module-linking.md"
+
+[[capability_milestone]]
+id = "RESOURCE_ACQUIRE_RELEASE"
+generation = "G157"
+debts = ["DEBT-RESOURCE"]
+languages = ["rust"]
+observes = "files, sockets, std lock guards and threads acquired at resolved calls and released where a let-bound holder gives them back"
+evidence = ".atlas/decisions/0072-resource-dimension.md"
+
+[[capability_milestone]]
+id = "IMPL_SHAPE_BY_APPLIED_TYPES"
+generation = "G156"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "inherent methods of impls spelled with inline or where bounds and renamed parameters are one namespace"
+evidence = "tools/atlas/evidence/replay/R4-salsa.json"
+
+[[capability_milestone]]
+id = "TS_JS_PROFILE"
+generation = "G152"
+debts = ["DEBT-MULTILANGUAGE"]
+languages = ["typescript", "javascript"]
+observes = "TypeScript and JavaScript functions, signatures, symbols and same-file calls are typed records under the common obligation contract"
+evidence = ".atlas/decisions/0068-typescript-javascript-bounded-profile.md"
+
+[[capability_milestone]]
+id = "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE"
+generation = "G151"
+debts = ["DEBT-CALL", "DEBT-SEMANTIC-COMPOSITION"]
+languages = ["rust"]
+observes = "lifetime-generic impls resolve like plain ones, and impact crosses closures, trait dispatch and uniquely named call sites as INFERRED"
+evidence = ".atlas/decisions/0067-full-oss-replay-and-capability-epochs.md"
+
+[[capability_milestone]]
+id = "DESIGN_CANDIDATES"
+generation = "G150"
+debts = ["DEBT-DESIGN_GENERATION"]
+languages = ["rust"]
+observes = "candidate designs over a verified container are compared by criteria measured from its typed records, and a selection rests on a comparison of real alternatives"
+evidence = ".atlas/decisions/0066-candidate-designs-compared-by-measured-criteria.md"
+
+[[capability_milestone]]
+id = "SEAL_POLICY"
+generation = "G149"
+debts = ["DEBT-SEAL_GATE", "DEBT-DEPENDENCY"]
+languages = ["rust"]
+observes = "every certificate blocker is a typed kind disposed of by a digest-pinned scope policy that can never permit an untrustworthy census"
+evidence = ".atlas/decisions/0065-scoped-certificate-and-seal-policy.md"
+
+[[capability_milestone]]
+id = "SELECTED_DESIGN"
+generation = "G148"
+debts = ["DEBT-SELECTED_DESIGN", "DEBT-IDENTITY_AUTHORITY"]
+languages = ["rust"]
+observes = "a design over a verified container is proposed, validated and checked, and a selection is accepted only through a declared human principal's authority event"
+evidence = ".atlas/decisions/0064-selected-design-and-selection-authority.md"
+
+[[capability_milestone]]
+id = "TYPED_ATLAS_SECTIONS"
+generation = "G147"
+debts = ["DEBT-ATLAS_COMPLETENESS"]
+languages = ["rust"]
+observes = "the census container carries every typed semantic record, evidence record and diagnostic field by field, read back and verified"
+evidence = ".atlas/decisions/0063-typed-records-in-the-census-container.md"
+
+[[capability_milestone]]
+id = "FIELD_PROJECTIONS"
+generation = "G146"
+debts = ["DEBT-DATA_FLOW", "DEBT-SEMANTIC-COMPOSITION"]
+languages = ["rust"]
+observes = "a DATA_FLOW use of a field chain carries the fields read; each function's field reads and whole parameter uses are composed"
+evidence = "tools/atlas/evidence/agent/M6-field-projections.json"
+
+[[capability_milestone]]
+id = "ITEM_MACRO_NAMES"
+generation = "G145"
+debts = ["DEBT-TYPE", "DEBT-CALL"]
+languages = ["rust"]
+observes = "an item-position workspace macro_rules! invocation bounds the names it may define, so the rest of its module resolves types and path calls"
+evidence = ".atlas/decisions/0062-bounded-item-macro-names-and-construction-reachability.md"
+
+[[capability_milestone]]
+id = "STD_RECEIVERS"
+generation = "G144"
+debts = ["DEBT-PERSISTENCE", "DEBT-CONCURRENCY"]
+languages = ["rust"]
+observes = "declared inherent std methods on receivers whose std type is known derive persistence and concurrency sites"
+evidence = ".atlas/decisions/0061-std-receivers-and-method-level-persistence.md"
+
+[[capability_milestone]]
+id = "FIELD_AND_RESULT_RECEIVERS"
+generation = "G143"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "receivers typed forward through declared struct fields and resolved call results"
+evidence = ".atlas/decisions/0060-field-and-call-result-receivers.md"
+
+[[capability_milestone]]
+id = "SIGNATURE_TYPED_LETS"
+generation = "G142"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "let bindings typed by their callee's declared output; the method probe's autoref step claimed behind by-value guards"
+evidence = ".atlas/decisions/0059-signature-typed-lets-and-guarded-autoref.md"
+
+[[capability_milestone]]
+id = "TRAIT_BOUND_DISPATCH"
+generation = "G140"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "method calls through workspace-trait bounds recorded as dynamic dispatch to the trait method declaration"
+evidence = ".atlas/decisions/0058-trait-bound-receivers-dynamic-dispatch.md"
+
+[[capability_milestone]]
+id = "TYPED_LOCAL_METHODS"
+generation = "G139"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "method calls on locals with a declared plain workspace type decided by the method probe's first step"
+evidence = ".atlas/decisions/0057-typed-local-method-resolution.md"
+
+[[capability_milestone]]
+id = "TYPED_RELATIONS"
+generation = "G135"
+debts = ["DEBT-CAUSALITY"]
+languages = ["rust"]
+observes = "every graph relation typed with category, cardinality and ownership; untyped relations rejected"
+evidence = ".atlas/decisions/0054-typed-relations.md"
+
+[[capability_milestone]]
+id = "ONE_EPISTEMIC_VOCABULARY"
+generation = "G134"
+debts = ["DEBT-EPISTEMIC_UNIFICATION"]
+languages = ["rust"]
+observes = "every status carrier mapped onto the one vocabulary and enforced over the workspace; futures states decided"
+evidence = ".atlas/decisions/0053-one-epistemic-vocabulary.md"
+
+[[capability_milestone]]
+id = "CLOSURE_REGIONS"
+generation = "G133"
+debts = ["DEBT-CALL", "DEBT-EFFECT", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-OWNERSHIP", "DEBT-CONTROL_FLOW"]
+languages = ["rust"]
+observes = "closure bodies as their own executable regions, walked in every dimension and resolved"
+evidence = ".atlas/decisions/0052-closure-regions.md"
+
+[[capability_milestone]]
+id = "ONE_UNCERTAINTY_CARRIER"
+generation = "G131"
+debts = ["DEBT-UNCERTAINTY", "DEBT-SIMULATION"]
+languages = ["rust"]
+observes = "one exact interval carrier for quantities and money; every float drop recorded; uncertainty-honest physical verdicts"
+evidence = ".atlas/decisions/0051-one-uncertainty-carrier-and-marked-float-drops.md"
+
+[[capability_milestone]]
+id = "CENSUS_QUANTIFIED_INVARIANTS"
+generation = "G130"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+languages = ["rust"]
+observes = "ADL invariants quantified over census truth, decided with three-valued verdicts over the composed census"
+evidence = ".atlas/decisions/0050-census-quantified-invariants.md"
+
+[[capability_milestone]]
+id = "IMPACT_CLOSURE_WITH_ORACLE"
+generation = "G129"
+debts = ["DEBT-IMPACT_CLOSURE"]
+languages = ["rust"]
+observes = "the affected-impact closure of a change, checked by a full-recompute oracle over revision-normalized world models"
+evidence = ".atlas/decisions/0049-affected-impact-closure-with-oracle.md"
+
+[[capability_milestone]]
+id = "PERSISTENCE_RESOLVED_STD_PATHS"
+generation = "G125"
+debts = ["DEBT-PERSISTENCE", "DEBT-MULTI_ENGINE"]
+languages = ["rust"]
+observes = "durable read, write and sync sites from resolved std paths (SCIP-confirmed); PERSISTENCE has two engines"
+evidence = ".atlas/decisions/0046-persistence-from-resolved-std-paths.md"
+
+[[capability_milestone]]
+id = "QUANTITY_KINDS_AND_INTERVALS"
+generation = "G124"
+debts = ["DEBT-QUANTITY_UNITS", "DEBT-UNCERTAINTY"]
+languages = ["rust"]
+observes = "quantity kinds that never combine across kinds; exact interval uncertainty; declared quantities as census facts and graph nodes"
+evidence = ".atlas/decisions/0045-quantity-kinds-and-intervals-in-core.md"
+
+[[capability_milestone]]
+id = "SEMANTIC_COMPOSITION"
+generation = "G122"
+debts = ["DEBT-SEMANTIC-COMPOSITION"]
+languages = ["rust"]
+observes = "records composed into function, component, subsystem, capability and architecture models with typed relations and invariants; the agent interface"
+evidence = ".atlas/decisions/0044-agent-worn-atlas-semantic-composition.md"
+
+[[donor]]
+donor = "souffle"
+first_50_ordinal = 1
+language = "cpp"
+language_verified = false
+historical_decision_generation = "pre-G57"
+last_materialized_generation = "pre-G57"
+last_deep_census_generation = ""
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = []
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "datafrog"
+first_50_ordinal = 2
+language = "rust"
+language_verified = false
+historical_decision_generation = "G35"
+last_materialized_generation = "G180"
+last_deep_census_generation = "G180"
+capabilities_examined = ["DEBT-DEPENDENCY", "DEBT-IMPACT_CLOSURE"]
+capabilities_available_then = []
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "blake3"
+first_50_ordinal = 3
+language = "rust"
+language_verified = false
+historical_decision_generation = "G36"
+last_materialized_generation = "G36"
+last_deep_census_generation = "G36"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = []
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "rust-analyzer"
+first_50_ordinal = 4
+language = "rust"
+language_verified = true
+historical_decision_generation = "G75"
+last_materialized_generation = "G168"
+last_deep_census_generation = "G168"
+capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is rust source IMPORT_FIXED_POINT_CONVERGENCE, DEPENDENCY_ITEM_TRAITS, LEXICAL_LOCAL_SCOPES, STANDARD_MACRO_ARGUMENT_RESOLUTION, LOCKED_DEPENDENCY_TRAIT_NAMES, CERTAIN_GLOB_NAMES, SETTLED_IMPORT_OPENING can observe"
+priority = 1386
+rank = 1
+
+[[donor]]
+donor = "salsa"
+first_50_ordinal = 5
+language = "rust"
+language_verified = false
+historical_decision_generation = "G115"
+last_materialized_generation = "G156"
+last_deep_census_generation = "G156"
+capabilities_examined = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "tree-sitter"
+first_50_ordinal = 6
+language = "c"
+language_verified = false
+historical_decision_generation = "G65"
+last_materialized_generation = "G65"
+last_deep_census_generation = "G65"
+capabilities_examined = ["DEBT-MULTILANGUAGE"]
+capabilities_available_then = []
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "FOREIGN_FUNCTIONS", "COMPILED_PACKAGE_ENTRIES", "TS_MODULE_LINKING", "TS_JS_PROFILE"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes c source: javascript, rust, typescript engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "scip"
+first_50_ordinal = 7
+language = "go"
+language_verified = false
+historical_decision_generation = "G66"
+last_materialized_generation = "G66"
+last_deep_census_generation = "G66"
+capabilities_examined = ["DEBT-SYMBOL"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "IDENTITY_CARRIES_LOCATION"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes go source: javascript, rust, typescript engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "kythe"
+first_50_ordinal = 8
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G67"
+last_materialized_generation = "G67"
+last_deep_census_generation = "G67"
+capabilities_examined = ["DEBT-SYMBOL", "DEBT-TYPE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "ITEM_MACRO_NAMES"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes cpp source: javascript, rust, typescript engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "glean"
+first_50_ordinal = 9
+language = "haskell"
+language_verified = false
+historical_decision_generation = "G68"
+last_materialized_generation = "G68"
+last_deep_census_generation = "G68"
+capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["TYPED_ATLAS_SECTIONS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes haskell source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "joern"
+first_50_ordinal = 10
+language = "scala"
+language_verified = false
+historical_decision_generation = "G69"
+last_materialized_generation = "G69"
+last_deep_census_generation = "G69"
+capabilities_examined = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "ASYNC_BLOCK_REGIONS", "IMPL_SHAPE_BY_APPLIED_TYPES", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "FIELD_PROJECTIONS", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes scala source: javascript, rust, typescript engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "semgrep"
+first_50_ordinal = 11
+language = "ocaml"
+language_verified = false
+historical_decision_generation = "G70"
+last_materialized_generation = "G70"
+last_deep_census_generation = "G70"
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes ocaml source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "ast-grep"
+first_50_ordinal = 12
+language = "rust"
+language_verified = false
+historical_decision_generation = "G71"
+last_materialized_generation = "G71"
+last_deep_census_generation = "G71"
+capabilities_examined = ["DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "sourcetrail"
+first_50_ordinal = 13
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G72"
+last_materialized_generation = "G72"
+last_deep_census_generation = "G72"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "rust"
+first_50_ordinal = 14
+language = "rust"
+language_verified = true
+historical_decision_generation = "G73"
+last_materialized_generation = "G170"
+last_deep_census_generation = "G170"
+capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is rust source IMPORT_FIXED_POINT_CONVERGENCE, DEPENDENCY_ITEM_TRAITS, LEXICAL_LOCAL_SCOPES, STANDARD_MACRO_ARGUMENT_RESOLUTION, LOCKED_DEPENDENCY_TRAIT_NAMES, CERTAIN_GLOB_NAMES can observe"
+priority = 1232
+rank = 2
+
+[[donor]]
+donor = "miri"
+first_50_ordinal = 15
+language = "rust"
+language_verified = false
+historical_decision_generation = "G76"
+last_materialized_generation = "G172"
+last_deep_census_generation = "G172"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "clef"
+first_50_ordinal = 16
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G78"
+last_materialized_generation = "G78"
+last_deep_census_generation = "G78"
+capabilities_examined = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY", "IMPORT_FIXED_POINT_CONVERGENCE", "DEPENDENCY_ITEM_TRAITS", "LEXICAL_LOCAL_SCOPES", "STANDARD_MACRO_ARGUMENT_RESOLUTION", "LOCKED_DEPENDENCY_TRAIT_NAMES", "CERTAIN_GLOB_NAMES", "SETTLED_IMPORT_OPENING", "CARGO_AND_COHERENCE_BINDINGS", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "FOREIGN_FUNCTIONS", "MANIFEST_TARGETS_NORMALIZED", "IMPORT_CYCLE_CONVERGENCE", "COMPILED_PACKAGE_ENTRIES", "ASYNC_BLOCK_REGIONS", "TS_MODULE_LINKING", "IMPL_SHAPE_BY_APPLIED_TYPES", "TS_JS_PROFILE", "INFERRED_UPSTREAM_AND_LIFETIME_ERASURE", "ITEM_MACRO_NAMES", "FIELD_AND_RESULT_RECEIVERS", "SIGNATURE_TYPED_LETS", "TRAIT_BOUND_DISPATCH", "TYPED_LOCAL_METHODS", "CLOSURE_REGIONS"]
+status = "LANGUAGE_UNDETERMINED"
+reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "differential-dataflow"
+first_50_ordinal = 17
+language = "rust"
+language_verified = false
+historical_decision_generation = "G80"
+last_materialized_generation = "G182"
+last_deep_census_generation = "G182"
+capabilities_examined = ["SCALE-INCREMENTAL_RECOMPUTE", "DEBT-IMPACT_CLOSURE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "buck2"
+first_50_ordinal = 18
+language = "rust"
+language_verified = false
+historical_decision_generation = "G81"
+last_materialized_generation = "G81"
+last_deep_census_generation = "G81"
+capabilities_examined = ["SCALE-BRANCHING", "SCALE-INCREMENTAL_RECOMPUTE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "egglog"
+first_50_ordinal = 19
+language = "rust"
+language_verified = false
+historical_decision_generation = "G82"
+last_materialized_generation = "G178"
+last_deep_census_generation = "G178"
+capabilities_examined = ["DEBT-TYPE", "DEBT-DESIGN_GENERATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "capnproto"
+first_50_ordinal = 20
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G84"
+last_materialized_generation = "G84"
+last_deep_census_generation = "G84"
+capabilities_examined = ["DEBT-SEAL_GATE", "DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = ["SEAL_POLICY", "TYPED_ATLAS_SECTIONS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "rkyv"
+first_50_ordinal = 21
+language = "rust"
+language_verified = false
+historical_decision_generation = "G85"
+last_materialized_generation = "G85"
+last_deep_census_generation = "G85"
+capabilities_examined = ["SCALE-ZERO_COPY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "flatbuffers"
+first_50_ordinal = 22
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G86"
+last_materialized_generation = "G86"
+last_deep_census_generation = "G86"
+capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = ["TYPED_ATLAS_SECTIONS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "zstd"
+first_50_ordinal = 23
+language = "c"
+language_verified = false
+historical_decision_generation = "G87"
+last_materialized_generation = "G87"
+last_deep_census_generation = "G87"
+capabilities_examined = ["SCALE-COMPRESSION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "arrow"
+first_50_ordinal = 24
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G88"
+last_materialized_generation = "G88"
+last_deep_census_generation = "G88"
+capabilities_examined = ["SCALE-COLUMNAR"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "mlir"
+first_50_ordinal = 25
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G89"
+last_materialized_generation = "G89"
+last_deep_census_generation = "G89"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "xdsl"
+first_50_ordinal = 26
+language = "python"
+language_verified = false
+historical_decision_generation = "G90"
+last_materialized_generation = "G90"
+last_deep_census_generation = "G90"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-VERIFICATION_EVIDENCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "iris"
+first_50_ordinal = 27
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G91"
+last_materialized_generation = "G91"
+last_deep_census_generation = "G91"
+capabilities_examined = ["DEBT-EFFECT"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["ROLE_AWARE_MACRO_ARGUMENTS", "ASYNC_BLOCK_REGIONS", "CLOSURE_REGIONS"]
+status = "LANGUAGE_UNDETERMINED"
+reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "sigil-lang"
+first_50_ordinal = 28
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G92"
+last_materialized_generation = "G92"
+last_deep_census_generation = "G92"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "duumbi"
+first_50_ordinal = 29
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G93"
+last_materialized_generation = "G93"
+last_deep_census_generation = "G93"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "composer"
+first_50_ordinal = 30
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G94"
+last_materialized_generation = "G94"
+last_deep_census_generation = "G94"
+capabilities_examined = ["DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "agentir"
+first_50_ordinal = 31
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G95"
+last_materialized_generation = "G95"
+last_deep_census_generation = "G95"
+capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["TYPED_ATLAS_SECTIONS"]
+status = "LANGUAGE_UNDETERMINED"
+reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "llvm-project"
+first_50_ordinal = 32
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G96"
+last_materialized_generation = "G96"
+last_deep_census_generation = "G96"
+capabilities_examined = ["DEBT-BACKEND_ADAPTER", "DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasm-spec"
+first_50_ordinal = 33
+language = "ocaml"
+language_verified = false
+historical_decision_generation = "G97"
+last_materialized_generation = "G97"
+last_deep_census_generation = "G97"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-SEAL_GATE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["SEAL_POLICY"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes ocaml source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasm-component-model"
+first_50_ordinal = 34
+language = "specification"
+language_verified = false
+historical_decision_generation = "G98"
+last_materialized_generation = "G98"
+last_deep_census_generation = "G98"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-IDENTITY_AUTHORITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["SELECTED_DESIGN"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes specification source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasm-tools"
+first_50_ordinal = 35
+language = "rust"
+language_verified = false
+historical_decision_generation = "G99"
+last_materialized_generation = "G99"
+last_deep_census_generation = "G99"
+capabilities_examined = ["DEBT-BACKEND_ADAPTER", "DEBT-SANDBOXED_EXECUTION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasmtime"
+first_50_ordinal = 36
+language = "rust"
+language_verified = false
+historical_decision_generation = "G100"
+last_materialized_generation = "G100"
+last_deep_census_generation = "G100"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION", "DEBT-BACKEND_ADAPTER"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "object"
+first_50_ordinal = 37
+language = "rust"
+language_verified = false
+historical_decision_generation = "G101"
+last_materialized_generation = "G101"
+last_deep_census_generation = "G101"
+capabilities_examined = ["DEBT-BACKEND_ADAPTER", "DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "regalloc2"
+first_50_ordinal = 38
+language = "rust"
+language_verified = false
+historical_decision_generation = "G102"
+last_materialized_generation = "G102"
+last_deep_census_generation = "G102"
+capabilities_examined = ["DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "mold"
+first_50_ordinal = 39
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G103"
+last_materialized_generation = "G103"
+last_deep_census_generation = "G103"
+capabilities_examined = ["DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "kani"
+first_50_ordinal = 40
+language = "rust"
+language_verified = false
+historical_decision_generation = "G104"
+last_materialized_generation = "G104"
+last_deep_census_generation = "G104"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "verus"
+first_50_ordinal = 41
+language = "rust"
+language_verified = false
+historical_decision_generation = "G105"
+last_materialized_generation = "G184"
+last_deep_census_generation = "G184"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "podman"
+first_50_ordinal = 42
+language = "go"
+language_verified = false
+historical_decision_generation = "G106"
+last_materialized_generation = "G106"
+last_deep_census_generation = "G106"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "containers-image"
+first_50_ordinal = 43
+language = "go"
+language_verified = false
+historical_decision_generation = "G107"
+last_materialized_generation = "G107"
+last_deep_census_generation = "G107"
+capabilities_examined = ["DEBT-SEAL_GATE", "DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["SEAL_POLICY"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes go source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "z3"
+first_50_ordinal = 44
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G108"
+last_materialized_generation = ""
+last_deep_census_generation = "G108"
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes cpp source: rust engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "in-toto"
+first_50_ordinal = 45
+language = "python"
+language_verified = false
+historical_decision_generation = "G109"
+last_materialized_generation = ""
+last_deep_census_generation = "G109"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "git"
+first_50_ordinal = 46
+language = "c"
+language_verified = false
+historical_decision_generation = "G110"
+last_materialized_generation = ""
+last_deep_census_generation = "G110"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "nix"
+first_50_ordinal = 47
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G111"
+last_materialized_generation = ""
+last_deep_census_generation = "G111"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION", "DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "tlaplus"
+first_50_ordinal = 48
+language = "java"
+language_verified = false
+historical_decision_generation = "G112"
+last_materialized_generation = ""
+last_deep_census_generation = "G112"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "openrewrite"
+first_50_ordinal = 49
+language = "java"
+language_verified = false
+historical_decision_generation = "G113"
+last_materialized_generation = "G113"
+last_deep_census_generation = "G113"
+capabilities_examined = ["DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "c2rust"
+first_50_ordinal = 50
+language = "rust"
+language_verified = false
+historical_decision_generation = "G114"
+last_materialized_generation = "G174"
+last_deep_census_generation = "G174"
+capabilities_examined = ["DEBT-MULTILANGUAGE", "DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["JS_MODULE_BINDINGS_AND_SCOPED_CALLS", "JS_CALL_SITE_IDENTITY"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "no advanced capability observes rust source: javascript, typescript engines only (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "crubit"
+first_50_ordinal = 0
+language = "rust"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "cytoscape-js"
+first_50_ordinal = 0
+language = "javascript"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "elkjs"
+first_50_ordinal = 0
+language = "javascript"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "py2many"
+first_50_ordinal = 0
+language = "python"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "xyflow"
+first_50_ordinal = 0
+language = "typescript"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "opendesign"
+first_50_ordinal = 0
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "selinux"
+first_50_ordinal = 0
+language = "c"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "openscap"
+first_50_ordinal = 0
+language = "c"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "keycloak"
+first_50_ordinal = 0
+language = "java"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-IDENTITY_AUTHORITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "keylime"
+first_50_ordinal = 0
+language = "python"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "clair"
+first_50_ordinal = 0
+language = "go"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-PROVENANCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "zed"
+first_50_ordinal = 0
+language = "rust"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "ladybird"
+first_50_ordinal = 0
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G55"
+last_materialized_generation = ""
+last_deep_census_generation = "G55"
+capabilities_examined = ["DEBT-REAL_WORLD_OBSERVATION"]
+capabilities_available_then = []
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[revalidation]]
+id = "R1"
+donor = "rust"
+generation = "G121"
+debt = "DEBT-CALL"
+capabilities = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS"]
+question = "is rustc's method-resolution mechanism too large to absorb (the G73 reason), or bounded but inseparable from type inference -- and does either change NA-CALL-TYPE-RESIDUAL?"
+remote = "https://github.com/rust-lang/rust.git"
+pinned_commit = "d287eb7a292caa8abbe12051dce2ee707fe03200"
+materialization_mode = "SPARSE_SHALLOW"
+materialization_scope = "compiler/rustc_hir_typeck"
+source_path = ".atlas/temporary/donors/rust"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R1-rust.json"
+outcome = "REVALIDATED"
+finding = "verdict holds for a corrected reason: the resolution core is bounded, but the implementation is inseparable from rustc's type inference; the G73-era engine was blind to a quarter of the method module's call sites"
+follow_up = "NA-CALL-TYPE-RESIDUAL"
+
+[[revalidation]]
+id = "R2"
+donor = "datafrog"
+generation = "G136"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["IMPACT_CLOSURE_WITH_ORACLE"]
+question = "does the G129 impact closure give datafrog's REFERENCE_ONLY part (multi-way leapjoin, antijoin, gallop) an Atlas caller, and can Atlas now observe the donor's own mechanism?"
+remote = "https://github.com/rust-lang/datafrog.git"
+pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+materialization_mode = "FULL_CLONE"
+materialization_scope = "whole repository with history (the closure runs over the donor commits)"
+source_path = ".atlas/temporary/donors/datafrog"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R2-datafrog.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the impact closure is one-hop rules plus a reachability walk, no multi-way join, so the REFERENCE_ONLY part still has no caller; run over the donor history the closure was unsound on seven of its changes, exposing two defects fixed in the same generation; the stage rotation stays invisible (interior mutability) and its dispatch unresolved (trait objects)"
+follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R3"
+donor = "salsa"
+generation = "G156"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["IMPACT_CLOSURE_WITH_ORACLE"]
+question = "does the G129 impact closure change salsa's REFERENCE_ONLY part (invalidation, early cutoff, durability), and can Atlas now observe the donor's own mechanism?"
+remote = "https://github.com/salsa-rs/salsa.git"
+pinned_commit = "5d8eaf1fa372a73d44f9b717407de41f19ef59d7"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the G115 pin, carried by replay R4"
+source_path = ".atlas/.cache/donors/salsa"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R3-salsa.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: memo stays ABSORBED; the impact closure is static reachability with no recomputing consumer, so salsa's value-equality early cutoff (backdating) has nothing to cut yet; Atlas now locates it by its declared purpose and resolved callers, and the replay exposed and fixed the impl-shape defect that hid salsa's split IngredientImpl methods"
+follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R4"
+donor = "rust-analyzer"
+generation = "G168"
+debt = "DEBT-CALL"
+capabilities = ["CARGO_AND_COHERENCE_BINDINGS"]
+question = "with every Rust capability gained since G75, is native path resolution sound and material on the donor's own code against the donor's own SCIP index, and has method resolution stopped being REFERENCE_ONLY?"
+remote = "https://github.com/rust-lang/rust-analyzer.git"
+pinned_commit = "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole workspace at the exact G75 pin, censused by E15 and E16 after replay R10 at a fresh pin"
+source_path = ".atlas/.cache/donors/rust-analyzer"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R4-rust-analyzer.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: name resolution stays ABSORBED, its precision on the donor's own code measured by replay R10 at 99.82% once two binding defects were fixed; method resolution stays REFERENCE_ONLY -- on the exact G75 source 807 of 959 call sites in hir-ty's method resolution stay unresolved at E16"
+follow_up = "NA-CALL-TYPE-RESIDUAL"
+
+[[revalidation]]
+id = "R5"
+donor = "rust"
+generation = "G170"
+debt = "DEBT-CALL"
+capabilities = ["TYPED_LOCAL_METHODS", "TRAIT_BOUND_DISPATCH", "SIGNATURE_TYPED_LETS", "FIELD_AND_RESULT_RECEIVERS", "ITEM_MACRO_NAMES", "IMPORT_CYCLE_CONVERGENCE", "CARGO_AND_COHERENCE_BINDINGS", "SETTLED_IMPORT_OPENING"]
+question = "with every Rust capability gained since R1, how much of rustc's method-resolution module does Atlas resolve on the exact G73 source, and does the EXTERNAL_BOUNDARY verdict hold?"
+remote = "https://github.com/rust-lang/rust.git"
+pinned_commit = "d287eb7a292caa8abbe12051dce2ee707fe03200"
+materialization_mode = "SPARSE_SHALLOW"
+materialization_scope = "compiler/rustc_hir_typeck at the exact G73 pin, censused by E17 and E18 after replay R11 at a fresh pin"
+source_path = ".atlas/.cache/donors/rust-d287eb7a"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R5-rust.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: method resolution stays EXTERNAL_BOUNDARY -- on the exact G73 source 2,750 call sites in the method module stay unresolved at E18 while every call edge Atlas claims on the crate is confirmed by rust-analyzer's index (replay R11, 1,566 of 1,566); the replay's one falsification, a module opened before its imports settled, is fixed in E18"
+follow_up = "NA-CALL-TYPE-RESIDUAL"
+
+[[revalidation]]
+id = "R6"
+donor = "miri"
+generation = "G172"
+debt = "DEBT-CONCURRENCY"
+capabilities = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "CLOSURE_REGIONS", "STD_RECEIVERS", "ASYNC_BLOCK_REGIONS"]
+question = "with every capability gained since G76, does Atlas now have a target for the MIR interpreter, a way to run it, or a use for the shim table beyond a cross-check, on the exact G76 source?"
+remote = "https://github.com/rust-lang/miri.git"
+pinned_commit = "c63eee41f54d6a4b414af7b22ab717063da0c50a"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G76 pin, censused by E18 and E19 after replay R12 at a fresh pin"
+source_path = ".atlas/.cache/donors/miri-c63eee41"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R6-miri.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the MIR interpreter and its UB checkers stay REFERENCE_ONLY (Atlas has no unsafe code and a stable toolchain); the shim table stays a cross-check -- on the exact G76 source 8,152 shim call sites stay unresolved at E19 while 183 call edges resolve; the replay's one falsification, glob-opened modules distrusting certain names, is fixed in E19"
+follow_up = "NA-CALL-TYPE-RESIDUAL"
+
+[[revalidation]]
+id = "R7"
+donor = "c2rust"
+generation = "G174"
+debt = "DEBT-MULTILANGUAGE"
+capabilities = ["TS_JS_PROFILE", "FOREIGN_FUNCTIONS", "TS_MODULE_LINKING", "COMPILED_PACKAGE_ENTRIES"]
+question = "with every capability gained since G114, does Atlas now have a target for the translator or the refactoring tool -- a C frontend, a transformation class -- on the exact G114 source?"
+remote = "https://github.com/immunant/c2rust.git"
+pinned_commit = "1d37ebbf4d505c947f20947edc264f47e33ed14b"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G114 pin, censused by E20 and E21 beside replay R13 at a fresh pin"
+source_path = ".atlas/.cache/donors/c2rust-1d37ebbf"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R7-c2rust.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: every G114 surface stays REFERENCE_ONLY -- Atlas still has no C or C++ frontend (864 unrecognized files at the pin) and no transformation class; on the exact G114 source its Rust view gains 100 call relations at E21 (5,203 -> 5,303); the replay's falsification, calls in standard macro arguments never reaching the resolver, is fixed in E21"
+follow_up = "NA-WORKSPACE-MACRO-ARGUMENTS"
+
+[[revalidation]]
+id = "R8"
+donor = "egglog"
+generation = "G178"
+debt = "DEBT-DESIGN_GENERATION"
+capabilities = ["CANONICAL_TYPE_IDENTITY", "DECLARED_SHAPES", "DESIGN_CANDIDATES", "ITEM_MACRO_NAMES"]
+question = "with every capability gained since G82, does Atlas now have a workload for equality saturation -- non-structural equalities to propagate, conflicts to reconcile, or design alternatives to rank -- on the exact G82 source?"
+remote = "https://github.com/egraphs-good/egglog.git"
+pinned_commit = "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G82 pin, which is also replay R15 fresh pin, censused by E23 and E24"
+source_path = ".atlas/.cache/donors/egglog"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R8-egglog.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: equality saturation, e-class analysis and extraction stay REFERENCE_ONLY -- Atlas asserts no non-structural equalities (types canonical by resolution, 0 conflict candidates) and its decision layer ranks authored candidates; on the exact G82 source its view gains 226 call relations at E24 (1,586 -> 1,812); the replay's falsification, an import fixed point that never settled, is fixed in E24"
+follow_up = "NA-DESIGN-CANDIDATE-GENERATION"
+
+[[revalidation]]
+id = "R9"
+donor = "datafrog"
+generation = "G180"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["SEAL_POLICY"]
+question = "with every capability gained since G136, does Atlas now have a caller for the REFERENCE_ONLY joins, or does its view of the donor's own mechanism change, on the exact G35 source?"
+remote = "https://github.com/rust-lang/datafrog.git"
+pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G35 pin, which is also replay R16 pin, censused by E24"
+source_path = ".atlas/.cache/donors/datafrog-edd7cfc0"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R9-datafrog.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the fixed point stays absorbed and native, the multi-way join, antijoin and galloping storage stay REFERENCE_ONLY with no Atlas caller; on the exact G35 source every call edge Atlas claims (54 of 54 at function level) is the index's"
+follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R10"
+donor = "differential-dataflow"
+generation = "G182"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["IMPACT_CLOSURE_WITH_ORACLE"]
+question = "with every capability gained since G80, does Atlas now have a consumer for incremental recomputation on the exact G80 source, and does the scale premise still hold?"
+remote = "https://github.com/TimelyDataflow/differential-dataflow.git"
+pinned_commit = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G80 pin, which is also replay R17 pin, censused by E24"
+source_path = ".atlas/.cache/donors/differential-dataflow"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R10-differential-dataflow.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: arrangements, traces and incremental joins stay REFERENCE_ONLY -- Atlas has no incremental consumer; on the exact G80 source 1,096 of 1,099 member call edges Atlas claims are the index's and the rest read correct; the G80 scale evidence (about 117 artifacts, a 7.8 s self-recensus) is stale and its fanout trigger unmeasured"
+follow_up = "NA-CLOSURE-CONSUMER"
+
+[[revalidation]]
+id = "R11"
+donor = "verus"
+generation = "G184"
+debt = "DEBT-CONSTRAINT_REASONING"
+capabilities = ["CENSUS_QUANTIFIED_INVARIANTS"]
+question = "with every capability gained since G105, can Atlas now absorb Verus's verification mechanism -- a solver-backed or quantified-invariant consumer, or a proof class for verification evidence -- on the exact G105 source?"
+remote = "https://github.com/verus-lang/verus.git"
+pinned_commit = "5f0930a0b820425aa857269070362ddcf7c29672"
+materialization_mode = "SHALLOW_BLOBLESS"
+materialization_scope = "whole repository at the exact G105 pin, beside replay R18 at a fresh pin, censused by E24"
+source_path = ".atlas/.cache/donors/verus-5f0930a0"
+status = "COMPLETE"
+evidence = "tools/atlas/evidence/revalidation/R11-verus.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the verifier stays an external oracle -- census-quantified invariants are decided without a solver and no proof or SMT class exists, so VIR to AIR to SMT, modes and triggers are not absorbable; the verification-evidence premise is stale (core::verification exists since G127), which makes an evidence-consuming oracle feasible, not absorption"
+follow_up = "NA-QUANTIFIED-STATE"

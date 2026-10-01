@@ -1,8 +1,0 @@
-add_subdirectory("CPE")
-add_subdirectory("crypt")
-add_subdirectory("OVAL")
-if (ENABLE_PROBES)
-	add_subdirectory("probes")
-	add_subdirectory("SEAP")
-endif()
-add_subdirectory("XCCDF")

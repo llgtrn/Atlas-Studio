@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 pub const DESIGN_SCHEMA_VERSION: &str = "atlas.selected-design.v1";
 pub const REGISTRY_SCHEMA_VERSION: &str = "atlas.principal-registry.v1";
 /// Where a repository declares the principals that may select designs.
-pub const PRINCIPAL_REGISTRY_PATH: &str = ".atlas/declared/principals.json";
+pub const PRINCIPAL_REGISTRY_PATH: &str = "tools/atlas/declared/principals.json";
 
 crate::vocabulary_enum! {
     /// A design's lifecycle (contract: never an epistemic status).

@@ -1,0 +1,88 @@
+schema = "atlas.repo.v3"
+repo = "llgtrn/Atlas-Studio"
+system_kind = "SYSTEM_INVENTION_FORGE"
+kind = "SYSTEM_INVENTION_FORGE"
+
+backend_language = "rust"
+frontend_language = "typescript"
+
+coding_requires_docs_gate = true
+graph_before_code_required = true
+exact_base_sha_required = true
+single_repository_target_required = true
+
+knowledge_root = ".ynventa"
+temporary_root = "target/donors"
+provenance_root = "tools/atlas/provenance"
+license_root = "tools/atlas/licenses"
+artifact_root = "target/atlas"
+legacy_docs_root_forbidden = true
+
+[genome]
+source = "tools/atlas/genome/atlas.genome.toml"
+compiled_artifact = "target/atlas/atlas-genome.atlas"
+hash_required = true
+pin_on_census = true
+pin_on_plan = true
+pin_on_materialization = true
+
+[formats]
+dense_engineering_artifact_extension = ".atlas"
+expanded_executable_suffix = ".atlasx"
+atlas_binary_required = true
+atlasx_markdown_authority_forbidden = true
+atlasx_json_authority_forbidden = true
+deterministic_materialization_required = true
+
+[graph]
+universal_spine_required = true
+global_identity_required = true
+cross_repository_binding_supported = true
+sovereign_repository_partition_required = true
+required_primitives = [
+  "identity",
+  "scope",
+  "node",
+  "edge",
+  "binding",
+  "state",
+  "event",
+  "temporal",
+  "evidence",
+  "provenance",
+  "claim",
+  "constraint",
+  "invariant",
+  "interface",
+  "capability",
+  "effect",
+  "materialization"
+]
+
+[code]
+source_roots = ["core", "adapter", "adapter/runtime", "apps/cli"]
+backend_roots = ["core", "adapter", "adapter/runtime", "apps/cli"]
+frontend_roots = ["apps/studio"]
+test_roots = ["core/tests", "adapter/runtime/tests", "adapter/tests", "apps/studio/src"]
+
+[commands]
+compile = "cargo run -p atlas-cli --bin atlas-systemizer -- systemize --root . --out target/atlas/systemize-report.json"
+test = "cargo test --workspace"
+format = "cargo fmt --all"
+
+[atlas]
+# ADR 0104: documents (architecture, blueprints, contracts, decisions, guides, standards, census)
+# are .ynventa knowledge; the records below are files.
+durable_roots = [
+  ".ynventa",
+  "tools/atlas/declared",
+  "tools/atlas/genome",
+  "tools/atlas/roadmap",
+  "tools/atlas/references",
+  "tools/atlas/provenance",
+  "tools/atlas/licenses",
+  "tools/atlas/evidence",
+  "tools/atlas/schemas",
+  "tools/atlas/contracts"
+]
+transient_roots = ["target/atlas", "target/donors"]

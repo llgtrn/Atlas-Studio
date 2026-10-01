@@ -9,13 +9,5 @@ Migration {
             nodes: &["compiler.runtime"],
         },
     ],
-    shims: &[
-        Shim {
-            key: "legacy-atlas",
-            kind: ShimKind::LegacyInput,
-            path: ".atlas",
-            serves: "atlas-studio",
-            expires: Expiry::LegacyImported(".atlas"),
-        },
-    ],
+    shims: &[],
 }

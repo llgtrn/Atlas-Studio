@@ -1,0 +1,925 @@
+schema = "atlas.priority.v1"
+canonical = true
+decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
+established_in = "G57"
+base_commit = "4fcb0d68198c58860106cf9d79c573c18637864d"
+
+# PRIORITY RESET (G57). NEXTGEN is proven by self-recensus, not by generation numbering:
+#   Atlas_N -> self census -> donor census -> gap -> absorb/implement -> Atlas_N+1
+#   -> self recensus -> semantic diff -> falsify/verify -> donor terminal -> extinct/reclaim.
+# Every generation from G57 declares one priority and what it serves; enforced by
+# runtime tests (generation_ledger_*).
+
+[[priority]]
+id = "P0"
+name = "CENSUS_KERNEL_CLOSURE"
+status = "OPEN"
+meaning = "a selected scope is censused to closure (see [census_closure]) and certified"
+
+[[priority]]
+id = "P1"
+name = "SELF_RECENSUS_N_TO_N_PLUS_1"
+status = "OPERATIONAL_FROM_G57"
+meaning = "every production generation proves itself by pre-census, change, post-census, semantic diff, replay, verdict"
+
+[[priority]]
+id = "P2"
+name = "ADL_ATLAS_ATLASX_END_TO_END"
+status = "OPEN"
+meaning = "census truth -> ADL -> validated .atlas -> deterministic .atlasx -> recensus"
+
+[[priority]]
+id = "P3"
+name = "FIRST_50_DONOR_CAMPAIGN"
+status = "OPEN"
+meaning = "the canonical first-50 queue (FIRST-50-CAMPAIGN.toml) processed sequentially to terminal states"
+
+[[priority]]
+id = "P4"
+name = "INCREMENTAL_DEPENDENCY_AWARE_RECENSUS"
+status = "OPEN"
+meaning = "edit -> affected facts -> recompute affected closure -> equals full-census oracle"
+
+[[priority]]
+id = "P5"
+name = "ABSORPTION_EXTINCTION_STORAGE_RECYCLING"
+status = "PARTIAL"
+meaning = "absorb -> verify -> delete donor source -> post-delete recensus -> reclaim (ADR 0021 working set exists)"
+
+[[priority]]
+id = "P6"
+name = "CONSTRUCTION_COMPILER_SUBSTRATE"
+status = "OPEN"
+meaning = "semantic state -> constructed artifacts, with rustc/cargo as explicit bootstrap boundaries"
+
+# P7+: secondary workloads. Not deleted; used only as census test workloads. A generation may
+# work on them only when its `serves` names the P0-P6 proof it produces evidence for.
+[[secondary_workload]]
+family = "CREATOR_FABRIC"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "web behaviour -> census -> typed DOM/CSS/layout/interaction/motion semantics -> recensus after modification"
+
+[[secondary_workload]]
+family = "PHYSICAL_ENGINEERING"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "units, constraints, dynamics and simulation evidence as census semantics"
+
+[[secondary_workload]]
+family = "PRODUCT_FOUNDRY"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "BOM, economics and variants as census semantics; resumes after P0 + P2 + P3 underway"
+
+[[secondary_workload]]
+family = "FUTURES"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "design search / hypotheses only as census evidence"
+
+[[secondary_workload]]
+family = "LADYBIRD_MIGRATION"
+state = "DEFERRED"
+census_role = "only if Chromium-only observation causes an epistemic census gap that needs an independent engine to falsify"
+
+[[secondary_workload]]
+family = "MEDIA_ROBOTICS_COMMERCE"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "none on the critical path"
+
+# Asked machine-readably before choosing any objective; all false => DEFER.
+[selection_rule]
+questions = [
+  "does it directly improve census closure?",
+  "does it directly improve the self-recensus proof?",
+  "does it directly improve ADL/.atlas/.atlasx production?",
+  "does it directly advance the first-50 donor campaign?",
+  "does it directly improve incremental recensus?",
+  "does it directly improve extinction/storage recycling?",
+  "does it directly improve the construction substrate?",
+]
+all_false = "DEFER"
+frontier_expansion_frozen = true
+hard_stop = "tools/atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and frontier expansion BLOCKED, machine-enforced since G118)"
+# G116 (ADR 0038): selection obeys both rules, and the essential-complexity debt queue comes
+# before any donor while FOUNDATIONAL_ATLAS_READY is NOT_MET.
+rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
+rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
+debt_ledger = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+next_native_attack = "NA-CALL-TYPE-RESIDUAL"
+# G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
+[agent_worn]
+contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
+interface_generation = "G122"
+generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR", "REPLAY", "SELF_RECONSTRUCTION", "CREATION"]
+# G151 (ADR 0067): REPLAY is the FULL_OSS_REPLAY lane (roadmap/FULL-OSS-REPLAY.toml); every replay is an
+# Agent-Worn mission, and no more than one non-replay generation passes between replays.
+full_oss_replay = "tools/atlas/roadmap/FULL-OSS-REPLAY.toml"
+# G153 (ADR 0069): SELF_RECONSTRUCTION is the permanent lane in which Atlas rebuilds bounded parts of
+# itself from its census alone and verifies them against the original; a non-replay generation that
+# interleaves with FULL_OSS_REPLAY under its cadence (contracts/SELF-RECONSTRUCTION.md).
+self_reconstruction = "tools/atlas/roadmap/SELF-RECONSTRUCTION.toml"
+native_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AUDIT"]
+interleaving_classes = ["REVALIDATION", "AGENT_MISSION", "DEBT_TRIGGERED_DONOR_ATTACK"]
+max_consecutive_interleaving = 2
+agent_mission_every = 5
+rule = "the pressure-selected queue head is planned for the next generation, or the one after it when exactly one interleaving generation is planned first; no more than two consecutive interleaving generations; an AGENT_MISSION at least every five generations after the interface exists"
+frontier_addition_requires = "a first-50 dependency needs it, or a missing foundational mechanism has no representative donor; recorded explicitly"
+
+# G179 (ADR 0092): correctness must enable construction, not permanently replace it. From policy_start
+# every GENERATIONS.toml entry carries lane, a [generation.value] table and, when the generation grew
+# beyond its objective, [[generation.expansion]] entries; runtime tests (essential_complexity) enforce
+# the lanes, the plan, the value metric and the residual ledger. CREATION is not an interleaving class.
+[generation_lanes]
+decision = ".atlas/decisions/0092-correctness-must-enable-construction.md"
+established_in = "G179"
+policy_start = "G179"
+lanes = ["HARDENING", "CREATION"]
+hardening = "donor or replay-driven falsification of existing capabilities, native hardening attacks and revalidations: every kind except CREATION"
+creation = "one new vertical capability toward ADL, design, .atlas, construction, .atlasx, executable or product and self-reconstruction (kind CREATION): the smallest real slice that moves one construction node to EXISTS"
+max_consecutive_hardening = 1
+rule = "from policy_start no more than max_consecutive_hardening HARDENING generations in a row, so CREATION comes at least every other generation; kind CREATION is exactly lane CREATION"
+correctness_exemption = "the only exemption: a HARDENING generation carrying correctness_blocker = <residual id>, naming an OPEN residual of RESIDUALS.toml with can_create_false_claim = true (a known-wrong claim blocking correctness), takes the slot a CREATION generation would have and the run restarts after it (REPLAY, NATIVE blocker, REPLAY, CREATION)"
+cadence_interplay = "the replay cadence (ADR 0067, FULL-OSS-REPLAY.toml max_non_replay_between = 1) is an owner gate and stays exactly as it was: CREATION and a correctness blocker are non-replay generations. With max_consecutive_hardening = 1 the two cadences give REPLAY, CREATION, REPLAY, CREATION: replays keep every other generation and native resolver hardening pauses unless a false-claim residual blocks correctness; reopening regular native slots needs a new policy decision, not drift"
+hardening_head_deferred = "the HARDENING queue head is still selected by pressure and named by next_native_attack; its planned_generation is LANE_DEFERRED unless an OPEN residual with can_create_false_claim = true names it (attack = <its id>), and then it is planned in the next CREATION slot as CORRECTNESS_BLOCKER <residual id>"
+plan_rule = "when the HARDENING run at the ledger head equals max_consecutive_hardening, the next generation is planned as CREATION; the numbered planned generations after the head keep both cadences; the next CREATION generation names the pressure map's selected_creation_attack"
+creation_selection = "tools/atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml [creation_selection]"
+residuals = "tools/atlas/roadmap/RESIDUALS.toml"
+complexity_budget = "a donor exposes A, A exposes B, B exposes C, D, E and F: fix everything required to eliminate the current tree's known-wrong claims and record the rest as residuals (RESIDUALS.toml); a generation may expand beyond its objective only when the new issue can falsify the current tree's claimed truth or invalidate the current generation's evidence, each expansion recorded as [[generation.expansion]] with its justification"
+expansion_justifications = ["FALSIFIES_CURRENT_TRUTH", "INVALIDATES_GENERATION_EVIDENCE"]
+vertical_stages = ["ADL", "DESIGN", "ATLAS", "CONSTRUCTION", "ATLASX", "EXECUTABLE", "SELF_RECONSTRUCTION", "NONE"]
+value_rubric = "capability_delta = node_weight x len(construction_nodes_completed) + capability_weight x new_capabilities (a capability epoch, or a new native user-visible command or record) + maturity_weight x maturity_steps (debt maturity levels gained); new_capability may be empty only for HARDENING"
+node_weight = 3
+capability_weight = 2
+maturity_weight = 1
+frontier_rate = "round(capability_delta x 3600 / wall_clock_s, 2): capability delta per wall-clock hour"
+low_frontier_rate = 0.5
+frontier_class_rule = "LOW_FRONTIER_PROGRESS when frontier_rate < low_frontier_rate and the generation is not correctness_critical, else FRONTIER_PROGRESS"
+
+# The last generation before the policy, measured (not G178's ledger entry, which stays as written).
+[generation_lanes.baseline]
+generation = "G178"
+evidence = "tools/atlas/evidence/verification/G178-verification-cost.json"
+lane = "HARDENING"
+new_capability = "capability epoch E24: the import fixed point converges wherever rustc's does (ADR 0091)"
+vertical_stage = "NONE"
+construction_nodes_completed = []
+new_capabilities = 1
+maturity_steps = 0
+capability_delta = 2
+wrong_claims_removed = 4
+wrong_claims_counted = "the WRONG classes ADR 0091 names that the E23 base tree held: the non-converged fallback trusting a self-grown import path, extern crate self bound as an external root, a value-only std import beside an unconfirmed dependency, workspace dependencies keyed by manifest key; two WRONG classes introduced and removed inside G178 (an external import bound in both namespaces, a triple-quoted path read as empty) are not counted"
+wall_clock_s = 21705
+machine_s = 294
+proof_s = 2269
+review_s = 4090
+fix_s = 11843
+lost_s = 3209
+residuals_deferred = 12
+correctness_critical = true
+frontier_rate = 0.33
+frontier_class = "FRONTIER_PROGRESS"
+note = "0.33 capability delta per hour is below low_frontier_rate; FRONTIER_PROGRESS only because WRONG claims were removed (correctness_critical)"
+
+# What a closed census of a selected scope requires. FULL_CENSUS_CLOSED is never claimed without
+# every element; the reconciliation certificate (P0) is what asserts it.
+[census_closure]
+required_elements = [
+  "SOURCE_INVENTORY_COMPLETE",
+  "ARTIFACT_CONTENT_IDENTITY",
+  "LANGUAGE_EXTRACTION",
+  "TYPED_SEMANTIC_FACTS",
+  "CONTROL_DATA_STATE_EFFECT_SEMANTICS",
+  "DEPENDENCY_CLOSURE",
+  "SOURCE_BACKED_PROVENANCE",
+  "EXPLICIT_UNKNOWNS",
+  "NORMALIZATION",
+  "ENGINEERING_GRAPH",
+  "DETERMINISTIC_REPLAY",
+  "RECONCILIATION_CERTIFICATE",
+]
+
+# Atlas self-scope at the G57 baseline (4fcb0d6819), from its own census.
+[census_closure.self_scope_g57]
+SOURCE_INVENTORY_COMPLETE = "PARTIAL: 98 artifacts; apps/cli (the atlas-systemizer crate) is outside the manifest's source roots and is not censused; 8 artifacts UNKNOWN (HTML/CSS fixtures, .in vector files)"
+ARTIFACT_CONTENT_IDENTITY = "OBSERVED: BLAKE3 per inventoried artifact; .atlas markdown docs are counted but not content-identified"
+LANGUAGE_EXTRACTION = "PARTIAL: rust semantic extractor; javascript/json/toml/markdown parsed only; html/css/.in unsupported"
+TYPED_SEMANTIC_FACTS = "PARTIAL: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE OBSERVED"
+CONTROL_DATA_STATE_EFFECT_SEMANTICS = "UNKNOWN: CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE coverage UNKNOWN; 624 INCOMPLETE_ANALYSIS diagnostics"
+DEPENDENCY_CLOSURE = "OBSERVED: cargo closure CLOSED (39 edges, 23 instances, 0 dangling, 9 dynamic obligations)"
+SOURCE_BACKED_PROVENANCE = "PARTIAL (corrected by the G59 certificate): 230 facts without revision (ADL-derived), 120 without extractor (obligations for uncovered artifacts)"
+EXPLICIT_UNKNOWNS = "OBSERVED: 632 UNKNOWN + 120 UNSUPPORTED facts represented"
+NORMALIZATION = "OBSERVED: 10482 -> 10482 normalized, 0 conflicts"
+ENGINEERING_GRAPH = "OBSERVED: 61739 nodes, 78759 edges, 139 bindings"
+DETERMINISTIC_REPLAY = "OBSERVED: two censuses of 4fcb0d6819 give census digest 81c7931c53cd... (G57)"
+RECONCILIATION_CERTIFICATE = "PRESENT_G59: state CENSUSED (see ADR 0025 blockers)"
+verdict = "NOT_CLOSED"
+
+# Element changes since the G57 snapshot, each proven by self-recensus (evidence/census/G<n>).
+[census_closure.progress]
+G60 = "SOURCE_INVENTORY_COMPLETE: apps/cli in scope; 4 of 4 source-backed workspace members censused"
+G61 = "SOURCE_INVENTORY_COMPLETE + LANGUAGE_EXTRACTION: 0 artifacts without a source frontend (html, css registered; 3 .in files classified rust-include-fragment by their observed include!); their 96 obligations are explicit UNSUPPORTED; provenance without extractor rises 132 -> 228 (unsupported-language batches carry no extractor identity)"
+G62 = "SOURCE_BACKED_PROVENANCE: OBSERVED -- every census fact carries the census revision and a named producer (0/0 gaps); RECONCILIATION_CERTIFICATE: self-scope RECONCILED"
+G63 = "ADL <- census: authored depends_on reconciled against the dependency census (4 SATISFIED; WebUI -> Runtime not censusable); census findings adapter -> core and the atlas-cli member derived into .atlas/declared/census.adl"
+G64 = "RECONCILIATION_CERTIFICATE: census state packages into a verified unsealed .atlas census container (ATLAS wire v1); the certificate records its root identity (ATLAS_ROOT_ABSENT -> ATLAS_ROOT_UNSEALED)"
+G65 = "P4 input from the tree-sitter cycle: a warm self-recensus spends ~6 s outside parsing/extraction (extraction of all 89 Rust artifacts is ~3-4 s cold and cached per artifact) -- incremental recensus must target inventory digesting, census build, normalization and graph, not parsing"
+G66 = "P1 precision + P4 input from the scip cycle: self-recensus now proves entity-level correspondence (snapshot v3). P4: extraction batches embed the revision, so no batch survives a commit; revision-stable descriptors are the prerequisite for cross-commit reuse and for invalidating by changed entity instead of changed file -- together with the ~6 s spent outside parsing (G65), the P4 targets are inventory hashing, census build, normalization, graph and revision-independent batch keys"
+G67 = "P0 census correctness from the kythe cycle: symbol/type identity carries its source artifact; 203 cross-file conflated ids -> 0; 609 graph nodes the census had silently dropped are restored"
+G68 = "P2 artifact integrity from the glean cycle: .atlas schema_id derived from declared record schemas; a tag-repurposing version is refused instead of silently misread"
+G69 = "P0 input from the joern cycle: CALL/DATA_FLOW/... UNKNOWN is a resolution gap (Joern itself resolves Rust through an external rust_ast_gen and falls back to Any); a graph layer cannot close it -- compiler-grade resolution can (rust #15, miri #16; rust-analyzer #4 DECIDED partial). Graph is 650-4,500x below columnar scale"
+G73 = "P0 measured: Atlas resolves 0 of 12,671 call sites; the pinned toolchain rust-analyzer (SCIP) resolves ~89% -- compiler-grade resolution is the EXTERNAL_BOUNDARY oracle that can close CALL coverage and MULTI_ENGINE_RECONCILIATION_ABSENT (G74)"
+G74 = "P0 CALL identity: a chain's calls shared their first token and collapsed into one record (3,888 of 18,035 call sites silently erased); anchored at the callee name, CALL records 12,671 -> 16,072 = an independent syntax enumeration of the profile. Oracle-as-census-engine rejected for now: CI has no rust-analyzer, so it would make the census environment-dependent; it becomes the verification oracle of native path resolution (G75)"
+G75 = "P0 CALL resolution: hir-def name resolution absorbed natively (rust-analyzer #4) as a second CALL engine; 3,731 path calls resolved to their FunctionIdentity, all confirmed by the pinned SCIP oracle (95.1% recall); CALLS graph edges; the multi-engine blocker now names each single-engine dimension instead of clearing on any one"
+G76 = "P0 input from the miri cycle: EFFECT observes only panic candidates while 504 call sites reach effectful std modules (fs 352, process 63, env 50, io 20, time 17, thread 2); the mechanism is std-path resolution + a declared effect table on top of G75, not interpretation (0 unsafe constructs; Miri nightly-only)"
+G77 = "P0 EFFECT: filesystem effect sites derived from resolved std paths through a declared table -- 323 DERIVED FILESYSTEM_READ/WRITE sites (all confirmed by SCIP); EFFECT has two engines; env/time/process-spawn stay unobserved, never mislabeled"
+G78 = "P0 input from the clef cycle: the residual CALL gap is 10,776 method calls; 595 self.m() calls reach a workspace inherent method and are decidable natively by the method probe's first step when receiver forms match (G79)"
+G79 = "P0 CALL: self.m() resolved by the method probe's first step -- 496 more calls, all SCIP-confirmed (4,227 CALL claims resolved natively in total)"
+G80 = "P4 measured from the proof chain: edits touch a median 3 of ~117 artifacts, full self-recensus ~7.8 s (extraction ~3.8 s, memoizable), analyzer changes invalidate everything -- shallow invalidation plus recompute suffices (differential-dataflow REFERENCE_ONLY); self-recensus does not yet use the extraction cache"
+G82 = "P0 input from the egglog cycle: 49 TYPE classes carry one type under several spellings (598 occurrences; 13 need congruence over generic arguments); all are equal by name resolution, so canonical type identity is a bottom-up resolution over the G75 DefMap, not an e-graph (G83)"
+G83 = "P0 TYPE: canonical type identity through native name resolution -- 1,723 claims unite 176 spellings of 84 types, SCIP-confirmed (3,077 agree, 0 disagree); TYPE has two engines"
+
+# Exit criteria of the first phase; broad expansion stays frozen until all are MET.
+[exit_criteria]
+A_self_recensus_mandatory_and_operational = "MET_G57 (enforced by generation_ledger_self_recensus_chain)"
+B_reconciliation_certificate = "MET_G59 (CensusCertificate v2 computed; self-scope CENSUSED with typed blockers; RECONCILED since G62)"
+C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency architecture reconciled both ways and derived as .atlas/declared/census.adl; external packages, symbols, effects and state are not yet lowered to ADL)"
+D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
+E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator; G116: the prerequisites are a finite graph (ESSENTIAL-COMPLEXITY-DEBT.toml [[construction_node]]), the first missing node on the critical path is M1 typed-record .atlas sections, and each node is owned by a queued debt"
+F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
+G_first_50_sequential_lifecycle_substantial = "MET_G115: 4 historic terminals + 46 campaign terminals (salsa #5 G115; c2rust #50 G114 REFERENCE_ONLY; openrewrite #49 G113 REFERENCE_ONLY; tlaplus #48 G112 EXTERNAL_BOUNDARY at the consumer gate; nix #47 G111 REFERENCE_ONLY at the consumer gate; git #46 G110 EXTERNAL_BOUNDARY at the consumer gate; in-toto #45 G109 ABSORBED; z3 #44 G108 EXTERNAL_BOUNDARY at the consumer gate; containers-image #43 G107 REFERENCE_ONLY; podman #42 G106 EXTERNAL_BOUNDARY; verus #41 G105 EXTERNAL_BOUNDARY; kani #40 G104 EXTERNAL_BOUNDARY; mold #39 G103 EXTERNAL_BOUNDARY; regalloc2 #38 G102 REFERENCE_ONLY; object #37 G101 REFERENCE_ONLY; wasmtime #36 G100 EXTERNAL_BOUNDARY; wasm-tools #35 G99 REFERENCE_ONLY; wasm-component-model #34 G98 REFERENCE_ONLY; wasm-spec #33 G97 REFERENCE_ONLY; llvm-project #32 G96 EXTERNAL_BOUNDARY; agentir #31 G95 REFERENCE_ONLY; composer #30 G94 REFERENCE_ONLY; duumbi #29 G93 REFERENCE_ONLY; sigil-lang #28 G92 REFERENCE_ONLY; iris #27 G91 ABSORBED; xdsl #26 G90 REFERENCE_ONLY; mlir #25 G89 REFERENCE_ONLY; arrow #24 G88 REFERENCE_ONLY; zstd #23 G87 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED; rkyv #21 G85 REFERENCE_ONLY; capnproto #20 G84 REFERENCE_ONLY; egglog #19 G82 REFERENCE_ONLY; buck2 #18 G81 DEFERRED to AIF1; differential-dataflow #17 G80 REFERENCE_ONLY; clef #16 G78 REFERENCE_ONLY; miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; clef #16 G78 REFERENCE_ONLY; G79 P0 self.m() done; differential-dataflow #17 G80 REFERENCE_ONLY; buck2 #18 G81 DEFERRED (AIF1); egglog #19 G82 REFERENCE_ONLY; G83 P0 canonical types done; capnproto #20 G84 REFERENCE_ONLY (+ SEALED unknown-field clause); rkyv #21 G85 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED (schema-evolution conformance); zstd #23 G87 REFERENCE_ONLY (+ bounded ZSTD section profile); arrow #24 G88 REFERENCE_ONLY (codec before columnar); mlir #25 G89 REFERENCE_ONLY (slice extinct, llvm-project stays); xdsl #26 G90 REFERENCE_ONLY; iris #27 G91 ABSORBED (ambient-input effects, +59 EFFECT sites); sigil-lang #28 G92 REFERENCE_ONLY; duumbi #29 G93 REFERENCE_ONLY; composer #30 G94 REFERENCE_ONLY (hyperedges falsified); agentir #31 G95 REFERENCE_ONLY; llvm-project #32 G96 EXTERNAL_BOUNDARY; wasm-spec #33 G97 REFERENCE_ONLY (+ section_flags = 0 pinned); wasm-component-model #34 G98 REFERENCE_ONLY; wasm-tools #35 G99 REFERENCE_ONLY (DC1 tests ledger-driven); wasmtime #36 G100 EXTERNAL_BOUNDARY; object #37 G101 REFERENCE_ONLY; regalloc2 #38 G102 REFERENCE_ONLY; mold #39 G103 EXTERNAL_BOUNDARY; kani #40 G104 EXTERNAL_BOUNDARY; verus #41 G105 EXTERNAL_BOUNDARY; podman #42 G106 EXTERNAL_BOUNDARY; containers-image #43 G107 REFERENCE_ONLY; z3 #44 G108 EXTERNAL_BOUNDARY (never admitted); in-toto #45 G109 ABSORBED (generation-product-match); git #46 G110 EXTERNAL_BOUNDARY; nix #47 G111 REFERENCE_ONLY; tlaplus #48 G112 EXTERNAL_BOUNDARY; openrewrite #49 G113 REFERENCE_ONLY; c2rust #50 G114 REFERENCE_ONLY; salsa #5 G115 ABSORBED (memo; invalidation REFERENCE_ONLY at the measured scale); every first-50 donor is terminal; campaign completion is not FOUNDATIONAL_ATLAS_READY (ADR 0038)"
+H_incremental_recensus_with_oracle = "OPEN: incremental recompute speed is SCALE-INCREMENTAL_RECOMPUTE behind a numeric trigger; the affected-impact closure is essential (DEBT-IMPACT_CLOSURE, queued)"
+I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); 45 first-50 donors physically extinct, each followed by a PROVEN post-delete self-recensus (through G115); the 7 unadmitted tracked checkouts (borg, cdc-file-transfer, fastcdc-rs, git, lz4, restic, xz) await user approval (BLOCKED_ON_USER)"
+J_foundational_atlas_ready = "NOT_MET (G118): 3 of 10 criteria MET (self-recensus, threshold-backed P4 strategy, no unbounded essential debt); FOUNDATIONAL-ATLAS-READY.toml is canonical; distinct from G"
+
+# Planned trajectory (adapted to HEAD); each item one bounded, self-recensus-proven generation.
+[[planned_generation]]
+id = "G58"
+priority = "P3"
+objective = "canonical first-50 donor campaign (done)"
+
+[[planned_generation]]
+id = "G59"
+priority = "P0"
+objective = "reconciliation census certificate for the Atlas self-scope"
+
+[[planned_generation]]
+id = "G60"
+priority = "P0"
+objective = "atlas-systemizer crate into census scope (done)"
+
+[[planned_generation]]
+id = "G61"
+priority = "P0"
+objective = "source frontends for the UNKNOWN artifacts (done)"
+
+[[planned_generation]]
+id = "G62"
+priority = "P0"
+objective = "provenance completeness; the certificate reaches RECONCILED (done)"
+
+[[planned_generation]]
+id = "G63"
+priority = "P2"
+objective = "ADL <- census: dependency reconciliation + census-derived ADL (done)"
+
+[[planned_generation]]
+id = "G64"
+priority = "P2"
+objective = "minimum .atlas writer/reader/validator over validated census state (done)"
+
+[[planned_generation]]
+id = "G65"
+priority = "P3"
+objective = "first-50 #6 tree-sitter: falsify incremental parsing by measurement, decide per mechanism, physically extinct (done: REFERENCE_ONLY); AtlasX (exit E) recorded BLOCKED_ON_PREREQUISITES"
+
+[[planned_generation]]
+id = "G66"
+priority = "P3"
+objective = "first-50 #7 scip: measured identity loss; absorbed position-free descriptor identity + native correspondence into self-recensus (done: ABSORBED, extinct)"
+
+[[planned_generation]]
+id = "G67"
+priority = "P3"
+objective = "first-50 #8 kythe: measured cross-file identity conflation; absorbed VName path into symbol/type identity (done: ABSORBED, extinct)"
+
+[[planned_generation]]
+id = "G68"
+priority = "P3"
+objective = "first-50 #9 glean: measured silent misread under the name-derived schema_id; absorbed definition-derived schema identity (done: ABSORBED, extinct)"
+
+[[planned_generation]]
+id = "G69"
+priority = "P3"
+objective = "first-50 #10 joern: coverage and layout hypotheses falsified by source and measurement (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G70"
+priority = "P3"
+objective = "first-50 #11 semgrep: import-aware pattern matching measured to change nothing in Atlas (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G71"
+priority = "P3"
+objective = "first-50 #12 ast-grep: no Atlas source-rewriting consumer (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G72"
+priority = "P3"
+objective = "first-50 #13 sourcetrail: element/occurrence model already native (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G73"
+priority = "P3"
+objective = "first-50 #14 rust: resolution gap measured; compiler-grade resolution decided EXTERNAL_BOUNDARY (done, extinct)"
+
+[[planned_generation]]
+id = "G74"
+priority = "P0"
+objective = "CALL site identity: anchor at the callee-name token so chains are not erased (done; the planned oracle import was falsified first -- see G74 ledger)"
+
+[[planned_generation]]
+id = "G75"
+priority = "P0"
+objective = "rust-analyzer #4: hir-def name resolution absorbed natively as a second CALL engine (done: ABSORBED, extinct)"
+
+[[planned_generation]]
+id = "G76"
+priority = "P3"
+objective = "first-50 #15 miri: no unsafe code, nightly-only; EFFECT gap measured (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G77"
+priority = "P0"
+objective = "EFFECT from resolved std paths (done: 323 filesystem effect sites, SCIP-confirmed)"
+
+[[planned_generation]]
+id = "G78"
+priority = "P3"
+objective = "first-50 #16 clef: no F# workload; residual method-call gap measured (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G79"
+priority = "P0"
+objective = "self.m() method calls resolved by the method probe's first step (done: 496, SCIP-confirmed)"
+
+[[planned_generation]]
+id = "G80"
+priority = "P3"
+objective = "first-50 #17 differential-dataflow: edit-to-recensus workload measured (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G81"
+priority = "P3"
+objective = "first-50 #18 buck2: DICE keyed invalidation REFERENCE_ONLY, branching DEFERRED to AIF1 (done, extinct)"
+
+[[planned_generation]]
+id = "G82"
+priority = "P3"
+objective = "first-50 #19 egglog: no conflicts, type equivalence is resolution (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G83"
+priority = "P0"
+objective = "canonical type identity through name resolution (done: 1,723 claims, SCIP-confirmed)"
+
+[[planned_generation]]
+id = "G84"
+priority = "P3"
+objective = "first-50 #20 capnproto: checklist executed against the reader; SEALED unknown-field clause (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G85"
+priority = "P3"
+objective = "first-50 #21 rkyv: no wire pointers; cache loads in ~0.35 s (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G86"
+priority = "P3"
+objective = "first-50 #22 flatbuffers: schema-evolution conformance (done: ABSORBED, extinct)"
+
+[[planned_generation]]
+id = "G87"
+priority = "P3"
+objective = "first-50 #23 zstd: no consumer for the 5.8x saving; bounded ZSTD section profile pinned (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G88"
+priority = "P3"
+objective = "first-50 #24 arrow: columnar 1.4x after compression, no consumer (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G89"
+priority = "P3"
+objective = "first-50 #25 mlir: no registry precondition holds in Rust/ACP; shared-repository extinction rule (done: REFERENCE_ONLY, slice extinct)"
+
+[[planned_generation]]
+id = "G90"
+priority = "P3"
+objective = "first-50 #26 xdsl: both forks settled by G89 and the ASIR admission pipeline (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G91"
+priority = "P3"
+objective = "first-50 #27 iris: ambient-input effects ENVIRONMENT_READ/CLOCK_READ, +59 SCIP-confirmed effect sites (done: ABSORBED, extinct)"
+
+[[planned_generation]]
+id = "G92"
+priority = "P3"
+objective = "first-50 #28 sigil-lang: no open item, no fired trigger (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G93"
+priority = "P3"
+objective = "first-50 #29 duumbi: JSON-LD rejected; DC1 trial at 7/15 (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G94"
+priority = "P3"
+objective = "first-50 #30 composer: hyperedges falsified on 17,421 real join nodes (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G95"
+priority = "P3"
+objective = "first-50 #31 agentir: no loss-disclosure consumer (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G96"
+priority = "P3"
+objective = "first-50 #32 llvm-project: installed-toolchain backend/oracle boundary (done: EXTERNAL_BOUNDARY, 2.7 GB extinct)"
+
+[[planned_generation]]
+id = "G97"
+priority = "P3"
+objective = "first-50 #33 wasm-spec: section_flags = 0 pinned and asserted (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G98"
+priority = "P3"
+objective = "first-50 #34 wasm-component-model: own/borrow question moved into the ASIR contract (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G99"
+priority = "P3"
+objective = "first-50 #35 wasm-tools: DC1 tests follow the corpus ledger (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G100"
+priority = "P3"
+objective = "first-50 #36 wasmtime: Cranelift and Wasm sandbox are crate boundaries (done: EXTERNAL_BOUNDARY, extinct)"
+
+[[planned_generation]]
+id = "G101"
+priority = "P3"
+objective = "first-50 #37 object: no object stage exists (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G102"
+priority = "P3"
+objective = "first-50 #38 regalloc2: no Machine IR stage (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G103"
+priority = "P3"
+objective = "first-50 #39 mold: integrate an installed linker (done: EXTERNAL_BOUNDARY, extinct)"
+
+[[planned_generation]]
+id = "G104"
+priority = "P3"
+objective = "first-50 #40 kani: external verifier via SARIF, no evidence consumer yet (done: EXTERNAL_BOUNDARY, extinct)"
+
+[[planned_generation]]
+id = "G105"
+priority = "P3"
+objective = "first-50 #41 verus: external verifier, no proof-evidence consumer (done: EXTERNAL_BOUNDARY, extinct)"
+
+[[planned_generation]]
+id = "G106"
+priority = "P3"
+objective = "first-50 #42 podman: probed optional SandboxBackend (done: EXTERNAL_BOUNDARY, extinct)"
+
+[[planned_generation]]
+id = "G107"
+priority = "P3"
+objective = "first-50 #43 containers-image: no signature consumer before sealing (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G108"
+priority = "P3"
+objective = "first-50 #44 z3: decided at the consumer gate, never admitted (done: EXTERNAL_BOUNDARY)"
+
+[[planned_generation]]
+id = "G109"
+priority = "P3"
+objective = "first-50 #45 in-toto: generation-product-match on the self-recensus chain (done: ABSORBED, never admitted)"
+
+[[planned_generation]]
+id = "G110"
+priority = "P3"
+objective = "first-50 #46 git: the VCS boundary Atlas already uses (done: EXTERNAL_BOUNDARY at the consumer gate; unadmitted checkout BLOCKED_ON_USER)"
+
+[[planned_generation]]
+id = "G111"
+priority = "P3"
+objective = "first-50 #47 nix: input-closure identity already native (done: REFERENCE_ONLY at the consumer gate)"
+
+[[planned_generation]]
+id = "G112"
+priority = "P3"
+objective = "first-50 #48 tlaplus: no spec, no model-checking consumer (done: EXTERNAL_BOUNDARY at the consumer gate)"
+
+[[planned_generation]]
+id = "G113"
+priority = "P3"
+objective = "first-50 #49 openrewrite: no source-writing consumer (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G114"
+priority = "P3"
+objective = "first-50 #50 c2rust: no C frontend or migration pipeline (done: REFERENCE_ONLY, extinct)"
+
+[[planned_generation]]
+id = "G115"
+priority = "P4"
+objective = "salsa (#5): invalidation REFERENCE_ONLY at the measured scale (done: ABSORBED memo, extinct); first-50 campaign complete"
+
+[[planned_generation]]
+id = "G116"
+priority = "P0"
+objective = "retrospective architecture audit (ADR 0038): essential complexity debt ledger, alarms, donor re-audit, native attack queue; FIRST_50_CAMPAIGN_COMPLETE separated from FOUNDATIONAL_ATLAS_READY"
+
+[[planned_generation]]
+id = "G117"
+priority = "P0"
+objective = "native attack queue head NA-CONCURRENCY-RESOLVED: CONCURRENCY from resolved std paths (done: 2 of 2 workspace thread scopes DERIVED, SCIP-confirmed; CONCURRENCY left the multi-engine blocker)"
+
+[[planned_generation]]
+id = "G118"
+priority = "P0"
+objective = "HARD STOP anti-avoidance audit (ADR 0040): 63-donor capability audit, debt ledger v2, pressure map, FOUNDATIONAL-ATLAS-READY gate, machine-enforced donor/frontier stop"
+
+[[planned_generation]]
+id = "G119"
+priority = "P0"
+objective = "mandatory native attack after the audit, selected by the pressure map: NA-MACRO-ARGUMENTS (CALL slice) (done: per-file CALL coverage on 75 of 98 files proven by an independent enumeration, +4,745 call sites, scope coverage aggregation fixed)"
+
+[[planned_generation]]
+id = "G120"
+priority = "P0"
+objective = "native attack queue head NA-MACRO-ARGUMENTS-WALKERS (selected by the pressure map): recovered std macro arguments into the other seven expression walkers with macro-specific semantics (done: role-aware semantics per dimension, implicit captures, assert decision points; metrics in the G120 ledger entry)"
+
+[[planned_generation]]
+id = "G121"
+priority = "P0"
+objective = "HISTORICAL_DONOR_REVALIDATION: recursive donor revalidation mechanism; re-materialize the highest-ranked REVALIDATION_REQUIRED extinct donor at its pinned commit, census it with current Atlas, record the historical-vs-current delta and outcome, delete it again, post-delete self-recensus (done: R1 rust REVALIDATED with a corrected reason)"
+
+[[planned_generation]]
+id = "G122"
+priority = "P0"
+objective = "COMPOSITION_ATTACK (ADR 0044): DEBT-SEMANTIC-COMPOSITION opened and NA-SEMANTIC-COMPOSITION landed; the agent interface over the composed world model (done: five composition levels, typed relations and invariants, MissionContext, 13 mutants killed)"
+
+[[planned_generation]]
+id = "G123"
+priority = "P0"
+objective = "AGENT_MISSION: the first mission on Atlas itself worked through the agent interface (understand -> MissionContext -> change -> impact -> verify -> recensus), recording what Atlas knew, what stayed UNKNOWN and what source was read manually; the agent-utility benchmark (done: M1 callee spelling, 7 manual reads, 14 of 14 benchmark cases)"
+
+[[planned_generation]]
+id = "G124"
+priority = "P0"
+objective = "native attack queue head (pressure map with dependency order): NA-QUANTITY-IN-CORE (done: quantity kinds, exact intervals, QUANTITY census facts and graph nodes; 8 mutants killed)"
+
+[[planned_generation]]
+id = "G125"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-PERSISTENCE-RESOLVED (done: 129 of 129 derived sites SCIP-confirmed; PERSISTENCE left the multi-engine blocker)"
+
+[[planned_generation]]
+id = "G126"
+priority = "P6"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-SANDBOX-SUBPROCESS (done: restricted-subprocess backend; filesystem confinement UNENFORCED and named; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G127"
+priority = "P2"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-VERIFICATION-EVIDENCE (done: typed obligations, evidence and reports; self scope evaluated; construction node M2 EXISTS; 6 mutants killed)"
+
+[[planned_generation]]
+id = "G128"
+priority = "P0"
+objective = "AGENT_MISSION: the second mission through the agent interface (cadence: within five generations of G123) (done: mission M2, module documentation as DECLARED component purpose; GAP-ITEM-DOCUMENTATION opened; 7 mutants killed)"
+
+[[planned_generation]]
+id = "G129"
+priority = "P4"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-IMPACT-CLOSURE (done: closure of a change checked by a full-recompute oracle; SOUND on seven recorded changes; 7 mutants killed)"
+
+[[planned_generation]]
+id = "G130"
+priority = "P2"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CONSTRAINT-NONGROUND (done: census-quantified invariants with three-valued verdicts; Atlas's layering declared and SATISFIED; 9 mutants killed)"
+
+[[planned_generation]]
+id = "G131"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-UNCERTAINTY-PREDICTIONS (done: one exact uncertainty carrier; every f64 drop recorded; uncertainty-honest physical verdicts; 6 mutants killed)"
+
+[[planned_generation]]
+id = "G132"
+priority = "P0"
+objective = "AGENT_MISSION: the third mission through the agent interface (cadence: within five generations of G128) (done: mission M3, function documentation as DECLARED function purpose; 4 manual reads, none UNKNOWN-driven; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G133"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CLOSURE-REGIONS (done: closure bodies as their own executable regions in every dimension and in resolution; 2,591 regions; 7 mutants killed)"
+
+[[planned_generation]]
+id = "G134"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-EPISTEMIC-UNIFICATION (done: one vocabulary map enforced over every workspace struct; graph confidence removed; futures states decided; 6 mutants killed)"
+
+[[planned_generation]]
+id = "G135"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-TYPED-RELATIONS (done: every graph relation a closed kind with its schema; untyped relations rejected; causation decided; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G136"
+priority = "P0"
+objective = "AGENT_MISSION: the fourth mission through the agent interface (cadence: within five generations of G132) (done: mission M4, the first donor Gundam proof -- revalidation R2 of datafrog; the impact closure run over 94 donor changes found and fixed two soundness defects; 3 mutants killed)"
+
+[[planned_generation]]
+id = "G137"
+priority = "P2"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-ADL-BEYOND-DEPENDENCIES (done: effect envelopes lowered into census.adl and reconciled every census; four SATISFIED on Atlas; a seeded category blocks admission; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G138"
+priority = "P2"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-INTEGRITY-ENVELOPE (done: census-falsifiable declarations pinned as a typed integrity envelope and evaluated into a report; silent weakening rejected; Atlas ELIGIBLE with 14 HARD invariants; 7 mutants killed)"
+
+[[planned_generation]]
+id = "G139"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL (first step done: method calls on typed locals decided by the probe's first step; 61 new resolutions, all agreeing with SCIP; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G140"
+priority = "P0"
+objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL second step (done, redirected: constructor-inferred lets need the autoref argument over every trait in scope, so the sound step was receivers known by workspace-trait bounds -- 21 DYNAMIC_PARTIAL calls to trait declarations, all agreeing with SCIP; 6 mutants killed)"
+
+[[planned_generation]]
+id = "G141"
+priority = "P0"
+objective = "AGENT_MISSION: the fifth mission through the agent interface (cadence: within five generations of G136) (done: mission M5, trait dispatch and closure enclosure relations; the census pipeline traces to the Rust extractor, INFERRED; 4 manual reads, none UNKNOWN-driven; 6 mutants killed; benchmark 19 of 19)"
+
+[[planned_generation]]
+id = "G142"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL (step three done: signature-typed lets and the guarded autoref step; 174 new resolutions, all agreeing with SCIP; 6 mutants killed)"
+
+[[planned_generation]]
+id = "G143"
+priority = "P0"
+objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL step four (done: receivers typed forward through declared fields and resolved call results; 76 new resolutions, all agreeing with SCIP; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G144"
+priority = "P0"
+objective = "std receivers through declared std signatures (done: the .atlas container writer's two fsync sites DERIVED SYNC persistence, SCIP-confirmed; Mutex::lock, Sender::send, Receiver::recv derivable; lets in nested blocks typed within their block; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G145"
+priority = "P0"
+objective = "planned NA-FIRST-ARTIFACT, which is not construction-reachable (M17 behind M16, M15 and MIN_ATLASX); selection now requires a construction-frontier node for the primary debt (M5 and M6 recorded EXISTS) and re-selects NA-CALL-TYPE-RESIDUAL (done: bounded item-macro names -- 1,250 more type occurrences canonicalized, 15 path calls resolved, all agreeing with SCIP; 10 mutants killed)"
+
+[[planned_generation]]
+id = "G146"
+priority = "P0"
+objective = "AGENT_MISSION: the sixth mission through the agent interface (done: M6 -- which parts of the census report reach the .atlas container, answered through field projections on DATA_FLOW uses; GAP-ARGUMENT-BINDING routed to DEBT-DATA_FLOW; 22 of 22 benchmark cases; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G147"
+priority = "P2"
+objective = "NA-ATLAS-TYPED-SECTIONS, construction node M1 (done: every typed semantic record, evidence record and diagnostic of the census written field by field through declared record kinds and read back; 151,171 typed records of all twelve families on the self census; 10 mutants killed)"
+
+[[planned_generation]]
+id = "G148"
+priority = "P2"
+objective = "NA-SELECTED-DESIGN, construction node M7 (done: SelectedDesign with a digest identity and a selection authority event, validated against a verified container, its evidence and a declared principal registry; a VALIDATED design over the G147 container accepted and a provider's attempted selection rejected; nothing SELECTED -- the owner's decision; 10 mutants killed)"
+
+[[planned_generation]]
+id = "G149"
+priority = "P2"
+objective = "NA-SEAL-POLICY, construction nodes M3 and M4 (done: all 19 certificate blocker codes typed, a scope policy disposing of each kind, a digest-pinned SealPolicy no provider can weaken past its bounds; the self census NOT_ELIGIBLE with every reason named; 9 mutants killed)"
+
+[[planned_generation]]
+id = "G150"
+priority = "P2"
+objective = "NA-DESIGN-CANDIDATES (done: candidate designs at one coordinate compared by criteria Atlas measures from the container, the Pareto front kept as a set; on the G149 container the pure decoder dominates the file reader and the combined design; a provider's selection of a dominated design and a single-design comparison refused; 16 mutants killed)"
+
+[[planned_generation]]
+id = "G151"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R1 GitNexus, an Agent-Worn mission (done: pinned 06ce60beb674, PolyForm Noncommercial -- run and studied, never copied; Atlas_N blind to its TypeScript; differential on Atlas Studio against ground truth; capability epoch E1: lifetime-erased impl shapes and an INFERRED impact frontier through closures, dispatch and unique names; 10 mutants killed; source extinct)"
+
+[[planned_generation]]
+id = "G152"
+priority = "P0"
+objective = "NA-TS-JS-PROFILE with the GitNexus pin as falsification target (done: Atlas-native TypeScript/JavaScript functions, signatures, symbols and same-file calls over a tree-sitter syntax substrate; the same pin 363 -> 65,414 functions and 6 -> 21,045 resolved call edges; 7 mutants killed; the re-materialized source deleted)"
+
+[[planned_generation]]
+id = "G153"
+priority = "P0"
+objective = "SELF_RECONSTRUCTION SR1 (owner directive; done: the lane canonicalized -- SH0-SH6, Rust bootstrap target, construction input boundary, typed construction gaps, shadow artifacts, verdicts computed from evidence; Atlas chose core::donor::MaterializationMode from its world model; attempt 1 CONSTRUCTION_GAP with 10 gaps and nothing emitted; SYMBOL definitions now carry their declared shape; attempt 2 CONSTRUCTION_GAP with one gap -- the type reconstructed from census records alone, 7 behavioral and 4 semantic checks EQUIVALENT, is_local's body the open gap (NA-SELF-RECONSTRUCTION-BODIES))"
+
+[[planned_generation]]
+id = "G154"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R3 tree-sitter/tree-sitter at v0.25.10 (done: the syntax substrate Atlas links, by dependency recursion; Atlas_N could not follow Parser::parse past an unresolved FFI call and did not know C existed; capability epoch E4 -- FOREIGN_FUNCTION declarations bound by the resolver, literal include! splicing, unrecognized source as an understanding gap; the same pin 0 -> 165 foreign declarations and 2,133 -> 2,322 resolved edges; 7 mutants killed; EXTERNAL_BOUNDARY at E4; source extinct)"
+
+[[planned_generation]]
+id = "G155"
+priority = "P0"
+objective = "NA-SUPPORT-LEVELS (universal engineering-world directive; done: every language and artifact class measured on L0-L6 from its own evidence, syntax never semantics, claims above the measured level refused by a test against roadmap/SUPPORT-LEVELS.toml; Atlas Studio Rust and JavaScript L6, CSS/HTML/JSON/Markdown/TOML L2; contracts/UNIVERSAL-ENGINEERING-WORLD.md; DEBT-TARGET_PROFILE and DEBT-ARTIFACT_SEMANTICS opened; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G156"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R4 salsa-rs/salsa at its G115 pin 5d8eaf1fa372 (done: the incremental-recomputation donor; Atlas_N could not follow maybe_changed_after into get_memo_from_table_for because salsa splits IngredientImpl's inherent methods across impls whose bounds are spelled differently; capability epoch E5 -- impl shapes normalized by the set of types they apply to; the same pin 986 -> 997 resolved edges and 7,602 -> 7,631 relations; early cutoff located at backdate_if_appropriate; 3 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER at E5, the G115 ABSORBED kept as history, revalidation R3 REVALIDATED; source extinct)"
+
+[[planned_generation]]
+id = "G157"
+priority = "P0"
+objective = "NA-RESOURCE-DIMENSION (DEBT-RESOURCE; done: RESOURCE is the thirteenth semantic dimension -- acquisitions of files, sockets, std lock guards and threads derived at resolved calls, releases claimed where a let-bound holder that is never moved gives them back, at its block end (INFERRED) or a resolved drop or join (DERIVED); a dropped thread handle detaches; on Atlas Studio 7 records, each checked against the source; the first proof exposed by-value methods as moves; 12 mutants killed; capability epoch E6)"
+
+[[planned_generation]]
+id = "G158"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R5 xyflow/xyflow at 0a1f9575b256 (done: TypeScript measured on the support ladder for the first time -- L6, Svelte L0; Atlas_N could not name one caller of getBezierPath; capability epoch E7 -- a second CALL engine links TypeScript/JavaScript modules through exports, re-exports, star exports and workspace packages; the same pin 147 -> 845 resolved edges, getBezierPath 0 -> 10 callers, all correct; 8 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER at E7; the pinned clone and the tracked legacy checkout extinct; GitNexus's trigger fired)"
+
+[[planned_generation]]
+id = "G159"
+priority = "P0"
+objective = "NA-ASYNC-REGIONS (DEBT-CALL, DEBT-EFFECT, DEBT-CONCURRENCY; done: an async block is its own executable region like a closure -- an ASYNC_BLOCK function under its enclosing region, every dimension attributed to it, calls resolved, enclosed in composition; 5 mutants killed; capability epoch E8)"
+
+[[planned_generation]]
+id = "G160"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R6 GitNexus revalidation at 06ce60beb674 (done: the first revalidation the lane fired itself -- re-opened at E7 by module linking; Atlas E8 resolved 45,345 edges on the pin (E2: 21,045) but not one caller of scoreImpactRisk in the compiled-only package gitnexus-shared; capability epoch E9 -- workspace packages entered through their declared outDir -> rootDir; scoreImpactRisk 0 -> 10 callers, all correct; 7 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER re-decided at E9; source extinct)"
+
+[[planned_generation]]
+id = "G161"
+priority = "P0"
+objective = "NA-SEAL-GATE (DEBT-SEAL_GATE, DEBT-VERIFICATION_EVIDENCE; done: one seal gate (M8) joins the seal policy, the container own certificate with its verdict recomputed, an admissible verification report and the required integrity verdict for the container census digest and clean revision, and a SELECTED design; the SEALED container (M9: flag SEALED, format minor 2, section 18) is written and read only with a record binding its certificate, census and revision and permitting every blocker, and a sealed root is exactly its own canonical encoding; the first wiring joined git:<sha> to revision:<sha> and would have refused every real container; 8 mutants killed; the self scope NOT_ELIGIBLE (RECONCILED certificate, no SELECTED design); capability epoch E10)"
+
+[[planned_generation]]
+id = "G162"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R7 zed-industries/zed at 0eda7703f6c8 (done: Atlas E10 could not hold the whole workspace (killed at 15 GB) and withheld the fs crate's file acquisitions without a reason; on a 17-crate slice its import fixed point oscillated around a re-export cycle and opened every module; capability epoch E11 -- the oscillation merged conservatively and every open scope named where the pilot looks; the same slice 7,648 -> 9,059 INVOKES, 0 -> 6 resources, 20 of 20 sampled new edges correct; rustc confirmed the remaining refusals sound; 10 mutants killed; REFERENCE_ONLY_UNTIL_TRIGGER at E11; both copies of the source extinct; SCALE-CENSUS_MEMORY fired)"
+
+[[planned_generation]]
+id = "G163"
+priority = "P0"
+objective = "owner-directed weight-artifact upgrade, NA-ARTIFACT-SEMANTICS-WEIGHTS (DEBT-ARTIFACT_SEMANTICS; done: weights an artifact class with a physical layer -- atlas.weight-census.v1, dtype, shape, payload range and BLAKE3 digest per tensor, ranges tiling the payload -- apart from a semantic layer whose roles stay UNKNOWN; SafeTensors censused streamed and data-only; construction mechanical from the record and digest-verified ranges, content preservation checked by re-census; LOSSLESS / REVERSIBLE_WITH_RETAINED / LOSSY typed; the reference implementation reads the output back equal; 12 mutants killed; capability epoch E12; ADR 0078). It displaced NA-QUANTITY-SIDE-REPORTS by one native slot; the replay cadence holds"
+
+[[planned_generation]]
+id = "G164"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R8 google/crubit at 34c96fb368e1 (done: Atlas E12 censused the whole Rust/C++ interop workspace in 2.5 GB but resolved 154 of 33,946 calls -- 50 crates keep their manifests in a parallel cargo/ tree pointing at ../../../<source>.rs and no crate root reached them, silently; capability epoch E13 -- a crate root is its manifest target path normalized; the same pin 154 -> 1,657 INVOKES, 20 of 20 sampled correct; the C++ half, FFI resource pairs and generated golden files remain named gaps; REFERENCE_ONLY_UNTIL_TRIGGER; both copies of the source extinct; ADR 0079)"
+
+[[planned_generation]]
+id = "G165"
+priority = "P0"
+objective = "NA-QUANTITY-SIDE-REPORTS (DEBT-QUANTITY_UNITS; done: every quantity the physical and product models derive enters the census as a QUANTITY fact with its status and a QUANTITY_DERIVATION fact per input, the graph as a derived-quantity node with DERIVED_FROM edges; scaling by a pure number keeps a kind, so a torque over a gear reduction stays a torque; the side reports are the oracle; 10 mutants killed, 1 equivalent removed; capability epoch E14; ADR 0080)"
+
+[[planned_generation]]
+id = "G166"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R9 huggingface/safetensors at e246a2560645 (done: the format's own reader, built from the pinned crate as a black-box oracle, falsified the E12 weight reader on 44 hand-written containers -- 7 element types missing, a 100 MiB header bound over the format's 100,000,000 bytes, misaligned sub-byte tensors refused for the wrong reason; capability epoch E15 -- the whole dtype table sized in bits and the format's bound; 34 -> 42 of 44 agree, 26 of 26 constructed files accepted by the reference; duplicate keys and unknown fields refused on purpose; REFERENCE_ONLY_UNTIL_TRIGGER; source extinct; ADR 0081)"
+
+[[planned_generation]]
+id = "G167"
+priority = "P0"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done, measured, NO_CAPABILITY_DELTA: Atlas-first, 280 unresolved self.m() calls on Atlas -- 101 inherent calls withheld at the probe's autoref step, 163 inside trait impls -- and the autoref guard refusing 1,187 of 2,697 claims for imports it cannot see into; a sound type-proof for imports used as plain types (edition 2021+) moved 0 edges on Atlas and 1 on four registry crates and was not shipped; the boundary is the dependencies' own declarations: NA-DEPENDENCY-DECLARATIONS queued; evidence/coverage/G167-call-residual.json)"
+
+[[planned_generation]]
+id = "G168"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R10 rust-lang/rust-analyzer at 86493cee4d89 (done: the donor's own SCIP index over its own source, compared at function level, confirmed 99.62% of E15's call edges and falsified four behaviors -- an unrealizable DERIVED trace, a stack-safety charge refusing the generated syntax tree whole, generic-trait impls picked by method name, a registry dependency bound to a same-named member; capability epoch E16 fixes each: 24,075 -> 24,888 confirmed edges, 99.82%, every wrong edge gone; revalidation R4 REVALIDATED the G75 ABSORBED verdict, hir-ty stays REFERENCE_ONLY; source extinct; ADR 0082)"
+
+[[planned_generation]]
+id = "G169"
+priority = "P0"
+objective = "NA-RESOURCE-RESIDUAL step one (DEBT-RESOURCE; done: a temporary only borrowed by its statement is released at the statement end, an owning std reader or writer wrapper carries its resource, and a holder handed on by a later let is followed; Atlas on itself 2 -> 7 releases of 8 acquisitions, all 7 where rustc MIR drops the resource, the eighth a detached thread; capability epoch E17; the residual -- OWNERSHIP reconciliation, moved holders, fields, FFI pairs, child processes -- stays queued; ADR 0083)"
+
+[[planned_generation]]
+id = "G170"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R11 rust-lang/rust at 75a75c3e0a67 (done: rust-analyzer's SCIP index of compiler/rustc_hir_typeck confirmed all 1,566 of Atlas's function-level call edges, recall 83.4%, and falsified one behavior -- a glob import opened its module for good in an import round computed before a named import had bound its prefix (use super::Expectation::*), withholding 9 constructor calls; capability epoch E18 judges opening only on settled scopes: open scopes 13 -> 12, withheld path calls 511 -> 502, no edge moved; revalidation R5 at the exact G73 pin REVALIDATED EXTERNAL_BOUNDARY (2,750 method-module call sites stay unresolved); source extinct; ADR 0084)"
+
+[[planned_generation]]
+id = "G171"
+priority = "P0"
+objective = "NA-PRINCIPAL-AUTHENTICATION (DEBT-IDENTITY_AUTHORITY, DEBT-SELECTED_DESIGN; done: principals authenticated by Ed25519 signatures under keys the registry declares, verified natively with strict RFC 8032 verification -- Atlas never signs or holds a key; attacking the debt found the seal gate asking only whether an authority event existed, so a provider's or an unsigned event could have sealed a candidate -- it now asks the same authority question as the design check (DESIGN_AUTHORITY_REFUSED); 8 mutants killed; the residual -- authority for admissions, key rotation and revocation -- queued as NA-ADMISSION-AUTHORITY; ADR 0085)"
+
+[[planned_generation]]
+id = "G172"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R12 rust-lang/miri at c8c5364581b0 (done: rust-analyzer's SCIP index of the miri crate confirmed 550 of 558 function-level call edges at E18, the rest read correct, and falsified one over-conservative rule -- modules opened only because `use crate::*` read a root that globs an external crate distrusted even the names the root binds itself; capability epoch E19 keeps such certain names: 655 of 667 confirmed, none lost, none wrong, withheld path calls 2,385 -> 1,767; revalidation R6 at the exact G76 pin REVALIDATED REFERENCE_ONLY; sources extinct; ADR 0086)"
+
+[[planned_generation]]
+id = "G173"
+priority = "P0"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done as NA-DEPENDENCY-DECLARATIONS step one: the registry sources Cargo compiles for each locked package read as data into the trait method names of its lock closure, UNKNOWN whenever an unseen expansion could declare one; the autoref guard trusts registry imports whose closure lacks the called name and withholds on unresolved, ambiguous, underscore and attribute-expanded bindings -- the G142 guard falsified, and 15 holes an independent review found closed; on Atlas 115 path calls gained and 7 withdrawn, all confirmed by rust-analyzer's index; 39 mutants killed; capability epoch E20; ADR 0087)"
+
+[[planned_generation]]
+id = "G174"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R13 immunant/c2rust at 7fe0cf95d0ff (done: rust-analyzer's SCIP index of c2rust-transpile and c2rust-refactor, with the standard library loaded, confirmed every function-level call edge Atlas claims or left it read correct, and falsified the resolver's blindness to calls inside standard macro arguments; capability epoch E21 reads each recovered invocation as the evaluation it performs -- transpile 1,191 of 1,228 and refactor 2,031 of 2,035 confirmed, none lost, none wrong, and on Atlas itself 7,644 -> 9,182 resolved path calls all confirmed or read correct; an independent review's two holes closed (conditional arguments, rebound macro names); revalidation R7 at the exact G114 pin REVALIDATED REFERENCE_ONLY; sources extinct; ADR 0088)"
+
+[[planned_generation]]
+id = "G175"
+priority = "P0"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL; done: the residual measured on Atlas against rust-analyzer's index -- 796 oracle-confirmed calls unresolved, 457 receiver-form-differs (431 beside serde imports), 169 local-binding, 150 trait-impl methods on self; a local now shadows a same-named function only where one of its bindings is in scope by the reference's lexical rules, and opaque statement macros bind what they spell: 9,214 -> 9,383 resolved path calls, none withdrawn, all confirmed or read correct; three older holes and an independent review's two regressions closed; 32 mutants killed; capability epoch E22; ADR 0089)"
+
+[[planned_generation]]
+id = "G176"
+priority = "P0"
+objective = "FULL_OSS_REPLAY R14 rust-lang/rust (done: the R11 verdict re-censused at its exact pin with the E18 engine rebuilt and E22, against the crate's index with the standard library loaded -- 1,565 of 1,566 and 1,571 of 1,572 edges confirmed, the last read correct at both, no falsification; the autoref relief cannot reach the crate's unmaterialized workspace path dependencies; EXTERNAL_BOUNDARY holds, trigger CURRENT; source extinct)"
+
+[[planned_generation]]
+id = "G177"
+priority = "P0"
+objective = "NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-DEPENDENCY; done as NA-DEPENDENCY-DECLARATIONS step two: the autoref guard reads the one item a registry import names through the locked package's module tree -- serde's traits read through its zero-argument crate_root!() to serde_core, certain beside its build-script include; 9,677 -> 10,051 resolved path calls on Atlas, none withdrawn, every changed call confirmed by rust-analyzer's index; seven review holes over two passes closed; 29 mutants killed; capability epoch E23; ADR 0090)"
+
+[[planned_generation]]
+id = "G178"
+priority = "P0"
+objective = "FULL_OSS_REPLAY egraphs-good/egglog (done: R15 at 90635860, also the G82 pin; the import fixed point never settled on it and opened every module -- fixed with rustc's own binding rules, then four review passes closed eleven holes incl. a native TOML manifest reader; 1,586 -> 1,812 INVOKES on the donor, none lost, recall 27.99% -> 31.97% against its SCIP index; Atlas's own model byte-identical; REFERENCE_ONLY revalidated (R8); capability epoch E24; ADR 0091)"
+
+[[planned_generation]]
+id = "G179"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-PRECONDITION (done: M10 EXISTS -- core::atlasx::precondition and atlas-systemizer atlasx precondition admit a parent only when it reads back SEALED, its seal record binds it and the envelope and SELECTED design it names verify, every refusal typed; the G161 fixture admitted, tampered inputs refused, the self scope refused NOT_SEALED and DESIGN_ABSENT; 32 mutants killed; frontier_rate 5.33 per hour; ADR 0093)"
+
+[[planned_generation]]
+id = "G180"
+priority = "P0"
+objective = "FULL_OSS_REPLAY rust-lang/datafrog (done: R16 at edd7cfc0, which is also the G35 pin; 54 of 54 function-level edges confirmed by its SCIP index, recall 44.63%, no falsification and no change; ABSORBED and REFERENCE_ONLY revalidated (R9); LOW_FRONTIER_PROGRESS by design of a clean replay)"
+
+[[planned_generation]]
+id = "G181"
+priority = "P2"
+objective = "CREATION: NA-SELF-RECONSTRUCTION-BODIES (done: M14 EXISTS -- body semantics lifted from census for a bounded subset, carried by the construction IR and emitted by the Rust backend; SR1-3 rebuilds MaterializationMode::is_local with its body, SH1 REACHED; 26 mutants killed; frontier_rate 3.43 per hour; ADR 0094)"
+
+[[planned_generation]]
+id = "G182"
+priority = "P0"
+objective = "FULL_OSS_REPLAY timelydataflow/differential-dataflow (done: R17 at aa8745f9, which is also the G80 pin; 1,096 of 1,099 function-level edges confirmed by its SCIP index, the other three read correct, recall 37.2%, no falsification and no change; Cargo's auto-discovered targets recorded as a residual; REFERENCE_ONLY revalidated (R10); LOW_FRONTIER_PROGRESS by design of a clean replay)"
+
+[[planned_generation]]
+id = "G183"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-CODEC (done: M12 EXISTS -- core::atlasx::codec and atlas-systemizer atlasx codec write FUNCTIONS objects from a construction module that verifies, canonically per ATLASX-BINARY-WIRE-FORMAT and addressed by the BLAKE3 of their payload, and read back only bytes that re-encode to themselves; the SR1-3 module round-trips byte for byte, every flipped byte and every undeclared field refused; 55 of 56 mutants killed; ADR 0095)"
+
+[[planned_generation]]
+id = "G184"
+priority = "P0"
+objective = "FULL_OSS_REPLAY verus-lang/verus (done: R18 at d85f7578; 3,480 of 3,481 function-level edges in air and vir confirmed by its SCIP index, the other read correct, recall 77.0%; falsified declaration coverage claimed exhaustive over declarations the walk cannot see -- on 513 verus files and 22 Atlas files -- fixed natively over five rounds and two independent reviews; EXTERNAL_BOUNDARY revalidated (R11); capability epoch E25; ADR 0096)"
+
+[[planned_generation]]
+id = "G185"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-MATERIALIZE (done: M11 EXISTS -- the precondition re-runs the seal gate under the repository declaration and both deciders re-derive the reports, closing RES-G179-SEAL-SELF-CERTIFYING, RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT and RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED; the materializer stages the design's function roots as one FUNCTIONS object from an admitted parent, every record traced back; 60 mutants killed; ADR 0097)"
+
+[[planned_generation]]
+id = "G186"
+priority = "P0"
+objective = "FULL_OSS_REPLAY 666ghj/bettafish (done: R19 at c4ca6360; the 174 Python files honestly L0 with no claim, every JavaScript edge read correct, and the inner calls of JavaScript chains found dropped -- fixed natively, CALL records now equal an independent parser's on the donor and on Atlas; capability epoch E26; ADR 0098)"
+
+[[planned_generation]]
+id = "G187"
+priority = "P2"
+objective = "CREATION: NA-ATLASX-VALIDATE (done: M13 EXISTS for the FUNCTIONS class -- a root manifest and root identity bind the staged objects and the admitted parent, and the validator accepts a root only when it reproduces byte for byte the admitted parent's materialization; MIN_ATLASX demonstrated only on the synthetic test fixture and stays MISSING until a real parent is sealed for an owner-selected design; the construction graph extended from the contracts; 58 of 59 mutants killed; ADR 0099, ADR 0100)"
+
+[[planned_generation]]
+id = "G188"
+priority = "P0"
+objective = "FULL_OSS_REPLAY 666ghj/mirofish (done: R20 at 39d84913; the 62 Python and 16 Vue files honestly L0 with no claim, every JavaScript function, call and anchor equal to an independent parser, and module-level bindings found missing under SYMBOL OBSERVED -- fixed natively with the same class of false same-file call edges over three implementation and three review rounds, SYMBOL definitions now equal the TypeScript compiler's and acorn's on the donor and on Atlas; capability epoch E27; ADR 0101)"
+
+[[planned_generation]]
+id = "G189"
+priority = "P6"
+objective = "CREATION: NA-SANDBOX-FS-CONFINEMENT (done: M22 EXISTS -- a confined class runs the command chrooted in fresh user, mount and pid namespaces through util-linux unshare, probed per run and refused when the probe fails, and every run records the toolchain identity it executed, a rustc or cargo required to be its sysroot's own binary and a differing pin refused; seven independent review rounds closed eight pin and identity bypasses; 51 of 55 mutants killed; ADR 0102)"
+
+[[planned_generation]]
+id = "G190"
+priority = "P0"
+objective = "FULL_OSS_REPLAY abi/screenshot-to-code (QUEUED, FULL-OSS-REPLAY.toml next_replay after R20): the canonical order's next NEVER_REPLAYED repository, facing the strongest Atlas (E27) at a fresh pin, its license verified at it (MIT recorded); fix natively only what falsifies the tree (ADR 0092)"
+
+[[planned_generation]]
+id = "G191"
+priority = "P6"
+objective = "CREATION: NA-TARGET-PROFILE (M21, [creation_selection] winner after G189, score 94, ahead of NA-ATLAS-DESIGN-SECTION 86 and NA-ATLASX-BODIES 72; ADR 0100) -- a typed TargetProfile (family, architecture, ABI, capabilities, packaging) frozen into the AtlasX root, and a compatibility check of a selected design's required capabilities against it; the first profile is the host's Rust target that FIRST_ARTIFACT builds for; falsified by a design requiring a capability the profile lacks being admitted, and by a compiler input whose target is read from host defaults"
+
+[[planned_generation]]
+id = "G192+"
+priority = "P0"
+objective = "the lanes of ADR 0092 with the replay cadence of ADR 0067 unchanged: FULL_OSS_REPLAY and CREATION alternate; the native_attack_queue head (NA-CALL-TYPE-RESIDUAL, pressure 97) is LANE_DEFERRED and runs only as a correctness blocker in a CREATION slot when a false-claim residual names it; the weight stages follow their donor replays; an AGENT_MISSION at least every five generations (every replay is one); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

@@ -31,7 +31,7 @@ use std::collections::BTreeMap;
 pub const SEAL_POLICY_SCHEMA_VERSION: &str = "atlas.seal-policy.v1";
 pub const SCOPED_VERDICT_SCHEMA_VERSION: &str = "atlas.scoped-certificate-verdict.v1";
 /// Where a repository declares its seal policy.
-pub const DECLARED_SEAL_POLICY_PATH: &str = ".atlas/declared/seal-policy.json";
+pub const DECLARED_SEAL_POLICY_PATH: &str = "tools/atlas/declared/seal-policy.json";
 
 crate::vocabulary_enum! {
     /// Every blocker code a CensusCertificate emits (`core::certificate`).

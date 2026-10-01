@@ -587,7 +587,7 @@ fn function_signature_identity_key(signature: &FunctionSignature) -> String {
 /// `ConcurrencyWalker`/`PersistenceWalker`/`StateWalker` all previously carried their own,
 /// byte-for-byte-identical `walk_stmt` method -- three independently-maintained copies of the
 /// same dispatch, found by this session's own duplicate-function-body sweep
-/// (`.atlas/evidence/verification/duplicate-classification-logic-swept-clean.json` and its
+/// (`tools/atlas/evidence/verification/duplicate-classification-logic-swept-clean.json` and its
 /// follow-up permanent regression test in `runtime::tests`). `EffectWalker` needs a genuinely
 /// different `walk_stmt` (it must also recognize a bare `Stmt::Macro` as a possible panic site,
 /// per `is_panic_like_macro`) and correctly does not implement this trait -- the duplication this

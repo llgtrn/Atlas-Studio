@@ -19,7 +19,7 @@
 //! - OWNERSHIP: `OwnershipIdentity.name` plus `resolution: OwnershipResolution` -- `Resolved` for a
 //!   real bare-identifier place, `Unresolved` for a temporary expression's mere textual spelling
 //!   (added after a real bug: two independent temporaries with identical spelling had collapsed
-//!   onto one graph node -- see `.atlas/evidence/verification/
+//!   onto one graph node -- see `tools/atlas/evidence/verification/
 //!   r4.4-r4.10-second-hardening-pass-correction.json`).
 //!
 //! A fourth, independently-invented `PersistenceTarget { name: String }` would be a FIFTH

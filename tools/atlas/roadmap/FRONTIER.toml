@@ -1,0 +1,1029 @@
+# Machine-readable engineering frontier: one [[lane]] per long-horizon capability lane.
+#
+# State vocabulary (per lane): ABSENT (no native code), CONTRACT_ONLY (canonical contract, no code),
+# PARTIAL (some native code wired into production), NATIVE (capability owned and verified).
+# Names like "logic-to-binary" or "self-hosted" describe TARGET directions; a lane's `state` is
+# promoted only by executable evidence cited in `atlas_implementation`.
+#
+# The requested-donor inventory behind the `donors` fields (status, HEAD sha, SPDX license, size,
+# mechanism directories) is tools/atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv. A donor listed
+# here is a frontier CANDIDATE; it enters tools/atlas/references/donor-corpus.toml only when admitted.
+
+schema = "atlas.engineering-frontier.v1"
+recorded_at = "2026-09-24"
+admission_staging_default = "cheapest sufficient materialization mode inside the bounded working set (ADR 0021, contracts/DONOR-WORKING-SET.md): REMOTE_METADATA -> FETCHED_FILE_SET -> SPARSE_CHECKOUT -> SHALLOW_CHECKOUT -> FULL_CHECKOUT, into git-ignored .atlas/.cache/donors; the legacy git-tracked .atlas/temporary/donors is drained, never extended"
+
+[[lane]]
+id = "incremental_computation"
+capability = "R5 incremental query and fixed point"
+state = "PARTIAL"
+atlas_implementation = "core::closure semi-naive fixed point (ADR 0004); core::identity::blake3 content identity (ADR 0005); core::census::delta inventory change detection + systemize --previous (ADR 0006); content-keyed extraction cache systemize --cache (ADR 0008); graph construction de-quadratified, systemize 187 s -> 12.9 s debug (ADR 0009)"
+donors = ["salsa", "differential-dataflow", "buck2"]
+blocking_question = "recompute of this repository is ~13 s debug and extraction caching is exact but yields ~6%; does any real corpus (the 15 donor workspaces) make recensus cost-dominated by a derivation that dependency-tracked invalidation would skip?"
+evidence_required = "parsed bytes equal digested bytes; extractor version bumped on behaviour change; cache hit output byte-identical to recompute on this repository and on real donor workspaces"
+falsification = "mutate one file, run cached and uncached systemize, compare every report byte"
+dependency_status = "no donor runtime dependency"
+next_action = "measure systemize stage costs on the largest admitted donor workspaces (rust, zed, wasmtime) before any Salsa/differential-dataflow invalidation work"
+
+[[lane]]
+id = "formal_reasoning"
+capability = "constraint verdicts SAT/UNSAT/UNKNOWN; proofs; state-space exploration"
+state = "PARTIAL"
+atlas_implementation = "core::constraint::ConstraintVerdict three-valued verdict on every ADL constraint result, admission blocks VIOLATED and UNKNOWN separately (ADR 0007); no search-based solver"
+donors = ["Z3 (MISSING, MIT)", "cvc5 (MISSING, BSD-3-Clause)", "Lean 4 (MISSING, Apache-2.0)", "Rocq (MISSING, LGPL-2.1, principles only)", "TLA+ tools (MISSING, MIT)", "Apalache (MISSING, redundant once Z3+TLA+)", "egglog (admitted)", "souffle (EXTINCT)"]
+blocking_question = "no current consumer needs search: every ADL check is ground evaluation over finite declared facts. Which consumer arrives first -- ADL constraints with disjunction/implication, DecisionProposal.hard_constraint, or joint-satisfiability of declared constraints?"
+evidence_required = "a canonical contract clause or ADL feature-admission (ATLAS-DEVELOPMENT-LANGUAGE.md 9-point gate) that introduces a non-ground constraint"
+falsification = "exhaustive truth-table enumeration is an exact oracle for small instances; UNKNOWN on budget exhaustion must never become SATISFIED"
+dependency_status = "no solver dependency; none installed in the build container"
+next_action = "admit Z3 as PARTIAL_SPARSE_SUBTREE (src/sat, src/api/z3_api.h push/pop/check) for CDCL census when the first non-ground constraint consumer is admitted"
+
+[[lane]]
+id = "compiler_ir"
+capability = "Atlas-owned multi-level IR: validated AtlasX -> HIR -> MIR -> LIR -> Machine IR (COMPILER-IR-PIPELINE.md)"
+state = "CONTRACT_ONLY"
+atlas_implementation = "AtlasIr is an architecture DeclaredGraph only (core/src/language/adl); no HIR/MIR/LIR types; HIR/MIR schemas have no arithmetic ops (COMPILER-IR-SCHEMAS.md)"
+donors = ["mlir", "xdsl", "llvm-project", "wasmtime (Cranelift)", "QBE (MISSING, MIT, ~1.8 MB)", "egglog"]
+blocking_question = "compiler input must be a validated AtlasX root (COMPILER-IR-PIPELINE.md:20) and no .atlas/.atlasx reader or writer exists; G41 lane: the wire contracts leave undefined the varint encoding, flag bits (no unsealed/required bit), a schema_id registry, record kinds/field tags for declared nodes/edges, the .atlas root-identity formula and genome_hash; AtlasX sealing additionally needs SelectedDesign and seal types (none) and ASIR types (TARGET)"
+evidence_required = "an AtlasX root produced and validated by Atlas, or a BLUEPRINT-EVOLUTION amendment admitting a bounded non-product profile"
+falsification = "an IR round-trip / verifier test over every node kind in the closed schema"
+dependency_status = "no compiler dependency in production"
+next_action = "ASIR/HIR Rust types for the closed node set, validated against COMPILER-IR-SCHEMAS.md"
+
+[[lane]]
+id = "logic_binary"
+capability = "L0..L8: Atlas logic lowered to a runnable binary without an external compiler for a bounded subset"
+state = "ABSENT"
+atlas_implementation = "none: no executable semantics for any Atlas construct (no evaluator/interpreter); ADL0 is declarations-only"
+donors = ["QBE (MISSING)", "wasmtime (Cranelift, admitted)", "object", "regalloc2", "mold", "wasm-spec", "wasm-tools"]
+blocking_question = "L1 needs a computational subset: ADL0 has no numeric literals or operators; adding one must pass the ADL feature-admission gate and COMPILER-IR-SCHEMAS needs a versioned arithmetic extension"
+evidence_required = "first target chosen from evidence: x86-64 ELF has a full oracle in this container (gcc, clang, as, ld, objdump, native execution); wasm has node v22; RISC-V has no execution oracle here"
+falsification = "differential execution against an Atlas reference interpreter and against gcc-compiled equivalents; objdump/readelf structural checks"
+dependency_status = "external toolchains may serve only as oracles (bootstrapping, recorded)"
+next_action = "after compiler_ir provides HIR types: a reference interpreter for the admitted pure subset (L1 oracle)"
+
+[[lane]]
+id = "construction"
+capability = "hermetic, content-addressed construction: declared inputs -> deterministic action -> artifact digest -> provenance"
+state = "PARTIAL"
+atlas_implementation = "content digests for every inventoried file (ADR 0005); inventory deltas (ADR 0006); no action graph or action identity"
+donors = ["buck2 (admitted)", "Nix (MISSING, LGPL-2.1, principles only)", "Bazel (OVERLAPPING buck2)", "Git (MISSING, GPL-2.0; an unadmitted checkout exists)"]
+blocking_question = "no Atlas construction action exists to identify: systemize is analysis, not construction"
+evidence_required = "a first Atlas-executed construction action (e.g. materializing a derived artifact) whose inputs are content-addressed"
+falsification = "same declared inputs -> byte-identical output digest across two runs and two directories"
+dependency_status = "cargo is the construction tool of record (bootstrapping)"
+next_action = "action identity = digest(action kind, input digests, tool identity) once the first construction action exists"
+
+[[lane]]
+id = "sandbox"
+capability = "bounded execution of provider-generated construction with explicit capabilities"
+state = "CONTRACT_ONLY"
+atlas_implementation = "none (AGENT-HOST-EMBEDDED-RUNTIME.md, EXTERNAL-PROVIDER-TRUST.md define the boundary)"
+donors = ["wasmtime/WASI (admitted)", "podman (admitted)", "Firecracker (MISSING, Apache-2.0)", "nsjail (MISSING, Apache-2.0, compact)"]
+blocking_question = "no Atlas code executes provider output yet"
+evidence_required = "the first provider-output execution path"
+falsification = "a capability not granted must fail closed"
+dependency_status = "EXTERNAL_BOUNDARY for kernel isolation primitives"
+next_action = "none until a provider-execution consumer exists"
+
+[[lane]]
+id = "provenance"
+capability = "artifact -> transformations -> inputs traceability, attestations"
+state = "PARTIAL"
+atlas_implementation = "Provenance on facts; constraint derivation lineage (ADR 0003); content digests (ADR 0005)"
+donors = ["in-toto/attestation (MISSING, Apache-2.0, 2.5 MB)", "in-toto-rs (MISSING, MIT)", "SLSA (MISSING, spec)", "containers-image (admitted; sigstore)"]
+blocking_question = "does a systemize report need a detached attestation binding it to its input digests, and who verifies it?"
+evidence_required = "a consumer that verifies a report against its inputs (e.g. work prepare trusting a prior systemize)"
+falsification = "altering one input byte must fail attestation verification"
+dependency_status = "none"
+next_action = "census in-toto Statement/ResourceDescriptor/DigestSet against IntegrityDigest"
+
+[[lane]]
+id = "observability"
+capability = "self-measurement of construction, generations, providers, tests"
+state = "ABSENT"
+atlas_implementation = "none beyond generation evidence JSON files"
+donors = ["OpenTelemetry spec (MISSING, Apache-2.0)", "opentelemetry-rust (MISSING, Apache-2.0)"]
+blocking_question = "which measured quantity drives a decision first (e.g. R5 edit-to-recensus cost for the differential-dataflow question)?"
+evidence_required = "a decision that consumes a measurement"
+falsification = "measurement reproducibility across identical runs"
+dependency_status = "none"
+next_action = "time and count systemize stages to answer differential-dataflow's workload question"
+
+[[lane]]
+id = "probabilistic_futures"
+capability = "hypotheses with priors/posteriors, uncertainty, experiment selection"
+state = "ABSENT"
+atlas_implementation = "EpistemicStatus has HYPOTHESIS/INFERRED and SIMULATED (ADR 0002, G51 amendment); core::visual::search keeps candidates HYPOTHESIS until verified and selects a multi-objective Pareto front (ADR 0020); no prior/posterior/uncertainty types"
+donors = ["BoTorch (MISSING, MIT)", "Ax (MISSING, MIT)", "Stan (MISSING, BSD-3-Clause)", "Pyro (MISSING, Apache-2.0)", "NumPyro (duplicates Pyro)", "pymoo (MISSING, Apache-2.0)", "DEAP (duplicates pymoo, LGPL)", "pyribs (MISSING, MIT)"]
+blocking_question = "design search is deterministic enumeration; no decision is yet made under stated uncertainty with a later-observed outcome to calibrate against"
+evidence_required = "a decision consumer (DecisionProposal has only a schema) and an ADR 0002 amendment for SIMULATED/PREDICTED/COUNTERFACTUAL"
+falsification = "calibration: predicted probabilities vs observed outcome frequencies"
+dependency_status = "none"
+next_action = "ADR 0002 amendment proposal once a DecisionProposal caller exists"
+
+[[lane]]
+id = "causal_reasoning"
+capability = "structural causal models, interventions, identifiability"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["DoWhy (MISSING, MIT)", "causal-learn (MISSING, MIT)"]
+blocking_question = "no Atlas decision distinguishes correlation from intervention yet"
+evidence_required = "a telemetry-backed decision (depends on observability)"
+falsification = "known-ground-truth synthetic SCMs"
+dependency_status = "none"
+next_action = "blocked on observability"
+
+[[lane]]
+id = "multi_agent_futures"
+capability = "scenario branching with preserved assumptions/evidence/uncertainty"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["MiroFish (MISSING, AGPL-3.0, principles only)", "BettaFish (MISSING, GPL-2.0, principles only)"]
+blocking_question = "neither donor exposes a foundational primitive (G37 inventory lane); earlier mirofish code in Chronica was removed for lack of a requirement"
+evidence_required = "a scenario-branching requirement from a real workload (Chronica)"
+falsification = "branch replay determinism"
+dependency_status = "none"
+next_action = "REFERENCE_ONLY candidates until a workload requires scenario branching"
+
+[[lane]]
+id = "physical_engineering"
+capability = "units, geometry, mass, electrical, timing, safety in the engineering graph"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Drake (MISSING)", "Pinocchio (MISSING)", "MuJoCo (MISSING)"]
+blocking_question = "no physical-domain requirement exists in any admitted repository or contract"
+evidence_required = "a physical-domain workload"
+falsification = "dimensional analysis rejects unit-inconsistent expressions"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "robotics"
+capability = "component lifecycle, control interfaces, motion planning"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["ROS 2 rclcpp", "ros2_control", "MoveIt 2", "Gazebo gz-sim", "PX4", "ArduPilot (GPL-3.0, duplicates PX4)"]
+blocking_question = "no link to any current foundational primitive (G37 inventory lane); admission unjustified until a robotics workload exists"
+evidence_required = "a robotics workload"
+falsification = "simulation-only; no physical actuation as a census test"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "simulation"
+capability = "digital twin, Monte Carlo, fault injection before physical execution"
+state = "PARTIAL"
+atlas_implementation = "deterministic RK4 simulation with exact BLAKE3 run identity, divergence guard, SIMULATED status (ADR 0002 amendment, ADR 0019)"
+donors = ["MuJoCo", "Drake", "Gazebo gz-sim"]
+blocking_question = "no scenario variation, Monte Carlo or fault injection yet"
+evidence_required = "a physical_engineering model to simulate"
+falsification = "analytic closed-form cases"
+dependency_status = "none"
+next_action = "fault injection (sensor bias/dropout, stuck actuator) with verdict deltas"
+
+[[lane]]
+id = "embedded"
+capability = "RTOS, device model, MCU targets"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Zephyr (MISSING, Apache-2.0, 960 MB -> sparse only)"]
+blocking_question = "depends on logic_binary reaching a bare-metal target"
+evidence_required = "logic_binary L5+"
+falsification = "emulated target execution"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "self_hosting"
+capability = "Atlas constructs a bounded part of itself"
+state = "PARTIAL"
+atlas_implementation = "stage 1 only: Atlas analyzes its own source (systemize --root . with inventory digests, dependency closure, change detection); no Atlas-constructed artifact"
+donors = []
+blocking_question = "depends on construction and logic_binary"
+evidence_required = "an Atlas-constructed artifact independently verified"
+falsification = "rebuild-from-inputs digest equality"
+dependency_status = "cargo/rustc build Atlas (bootstrapping)"
+next_action = "not scheduled"
+
+# ---- CREATOR_FABRIC lanes (G42). Donor rows: tools/atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv ----
+
+[[lane]]
+id = "creator_browser"
+family = "CREATOR_FABRIC"
+# G43: PARTIAL -- core::visual + adapter::browser + atlas-systemizer observe (ADR 0011)
+capability = "sandboxed, reproducible observation of public/authorized pages: DOM, computed style, geometry, accessibility tree across viewports and interactions"
+state = "PARTIAL"
+atlas_implementation = "core::visual observation records + adapter::browser BrowserInstrument abstraction (ADR 0022): Playwright/Chromium (reference: hermetic, fresh context per viewport, interaction + motion) and a W3C WebDriver backend (chromedriver verified; Ladybird harness-ready) sharing one in-page measurement; instrument-declared layout resolution + network policy; core::visual::differential EngineDifferentialReport; atlas-systemizer observe --instrument/--differential; CREATOR-INSTRUMENTS.toml registry; LOCAL_FIXTURE authorization only"
+donors = ["Playwright (Apache-2.0)", "rrweb (MIT)", "Ladybird (BSD-2-Clause, REMOTE_CENSUSED, EXTERNAL_BOUNDARY instrument; build BLOCKED)"]
+blocking_question = "cross-ENGINE evidence needs a second engine: Ladybird cannot be built here (gcc>=14/clang>=19, Qt 6.9+ absent; no prebuilt binary); driver independence is established (4 fixtures, SAME_ENGINE_DIFFERENT_DRIVER); WebDriver lacks interaction/motion and network isolation; public-URL subjects need an explicit authorization record"
+evidence_required = "an atlas-systemizer observe command producing typed VisualObservation records over a local fixture"
+falsification = "re-observing the same fixture digest yields identical records; a changed fixture changes exactly the affected records"
+dependency_status = "Playwright/Chromium EXTERNAL_BOUNDARY (instrument), recorded as bootstrap"
+next_action = "on a host with a Ladybird WebDriver binary: four-fixture differential + promotion gate; W3C Actions interaction in the WebDriver backend; filtering proxy for WebDriver network isolation"
+extinction_state = "n/a (Chromium stays REFERENCE_ORACLE + FALLBACK)"
+
+[[lane]]
+id = "creator_visual_ir"
+family = "CREATOR_FABRIC"
+capability = "Visual Semantic IR (components, layout constraints, tokens, typography, interaction states, motion, scenes) with provenance and epistemic status"
+state = "PARTIAL"
+atlas_implementation = "core::visual: observations, layout relations, responsive rules, interaction mechanisms, motion inferences, DesignIntent, DesignGenome/DesignMechanism with provenance (ADRs 0011-0018)"
+donors = ["kiwi (BSD-3, Cassowary)", "Radix (MIT)", "Three.js (MIT)", "PixiJS (MIT)"]
+blocking_question = "grow from the first consumer (browser observation); which records does the observation path produce first?"
+evidence_required = "typed records emitted by creator_browser"
+falsification = "records round-trip; unknown kinds rejected"
+dependency_status = "none"
+next_action = "scene graph records shared with physical kinematics frames (creator_2d/creator_3d)"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_layout"
+family = "CREATOR_FABRIC"
+capability = "ratio-first layout relations and responsive structural rules"
+state = "PARTIAL"
+atlas_implementation = "core::visual::analyze: width/viewport, width/parent, aspect ratio, font-size/root, gap/font-size with 1/64 px-propagated uncertainty; responsive rules (flex direction, grid columns, sibling stacking, display) as width intervals; recovered the editorial fixture's declared 16:9, 4:3, 2:1, 1.25 and gap/font=1 exactly"
+donors = ["kiwi (BSD-3)", "Yoga (MIT, oracle only)", "browser (oracle)"]
+blocking_question = "which normalized relations are stable across viewports (width/viewport, gap/font-size, aspect ratio)?"
+evidence_required = "relations measured at >=2 viewports on fixtures with known CSS"
+falsification = "a fixture whose CSS encodes a known ratio must be recovered within measurement resolution"
+dependency_status = "none"
+next_action = "relative spacing relations (vertical gap / font size between siblings); container-query breakpoints"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_motion"
+family = "CREATOR_FABRIC"
+capability = "motion grammar: duration, easing, spring, inertia, scroll/pointer linkage"
+state = "PARTIAL"
+atlas_implementation = "observe --motion (ADR 0016): deterministic paused/seeked sampling of hover animations; DeclaredTiming OBSERVED; easing INFERRED from curve alone vs 5 CSS keywords with residual-ranked alternatives and overshoot flag; 5/5 agree with declared timing; cubic_bezier matches Chromium to 1e-5"
+donors = ["Motion (MIT: motion-dom spring.ts, cubic-bezier.ts)"]
+blocking_question = "JS/rAF-driven motion has no declared timing: needs virtual-time sampling; spring parameters not yet fitted"
+evidence_required = "frame-timestamped geometry of a fixture with a known spring/easing"
+falsification = "inferred parameters recovered within stated uncertainty; recorded INFERRED, never OBSERVED"
+dependency_status = "none"
+next_action = "Playwright clock virtual-time sampling for rAF motion; spring fit for overshooting curves"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_interaction"
+family = "CREATOR_FABRIC"
+capability = "interaction state graph (state x event -> state), focus/keyboard semantics"
+state = "PARTIAL"
+atlas_implementation = "observe --interact (ADR 0015): hover/click/click-twice/focus stimuli, animation-settled diffs -> HOVER_AFFORDANCE, DISCLOSURE (controlled elements, reflow ancestors excluded), TOGGLE, FOCUS_INDICATOR, state graph with toggle returns"
+donors = ["Radix (MIT: presence use-state-machine.tsx)"]
+blocking_question = "keyboard sequences, drag and scroll stimuli not yet applied; mechanisms are classified per target, not composed across targets"
+evidence_required = "state transitions observed on fixtures"
+falsification = "replayed events reproduce the same state sequence"
+dependency_status = "none"
+next_action = "frame sampling during transitions (creator_motion); keyboard/scroll stimuli"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_frontend"
+family = "CREATOR_FABRIC"
+capability = "lowering Visual IR to HTML/CSS/React"
+state = "PARTIAL"
+atlas_implementation = "core::visual::compose: ratio-first DesignIntent -> deterministic placeholder-only HTML/CSS (hero split + grid + breakpoint + hover lift) -> atlas-systemizer create (ADR 0017); core::visual::search + atlas-systemizer search: generated candidates, measured objectives, verified-only Pareto front (ADR 0020)"
+donors = ["shadcn/ui (MIT, registry pattern)", "Radix (MIT)"]
+blocking_question = "one layout family; search is exhaustive over a fixed option cube and learns nothing between runs; no colour/contrast in the intent"
+evidence_required = "generated fixture renders and re-observes to the declared relations"
+falsification = "render -> observe -> compare against intent"
+dependency_status = "none"
+next_action = "colour/contrast in DesignIntent with measured WCAG contrast objective; front results steering the next option ladders (Creator milestone 3)"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_image"
+family = "CREATOR_FABRIC"
+capability = "image synthesis with provenance (model, weights license, seed, prompt, digest)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Diffusers (Apache-2.0; model-weight licenses tracked separately)"]
+blocking_question = "no media provider configured; weights licenses are per-model"
+evidence_required = "a provider adapter producing a digest-identified asset with full provenance"
+falsification = "same seed+model+prompt reproduces the digest where the provider is deterministic"
+dependency_status = "external compute provider (EXTERNAL_BOUNDARY)"
+next_action = "after creator_media_provenance"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_video"
+family = "CREATOR_FABRIC"
+capability = "frame generation, compositing, timelines, encoding"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["FFmpeg (LGPL-2.1+/GPL build-dependent; container copy is a stripped LGPL Playwright build)"]
+blocking_question = "no media graph yet"
+evidence_required = "timeline -> frames -> encoded artifact with digest"
+falsification = "decode-and-compare frames"
+dependency_status = "EXTERNAL_BOUNDARY bootstrap"
+next_action = "after creator_media_provenance"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_2d"
+family = "CREATOR_FABRIC"
+capability = "2D scene graph lowering (SVG/Canvas)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["PixiJS (MIT)"]
+blocking_question = "no scene IR consumer yet"
+evidence_required = "scene -> SVG render -> observe"
+falsification = "rendered geometry matches scene transforms"
+dependency_status = "none"
+next_action = "after creator_visual_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_3d"
+family = "CREATOR_FABRIC"
+capability = "3D scene graph (nodes, transforms, materials, cameras, lights)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Three.js (MIT)", "Babylon.js (Apache-2.0, duplicate)"]
+blocking_question = "no scene IR consumer yet; shares frames/transforms with physical kinematics"
+evidence_required = "scene -> WebGL render -> observe"
+falsification = "projected positions match the scene math"
+dependency_status = "none"
+next_action = "share transform/frame primitive with physical kinematics"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_visual_verify"
+family = "CREATOR_FABRIC"
+capability = "layout/overlap/overflow/legibility/accessibility/motion verification"
+state = "PARTIAL"
+atlas_implementation = "verify_intent (ADR 0017): aspect/share/font ratios within 1/64 px-propagated tolerance, exact bisected breakpoints, hover affordances, inferred easing+duration -> Satisfied/Violated/Unknown, strong-Kleene overall"
+donors = ["Playwright ariaSnapshot (Apache-2.0)", "pixelmatch (ISC)", "axe-core (MPL-2.0, principles only)"]
+blocking_question = "needs observation records"
+evidence_required = "verdicts Satisfied/Violated/Unknown (ADR 0007) over visual constraints"
+falsification = "a fixture with a known overflow must be VIOLATED"
+dependency_status = "none"
+next_action = "overlap/overflow/clipping/legibility verdicts; accessibility tree checks"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_media_provenance"
+family = "CREATOR_FABRIC"
+capability = "media provenance: intent, provider, model+version, seed, transformations, source assets, licenses, digest, verification"
+state = "PARTIAL"
+atlas_implementation = "IntegrityDigest (BLAKE3, ADR 0005) exists for artifact digests; no media records"
+donors = ["ComfyUI (GPL-3.0, principles only: content-addressed node cache)", "Diffusers (Apache-2.0)"]
+blocking_question = "no generated media yet"
+evidence_required = "a media record type bound to an artifact digest"
+falsification = "altering one asset byte breaks the record's digest check"
+dependency_status = "none"
+next_action = "define with creator_image"
+extinction_state = "n/a"
+
+# Higgsfield: no open-source generation code exists (higgsfield-ai/higgsfield is an LLM training framework); treated as an EXTERNAL provider only, not a donor.
+
+# ---- PHYSICAL_ENGINEERING lanes (G42). Donor rows: tools/atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv ----
+
+[[lane]]
+id = "units"
+family = "PHYSICAL_ENGINEERING"
+capability = "physical quantities, SI dimensions, exact unit conversion, dimensional validation"
+state = "NATIVE"
+atlas_implementation = "core::quantity (ADR 0010): exact rational quantities over 8 bases (angle separate), 13 prefixes, derived units; ADL quantity comparisons ==,>=,<=,>,< with Satisfied/Violated/Unknown; 75/75 units agree with pint 0.25.3"
+donors = ["uom (Apache-2.0/MIT, design reference)", "mp-units (MIT, quantity kinds)", "pint (BSD-3, oracle only)"]
+blocking_question = "quantity kinds (torque vs energy), tolerances and uncertainty are not represented"
+evidence_required = "a consumer needing tolerances (manufacturing) or kinds (mechanics)"
+falsification = "differential against pint; exactness property tests"
+dependency_status = "none (no donor dependency)"
+next_action = "add tolerance/uncertainty to Quantity when the first geometry/manufacturing consumer arrives"
+extinction_state = "n/a"
+
+[[lane]]
+id = "physical_ir"
+family = "PHYSICAL_ENGINEERING"
+capability = "Physical Semantic IR: system/component/body/joint/frame/sensor/actuator/rail..."
+state = "PARTIAL"
+atlas_implementation = "core::physical: PlanarArm (Arm/Link/Joint, ADR 0012) + Motor/Rail drivetrain entities (ADR 0014); dimension-validated, no partial models, derived values carry resolvable input provenance"
+donors = ["Drake (BSD-3: systems/framework)", "Zephyr (Apache-2.0: devicetree)", "ros2_control (Apache-2.0)", "CadQuery (Apache-2.0: assembly.py)"]
+blocking_question = "grow from the first physical milestone (2-link arm): which records does it need?"
+evidence_required = "2-link arm declared in ADL with quantity attributes and evaluated constraints"
+falsification = "dimensional and constraint verdicts on the arm fixture"
+dependency_status = "none"
+next_action = "add motors/gearboxes/rails for milestone 2 (cross-domain)"
+extinction_state = "n/a"
+
+[[lane]]
+id = "cad"
+family = "PHYSICAL_ENGINEERING"
+capability = "parametric geometry, constraints, BREP"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["CadQuery (Apache-2.0)", "FreeCAD (LGPL-2.1, principles only)", "OCCT (LGPL-2.1+exception, principles only)"]
+blocking_question = "no geometry consumer yet"
+evidence_required = "plate-with-holes intent lowered to geometry"
+falsification = "geometric constraint verdicts; exported mesh measured"
+dependency_status = "OCCT-class kernels plausible EXTERNAL_BOUNDARY"
+next_action = "after kinematics frames"
+extinction_state = "n/a"
+
+[[lane]]
+id = "electronics"
+family = "PHYSICAL_ENGINEERING"
+capability = "schematic/net graph, ERC/DRC, BOM"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["KiCad (GPL-3.0, principles only: eeschema/erc/erc.cpp, pcbnew/drc)"]
+blocking_question = "no electronics consumer yet"
+evidence_required = "net graph with quantity-typed pins/rails"
+falsification = "ERC-style verdicts on fixtures"
+dependency_status = "none"
+next_action = "after power model"
+extinction_state = "n/a"
+
+[[lane]]
+id = "power"
+family = "PHYSICAL_ENGINEERING"
+capability = "sources, sinks, rails, voltage ranges, current demand, efficiency"
+state = "PARTIAL"
+atlas_implementation = "core::physical::analyze_drivetrains: motor holding currents summed per Rail, V*I power, rail max_current verdicts, exact (ADR 0014)"
+donors = ["ngspice (BSD-3 core; SourceForge master)"]
+blocking_question = "cross-domain milestone 2 (arm motors -> current -> rail)"
+evidence_required = "rail budget checks with worst-case quantities"
+falsification = "budget over rail capacity must be VIOLATED"
+dependency_status = "none"
+next_action = "voltage headroom (back-EMF at speed), regulator efficiency, peak vs continuous current"
+extinction_state = "n/a"
+
+[[lane]]
+id = "embedded"
+family = "PHYSICAL_ENGINEERING"
+capability = "board/SoC/device model, devicetree, realtime deadlines"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Zephyr (Apache-2.0: scripts/dts python-devicetree, dts/bindings)"]
+blocking_question = "no firmware construction consumer"
+evidence_required = "device model -> config generation"
+falsification = "schema-validated device graph"
+dependency_status = "none"
+next_action = "after physical_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "robotics"
+family = "PHYSICAL_ENGINEERING"
+capability = "node/QoS/lifecycle graph as an output ecosystem, not the IR"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["ROS 2 tf2 (BSD-3)", "ros2_control (Apache-2.0)", "rclcpp (unjustified per G42 lane)"]
+blocking_question = "ROS is an output target; needs physical_ir first"
+evidence_required = "generated ROS graph from Atlas model"
+falsification = "graph consistency checks"
+dependency_status = "none"
+next_action = "after physical_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "kinematics"
+family = "PHYSICAL_ENGINEERING"
+capability = "frames, joints, forward kinematics, Jacobians"
+state = "PARTIAL"
+atlas_implementation = "planar serial forward kinematics (f64, verified vs closed form over 1000 poses); exact reach and inner radius (ADR 0012)"
+donors = ["Pinocchio (BSD-2: include/pinocchio/src/...)", "Drake (BSD-3: math/rigid_transform.h, multibody/tree/frame.h)", "tf2 (BSD-3)"]
+blocking_question = "first physical milestone: 2-link arm forward kinematics with quantity-typed lengths/angles (rad)"
+evidence_required = "FK of a 2-link arm matches closed form"
+falsification = "FK against analytic solution; dimension checks on every parameter"
+dependency_status = "none"
+next_action = "frames as first-class records shared with creator_3d; trajectory sampling within joint limits"
+extinction_state = "n/a"
+
+[[lane]]
+id = "dynamics"
+family = "PHYSICAL_ENGINEERING"
+capability = "mass, inertia, forces, torques, inverse dynamics"
+state = "PARTIAL"
+atlas_implementation = "core::physical::dynamics: closed-form 2R Lagrangian M/c/g, inverse/forward dynamics, energy; oracles: exact static torques (1e-12), discretized-rod kinetic energy (1e-6), energy conservation (ADR 0019)"
+donors = ["Pinocchio", "Drake"]
+blocking_question = "planar 2-link only; no friction/motor dynamics"
+evidence_required = "payload torque estimate for the arm"
+falsification = "static torque = m*g*r closed form"
+dependency_status = "none"
+next_action = "general serial chains (recursive Newton-Euler) when a 3+ link consumer exists"
+extinction_state = "n/a"
+
+[[lane]]
+id = "control"
+family = "PHYSICAL_ENGINEERING"
+capability = "state/reference/error/controller/plant/sampling/saturation"
+state = "PARTIAL"
+atlas_implementation = "computed-torque control with saturation at actuator capability; tracking verdicts on SIMULATED evidence (ADR 0019)"
+donors = ["Drake", "PX4 (BSD-3, bounded)"]
+blocking_question = "controller is Atlas-internal math, not a lowered binary; no estimator"
+evidence_required = "closed-loop simulation of the arm joint"
+falsification = "step response within declared bounds; never promoted to hardware"
+dependency_status = "none"
+next_action = "SIL once a controller binary is produced; estimator with measurement noise"
+extinction_state = "n/a"
+
+[[lane]]
+id = "simulation"
+family = "PHYSICAL_ENGINEERING"
+capability = "run identity (model, parameters, seed, scenario), integration"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["MuJoCo (Apache-2.0: mjModel/mjData split)", "Drake (simulator_config, monte_carlo)"]
+blocking_question = "no simulated plant yet"
+evidence_required = "simulation record SIMULATED with run identity"
+falsification = "same run identity reproduces the trajectory"
+dependency_status = "none"
+next_action = "after control"
+extinction_state = "n/a"
+
+[[lane]]
+id = "multiphysics"
+family = "PHYSICAL_ENGINEERING"
+capability = "thermal/fluid fields, boundary conditions"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["OpenFOAM (GPL-3.0, principles only)", "Project Chrono (BSD-3, overlaps Drake/MuJoCo)"]
+blocking_question = "no thermal consumer"
+evidence_required = "a cooling requirement"
+falsification = "analytic conduction cases"
+dependency_status = "none"
+next_action = "not scheduled"
+extinction_state = "n/a"
+
+[[lane]]
+id = "manufacturing"
+family = "PHYSICAL_ENGINEERING"
+capability = "stock, process, tool, toolpath, tolerance, inspection"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["LinuxCNC (GPL-2.0, principles only)"]
+blocking_question = "no geometry yet"
+evidence_required = "plate manufacturability checks"
+falsification = "tool-access/tolerance verdicts"
+dependency_status = "none"
+next_action = "after cad"
+extinction_state = "n/a"
+
+[[lane]]
+id = "sil"
+family = "PHYSICAL_ENGINEERING"
+capability = "software-in-the-loop verification level with exact binary/model/params/scenario/seed"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["PX4 SITL (BSD-3)", "Drake"]
+blocking_question = "needs controller + simulated plant"
+evidence_required = "SIL evidence record"
+falsification = "faults change verdicts as predicted"
+dependency_status = "none"
+next_action = "after simulation"
+extinction_state = "n/a"
+
+[[lane]]
+id = "hil"
+family = "PHYSICAL_ENGINEERING"
+capability = "hardware-in-the-loop (real controller hardware + simulated plant)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no authorized hardware test environment exists; HIL is never simulated and labelled HIL"
+evidence_required = "an authorized controlled fixture"
+falsification = "n/a"
+dependency_status = "n/a"
+next_action = "blocked on authorized hardware"
+extinction_state = "n/a"
+
+[[lane]]
+id = "physical_safety"
+family = "PHYSICAL_ENGINEERING"
+capability = "safety state machine (Normal/Degraded/SafeStop/EmergencyStop/Fault/Recovery) and a hard boundary between candidate command and authorized execution"
+state = "ABSENT"
+atlas_implementation = "none; no Atlas code can actuate hardware"
+donors = ["PX4 commander (BSD-3: failsafe state machine)"]
+blocking_question = "no physical execution path exists (correct: none may exist without explicit authorization)"
+evidence_required = "a typed transition table with forbidden transitions tested"
+falsification = "forbidden transitions rejected"
+dependency_status = "none"
+next_action = "define with control"
+extinction_state = "n/a"
+
+[[lane]]
+id = "telemetry"
+family = "PHYSICAL_ENGINEERING"
+capability = "timestamped measurements with unit, uncertainty, device/firmware identity, calibration"
+state = "ABSENT"
+atlas_implementation = "quantities available (ADR 0010)"
+donors = []
+blocking_question = "no physical system to observe; MEASURED/CALIBRATED states need an ADR 0002 amendment"
+evidence_required = "first telemetry consumer (SIL output)"
+falsification = "units and identity checks on records"
+dependency_status = "none"
+next_action = "after sil"
+extinction_state = "n/a"
+
+# PRODUCT_FOUNDRY (G56, ADR 0023): need -> hypothesis -> requirements -> engineering -> BOM ->
+# cost -> manufacturing -> SKU -> market evidence -> next product. Evidence levels are
+# ESTIMATED / QUOTED / PROTOTYPED / VALIDATED / PRODUCTION_MEASURED; nothing is claimed above them.
+
+[[lane]]
+id = "product_ideation"
+family = "PRODUCT_FOUNDRY"
+capability = "product hypotheses generated from cited evidence (complaints, reviews, price gaps, new materials/processes)"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): ProductHypothesis entities (problem, target customer, cited MarketEvidence); status HYPOTHESIZED; market uncertainty UNKNOWN without evidence"
+donors = []
+blocking_question = "no evidence-ingestion path: hypotheses are declared, not generated"
+evidence_required = "a hypothesis whose cited evidence is ingested with provenance"
+falsification = "a hypothesis citing undeclared evidence is VIOLATED (tested)"
+dependency_status = "none"
+next_action = "ingestion of authorized review/complaint sources into MarketEvidence"
+extinction_state = "n/a"
+
+[[lane]]
+id = "market_evidence"
+family = "PRODUCT_FOUNDRY"
+capability = "typed market signals with provenance (reviews, searches, competitor listings, experiments)"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): MarketEvidence entities can be cited; existence checked; demand never asserted by citation"
+donors = []
+blocking_question = "no authorized market-data source is connected; no fabricated data allowed"
+evidence_required = "an ingested, attributed market signal"
+falsification = "citation alone never validates demand (tested)"
+dependency_status = "none"
+next_action = "define MarketEvidence schema fields (source, date, method, sample) when a real source is authorized"
+extinction_state = "n/a"
+
+[[lane]]
+id = "customer_problem"
+family = "PRODUCT_FOUNDRY"
+capability = "problem statements linked to evidence and requirements"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): ProductHypothesis.problem / target_customer"
+donors = []
+blocking_question = "problem->requirement trace not yet typed"
+evidence_required = "requirement nodes citing the hypothesis they serve"
+falsification = "trace query from requirement back to evidence"
+dependency_status = "none"
+next_action = "add `serves = <hypothesis>` on ProductRequirement"
+extinction_state = "n/a"
+
+[[lane]]
+id = "product_requirements"
+family = "PRODUCT_FOUNDRY"
+capability = "explicit, dimension-checked product requirements decided over uncertain values"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): ProductRequirement over derived commercial metrics (<=, >=) decided SATISFIED/VIOLATED/UNKNOWN across the whole interval; physical requirements via core::physical"
+donors = []
+blocking_question = "geometric/physical product requirements (weight, package size, print time) not yet linked to derived geometry"
+evidence_required = "requirements on parametric geometry and print estimates"
+falsification = "interval requirement mutants killed (G56)"
+dependency_status = "none"
+next_action = "G57: requirements on geometry-derived mass, volume, print time"
+extinction_state = "n/a"
+
+[[lane]]
+id = "product_architecture"
+family = "PRODUCT_FOUNDRY"
+capability = "product -> assembly -> part structure referencing physical entities"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Product/Assembly/Part/BomLine graph with cycle refusal"
+donors = []
+blocking_question = "no link from Part to Physical Engineering geometry/material entities yet"
+evidence_required = "a Part whose mass/volume is DERIVED from declared geometry"
+falsification = "cycle and dimension mutants killed"
+dependency_status = "none"
+next_action = "G57: Part geometry via parametric construction"
+extinction_state = "n/a"
+
+[[lane]]
+id = "parametric_cad"
+family = "PRODUCT_FOUNDRY"
+capability = "requirements -> parameters -> constraints -> exact geometry and mesh export"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["CadQuery (Apache-2.0: cq.py Workplane, occ_impl/exporters; 470 KB slice)", "OpenSCAD (GPL-2.0+ WITH CGAL exception: CSG tree, export_stl; principles only)", "FreeCAD (LGPL-2.1+, comparison only)", "OCCT (LGPL-2.1 WITH exception, comparison only)"]
+blocking_question = "no Atlas-native geometry kernel; which primitive set (boxes/pockets as exact CSG of axis-aligned solids) covers the first SKU"
+evidence_required = "exact volume of a parametric organizer body + STL whose volume matches"
+falsification = "mesh volume vs exact CSG volume; manifoldness"
+dependency_status = "none"
+next_action = "G57: native parametric CSG for the desk organizer (exact volume -> mass) with STL export"
+extinction_state = "n/a"
+
+[[lane]]
+id = "electronics"
+family = "PRODUCT_FOUNDRY"
+capability = "schematic/netlist/PCB graph, ERC/DRC"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["KiCad (GPL-3.0+, principles only: BOM export, netlist graph, ERC/DRC engines; 445 KB slice)"]
+blocking_question = "no electronics product in scope until Product + Physical primitives mature (milestone 3)"
+evidence_required = "a netlist graph with an ERC rule decided"
+falsification = "ERC on a known-bad netlist"
+dependency_status = "none"
+next_action = "after the 3D-print and OEM milestones"
+extinction_state = "n/a"
+
+[[lane]]
+id = "firmware"
+family = "PRODUCT_FOUNDRY"
+capability = "firmware artifacts tied to product revisions"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no firmware-bearing product yet"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after the OEM milestone"
+extinction_state = "n/a"
+
+[[lane]]
+id = "bom"
+family = "PRODUCT_FOUNDRY"
+capability = "variant-aware BOM graph with quantities, suppliers, substitutes, lifecycle"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): BomLine (parent, item, dimensioned quantity, variant scope) exploded exactly to priced Material/Component leaves; per-kg vs per-piece pricing dimension-checked"
+donors = ["ERPNext (GPL-3.0+: BOMCostingService, exploded items; reference, reimplemented natively)"]
+blocking_question = "no supplier/substitute/lifecycle fields; ERPNext byproduct netting not modelled (Atlas models scrap as yield loss)"
+evidence_required = "supplier-linked BOM lines with substitutes"
+falsification = "variant-scope, cycle, dimension, unknown-propagation mutants killed"
+dependency_status = "none"
+next_action = "supplier/substitute fields once RFQ semantics exist"
+extinction_state = "n/a"
+
+[[lane]]
+id = "costing"
+family = "PRODUCT_FOUNDRY"
+capability = "unit economics with provenance and uncertainty: factory, landed, margins, break-even"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): exact interval money, weakest-basis propagation, yield-loss scrap, amortization over a hypothesized volume, dependency-aware margin/contribution/ratio closed forms, break-even only when contribution > 0"
+donors = ["ERPNext (costing formulas, reference)"]
+blocking_question = "duty, warranty and payment fees are expressible only as generic CostItem/CostRate; no FX (never converted)"
+evidence_required = "oracle-exact economics (G56 desk organizer, Python Fraction oracle)"
+falsification = "17 mutants killed; oracle match exact"
+dependency_status = "none"
+next_action = "G57: material cost from DERIVED mass instead of declared grams"
+extinction_state = "n/a"
+
+[[lane]]
+id = "supplier"
+family = "PRODUCT_FOUNDRY"
+capability = "suppliers, RFQs, quotes with validity and incoterms"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Quote entity required for any QUOTED value (existence checked); no quote fields yet"
+donors = []
+blocking_question = "no real supplier quotes exist; fabricated quotes are forbidden"
+evidence_required = "a real quote on record"
+falsification = "QUOTED without Quote is VIOLATED (tested)"
+dependency_status = "none"
+next_action = "Quote schema (supplier, date, validity, MOQ, incoterm, currency) when a real RFQ exists"
+extinction_state = "n/a"
+
+[[lane]]
+id = "oem"
+family = "PRODUCT_FOUNDRY"
+capability = "OEM modules as external components with supplier part numbers"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no OEM product yet (milestone 2)"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "milestone 2 model: OEMModule as EXTERNAL component"
+extinction_state = "n/a"
+
+[[lane]]
+id = "manufacturing"
+family = "PRODUCT_FOUNDRY"
+capability = "process models (3D print, CNC, molding, sheet metal, PCBA, manual)"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Part.process declared (FDM_3D_PRINT); no process model"
+donors = ["CuraEngine (AGPL-3.0: TimeEstimateCalculator, principles only)", "PrusaSlicer (AGPL-3.0: TimeBlock trapezoid model, principles only)"]
+blocking_question = "no print-time model; both slicers use the same Marlin-derived per-move trapezoidal planner (cross-confirmed)"
+evidence_required = "print-time estimate from geometry with stated machine limits"
+falsification = "trapezoid time vs closed-form kinematics"
+dependency_status = "none"
+next_action = "G57: native trapezoidal time estimate over a declared toolpath abstraction"
+extinction_state = "n/a"
+
+[[lane]]
+id = "dfm"
+family = "PRODUCT_FOUNDRY"
+capability = "design-for-manufacturing rules that reject manufacturable-looking but invalid designs"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs geometry (parametric_cad)"
+evidence_required = "a wall-thickness/overhang rule decided on geometry"
+falsification = "a design violating minimum wall is VIOLATED"
+dependency_status = "none"
+next_action = "after parametric_cad"
+extinction_state = "n/a"
+
+[[lane]]
+id = "dfa"
+family = "PRODUCT_FOUNDRY"
+capability = "design-for-assembly rules (part count, fastener count, access)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs assemblies with geometry"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after parametric_cad"
+extinction_state = "n/a"
+
+[[lane]]
+id = "tooling"
+family = "PRODUCT_FOUNDRY"
+capability = "tooling cost and amortization"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): fixed CostItems amortized over planned_volume (HYPOTHESIZED)"
+donors = []
+blocking_question = "no tooling entity distinct from other fixed costs"
+evidence_required = "a quoted tooling cost"
+falsification = "amortization basis mutant killed"
+dependency_status = "none"
+next_action = "type tooling separately when a molded part exists"
+extinction_state = "n/a"
+
+[[lane]]
+id = "prototype"
+family = "PRODUCT_FOUNDRY"
+capability = "prototype revisions tied to design digest, BOM, tests"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no physical prototype exists; nothing may be marked PROTOTYPED without one"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "revision record schema when a prototype is built"
+extinction_state = "n/a"
+
+[[lane]]
+id = "inspection"
+family = "PRODUCT_FOUNDRY"
+capability = "inspection requirements, measurements, sample plans"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no physical parts"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after prototype"
+extinction_state = "n/a"
+
+[[lane]]
+id = "quality"
+family = "PRODUCT_FOUNDRY"
+capability = "defects, root cause, corrective action"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no physical parts"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after prototype"
+extinction_state = "n/a"
+
+[[lane]]
+id = "packaging"
+family = "PRODUCT_FOUNDRY"
+capability = "package dimensions, weight, protection, labels"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): packaging as a landing CostItem only"
+donors = []
+blocking_question = "no package geometry; ties to shipping cost/damage risk absent"
+evidence_required = "package dimensions derived from product geometry"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "G57+: package entity from product bounding box"
+extinction_state = "n/a"
+
+[[lane]]
+id = "logistics"
+family = "PRODUCT_FOUNDRY"
+capability = "routes origin -> warehouse -> customer with costs and lead times"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): freight as a landing CostItem only"
+donors = []
+blocking_question = "no route model"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "route entity when a real route is declared"
+extinction_state = "n/a"
+
+[[lane]]
+id = "compliance"
+family = "PRODUCT_FOUNDRY"
+capability = "explicit compliance requirements; certification only as external evidence"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "initial products are non-electrical desk accessories; certification is never claimed"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "compliance semantics before any electrical product"
+extinction_state = "n/a"
+
+[[lane]]
+id = "sku"
+family = "PRODUCT_FOUNDRY"
+capability = "product family / variant / SKU with variant-specific BOM and price"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Variant and Sku entities; BOM lines, cost items and prices variant-scoped"
+donors = ["Medusa (MIT: product/variant/price-set link modules, reference)", "Saleor (BSD-3-Clause: direct-FK variant/stock, contrasting reference)"]
+blocking_question = "no option axes (size/color) typed"
+evidence_required = "option-typed variants"
+falsification = "variant-scope mutant killed"
+dependency_status = "none"
+next_action = "typed Option axes"
+extinction_state = "n/a"
+
+[[lane]]
+id = "pricing"
+family = "PRODUCT_FOUNDRY"
+capability = "price strategy as hypothesis tied to landed cost, margin and channel fees"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Price entities (HYPOTHESIZED ranges); margins and ratio derived; never a market truth"
+donors = ["Medusa (rule-resolved PriceSets, reference)"]
+blocking_question = "no elasticity/competitor evidence"
+evidence_required = "an experiment-backed price posterior"
+falsification = "weakest-basis mutant killed"
+dependency_status = "none"
+next_action = "after sales_feedback"
+extinction_state = "n/a"
+
+[[lane]]
+id = "ecommerce"
+family = "PRODUCT_FOUNDRY"
+capability = "catalog, inventory, orders, fulfillment, returns semantics"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Medusa (MIT, reference)", "Saleor (BSD-3-Clause, reference)"]
+blocking_question = "no channel connected; Atlas stays framework-independent"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "catalog/inventory semantics when a channel is authorized"
+extinction_state = "n/a"
+
+[[lane]]
+id = "launch"
+family = "PRODUCT_FOUNDRY"
+capability = "listing assets derived from product state (Creator Fabric)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs Creator assets tied to product facts; marketing text may not invent specifications"
+evidence_required = "a listing whose every claim traces to product/physical state"
+falsification = "a listing claim without a trace is refused"
+dependency_status = "none"
+next_action = "after parametric_cad (render/spec table from geometry)"
+extinction_state = "n/a"
+
+[[lane]]
+id = "sales_feedback"
+family = "PRODUCT_FOUNDRY"
+capability = "experiments: prediction -> observed sales -> posterior"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no authorized sales data; conversion rates are never invented"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "experiment schema when real data is authorized"
+extinction_state = "n/a"
+
+[[lane]]
+id = "returns_feedback"
+family = "PRODUCT_FOUNDRY"
+capability = "reviews/returns/defects mapped to requirement gaps"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no returns data"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after sales_feedback"
+extinction_state = "n/a"
+
+[[lane]]
+id = "product_nextgen"
+family = "PRODUCT_FOUNDRY"
+capability = "evidence-driven product revision into a new SKU"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs feedback evidence"
+evidence_required = "a revision justified by recorded evidence"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "milestone 4"
+extinction_state = "n/a"

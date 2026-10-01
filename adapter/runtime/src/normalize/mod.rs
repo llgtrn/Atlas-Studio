@@ -401,7 +401,7 @@ mod tests {
                 predicate: "PROVIDES capability".into(),
                 object: " Compile ".into(),
                 provenance: Provenance {
-                    source_path: ".atlas/declared/system.adl".into(),
+                    source_path: "tools/atlas/declared/system.adl".into(),
                     source_revision: None,
                     extractor: "atlas.adl.compiler.v1".into(),
                     content_hash: None,
@@ -416,7 +416,7 @@ mod tests {
         assert_eq!(report.facts[0].predicate, "provides_capability");
         assert_eq!(
             report.facts[0].provenance.source_path,
-            ".atlas/declared/system.adl"
+            "tools/atlas/declared/system.adl"
         );
     }
 

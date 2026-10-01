@@ -1,0 +1,851 @@
+# The residual ledger (G179, ADR 0092). A residual is a known gap a generation recorded instead of
+# fixing: a claim withheld, an input read as absent, a case outside the model. Each carries its exact
+# reproduction, a severity and whether it can make Atlas assert something false. A HARDENING
+# generation may run outside the lane cadence only to close an OPEN residual whose
+# can_create_false_claim is true (GENERATIONS.toml correctness_blocker = <id>). attack, when present,
+# names the queued native attack that closes the residual: a false-claim residual naming the HARDENING
+# queue head brings it out of LANE_DEFERRED into the next CREATION slot as its correctness blocker.
+#
+#   pressure = severity weight (LOW 1, MEDIUM 3, HIGH 9) x (false_claim_multiplier if
+#              can_create_false_claim else 1)
+#
+# false_claim_condition is present exactly when can_create_false_claim is true: the exact condition
+# under which the claim would be false, and why it does not hold on the current tree.
+# runtime tests (essential_complexity::residuals_carry_reproduction_severity_and_pressure) recompute
+# the pressure and check every field. Scratch reproductions named below were run at G179 with the
+# E24 release binary (atlas-systemizer agent model) and cargo 1.90.0.
+
+schema = "atlas.residuals.v1"
+canonical = true
+established_in = "G179"
+decision = ".atlas/decisions/0092-correctness-must-enable-construction.md"
+severities = ["LOW", "MEDIUM", "HIGH"]
+severity_weight_low = 1
+severity_weight_medium = 3
+severity_weight_high = 9
+false_claim_multiplier = 3
+statuses = ["OPEN", "CLOSED"]
+
+[[residual]]
+id = "RES-G178-IMPORT-ORDER"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (Scope::insert, Entry::unsure)"
+reproduction = "one scope binds the same external item twice by name, once certain and once unsure (Entry::unsure); Scope::insert keeps the first binding and ANDs the flags, so the claim or a withhold depends on which import it applies first (ADR 0091 Consequences). Never a wrong claim. At G179 the module-level pair use crate::m::zip; beside use std::iter::zip; withholds zip::g() in both orders (scratch policy/rep3, app certain_first and unsure_first), so the order-dependent pair is narrower than that"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census whose withheld path calls name a same-named certain and unsure import pair in one scope"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-SELF-PREFIXED-IMPORT"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (own_named, import_prefix)"
+reproduction = "mod m { pub mod x { pub fn f() {} } } mod named { use crate::m::x; use self::x::f as x; pub fn t() { x(); } } -- cargo build accepts it and rustc binds x() to m::x::f; Atlas E24 leaves x() unresolved, because own_named skips an import whose path starts with self:: and the import then reads its own binding (scratch policy/rep1)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census withholding a call through a self::-prefixed import that names another import of its own name"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-CFG-ATTR-MACRO-USE-EXTERN-CRATE"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (bind_extern_crates)"
+reproduction = "a workspace crate app depending on the workspace crate helper (pub fn f() {}), whose root reads #[cfg_attr(all(), macro_use)] extern crate helper; mod cfgd { pub fn t() { helper::f(); } } -- rustc binds helper::f(); Atlas E24 reads the extern crate item as Unknown (a possibly procedural attribute) and withholds the call; without the attribute the edge resolves (scratch policy/rep3)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census withholding calls behind a cfg_attr(.., macro_use) extern crate"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-CFG-EXTERN-CRATE"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (bind_extern_crates)"
+reproduction = "the same workspace with #[cfg(all())] extern crate helper; at the crate root -- rustc binds helper::f(); Atlas E24 reads an un-renamed extern crate under cfg as Unknown and withholds the call; the plain extern crate helper; resolves it (scratch policy/rep3)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or self-census withholding calls behind a cfg'd un-renamed extern crate"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-EDITION-2015"
+found_in = "G178"
+source = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml (NA-EDITION-2015)"
+subsystem = "adapter semantic::rust::resolve (path resolution per edition)"
+reproduction = "a workspace crate with edition = 2015 in its manifest and mod a { pub fn f() {} } mod b { use a::f; pub fn t() { f(); } } -- rustc 1.90.0 builds it and binds f() to a::f (2015 paths are crate-relative); Atlas E24 reads every crate as 2018 or newer and leaves f() unresolved (scratch policy/rep3, crate old)"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "NA-EDITION-2015 selected, or a replay whose donor holds 2015-edition crates"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-NONCONVERGENCE-OPENS-WORKSPACE"
+found_in = "G178"
+source = "tools/atlas/evidence/replay/R15-egglog.json"
+subsystem = "adapter semantic::rust::resolve (import fixed point, 64-round fallback)"
+reproduction = "a workspace whose import fixed point does not settle within 64 rounds in one crate: the fallback makes every non-item entry Unknown in every module of every crate, because the resolver iterates the workspace as one state. At E23 egglog at 90635860 withheld 2,310 path calls in 102 components this way; E24 settles egglog, and no input known at G179 still fails to converge"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "any census or replay whose withheld notes name imports reach no fixed point within 64 rounds"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-LIB-NAME-DIFFERS-FROM-KEY"
+found_in = "G178"
+source = "adapter/src/semantic/rust/resolve.rs (known_extern), adapter/runtime/src/census/resolution.rs"
+subsystem = "runtime census::resolution (declared dependency names), adapter semantic::rust::resolve"
+reproduction = "a crate declaring an unrenamed registry or git dependency zipper whose package sets [lib] name = zip, with use std::iter::zip; and a call zip::open() -- rustc binds zip::open to the dependency (the function import binds only the value namespace, so zip:: reaches the extern prelude); Atlas puts the key zipper, not zip, in the declared names, so zip reads as absent and the unsure import is trusted. At G179 a git fixture of that shape (scratch policy/rep2, zipper at file://) left zip::open and s.look() unresolved in the agent model, which cannot show path-level external claims"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "an unrenamed registry or git dependency whose [lib] name differs from its key, beside an unsure import of the library name: the call is claimed as the imported item's path (std::iter::zip::open) where rustc calls the dependency. It does not hold on the current tree: Atlas has no git dependency, and cargo metadata at G179 shows no direct dependency of a workspace member whose library name differs from its key"
+reopen_trigger = "a workspace in census scope gains a registry or git dependency whose library name differs from its key, or a replay's donor has one"
+attack = "NA-DEPENDENCY-DECLARATIONS"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G178-EXTERN-OUTSIDE-CARGO"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::resolve (known_extern)"
+reproduction = "the same source as RES-G178-LIB-NAME-DIFFERS-FROM-KEY compiled by rustc directly with --extern zip=libzip.rlib and no manifest entry: Atlas reads only Cargo manifests, so zip is absent and the unsure use std::iter::zip; import is trusted for zip::open()"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a crate built outside Cargo (rustc invoked by Bazel, Buck or a script) that receives a crate by --extern under a name an unsure import also binds: Atlas claims the imported path. It does not hold on the current tree: Atlas and every processed replay are Cargo workspaces, and the census reads their dependencies from Cargo manifests and the lockfile"
+reopen_trigger = "a census or replay of a workspace built without Cargo"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-WORKSPACE-TRUE-BESIDE-PATH"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter dependency::cargo (native TOML reader, dependency entries)"
+reproduction = "[dependencies] zip = { workspace = true, path = '../zip' } -- Cargo ignores the path and takes the workspace entry; Atlas reads the entry as declared with an unknown source (DeclaredSource::Unknown, test an_entry_whose_fields_are_not_what_cargo_requires_reads_as_unknown), so zip binds nothing and imports beside it are withheld"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a census or replay whose manifests carry workspace = true beside path"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-CENSUS-CONSUMER-NAMES-BY-LINES"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter dependency::cargo (dependency census consumer names)"
+reproduction = "a workspace member whose [package] name is written as a multi-line or literal string, or as a dotted package.name key: the dependency census reads the consumer's own name by lines (adapter/src/dependency/cargo.rs, consumer_name) and may label its edges with a misread name. Evidence labels only; no resolution reads them"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a dependency census whose consumer names disagree with cargo metadata"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G178-LOCKED-TRAITS-LIB-NAME-BY-LINES"
+found_in = "G178"
+source = ".atlas/decisions/0091-imports-settle-as-rustc-binds-them.md"
+subsystem = "adapter semantic::rust::locked_traits (manifest_field)"
+reproduction = "a locked registry package whose Cargo.toml gives [lib] name in a form the line reader misreads -- a name = line inside a multi-line string of the [lib] table, a dotted lib.name key, a header with a trailing comment: manifest_field returns another value or none. None is safe (named_by_key keeps the key only when the package is UNKNOWN anyway); a wrong value can make named_by_key take the key for the library name"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a locked registry package whose manifest Cargo did not normalize (published before cargo package rewrote manifests, or uploaded by another tool) and whose [lib] name the line reader misreads to another value: the autoref guard may read that package's items under the wrong name and trust a method claim. It does not hold on the current tree: the line reader and tomllib agree on [lib] name for all 33 registry manifests Atlas locks (G179)"
+reopen_trigger = "a lock closure in census scope gains a registry manifest that is not in Cargo's normalized form"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G178-TOML-1-1-SYNTAX"
+found_in = "G178"
+source = "adapter/src/dependency/cargo.rs (native TOML reader)"
+subsystem = "adapter dependency::cargo (native TOML reader)"
+reproduction = "a manifest spelling the native reader accepts as TOML 1.1 but Cargo 1.90.0 rejects would bind dependencies Cargo never reads. No such spelling is known: at G179 cargo 1.90.0 metadata accepted an inline table spread over lines, a trailing comma in an inline table, the escapes \\e and \\x2f and a time without seconds (scratch policy/t11); the G178 differential ran against tomllib, which reads TOML 1.0 and rejects all four, so a differential against cargo itself is the open step"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the pinned toolchain moves to a Cargo that reads TOML 1.1, or a census input whose manifest Cargo rejects"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G179-SEAL-SELF-CERTIFYING"
+found_in = "G179"
+source = "core/src/atlas (SEALED container, M9), core/src/atlasx/precondition.rs (M10)"
+subsystem = "core seal M9 and atlasx precondition M10"
+reproduction = "take any unsealed census container; build a SealRecord with arbitrary policy, report, envelope and design ids, copying the manifest's certificate, census and revision, covering every blocker in permitted and setting seal_id = seal_identity(record); atlas::write accepts it, it reads back SEALED, and atlasx precondition ADMITs it with a matching envelope and SELECTED design although no seal gate ran -- the seal identity is a digest, not a signature"
+severity = "HIGH"
+can_create_false_claim = true
+false_claim_condition = "a consumer treats ADMITTED as proof that the seal gate decided the seal, for a SEALED container not produced by seal_container from an ELIGIBLE decision. It does not hold on the current tree: ADMITTED is documented (ADR 0093) as binding only, every verdict lists the seal policy, verification and integrity reports among the steps it does not verify, no SEALED container exists in the tree or its evidence, and nothing materializes"
+reopen_trigger = "before the AtlasX materializer (M11) consumes an admitted parent, or when any SEALED container is committed"
+status = "CLOSED"
+closed_in = "G185"
+closure = "ADR 0097: the AtlasX precondition re-runs the seal gate over the repository declaration (its seal policy, pinned envelope and principal registry), the verification and integrity reports and the SelectedDesign against the pre-seal root, and admits only the record the gate decides; the G179 reproduction is refused SEAL_RECORD_NOT_DECIDED. The remainder -- report contents a declared principal's design holder authors -- is RES-G185-REPORT-CONTENTS-AS-AUTHORED"
+pressure = 27
+
+[[residual]]
+id = "RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT"
+found_in = "G179"
+source = "adapter/runtime/src/seal.rs (gate_container), adapter/runtime/src/integrity.rs (check_report)"
+subsystem = "seal gate M8 and integrity report M6"
+reproduction = "hand-edit an integrity report to verdict ELIGIBLE over failing evaluations, or to cite an envelope id that was never pinned, and pass it to atlas-systemizer seal gate: gate_container reads the report's verdict and trusts it; integrity::check_report is used only by the integrity report command"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a seal gate decision ELIGIBLE resting on a tampered or foreign integrity report. It does not hold on the current tree: the only real decision, the self scope, is NOT_ELIGIBLE on its certificate and design, and the G161 fixture's report is produced by the evaluator"
+reopen_trigger = "the first ELIGIBLE seal decision over a non-fixture container"
+status = "CLOSED"
+closed_in = "G185"
+closure = "ADR 0097: seal::gate takes the pinned envelope and applies integrity::check_report and verification::check_report itself, refusing INTEGRITY_REPORT_INCONSISTENT and VERIFICATION_REPORT_INCONSISTENT (a HARD invariant decided only PASS, FAIL or UNKNOWN with its diagnostics, a required class covered by a required obligation); the AtlasX precondition applies the same checks. Report contents authored consistently remain RES-G185-REPORT-CONTENTS-AS-AUTHORED"
+pressure = 9
+
+[[residual]]
+id = "RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED"
+found_in = "G179"
+source = "core/src/atlasx/precondition.rs"
+subsystem = "atlasx precondition M10"
+reproduction = "the SelectedDesign's parent_root is not compared with the admitted container: sealing changes the container root, so the link rests on the seal record's design_id, which covers the design identity"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "when RES-G179-SEAL-SELF-CERTIFYING is closed"
+status = "CLOSED"
+closed_in = "G185"
+closure = "ADR 0097: the re-run seal gate compares the design parent_root with the recomputed pre-seal root and refuses another root DESIGN_CANDIDATE_MISMATCH"
+pressure = 1
+
+[[residual]]
+id = "RES-G179-DESIGN-JSON-UNKNOWN-FIELDS"
+found_in = "G179"
+source = "core/src/design (SelectedDesign serde)"
+subsystem = "design record"
+reproduction = "a SelectedDesign JSON with an extra field deserializes and verifies; IntegrityEnvelope rejects unknown fields (deny_unknown_fields)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "when the design schema is made strict"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G180-GENERIC-AND-DYN-RECEIVERS"
+found_in = "G180"
+source = "adapter/src/semantic/rust/resolve.rs (method probe)"
+subsystem = "adapter semantic::rust::resolve (receiver typing)"
+reproduction = "datafrog at edd7cfc0: input1.recent() on input1: &Variable<T> (src/join.rs:51), result.merge on Relation<Tuple> (src/variable.rs:333) and variable.changed() on a Box<dyn VariableTrait> loop variable (src/iteration.rs:29) stay unresolved while rust-analyzer resolves them; the sibling input2 sites resolve"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the HARDENING lane reopens native receiver typing (NA-CALL-TYPE-RESIDUAL) by policy, or a replay's mission turns on such a receiver"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G180-EXAMPLE-CRATE-PATHS"
+found_in = "G180"
+source = "adapter/runtime/src/census/resolution.rs (crate targets), adapter/src/semantic/rust/resolve.rs"
+subsystem = "runtime census::resolution (example and test targets)"
+reproduction = "datafrog at edd7cfc0: examples/borrow_check.rs:11 use datafrog::Iteration and the calls through it stay unresolved; rust-analyzer resolves them to the library crate the example depends on"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay or the self census needs calls from example or test targets into their own package's library"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G181-REF-RECEIVERS"
+found_in = "G181"
+source = "adapter/runtime/src/self_reconstruction.rs (lifter), core/src/construction/rust.rs (backend)"
+subsystem = "runtime self_reconstruction lifter and core construction backend"
+reproduction = "fn f(&self) -> bool { match self { Self::A => true, _ => false } } stays BODY_UNOBSERVED: bodies over &self or &mut self receivers, and bodies with calls or arithmetic, are outside the G181 subset (most real methods)"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "an SH2 target whose methods take &self"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G181-CONSERVATIVE-COPY"
+found_in = "G181"
+source = "core/src/construction/mod.rs (validate_body)"
+subsystem = "core construction IR validation"
+reproduction = "a COPY of self requires an observed Copy derive even where != only borrows, so the IR may refuse a body rustc would accept"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a refused body that rustc accepts"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G181-EMIT-TRUSTS-VALIDATION"
+found_in = "G181"
+source = "core/src/construction/rust.rs (emit)"
+subsystem = "core construction Rust backend"
+reproduction = "rust::emit does not re-validate its module: an INTRINSIC node without an intrinsic prints != for a module that never passed validate_module"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a caller emits a construction module without validate_module and treats the emitted source as the census's body. It does not hold on the current tree: the only caller, the self-reconstruction lifter, validates every module before emitting"
+reopen_trigger = "any new caller of rust::emit"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G181-UNDECLARED-BODY-TEXT"
+found_in = "G181"
+source = "adapter/runtime/src/self_reconstruction.rs (declared_variations)"
+subsystem = "runtime self_reconstruction verdict"
+reproduction = "only a doc comment's wrapping is declared as a variation; inner comments or formatting of an original body that the census drops are not declared -- only the body check's token-identity flag in its detail shows them"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a bodied target whose body carries inner comments or formatting the census drops gets RECONSTRUCTED_WITH_DECLARED_VARIATION without declaring that difference. It does not hold on the current tree: SR1-3's is_local lowers token-identically (the check's flag is true)"
+reopen_trigger = "the first bodied target whose token-identical flag is false"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G182-AUTODISCOVERED-TARGETS"
+found_in = "G182"
+source = "adapter/src/dependency/cargo.rs (manifest_targets), adapter/runtime/src/census/resolution.rs"
+subsystem = "adapter dependency::cargo (crate targets) and runtime census::resolution"
+reproduction = "differential-dataflow at aa8745f9: files under src/bin/, examples/, tests/ and benches/ are Cargo auto-discovered targets; manifest_targets reads [lib], [[bin]] path, src/main.rs, src/lib.rs and build.rs only, so 124 of 207 .rs files are reported not evaluated (no Cargo target's module tree reaches them) and 731 of the 1,850 call edges the index has and Atlas lacks come from them"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "a replay's mission or the self census needs calls in an auto-discovered target, or the HARDENING lane reopens native resolution by policy"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G183-GLOBAL-ID-PROVISIONAL"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (FUNCTIONS_SCHEMA field 1)"
+subsystem = "core atlasx codec M12"
+reproduction = "core/src/atlasx/codec/fixture.bin: field 1 (GLOBAL_ID) of the FUNCTION_SIGNATURE record carries the UTF-8 bytes of the construction IR's function id (fn:core/...::is_local); no stable AtlasX identity form is defined yet"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the materializer (M11) defines the stable GLOBAL_ID form; a different form must come with a new record schema version, which the pinned schema digest forces"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G183-BODIES-NOT-ENCODED"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (encode_module, bodies_not_encoded)"
+subsystem = "core atlasx codec M12"
+reproduction = "atlas-systemizer atlasx codec --encode core/src/atlasx/codec/fixture_module.json --out <dir> reports bodies_not_encoded = [the is_local function id]: the FUNCTIONS object carries signatures only, the construction IR's HIR body is dropped"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a consumer reads a DECODED FUNCTIONS object as the function's executable semantics. It does not hold on the current tree: nothing consumes a decoded object, and every encode and decode report names the body among what it does not carry (bodies_not_encoded, CODEC_NOT_VERIFIED)"
+reopen_trigger = "the materializer (M11) materializes functions with bodies, or any consumer of a decoded FUNCTIONS object"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G183-DECODED-IS-NOT-VALIDATED"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (read, CODEC_NOT_VERIFIED)"
+subsystem = "core atlasx codec M12, validator M13"
+reproduction = "any canonical FUNCTIONS object whose lineage or owner resolve nowhere, re-hashed after editing, decodes as DECODED (the codec test of a re-hashed payload edit): the digest authenticates bytes, not provenance, and no manifest, root identity or cross-object closure is checked"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "DECODED is reported as a validated AtlasX object or root. It does not hold on the current tree: the verdict is DECODED, never VALID, every report lists the manifest, root identity, parent compatibility, cross-object references and lineage among what it does not verify, and M13 stays MISSING"
+reopen_trigger = "the AtlasX validator (M13), or any consumer of a decoded object"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: the AtlasX validator judges objects inside a root against their manifest and the admitted parent, and VALID requires the root to reproduce the materialization; what VALID still rests on is RES-G187-VALIDATION-BY-REPRODUCTION"
+pressure = 9
+
+[[residual]]
+id = "RES-G183-SINGLE-CLASS"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (read: expected class FUNCTIONS)"
+subsystem = "core atlasx codec M12"
+reproduction = "any object whose header object_class is not 4 (FUNCTIONS) is refused CLASS_MISMATCH; the other twenty classes, ROOT_MANIFEST among them, have no schema"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the materializer (M11) or validator (M13) needs a second class, ROOT_MANIFEST first"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: ROOT_MANIFEST (class 1) has a schema beside FUNCTIONS; the other classes are RES-G187-FUNCTIONS-ONLY-ROOT"
+pressure = 1
+
+[[residual]]
+id = "RES-G183-FRAME-MEMORY"
+found_in = "G183"
+source = "core/src/atlasx/codec.rs (frames)"
+subsystem = "core atlasx codec M12"
+reproduction = "a correctly hashed 63.5 MiB payload of FUNCTION_SIGNATURE records each carrying 65,535 empty BOOL fields is framed whole before the schema runs and refused FIELD_FLAGS at a peak of about 466 MB resident (the fixture peaks at about 13 MB): each 8-byte field header becomes a frame of about 48 bytes -- bounded by the decoded-length limit, not unbounded"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a decoded-length limit raised above its G183 value, or objects decoded where memory is constrained (schema-check each top-level record as it is framed)"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G184-MATCHES-MACRO-ARGUMENTS"
+found_in = "G184"
+source = "adapter/src/semantic/rust (EXPRESSION_MACROS, the recovered standard macro arguments of G120)"
+subsystem = "adapter semantic::rust call extraction"
+reproduction = "verus at d85f7578, source/vir: 42 of the 1,042 call edges rust-analyzer's index holds and Atlas lacks sit inside macro token trees Atlas does not re-parse -- the standard matches! (interpreter, ast_to_sst, safe_api) and the crate's own node!, nodes!, dohash!, unwrap! and push_or_return_never!; matches! is a std expression macro missing from EXPRESSION_MACROS"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay mission or the self census needs calls inside matches!, or the HARDENING lane reopens native call recovery by policy"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G184-CROSS-FILE-TEMPLATE"
+found_in = "G184"
+source = "adapter/src/semantic/rust/macros.rs (hidden declaration places), adapter/src/semantic/rust/mod.rs (declaration coverage)"
+subsystem = "adapter semantic::rust declaration coverage"
+reproduction = "a workspace macro_rules! defined in file A whose transcriber declares (pub struct $n, fn), invoked from file B as crate::defs::gen_fn!(from_other_file) or m!(X) with tokens that spell no declaration keyword: B keeps SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE OBSERVED while the declared items are in no record -- the extractor reads one file, and only same-file templates (a fixpoint over their invocations) are hidden places (ADR 0096)"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a file invokes a keyword-spelling macro_rules! template defined in another file with keyword-free tokens. It does not hold on the current tree: typed_id!, string!, boolean! and array! are invoked only in their defining files, and every vocabulary_enum! invocation spells enum"
+reopen_trigger = "a workspace macro_rules! invoked outside its defining file without a declaration keyword in the invocation, in the self census or a replay"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G184-OUTPUT-NAMED-MODULE-DIRECTORIES"
+found_in = "G184"
+source = "adapter/src/source/module_dirs.rs (the file-presence rule for build-output directory names, ADR 0096)"
+subsystem = "adapter source inventory policy"
+reproduction = "an output-named directory (build, dist, .next, coverage) holding written source without its own mod.rs or Cargo.toml and without a non-crate-root sibling <name>.rs -- reached only through #[path = \"coverage/m.rs\"] mod m;, #[cfg_attr(unix, path = \"build/unix.rs\")], a mod declared inside cfg_if!, an inline mod dist { mod inner; } in lib.rs, a workspace member or a Cargo build or path target inside it, or non-Rust source there (web/src/build/index.ts) -- stays the IgnoredByExplicitPolicy generated-or-external boundary, as before G184"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "written source sits under such a directory reachable only by those forms: its files are absent from every record under a generated-or-external label. It does not hold on the current tree: its only output-named source directory, core/src/coverage, has its own mod.rs"
+reopen_trigger = "a donor or the self tree with written source under build/, dist/, .next/ or coverage/ that the file-presence rule does not recognize"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G184-CONST-GENERIC-BLOCKS"
+found_in = "G184"
+source = "adapter/src/semantic/rust/macros.rs (hidden declaration places)"
+subsystem = "adapter semantic::rust declaration coverage"
+reproduction = "pub fn f() { g::<{ fn in_const_arg() {} 1 }>(); }, a const-parameter default struct S<const N: usize = { fn f() {} 1 }>, a method turbofish x.m::<{ fn f() {} 1 }>() or a closure written there: the item or region is in no record and SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE stay OBSERVED"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "an item or closure is written inside a const-generic argument or default. It does not hold on the current tree nor on the verus replay: no such block holds an item or closure there"
+reopen_trigger = "a censused file with a block expression holding an item or closure in a generic argument or const-parameter default"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G184-ATTRIBUTE-ARGUMENT-DECLARATIONS"
+found_in = "G184"
+source = "adapter/src/semantic/rust/macros.rs (attribute arguments out of profile, ADR 0096)"
+subsystem = "adapter semantic::rust declaration coverage"
+reproduction = "#[dep::attr(fn written_in_attribute() {})] pub fn g() {} keeps the declaration dimensions OBSERVED: attribute arguments and attribute output are out of profile by the stated boundary of ADR 0096"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "an attribute macro whose arguments carry item declarations in a censused tree"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G184-CRATE-ROOT-BY-PATH"
+found_in = "G184"
+source = "adapter/src/source/module_dirs.rs (crate_root)"
+subsystem = "adapter source inventory policy"
+reproduction = "an output-named directory whose parent path contains a tests, examples or benches component or src/bin anywhere (src/tests/coverage/helpers.rs beside a non-root module src/tests/coverage.rs) is judged crate-root territory by path alone, so rule (c) does not apply and the directory stays the IgnoredByExplicitPolicy generated-or-external boundary, as before G184"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "written module source sits in an output-named directory under such a path: its files are absent from every record under a generated-or-external label. It does not hold on the current tree: its only output-named source directory, core/src/coverage, is recognized by its own mod.rs"
+reopen_trigger = "a donor or the self tree with written module source under tests/, examples/, benches/ or src/bin/ in a directory named build, dist, .next or coverage"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G185-STAGED-NOT-PUBLISHED"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs, adapter/runtime/src/atlasx.rs (materialize)"
+subsystem = "core atlasx materializer M11"
+reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx into staging only: no ROOT_MANIFEST, no AtlasX root identity, and publication steps 4 to 8 of ATLASX-BINARY-WIRE-FORMAT are not done"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a staged object is reported as an AtlasX root or a completed materialization. It does not hold on the current tree: the verdict is STAGED, never a root, MATERIALIZE_NOT_DONE lists publication, and M13 and MIN_ATLASX stay MISSING"
+reopen_trigger = "a ROOT_MANIFEST schema (RES-G183-SINGLE-CLASS) or the AtlasX validator (M13)"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: a ROOT_MANIFEST and the root identity exist and publication steps 1 to 6 run in staging; the remainder (atomic switch, advertise) is RES-G187-STAGED-ROOT-NOT-PUBLISHED"
+pressure = 9
+
+[[residual]]
+id = "RES-G185-CLOSURE-ROOTS-ONLY"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs (selection)"
+subsystem = "core atlasx materializer M11"
+reproduction = "the materialized selection is exactly the SelectedDesign's FUNCTION_IDENTITY roots: calls, types, state and effects they reach are not followed, and a SYMBOL root is listed in not_materialized"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "the staged object is read as the design's complete executable closure. It does not hold on the current tree: MATERIALIZE_NOT_DONE and not_materialized state the omission, and nothing consumes staged objects"
+reopen_trigger = "a second materialized class, or any consumer of staged objects"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G185-LINEAGE-ROOT-IN-RESULT-ONLY"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs (lineage), adapter/runtime/src/atlasx.rs"
+subsystem = "core atlasx materializer M11"
+reproduction = "a staged object's records carry only census record ids as lineage; the parent root, the seal and the design they came from are bound only in the noncanonical JSON result (the embedded precondition verdict), since no manifest exists"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the ROOT_MANIFEST and root identity (publication steps 4 to 6)"
+status = "CLOSED"
+closed_in = "G187"
+closure = "ADR 0099: the parent root, census digest, revision, seal and design are canonical ROOT_MANIFEST fields bound by the AtlasX root identity and checked by the validator"
+pressure = 1
+
+[[residual]]
+id = "RES-G185-RECORD-STATUS-UNJUDGED"
+found_in = "G185"
+source = "core/src/atlasx/materialize.rs (pairing)"
+subsystem = "core atlasx materializer M11"
+reproduction = "the epistemic status (OBSERVED, INFERRED and others) of the FUNCTION_IDENTITY and FUNCTION_SIGNATURE records a design selects is not checked before they are materialized"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a selected record that is not OBSERVED, or the seal policy's obligations reaching materialization"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G185-GATE-RERUN-REENCODES-CONTAINER"
+found_in = "G185"
+source = "core/src/atlasx/precondition.rs (gate_decides)"
+subsystem = "core atlasx precondition M10"
+reproduction = "gate_decides clones and re-encodes the whole sealed container to recompute its pre-seal root: about twice the container's memory (the self census container is 168 MB)"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "the first non-fixture SEALED container, or an admission under a memory limit"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G185-REPORT-CONTENTS-AS-AUTHORED"
+found_in = "G185"
+source = "core/src/atlasx/precondition.rs (NOT_VERIFIED step 5), core/src/verification/mod.rs and core/src/integrity/mod.rs (check_report)"
+subsystem = "core atlasx precondition M10 and seal gate M8"
+reproduction = "the holder of a SELECTED design signed by a principal declared in .atlas/declared/principals.json writes a verification report whose outcomes claim SATISFIED citing evidence ids no run produced, and an integrity report evaluating each pinned invariant PASS, both internally consistent (a required class covered by a required obligation, HARD invariants decided PASS, FAIL or UNKNOWN with their diagnostics) and citing the pinned envelope; seal gate decides ELIGIBLE, atlas seal writes the container, atlasx precondition admits and atlasx materialize stages it: the container carries neither the ADL constraint results integrity::evaluate needs nor the evidence runs verification::evaluate needs, so outcomes and evaluations are taken as authored"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "ADMITTED or STAGED is read as proof that the parent's verification obligations and HARD invariants were observed to hold. It does not hold on the current tree: .atlas/declared/principals.json declares no principal, so no design can be selected under the repository's declaration; no SEALED container exists outside test fixtures; the self scope is NOT_SEALED and DESIGN_ABSENT; and every verdict lists step 5 as taken as authored"
+reopen_trigger = "the first principal declared in .atlas/declared/principals.json, or the container carrying constraint results or verification evidence"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G185-PRE-SEAL-ROOT-REENCODE"
+found_in = "G185"
+source = "core/src/atlasx/precondition.rs (gate_decides)"
+subsystem = "core atlasx precondition M10"
+reproduction = "a SEALED container written before a container schema generation change reads back (schema::accepted_schema_ids) but gate_decides re-encodes it under the current section schema ids, so its recomputed pre-seal root differs from the root the design selected and the re-run gate refuses SEAL_GATE_NOT_ELIGIBLE: DESIGN_CANDIDATE_MISMATCH although the gate once decided it"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a container schema generation bump while a SEALED container is in use (carry the pre-seal root in the seal record, or re-encode under the parent's own schema ids)"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G186-TS-UNWALKED-CALL-POSITIONS"
+found_in = "G186"
+source = "adapter/src/semantic/typescript/mod.rs (the CALL walker)"
+subsystem = "adapter semantic::typescript call extraction"
+reproduction = "class A extends mixin(B) {} at module level records no CALL for mixin, and @dec(f()) class K {} records none for dec or f: calls in class heritage and in class-level decorators are outside the walker (calls in computed keys and in field and method decorators are recorded); predates G186"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "impact's candidate or unnamed site counts, or an unresolved-site note, understate a function whose calls sit in class heritage or a class-level decorator. It does not hold on the current tree nor on the bettafish replay: per file, Atlas's CALL records equal an independent parser's call and new nodes on the donor's JavaScript and on every censused JavaScript and TypeScript file of Atlas, and JavaScript CALL coverage is UNKNOWN, so no FALSIFIED verdict rests on the counts"
+reopen_trigger = "any censused file where an independent parser counts more call and new expressions than Atlas records CALL sites"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G187-STAGED-ROOT-NOT-PUBLISHED"
+found_in = "G187"
+source = "adapter/runtime/src/atlasx.rs (materialize, stage_objects), core/src/atlasx/materialize.rs (MATERIALIZE_NOT_DONE)"
+subsystem = "core atlasx materializer M11, publication"
+reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx and then manifest.atlasx into the staging directory (publication steps 1 to 6, the manifest read back with its root identity recomputed); step 7 (atomically publish or switch the root directory or reference) and step 8 (advertise the root) do not exist"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a staged (even VALID) root is reported as a published or advertised AtlasX root. It does not hold on the current tree: nothing publishes or advertises, the verdicts are STAGED and VALID, MATERIALIZE_NOT_DONE lists publication steps 7-8, VALIDATE_NOT_VERIFIED lists publication, and atlasx validate reads only the directory an operator names"
+reopen_trigger = "a publish/switch step, a registry or reference to AtlasX roots, or any consumer that locates a root other than by an explicit directory"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G187-VALIDATION-BY-REPRODUCTION"
+found_in = "G187"
+source = "core/src/atlasx/validate.rs (reproduction_defect, VALIDATE_NOT_VERIFIED), core/src/atlasx/materialize.rs (select, materialize_over)"
+subsystem = "core atlasx validator M13"
+reproduction = "the validator's record-field check is reproduction by the same code: it re-materializes the admitted parent with materialize_over and requires byte equality, so a mapping error in materialize::select (a census field carried into the wrong FUNCTION_SIGNATURE field, or dropped) would be written and validated alike; and a root from any other materializer identity or version is refused SCHEMA_INCOMPATIBLE rather than validated on its own terms"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "VALID is read as an independent check that every record field equals the parent's census content, while the materializer's mapping is wrong. It does not hold on the current tree: the materializer test pins the materialized is_local record equal, field for field, to the construction IR's SR1-3 lift of the same function (all but lineage), VALIDATE_NOT_VERIFIED states that fidelity rests on the materializer's mapping, and only one materializer version exists"
+reopen_trigger = "a second materializer (identity or version), a change to materialize::select's field mapping, or a consumer (compiler) that needs field fidelity independently of the materializer"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G187-FUNCTIONS-ONLY-ROOT"
+found_in = "G187"
+source = "core/src/atlasx/validate.rs (directory_of), core/src/atlasx/codec.rs"
+subsystem = "core atlasx codec M12, validator M13"
+reproduction = "a manifest entry of any class but FUNCTIONS (4) is ENTRY_CLASS_UNSUPPORTED and never validated; the other nineteen object classes (MODULES, TYPES, ... UI) have no schema; ROOT_MANIFEST (1) has one since G187"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a second materialized object class"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-MANIFEST-SCHEMA-DEVIATIONS"
+found_in = "G187"
+source = "core/src/atlasx/manifest.rs (MANIFEST_SCHEMA), core/src/atlasx/materialize.rs (TARGET_KIND_NONE, COMPILER_IR_CONTRACT_UNKNOWN, MATERIALIZER_VERSION)"
+subsystem = "core atlasx manifest M13"
+reproduction = "ROOT_MANIFEST schema 1 adds required tags 17-19 (parent census digest, revision, seal id) beyond the contract's 16, leaves the repeated tags 11-13, 15, 16 (profiles, external bindings, semantic barriers, dynamic obligations, compatibility requirements) undeclared and refused, writes target_kind NONE and compiler_ir_contract_version UNKNOWN, and a materializer_version constant (1) rather than a build identity"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a profile, binding, barrier, dynamic obligation or compatibility requirement to materialize, a target or compiler IR contract defined (M6), or the contract revised to number the parent binding fields"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-UNLISTED-FILES-REFUSED"
+found_in = "G187"
+source = "core/src/atlasx/validate.rs (UNLISTED_FILE)"
+subsystem = "core atlasx validator M13"
+reproduction = "a staged root holding any entry the manifest does not list -- a file (notes.md, a debug projection), a directory holding no listed object (an empty types/, a .git/), a name that is not UTF-8 -- is INVALID UNLISTED_FILE, although ATLASX-BINARY-WIRE-FORMAT lets noncanonical files coexist without affecting the root"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a debug or human-readable projection written next to canonical objects"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-ROOT-READ-MEMORY"
+found_in = "G187"
+source = "adapter/runtime/src/atlasx.rs (read_root, ROOT_ENTRY_LIMIT, ROOT_BYTE_LIMIT)"
+subsystem = "runtime atlasx validator M13"
+reproduction = "read_root holds every regular file of the root in memory before validation: up to 1,024 entries (directories counted) and four maximum-size objects (about 256 MiB plus one object) before it stops with ROOT_LIMIT"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "roots with more than four maximum-size objects, or validation where memory is constrained (read listed objects one at a time)"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G187-CONCURRENT-WRITER"
+found_in = "G187"
+source = "adapter/runtime/src/atlasx.rs (read_root_within, read_listed)"
+subsystem = "runtime atlasx validator M13"
+reproduction = "a local writer racing the staging directory while atlasx validate reads it: read_root checks each entry's type and identity (device, inode) when it is listed (symlink_metadata) and again on the opened handle, so a link or another file swapped in is listed as not a file; but a FIFO swapped in between listing and File::open blocks the open (no O_NONBLOCK is hand-coded; the G187 review's race probe: 8 hangs in 60 runs; the identity check does not prevent the blocking open), a top-level directory swapped for a link between listing and read_dir is followed, and a file replaced by another that reuses the freed inode is read -- validation can stall or read what the writer placed"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "validation of a directory other writers can change concurrently (a shared or published root), or a non-blocking open available without a new dependency"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G188-STAR-NONFUNCTION-CONFLICT"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/modules.rs (Linker::export)"
+subsystem = "adapter semantic::typescript module linking (ADR 0073)"
+reproduction = "a.ts: export * from './b'; export * from './c'; b.ts: export function x(){}; c.ts: export const x = 1 (or x behind an unresolved specifier, or more than MAX_LINK_DEPTH hops away); use.ts: import {x} from './a'; x() -- Atlas resolves x to b's function, because a star branch that does not resolve to a function is treated as not providing the name"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "an INVOKES edge through export * when another star branch of the same module really provides the name; under ES rules the name is then ambiguous and the import is a link-time SyntaxError, so the edge is claimed only for a program that does not link; no such import occurs in the censused files or the mirofish replay"
+reopen_trigger = "a replay or oracle finds an import resolved through export * while another star target of the same module also exports that name"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G188-SCRIPT-GLOBAL-SCOPE"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/mod.rs (same-file CALL resolution)"
+subsystem = "adapter semantic::typescript same-file call resolution"
+reproduction = "a.js: function f(){} f(); b.js: function f(){} -- loaded as browser script tags, b after a; Atlas resolves a's f() to a.js::f, the page calls b's f; in the same script file an indirect eval ((0, eval)(\"f = 2\"), window.eval), new Function(\"f = 2\")() or globalThis.f = .. rebinds the global f the same way; predates G188"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a DERIVED edge from a call in a script file (no top-level import or export) to a same-file function that another script sharing the global scope (script tags, a concatenated bundle) redefines, or that the same script rebinds through the global object (an indirect eval, new Function, a globalThis or window assignment); ES modules and CommonJS files are scoped per file, and Atlas does not know how scripts are loaded; no redefinition across script files occurs in the censused files or the mirofish replay"
+reopen_trigger = "a replay donor ships script-tag JavaScript whose functions are redefined across files, or Atlas learns how an HTML page loads its scripts"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G188-TDZ-NESTED-CALL"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/mod.rs (use-before-declaration point)"
+subsystem = "adapter semantic::typescript same-file call resolution"
+reproduction = "[1].map(() => f()); const f = () => 1; -- Atlas resolves f though the callback runs before the declaration statement and throws a ReferenceError; module-level calls before the declaration are withheld, calls in nested function bodies are assumed to run after the declaration"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "a DERIVED edge from a nested function that module-level code invokes synchronously before the class or const/let/var-bound function it calls is declared; no such call occurs in the censused files or the mirofish replay"
+reopen_trigger = "a replay or oracle finds a resolved call executed in the temporal dead zone of its callee"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G188-PARSE-ERROR-IMPORT-REQUIRE"
+found_in = "G188"
+source = "adapter/src/semantic/typescript/mod.rs (tree-sitter-typescript 0.23.2 error recovery)"
+subsystem = "adapter semantic::typescript syntax substrate"
+reproduction = "export import X1 = require(\"m\"); does not parse in tree-sitter-typescript 0.23.2: error recovery leaves an import_alias, the file is UNKNOWN in every dimension and X1 is recorded as a DEFINITION rather than a declaration under import m"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a grammar upgrade parses export import x = require(), or a replay needs such imports linked"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G188-IMPACT-SILENT-ON-UNPARSED-CALLERS"
+found_in = "G188"
+source = "core/src/composition (agent impact and understand)"
+subsystem = "core composition lens, agent impact and understand"
+reproduction = "on the mirofish pin, agent impact getProject reports 0 callers with the residual LOWER BOUND: resolved callers only, and understand's next questions name nothing else, while all twelve call sites of getProject sit in six unparsed Vue files (L0, GAP-UNRECOGNIZED-SOURCE); the gap is visible only through agent unknowns"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a replay mission whose callers sit in unparsed files that impact does not name, or impact becoming the input of a closure or construction decision"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-TOOLCHAIN-SOCKETS"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (toolchain_binds)"
+subsystem = "runtime sandbox confined class, toolchain binds"
+reproduction = "declare a toolchain directory outside /run, /var/run, /tmp, /var/tmp and /dev/shm that holds a unix socket or FIFO: the read-only bind exposes it and connect() succeeds inside the confinement"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a host service listening on a socket inside a declared toolchain directory serves host data to a run whose FILESYSTEM_CONFINED is ENFORCED; no declared directory of the demonstration or the tests holds one"
+reopen_trigger = "a declared directory known to hold sockets, or a socket scan of declared trees becoming affordable"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-NO-SECCOMP-NO-CGROUP"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the confined class)"
+subsystem = "runtime sandbox confined class"
+reproduction = "a confined program may make any system call and fork without bound; only the timeout limits it"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a kernel defect reachable from an unprivileged user namespace breaks the chroot while the record says FILESYSTEM_CONFINED ENFORCED"
+reopen_trigger = "an admissible seccomp or cgroup mechanism, or confined output admitted as evidence for an untrusted program"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-CHROOT-NOT-PIVOT"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (CONFINE_SCRIPT, the nested unshare --root)"
+subsystem = "runtime sandbox confined class"
+reproduction = "during a run the mountinfo of the run's process read from the host shows the host mount tree below the chroot; the root is a chroot, not a pivot_root"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "the program regains CAP_SYS_CHROOT or CAP_SYS_ADMIN, or inherits a directory descriptor outside the root, and reads the host while the record says ENFORCED; the tests show it holds no capability and inherits only fds 0 to 2"
+reopen_trigger = "a pivot_root step that can run inside the new root without unsafe code"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-LOADER-ENV-LIST"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (refused_env_name)"
+subsystem = "runtime sandbox environment declaration"
+reproduction = "the nested unshare runs before the chroot with the declared environment; dynamic-loader variables are refused only by a fixed list (LD_*, GCONV_PATH, GLIBC_TUNABLES, LOCPATH, NLSPATH)"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a glibc start-up variable missing from the list loads or reads host content before the chroot while the record says ENFORCED"
+reopen_trigger = "glibc adds such a variable, or the environment can be applied after the chroot"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-NETWORK-OPTIONAL"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (deny_network in the confined class)"
+subsystem = "runtime sandbox confined class"
+reproduction = "a confined request with deny_network false reaches the host network and abstract unix sockets"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "FILESYSTEM_CONFINED read as the run cannot obtain host file content while a host service on the network or an abstract socket serves files"
+reopen_trigger = "M16 or any consumer relying on confinement without denying the network"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-TOOLCHAIN-DIRS-UNHASHED"
+found_in = "G189"
+source = "core/src/sandbox/mod.rs (ToolchainIdentity), adapter/runtime/src/sandbox.rs"
+subsystem = "core and runtime sandbox toolchain identity"
+reproduction = "swap librustc_driver while keeping the rustc binary and its -vV output: the pin still matches; the helpers (unshare, sh, mount, mkdir, ln) are not identified; cargo -vV identifies cargo, not the rustc it invokes (RUSTC, RUSTC_WRAPPER, PATH select it); a wrapper answering --print sysroot and -vV falsely passes as the requester's own pinned program"
+severity = "MEDIUM"
+can_create_false_claim = true
+false_claim_condition = "a pin read as identifying the whole toolchain while a library, a helper or the compiler cargo invokes differs"
+reopen_trigger = "M16 hermetic build inputs, or a pin used to admit a build as evidence"
+status = "OPEN"
+pressure = 9
+
+[[residual]]
+id = "RES-G189-CALLER-KUID"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the nested user namespace)"
+subsystem = "runtime sandbox confined class"
+reproduction = "the confined program runs with the caller's kernel uid (root in this container) mapped to uid 1000 of a nested user namespace"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a writable host path becoming visible inside the root, or subordinate ids becoming available"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-ROOT-CONTAINER-ONLY"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the confined class and its tests)"
+subsystem = "runtime sandbox confined class"
+reproduction = "run the confined tests as a non-root user on a host with unprivileged user namespaces: so far they have run only as root in this container"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a non-root or non-container host"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-HOST-PATH-TOCTOU"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (toolchain_binds, CONFINE_SCRIPT, Program::resolve)"
+subsystem = "runtime sandbox declaration checks"
+reproduction = "swap a declared toolchain path between the declaration check and the bind or link creation, or a link on the program's found path between resolution and exec"
+severity = "LOW"
+can_create_false_claim = true
+false_claim_condition = "more of the host becomes visible than declared, or a different file runs than the one identified, while the probe still passes; only a party able to write the declared toolchain paths can do it"
+reopen_trigger = "toolchain paths writable by an untrusted party"
+status = "OPEN"
+pressure = 3
+
+[[residual]]
+id = "RES-G189-PROBE-STDERR-MATCH-UNKILLED"
+found_in = "G189"
+source = "adapter/runtime/src/sandbox.rs (the confinement probe)"
+subsystem = "runtime sandbox confinement probe"
+reproduction = "mutant M02 (the probe checks exit codes only, ignoring unshare's exact error line) survives every test"
+severity = "LOW"
+can_create_false_claim = false
+reopen_trigger = "a helper change that could answer exit 127 without ENOENT while the control answers 126"
+status = "OPEN"
+pressure = 1
+
+[[residual]]
+id = "RES-G189-VERIFICATION-AMBIENT"
+found_in = "G189"
+source = "adapter/runtime/src/verification.rs (command evidence)"
+subsystem = "runtime verification command evidence"
+reproduction = "runtime::verification command evidence still runs with ambient authority, outside the confined sandbox"
+severity = "MEDIUM"
+can_create_false_claim = false
+reopen_trigger = "M16 (NA-CONFINED-DELEGATED-BUILD) or verification evidence produced inside the confined sandbox"
+status = "OPEN"
+pressure = 3

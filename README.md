@@ -54,7 +54,7 @@ MCP is an agent-facing adapter, not Atlas's canonical semantic protocol. The sam
 
 Ephemeral agent context is not project memory. Sealed Atlas artifacts and their evidence/lineage are the durable machine-readable engineering state that a later session can load and incrementally recensus.
 
-See .atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md.
+See the contract `.atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`, now Ynventa knowledge (`ynventa fact list --subject .atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`).
 
 ## Multi-AI construction
 
@@ -81,11 +81,11 @@ The first embedded host may be Claude-oriented while Atlas still routes admitted
 
 Agents receive bounded task/capability leases and task-specific semantic context slices. Their conversations are not project memory. Jev emits typed decision proposals; it does not own SelectedDesign. Provider consensus cannot bypass verification, AdmissionTransaction or seal.
 
-See .atlas/contracts/MULTI-AI-CONSTRUCTION-FABRIC.md.
+See the contract `.atlas/contracts/MULTI-AI-CONSTRUCTION-FABRIC.md`, now Ynventa knowledge.
 
 ## Core invariants
 
-- `.atlas/` is the repository control root; `*.atlas` is a dense binary engineering artifact.
+- `.ynventa/` is the only knowledge authority (typed facts, never Markdown; `ynventa context`, `ynventa knowledge view`); `tools/atlas/` is the Atlas control root (manifest, declared architecture, self-build ledgers and their evidence); `*.atlas` is a dense binary engineering artifact. The `.atlas/` directory is retired (ADR 0104, a DECISION fact).
 - Every admitted artifact and discovered function is accounted for. UNKNOWN is permitted only explicitly; silent omission is forbidden.
 - Universal graph primitives include identity, scope, node, edge, binding, state, event, temporal, evidence, provenance, constraint/invariant, interface/capability, effect and materialization.
 - Independently generated repositories remain sovereign but cross-repository composable through stable identities/bindings.

@@ -1,1 +1,0 @@
-add_oscap_test("report.sh")

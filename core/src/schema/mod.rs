@@ -18,6 +18,16 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// The Atlas control root of a repository (ADR 0104): its manifest and its declared architecture.
+/// It was `.atlas` until that root was retired into `.ynventa` knowledge and `tools/atlas`.
+pub const CONTROL_ROOT: &str = "tools/atlas";
+/// The repository manifest (`atlas.repo.v3`), under the control root.
+pub const REPO_MANIFEST_PATH: &str = "tools/atlas/repo.toml";
+/// The declared architecture (ADL sources, integrity envelope, principals, seal policy).
+pub const DECLARED_ROOT: &str = "tools/atlas/declared";
+/// The repository's knowledge root: typed Ynventa facts, never Markdown (ADR 0104).
+pub const KNOWLEDGE_ROOT: &str = ".ynventa";
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RepoManifest {
     pub schema: String,

@@ -18,7 +18,7 @@ constraint CoreIsMaterialized {\n    require materialized Core\n}\n";
 
 fn declared(text: &str) -> DeclaredGraph {
     let source = AdlSource {
-        path: ".atlas/declared/system.adl".into(),
+        path: "tools/atlas/declared/system.adl".into(),
         text: text.into(),
     };
     let observed = SourceReport {

@@ -215,7 +215,7 @@ mod tests {
     fn the_self_census_is_not_eligible_and_the_verdict_names_every_reason() {
         let policy = self_scope_policy();
         let verdict = evaluate(
-            root().join(".atlas/evidence/census/G148/certificate.json"),
+            root().join("tools/atlas/evidence/census/G148/certificate.json"),
             &policy,
         )
         .unwrap();

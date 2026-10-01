@@ -206,7 +206,8 @@ fn gather_census_inputs(
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
     let source = adapter::source_report_from_inventory(&inventory);
-    let docs = adapter::audit_docs(root.join(".atlas"))?;
+    // ADR 0104: the control documents are the repository's knowledge, not files.
+    let docs = adapter::audit_control_knowledge(root)?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let mut adl = compile_adl(&adl_sources, &source);
     let dependency_closure = resolve_dependency_closure(root)?;
@@ -260,7 +261,7 @@ fn reconcile_adl_with_dependency_census(
 pub use atlas_core::CENSUS_ADL_PATH;
 
 /// The census-derived ADL for `root` (G63): what the dependency census observes that the
-/// authored ADL -- every `.atlas/declared` source except `atlas_core::CENSUS_ADL_PATH` itself --
+/// authored ADL -- every `tools/atlas/declared` source except `atlas_core::CENSUS_ADL_PATH` itself --
 /// does not declare, and (G137) the effect envelope of every subsystem the authored ADL leaves
 /// unbounded. Regenerating it is a fixed point: the envelopes come from a model composed with the
 /// authored ADL plus the derived membership, never the committed file. `adl derive --check` and
@@ -523,8 +524,16 @@ pub fn contract() -> Contract {
     Contract::default()
 }
 
+/// `docs audit --root <path>`: the control documents of the repository at `<path>` when it keeps
+/// them as knowledge (`.ynventa/knowledge`, ADR 0104), otherwise the Markdown control documents in
+/// the directory `<path>`.
 pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
-    adapter::audit_docs(root)
+    let root = root.as_ref();
+    if root.join(adapter::knowledge::KNOWLEDGE_DIR).is_dir() {
+        adapter::audit_control_knowledge(root)
+    } else {
+        adapter::audit_docs(root)
+    }
 }
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
@@ -624,9 +633,9 @@ pub fn prepare_work(
         scope: vec!["single-repository".into()],
         allowed_paths: work_allowed_paths(system.repository.manifest.as_ref()),
         forbidden_paths: vec![
-            ".atlas/temporary".into(),
-            ".atlas/provenance".into(),
-            ".atlas/licenses".into(),
+            "target/donors".into(),
+            "tools/atlas/provenance".into(),
+            "tools/atlas/licenses".into(),
         ],
         required_verification: required_verification_commands(),
     };
@@ -723,7 +732,7 @@ mod tests {
         test_roots: Vec<&str>,
     ) -> RepoManifest {
         RepoManifest {
-            schema: "atlas.repo.v2".into(),
+            schema: "atlas.repo.v3".into(),
             repo: "org/repo".into(),
             system_kind: "SYSTEM_INVENTION_FORGE".into(),
             backend_language: "rust".into(),
@@ -732,10 +741,10 @@ mod tests {
             graph_before_code_required: true,
             exact_base_sha_required: true,
             single_repository_target_required: true,
-            knowledge_root: ".atlas".into(),
-            temporary_root: ".atlas/temporary".into(),
-            provenance_root: ".atlas/provenance".into(),
-            license_root: ".atlas/licenses".into(),
+            knowledge_root: ".ynventa".into(),
+            temporary_root: "target/donors".into(),
+            provenance_root: "tools/atlas/provenance".into(),
+            license_root: "tools/atlas/licenses".into(),
             source_roots: source_roots.into_iter().map(String::from).collect(),
             backend_roots: backend_roots.into_iter().map(String::from).collect(),
             frontend_roots: frontend_roots.into_iter().map(String::from).collect(),
@@ -829,7 +838,7 @@ mod tests {
         }
     }
 
-    // `.atlas/contracts/cli/atlas-systemizer-cli-v1.json` is a machine-readable JSON Schema
+    // `tools/atlas/contracts/cli/atlas-systemizer-cli-v1.json` is a machine-readable JSON Schema
     // describing this binary's own stable CLI surface -- but nothing in this workspace ever
     // validated the real CLI against it, so it silently drifted: it named a `"fleet connect"`
     // subcommand that has never existed in this codebase, was missing three real subcommands
@@ -841,9 +850,11 @@ mod tests {
     fn cli_contract_json_matches_the_real_contract_default() {
         let contract_text = std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../.atlas/contracts/cli/atlas-systemizer-cli-v1.json"),
+                .join("../../tools/atlas/contracts/cli/atlas-systemizer-cli-v1.json"),
         )
-        .expect(".atlas/contracts/cli/atlas-systemizer-cli-v1.json must exist and be readable");
+        .expect(
+            "tools/atlas/contracts/cli/atlas-systemizer-cli-v1.json must exist and be readable",
+        );
         let schema: serde_json::Value =
             serde_json::from_str(&contract_text).expect("the CLI contract must be valid JSON");
 
@@ -888,7 +899,7 @@ mod tests {
         );
     }
 
-    // `.atlas/evidence/verification/duplicate-classification-logic-swept-clean.json`: five
+    // `tools/atlas/evidence/verification/duplicate-classification-logic-swept-clean.json`: five
     // separate instances of the same defect class -- a small classification/helper function
     // copy-pasted into a second file (sometimes under a different name), with nothing to stop the
     // two copies silently drifting apart on a future edit to only one -- were found and fixed by a
@@ -1068,13 +1079,13 @@ mod tests {
                 violations.is_empty(),
                 "found duplicated function bodies across workspace source files -- extract a \
                  shared function/method instead, per this session's own established fix pattern \
-                 (see .atlas/evidence/verification/duplicate-classification-logic-swept-clean.json):\n\n{}",
+                 (see tools/atlas/evidence/verification/duplicate-classification-logic-swept-clean.json):\n\n{}",
                 violations.join("\n\n")
             );
         }
     }
 
-    // `.atlas/references/donor-corpus.toml` is this repository's own canonical donor tracker
+    // `tools/atlas/references/donor-corpus.toml` is this repository's own canonical donor tracker
     // (58 records at G118), consulted and hand-edited repeatedly across this session's
     // donor-research generations. Every edit was verified ad hoc with a one-off
     // `python3 -c "import tomllib; ..."` shell command re-run by hand each time -- exactly the
@@ -1092,6 +1103,22 @@ mod tests {
                 .join("../..")
                 .canonicalize()
                 .expect("workspace root must exist")
+        }
+
+        /// The repository's knowledge (ADR 0104): the documents `.atlas` held are extracted facts.
+        fn knowledge() -> &'static adapter::knowledge::Knowledge {
+            static KNOWLEDGE: std::sync::OnceLock<adapter::knowledge::Knowledge> =
+                std::sync::OnceLock::new();
+            KNOWLEDGE.get_or_init(|| {
+                adapter::knowledge::Knowledge::read(workspace_root())
+                    .expect("the repository knowledge must be readable")
+            })
+        }
+
+        /// A cited record exists: a file on disk, or a document whose knowledge was extracted
+        /// (its `.atlas/` path is its knowledge identity, ADR 0104).
+        fn recorded(root: &Path, path: &str) -> bool {
+            root.join(path).exists() || knowledge().has_document(path)
         }
 
         struct DonorEntry {
@@ -1243,8 +1270,9 @@ mod tests {
 
         fn load_entries() -> Vec<DonorEntry> {
             let root = workspace_root();
-            let text = std::fs::read_to_string(root.join(".atlas/references/donor-corpus.toml"))
-                .expect("donor-corpus.toml must exist and be readable");
+            let text =
+                std::fs::read_to_string(root.join("tools/atlas/references/donor-corpus.toml"))
+                    .expect("donor-corpus.toml must exist and be readable");
             let block_count = text
                 .lines()
                 .filter(|line| line.trim() == "[[donor]]")
@@ -1291,8 +1319,8 @@ mod tests {
                 );
                 for path in &entry.evidence {
                     assert!(
-                        root.join(path).exists(),
-                        "donor `{}`'s evidence path `{}` does not exist on disk -- a dangling \
+                        recorded(&root, path),
+                        "donor `{}`'s evidence path `{}` is neither on disk nor extracted knowledge -- a dangling \
                          evidence reference is exactly the kind of unverifiable claim this \
                          repository's own donor-absorption discipline forbids",
                         entry.id,
@@ -1304,7 +1332,7 @@ mod tests {
 
         /// The same dangling-reference discipline `every_donor_has_at_least_one_evidence_path_
         /// and_every_path_exists` already applies to `evidence`, applied to `license` -- a
-        /// real, separate legal/provenance obligation (`.atlas/licenses/`), not previously checked
+        /// real, separate legal/provenance obligation (`tools/atlas/licenses/`), not previously checked
         /// at all: `DonorEntry` had no `license` field until this generation. Only the array-of-
         /// file-paths form is checked here (most donors); a bare SPDX-string `license = "MIT"`
         /// entry has no file path to verify and is correctly excluded by the parser itself, not
@@ -1346,52 +1374,53 @@ mod tests {
         /// a currently-known problem.
         #[test]
         fn every_genome_technology_document_is_referenced_by_some_donor() {
-            let root = workspace_root();
-            let genome_dir = root.join(".atlas/genome/technology");
+            // ADR 0104: the Technology Genome documents are extracted knowledge under their
+            // `.atlas/genome/technology/` identity.
+            const GENOME: &str = ".atlas/genome/technology/";
             let entries = load_entries();
             let mut referenced: std::collections::HashSet<String> =
                 std::collections::HashSet::new();
             for entry in &entries {
                 for path in &entry.evidence {
-                    if let Some(name) = path.strip_prefix(".atlas/genome/technology/") {
+                    if let Some(name) = path.strip_prefix(GENOME) {
                         referenced.insert(name.to_owned());
                     }
                 }
             }
 
-            let mut genome_files: Vec<String> = std::fs::read_dir(&genome_dir)
-                .expect(".atlas/genome/technology must exist and be readable")
-                .filter_map(Result::ok)
-                .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "md"))
-                .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            let mut genome_files: Vec<String> = knowledge()
+                .documents()
+                .into_keys()
+                .filter_map(|path| path.strip_prefix(GENOME))
+                .filter(|name| !name.contains('/') && name.ends_with(".md"))
+                .map(str::to_owned)
                 .collect();
             genome_files.sort();
             assert!(
                 !genome_files.is_empty(),
-                "expected at least one Technology Genome document under .atlas/genome/technology \
-                 -- this session alone wrote several; an empty directory means this test's own \
-                 path resolution has drifted"
+                "expected at least one Technology Genome document under {GENOME} in the \
+                 knowledge -- an empty set means this test's own path resolution has drifted"
             );
 
             for file in &genome_files {
                 assert!(
                     referenced.contains(file),
-                    "`.atlas/genome/technology/{file}` exists on disk but is not cited in any \
-                     donor's evidence array in donor-corpus.toml -- an orphaned genome record \
-                     nobody's evidence trail points back to"
+                    "`{GENOME}{file}` is extracted knowledge but is not cited in any donor's \
+                     evidence array in donor-corpus.toml -- an orphaned genome record nobody's \
+                     evidence trail points back to"
                 );
             }
         }
 
-        /// Every location a donor's source may be materialized at: the conventional
-        /// `.atlas/temporary/donors/<id>`, plus its provenance record's own `clone_path` when that
-        /// differs. Both are needed because 10 provenance records still carry the clone path from
+        /// Every location a donor's source may be materialized at: the working-set root
+        /// (`target/donors/<id>`; the legacy `.atlas/temporary/donors` root was retired with
+        /// `.atlas`, ADR 0104), plus its provenance record's own `clone_path` when that differs. Both are needed because 10 provenance records still carry the clone path from
         /// before their checkout was moved (e.g. `.atlas/temporary/wasmtime`, `.../ide/zed`) --
         /// recorded debt (`GENERATIONS.toml` deferred `stale-provenance-clone-paths`), not silently
         /// rewritten here.
         fn donor_clone_paths(root: &Path, id: &str) -> Vec<String> {
-            let mut paths = vec![format!(".atlas/temporary/donors/{id}")];
-            let provenance = root.join(format!(".atlas/provenance/donors/{id}.json"));
+            let mut paths = vec![format!("{}/{id}", crate::donor_storage::SCRATCH_DONOR_ROOT)];
+            let provenance = root.join(format!("tools/atlas/provenance/donors/{id}.json"));
             let recorded = std::fs::read_to_string(provenance).ok().and_then(|text| {
                 text.lines().find_map(|line| {
                     let rest = line.trim().strip_prefix("\"clone_path\": \"")?;
@@ -1406,10 +1435,13 @@ mod tests {
             paths
         }
 
-        /// Extinction is physical (`.atlas/roadmap/DONOR-ABSORPTION-PLAN.toml`:
+        /// Extinction is physical (`tools/atlas/roadmap/DONOR-ABSORPTION-PLAN.toml`:
         /// `extinct_requires_source_path_absent = true`): an `EXTINCT` claim with the checkout still
         /// on disk would be a status-field extinction, exactly what the donor lifecycle forbids. The
-        /// converse holds too: a `CLONED` claim with no checkout anywhere is a stale record.
+        /// converse holds too: a `CLONED` claim with no checkout anywhere is a stale record. A
+        /// `SOURCE_REMOVED` donor (its held source retired without absorption, origin pinned in
+        /// `DONOR-WORKING-SET.toml` `[[retired_checkout]]`) is no extinction, but its source is gone
+        /// just the same.
         #[test]
         fn every_extinct_donor_checkout_is_absent_and_every_cloned_one_present() {
             let root = workspace_root();
@@ -1435,6 +1467,11 @@ mod tests {
                         "donor `{}` claims CLONED but none of {paths:?} exists",
                         entry.id
                     ),
+                    "SOURCE_REMOVED" => assert!(
+                        present.is_empty(),
+                        "donor `{}` is SOURCE_REMOVED but its source still exists at {present:?}",
+                        entry.id
+                    ),
                     // Censused remotely (ADR 0021): never materialized under an Atlas donor root.
                     "REMOTE_CENSUSED" => assert!(
                         present.is_empty(),
@@ -1454,13 +1491,13 @@ mod tests {
         }
 
         /// Every materialized donor checkout must belong to an admitted donor-corpus entry, or be a
-        /// named, recorded blocker. The blockers live in `.atlas/roadmap/DONOR-WORKING-SET.toml`
+        /// named, recorded blocker. The blockers live in `tools/atlas/roadmap/DONOR-WORKING-SET.toml`
         /// (`[[unadmitted_checkout]]`, ADR 0021) so the list has one source of truth and can only
         /// shrink: a new unadmitted checkout fails this test, and so does a listed one that has been
         /// admitted or deleted without updating the record.
         fn unadmitted_checkout_debt() -> Vec<String> {
             let text = std::fs::read_to_string(
-                workspace_root().join(".atlas/roadmap/DONOR-WORKING-SET.toml"),
+                workspace_root().join("tools/atlas/roadmap/DONOR-WORKING-SET.toml"),
             )
             .expect("DONOR-WORKING-SET.toml");
             text.lines()
@@ -1481,26 +1518,38 @@ mod tests {
                 .flat_map(|entry| donor_clone_paths(&root, &entry.id))
                 .filter(|path| root.join(path).is_dir())
                 .filter_map(|path| {
-                    path.strip_prefix(".atlas/temporary/donors/")
+                    path.strip_prefix(&format!("{}/", crate::donor_storage::SCRATCH_DONOR_ROOT))
                         .and_then(|rest| rest.split('/').next())
                         .map(str::to_owned)
                 })
                 .collect();
-            let mut on_disk: Vec<String> = std::fs::read_dir(root.join(".atlas/temporary/donors"))
-                .expect(".atlas/temporary/donors must exist")
-                .filter_map(Result::ok)
-                .filter(|entry| entry.path().is_dir())
-                .map(|entry| entry.file_name().to_string_lossy().into_owned())
-                .collect();
+            // Checkouts materialize in the working-set root (the legacy root was retired with
+            // `.atlas`, ADR 0104); a fresh clone has no such directory at all.
+            let mut on_disk: Vec<String> =
+                std::fs::read_dir(root.join(crate::donor_storage::SCRATCH_DONOR_ROOT))
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Result::ok)
+                    .filter(|entry| entry.path().is_dir())
+                    .map(|entry| entry.file_name().to_string_lossy().into_owned())
+                    .collect();
             on_disk.sort();
             for dir in &on_disk {
                 assert!(
                     admitted_top_level.contains(dir) || debt.contains(dir),
-                    "`.atlas/temporary/donors/{dir}` is materialized donor source with no admitted \
-                     donor-corpus entry and no recorded debt: admit it, or delete it"
+                    "`{}/{dir}` is materialized donor source with no admitted \
+                     donor-corpus entry and no recorded debt: admit it, or delete it",
+                    crate::donor_storage::SCRATCH_DONOR_ROOT
                 );
             }
-            assert!(!debt.is_empty(), "no recorded blocker parsed");
+            let recorded = std::fs::read_to_string(
+                workspace_root().join("tools/atlas/roadmap/DONOR-WORKING-SET.toml"),
+            )
+            .expect("DONOR-WORKING-SET.toml")
+            .lines()
+            .filter(|line| line.trim() == "[[unadmitted_checkout]]")
+            .count();
+            assert_eq!(debt.len(), recorded, "every recorded blocker is parsed");
             for debt in &debt {
                 assert!(
                     on_disk.iter().any(|dir| dir == debt) && !admitted_top_level.contains(debt),
@@ -1509,7 +1558,7 @@ mod tests {
             }
         }
 
-        /// `.atlas/roadmap/GENERATIONS.toml` is the self-building loop's durable memory: the next
+        /// `tools/atlas/roadmap/GENERATIONS.toml` is the self-building loop's durable memory: the next
         /// generation reads it instead of any agent's recollection. A ledger that cites a missing
         /// evidence/decision path, or a base commit that is not a real 40-hex object name, would
         /// silently corrupt that memory, so both are enforced here (hand-parsed, matching this
@@ -1517,7 +1566,7 @@ mod tests {
         #[test]
         fn generation_ledger_references_real_paths_and_real_base_commits() {
             let root = workspace_root();
-            let text = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
+            let text = std::fs::read_to_string(root.join("tools/atlas/roadmap/GENERATIONS.toml"))
                 .expect("GENERATIONS.toml must exist and be readable");
             assert!(
                 text.lines()
@@ -1533,14 +1582,15 @@ mod tests {
                 if let Some(rest) = line.trim_start().strip_prefix("source_path = ") {
                     let path = rest.trim_matches('"');
                     // Unless a later replay recorded it MATERIALIZED again (FULL-OSS-REPLAY.toml).
-                    let rematerialized =
-                        std::fs::read_to_string(root.join(".atlas/roadmap/FULL-OSS-REPLAY.toml"))
-                            .unwrap_or_default()
-                            .split("\n[[repository]]\n")
-                            .any(|r| {
-                                r.contains(&format!("source_path = \"{path}\""))
-                                    && r.contains("replay_status = \"MATERIALIZED\"")
-                            });
+                    let rematerialized = std::fs::read_to_string(
+                        root.join("tools/atlas/roadmap/FULL-OSS-REPLAY.toml"),
+                    )
+                    .unwrap_or_default()
+                    .split("\n[[repository]]\n")
+                    .any(|r| {
+                        r.contains(&format!("source_path = \"{path}\""))
+                            && r.contains("replay_status = \"MATERIALIZED\"")
+                    });
                     assert!(
                         !root.join(path).exists() || rematerialized,
                         "donor source `{path}` still exists"
@@ -1549,12 +1599,16 @@ mod tests {
                 }
                 extract_quoted_strings(line, &mut quoted);
             }
-            let paths: Vec<&String> = quoted.iter().filter(|q| q.starts_with(".atlas/")).collect();
+            // Records the loop reads live under tools/atlas; documents keep their `.atlas/` path.
+            let paths: Vec<&String> = quoted
+                .iter()
+                .filter(|q| q.starts_with(".atlas/") || q.starts_with("tools/atlas/"))
+                .collect();
             assert!(!paths.is_empty(), "ledger cites no evidence at all");
             for path in paths {
                 assert!(
-                    root.join(path).exists(),
-                    "GENERATIONS.toml cites `{path}`, which does not exist"
+                    recorded(&root, path),
+                    "GENERATIONS.toml cites `{path}`, which is neither on disk nor extracted knowledge"
                 );
             }
             // Every recorded commit must be a full object name AND a real commit: a plausible-looking
@@ -1599,25 +1653,27 @@ mod tests {
             assert!(generations > 0, "ledger records no generation");
         }
 
-        /// `.atlas/roadmap/FIRST-50-CAMPAIGN.toml` (P3) is the canonical donor execution order:
+        /// `tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml` (P3) is the canonical donor execution order:
         /// ordinals 1..=50 exactly once, every admitted donor either queued or excluded with a
         /// reason (never silently dropped), every entry in the repo-exact frontier, historical
         /// proofs consistent with the donor corpus, and a dashboard recomputable from the entries.
         #[test]
         fn first_50_campaign_is_canonical_and_accounted() {
             let root = workspace_root();
-            let text = std::fs::read_to_string(root.join(".atlas/roadmap/FIRST-50-CAMPAIGN.toml"))
-                .expect("FIRST-50-CAMPAIGN.toml");
+            let text =
+                std::fs::read_to_string(root.join("tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml"))
+                    .expect("FIRST-50-CAMPAIGN.toml");
             let field = |block: &str, name: &str| {
                 block.lines().find_map(|line| {
                     let rest = line.trim().strip_prefix(name)?.strip_prefix(" = ")?;
                     Some(rest.trim().trim_matches('"').to_owned())
                 })
             };
-            let frontier =
-                std::fs::read_to_string(root.join(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"))
-                    .expect("frontier")
-                    .to_ascii_lowercase();
+            let frontier = std::fs::read_to_string(
+                root.join("tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"),
+            )
+            .expect("frontier")
+            .to_ascii_lowercase();
             let corpus: std::collections::BTreeMap<String, (String, String)> = load_entries()
                 .into_iter()
                 .map(|e| {
@@ -1631,7 +1687,7 @@ mod tests {
             let mut queued = std::collections::BTreeSet::new();
             let (mut absorbed, mut terminal_historic, mut remaining) = (0, 0, 0);
             let (mut terminal_campaign, mut reference_only, mut extinct, mut deep) = (0, 0, 0, 0);
-            let ledger = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
+            let ledger = std::fs::read_to_string(root.join("tools/atlas/roadmap/GENERATIONS.toml"))
                 .expect("GENERATIONS.toml");
             let mut first_pending = None;
             for block in text.split("[[donor]]").skip(1) {
@@ -1799,7 +1855,7 @@ mod tests {
             let _census = crate::whole_repo_census_lock();
             use crate::recensus::{SelfRecensusReport, Verdict, read_snapshot};
             let root = workspace_root();
-            let text = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
+            let text = std::fs::read_to_string(root.join("tools/atlas/roadmap/GENERATIONS.toml"))
                 .expect("GENERATIONS.toml");
             let field = |block: &str, name: &str| {
                 block.lines().find_map(|line| {
@@ -1905,7 +1961,7 @@ mod tests {
             }
         }
 
-        /// `.atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml` (G53) is the repo-exact OSS frontier:
+        /// `tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml` (G53) is the repo-exact OSS frontier:
         /// one `[[repository]]` per canonical remote URL, so a monorepo subtree (MLIR), an
         /// ecosystem (ROS 2) or an alias can never be silently counted as a repository. Every
         /// head must be a full object name read from the live remote, every donor-corpus record
@@ -1915,9 +1971,10 @@ mod tests {
         fn recommended_frontier_is_repo_exact_and_counted() {
             use std::collections::{BTreeMap, BTreeSet};
             let root = workspace_root();
-            let text =
-                std::fs::read_to_string(root.join(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"))
-                    .expect("RECOMMENDED-OSS-FRONTIER.toml must exist and be readable");
+            let text = std::fs::read_to_string(
+                root.join("tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"),
+            )
+            .expect("RECOMMENDED-OSS-FRONTIER.toml must exist and be readable");
             let mut tables: Vec<(String, BTreeMap<String, String>)> =
                 vec![(String::new(), BTreeMap::new())];
             for line in text.lines().map(str::trim) {
@@ -1993,6 +2050,7 @@ mod tests {
                 let expected_working_set = match lifecycle.as_str() {
                     "ADMITTED" => "MATERIALIZED",
                     "ADMITTED_REMOTE" => "REMOTE_ONLY",
+                    "ADMITTED_SOURCE_REMOVED" => "SOURCE_REMOVED",
                     "EXTINCT" => "EXTINCT",
                     "CANDIDATE" | "CANDIDATE_OVERLAPPING" => "CONSUMER_GATED",
                     "EXTERNAL_ORACLE" => "ORACLE_ONLY",
@@ -2020,7 +2078,7 @@ mod tests {
 
             // Every donor-corpus record resolves to the repository carrying its id.
             let corpus_text =
-                std::fs::read_to_string(root.join(".atlas/references/donor-corpus.toml"))
+                std::fs::read_to_string(root.join("tools/atlas/references/donor-corpus.toml"))
                     .expect("donor-corpus.toml");
             let mut donors = Vec::new();
             for block in corpus_text.split("[[donor]]").skip(1) {
@@ -2052,6 +2110,7 @@ mod tests {
                 let expected = match ingestion.as_str() {
                     "EXTINCT" => "EXTINCT",
                     "REMOTE_CENSUSED" => "ADMITTED_REMOTE",
+                    "SOURCE_REMOVED" => "ADMITTED_SOURCE_REMOVED",
                     _ => "ADMITTED",
                 };
                 slices
@@ -2186,7 +2245,7 @@ mod tests {
     /// and skip-budget alarms are recomputed from the ledger head and the donor audit; an alarmed
     /// debt must be planned; a debt closes only with native or boundary evidence; every donor
     /// carries separate mechanism and capability decisions; and while
-    /// `.atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml` blocks donor progression and frontier
+    /// `tools/atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml` blocks donor progression and frontier
     /// expansion, any donor or frontier progress fails the build.
     mod essential_complexity {
         use std::collections::{BTreeMap, BTreeSet};
@@ -2200,11 +2259,11 @@ mod tests {
             "M4_MULTI_ENGINE_RECONCILED",
             "M5_CLOSED_WITH_ORACLE",
         ];
-        const LEDGER: &str = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml";
-        const AUDIT: &str = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml";
-        const GATE: &str = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml";
-        const PRESSURE: &str = ".atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml";
-        const REVALIDATION: &str = ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml";
+        const LEDGER: &str = "tools/atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml";
+        const AUDIT: &str = "tools/atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml";
+        const GATE: &str = "tools/atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml";
+        const PRESSURE: &str = "tools/atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml";
+        const REVALIDATION: &str = "tools/atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml";
         const TERMINAL: [&str; 5] = [
             "ABSORBED",
             "REFERENCE_ONLY",
@@ -2326,7 +2385,7 @@ mod tests {
 
         /// The ledger's `[[generation]]` blocks with their ids.
         fn ledger_generations() -> Vec<(String, String)> {
-            read(".atlas/roadmap/GENERATIONS.toml")
+            read("tools/atlas/roadmap/GENERATIONS.toml")
                 .split("\n[[generation]]\n")
                 .skip(1)
                 .map(|block| {
@@ -2338,8 +2397,8 @@ mod tests {
                 .collect()
         }
 
-        const PRIORITY: &str = ".atlas/roadmap/PRIORITY.toml";
-        const RESIDUALS: &str = ".atlas/roadmap/RESIDUALS.toml";
+        const PRIORITY: &str = "tools/atlas/roadmap/PRIORITY.toml";
+        const RESIDUALS: &str = "tools/atlas/roadmap/RESIDUALS.toml";
         /// ADR 0092: the HARDENING queue head's planned_generation while no false-claim residual
         /// names it -- the lanes leave native hardening no slot of its own.
         const LANE_DEFERRED: &str = "LANE_DEFERRED";
@@ -2594,7 +2653,7 @@ mod tests {
 
         /// The ledger head, which the GENERATIONS.toml header's `current_generation` must name.
         fn current_generation() -> i64 {
-            let ledger = read(".atlas/roadmap/GENERATIONS.toml");
+            let ledger = read("tools/atlas/roadmap/GENERATIONS.toml");
             let last = ledger_generations().last().expect("generations").0.clone();
             let header = ledger.split("\n[[").next().unwrap();
             assert_eq!(
@@ -2979,7 +3038,7 @@ mod tests {
             }
             // The G119 metric correction stays backed by its reproducible evidence.
             let reconciliation: serde_json::Value = serde_json::from_str(&read(
-                ".atlas/evidence/census/G119/call-metric-reconciliation.json",
+                "tools/atlas/evidence/census/G119/call-metric-reconciliation.json",
             ))
             .unwrap();
             let delta = reconciliation["g119_call_record_delta"].as_i64().unwrap();
@@ -3153,7 +3212,7 @@ mod tests {
                 text(r, "question");
                 let pinned = text(r, "pinned_commit");
                 assert_eq!(pinned.len(), 40, "{id}: a full commit id");
-                let historical = std::fs::read_dir(root().join(".atlas/evidence/campaign"))
+                let historical = std::fs::read_dir(root().join("tools/atlas/evidence/campaign"))
                     .unwrap()
                     .filter_map(|e| e.ok())
                     .find(|e| {
@@ -3166,7 +3225,7 @@ mod tests {
                     // has its historical pin in its provenance record instead.
                     .or_else(|| {
                         std::fs::read_to_string(
-                            root().join(format!(".atlas/provenance/donors/{donor}.json")),
+                            root().join(format!("tools/atlas/provenance/donors/{donor}.json")),
                         )
                         .ok()
                     })
@@ -3337,7 +3396,7 @@ mod tests {
             }
             // Rule B: the queue head is the next generation's plan and PRIORITY.toml names it.
             let head = attacks[0];
-            let priority = read(".atlas/roadmap/PRIORITY.toml");
+            let priority = read("tools/atlas/roadmap/PRIORITY.toml");
             assert_eq!(
                 string(&priority, "next_native_attack"),
                 string(head, "id"),
@@ -3453,7 +3512,7 @@ mod tests {
         /// Agent-Worn interface exists an agent mission recurs at a bounded cadence.
         #[test]
         fn native_queue_is_never_starved_and_agent_missions_recur() {
-            let priority = read(".atlas/roadmap/PRIORITY.toml");
+            let priority = read("tools/atlas/roadmap/PRIORITY.toml");
             let worn = table(&priority, "agent_worn");
             let interleaving = list(worn, "interleaving_classes");
             let classes = list(worn, "generation_classes");
@@ -3501,12 +3560,12 @@ mod tests {
 
         #[test]
         fn all_donor_corpus_records_have_capability_classification() {
-            let corpus = read(".atlas/references/donor-corpus.toml");
+            let corpus = read("tools/atlas/references/donor-corpus.toml");
             let corpus_ids: BTreeSet<String> = blocks(&corpus, "donor")
                 .into_iter()
                 .map(|b| text(b, "id"))
                 .collect();
-            let campaign = read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml");
+            let campaign = read("tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml");
             let first_50: BTreeMap<String, String> = blocks(&campaign, "donor")
                 .into_iter()
                 .map(|b| (text(b, "repository"), text(b, "terminal_state")))
@@ -3769,9 +3828,10 @@ mod tests {
             }
             // Thresholds read from the post-change census are evaluated against the ledger head.
             let head = format!("G{}", current_generation());
-            let post: serde_json::Value =
-                serde_json::from_str(&read(&format!(".atlas/evidence/census/{head}/post.json")))
-                    .expect("post.json");
+            let post: serde_json::Value = serde_json::from_str(&read(&format!(
+                "tools/atlas/evidence/census/{head}/post.json"
+            )))
+            .expect("post.json");
             let mut evaluated = 0;
             for block in blocks(&ledger.text, "scale_threshold") {
                 let trigger = text(block, "trigger");
@@ -3822,13 +3882,13 @@ mod tests {
                 if all_met { "MET" } else { "NOT_MET" }
             );
             // The campaign gate never stands in for the foundational one.
-            let campaign = read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml");
+            let campaign = read("tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml");
             let remaining: i64 = blocks(&campaign, "donor")
                 .iter()
                 .filter(|b| text(b, "lifecycle") != "TERMINAL")
                 .count() as i64;
             assert_eq!(flag(first_50, "value"), remaining == 0);
-            let priority = read(".atlas/roadmap/PRIORITY.toml");
+            let priority = read("tools/atlas/roadmap/PRIORITY.toml");
             let exit = string(&priority, "J_foundational_atlas_ready").expect("exit J");
             assert!(
                 exit.starts_with(&text(foundational, "status")),
@@ -3863,16 +3923,36 @@ mod tests {
                 );
                 return;
             }
-            let frontier = read(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml");
+            let frontier = read("tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml");
             let repositories = blocks(&frontier, "repository");
             assert_eq!(
                 repositories.len() as i64,
                 number(frontier_gate, "pinned_repositories"),
                 "the frontier grew while expansion is BLOCKED"
             );
+            // Retiring an admitted donor's held checkout (owner decision 2026-10-01) is no
+            // expansion: such a repository still counts as ADMITTED against the pin, and every one
+            // of its corpus donors names a `[[retired_checkout]]` in the working set.
+            let retired: BTreeSet<String> = blocks(
+                &read(crate::donor_storage::WORKING_SET_FILE),
+                "retired_checkout",
+            )
+            .iter()
+            .map(|r| text(r, "ynventa_donor"))
+            .collect();
             let mut lifecycles: BTreeMap<String, i64> = BTreeMap::new();
             for block in &repositories {
-                *lifecycles.entry(text(block, "lifecycle")).or_default() += 1;
+                let mut lifecycle = text(block, "lifecycle");
+                if lifecycle == "ADMITTED_SOURCE_REMOVED" {
+                    let ids = list(block, "corpus_ids");
+                    assert!(
+                        !ids.is_empty() && ids.iter().all(|id| retired.contains(id)),
+                        "{}: ADMITTED_SOURCE_REMOVED without a retired checkout",
+                        text(block, "canonical_url")
+                    );
+                    lifecycle = "ADMITTED".into();
+                }
+                *lifecycles.entry(lifecycle).or_default() += 1;
             }
             for (lifecycle, count) in &lifecycles {
                 assert_eq!(
@@ -3906,22 +3986,58 @@ mod tests {
             if !blocked {
                 return;
             }
-            // No donor-corpus record moves while progression is blocked.
-            let corpus = read(".atlas/references/donor-corpus.toml");
+            // No donor-corpus record moves while progression is blocked. The one storage move that
+            // is no progression is retiring a held checkout (owner decision 2026-10-01): decision
+            // and census stay pinned, the pinned CLONED / MATERIALIZED_CHECKOUT record reads
+            // SOURCE_REMOVED / SOURCE_DELETED, the audit record names the retired path, the
+            // working set records that path as a `[[retired_checkout]]` of this donor, and the path
+            // is gone.
+            let corpus = read("tools/atlas/references/donor-corpus.toml");
             let records: BTreeMap<String, &str> = blocks(&corpus, "donor")
                 .into_iter()
                 .map(|b| (text(b, "id"), b))
                 .collect();
+            let working_set = read(crate::donor_storage::WORKING_SET_FILE);
+            let retired = blocks(&working_set, "retired_checkout");
             for donor in donors() {
                 let Some(record) = records.get(&donor.name) else {
                     continue;
                 };
-                for field in [
-                    "decision_status",
-                    "ingestion_status",
-                    "census_status",
-                    "storage_state",
-                ] {
+                let mut fields = vec!["decision_status", "census_status"];
+                match string(&donor.block, "storage_retirement") {
+                    Some(path) => {
+                        for (field, pinned, now) in [
+                            ("ingestion_status", "CLONED", "SOURCE_REMOVED"),
+                            ("storage_state", "MATERIALIZED_CHECKOUT", "SOURCE_DELETED"),
+                        ] {
+                            assert_eq!(
+                                string(&donor.block, &format!("corpus_{field}")).as_deref(),
+                                Some(pinned),
+                                "{}: only a held checkout is retired",
+                                donor.name
+                            );
+                            assert_eq!(
+                                string(record, field).as_deref(),
+                                Some(now),
+                                "{}: a retired checkout reads {now}",
+                                donor.name
+                            );
+                        }
+                        assert!(
+                            retired.iter().any(|r| text(r, "path") == path
+                                && text(r, "ynventa_donor") == donor.name),
+                            "{}: `{path}` is no retired_checkout of this donor",
+                            donor.name
+                        );
+                        assert!(
+                            !root().join(&path).exists(),
+                            "{}: retired `{path}` still exists",
+                            donor.name
+                        );
+                    }
+                    None => fields.extend(["ingestion_status", "storage_state"]),
+                }
+                for field in fields {
                     assert_eq!(
                         string(record, field).unwrap_or_default(),
                         string(&donor.block, &format!("corpus_{field}")).unwrap_or_default(),
@@ -3942,7 +4058,7 @@ mod tests {
             let pinned: BTreeSet<String> = list(progression, "materialized_checkouts")
                 .into_iter()
                 .collect();
-            let donors_dir = root().join(".atlas/temporary/donors");
+            let donors_dir = root().join(crate::donor_storage::SCRATCH_DONOR_ROOT);
             if donors_dir.is_dir() {
                 for entry in std::fs::read_dir(&donors_dir).unwrap() {
                     let name = entry.unwrap().file_name().to_string_lossy().into_owned();
@@ -4067,7 +4183,7 @@ mod tests {
         #[test]
         fn support_claims_never_exceed_the_measured_levels() {
             use atlas_core::coverage::{SupportLevel, SupportReport, validate_claims};
-            let ledger = read(".atlas/roadmap/SUPPORT-LEVELS.toml");
+            let ledger = read("tools/atlas/roadmap/SUPPORT-LEVELS.toml");
             let report: SupportReport =
                 serde_json::from_str(&read(&text(&ledger, "measured_report"))).unwrap();
             assert_eq!(report.schema, atlas_core::coverage::SUPPORT_REPORT_SCHEMA);
@@ -4106,7 +4222,7 @@ mod tests {
             );
         }
 
-        const SELF_RECONSTRUCTION: &str = ".atlas/roadmap/SELF-RECONSTRUCTION.toml";
+        const SELF_RECONSTRUCTION: &str = "tools/atlas/roadmap/SELF-RECONSTRUCTION.toml";
 
         /// ADR 0069: the SELF_RECONSTRUCTION lane is its own lane with Rust as the bootstrap
         /// target; every attempt's module and report validate (construction read census records,
@@ -4162,8 +4278,13 @@ mod tests {
                 assert_eq!(report.verdict.as_str(), text(attempt, "verdict"), "{id}");
                 assert_eq!(module.target, text(attempt, "target"), "{id}");
                 if let Some(shadow) = &report.shadow {
+                    // The root in force when the attempt ran: the current one, or one the ledger
+                    // records as retired (`.atlas/.cache/shadow` before .atlas was retired).
                     assert!(
-                        shadow.path.starts_with(&shadow_root),
+                        shadow.path.starts_with(&shadow_root)
+                            || list(&ledger, "retired_shadow_roots")
+                                .iter()
+                                .any(|root| shadow.path.starts_with(root.as_str())),
                         "{id}: {}",
                         shadow.path
                     );
@@ -4241,7 +4362,7 @@ mod tests {
             }
         }
 
-        const REPLAY: &str = ".atlas/roadmap/FULL-OSS-REPLAY.toml";
+        const REPLAY: &str = "tools/atlas/roadmap/FULL-OSS-REPLAY.toml";
         const REPLAY_TERMINAL: [&str; 10] = [
             "ABSORBED",
             "REFERENCE_ONLY",
@@ -4361,17 +4482,17 @@ mod tests {
             }
             let mut required: Vec<(String, &str)> = Vec::new();
             for block in blocks(
-                &read(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"),
+                &read("tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"),
                 "repository",
             ) {
                 required.push((replay_key(&text(block, "canonical_url")), "frontier"));
             }
-            for block in blocks(&read(".atlas/references/donor-corpus.toml"), "donor") {
+            for block in blocks(&read("tools/atlas/references/donor-corpus.toml"), "donor") {
                 if let Some(url) = string(block, "resolved_url") {
                     required.push((replay_key(&url), "donor corpus"));
                 }
             }
-            for block in blocks(&read(".atlas/roadmap/FIRST-50-CAMPAIGN.toml"), "donor") {
+            for block in blocks(&read("tools/atlas/roadmap/FIRST-50-CAMPAIGN.toml"), "donor") {
                 if let Some(url) = string(block, "canonical_url") {
                     required.push((replay_key(&url), "First-50"));
                 }
@@ -4383,7 +4504,7 @@ mod tests {
                 );
             }
             for block in blocks(
-                &read(".atlas/roadmap/DONOR-WORKING-SET.toml"),
+                &read("tools/atlas/roadmap/DONOR-WORKING-SET.toml"),
                 "unadmitted_checkout",
             ) {
                 let directory = text(block, "directory").to_ascii_lowercase();
@@ -5219,9 +5340,10 @@ mod tests {
                 .collect();
             // G120: counts of census dimensions are derived from the head post-change snapshot.
             let head = format!("G{}", current_generation());
-            let post: serde_json::Value =
-                serde_json::from_str(&read(&format!(".atlas/evidence/census/{head}/post.json")))
-                    .unwrap();
+            let post: serde_json::Value = serde_json::from_str(&read(&format!(
+                "tools/atlas/evidence/census/{head}/post.json"
+            )))
+            .unwrap();
             let totals = post["totals"].as_object().unwrap();
             for block in blocks(&ledger.text, "dimension") {
                 let id = text(block, "id");
@@ -5326,7 +5448,7 @@ mod tests {
         #[test]
         fn every_frontier_family_routes_to_a_capability_cluster() {
             let known = Ledger::load().known_ids();
-            let clusters = read(".atlas/roadmap/FRONTIER-CAPABILITY-CLUSTERS.toml");
+            let clusters = read("tools/atlas/roadmap/FRONTIER-CAPABILITY-CLUSTERS.toml");
             let mut family_cluster = BTreeMap::new();
             let mut cluster_ids = BTreeSet::new();
             for block in blocks(&clusters, "cluster") {
@@ -5357,7 +5479,7 @@ mod tests {
                 .into_iter()
                 .map(|block| (text(block, "name"), text(block, "cluster")))
                 .collect();
-            let frontier = read(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml");
+            let frontier = read("tools/atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml");
             let mut used = BTreeSet::new();
             for block in blocks(&frontier, "repository") {
                 let families = list(block, "families");
@@ -5391,7 +5513,7 @@ mod tests {
         fn every_end_state_capability_is_owned_by_debt_or_closed() {
             let ledger = Ledger::load();
             let known = ledger.known_ids();
-            let end_state = read(".atlas/roadmap/FUTURISM-ENGINEERING-END-STATE.toml");
+            let end_state = read("tools/atlas/roadmap/FUTURISM-ENGINEERING-END-STATE.toml");
             let capabilities = blocks(&end_state, "capability");
             assert_eq!(capabilities.len(), 18, "the 18 end-state capabilities");
             let mut ids = BTreeSet::new();
@@ -5544,7 +5666,7 @@ mod tests {
         }
     }
 
-    /// `.atlas/scripts/verify-donor-quarantine.sh` enforces `.atlas/contracts/
+    /// `tools/atlas/scripts/verify-donor-quarantine.sh` enforces `.atlas/contracts/
     /// DONOR-WORKBENCH-ISOLATION.md`'s invariant (no live agent-tooling-shaped path under donors).
     /// A delegated contract-vs-code cross-check found it used `find -type d`/`-type f`, which
     /// classify a symlink by its OWN type, never by what it resolves to -- so a `.claude`/
@@ -5572,7 +5694,7 @@ mod tests {
         }
 
         fn run_quarantine_script(donors_root: &std::path::Path) -> std::process::Output {
-            Command::new(workspace_root().join(".atlas/scripts/verify-donor-quarantine.sh"))
+            Command::new(workspace_root().join("tools/atlas/scripts/verify-donor-quarantine.sh"))
                 .arg(donors_root)
                 .output()
                 .expect("verify-donor-quarantine.sh must be runnable")
@@ -5730,8 +5852,10 @@ mod tests {
             ),
         ] {
             let schema: serde_json::Value = serde_json::from_str(
-                &std::fs::read_to_string(root.join(format!(".atlas/schemas/{schema}.schema.json")))
-                    .unwrap(),
+                &std::fs::read_to_string(
+                    root.join(format!("tools/atlas/schemas/{schema}.schema.json")),
+                )
+                .unwrap(),
             )
             .unwrap();
             let problems = conformance(&schema, &schema, &value, "$");
@@ -5877,7 +6001,7 @@ mod tests {
             snapshot
                 .adl
                 .sources
-                .contains_key(".atlas/declared/system.adl")
+                .contains_key("tools/atlas/declared/system.adl")
         );
 
         // G66: every function has a revision-stable descriptor, and descriptors never collide
@@ -5954,7 +6078,7 @@ mod tests {
             files: Vec::new(),
         };
         let authored = [atlas_core::AdlSource {
-            path: ".atlas/declared/system.adl".into(),
+            path: "tools/atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem T\nentity Runtime A {}\nentity Runtime B {}\n\
                    A ->depends_on-> B\nmaterialize A {\n    path = \"core\"\n}\n\
                    materialize B {\n    path = \"adapter/runtime\"\n}\n"

@@ -24,7 +24,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 /// Where the census-derived declarations live. Derivation reads the authored ADL *without* this
 /// file, so regenerating it is a fixed point.
-pub const CENSUS_ADL_PATH: &str = ".atlas/declared/census.adl";
+pub const CENSUS_ADL_PATH: &str = "tools/atlas/declared/census.adl";
 /// The derivation's identity, cited in the generated file's header.
 pub const CENSUS_DERIVATION_ID: &str = "atlas.adl.census-derivation.v1";
 /// The only relation the dependency census can check.
@@ -229,7 +229,7 @@ fn dependency_result(
         passed: verdict == ConstraintVerdict::Satisfied,
         verdict,
         diagnostics: code
-            .map(|(code, message)| vec![adl_diag(code, message, ".atlas/declared", 1, 1)])
+            .map(|(code, message)| vec![adl_diag(code, message, "tools/atlas/declared", 1, 1)])
             .unwrap_or_default(),
         derivation: vec![ConstraintCheckDerivation {
             rule: ConstraintCheckKind::ObservedDependency,

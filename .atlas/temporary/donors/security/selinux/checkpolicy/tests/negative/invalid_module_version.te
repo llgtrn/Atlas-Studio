@@ -1,5 +1,0 @@
-module invalid_module_version;
-
-require {
-	type foo_t;
-}

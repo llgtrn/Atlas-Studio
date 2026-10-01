@@ -295,20 +295,20 @@ fn intended_coverage_improvement_is_observed_and_downgrades_need_intent() {
 #[test]
 fn a_change_to_adl_semantics_must_be_declared_as_an_adl_source_change() {
     let mut before = base();
-    before
-        .adl
-        .sources
-        .insert(".atlas/declared/system.adl".into(), "blake3-256:aa".into());
+    before.adl.sources.insert(
+        "tools/atlas/declared/system.adl".into(),
+        "blake3-256:aa".into(),
+    );
     let before = reseal(before);
     let mut after = before.clone();
-    after
-        .adl
-        .sources
-        .insert(".atlas/declared/system.adl".into(), "blake3-256:bb".into());
-    after
-        .adl
-        .sources
-        .insert(".atlas/declared/census.adl".into(), "blake3-256:cc".into());
+    after.adl.sources.insert(
+        "tools/atlas/declared/system.adl".into(),
+        "blake3-256:bb".into(),
+    );
+    after.adl.sources.insert(
+        "tools/atlas/declared/census.adl".into(),
+        "blake3-256:cc".into(),
+    );
     let after = reseal(after);
     assert_ne!(before.census_digest, after.census_digest);
     let mut i = intent("declare census truth", &[], &[]);
@@ -317,13 +317,13 @@ fn a_change_to_adl_semantics_must_be_declared_as_an_adl_source_change() {
     assert_eq!(
         report.unexpected_changes,
         [
-            "adl source .atlas/declared/census.adl",
-            "adl source .atlas/declared/system.adl"
+            "adl source tools/atlas/declared/census.adl",
+            "adl source tools/atlas/declared/system.adl"
         ]
     );
     i.adl_changes = vec![
-        "source .atlas/declared/census.adl".into(),
-        "source .atlas/declared/system.adl".into(),
+        "source tools/atlas/declared/census.adl".into(),
+        "source tools/atlas/declared/system.adl".into(),
     ];
     assert_eq!(
         prove("G1", &before, &after, &after, &i).verdict,
