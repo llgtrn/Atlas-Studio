@@ -64,18 +64,55 @@ pub fn load(root: &Path) -> Result<Declaration, DeclError> {
     })
 }
 
-/// Writes the four declaration files canonically.
+/// Writes the four declaration files canonically, each only when what it declares changed.
+///
+/// A file whose current text already parses to the value being stored is left byte-identical,
+/// whatever its layout: storing an unchanged declaration (as every `migrate apply` does for the
+/// files a wave does not touch) never creates diff noise. A changed, missing or unreadable file
+/// is rewritten in the canonical rendering.
 pub fn store(root: &Path, d: &Declaration) -> std::io::Result<()> {
     let dir = declared_dir(root);
     std::fs::create_dir_all(&dir)?;
-    std::fs::write(dir.join(REPOSITORY_FILE), render_repository(&d.repository))?;
-    std::fs::write(dir.join(DONORS_FILE), render_donors(&d.donors))?;
-    std::fs::write(dir.join(MIGRATION_FILE), render_migration(&d.migration))?;
-    std::fs::write(
-        dir.join(TECHNOLOGIES_FILE),
-        render_technologies(&d.technologies),
+    store_file(
+        &dir.join(REPOSITORY_FILE),
+        &d.repository,
+        parse_repository,
+        render_repository,
+    )?;
+    store_file(
+        &dir.join(DONORS_FILE),
+        &d.donors[..],
+        parse_donors,
+        render_donors,
+    )?;
+    store_file(
+        &dir.join(MIGRATION_FILE),
+        &d.migration,
+        parse_migration,
+        render_migration,
+    )?;
+    store_file(
+        &dir.join(TECHNOLOGIES_FILE),
+        &d.technologies[..],
+        parse_technologies,
+        render_technologies,
     )?;
     Ok(())
+}
+
+/// Writes `value` to `path` unless the file there already declares exactly `value`.
+fn store_file<T: PartialEq + ?Sized, O: std::borrow::Borrow<T>>(
+    path: &Path,
+    value: &T,
+    parse: fn(&str) -> Res<O>,
+    render: fn(&T) -> String,
+) -> std::io::Result<()> {
+    if let Ok(text) = std::fs::read_to_string(path) {
+        if parse(&text).is_ok_and(|v| v.borrow() == value) {
+            return Ok(());
+        }
+    }
+    std::fs::write(path, render(value))
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -1,18 +1,21 @@
 //! Proof evidence. A proof record binds a result to the exact bytes it judged: the proof file and
 //! the replacement node's tree. When either changes, the record is stale and proves nothing.
 //! Records are content-addressed files in `.ynventa/evidence/`, so concurrent branches never
-//! conflict.
+//! conflict. A record whose locator no longer names any declared proof (its proof was moved or
+//! dropped) is retired by `compact` into a history file in the same directory: kept with its
+//! provenance, never counted as evidence again.
 
 use crate::compact::codec::{DecodeError, Decoder, Encoder};
 use crate::declare::{Declaration, Proof};
 use crate::digest::{content_digest, hex, Sha256};
 use crate::repository::files::Files;
 use crate::schema::ProofKind;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 pub const EVIDENCE_DIR: &str = ".ynventa/evidence";
 pub const EVIDENCE_TAG: u8 = 2;
+pub const RETIRED_TAG: u8 = 9;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Record {
@@ -80,10 +83,62 @@ impl Verdict {
     }
 }
 
-/// Every evidence record found on disk, by locator.
+/// A record retired from evidence into history: what it judged, its verdict and digests (all in
+/// `record`), the content address it had, and when it was retired.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Retired {
+    /// The compaction that retired it (history sequence, starting at 1).
+    pub seq: u64,
+    /// The commit checked out when it was retired (empty outside Git).
+    pub commit: String,
+    /// The record's former file name, `<digest>.ynv`.
+    pub address: String,
+    pub record: Record,
+}
+
+/// Encodes a history of retired records (sorted, so equal history encodes to equal bytes).
+pub fn encode_retired(rows: &[Retired]) -> Vec<u8> {
+    let mut rows = rows.to_vec();
+    rows.sort();
+    let mut e = Encoder::new(RETIRED_TAG);
+    e.u64(rows.len() as u64);
+    for r in &rows {
+        e.u64(r.seq)
+            .str(&r.commit)
+            .str(&r.address)
+            .bytes(&r.record.encode());
+    }
+    e.finish()
+}
+
+pub fn decode_retired(b: &[u8]) -> Result<Vec<Retired>, DecodeError> {
+    let mut d = Decoder::open(b, RETIRED_TAG)?;
+    let mut rows = Vec::new();
+    for _ in 0..d.u64()? {
+        rows.push(Retired {
+            seq: d.u64()?,
+            commit: d.str()?,
+            address: d.str()?,
+            record: Record::decode(d.bytes()?)?,
+        });
+    }
+    d.end()?;
+    Ok(rows)
+}
+
+/// The content address a state file holding `bytes` has.
+pub fn address(bytes: &[u8]) -> String {
+    format!("{}.ynv", &hex(&crate::digest::sha256(bytes))[..32])
+}
+
+/// Every evidence record found on disk, by locator, and the retired history beside them.
 #[derive(Clone, Debug, Default)]
 pub struct Store {
     pub records: BTreeMap<String, Vec<Record>>,
+    /// Retired records: history, never evidence.
+    pub retired: Vec<Retired>,
+    /// The files holding retired history.
+    pub retired_files: Vec<String>,
     pub unreadable: Vec<String>,
 }
 
@@ -91,11 +146,22 @@ impl Store {
     pub fn load(root: &Path) -> Store {
         let mut s = Store::default();
         for (name, bytes) in crate::compact::read_addressed(root, EVIDENCE_DIR, &mut s.unreadable) {
+            if Decoder::tag_of(&bytes) == Some(RETIRED_TAG) {
+                match decode_retired(&bytes) {
+                    Ok(rows) => {
+                        s.retired.extend(rows);
+                        s.retired_files.push(name);
+                    }
+                    Err(e) => s.unreadable.push(format!("{EVIDENCE_DIR}/{name}: {e}")),
+                }
+                continue;
+            }
             match Record::decode(&bytes) {
                 Ok(r) => s.records.entry(r.locator.clone()).or_default().push(r),
                 Err(e) => s.unreadable.push(format!("{EVIDENCE_DIR}/{name}: {e}")),
             }
         }
+        s.retired.sort();
         s
     }
 
@@ -273,6 +339,77 @@ impl Runner for CargoRunner {
         };
         (ok, command)
     }
+}
+
+/// Every locator a declared proof names: donor capabilities' proofs, technologies' proofs and
+/// their claims' evidence.
+pub fn declared_locators(d: &Declaration) -> BTreeSet<String> {
+    let donors = d
+        .donors
+        .iter()
+        .flat_map(|dn| &dn.capabilities)
+        .flat_map(|c| &c.proofs);
+    let technologies = d.technologies.iter().flat_map(|t| {
+        t.proofs
+            .iter()
+            .chain(t.claims.iter().flat_map(|c| c.evidence.iter()))
+    });
+    donors
+        .chain(technologies)
+        .map(|p| p.locator.clone())
+        .collect()
+}
+
+/// Retires every record whose locator names no declared proof: it is folded, with its
+/// provenance, into one history file (earlier history files are folded in too) and its own file
+/// is removed. Records of declared proofs are untouched, so no verdict changes. Returns
+/// (records retired, history file).
+pub fn retire(
+    root: &Path,
+    d: &Declaration,
+    commit: &str,
+) -> std::io::Result<(usize, Option<String>)> {
+    let store = Store::load(root);
+    let declared = declared_locators(d);
+    let seq = store
+        .retired
+        .iter()
+        .map(|r| r.seq)
+        .max()
+        .map_or(1, |m| m + 1);
+    let mut rows = store.retired.clone();
+    let mut retiring = Vec::new();
+    for (locator, records) in &store.records {
+        if declared.contains(locator) {
+            continue;
+        }
+        for r in records {
+            let address = address(&r.encode());
+            retiring.push(address.clone());
+            rows.push(Retired {
+                seq,
+                commit: commit.to_string(),
+                address,
+                record: r.clone(),
+            });
+        }
+    }
+    let history = |f: &String| format!("{EVIDENCE_DIR}/{f}");
+    if retiring.is_empty() && store.retired_files.len() <= 1 {
+        return Ok((0, store.retired_files.first().map(history)));
+    }
+    // A record retired twice (a crash between writing history and removing it) keeps its first
+    // retirement.
+    rows.sort_by(|a, b| (&a.address, a.seq).cmp(&(&b.address, b.seq)));
+    rows.dedup_by(|b, a| a.address == b.address);
+    let written = crate::compact::write_addressed(root, EVIDENCE_DIR, &encode_retired(&rows))?;
+    for f in retiring.iter().chain(&store.retired_files) {
+        let p = history(f);
+        if p != written {
+            std::fs::remove_file(root.join(&p))?;
+        }
+    }
+    Ok((retiring.len(), Some(written)))
 }
 
 /// Runs every declared proof (of donor capabilities and of technologies, optionally only those

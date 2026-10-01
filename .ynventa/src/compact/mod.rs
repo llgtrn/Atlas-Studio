@@ -6,6 +6,8 @@
 //!        ├── one folded history batch        .ynventa/history/<digest>.ynv     (authoritative)
 //!        ├── one folded knowledge batch      .ynventa/knowledge/<digest>.ynv   (authoritative)
 //!        ├── evidence without stale records  .ynventa/evidence/<digest>.ynv    (authoritative)
+//!        ├── retired evidence history        .ynventa/evidence/<digest>.ynv    (authoritative: records
+//!        │                                   of undeclared proofs, with provenance; never evidence)
 //!        ├── the knowledge capsule           target/ynventa/capsule.ynv        (generated index)
 //!        └── the human view                  target/ynventa/VIEW.md            (generated view)
 //! ```

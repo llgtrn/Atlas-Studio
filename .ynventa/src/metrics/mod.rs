@@ -67,7 +67,7 @@ pub const DEFINITIONS: &[MetricDef] = &[
     MetricDef { name: "unmapped_nodes", formula: "directories holding code that belongs to no declared node" },
     MetricDef { name: "documents_total", formula: "tracked Markdown documents outside held donor source" },
     MetricDef { name: "documents_over_budget", formula: "documents not permitted by the document budget" },
-    MetricDef { name: "repository_shape_conformance", formula: "conformant units / units; units = root entries + canonical nodes + documents + code files outside every node" },
+    MetricDef { name: "repository_shape_conformance", formula: "conformant units / units; units = root entries + active nodes + one failing unit per other shape violation (undeclared member, directory of unowned code, plane violation, research on the build path, tracked generated state, forbidden container); documents are gated by documents_over_budget" },
     MetricDef { name: "ynventa_protocol_conformance", formula: "passed protocol checks / protocol checks" },
     MetricDef { name: "native_capability_ratio", formula: "capabilities_native / capabilities_total; 1 when no active donor remains, 0 when active donors declare no capability" },
     MetricDef { name: "proof_completion_ratio", formula: "capabilities_proven / capabilities_total; same guards" },
@@ -85,6 +85,7 @@ pub const V1_GATE: &[(&str, &str)] = &[
     ("native_capability_ratio", "1.000000"),
     ("proof_completion_ratio", "1.000000"),
     ("repository_shape_conformance", "1.000000"),
+    ("documents_over_budget", "0"),
     ("ynventa_protocol_conformance", "1.000000"),
 ];
 
