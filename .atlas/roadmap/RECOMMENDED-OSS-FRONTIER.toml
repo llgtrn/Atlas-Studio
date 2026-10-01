@@ -764,7 +764,7 @@ lifecycle = "CANDIDATE"
 working_set = "CONSUMER_GATED"
 license = "GPL-2.0-only"
 verified_head = "0f8e75abebff0877cae681a3d5ff31ac47f54220"
-notes = ["an unadmitted checkout exists (.atlas/temporary/donors/git); deletion BLOCKED_ON_USER (GENERATIONS.toml)"]
+notes = ["the unadmitted legacy checkout .atlas/temporary/donors/git (pin d38352cd43ab9745686d697872408bc3249a153f) was removed 2026-10-01 by owner decision; hashes and verified origin kept in DONOR-WORKING-SET.toml retired_checkout"]
 
 [[repository]]
 canonical_url = "https://github.com/google-deepmind/mujoco.git"

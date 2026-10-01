@@ -28,7 +28,7 @@ no_capability_delta = 2
 revalidation_required = 0
 license_review_required = 0
 source_extinct = 17
-blocked_on_user = 6
+blocked_on_user = 0
 remaining = 149
 
 [[epoch]]
@@ -440,10 +440,10 @@ names = ["borg"]
 sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
 historical_generations = []
 historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
-license = "UNRECORDED"
+license = "BSD-3-Clause"
 historical_pins = ["177d09c9152dcf983f3f3c918bc5ec630cfc7426"]
-physically_present_legacy = true
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -861,8 +861,8 @@ historical_generations = ["G110"]
 historical_verdicts = ["G110: EXTERNAL_BOUNDARY (terminal_state)", "G110: CAPABILITY_OPEN_ESSENTIAL (capability_decision)", "G110: EXTERNAL_BOUNDARY (mechanism_decision)", "-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)", "-: EXTERNAL_BOUNDARY:PERMANENT_REALITY (external_boundaries)", "G110: CAMPAIGN_PROVEN (current_status)", "G110: EXTERNAL_BOUNDARY (terminal_state)", "-: CANDIDATE (lifecycle)", "-: CONSUMER_GATED (working_set)", "G150: CURRENT (status)", "-: MISSING (status)"]
 license = "GPL-2.0-only"
 historical_pins = ["0f8e75abebff0877cae681a3d5ff31ac47f54220", "d38352cd43ab9745686d697872408bc3249a153f"]
-physically_present_legacy = true
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -896,10 +896,10 @@ names = ["cdc-file-transfer"]
 sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
 historical_generations = []
 historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
-license = "UNRECORDED"
+license = "Apache-2.0"
 historical_pins = ["370023a944d8c81f60463b6659d0de4de99637a7"]
-physically_present_legacy = true
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1347,10 +1347,10 @@ names = ["lz4"]
 sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
 historical_generations = []
 historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
-license = "UNRECORDED"
+license = "BSD-2-Clause AND GPL-2.0-or-later"
 historical_pins = ["0774d05537f9762f838f7ab541b7765f1a729cb5"]
-physically_present_legacy = true
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1517,10 +1517,10 @@ names = ["fastcdc-rs"]
 sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
 historical_generations = []
 historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
-license = "UNRECORDED"
+license = "MIT"
 historical_pins = ["b025a70229a13d9482c943d27e494c40e84e0892"]
-physically_present_legacy = true
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]
@@ -1830,10 +1830,10 @@ names = ["restic"]
 sources = [".atlas/roadmap/DONOR-WORKING-SET.toml", ".atlas/temporary/donors/ (directory listing + .atlas-donor-source.toml)"]
 historical_generations = []
 historical_verdicts = ["-: UNADMITTED_TRACKED_CHECKOUT (unadmitted_checkout.classification)"]
-license = "UNRECORDED"
+license = "BSD-2-Clause"
 historical_pins = ["6adedec6b48ae9ff0ffbc37bd675ccebd02c728f"]
-physically_present_legacy = true
-legacy_checkout = "BLOCKED_ON_USER: an unadmitted legacy checkout whose deletion needs the owner (DONOR-WORKING-SET.toml)"
+physically_present_legacy = false
+legacy_checkout = "REMOVED 2026-10-01 by owner decision: origin verified against the pin, hashes and provenance kept (DONOR-WORKING-SET.toml retired_checkout); the tree stays in git history at 51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
 replay_status = "NEVER_REPLAYED"
 
 [[repository]]

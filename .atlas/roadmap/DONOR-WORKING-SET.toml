@@ -32,39 +32,115 @@ large_donor_bytes = 268_435_456
 # recorded with its remedy; the integrity test fails on any violation not listed here and on any
 # listed one that no longer violates.
 [[unadmitted_checkout]]
-directory = "borg"
-classification = "UNADMITTED_TRACKED_CHECKOUT; 572 tracked files, 8.1 MB; no provenance, license record, census or consumer"
-remedy = "DELETE (git rm); BLOCKED_ON_USER: the session permission classifier denied this irreversible deletion (GENERATIONS.toml unadmitted-checkout-deletion-needs-user-authorization)"
-
-[[unadmitted_checkout]]
-directory = "cdc-file-transfer"
-classification = "UNADMITTED_TRACKED_CHECKOUT; 36996 tracked files, 441.8 MB (largest unowned); no provenance, license record, census or consumer"
-remedy = "DELETE (git rm); BLOCKED_ON_USER"
-
-[[unadmitted_checkout]]
-directory = "fastcdc-rs"
-classification = "UNADMITTED_TRACKED_CHECKOUT; 28 tracked files, 0.3 MB; no provenance, license record, census or consumer"
-remedy = "DELETE (git rm); BLOCKED_ON_USER"
-
-[[unadmitted_checkout]]
-directory = "git"
-classification = "UNADMITTED_TRACKED_CHECKOUT; 4869 tracked files, 49.4 MB; git/git is a CONSUMER_GATED frontier candidate (RECOMMENDED-OSS-FRONTIER.toml), not admitted"
-remedy = "DELETE (git rm); re-materialize as a scratch slice only when a content-addressing consumer exists; BLOCKED_ON_USER"
-
-[[unadmitted_checkout]]
-directory = "lz4"
-classification = "UNADMITTED_TRACKED_CHECKOUT; 210 tracked files, 1.7 MB; no provenance, license record, census or consumer"
-remedy = "DELETE (git rm); BLOCKED_ON_USER"
-
-[[unadmitted_checkout]]
-directory = "restic"
-classification = "UNADMITTED_TRACKED_CHECKOUT; 1395 tracked files, 27.5 MB; no provenance, license record, census or consumer"
-remedy = "DELETE (git rm); BLOCKED_ON_USER"
-
-[[unadmitted_checkout]]
 directory = "xz"
 classification = "DANGLING_GITLINK; one mode-160000 entry (74c3449d8b) with no .gitmodules, empty directory, 0 bytes"
 remedy = "DELETE (git rm --cached); BLOCKED_ON_USER"
+
+# Retired legacy checkouts (owner decision 2026-10-01, unblocking the BLOCKED_ON_USER deletions above):
+# held source -> census what is unique -> preserve content hashes and the provenance genuinely
+# recoverable -> no build/runtime/test path -> remove the source. Provenance is RECOVERED only when
+# mechanically verified (here: the in-tree .atlas-donor-source.toml origin record, checked by fetching
+# the pinned commit and comparing every path by git blob id), otherwise UNKNOWN; never typed in.
+# The removed trees stay addressable in git history at `last_commit_holding_source`; `manifest_sha256`
+# is SHA-256 over the sorted `git ls-tree -r -l` lines ("<mode> <type> <id>\t<path>\n", paths
+# relative to `path`, size column dropped). The ynventa donor records keep origin and licence
+# (.ynventa/declared/donors.rs); the full census of each tree is ynventa knowledge (`knowledge`).
+
+[[retired_checkout]]
+path = ".atlas/temporary/donors/borg"
+ynventa_donor = "unadmitted-borg"
+disposition = "SOURCE_REMOVED"
+last_commit_holding_source = "51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
+git_tree = "53f8cb41c0bf91a9d3da33fa84f282043d71a3ec"
+manifest_sha256 = "sha256:c47fdfebfde8a68f1be89ed4bc84f1d466d248d124cd19af5189f958ee394356"
+tracked_files = 572
+blob_bytes = 8105561
+provenance = "RECOVERED"
+origin = "https://github.com/borgbackup/borg.git"
+pinned_commit = "177d09c9152dcf983f3f3c918bc5ec630cfc7426"
+licence = "BSD-3-Clause"
+consumers = "none: no reference outside .atlas/temporary/donors from any workspace member, test, script, CI workflow or census input (git grep at the last commit holding the source)"
+knowledge = "ynventa fact list --subject .atlas/temporary/donors/borg (DEFINITION facts with provenance: tree, manifest, origin record and verification, licence files, package metadata, local modifications)"
+
+[[retired_checkout]]
+path = ".atlas/temporary/donors/cdc-file-transfer"
+ynventa_donor = "unadmitted-cdc-file-transfer"
+disposition = "SOURCE_REMOVED"
+last_commit_holding_source = "51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
+git_tree = "2ce7730d1cf40d4f4f139f03460c7e2b3b9f1eb6"
+manifest_sha256 = "sha256:ba9d2be6739bfc862fe95af7e5a8f6954ed0f1b8e06034aad03b417df2de5837"
+tracked_files = 36996
+blob_bytes = 441837571
+provenance = "RECOVERED"
+origin = "https://github.com/google/cdc-file-transfer.git"
+pinned_commit = "370023a944d8c81f60463b6659d0de4de99637a7"
+licence = "Apache-2.0"
+consumers = "none: no reference outside .atlas/temporary/donors from any workspace member, test, script, CI workflow or census input (git grep at the last commit holding the source)"
+knowledge = "ynventa fact list --subject .atlas/temporary/donors/cdc-file-transfer (DEFINITION facts with provenance: tree, manifest, origin record and verification, licence files, package metadata, local modifications)"
+
+[[retired_checkout]]
+path = ".atlas/temporary/donors/fastcdc-rs"
+ynventa_donor = "unadmitted-fastcdc-rs"
+disposition = "SOURCE_REMOVED"
+last_commit_holding_source = "51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
+git_tree = "4be7f8beb675828479725a3e8c7260e7f6be733a"
+manifest_sha256 = "sha256:2da91156126d20ec19c35f144a0de22acb9f694c6a2cfc24c81a55f334eada84"
+tracked_files = 28
+blob_bytes = 314945
+provenance = "RECOVERED"
+origin = "https://github.com/nlfiedler/fastcdc-rs.git"
+pinned_commit = "b025a70229a13d9482c943d27e494c40e84e0892"
+licence = "MIT"
+consumers = "none: no reference outside .atlas/temporary/donors from any workspace member, test, script, CI workflow or census input (git grep at the last commit holding the source)"
+knowledge = "ynventa fact list --subject .atlas/temporary/donors/fastcdc-rs (DEFINITION facts with provenance: tree, manifest, origin record and verification, licence files, package metadata, local modifications)"
+
+[[retired_checkout]]
+path = ".atlas/temporary/donors/git"
+ynventa_donor = "unadmitted-git"
+disposition = "SOURCE_REMOVED"
+last_commit_holding_source = "51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
+git_tree = "52aa617d614ec9f0ff3f1ebd5fd5b6f82ac1cc12"
+manifest_sha256 = "sha256:b91e2f4ad8ac74e78938687bf9ddb48f049057a7ee7909b9ac238edde0ab468d"
+tracked_files = 4869
+blob_bytes = 49364063
+provenance = "RECOVERED"
+origin = "https://github.com/git/git.git"
+pinned_commit = "d38352cd43ab9745686d697872408bc3249a153f"
+licence = "GPL-2.0-only"
+consumers = "none: no reference outside .atlas/temporary/donors from any workspace member, test, script, CI workflow or census input (git grep at the last commit holding the source)"
+knowledge = "ynventa fact list --subject .atlas/temporary/donors/git (DEFINITION facts with provenance: tree, manifest, origin record and verification, licence files, package metadata, local modifications)"
+
+[[retired_checkout]]
+path = ".atlas/temporary/donors/lz4"
+ynventa_donor = "unadmitted-lz4"
+disposition = "SOURCE_REMOVED"
+last_commit_holding_source = "51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
+git_tree = "eb862be27e0916039f78694f4f56a33cf68df2fe"
+manifest_sha256 = "sha256:dd2e1997c240f89431425dd2df2f119a9cfea3bcd9e38431c3a2ce60b65a4be2"
+tracked_files = 210
+blob_bytes = 1709679
+provenance = "RECOVERED"
+origin = "https://github.com/lz4/lz4.git"
+pinned_commit = "0774d05537f9762f838f7ab541b7765f1a729cb5"
+licence = "BSD-2-Clause AND GPL-2.0-or-later"
+consumers = "none: no reference outside .atlas/temporary/donors from any workspace member, test, script, CI workflow or census input (git grep at the last commit holding the source)"
+knowledge = "ynventa fact list --subject .atlas/temporary/donors/lz4 (DEFINITION facts with provenance: tree, manifest, origin record and verification, licence files, package metadata, local modifications)"
+
+[[retired_checkout]]
+path = ".atlas/temporary/donors/restic"
+ynventa_donor = "unadmitted-restic"
+disposition = "SOURCE_REMOVED"
+last_commit_holding_source = "51c41e29a2506b2cf5bb069fbff44f85eaa26e8f"
+git_tree = "bfff60dff2bba1bb77161d869278db31a768e304"
+manifest_sha256 = "sha256:91211769a9e49917c19c9176d067aeaf50a496c965b42d8947b7289158854ccd"
+tracked_files = 1395
+blob_bytes = 27512489
+provenance = "RECOVERED"
+origin = "https://github.com/restic/restic.git"
+pinned_commit = "6adedec6b48ae9ff0ffbc37bd675ccebd02c728f"
+licence = "BSD-2-Clause"
+consumers = "none: no reference outside .atlas/temporary/donors from any workspace member, test, script, CI workflow or census input (git grep at the last commit holding the source)"
+knowledge = "ynventa fact list --subject .atlas/temporary/donors/restic (DEFINITION facts with provenance: tree, manifest, origin record and verification, licence files, package metadata, local modifications)"
 
 # Capability-driven queue: what the next generation may materialize, in priority order, with the
 # evidence each needs and the blocker that currently holds it. Remote discovery needs no slot.
