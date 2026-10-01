@@ -1,8 +1,14 @@
-//! Authoritative repository declarations: `.ynventa/declared/{repository,donors,migration}.rs`.
+//! Authoritative repository declarations:
+//! `.ynventa/declared/{repository,donors,migration,technologies,organism}.rs`.
 //!
 //! Each file is one Rust constant expression written against `declare::decl`. rustc checks the
 //! types when the subsystem builds; this module reads the same bytes at run time, so that one
 //! canonical verifier reads every repository identically.
+//!
+//! The grammar is versioned by the subsystem: [`load`] accepts only the current grammar. The
+//! previous grammar (donor capabilities and technologies without `maps_to`/`norl`, no
+//! `organism.rs`) is read only by [`load_previous`], which `ynventa migrate schema` uses to
+//! rewrite a repository into the current grammar; it is never accepted silently.
 
 pub mod decl;
 pub mod model;
@@ -11,8 +17,9 @@ pub use model::*;
 
 use crate::formats::rust::{self as r, Expr, Kind};
 use crate::schema::{
-    Concept, Dimension, DonorState, Ecosystem, EdgeKind, ExceptionKind, ExpiryKind, NodeKind,
-    NodeLifecycle, ProofKind, Scope, ShimKind, TechnologyKind, TechnologyLifecycle, WaveStatus,
+    BackendKind, Concept, Dimension, DonorState, Ecosystem, EdgeKind, ExceptionKind, ExpiryKind,
+    GrowthState, NodeKind, NodeLifecycle, ProofKind, Scope, ShimKind, TechnologyKind,
+    TechnologyLifecycle, WaveStatus,
 };
 use std::path::{Path, PathBuf};
 
@@ -21,6 +28,16 @@ pub const REPOSITORY_FILE: &str = "repository.rs";
 pub const DONORS_FILE: &str = "donors.rs";
 pub const MIGRATION_FILE: &str = "migration.rs";
 pub const TECHNOLOGIES_FILE: &str = "technologies.rs";
+pub const ORGANISM_FILE: &str = "organism.rs";
+
+/// Every declaration file, in canonical order.
+pub const DECLARATION_FILES: &[&str] = &[
+    REPOSITORY_FILE,
+    DONORS_FILE,
+    MIGRATION_FILE,
+    TECHNOLOGIES_FILE,
+    ORGANISM_FILE,
+];
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DeclError {
@@ -39,8 +56,35 @@ pub fn declared_dir(root: &Path) -> PathBuf {
     root.join(DECLARED_DIR)
 }
 
-/// Loads the four declaration files of the repository at `root`.
+/// Which grammar a reading accepts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Grammar {
+    Current,
+    /// The grammar before the organism: no `maps_to`/`norl` fields and no `organism.rs`.
+    Previous,
+}
+
+/// Loads the declaration files of the repository at `root` in the current grammar.
 pub fn load(root: &Path) -> Result<Declaration, DeclError> {
+    load_in(root, Grammar::Current).map_err(|mut e| {
+        if load_in(root, Grammar::Previous).is_ok() {
+            e.message.push_str(&format!(
+                " (the declarations use the previous grammar: run `ynventa migrate schema --root {}`)",
+                root.display()
+            ));
+        }
+        e
+    })
+}
+
+/// Loads declarations written in the previous grammar (or the current one): the reading
+/// `migrate schema` rewrites from. Missing `maps_to` is `None`, missing `norl` is
+/// `NorlRelevance::Unresolved`, a missing `organism.rs` is the empty organism.
+pub fn load_previous(root: &Path) -> Result<Declaration, DeclError> {
+    load_in(root, Grammar::Previous)
+}
+
+fn load_in(root: &Path, g: Grammar) -> Result<Declaration, DeclError> {
     let dir = declared_dir(root);
     let read = |name: &str| -> Result<(String, String), DeclError> {
         let rel = format!("{DECLARED_DIR}/{name}");
@@ -56,63 +100,98 @@ pub fn load(root: &Path) -> Result<Declaration, DeclError> {
     let (f2, t2) = read(DONORS_FILE)?;
     let (f3, t3) = read(MIGRATION_FILE)?;
     let (f4, t4) = read(TECHNOLOGIES_FILE)?;
+    let organism = match (read(ORGANISM_FILE), g) {
+        (Ok((f5, t5)), _) => parse_organism(&t5).map_err(|e| e.file(&f5))?,
+        (Err(_), Grammar::Previous) => Organism::default(),
+        (Err(e), Grammar::Current) => return Err(e),
+    };
     Ok(Declaration {
         repository: parse_repository(&t1).map_err(|e| e.file(&f1))?,
-        donors: parse_donors(&t2).map_err(|e| e.file(&f2))?,
+        donors: parse_donors_in(&t2, g).map_err(|e| e.file(&f2))?,
         migration: parse_migration(&t3).map_err(|e| e.file(&f3))?,
-        technologies: parse_technologies(&t4).map_err(|e| e.file(&f4))?,
+        technologies: parse_technologies_in(&t4, g).map_err(|e| e.file(&f4))?,
+        organism,
     })
 }
 
-/// Writes the four declaration files canonically, each only when what it declares changed.
+/// Rewrites the declarations of `root` into the current grammar: every file is re-rendered
+/// canonically when its reading changes, `organism.rs` is created empty when missing. Nothing
+/// is lowered or raised: a donor capability without a mapping gets `maps_to: None` and
+/// `norl: NorlRelevance::Unresolved`, so a claim the new ladder no longer supports is reported
+/// by `verify`. Returns the files written.
+pub fn migrate_schema(root: &Path) -> Result<Vec<String>, String> {
+    let d = load_previous(root).map_err(|e| e.to_string())?;
+    store_report(root, &d).map_err(|e| e.to_string())
+}
+
+/// Writes the declaration files canonically, each only when what it declares changed.
 ///
 /// A file whose current text already parses to the value being stored is left byte-identical,
 /// whatever its layout: storing an unchanged declaration (as every `migrate apply` does for the
 /// files a wave does not touch) never creates diff noise. A changed, missing or unreadable file
-/// is rewritten in the canonical rendering.
+/// (including one in the previous grammar) is rewritten in the canonical rendering.
 pub fn store(root: &Path, d: &Declaration) -> std::io::Result<()> {
-    let dir = declared_dir(root);
-    std::fs::create_dir_all(&dir)?;
-    store_file(
-        &dir.join(REPOSITORY_FILE),
-        &d.repository,
-        parse_repository,
-        render_repository,
-    )?;
-    store_file(
-        &dir.join(DONORS_FILE),
-        &d.donors[..],
-        parse_donors,
-        render_donors,
-    )?;
-    store_file(
-        &dir.join(MIGRATION_FILE),
-        &d.migration,
-        parse_migration,
-        render_migration,
-    )?;
-    store_file(
-        &dir.join(TECHNOLOGIES_FILE),
-        &d.technologies[..],
-        parse_technologies,
-        render_technologies,
-    )?;
-    Ok(())
+    store_report(root, d).map(|_| ())
 }
 
-/// Writes `value` to `path` unless the file there already declares exactly `value`.
+/// [`store`], returning the declaration files it wrote.
+pub fn store_report(root: &Path, d: &Declaration) -> std::io::Result<Vec<String>> {
+    let dir = declared_dir(root);
+    std::fs::create_dir_all(&dir)?;
+    let wrote = [
+        store_file(
+            &dir.join(REPOSITORY_FILE),
+            &d.repository,
+            parse_repository,
+            render_repository,
+        )?,
+        store_file(
+            &dir.join(DONORS_FILE),
+            &d.donors[..],
+            parse_donors,
+            render_donors,
+        )?,
+        store_file(
+            &dir.join(MIGRATION_FILE),
+            &d.migration,
+            parse_migration,
+            render_migration,
+        )?,
+        store_file(
+            &dir.join(TECHNOLOGIES_FILE),
+            &d.technologies[..],
+            parse_technologies,
+            render_technologies,
+        )?,
+        store_file(
+            &dir.join(ORGANISM_FILE),
+            &d.organism,
+            parse_organism,
+            render_organism,
+        )?,
+    ];
+    Ok(DECLARATION_FILES
+        .iter()
+        .zip(wrote)
+        .filter(|(_, w)| *w)
+        .map(|(f, _)| format!("{DECLARED_DIR}/{f}"))
+        .collect())
+}
+
+/// Writes `value` to `path` unless the file there already declares exactly `value`; returns
+/// whether it wrote.
 fn store_file<T: PartialEq + ?Sized, O: std::borrow::Borrow<T>>(
     path: &Path,
     value: &T,
     parse: fn(&str) -> Res<O>,
     render: fn(&T) -> String,
-) -> std::io::Result<()> {
+) -> std::io::Result<bool> {
     if let Ok(text) = std::fs::read_to_string(path) {
         if parse(&text).is_ok_and(|v| v.borrow() == value) {
-            return Ok(());
+            return Ok(false);
         }
     }
-    std::fs::write(path, render(value))
+    std::fs::write(path, render(value)).map(|_| true)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -166,6 +245,13 @@ impl<'a> Fields<'a> {
             Some((_, v)) => Ok(v),
             None => fail(self.at, format!("missing field `{f}`")),
         }
+    }
+    /// A field the previous grammar did not have: optional there, required in the current one.
+    fn added(&mut self, f: &'a str, g: Grammar) -> Res<Option<&'a Expr>> {
+        if g == Grammar::Previous && !self.items.iter().any(|(n, _)| n == f) {
+            return Ok(None);
+        }
+        self.get(f).map(Some)
     }
     fn string(&mut self, f: &'a str) -> Res<String> {
         let v = self.get(f)?;
@@ -303,7 +389,32 @@ pub fn parse_repository(text: &str) -> Res<Repository> {
     })
 }
 
+fn norl_relevance(e: &Expr) -> Res<NorlRelevance> {
+    match &e.kind {
+        Kind::Path(p) if p.len() == 2 && p[0] == "NorlRelevance" && p[1] == "Unresolved" => {
+            Ok(NorlRelevance::Unresolved)
+        }
+        _ => match tagged(e, "NorlRelevance")? {
+            ("Feeds", k) => Ok(NorlRelevance::Feeds(k)),
+            ("NotRelevant", r) => Ok(NorlRelevance::NotRelevant(r)),
+            (v, _) => fail(e, format!("`NorlRelevance::{v}` is not a Norl relevance")),
+        },
+    }
+}
+
+fn render_norl(n: &NorlRelevance) -> Expr {
+    match n {
+        NorlRelevance::Unresolved => r::path("NorlRelevance::Unresolved"),
+        NorlRelevance::Feeds(k) => r::call("NorlRelevance::Feeds", vec![r::s(k)]),
+        NorlRelevance::NotRelevant(x) => r::call("NorlRelevance::NotRelevant", vec![r::s(x)]),
+    }
+}
+
 pub fn parse_donors(text: &str) -> Res<Vec<Donor>> {
+    parse_donors_in(text, Grammar::Current)
+}
+
+fn parse_donors_in(text: &str, g: Grammar) -> Res<Vec<Donor>> {
     let e = parse_file(text)?;
     list(&e)?
         .iter()
@@ -356,6 +467,14 @@ pub fn parse_donors(text: &str) -> Res<Vec<Donor>> {
                             required: boolean(f.get("required")?)?,
                             spec: f.string("spec")?,
                             replacement: opt_string(f.get("replacement")?)?,
+                            maps_to: match f.added("maps_to", g)? {
+                                Some(x) => opt_string(x)?,
+                                None => None,
+                            },
+                            norl: match f.added("norl", g)? {
+                                Some(x) => norl_relevance(x)?,
+                                None => NorlRelevance::Unresolved,
+                            },
                             proofs: list(f.get("proofs")?)?
                                 .iter()
                                 .map(|p| {
@@ -553,6 +672,8 @@ pub fn render_donors(donors: &[Donor]) -> String {
                                             ("required", r::boolean(c.required)),
                                             ("spec", r::s(&c.spec)),
                                             ("replacement", r::opt(&c.replacement)),
+                                            ("maps_to", r::opt(&c.maps_to)),
+                                            ("norl", render_norl(&c.norl)),
                                             (
                                                 "proofs",
                                                 r::list(
@@ -652,6 +773,10 @@ fn parse_proofs(e: &Expr) -> Res<Vec<Proof>> {
 }
 
 pub fn parse_technologies(text: &str) -> Res<Vec<Technology>> {
+    parse_technologies_in(text, Grammar::Current)
+}
+
+fn parse_technologies_in(text: &str, g: Grammar) -> Res<Vec<Technology>> {
     let e = parse_file(text)?;
     list(&e)?
         .iter()
@@ -689,6 +814,10 @@ pub fn parse_technologies(text: &str) -> Res<Vec<Technology>> {
                         Ok(r)
                     })
                     .collect::<Res<Vec<_>>>()?,
+                norl: match f.added("norl", g)? {
+                    Some(x) => norl_relevance(x)?,
+                    None => NorlRelevance::Unresolved,
+                },
                 claims: list(f.get("claims")?)?
                     .iter()
                     .map(|x| {
@@ -776,6 +905,7 @@ pub fn render_technologies(ts: &[Technology]) -> String {
                                 .collect(),
                         ),
                     ),
+                    ("norl", render_norl(&t.norl)),
                     (
                         "claims",
                         r::list(
@@ -804,6 +934,92 @@ pub fn render_technologies(ts: &[Technology]) -> String {
         })
         .collect();
     format!("{HEADER}{}", r::render(&r::list(items)))
+}
+
+pub fn parse_organism(text: &str) -> Res<Organism> {
+    let e = parse_file(text)?;
+    let mut f = Fields::of(&e, "Organism")?;
+    let capabilities = list(f.get("capabilities")?)?
+        .iter()
+        .map(|c| {
+            let mut f = Fields::of(c, "OrganismCapability")?;
+            let cap = OrganismCapability {
+                key: f.string("key")?,
+                organ: f.string("organ")?,
+                claimed: variant(f.get("claimed")?, "GrowthState", GrowthState::from_variant)?,
+                backend: opt_string(f.get("backend")?)?,
+                evaluations: f.strings("evaluations")?,
+            };
+            f.done()?;
+            Ok(cap)
+        })
+        .collect::<Res<Vec<_>>>()?;
+    let backends = list(f.get("backends")?)?
+        .iter()
+        .map(|b| {
+            let mut f = Fields::of(b, "Backend")?;
+            let backend = Backend {
+                key: f.string("key")?,
+                kind: variant(f.get("kind")?, "BackendKind", BackendKind::from_variant)?,
+                node: f.string("node")?,
+                donor: opt_string(f.get("donor")?)?,
+                weight: f.string("weight")?,
+            };
+            f.done()?;
+            Ok(backend)
+        })
+        .collect::<Res<Vec<_>>>()?;
+    f.done()?;
+    Ok(Organism {
+        capabilities,
+        backends,
+    })
+}
+
+pub fn render_organism(o: &Organism) -> String {
+    let caps = o
+        .capabilities
+        .iter()
+        .map(|c| {
+            r::st(
+                "OrganismCapability",
+                vec![
+                    ("key", r::s(&c.key)),
+                    ("organ", r::s(&c.organ)),
+                    (
+                        "claimed",
+                        en("GrowthState", c.claimed, GrowthState::variant),
+                    ),
+                    ("backend", r::opt(&c.backend)),
+                    ("evaluations", r::strs(&c.evaluations)),
+                ],
+            )
+        })
+        .collect();
+    let backends = o
+        .backends
+        .iter()
+        .map(|b| {
+            r::st(
+                "Backend",
+                vec![
+                    ("key", r::s(&b.key)),
+                    ("kind", en("BackendKind", b.kind, BackendKind::variant)),
+                    ("node", r::s(&b.node)),
+                    ("donor", r::opt(&b.donor)),
+                    ("weight", r::s(&b.weight)),
+                ],
+            )
+        })
+        .collect();
+    let e = r::st(
+        "Organism",
+        vec![
+            ("capabilities", r::list(caps)),
+            ("backends", r::list(backends)),
+        ],
+    );
+    format!("{HEADER}{}", r::render(&e))
 }
 
 #[cfg(test)]
@@ -856,6 +1072,8 @@ mod tests {
                     required: true,
                     spec: "tests/serialize.rs".into(),
                     replacement: Some("core".into()),
+                    maps_to: Some("technology/hash.sha256".into()),
+                    norl: NorlRelevance::NotRelevant("serialization is plumbing".into()),
                     proofs: vec![Proof {
                         kind: ProofKind::Parity,
                         locator: "tests/serialize.rs::agrees".into(),
@@ -897,6 +1115,7 @@ mod tests {
                     kind: EdgeKind::Evolves,
                     target: "hash.sha256-v0".into(),
                 }],
+                norl: NorlRelevance::Feeds("memory.recall".into()),
                 claims: vec![Improvement {
                     dimension: Dimension::DependencyCount,
                     baseline: "sha2".into(),
@@ -905,6 +1124,22 @@ mod tests {
                     evidence: vec![],
                 }],
             }],
+            organism: Organism {
+                capabilities: vec![OrganismCapability {
+                    key: "memory.recall".into(),
+                    organ: "organ.memory".into(),
+                    claimed: GrowthState::Exposed,
+                    backend: Some("recall.rules".into()),
+                    evaluations: vec!["eval.recall".into()],
+                }],
+                backends: vec![Backend {
+                    key: "recall.rules".into(),
+                    kind: BackendKind::Deterministic,
+                    node: "core".into(),
+                    donor: None,
+                    weight: String::new(),
+                }],
+            },
         }
     }
 
@@ -919,6 +1154,9 @@ mod tests {
         assert_eq!(parse_migration(&t3).ok().unwrap(), d.migration);
         let t4 = render_technologies(&d.technologies);
         assert_eq!(parse_technologies(&t4).ok().unwrap(), d.technologies);
+        let t5 = render_organism(&d.organism);
+        assert_eq!(parse_organism(&t5).ok().unwrap(), d.organism);
+        assert_eq!(render_organism(&parse_organism(&t5).ok().unwrap()), t5);
         // Canonical rendering is a fixed point.
         assert_eq!(render_donors(&parse_donors(&t2).ok().unwrap()), t2);
     }

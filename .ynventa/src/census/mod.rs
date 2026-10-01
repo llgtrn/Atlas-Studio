@@ -1,9 +1,14 @@
 //! The census observes, from committed content only, every way foreign technology participates
 //! in the repository: manifest dependencies (Cargo, npm, Python), source imports, native links,
-//! process invocations, references to held donor source, and the locked dependency closure.
+//! process invocations, references to held donor source, and the locked dependency closure
+//! (`Cargo.lock`, `package-lock.json`, `pnpm-lock.yaml`: a donor package locked only
+//! transitively is still linked, through the direct dependency that pulls it in).
 //! Observations are facts; the extinction verifier and the metrics judge them.
 
 pub mod cargo;
+pub mod js;
+pub mod lock;
+pub mod shell;
 pub mod sources;
 
 use crate::declare::Declaration;
@@ -19,6 +24,9 @@ pub enum Via {
     Link,
     Process,
     SourceReference,
+    /// A lockfile entry reached only through other external packages; `ident` is the path that
+    /// pulls it in (`postgres 0.19.9 → … → sha2 0.11.0`).
+    Lock,
 }
 
 impl Via {
@@ -29,6 +37,7 @@ impl Via {
             Via::Link => "LINK",
             Via::Process => "PROCESS",
             Via::SourceReference => "SOURCE_REFERENCE",
+            Via::Lock => "LOCK",
         }
     }
 }
@@ -71,9 +80,12 @@ pub struct Census {
 
 impl Census {
     pub fn external(&self) -> impl Iterator<Item = &Observation> {
-        self.observations
-            .iter()
-            .filter(|o| matches!(o.via, Via::Manifest | Via::Link | Via::Process))
+        self.observations.iter().filter(|o| {
+            matches!(
+                o.via,
+                Via::Manifest | Via::Import | Via::Link | Via::Process
+            )
+        })
     }
 }
 
@@ -98,11 +110,18 @@ pub fn is_excluded(path: &str, excluded: &[String]) -> bool {
         .any(|e| path == e || path.starts_with(&format!("{e}/")))
 }
 
-/// Scope of a reference made by `file`: tests are TEST, tools and CI are BUILD, else RUNTIME.
+/// Scope of a reference made by `file`: tests (`tests/`, `benches/`, `__tests__/`, `*_test.rs`,
+/// `*.test.*`, `*.spec.*`) are TEST, tools and CI are BUILD, else RUNTIME.
 pub fn scope_of_file(file: &str) -> Scope {
     let segs: Vec<&str> = file.split('/').collect();
     let name = segs.last().copied().unwrap_or("");
-    if segs.contains(&"tests") || segs.contains(&"benches") || name.ends_with("_test.rs") {
+    let test_file =
+        name.ends_with("_test.rs") || name.contains(".test.") || name.contains(".spec.");
+    if segs.contains(&"tests")
+        || segs.contains(&"benches")
+        || segs.contains(&"__tests__")
+        || test_file
+    {
         Scope::Test
     } else if name == "build.rs" || segs[0] == "tools" || segs[0] == ".github" {
         Scope::Build
@@ -116,5 +135,35 @@ pub fn run(files: &Files, d: &Declaration) -> Census {
     let mut c = Census::default();
     cargo::observe(files, &excluded, &mut c);
     sources::observe(files, d, &excluded, &mut c);
+    // A donor package still in a lockfile, even only transitively, is still built and linked.
+    // Only donors' packages are reported: every other transitive package is the business of
+    // the direct dependency that pulls it in, not a technology of its own.
+    let donor_packages: BTreeSet<(Ecosystem, String)> = d
+        .donors
+        .iter()
+        .flat_map(|dn| dn.packages.iter())
+        .map(|p| (p.ecosystem, package_key(p.ecosystem, &p.name)))
+        .collect();
+    for l in lock::observe(files, &excluded, &c) {
+        if donor_packages.contains(&(l.ecosystem, package_key(l.ecosystem, &l.name))) {
+            c.observations.insert(Observation {
+                file: l.manifest.clone(),
+                ecosystem: l.ecosystem,
+                name: l.name.clone(),
+                ident: format!("{} (in {})", l.chain.join(" → "), l.lockfile),
+                scope: l.scope,
+                via: Via::Lock,
+            });
+        }
+    }
     c
+}
+
+/// A package name as donors are matched by it.
+pub fn package_key(eco: Ecosystem, name: &str) -> String {
+    match eco {
+        Ecosystem::Python => name.to_ascii_lowercase().replace(['_', '.'], "-"),
+        Ecosystem::Cargo => name.replace('_', "-"),
+        _ => name.to_string(),
+    }
 }

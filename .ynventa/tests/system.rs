@@ -49,6 +49,7 @@ fn commerce_shard(name: &str) -> Repo {
         donors: vec![],
         migration: Migration::default(),
         technologies: vec![],
+        organism: Organism::default(),
     });
     r
 }
@@ -72,6 +73,7 @@ fn technology_shard(name: &str) -> Repo {
             proofs: vec![proof(ProofKind::Regression, "core/src/digest.rs::vectors")],
             lineage: vec!["geo".into()],
             relations: vec![],
+            norl: NorlRelevance::NotRelevant("fixture technology".into()),
             claims: vec![Improvement {
                 dimension: Dimension::Latency,
                 baseline: "donor".into(),
@@ -277,6 +279,7 @@ fn duplicated_technology_without_relation_fails_linking() {
             proofs: vec![],
             lineage: vec![],
             relations: vec![],
+            norl: NorlRelevance::NotRelevant("fixture technology".into()),
             claims: vec![],
         }];
     });
@@ -341,6 +344,7 @@ fn duplicated_technology_without_relation_fails_linking() {
                 kind: EdgeKind::AlternativeFor,
                 target: "hash.digest".into(),
             }],
+            norl: NorlRelevance::NotRelevant("fixture technology".into()),
             claims: vec![],
         }];
     });
@@ -611,6 +615,7 @@ fn legacy_geo_with_technology(name: &str) -> Repo {
             proofs: vec![proof(ProofKind::Regression, "geo/src/digest.rs::vectors")],
             lineage: vec![],
             relations: vec![],
+            norl: NorlRelevance::NotRelevant("fixture technology".into()),
             claims: vec![Improvement {
                 dimension: Dimension::Latency,
                 baseline: "donor".into(),

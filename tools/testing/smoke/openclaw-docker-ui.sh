@@ -323,7 +323,7 @@ Useful commands:
 EOF
 fi
 
-if [[ "$OPENCLAW_OPEN_BROWSER" == "1" ]] && command -v open >/dev/null 2>&1; then
+if [[ "$OPENCLAW_OPEN_BROWSER" == "1" ]] && command -v python3 >/dev/null 2>&1; then
   log "opening dashboard in browser"
-  open "$dashboard_url"
+  python3 -m webbrowser -t "$dashboard_url" >/dev/null
 fi

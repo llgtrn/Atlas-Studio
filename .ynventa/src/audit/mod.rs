@@ -2,7 +2,10 @@
 //! entry points. Everything else is detected, classified, extracted into compacted knowledge
 //! facts, and only then deleted — never before its knowledge is preserved.
 
+pub mod decision;
+
 use crate::compact::facts::{normalize, Fact, Knowledge};
+use crate::compact::outline;
 use crate::declare::Declaration;
 use crate::digest::content_digest;
 use crate::repository::files::Files;
@@ -59,7 +62,8 @@ pub struct DocReport {
     pub allowed: bool,
     pub issues: Vec<Issue>,
     pub digest: String,
-    /// Knowledge was extracted from exactly these bytes; the document may be deleted.
+    /// Knowledge was extracted from exactly these bytes and rebuilds them byte for byte from its
+    /// facts; the document may be deleted.
     pub extracted: bool,
 }
 
@@ -301,7 +305,8 @@ pub fn audit(files: &Files, d: &Declaration, knowledge: &Knowledge) -> DocAudit 
                 issues.push(Issue::Represented(pct));
             }
         }
-        let extracted = knowledge.document_digest(p) == Some(digest.as_str());
+        // Extracted: knowledge rebuilds exactly these bytes from its facts.
+        let extracted = knowledge.stores(p, text.as_bytes());
         out.docs.push(DocReport {
             path: p.clone(),
             allowed: ok,
@@ -540,15 +545,24 @@ pub fn frontmatter(text: &str) -> Option<(usize, Vec<FrontmatterEntry>)> {
 /// Decision fields read from a decision record's frontmatter and field lines.
 const DECISION_FIELDS: &[&str] = &["status", "title", "date"];
 
-/// A `Status: …` / `**Status**: …` / `status: …` field line naming a decision field
-/// (case-insensitive): (field, value).
+/// A `Status: …` / `**Status:** …` / `- status: …` field line, or a `| Status | … |` table row,
+/// naming a decision field or relation ([`decision::relation`]) case-insensitively:
+/// (field, value).
 fn decision_field(body: &str) -> Option<(&'static str, &str)> {
-    let (term, value) = body.split_once(':')?;
-    let term = term.trim().trim_matches('*').trim();
-    let value = value.trim_start_matches('*').trim();
+    let (term, value) = match body.strip_prefix('|') {
+        Some(row) => {
+            let mut cells = row.split('|');
+            (cells.next()?, cells.next()?)
+        }
+        None => body.split_once(':')?,
+    };
+    let term = term.trim().trim_matches(['*', '_']).trim();
+    let value = value.trim_start_matches(['*', '_']).trim();
     let field = DECISION_FIELDS
         .iter()
-        .find(|f| f.eq_ignore_ascii_case(term))?;
+        .find(|f| f.eq_ignore_ascii_case(term))
+        .copied()
+        .or_else(|| decision::relation(term))?;
     (!value.is_empty()).then_some((field, value))
 }
 
@@ -587,6 +601,8 @@ struct Extraction<'a> {
     stem: String,
     facts: Vec<Fact>,
     decided: BTreeSet<String>,
+    /// Relations of a decision record, in order of first mention: (key, ids, provenance).
+    relations: Vec<(&'static str, Vec<String>, Vec<String>)>,
 }
 
 impl Extraction<'_> {
@@ -598,14 +614,120 @@ impl Extraction<'_> {
             .push(fact(kind, subject, key, value, prov, self.seq));
     }
     /// A DECISION fact of this record; the first value of a key wins (frontmatter, then the
-    /// record's own lines, in document order).
+    /// record's own lines, in document order). A status is normalised
+    /// ([`decision::status`]): `status` holds the canonical word and `status-text` the text when
+    /// it says more. The relations a status or relation field states become `supersedes`,
+    /// `superseded-by`, … facts whose values are the referenced decision ids; the prose of a
+    /// relation field or section that says more than its ids is kept as `<relation>-text`.
     fn decide(&mut self, key: &str, value: &str, first: usize, last: usize) {
-        if value.trim().is_empty() || !self.decided.insert(key.to_string()) {
+        let value = value.trim();
+        if value.is_empty() {
             return;
         }
+        if key == "status" {
+            self.relate(value, first, last);
+            if let Some((status, text)) = decision::status(value) {
+                if self.decided.insert("status".into()) {
+                    self.record("status", &status, first, last);
+                    if let Some(t) = text {
+                        self.record("status-text", &t, first, last);
+                    }
+                }
+            }
+            return;
+        }
+        if let Some(rel) = decision::relation(key) {
+            let mut found = decision::relations(value);
+            if !found.iter().any(|(r, _)| *r == rel) {
+                // `Supersedes: 0004` / a `## Supersedes` section: the ids follow the term.
+                let ids = decision::relations(&format!("{} {value}", rel.replace('-', " ")))
+                    .into_iter()
+                    .filter(|(r, _)| *r == rel);
+                found.extend(ids);
+            }
+            let ids: Vec<String> = found
+                .iter()
+                .flat_map(|(_, ids)| ids.iter().cloned())
+                .collect();
+            for (r, ids) in found {
+                self.link(r, ids, first, last);
+            }
+            // Words besides the ids and their connectives: the field says more than its ids.
+            let prose = decision::plain(value).to_ascii_lowercase();
+            let says_more = prose
+                .split(|c: char| !c.is_alphanumeric() && c != '-')
+                .filter(|w| !w.is_empty() && *w != "-")
+                .filter(|w| !matches!(*w, "adr" | "and" | "or" | "by" | "see"))
+                .filter(|w| decision::relation(w).is_none())
+                .any(|w| {
+                    !ids.iter()
+                        .any(|id| id.eq_ignore_ascii_case(w) || w.ends_with(id.as_str()))
+                });
+            if says_more {
+                let key = format!("{rel}-text");
+                if self.decided.insert(key.clone()) {
+                    self.record(&key, value, first, last);
+                }
+            }
+            return;
+        }
+        if self.decided.insert(key.to_string()) {
+            self.record(key, value, first, last);
+        }
+    }
+    fn record(&mut self, key: &str, value: &str, first: usize, last: usize) {
         let prov = self.provenance(first, last);
         let stem = self.stem.clone();
-        self.push(FactKind::Decision, &stem, key, value.trim(), &prov);
+        self.push(FactKind::Decision, &stem, key, value, &prov);
+    }
+    /// Records every relation `text` states.
+    fn relate(&mut self, text: &str, first: usize, last: usize) {
+        for (rel, ids) in decision::relations(text) {
+            self.link(rel, ids, first, last);
+        }
+    }
+    fn link(&mut self, rel: &'static str, ids: Vec<String>, first: usize, last: usize) {
+        let prov = self.provenance(first, last);
+        let i = match self.relations.iter().position(|(r, _, _)| *r == rel) {
+            Some(i) => i,
+            None => {
+                self.relations.push((rel, Vec::new(), Vec::new()));
+                self.relations.len() - 1
+            }
+        };
+        let (_, have, ps) = &mut self.relations[i];
+        for id in ids {
+            if !have.contains(&id) {
+                have.push(id);
+            }
+        }
+        for p in prov {
+            if !ps.contains(&p) {
+                ps.push(p);
+            }
+        }
+    }
+    /// The relation facts: one per relation, the ids in order of first mention.
+    fn finish_relations(&mut self) {
+        let stem = self.stem.clone();
+        for (rel, ids, prov) in std::mem::take(&mut self.relations) {
+            if !ids.is_empty() {
+                self.push(FactKind::Decision, &stem, rel, &ids.join(", "), &prov);
+            }
+        }
+    }
+    /// A block inside a decision record's section: a status, date or relation field, or a
+    /// sentence stating the record's own relation, is read as well as kept in the section.
+    fn scan_section_block(&mut self, b: &Block) {
+        if b.kind != BlockKind::Text {
+            return;
+        }
+        let body = block_body(b);
+        if let Some((field, value)) = decision_field(body).filter(|(f, _)| *f != "title") {
+            self.decide(field, value, b.first, b.last);
+        } else if decision::states_relation(body) {
+            self.relate(body, b.first, b.last);
+        }
     }
 }
 
@@ -633,11 +755,14 @@ pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec
         stem,
         facts: Vec::new(),
         decided: BTreeSet::new(),
+        relations: Vec::new(),
     };
     let raw: Vec<&str> = text.lines().collect();
     let (front_end, front) = frontmatter(text).unwrap_or((0, Vec::new()));
     for (line, key, value) in &front {
-        if decision && DECISION_FIELDS.contains(&key.as_str()) {
+        if decision
+            && (DECISION_FIELDS.contains(&key.as_str()) || decision::relation(key).is_some())
+        {
             x.decide(key, value, *line, *line);
         } else {
             let prov = x.provenance(*line, *line);
@@ -677,6 +802,7 @@ pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec
         if let Some((_, _, last)) = section.as_mut() {
             // A section's text, sub-headings and nested lists included, is one DECISION fact.
             *last = b.last;
+            x.scan_section_block(&b);
             continue;
         }
         let prov = x.provenance(b.first, b.last);
@@ -697,6 +823,9 @@ pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec
                     if let Some((field, value)) = decision_field(body) {
                         x.decide(field, value, b.first, b.last);
                         continue;
+                    }
+                    if decision::states_relation(body) {
+                        x.relate(body, b.first, b.last);
                     }
                 }
                 let def = body.split_once(": ").filter(|(t, d)| {
@@ -724,13 +853,97 @@ pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec
         }
     }
     close(&mut x, &mut section);
+    x.finish_relations();
+    let mut facts = x.facts;
+    facts.extend(stored(path, text, seq, commit, outline::outline(text)));
+    facts
+}
+
+/// The facts that store a text verbatim: one BLOCK per span, keyed by position, with the
+/// span's lines as provenance, and the DOCUMENT digest the blocks rebuild to.
+fn stored(
+    path: &str,
+    text: &str,
+    seq: u64,
+    commit: Option<&str>,
+    spans: Vec<outline::Span>,
+) -> Vec<Fact> {
+    let mut out: Vec<Fact> = spans
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            fact(
+                FactKind::Block,
+                path,
+                &outline::block_key(i),
+                &outline::encode_block(&s.tag, &s.raw),
+                &provenance(path, s.first, s.last, commit),
+                seq,
+            )
+        })
+        .collect();
     let mut whole = vec![format!("doc:{path}")];
     if let Some(c) = commit.filter(|c| !c.is_empty()) {
         whole.push(format!("git:{c}:{path}"));
     }
     let digest = content_digest(text.as_bytes());
-    x.push(FactKind::Document, path, "digest", &digest, &whole);
-    x.facts
+    out.push(fact(
+        FactKind::Document,
+        path,
+        "digest",
+        &digest,
+        &whole,
+        seq,
+    ));
+    out
+}
+
+/// Whether a file is a licence or notice text (`LICENSE`, `LICENCE-MIT`, `COPYING`,
+/// `NOTICE.txt`, `licenses/apache.txt`, …), which knowledge may store verbatim.
+pub fn is_licence_text(path: &str) -> bool {
+    let lower = path.to_ascii_lowercase();
+    let segs: Vec<&str> = lower.split('/').collect();
+    let name = segs.last().copied().unwrap_or("");
+    let ext = name.rsplit_once('.').map(|(_, e)| e);
+    let text_ext = ext.is_none_or(|e| matches!(e, "txt" | "text" | "md" | "markdown" | "rst"));
+    let code_ext = ext.is_some_and(|e| {
+        matches!(
+            e,
+            "rs" | "toml"
+                | "json"
+                | "jsonl"
+                | "yaml"
+                | "yml"
+                | "js"
+                | "ts"
+                | "py"
+                | "go"
+                | "html"
+                | "css"
+                | "sh"
+                | "lock"
+        )
+    });
+    let named = [
+        "license",
+        "licence",
+        "copying",
+        "notice",
+        "unlicense",
+        "copyright",
+    ]
+    .iter()
+    .any(|w| name.starts_with(w));
+    let in_dir = segs[..segs.len() - 1]
+        .iter()
+        .any(|s| matches!(*s, "license" | "licenses" | "licence" | "licences"));
+    (named && !code_ext) || (in_dir && text_ext)
+}
+
+/// Stores a plain text (a licence, a notice) verbatim: one `text` BLOCK and its DOCUMENT
+/// digest. Nothing else is read out of it.
+pub fn extract_verbatim(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec<Fact> {
+    stored(path, text, seq, commit, vec![outline::verbatim(text)])
 }
 
 #[cfg(test)]
@@ -978,5 +1191,92 @@ mod tests {
         assert!(extract(".atlas/decisions/0002-x.md", "- a statement\n", 1)
             .iter()
             .all(|f| f.provenance.iter().all(|p| p.starts_with("doc:"))));
+    }
+
+    #[test]
+    fn decision_status_is_read_in_every_form_and_normalised() {
+        let get = |text: &str| {
+            let facts = extract_at("docs/adr/0009-x.md", text, 1, None);
+            let mut out: Vec<(String, String)> = facts
+                .iter()
+                .filter(|f| f.kind == FactKind::Decision && f.key != "title")
+                .filter(|f| {
+                    f.key.starts_with("status")
+                        || f.key.starts_with("supersed")
+                        || f.key.starts_with("refine")
+                })
+                .map(|f| (f.key.clone(), f.value.clone()))
+                .collect();
+            out.sort();
+            out
+        };
+        let kv = |pairs: &[(&str, &str)]| {
+            let mut v: Vec<(String, String)> = pairs
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect();
+            v.sort();
+            v
+        };
+        // A `## Status` section, its text a paragraph naming the successor.
+        assert_eq!(
+            get("# X\n\n## Status\n\nSuperseded by [ADR 0012](0012-use-y.md)\n\n## Context\n\nWhy.\n"),
+            kv(&[
+                ("status", "Superseded"),
+                ("status-text", "Superseded by ADR 0012"),
+                ("superseded-by", "0012-use-y"),
+            ])
+        );
+        assert_eq!(
+            get("# X\n\n## Status\n\nAccepted\n"),
+            kv(&[("status", "Accepted")])
+        );
+        // Bold, list, lowercase and table field forms.
+        for text in [
+            "# X\n\n**Status:** Accepted\n",
+            "# X\n\n**Status**: **ACCEPTED**\n",
+            "# X\n\n- Status: accepted\n- Date: 2026-09-27\n",
+            "# X\n\n* status: Accepted.\n",
+            "# X\n\n| Field | Value |\n|---|---|\n| Status | Accepted |\n",
+            "---\nstatus: accepted\n---\n# X\n",
+            "# X\n\n## Metadata\n\n- Status: Accepted\n- Owner: core\n",
+        ] {
+            assert_eq!(get(text), kv(&[("status", "Accepted")]), "{text}");
+        }
+        // Real forms: a date and a successor in the status line, refinements, supersessions.
+        assert_eq!(
+            get("# 0004\n\n- Status: SUPERSEDED (2026-09-27) by 0010 (two-language production architecture)\n- Context: x\n"),
+            kv(&[
+                ("status", "Superseded"),
+                ("status-text", "SUPERSEDED (2026-09-27) by 0010 (two-language production architecture)"),
+                ("superseded-by", "0010"),
+            ])
+        );
+        assert_eq!(
+            get("# 0012\n\n- Status: ACCEPTED (2026-09-27); REFINED by 0015 (core/, mcp/)\n"),
+            kv(&[
+                ("refined-by", "0015"),
+                ("status", "Accepted"),
+                (
+                    "status-text",
+                    "ACCEPTED (2026-09-27); REFINED by 0015 (core/, mcp/)"
+                ),
+            ])
+        );
+        assert_eq!(
+            get("---\nstatus: superseded\nsuperseded_by: \"0031\"\n---\n# X\n\nThis ADR supersedes ADR-0018.\n"),
+            kv(&[
+                ("status", "Superseded"),
+                ("superseded-by", "0031"),
+                ("supersedes", "0018"),
+            ])
+        );
+        assert_eq!(
+            get("# X\n\nStatus: Accepted\n\n## Supersedes\n\n- ADR 0003 and ADR 0004\n"),
+            kv(&[("status", "Accepted"), ("supersedes", "0003, 0004")])
+        );
+        // Outside a decision record a status line stays a definition of the document.
+        let facts = extract("docs/notes.md", "# N\n\nStatus: Superseded by 0012\n", 1);
+        assert!(facts.iter().all(|f| f.kind != FactKind::Decision));
     }
 }

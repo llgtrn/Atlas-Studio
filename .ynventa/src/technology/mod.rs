@@ -149,6 +149,20 @@ pub fn assess(
                 ),
             ));
         }
+        if t.claimed >= TechnologyLifecycle::Native
+            && effective < TechnologyLifecycle::Native
+            && effective != TechnologyLifecycle::Superseded
+        {
+            findings.push(Finding::new(
+                Severity::Error,
+                "NATIVE_CLAIM_WITHOUT_EVIDENCE",
+                &t.key,
+                &format!(
+                    "claims {} but its code is not evidenced native; stopped at {stopped_by}",
+                    t.claimed
+                ),
+            ));
+        }
         if let Some(o) = unrelated_twin {
             findings.push(Finding::new(
                 Severity::Error,
@@ -240,6 +254,155 @@ pub fn related(all: &[Technology], a: &Technology, b: &Technology) -> bool {
         }
     }
     false
+}
+
+// ---------------------------------------------------------------------------------------------
+// Technology sharing: how two technologies implementing the same capability relate.
+
+use crate::graph::{Graph, NodeId, SYSTEM};
+use crate::schema::TechnologySharing;
+
+/// The relations that make technologies one declared family (lineage and alternatives).
+pub const FAMILY: &[EdgeKind] = &[
+    EdgeKind::Specializes,
+    EdgeKind::AlternativeFor,
+    EdgeKind::Evolves,
+    EdgeKind::Generalizes,
+    EdgeKind::Supersedes,
+    EdgeKind::Replaces,
+    EdgeKind::ForkedFrom,
+    EdgeKind::Merges,
+];
+
+/// Whether `x` and `y` are connected through any chain of family relations, in either
+/// direction: one declared family.
+pub fn family_related(g: &Graph, x: NodeId, y: NodeId) -> bool {
+    let mut seen = std::collections::BTreeSet::from([x]);
+    let mut frontier = vec![x];
+    while let Some(n) = frontier.pop() {
+        for e in g.edges.iter().filter(|e| FAMILY.contains(&e.kind)) {
+            let next = if e.from == n {
+                e.to
+            } else if e.to == n {
+                e.from
+            } else {
+                continue;
+            };
+            if next == y {
+                return true;
+            }
+            if seen.insert(next) {
+                frontier.push(next);
+            }
+        }
+    }
+    false
+}
+
+/// One technology as the sharing classifier sees it.
+#[derive(Clone, Debug)]
+pub struct Shared<'a> {
+    pub key: &'a str,
+    pub birthplace: &'a str,
+    pub implements: &'a [String],
+    pub source_digest: &'a str,
+}
+
+/// One classified relation: two technologies implementing the same capabilities, or (for
+/// SHARED_IMPLEMENTATION) a technology and a node of another shard that compiles it in.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Sharing {
+    pub class: TechnologySharing,
+    /// A technology key.
+    pub a: String,
+    /// A technology key, or `<node>@<shard>` for a materialized copy.
+    pub b: String,
+    pub capabilities: Vec<String>,
+}
+
+/// Classifies every pair of technologies that implement a common capability, and every
+/// materialized copy, from the graph's relations — nothing here is declared:
+///
+/// * SHARED_IMPLEMENTATION — one canonical technology, REUSED by a node of another shard (or two
+///   declarations with identical sources and a direct relation);
+/// * DOMAIN_SPECIALIZATION — one SPECIALIZES or GENERALIZES the other;
+/// * INDEPENDENT_IMPLEMENTATION — a direct ALTERNATIVE_FOR / EVOLVES / ... relation, different
+///   sources;
+/// * SHARED_CONCEPT — one declared family, no direct relation between the two;
+/// * UNRELATED_DUPLICATE — no declared relation at all (DUPLICATE_TECHNOLOGY).
+pub fn classify_sharing(g: &Graph, techs: &[Shared]) -> Vec<Sharing> {
+    let id = |k: &str| NodeId::of(SYSTEM, &crate::graph::technology_key(k));
+    let mut out = Vec::new();
+    for t in techs {
+        let tid = id(t.key);
+        let mut copies: Vec<String> = g
+            .edges
+            .iter()
+            .filter(|e| e.to == tid && e.kind == EdgeKind::Reuses)
+            .filter_map(|e| g.nodes.get(&e.from))
+            .filter(|n| !n.repository.is_empty() && n.repository != t.birthplace)
+            .map(|n| format!("{}@{}", n.semantic_key, n.repository))
+            .collect();
+        copies.sort();
+        copies.dedup();
+        for c in copies {
+            out.push(Sharing {
+                class: TechnologySharing::SharedImplementation,
+                a: t.key.to_string(),
+                b: c,
+                capabilities: t.implements.to_vec(),
+            });
+        }
+    }
+    for (i, a) in techs.iter().enumerate() {
+        for b in techs.iter().skip(i + 1) {
+            let mut common: Vec<String> = a
+                .implements
+                .iter()
+                .filter(|c| b.implements.contains(c))
+                .cloned()
+                .collect();
+            if common.is_empty() || a.key == b.key {
+                continue;
+            }
+            common.sort();
+            common.dedup();
+            let (ia, ib) = (id(a.key), id(b.key));
+            let direct: Vec<EdgeKind> = g
+                .edges
+                .iter()
+                .filter(|e| (e.from == ia && e.to == ib) || (e.from == ib && e.to == ia))
+                .map(|e| e.kind)
+                .filter(|k| FAMILY.contains(k))
+                .collect();
+            let class = if direct
+                .iter()
+                .any(|k| matches!(k, EdgeKind::Specializes | EdgeKind::Generalizes))
+            {
+                TechnologySharing::DomainSpecialization
+            } else if !direct.is_empty() {
+                if !a.source_digest.is_empty() && a.source_digest == b.source_digest {
+                    TechnologySharing::SharedImplementation
+                } else {
+                    TechnologySharing::IndependentImplementation
+                }
+            } else if family_related(g, ia, ib) {
+                TechnologySharing::SharedConcept
+            } else {
+                TechnologySharing::UnrelatedDuplicate
+            };
+            let (x, y) = if a.key <= b.key { (a, b) } else { (b, a) };
+            out.push(Sharing {
+                class,
+                a: x.key.to_string(),
+                b: y.key.to_string(),
+                capabilities: common,
+            });
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -446,6 +609,128 @@ pub fn check_materialized(files: &Files, locks: &[Materialization], findings: &m
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sharing_is_classified_from_relations() {
+        use crate::graph::GNode;
+        use crate::schema::{NodeKind, Scope};
+        let mut g = Graph::default();
+        let tech = |g: &mut Graph, k: &str, shard: &str| {
+            let mut n = GNode::new(
+                SYSTEM,
+                &crate::graph::technology_key(k),
+                NodeKind::Technology,
+                k,
+            );
+            n.repository = shard.into();
+            g.add_node(n).unwrap();
+        };
+        let id = |k: &str| NodeId::of(SYSTEM, &crate::graph::technology_key(k));
+        for (k, sh) in [
+            ("hash.a", "mechatron"),
+            ("hash.b", "esellios"),
+            ("hash.c", "fi-game"),
+            ("hash.d", "chronica"),
+            ("hash.e", "norl"),
+            ("hash.f", "atlas-studio"),
+        ] {
+            tech(&mut g, k, sh);
+        }
+        let mut user = GNode::new(SYSTEM, "commerce.order", NodeKind::Domain, "order");
+        user.repository = "esellios".into();
+        g.add_node(user).unwrap();
+        let rel = |g: &mut Graph, a: &str, b: &str, k: EdgeKind| {
+            g.add_edge(id(a), id(b), k, Scope::Semantic)
+        };
+        rel(&mut g, "hash.b", "hash.a", EdgeKind::Specializes);
+        rel(&mut g, "hash.c", "hash.a", EdgeKind::AlternativeFor);
+        rel(&mut g, "hash.e", "hash.c", EdgeKind::Evolves);
+        g.add_edge(
+            NodeId::of(SYSTEM, "commerce.order"),
+            id("hash.a"),
+            EdgeKind::Reuses,
+            Scope::Semantic,
+        );
+        let caps = vec!["identity.digest".to_string()];
+        let digest = |k: &str| format!("sha256:{k}");
+        let ds: Vec<String> = ["hash.a", "hash.b", "hash.c", "hash.d", "hash.e", "hash.f"]
+            .iter()
+            .map(|k| digest(k))
+            .collect();
+        let shared: Vec<Shared> = ["hash.a", "hash.b", "hash.c", "hash.d", "hash.e"]
+            .iter()
+            .zip(&ds)
+            .map(|(k, d)| Shared {
+                key: k,
+                birthplace: if *k == "hash.a" { "mechatron" } else { "other" },
+                implements: &caps,
+                source_digest: d,
+            })
+            .collect();
+        let v = classify_sharing(&g, &shared);
+        let class = |a: &str, b: &str| {
+            v.iter()
+                .find(|x| x.a == a && x.b == b)
+                .map(|x| x.class)
+                .unwrap()
+        };
+        assert_eq!(
+            class("hash.a", "commerce.order@esellios"),
+            TechnologySharing::SharedImplementation
+        );
+        assert_eq!(
+            class("hash.a", "hash.b"),
+            TechnologySharing::DomainSpecialization
+        );
+        assert_eq!(
+            class("hash.a", "hash.c"),
+            TechnologySharing::IndependentImplementation
+        );
+        assert_eq!(class("hash.a", "hash.e"), TechnologySharing::SharedConcept);
+        assert_eq!(class("hash.b", "hash.c"), TechnologySharing::SharedConcept);
+        assert_eq!(
+            class("hash.a", "hash.d"),
+            TechnologySharing::UnrelatedDuplicate
+        );
+        // Identical sources with a direct relation are one shared implementation.
+        let same = [
+            Shared {
+                key: "hash.c",
+                birthplace: "fi-game",
+                implements: &caps,
+                source_digest: "sha256:same",
+            },
+            Shared {
+                key: "hash.e",
+                birthplace: "norl",
+                implements: &caps,
+                source_digest: "sha256:same",
+            },
+        ];
+        assert_eq!(
+            classify_sharing(&g, &same)[0].class,
+            TechnologySharing::SharedImplementation
+        );
+        // No common capability: no relation to classify.
+        let other = vec!["storage.kv".to_string()];
+        let apart = [
+            Shared {
+                key: "hash.a",
+                birthplace: "mechatron",
+                implements: &caps,
+                source_digest: "x",
+            },
+            Shared {
+                key: "hash.f",
+                birthplace: "atlas-studio",
+                implements: &other,
+                source_digest: "y",
+            },
+        ];
+        assert!(classify_sharing(&g, &apart)
+            .iter()
+            .all(|x| x.class == TechnologySharing::SharedImplementation));
+    }
 
     #[test]
     fn a_lock_without_a_node_keeps_its_encoding() {

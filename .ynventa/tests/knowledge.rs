@@ -8,7 +8,8 @@ use common::*;
 use std::collections::BTreeMap;
 use std::path::Path;
 use ynventa::compact::facts::KNOWLEDGE_DIR;
-use ynventa::schema::FactKind;
+use ynventa::declare::Shim;
+use ynventa::schema::{ExpiryKind, FactKind, ShimKind};
 
 /// Every file under `dir` with its bytes.
 fn tree(dir: &Path) -> BTreeMap<String, Vec<u8>> {
@@ -440,4 +441,314 @@ fn views_show_where_each_fact_comes_from() {
         "{view}"
     );
     assert!(view.contains("DONE — agent:a (+1 more)\n"), "{view}");
+}
+
+/// A document with every block shape: frontmatter, headings at four levels, wrapped and
+/// blank-line separated paragraphs, nested and ordered lists, a fenced code block with a blank
+/// line inside, a quote, a table, a rule, CRLF lines, trailing spaces and no final newline.
+const ROUND_TRIP_DOC: &str = "---\ntitle: Round trip\n---\n\n# Title\n\nIntro paragraph that\nwraps over two lines.   \n\nSecond paragraph after a blank line.\n\n\n## Lists\n\n- one\n- two\n  - nested\n\n- loose item\n\n1. first\n2. second\n\n### Code\n\n```rust\nfn main() {\n\n    println!(\"hi\");\n}\n```\n\n#### Deep heading\r\n\r\n> a quote\n> continued\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n---\n\nTrailing paragraph without a final newline";
+
+/// A licence text: blank lines, indentation, a whitespace-only line, a tab, trailing blank lines.
+const LICENCE: &str = "                                 Apache License\n                           Version 2.0, January 2004\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use.\n   \n\t\"Licensor\" shall mean the copyright owner.\n\n\n   END OF TERMS AND CONDITIONS\n\n";
+
+#[test]
+fn documents_and_licence_texts_rebuild_byte_for_byte() {
+    use ynventa::compact::outline::outline;
+    let r = extinct_baseline("knowledge-round-trip");
+    r.write("docs/guide.md", ROUND_TRIP_DOC);
+    r.write("LICENSE", LICENCE);
+    let (code, out) = r.cli(&["knowledge", "extract", "docs/guide.md", "LICENSE"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("docs/guide.md:") && out.contains("blocks"),
+        "{out}"
+    );
+
+    // The files can go: knowledge rebuilds them.
+    r.remove("docs/guide.md");
+    r.remove("LICENSE");
+    let (code, doc) = r.cli(&["knowledge", "view", "--document", "docs/guide.md"]);
+    assert_eq!(code, 0, "{doc}");
+    assert_eq!(doc, ROUND_TRIP_DOC, "the document rebuilds byte for byte");
+    let (code, lic) = r.cli(&["knowledge", "view", "--document", "LICENSE"]);
+    assert_eq!(code, 0, "{lic}");
+    assert_eq!(
+        lic.as_bytes(),
+        LICENCE.as_bytes(),
+        "the licence rebuilds byte for byte"
+    );
+    let restored = r.path().join("target/restored/LICENSE");
+    let (code, out) = r.cli(&[
+        "knowledge",
+        "view",
+        "--document",
+        "LICENSE",
+        "--out",
+        restored.to_str().unwrap(),
+    ]);
+    assert_eq!(code, 0, "{out}");
+    assert_eq!(std::fs::read(&restored).unwrap(), LICENCE.as_bytes());
+
+    // The projection is structurally the document: headings with their levels, paragraphs,
+    // lists and code in their original order.
+    let tags = |t: &str| outline(t).into_iter().map(|s| s.tag).collect::<Vec<_>>();
+    let want = [
+        "frontmatter",
+        "h1",
+        "p",
+        "p",
+        "h2",
+        "ul",
+        "ol",
+        "h3",
+        "code",
+        "h4",
+        "quote",
+        "table",
+        "hr",
+        "p",
+    ];
+    assert_eq!(tags(&doc), want);
+    let (code, structure) = r.cli(&[
+        "knowledge",
+        "view",
+        "--document",
+        "docs/guide.md",
+        "--outline",
+    ]);
+    assert_eq!(code, 0, "{structure}");
+    let listed: Vec<&str> = structure
+        .lines()
+        .skip(1)
+        .map(|l| l.split_whitespace().nth(1).unwrap())
+        .collect();
+    assert_eq!(listed, want);
+    assert!(
+        structure.contains("00004 h2          L13-L14     ## Lists"),
+        "{structure}"
+    );
+    let a = r.assess();
+    let h3 = a
+        .knowledge
+        .get(FactKind::Block, "docs/guide.md", "00007")
+        .unwrap();
+    assert_eq!(h3.value, "h3\n### Code\n\n");
+    assert!(h3.provenance.contains("doc:docs/guide.md#L24-L25"));
+    // Blocks are bulk text: not in the default views.
+    let (_, view) = r.cli(&["knowledge", "view"]);
+    assert!(
+        !view.contains("BLOCK") && !view.contains("Apache License"),
+        "{view}"
+    );
+    assert!(
+        a.findings.iter().all(|f| f.code != "CORRUPT_STATE"),
+        "{:#?}",
+        a.findings
+    );
+    assert!(r.assess().errors().next().is_none(), "{:#?}", a.findings);
+
+    // A tampered block is caught: the stored text no longer matches its digest.
+    let seq = a
+        .knowledge
+        .get(FactKind::Document, "LICENSE", "digest")
+        .unwrap()
+        .seq;
+    ynventa::compact::facts::Knowledge::add(
+        r.path(),
+        &[ynventa::compact::facts::Fact::new(
+            FactKind::Block,
+            "LICENSE",
+            "00000",
+            "text\ntampered",
+            "test:tamper",
+            seq,
+        )],
+    )
+    .unwrap();
+    let a = r.assess();
+    assert!(
+        finding(&a, "CORRUPT_STATE", "LICENSE").is_some(),
+        "{:#?}",
+        a.findings
+    );
+    assert_ne!(r.cli(&["knowledge", "view", "--document", "LICENSE"]).0, 0);
+}
+
+#[test]
+fn legacy_files_are_stored_losslessly_and_old_imports_still_load() {
+    use ynventa::compact::facts::{Fact, Knowledge};
+    let r = extinct_baseline("legacy-lossless");
+    let licence = LICENCE.replace("Definitions.\n", "Definitions.\r\n");
+    let notes = "first line\n\n\n  indented after two blank lines\n   \nlast line, no newline";
+    let registry = "# comment kept\n[donor]\nstate = \"ABSORBED\"\n\n";
+    r.write(".atlas/licenses/apache/LICENSE-APACHE", &licence);
+    r.write(".atlas/notes.txt", notes);
+    r.write(".atlas/registry.toml", registry);
+    r.edit(|d| {
+        d.migration.shims.push(Shim {
+            key: "legacy-atlas".into(),
+            kind: ShimKind::LegacyInput,
+            path: ".atlas".into(),
+            serves: "core".into(),
+            expires: (ExpiryKind::LegacyImported, ".atlas".into()),
+        })
+    });
+    // An import made before content was stored: line facts without blank lines, and a digest.
+    let digest = ynventa::digest::content_digest(notes.as_bytes());
+    let old: Vec<Fact> = [
+        ("L1", "first line"),
+        ("L4", "  indented after two blank lines"),
+        ("imported", digest.as_str()),
+    ]
+    .iter()
+    .map(|(k, v)| {
+        Fact::new(
+            FactKind::LegacyRecord,
+            ".atlas/notes.txt",
+            k,
+            v,
+            "legacy:.atlas/notes.txt",
+            1,
+        )
+    })
+    .collect();
+    Knowledge::add(r.path(), &old).unwrap();
+    let a = r.assess();
+    assert!(a.knowledge.unreadable.is_empty());
+    assert!(a.knowledge.stored_text(".atlas/notes.txt").is_none());
+    assert!(!a.knowledge.stores(".atlas/notes.txt", notes.as_bytes()));
+    let (code, why) = r.cli(&["knowledge", "view", "--document", ".atlas/notes.txt"]);
+    assert_eq!(code, 2);
+    assert!(why.contains("line by line"), "{why}");
+    assert!(finding(&a, "EXPIRED_SHIM_PRESENT", "legacy-atlas").is_none());
+
+    let (code, out) = r.cli(&["compact", "--extract-legacy"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("extracted 3 legacy files"), "{out}");
+    let a = r.assess();
+    for (path, text) in [
+        (".atlas/licenses/apache/LICENSE-APACHE", licence.as_str()),
+        (".atlas/notes.txt", notes),
+        (".atlas/registry.toml", registry),
+    ] {
+        let (code, out) = r.cli(&["knowledge", "view", "--document", path]);
+        assert_eq!(code, 0, "{path}: {out}");
+        assert_eq!(
+            out.as_bytes(),
+            text.as_bytes(),
+            "{path} rebuilds byte for byte"
+        );
+        assert!(a.knowledge.stores(path, text.as_bytes()));
+        let imported = a
+            .knowledge
+            .get(FactKind::LegacyRecord, path, "imported")
+            .unwrap();
+        assert_eq!(
+            imported.value,
+            ynventa::digest::content_digest(text.as_bytes())
+        );
+    }
+    // Structured registries are still read field by field; old line facts still load.
+    assert!(a
+        .knowledge
+        .facts
+        .iter()
+        .any(|f| f.subject == ".atlas/registry.toml" && f.value == "ABSORBED"));
+    assert_eq!(
+        a.knowledge
+            .get(FactKind::LegacyRecord, ".atlas/notes.txt", "L4")
+            .unwrap()
+            .value,
+        "  indented after two blank lines"
+    );
+    // Every file is consumed losslessly, so the legacy tree may go.
+    assert!(
+        finding(&a, "EXPIRED_SHIM_PRESENT", "legacy-atlas").is_some(),
+        "{:#?}",
+        a.findings
+    );
+    let (code, out) = r.cli(&["compact", "--extract-legacy"]);
+    assert_eq!(code, 0);
+    assert!(
+        !out.contains("extracted"),
+        "nothing is imported twice: {out}"
+    );
+}
+
+#[test]
+fn documents_extracted_before_outlines_are_extracted_again() {
+    use ynventa::compact::facts::{Fact, Knowledge};
+    let r = extinct_baseline("knowledge-old-batch");
+    let text = "# Notes\n\n- The log is append-only.\n";
+    r.write("docs/notes.md", text);
+    // An extraction made before documents were stored: a statement and the digest only.
+    let digest = ynventa::digest::content_digest(text.as_bytes());
+    Knowledge::add(
+        r.path(),
+        &[
+            Fact::new(
+                FactKind::Statement,
+                "",
+                "the log is append-only",
+                "The log is append-only.",
+                "doc:docs/notes.md#L3",
+                1,
+            ),
+            Fact::new(
+                FactKind::Document,
+                "docs/notes.md",
+                "digest",
+                &digest,
+                "doc:docs/notes.md",
+                1,
+            ),
+        ],
+    )
+    .unwrap();
+    let a = r.assess();
+    assert_eq!(
+        a.knowledge.document_digest("docs/notes.md"),
+        Some(digest.as_str())
+    );
+    let doc = a
+        .docs
+        .docs
+        .iter()
+        .find(|d| d.path == "docs/notes.md")
+        .unwrap();
+    assert!(!doc.extracted, "a digest alone cannot rebuild the document");
+    let (code, why) = r.cli(&["knowledge", "view", "--document", "docs/notes.md"]);
+    assert_eq!(code, 2);
+    assert!(why.contains("extract it again"), "{why}");
+    let (code, out) = r.cli(&["knowledge", "extract", "docs/notes.md"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(!out.contains("unchanged"), "{out}");
+    let a = r.assess();
+    assert!(
+        a.docs
+            .docs
+            .iter()
+            .find(|d| d.path == "docs/notes.md")
+            .unwrap()
+            .extracted
+    );
+    let st = a
+        .knowledge
+        .facts
+        .iter()
+        .find(|f| f.kind == FactKind::Statement)
+        .unwrap();
+    assert!(
+        st.superseded.is_empty(),
+        "re-extraction changes no meaning: {st:?}"
+    );
+    assert_eq!(
+        r.cli(&["knowledge", "view", "--document", "docs/notes.md"])
+            .1,
+        text
+    );
+    assert!(r
+        .cli(&["knowledge", "extract", "docs/notes.md"])
+        .1
+        .contains("unchanged"));
 }

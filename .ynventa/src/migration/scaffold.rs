@@ -19,6 +19,8 @@ pub struct Report {
     pub nodes: usize,
     pub waves: usize,
     pub facts: usize,
+    /// Declaration files rewritten into the current grammar (`migrate schema`).
+    pub migrated: Vec<String>,
 }
 
 pub fn scaffold(
@@ -73,6 +75,9 @@ pub fn scaffold(
         r.nodes = imp.declaration.repository.nodes.len();
         r.waves = imp.declaration.migration.waves.len();
         r.facts = imp.facts.len();
+    } else {
+        // Existing declarations follow the subsystem's grammar.
+        r.migrated = declare::migrate_schema(target)?;
     }
     Ok(r)
 }

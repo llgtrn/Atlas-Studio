@@ -30,6 +30,7 @@ pub mod ir;
 pub mod linker;
 pub mod metrics;
 pub mod migration;
+pub mod organism;
 pub mod protocol;
 pub mod repository;
 pub mod schema;
@@ -101,6 +102,10 @@ pub struct Assessment {
     pub docs: audit::DocAudit,
     pub shape: repository::shape::ShapeReport,
     pub migration: migration::Status,
+    /// Verdicts of this shard's evaluation materials, by material key.
+    pub evaluations: organism::Evaluations,
+    /// The organism as this shard alone can see it.
+    pub organism: organism::Report,
     pub findings: Vec<Finding>,
     pub counts: metrics::Counts,
 }
@@ -174,6 +179,13 @@ pub fn assess_core(
     let shape = repository::shape::check(&files, &declaration, &census);
     let migration = migration::status(&files, &declaration, &analysis, &knowledge, &docs);
     overlay(&mut graph, &declaration, &census, &analysis);
+    let evaluations = evidence::evaluation_verdicts(&files, &declaration, &evidence);
+    let organism_report = organism::report(
+        &graph,
+        &declaration.organism,
+        &evaluations,
+        &organism::referenced_keys(&declaration),
+    );
 
     let mut findings = Vec::new();
     for i in graph_issues {
@@ -181,6 +193,8 @@ pub fn assess_core(
     }
     findings.extend(analysis.findings.iter().cloned());
     findings.extend(technology_findings);
+    organism::check(&declaration, &graph, &technologies, &mut findings);
+    findings.extend(organism::claim_findings(&organism_report.growth, true));
     let mut unreadable_locks = Vec::new();
     let locks = technology::Materialization::load_all(root, &mut unreadable_locks);
     technology::check_materialized(&files, &locks, &mut findings);
@@ -214,6 +228,16 @@ pub fn assess_core(
             u,
             "a Ynventa state file is unreadable or not content-addressed",
         ));
+    }
+    for (path, r) in &knowledge.stored {
+        if let Err(e) = r {
+            findings.push(Finding::new(
+                Severity::Error,
+                "CORRUPT_STATE",
+                path,
+                &format!("stored knowledge does not rebuild its text: {e}"),
+            ));
+        }
     }
     for doc in docs.over_budget() {
         let issues: Vec<String> = doc.issues.iter().map(|i| i.wire()).collect();
@@ -249,6 +273,8 @@ pub fn assess_core(
         docs,
         shape,
         migration,
+        evaluations,
+        organism: organism_report,
         findings,
         counts: metrics::Counts::default(),
     };
@@ -356,6 +382,8 @@ fn count(a: &Assessment) -> metrics::Counts {
         }
         let at = |s: DonorState| (d.effective >= s) as u64;
         c.donors_censused += at(DonorState::Censused);
+        c.donors_technology_mapped += at(DonorState::TechnologyMapped);
+        c.donors_norl_resolved += at(DonorState::NorlRelevanceResolved);
         c.donors_specified += at(DonorState::Specified);
         c.donors_native_shadow += at(DonorState::NativeShadow);
         c.donors_parity_proven += at(DonorState::ParityProven);
@@ -454,7 +482,34 @@ fn count(a: &Assessment) -> metrics::Counts {
     c.documents_over_budget = a.docs.over_budget().count() as u64;
     c.shape_units = a.shape.units;
     c.shape_units_conformant = a.shape.conformant;
+    a.organism.count(&mut c);
+    let warned = |code: &str| a.findings.iter().filter(|f| f.code == code).count() as u64;
+    c.orphan_capabilities = warned("ORPHAN_CAPABILITY");
+    c.orphan_technologies = warned("ORPHAN_TECHNOLOGY");
+    organism::count_sharing(&technology_sharing(a), &mut c);
     c
+}
+
+/// The sharing classification of one shard's own technologies.
+pub fn technology_sharing(a: &Assessment) -> Vec<technology::Sharing> {
+    let shard = &a.declaration.repository.shard;
+    let shared: Vec<technology::Shared> = a
+        .declaration
+        .technologies
+        .iter()
+        .map(|t| technology::Shared {
+            key: &t.key,
+            birthplace: shard,
+            implements: &t.implements,
+            source_digest: a
+                .technologies
+                .iter()
+                .find(|x| x.key == t.key)
+                .map(|x| x.source_digest.as_str())
+                .unwrap_or(""),
+        })
+        .collect();
+    technology::classify_sharing(&a.graph, &shared)
 }
 
 /// The default repository root: the parent of the subsystem this binary was built from.

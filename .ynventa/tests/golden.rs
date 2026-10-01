@@ -238,6 +238,8 @@ fn legacy_repository_reaches_v1() {
         required: true,
         spec: spec.into(),
         replacement: Some(node.into()),
+        maps_to: Some(format!("capability/{key}")),
+        norl: NorlRelevance::NotRelevant("plumbing; no developmental material".into()),
         proofs: vec![
             proof(ProofKind::Parity, parity),
             proof(ProofKind::Regression, regression),
@@ -284,6 +286,20 @@ fn legacy_repository_reaches_v1() {
         u.origin = "unknown".into();
         u.license = "unknown".into();
         u.claimed = DonorState::Registered;
+        // Each replacement records the donor it was learned from.
+        for (node, donor) in [
+            ("storage", "d411-sqlite"),
+            ("core", "cargo-sha2"),
+            ("census", "cargo-toml"),
+        ] {
+            let n = d
+                .repository
+                .nodes
+                .iter_mut()
+                .find(|n| n.key == node)
+                .unwrap();
+            n.lineage.push(donor.into());
+        }
     });
     let a = r.assess();
     for k in ["d411-sqlite", "cargo-sha2", "cargo-toml"] {
@@ -295,13 +311,14 @@ fn legacy_repository_reaches_v1() {
         );
     }
 
-    // 4. Parity evidence: proven while the donors still run beside the replacements.
+    // 4. Parity evidence: proven while the donors still run beside the replacements; the
+    //    capabilities' Norl relevance is resolved, so the donors stop just before CUTOVER.
     r.prove();
     let a = r.assess();
     for k in ["d411-sqlite", "cargo-sha2"] {
         assert_eq!(
             a.donor(k).unwrap().effective,
-            DonorState::ParityProven,
+            DonorState::NorlRelevanceResolved,
             "{k}: {}",
             a.donor(k).unwrap().stopped_by
         );

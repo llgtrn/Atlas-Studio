@@ -6,7 +6,7 @@ mod common;
 use common::*;
 use ynventa::graph::NodeId;
 use ynventa::protocol::{own_subsystem_dir, Snapshot};
-use ynventa::schema::{DonorState, FactKind};
+use ynventa::schema::{DonorState, FactKind, Scope};
 
 #[test]
 fn protocol_snapshot_is_current() {
@@ -86,7 +86,8 @@ fn compiled_and_runtime_declarations_agree() {
     const DONORS: &[Donor] = include!("../declared/donors.rs");
     const MIGRATION: Migration = include!("../declared/migration.rs");
     const TECHNOLOGIES: &[Technology] = include!("../declared/technologies.rs");
-    let compiled = into_model(&REPOSITORY, DONORS, &MIGRATION, TECHNOLOGIES);
+    const ORGANISM: Organism = include!("../declared/organism.rs");
+    let compiled = into_model(&REPOSITORY, DONORS, &MIGRATION, TECHNOLOGIES, &ORGANISM);
     assert_eq!(
         ynventa::declare::load(&ynventa::default_root()).unwrap(),
         compiled
@@ -231,7 +232,7 @@ fn two_shards_link_into_one_chronica_without_rewriting_ids() {
         "--out",
         &out,
     ]);
-    assert!(text.contains("linked shards 2/7"), "{text}");
+    assert!(text.contains("linked shards 2/8"), "{text}");
 }
 
 #[test]
@@ -542,4 +543,83 @@ fn namespace_programs_are_one_util_linux_donor() {
     let progs: Vec<&str> = ul.packages.iter().map(|p| p.name.as_str()).collect();
     assert_eq!(progs, vec!["nsenter", "unshare"]);
     assert!(d.donor("native-unshare").is_none() && d.donor("native-nsenter").is_none());
+}
+
+#[test]
+fn census_sees_imports_scripts_and_located_programs_without_manifests() {
+    let r = extinct_baseline("blind-spots");
+    let before = r.assess().metric("external_technology_edges");
+    // JavaScript importing a package no package.json declares; builtins and paths are not foreign.
+    r.write(
+        "tools/db/build.mjs",
+        "import Database from 'better-sqlite3';\nimport fs from 'node:fs';\nimport path from 'path';\nimport { x } from './x.mjs';\n// import y from 'commented';\nconst s = \"require('in-a-string')\";\n",
+    );
+    r.write("tools/db/x.mjs", "export const x = 1;\n");
+    // A shell script and an extensionless shebang script.
+    r.write(
+        "tools/gate.sh",
+        "#!/bin/sh\nset -eu\nstep() { shift; \"$@\"; }\nstep jq-check jq . a.json\nmkdir -p out\necho \"curl is mentioned, not run\"\n./tools/other.sh\ncargo run -q -p core-kernel\n",
+    );
+    r.write(
+        "tools/hooks/post-commit",
+        "#!/usr/bin/env bash\nrsync -a src/ dst/\n",
+    );
+    // A program located on PATH by a helper rather than spawned by name.
+    r.write(
+        "core/src/lib.rs",
+        "pub fn id() -> u64 { 1 }\nfn find_on_path(name: &str) -> Option<std::path::PathBuf> { None }\npub fn probe() -> bool { find_on_path(\"unshare\").is_some() }\n",
+    );
+    let a = r.assess();
+    for subject in [
+        "NPM:better-sqlite3",
+        "NATIVE:jq",
+        "NATIVE:mkdir",
+        "NATIVE:rsync",
+        "NATIVE:unshare",
+    ] {
+        assert!(
+            finding(&a, "UNREGISTERED_EXTERNAL", subject).is_some(),
+            "{subject}: {:#?}",
+            a.findings
+        );
+    }
+    for absent in [
+        "NPM:fs",
+        "NPM:path",
+        "NPM:node:fs",
+        "NPM:commented",
+        "NPM:in-a-string",
+        "NATIVE:curl",
+        "NATIVE:step",
+        "NATIVE:echo",
+        "NATIVE:set",
+        "NATIVE:core-kernel",
+    ] {
+        assert!(
+            finding(&a, "UNREGISTERED_EXTERNAL", absent).is_none(),
+            "{absent}: {:#?}",
+            a.findings
+        );
+    }
+    // Shell scripts under tools/ are build-time; every new technology is an edge.
+    let jq = a
+        .census
+        .observations
+        .iter()
+        .find(|o| o.name == "jq")
+        .unwrap();
+    assert_eq!(jq.scope, Scope::Build);
+    let after: u64 = a.metric("external_technology_edges").parse().unwrap();
+    assert!(
+        after >= before.parse::<u64>().unwrap() + 5,
+        "{before} -> {after}"
+    );
+    // Registration consolidates the programs and discovers the npm package.
+    let (code, out) = r.cli(&["migrate", "register", "--dry-run"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("native-mkdir") && out.contains("native-coreutils"),
+        "{out}"
+    );
+    assert!(out.contains("DISCOVERED npm-better-sqlite3"), "{out}");
 }

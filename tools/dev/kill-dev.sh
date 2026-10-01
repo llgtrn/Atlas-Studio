@@ -84,7 +84,7 @@ wait_for_pid_exit() {
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   [[ "$line" == *postgres* ]] && continue
-  pid=$(echo "$line" | awk '{print $2}')
+  read -r _ pid _ <<<"$line"
   node_pids+=("$pid")
   node_lines+=("$line")
 done < <(ps aux | grep -E '/paperclip(-[^/]+)?/' | grep node | grep -v grep || true)
@@ -92,7 +92,7 @@ done < <(ps aux | grep -E '/paperclip(-[^/]+)?/' | grep node | grep -v grep || t
 # --- Agent browser processes (headless Chrome from ~/.agent-browser) ---
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
-  pid=$(echo "$line" | awk '{print $2}')
+  read -r _ pid _ <<<"$line"
   browser_pids+=("$pid")
   browser_lines+=("$line")
 done < <(ps aux | grep -E 'agent-browser/browsers/chrome-.*/Google Chrome for Testing' | grep -v grep || true)
@@ -128,9 +128,11 @@ if [[ ${#node_pids[@]} -gt 0 ]]; then
 
   for i in "${!node_pids[@]:-}"; do
     line="${node_lines[$i]}"
-    pid=$(echo "$line" | awk '{print $2}')
-    start=$(echo "$line" | awk '{print $9}')
-    cmd=$(echo "$line" | awk '{for(i=11;i<=NF;i++) printf "%s ", $i; print ""}')
+    read -r -a fields <<<"$line"
+    pid="${fields[1]:-}"
+    start="${fields[8]:-}"
+    cmd=""
+    for word in "${fields[@]:10}"; do cmd+="$word "; done
     cmd=$(echo "$cmd" | sed "s|$HOME/||g")
     printf "  PID %-7s  started %-10s  %s\n" "$pid" "$start" "$cmd"
   done
@@ -160,9 +162,11 @@ if [[ ${#browser_pids[@]} -gt 0 ]]; then
 
   for i in "${!browser_pids[@]:-}"; do
     line="${browser_lines[$i]}"
-    pid=$(echo "$line" | awk '{print $2}')
-    start=$(echo "$line" | awk '{print $9}')
-    cmd=$(echo "$line" | awk '{for(i=11;i<=NF;i++) printf "%s ", $i; print ""}')
+    read -r -a fields <<<"$line"
+    pid="${fields[1]:-}"
+    start="${fields[8]:-}"
+    cmd=""
+    for word in "${fields[@]:10}"; do cmd+="$word "; done
     cmd=$(echo "$cmd" | sed "s|$HOME/||g")
     printf "  PID %-7s  started %-10s  %s\n" "$pid" "$start" "$cmd"
   done

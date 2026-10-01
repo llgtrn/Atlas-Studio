@@ -322,6 +322,7 @@ pub fn import(root: &Path, files: &Files, shard: Option<&str>, origin: Option<&s
             ..Repository::default()
         },
         technologies: Vec::new(),
+        organism: Default::default(),
         donors: legacy
             .iter()
             .map(|l| Donor {
@@ -414,6 +415,8 @@ pub fn import(root: &Path, files: &Files, shard: Option<&str>, origin: Option<&s
                     required: c.required,
                     spec: c.spec.clone(),
                     replacement,
+                    maps_to: None,
+                    norl: Default::default(),
                     proofs: c
                         .proofs
                         .iter()
@@ -473,6 +476,7 @@ pub fn import(root: &Path, files: &Files, shard: Option<&str>, origin: Option<&s
 
     imp.declaration = Declaration {
         technologies: Vec::new(),
+        organism: Default::default(),
         repository: Repository {
             system: crate::schema::SYSTEM.into(),
             shard: ns,
@@ -520,10 +524,14 @@ fn flatten(prefix: &str, v: &crate::formats::Value, out: &mut Vec<(String, Strin
     }
 }
 
-/// Converts one legacy knowledge file into facts without loss: structured registries (TOML,
-/// JSON, JSON Lines) field by field, other text line by line. The file's digest is recorded, so
-/// the legacy tree's shim can expire once every file is consumed. Returns `None` for binary
+/// Converts one legacy knowledge file into facts without loss: its exact text as one `content`
+/// fact, structured registries (TOML, JSON, JSON Lines) also field by field. The file's digest
+/// (`imported`, `sha256:<hex>`) is recorded with it, and the content is proven to rebuild to it,
+/// so the legacy tree's shim can expire once every file is consumed. Returns `None` for binary
 /// content, which cannot be consumed and must be handled explicitly.
+///
+/// Before content was stored, plain text was recorded line by line (`L<n>` keys) without its
+/// blank lines; those facts still load and mean what they meant, but they never rebuild a file.
 pub fn extract_file(path: &str, bytes: &[u8], seq: u64) -> Option<Vec<Fact>> {
     let text = std::str::from_utf8(bytes).ok()?;
     let mut fields = Vec::new();
@@ -549,16 +557,10 @@ pub fn extract_file(path: &str, bytes: &[u8], seq: u64) -> Option<Vec<Fact>> {
                 }
             }
         }
-        None => {
-            for (i, line) in text
-                .lines()
-                .enumerate()
-                .filter(|(_, l)| !l.trim().is_empty())
-            {
-                fields.push((format!("L{}", i + 1), line.to_string()));
-            }
-        }
+        // Plain text is its content, below.
+        None => {}
     }
+    fields.push(("content".to_string(), text.to_string()));
     let prov = format!("legacy:{path}");
     let mut facts: Vec<Fact> = fields
         .into_iter()

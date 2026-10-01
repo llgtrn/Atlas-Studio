@@ -27,7 +27,10 @@ mkdir -p "$DEST"
 
 # Look up a donor's url from the manifest (col1=dir col2=url). Empty if not present.
 url_for() {
-  grep -vE '^\s*#' "$MAN" | awk -v d="$1" 'NF>=2 && $1==d {print $2; exit}'
+  local dir url
+  grep -vE '^\s*#' "$MAN" | while read -r dir url _; do
+    if [ -n "$url" ] && [ "$dir" = "$1" ]; then printf '%s\n' "$url"; break; fi
+  done
 }
 
 # Clone one donor; STRICT=1 (named mode) makes any problem a hard failure (return 1).
@@ -61,7 +64,8 @@ fi
 if [ "$MODE" = "--all" ]; then
   echo "WAREHOUSE FILL: cloning EVERY donor from $MAN into $DEST (parallelism=$PAR)."
   echo "(The Cloud Hands must NOT use --all — clone only the donor a spec names.)"
-  grep -vE '^\s*#' "$MAN" | awk 'NF>=2 {print $1, $2}' | while read -r dir url; do
+  grep -vE '^\s*#' "$MAN" | while read -r dir url _; do
+    [ -n "$url" ] || continue
     clone_one "$dir" "$url" 0 &
     while [ "$(jobs -r | wc -l)" -ge "$PAR" ]; do wait -n 2>/dev/null || break; done
   done

@@ -226,82 +226,167 @@ pub struct Program {
     pub licence: &'static str,
 }
 
-/// Programs whose providing project is the same on every platform Chronica builds on. A program
-/// shipped by different projects on different platforms (`kill`: procps-ng or util-linux) is
-/// deliberately absent: its donor cannot be named without choosing a platform.
+/// A project that provides programs: (name, origin, SPDX licence).
+type Project = (&'static str, &'static str, &'static str);
+
+const COREUTILS: Project = (
+    "coreutils",
+    "https://www.gnu.org/software/coreutils",
+    "GPL-3.0-or-later",
+);
+const GREP: Project = (
+    "grep",
+    "https://www.gnu.org/software/grep",
+    "GPL-3.0-or-later",
+);
+const SED: Project = (
+    "sed",
+    "https://www.gnu.org/software/sed",
+    "GPL-3.0-or-later",
+);
+const FINDUTILS: Project = (
+    "findutils",
+    "https://www.gnu.org/software/findutils",
+    "GPL-3.0-or-later",
+);
+const DIFFUTILS: Project = (
+    "diffutils",
+    "https://www.gnu.org/software/diffutils",
+    "GPL-3.0-or-later",
+);
+const MAKE: Project = (
+    "make",
+    "https://www.gnu.org/software/make",
+    "GPL-3.0-or-later",
+);
+const TAR: Project = (
+    "tar",
+    "https://www.gnu.org/software/tar",
+    "GPL-3.0-or-later",
+);
+const PROCPS: Project = (
+    "procps-ng",
+    "https://gitlab.com/procps-ng/procps",
+    "GPL-2.0-or-later",
+);
+const UTIL_LINUX: Project = (
+    "util-linux",
+    "https://github.com/util-linux/util-linux",
+    "GPL-2.0-or-later",
+);
+const NPM: Project = ("npm", "https://github.com/npm/cli", "Artistic-2.0");
+
+const fn prog(program: &'static str, project: Project) -> Program {
+    Program {
+        program,
+        project: project.0,
+        origin: project.1,
+        licence: project.2,
+    }
+}
+
+/// Programs whose providing project is the same on every platform Chronica builds on (Linux with
+/// the GNU userland). A program shipped by different projects on different platforms or
+/// distributions (`kill`: procps-ng or util-linux; `awk`: gawk or mawk; `cc`: GCC or Clang;
+/// `which`, `hostname`, `open`) is deliberately absent: its donor cannot be named without
+/// choosing a platform.
 pub const PROGRAMS: &[Program] = &[
-    Program {
-        program: "date",
-        project: "coreutils",
-        origin: "https://www.gnu.org/software/coreutils",
-        licence: "GPL-3.0-or-later",
-    },
-    Program {
-        program: "df",
-        project: "coreutils",
-        origin: "https://www.gnu.org/software/coreutils",
-        licence: "GPL-3.0-or-later",
-    },
-    Program {
-        program: "du",
-        project: "coreutils",
-        origin: "https://www.gnu.org/software/coreutils",
-        licence: "GPL-3.0-or-later",
-    },
-    Program {
-        program: "mkfifo",
-        project: "coreutils",
-        origin: "https://www.gnu.org/software/coreutils",
-        licence: "GPL-3.0-or-later",
-    },
-    Program {
-        program: "timeout",
-        project: "coreutils",
-        origin: "https://www.gnu.org/software/coreutils",
-        licence: "GPL-3.0-or-later",
-    },
-    Program {
-        program: "curl",
-        project: "curl",
-        origin: "https://github.com/curl/curl",
-        licence: "curl",
-    },
-    Program {
-        program: "node",
-        project: "nodejs",
-        origin: "https://github.com/nodejs/node",
-        licence: "MIT",
-    },
-    Program {
-        program: "npm",
-        project: "npm",
-        origin: "https://github.com/npm/cli",
-        licence: "Artistic-2.0",
-    },
-    Program {
-        program: "ip",
-        project: "iproute2",
-        origin: "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git",
-        licence: "GPL-2.0-or-later",
-    },
-    Program {
-        program: "nsenter",
-        project: "util-linux",
-        origin: "https://github.com/util-linux/util-linux",
-        licence: "GPL-2.0-or-later",
-    },
-    Program {
-        program: "unshare",
-        project: "util-linux",
-        origin: "https://github.com/util-linux/util-linux",
-        licence: "GPL-2.0-or-later",
-    },
-    Program {
-        program: "git",
-        project: "git",
-        origin: "https://github.com/git/git",
-        licence: "GPL-2.0-only",
-    },
+    prog("basename", COREUTILS),
+    prog("cat", COREUTILS),
+    prog("chmod", COREUTILS),
+    prog("cp", COREUTILS),
+    prog("cut", COREUTILS),
+    prog("date", COREUTILS),
+    prog("df", COREUTILS),
+    prog("dirname", COREUTILS),
+    prog("du", COREUTILS),
+    prog("head", COREUTILS),
+    prog("ln", COREUTILS),
+    prog("ls", COREUTILS),
+    prog("mkdir", COREUTILS),
+    prog("mkfifo", COREUTILS),
+    prog("mktemp", COREUTILS),
+    prog("mv", COREUTILS),
+    prog("nohup", COREUTILS),
+    prog("nproc", COREUTILS),
+    prog("realpath", COREUTILS),
+    prog("rm", COREUTILS),
+    prog("seq", COREUTILS),
+    prog("sha256sum", COREUTILS),
+    prog("sleep", COREUTILS),
+    prog("sort", COREUTILS),
+    prog("stat", COREUTILS),
+    prog("tail", COREUTILS),
+    prog("tee", COREUTILS),
+    prog("timeout", COREUTILS),
+    prog("touch", COREUTILS),
+    prog("tr", COREUTILS),
+    prog("uniq", COREUTILS),
+    prog("wc", COREUTILS),
+    prog("grep", GREP),
+    prog("sed", SED),
+    prog("find", FINDUTILS),
+    prog("xargs", FINDUTILS),
+    prog("diff", DIFFUTILS),
+    prog("make", MAKE),
+    prog("tar", TAR),
+    prog("ps", PROCPS),
+    prog(
+        "ip",
+        (
+            "iproute2",
+            "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git",
+            "GPL-2.0-or-later",
+        ),
+    ),
+    prog("mount", UTIL_LINUX),
+    prog("nsenter", UTIL_LINUX),
+    prog("unshare", UTIL_LINUX),
+    prog("curl", ("curl", "https://github.com/curl/curl", "curl")),
+    prog("node", ("nodejs", "https://github.com/nodejs/node", "MIT")),
+    prog("npm", NPM),
+    prog("npx", NPM),
+    prog("pnpm", ("pnpm", "https://github.com/pnpm/pnpm", "MIT")),
+    prog("git", ("git", "https://github.com/git/git", "GPL-2.0-only")),
+    prog("gh", ("gh", "https://github.com/cli/cli", "MIT")),
+    prog("jq", ("jq", "https://github.com/jqlang/jq", "MIT")),
+    prog(
+        "cmake",
+        (
+            "cmake",
+            "https://gitlab.kitware.com/cmake/cmake",
+            "BSD-3-Clause",
+        ),
+    ),
+    prog(
+        "python3",
+        ("cpython", "https://github.com/python/cpython", "PSF-2.0"),
+    ),
+    prog(
+        "openssl",
+        (
+            "openssl",
+            "https://github.com/openssl/openssl",
+            "Apache-2.0",
+        ),
+    ),
+    prog("sqlite3", ("sqlite", "https://sqlite.org", "blessing")),
+    prog(
+        "docker",
+        ("docker-cli", "https://github.com/docker/cli", "Apache-2.0"),
+    ),
+    prog(
+        "podman",
+        (
+            "podman",
+            "https://github.com/containers/podman",
+            "Apache-2.0",
+        ),
+    ),
+    prog(
+        "sudo",
+        ("sudo", "https://github.com/sudo-project/sudo", "ISC"),
+    ),
 ];
 
 pub fn program(name: &str) -> Option<&'static Program> {

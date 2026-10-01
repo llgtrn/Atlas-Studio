@@ -19,7 +19,7 @@ lines=()
 
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
-  pid=$(echo "$line" | awk '{print $2}')
+  read -r _ pid _ <<<"$line"
   pids+=("$pid")
   lines+=("$line")
 done < <(ps aux | grep -E '(^|/)(vitest|node .*/vitest)( |$)|/\.bin/vitest|vitest/dist|vitest\.mjs' | grep -v grep || true)
@@ -34,9 +34,11 @@ echo ""
 
 for i in "${!pids[@]}"; do
   line="${lines[$i]}"
-  pid=$(echo "$line" | awk '{print $2}')
-  start=$(echo "$line" | awk '{print $9}')
-  cmd=$(echo "$line" | awk '{for(i=11;i<=NF;i++) printf "%s ", $i; print ""}')
+  read -r -a fields <<<"$line"
+  pid="${fields[1]:-}"
+  start="${fields[8]:-}"
+  cmd=""
+  for word in "${fields[@]:10}"; do cmd+="$word "; done
   cmd=$(echo "$cmd" | sed "s|$HOME/||g")
   printf "  PID %-7s  started %-10s  %s\n" "$pid" "$start" "$cmd"
 done

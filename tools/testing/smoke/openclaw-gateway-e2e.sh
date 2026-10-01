@@ -23,7 +23,7 @@ require_cmd curl
 require_cmd jq
 require_cmd docker
 require_cmd node
-require_cmd shasum
+require_cmd sha256sum
 
 PAPERCLIP_API_URL="${PAPERCLIP_API_URL:-http://127.0.0.1:3100}"
 API_BASE="${PAPERCLIP_API_URL%/}/api"
@@ -274,7 +274,7 @@ detect_gateway_token() {
 
 hash_prefix() {
   local value="$1"
-  printf "%s" "$value" | shasum -a 256 | awk '{print $1}' | cut -c1-12
+  printf "%s" "$value" | sha256sum | cut -c1-12
 }
 
 probe_gateway_ws() {

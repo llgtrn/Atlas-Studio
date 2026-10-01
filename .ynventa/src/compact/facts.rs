@@ -148,6 +148,87 @@ pub struct Knowledge {
     pub facts: Vec<Fact>,
     pub files: Vec<String>,
     pub unreadable: Vec<String>,
+    /// The text of every document or legacy file that knowledge stores verbatim, rebuilt from
+    /// its facts ([`stored_texts`]); an error when the stored text does not match its digest.
+    pub stored: BTreeMap<String, Result<String, String>>,
+}
+
+/// Rebuilds every text that facts store verbatim, by path, and proves each against its
+/// recorded digest.
+///
+/// - A document's BLOCK facts of its latest extraction (the `seq` of its DOCUMENT `digest`),
+///   keyed `00000`, `00001`, …, concatenated in key order.
+/// - A legacy file's LEGACY_RECORD `content` of its latest import (the `seq` of its `imported`
+///   digest).
+///
+/// A document extracted before outlines were stored (a digest and no blocks of that
+/// extraction) or a legacy file imported line by line is absent: knowledge holds its facts,
+/// not its text.
+pub fn stored_texts(facts: &[Fact]) -> BTreeMap<String, Result<String, String>> {
+    let mut digest: BTreeMap<&str, &Fact> = BTreeMap::new();
+    let mut imported: BTreeMap<&str, &Fact> = BTreeMap::new();
+    let mut blocks: BTreeMap<&str, Vec<&Fact>> = BTreeMap::new();
+    let mut content: BTreeMap<&str, &Fact> = BTreeMap::new();
+    for f in facts {
+        match (f.kind, f.key.as_str()) {
+            (FactKind::Document, "digest") => {
+                digest.insert(&f.subject, f);
+            }
+            (FactKind::LegacyRecord, "imported") => {
+                imported.insert(&f.subject, f);
+            }
+            (FactKind::LegacyRecord, "content") => {
+                content.insert(&f.subject, f);
+            }
+            (FactKind::Block, _) => blocks.entry(&f.subject).or_default().push(f),
+            _ => {}
+        }
+    }
+    let check = |path: &str, text: String, d: &Fact| {
+        let got = crate::digest::content_digest(text.as_bytes());
+        if got == d.value {
+            Ok(text)
+        } else {
+            Err(format!(
+                "{path}: stored text rebuilds to {got}, not its recorded {}",
+                d.value
+            ))
+        }
+    };
+    let mut out = BTreeMap::new();
+    for (path, d) in &digest {
+        let mut bs: Vec<(usize, &Fact)> = blocks
+            .get(path)
+            .into_iter()
+            .flatten()
+            .filter(|b| b.seq == d.seq)
+            .map(|b| (b.key.parse::<usize>().unwrap_or(usize::MAX), *b))
+            .collect();
+        if bs.is_empty() {
+            continue;
+        }
+        bs.sort_by_key(|(i, _)| *i);
+        let r = match bs.iter().enumerate().find(|(n, (i, _))| n != i) {
+            Some((n, _)) => Err(format!("{path}: block {n} of its outline is missing")),
+            None => check(
+                path,
+                bs.iter()
+                    .map(|(_, b)| super::outline::decode_block(&b.value).1)
+                    .collect(),
+                d,
+            ),
+        };
+        out.insert(path.to_string(), r);
+    }
+    for (path, c) in &content {
+        match imported.get(path) {
+            Some(d) if d.seq == c.seq => {
+                out.insert(path.to_string(), check(path, c.value.clone(), d));
+            }
+            _ => {}
+        }
+    }
+    out
 }
 
 impl Knowledge {
@@ -164,7 +245,18 @@ impl Knowledge {
             }
         }
         k.facts = fold(all);
+        k.stored = stored_texts(&k.facts);
         k
+    }
+
+    /// The verbatim text knowledge stores for `path`, proven against its digest.
+    pub fn stored_text(&self, path: &str) -> Option<&Result<String, String>> {
+        self.stored.get(path)
+    }
+
+    /// Whether knowledge stores exactly `bytes` as the text of `path`.
+    pub fn stores(&self, path: &str, bytes: &[u8]) -> bool {
+        matches!(self.stored.get(path), Some(Ok(t)) if t.as_bytes() == bytes)
     }
 
     pub fn next_seq(&self) -> u64 {
@@ -226,7 +318,7 @@ impl Knowledge {
     pub fn document_digest(&self, path: &str) -> Option<&str> {
         self.facts
             .iter()
-            .find(|f| f.kind == FactKind::Document && f.subject == path)
+            .find(|f| f.kind == FactKind::Document && f.subject == path && f.key == "digest")
             .map(|f| f.value.as_str())
     }
 }
