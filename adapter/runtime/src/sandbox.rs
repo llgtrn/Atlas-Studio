@@ -1433,7 +1433,10 @@ mod tests {
     /// A test directory under the build's `target/` directory, for declarations that `/tmp` (a
     /// socket directory) may not hold.
     fn target_scratch(name: &str) -> Scratch {
-        let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap();
         scratch_at(workspace.join(format!(
             "target/atlas-sandbox-test-{name}-{}",
             std::process::id()
