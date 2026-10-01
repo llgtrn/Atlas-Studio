@@ -101,7 +101,7 @@ pressure = 3
 [[residual]]
 id = "RES-G178-LIB-NAME-DIFFERS-FROM-KEY"
 found_in = "G178"
-source = "adapter/src/semantic/rust/resolve.rs (known_extern), runtime/src/census/resolution.rs"
+source = "adapter/src/semantic/rust/resolve.rs (known_extern), adapter/runtime/src/census/resolution.rs"
 subsystem = "runtime census::resolution (declared dependency names), adapter semantic::rust::resolve"
 reproduction = "a crate declaring an unrenamed registry or git dependency zipper whose package sets [lib] name = zip, with use std::iter::zip; and a call zip::open() -- rustc binds zip::open to the dependency (the function import binds only the value namespace, so zip:: reaches the extern prelude); Atlas puts the key zipper, not zip, in the declared names, so zip reads as absent and the unsure import is trusted. At G179 a git fixture of that shape (scratch policy/rep2, zipper at file://) left zip::open and s.look() unresolved in the agent model, which cannot show path-level external claims"
 severity = "MEDIUM"
@@ -192,7 +192,7 @@ pressure = 27
 [[residual]]
 id = "RES-G179-GATE-TRUSTS-INTEGRITY-VERDICT"
 found_in = "G179"
-source = "runtime/src/seal.rs (gate_container), runtime/src/integrity.rs (check_report)"
+source = "adapter/runtime/src/seal.rs (gate_container), adapter/runtime/src/integrity.rs (check_report)"
 subsystem = "seal gate M8 and integrity report M6"
 reproduction = "hand-edit an integrity report to verdict ELIGIBLE over failing evaluations, or to cite an envelope id that was never pinned, and pass it to atlas-systemizer seal gate: gate_container reads the report's verdict and trusts it; integrity::check_report is used only by the integrity report command"
 severity = "MEDIUM"
@@ -245,7 +245,7 @@ pressure = 1
 [[residual]]
 id = "RES-G180-EXAMPLE-CRATE-PATHS"
 found_in = "G180"
-source = "runtime/src/census/resolution.rs (crate targets), adapter/src/semantic/rust/resolve.rs"
+source = "adapter/runtime/src/census/resolution.rs (crate targets), adapter/src/semantic/rust/resolve.rs"
 subsystem = "runtime census::resolution (example and test targets)"
 reproduction = "datafrog at edd7cfc0: examples/borrow_check.rs:11 use datafrog::Iteration and the calls through it stay unresolved; rust-analyzer resolves them to the library crate the example depends on"
 severity = "LOW"
@@ -257,7 +257,7 @@ pressure = 1
 [[residual]]
 id = "RES-G181-REF-RECEIVERS"
 found_in = "G181"
-source = "runtime/src/self_reconstruction.rs (lifter), core/src/construction/rust.rs (backend)"
+source = "adapter/runtime/src/self_reconstruction.rs (lifter), core/src/construction/rust.rs (backend)"
 subsystem = "runtime self_reconstruction lifter and core construction backend"
 reproduction = "fn f(&self) -> bool { match self { Self::A => true, _ => false } } stays BODY_UNOBSERVED: bodies over &self or &mut self receivers, and bodies with calls or arithmetic, are outside the G181 subset (most real methods)"
 severity = "MEDIUM"
@@ -294,7 +294,7 @@ pressure = 3
 [[residual]]
 id = "RES-G181-UNDECLARED-BODY-TEXT"
 found_in = "G181"
-source = "runtime/src/self_reconstruction.rs (declared_variations)"
+source = "adapter/runtime/src/self_reconstruction.rs (declared_variations)"
 subsystem = "runtime self_reconstruction verdict"
 reproduction = "only a doc comment's wrapping is declared as a variation; inner comments or formatting of an original body that the census drops are not declared -- only the body check's token-identity flag in its detail shows them"
 severity = "LOW"
@@ -307,7 +307,7 @@ pressure = 3
 [[residual]]
 id = "RES-G182-AUTODISCOVERED-TARGETS"
 found_in = "G182"
-source = "adapter/src/dependency/cargo.rs (manifest_targets), runtime/src/census/resolution.rs"
+source = "adapter/src/dependency/cargo.rs (manifest_targets), adapter/runtime/src/census/resolution.rs"
 subsystem = "adapter dependency::cargo (crate targets) and runtime census::resolution"
 reproduction = "differential-dataflow at aa8745f9: files under src/bin/, examples/, tests/ and benches/ are Cargo auto-discovered targets; manifest_targets reads [lib], [[bin]] path, src/main.rs, src/lib.rs and build.rs only, so 124 of 207 .rs files are reported not evaluated (no Cargo target's module tree reaches them) and 731 of the 1,850 call edges the index has and Atlas lacks come from them"
 severity = "MEDIUM"
@@ -461,7 +461,7 @@ pressure = 3
 [[residual]]
 id = "RES-G185-STAGED-NOT-PUBLISHED"
 found_in = "G185"
-source = "core/src/atlasx/materialize.rs, runtime/src/atlasx.rs (materialize)"
+source = "core/src/atlasx/materialize.rs, adapter/runtime/src/atlasx.rs (materialize)"
 subsystem = "core atlasx materializer M11"
 reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx into staging only: no ROOT_MANIFEST, no AtlasX root identity, and publication steps 4 to 8 of ATLASX-BINARY-WIRE-FORMAT are not done"
 severity = "MEDIUM"
@@ -489,7 +489,7 @@ pressure = 9
 [[residual]]
 id = "RES-G185-LINEAGE-ROOT-IN-RESULT-ONLY"
 found_in = "G185"
-source = "core/src/atlasx/materialize.rs (lineage), runtime/src/atlasx.rs"
+source = "core/src/atlasx/materialize.rs (lineage), adapter/runtime/src/atlasx.rs"
 subsystem = "core atlasx materializer M11"
 reproduction = "a staged object's records carry only census record ids as lineage; the parent root, the seal and the design they came from are bound only in the noncanonical JSON result (the embedded precondition verdict), since no manifest exists"
 severity = "LOW"
@@ -565,7 +565,7 @@ pressure = 3
 [[residual]]
 id = "RES-G187-STAGED-ROOT-NOT-PUBLISHED"
 found_in = "G187"
-source = "runtime/src/atlasx.rs (materialize, stage_objects), core/src/atlasx/materialize.rs (MATERIALIZE_NOT_DONE)"
+source = "adapter/runtime/src/atlasx.rs (materialize, stage_objects), core/src/atlasx/materialize.rs (MATERIALIZE_NOT_DONE)"
 subsystem = "core atlasx materializer M11, publication"
 reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx and then manifest.atlasx into the staging directory (publication steps 1 to 6, the manifest read back with its root identity recomputed); step 7 (atomically publish or switch the root directory or reference) and step 8 (advertise the root) do not exist"
 severity = "MEDIUM"
@@ -627,7 +627,7 @@ pressure = 1
 [[residual]]
 id = "RES-G187-ROOT-READ-MEMORY"
 found_in = "G187"
-source = "runtime/src/atlasx.rs (read_root, ROOT_ENTRY_LIMIT, ROOT_BYTE_LIMIT)"
+source = "adapter/runtime/src/atlasx.rs (read_root, ROOT_ENTRY_LIMIT, ROOT_BYTE_LIMIT)"
 subsystem = "runtime atlasx validator M13"
 reproduction = "read_root holds every regular file of the root in memory before validation: up to 1,024 entries (directories counted) and four maximum-size objects (about 256 MiB plus one object) before it stops with ROOT_LIMIT"
 severity = "LOW"
@@ -639,7 +639,7 @@ pressure = 1
 [[residual]]
 id = "RES-G187-CONCURRENT-WRITER"
 found_in = "G187"
-source = "runtime/src/atlasx.rs (read_root_within, read_listed)"
+source = "adapter/runtime/src/atlasx.rs (read_root_within, read_listed)"
 subsystem = "runtime atlasx validator M13"
 reproduction = "a local writer racing the staging directory while atlasx validate reads it: read_root checks each entry's type and identity (device, inode) when it is listed (symlink_metadata) and again on the opened handle, so a link or another file swapped in is listed as not a file; but a FIFO swapped in between listing and File::open blocks the open (no O_NONBLOCK is hand-coded; the G187 review's race probe: 8 hangs in 60 runs; the identity check does not prevent the blocking open), a top-level directory swapped for a link between listing and read_dir is followed, and a file replaced by another that reuses the freed inode is read -- validation can stall or read what the writer placed"
 severity = "LOW"
@@ -714,7 +714,7 @@ pressure = 1
 [[residual]]
 id = "RES-G189-TOOLCHAIN-SOCKETS"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (toolchain_binds)"
+source = "adapter/runtime/src/sandbox.rs (toolchain_binds)"
 subsystem = "runtime sandbox confined class, toolchain binds"
 reproduction = "declare a toolchain directory outside /run, /var/run, /tmp, /var/tmp and /dev/shm that holds a unix socket or FIFO: the read-only bind exposes it and connect() succeeds inside the confinement"
 severity = "MEDIUM"
@@ -727,7 +727,7 @@ pressure = 9
 [[residual]]
 id = "RES-G189-NO-SECCOMP-NO-CGROUP"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (the confined class)"
+source = "adapter/runtime/src/sandbox.rs (the confined class)"
 subsystem = "runtime sandbox confined class"
 reproduction = "a confined program may make any system call and fork without bound; only the timeout limits it"
 severity = "MEDIUM"
@@ -740,7 +740,7 @@ pressure = 9
 [[residual]]
 id = "RES-G189-CHROOT-NOT-PIVOT"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (CONFINE_SCRIPT, the nested unshare --root)"
+source = "adapter/runtime/src/sandbox.rs (CONFINE_SCRIPT, the nested unshare --root)"
 subsystem = "runtime sandbox confined class"
 reproduction = "during a run the mountinfo of the run's process read from the host shows the host mount tree below the chroot; the root is a chroot, not a pivot_root"
 severity = "MEDIUM"
@@ -753,7 +753,7 @@ pressure = 9
 [[residual]]
 id = "RES-G189-LOADER-ENV-LIST"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (refused_env_name)"
+source = "adapter/runtime/src/sandbox.rs (refused_env_name)"
 subsystem = "runtime sandbox environment declaration"
 reproduction = "the nested unshare runs before the chroot with the declared environment; dynamic-loader variables are refused only by a fixed list (LD_*, GCONV_PATH, GLIBC_TUNABLES, LOCPATH, NLSPATH)"
 severity = "MEDIUM"
@@ -766,7 +766,7 @@ pressure = 9
 [[residual]]
 id = "RES-G189-NETWORK-OPTIONAL"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (deny_network in the confined class)"
+source = "adapter/runtime/src/sandbox.rs (deny_network in the confined class)"
 subsystem = "runtime sandbox confined class"
 reproduction = "a confined request with deny_network false reaches the host network and abstract unix sockets"
 severity = "MEDIUM"
@@ -779,7 +779,7 @@ pressure = 9
 [[residual]]
 id = "RES-G189-TOOLCHAIN-DIRS-UNHASHED"
 found_in = "G189"
-source = "core/src/sandbox/mod.rs (ToolchainIdentity), runtime/src/sandbox.rs"
+source = "core/src/sandbox/mod.rs (ToolchainIdentity), adapter/runtime/src/sandbox.rs"
 subsystem = "core and runtime sandbox toolchain identity"
 reproduction = "swap librustc_driver while keeping the rustc binary and its -vV output: the pin still matches; the helpers (unshare, sh, mount, mkdir, ln) are not identified; cargo -vV identifies cargo, not the rustc it invokes (RUSTC, RUSTC_WRAPPER, PATH select it); a wrapper answering --print sysroot and -vV falsely passes as the requester's own pinned program"
 severity = "MEDIUM"
@@ -792,7 +792,7 @@ pressure = 9
 [[residual]]
 id = "RES-G189-CALLER-KUID"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (the nested user namespace)"
+source = "adapter/runtime/src/sandbox.rs (the nested user namespace)"
 subsystem = "runtime sandbox confined class"
 reproduction = "the confined program runs with the caller's kernel uid (root in this container) mapped to uid 1000 of a nested user namespace"
 severity = "LOW"
@@ -804,7 +804,7 @@ pressure = 1
 [[residual]]
 id = "RES-G189-ROOT-CONTAINER-ONLY"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (the confined class and its tests)"
+source = "adapter/runtime/src/sandbox.rs (the confined class and its tests)"
 subsystem = "runtime sandbox confined class"
 reproduction = "run the confined tests as a non-root user on a host with unprivileged user namespaces: so far they have run only as root in this container"
 severity = "LOW"
@@ -816,7 +816,7 @@ pressure = 1
 [[residual]]
 id = "RES-G189-HOST-PATH-TOCTOU"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (toolchain_binds, CONFINE_SCRIPT, Program::resolve)"
+source = "adapter/runtime/src/sandbox.rs (toolchain_binds, CONFINE_SCRIPT, Program::resolve)"
 subsystem = "runtime sandbox declaration checks"
 reproduction = "swap a declared toolchain path between the declaration check and the bind or link creation, or a link on the program's found path between resolution and exec"
 severity = "LOW"
@@ -829,7 +829,7 @@ pressure = 3
 [[residual]]
 id = "RES-G189-PROBE-STDERR-MATCH-UNKILLED"
 found_in = "G189"
-source = "runtime/src/sandbox.rs (the confinement probe)"
+source = "adapter/runtime/src/sandbox.rs (the confinement probe)"
 subsystem = "runtime sandbox confinement probe"
 reproduction = "mutant M02 (the probe checks exit codes only, ignoring unshare's exact error line) survives every test"
 severity = "LOW"
@@ -841,7 +841,7 @@ pressure = 1
 [[residual]]
 id = "RES-G189-VERIFICATION-AMBIENT"
 found_in = "G189"
-source = "runtime/src/verification.rs (command evidence)"
+source = "adapter/runtime/src/verification.rs (command evidence)"
 subsystem = "runtime verification command evidence"
 reproduction = "runtime::verification command evidence still runs with ambient authority, outside the confined sandbox"
 severity = "MEDIUM"

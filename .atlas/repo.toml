@@ -60,10 +60,10 @@ required_primitives = [
 ]
 
 [code]
-source_roots = ["core", "runtime", "adapter", "apps/cli"]
-backend_roots = ["core", "runtime", "adapter", "apps/cli"]
+source_roots = ["core", "adapter", "adapter/runtime", "apps/cli"]
+backend_roots = ["core", "adapter", "adapter/runtime", "apps/cli"]
 frontend_roots = ["apps/studio"]
-test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/studio/src"]
+test_roots = ["core/tests", "adapter/runtime/tests", "adapter/tests", "apps/studio/src"]
 
 [commands]
 compile = "cargo run -p atlas-cli --bin atlas-systemizer -- systemize --root . --out .atlas/.cache/systemize-report.json"

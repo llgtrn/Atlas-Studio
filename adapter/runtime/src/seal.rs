@@ -191,7 +191,7 @@ mod tests {
     use super::*;
 
     fn root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("..")
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
     }
 
     /// The declared policy is admissible, stamped with its identity, and no weaker than the strict

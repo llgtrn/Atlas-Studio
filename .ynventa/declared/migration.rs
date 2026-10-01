@@ -5,7 +5,7 @@ Migration {
     waves: &[
         Wave {
             key: "w01-runtime",
-            status: WaveStatus::Planned,
+            status: WaveStatus::Applied,
             nodes: &["compiler.runtime"],
         },
     ],

@@ -82,7 +82,7 @@ materialize Adapter {
 }
 
 materialize Runtime {
-    path = "runtime"
+    path = "adapter/runtime"
     language = rust
     glob = "src/**/*.rs"
 }

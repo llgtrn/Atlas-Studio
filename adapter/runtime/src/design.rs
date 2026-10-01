@@ -299,7 +299,8 @@ mod tests {
             diagnostics: Vec<atlas_core::ExtractionDiagnostic>,
         }
         let fixture: Fixture =
-            serde_json::from_str(include_str!("../../core/src/atlas/typed_fixture.json")).unwrap();
+            serde_json::from_str(include_str!("../../../core/src/atlas/typed_fixture.json"))
+                .unwrap();
         let mut atlas = CensusAtlas {
             manifest: RootManifest {
                 genome_schema: "atlas.genome.v1".into(),

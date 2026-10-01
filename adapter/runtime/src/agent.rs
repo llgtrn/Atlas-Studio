@@ -1954,7 +1954,7 @@ fn run(s: &core::store::Store) { s.save(); }
     #[test]
     fn atlas_self_world_model_is_complete_and_deterministic() {
         let _census = crate::whole_repo_census_lock();
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let report = crate::systemize(&root).unwrap();
         let model = compose(&report);
         assert_eq!(model_digest(&model), model_digest(&compose(&report)));
@@ -1996,7 +1996,7 @@ fn run(s: &core::store::Store) { s.save(); }
                     atlas_core::SemanticObservation::Persistence(p)
                         if p.status == EpistemicStatus::Derived
                             && p.subject.kind == atlas_core::PersistenceKind::Sync
-                            && p.subject.span.path == "runtime/src/atlas.rs"
+                            && p.subject.span.path == "adapter/runtime/src/atlas.rs"
                 )),
             "the container writer's sync_all"
         );

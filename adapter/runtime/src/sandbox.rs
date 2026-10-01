@@ -1433,7 +1433,10 @@ mod tests {
     /// A test directory under the build's `target/` directory, for declarations that `/tmp` (a
     /// socket directory) may not hold.
     fn target_scratch(name: &str) -> Scratch {
-        let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+        let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap();
         scratch_at(workspace.join(format!(
             "target/atlas-sandbox-test-{name}-{}",
             std::process::id()
@@ -1644,7 +1647,7 @@ mod tests {
     #[test]
     fn a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage() {
         let root = scratch("confined");
-        let repo_manifest = Path::new(env!("CARGO_MANIFEST_DIR")).join("../Cargo.toml");
+        let repo_manifest = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../Cargo.toml");
         assert!(
             repo_manifest.is_file(),
             "the repository manifest exists on the host"

@@ -53,6 +53,8 @@ mod tests {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
+            .parent()
+            .unwrap()
             .to_path_buf()
     }
 

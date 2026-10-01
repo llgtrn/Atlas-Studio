@@ -9,7 +9,7 @@ publish = false
 # Thin command projection over the native Atlas runtime. No repository mechanics live here.
 
 [dependencies]
-runtime = { path = "../../runtime" }
+runtime = { path = "../../adapter/runtime" }
 serde.workspace = true
 serde_json.workspace = true
 

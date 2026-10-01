@@ -803,7 +803,7 @@ mod tests {
     #[test]
     fn required_verification_commands_cover_every_command_ci_runs() {
         let ci_yaml = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.github/workflows/ci.yml"),
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.github/workflows/ci.yml"),
         )
         .expect("repository's CI workflow file must exist and be readable");
 
@@ -841,7 +841,7 @@ mod tests {
     fn cli_contract_json_matches_the_real_contract_default() {
         let contract_text = std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../.atlas/contracts/cli/atlas-systemizer-cli-v1.json"),
+                .join("../../.atlas/contracts/cli/atlas-systemizer-cli-v1.json"),
         )
         .expect(".atlas/contracts/cli/atlas-systemizer-cli-v1.json must exist and be readable");
         let schema: serde_json::Value =
@@ -910,7 +910,7 @@ mod tests {
 
         fn workspace_root() -> PathBuf {
             Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("..")
+                .join("../..")
                 .canonicalize()
                 .expect("workspace root must exist")
         }
@@ -1017,7 +1017,12 @@ mod tests {
         fn no_function_body_is_duplicated_verbatim_across_two_workspace_source_files() {
             let root = workspace_root();
             let mut files = Vec::new();
-            for crate_dir in ["core/src", "adapter/src", "runtime/src", "apps/cli/src"] {
+            for crate_dir in [
+                "core/src",
+                "adapter/src",
+                "adapter/runtime/src",
+                "apps/cli/src",
+            ] {
                 rust_files_under(&root.join(crate_dir), &mut files);
             }
             assert!(
@@ -1084,7 +1089,7 @@ mod tests {
 
         fn workspace_root() -> PathBuf {
             Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("..")
+                .join("../..")
                 .canonicalize()
                 .expect("workspace root must exist")
         }
@@ -2224,7 +2229,7 @@ mod tests {
 
         fn root() -> PathBuf {
             Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("..")
+                .join("../..")
                 .canonicalize()
                 .expect("workspace root must exist")
         }
@@ -5554,7 +5559,7 @@ mod tests {
 
         fn workspace_root() -> PathBuf {
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("..")
+                .join("../..")
                 .canonicalize()
                 .expect("workspace root must exist")
         }
@@ -5698,7 +5703,7 @@ mod tests {
     #[test]
     fn integrity_envelope_is_pinned_and_atlas_is_eligible() {
         let _census = crate::whole_repo_census_lock();
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let pinned = integrity::read_envelope(root.join(integrity::PINNED_ENVELOPE_PATH)).unwrap();
         assert_eq!(
             pinned,
@@ -5816,7 +5821,7 @@ mod tests {
 
     #[test]
     fn census_adl_is_current() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let committed = std::fs::read_to_string(root.join(CENSUS_ADL_PATH)).unwrap();
         assert_eq!(
             committed,
@@ -5831,7 +5836,7 @@ mod tests {
     #[test]
     fn systemize_reconciles_declared_dependencies_against_the_census() {
         let _census = crate::whole_repo_census_lock();
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let report = systemize(&root).unwrap();
         let reconciled: Vec<(&str, atlas_core::ConstraintVerdict)> = report
             .adl
@@ -5939,7 +5944,7 @@ mod tests {
     /// Only a CLOSED dependency census is authoritative for reconciliation.
     #[test]
     fn an_unclosed_dependency_census_is_never_reconciled_against() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let mut closure = resolve_dependency_closure(&root).unwrap();
         let source = atlas_core::SourceReport {
             schema: "test".into(),
@@ -5952,7 +5957,7 @@ mod tests {
             path: ".atlas/declared/system.adl".into(),
             text: "atlas 1\nsystem T\nentity Runtime A {}\nentity Runtime B {}\n\
                    A ->depends_on-> B\nmaterialize A {\n    path = \"core\"\n}\n\
-                   materialize B {\n    path = \"runtime\"\n}\n"
+                   materialize B {\n    path = \"adapter/runtime\"\n}\n"
                 .into(),
         }];
         let mut adl = compile_adl(&authored, &source);

@@ -1353,6 +1353,8 @@ mod tests {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
+            .parent()
+            .unwrap()
             .to_path_buf()
     }
 
@@ -1425,7 +1427,7 @@ mod tests {
                 return;
             }
         }
-        let relative = "runtime/tests/fixtures/visual/hermetic-probe.html";
+        let relative = "adapter/runtime/tests/fixtures/visual/hermetic-probe.html";
         let fixture = workspace_root().join(relative);
         let mut report =
             cross_instrument_layout(&PlaywrightChromium, &webdriver, &fixture, 375, 1280, 800)
