@@ -1,0 +1,1587 @@
+{
+ "schema": "atlas.evidence.verification.v1",
+ "generation": "G189",
+ "attack": "NA-SANDBOX-FS-CONFINEMENT",
+ "debts": [
+  "DEBT-SANDBOXED_EXECUTION"
+ ],
+ "construction_node": "M22",
+ "review_round_2": {
+  "fixed": [
+   "B1 relative program path hashed in one directory and executed in another: refused (REQUEST_MALFORMED); the resolved file is the executed one",
+   "B2 canonical_request not injective (output with newline forged confinement lines; ambiguous pinned line): control characters refused everywhere a value enters the text, input digests must parse, new lines length-prefixed, malformed requests identified under a separate tag; v1 text unchanged",
+   "M1 relative or option-like staging path: canonicalized and checked first (superseded in round 3: a missing one is created as at HEAD, and one that cannot be created or resolved is an io::Error)",
+   "M2 untested spots: each loader name tested, mounts asserted from the run's own mountinfo (ro,nosuid,nodev, private, exact set), a regular-file toolchain path tested; propagation equivalence stated",
+   "M3 runtime/socket directories refused as toolchain paths; RES-G189-TOOLCHAIN-SOCKETS recorded",
+   "M4 exact sources, digests and full requests recorded; request digests recomputed independently",
+   "M5 the probe exports the declared environment; ADR wording; refused()/Class::backend and Refusal literals deduplicated"
+  ]
+ },
+ "review_round_3": {
+  "fixed": [
+   "BLOCKING args [] and [\"\"] shared a request digest: a single empty argument is refused (REQUEST_MALFORMED); request_defect documents that canonical_request is injective on the requests that pass it",
+   "a symlinked multi-call program ran as another tool where argv[0] cannot be set (rustc -> rustup through unshare): round 3 refused it there (PROGRAM_ALIAS) and chose -vV by the resolved name; round 4 replaced both (see review_round_4)",
+   "X1 argv[0] of a direct spawn tested; X2 the resolved-path branch of the socket-directory check tested (a link to /run under target/)",
+   "test directories are Drop-guarded; the 45 /tmp/atlas-sandbox-test-* directories were deleted; a missing staging directory is created again as at HEAD (a staging directory that cannot be created is an io::Error, not a refusal)"
+  ]
+ },
+ "review_round_4": {
+  "fixed": [
+   "BLOCKING regression from round 3: -vV was chosen by the resolved name while the direct spawn ran a rustc link as rustc, so a rustup proxy was recorded without a version and a pin accepted RUSTUP_TOOLCHAIN=stable; now every class executes the found absolute path (argv[0] = the name asked), -vV is chosen by the found name and runs the same way as the run, the confined class requires the found path and its target under declared toolchain paths, and PROGRAM_ALIAS is gone (unreachable); round 5 found that the proxy -vV still did not bind the toolchain (+stable, rust-toolchain.toml) and refuses dispatchers instead",
+   "injectivity restated: up to the order of inputs, outputs, toolchain paths and toolchain_binaries, which the canonical form sorts and which does not change what runs (round 5 adds: consumers compare outputs as a set)",
+   "evidence wording: review_round_3 no longer states the superseded -vV rule"
+  ],
+  "repro_rechecked": "the reviewer request (rustc on /root/.cargo/bin, RUSTUP_TOOLCHAIN=1.90.0, deny_network false) pinned, then rerun with RUSTUP_TOOLCHAIN=stable: REFUSED TOOLCHAIN_IDENTITY_MISMATCH (version)"
+ },
+ "review_round_5": {
+  "fixed": [
+   "BLOCKING: the rustup proxy's -vV did not identify the toolchain a run used (a leading +stable argument; a staged rust-toolchain.toml read after -vV): a toolchain dispatcher -- a program or declared binary found as rustc or cargo that links to a file of another name -- is refused TOOLCHAIN_PROXY in every class, so a pin hashes the real toolchain binary; the reviewer requests (proxy/*, tcfile/*) are all refused (the confined ones first refused TOOLCHAIN_PATH_REFUSED because /lib64 links to undeclared /usr/lib64; with /usr/lib64 declared, TOOLCHAIN_PROXY)",
+   "a declared toolchain path that is a host link was bound with its target content, so .. beneath it climbed to the in-root parent: declared links are created in the root as the same link (ln joins the helpers), their target must be declared, and other declarations must be canonical; the demonstration now also declares /usr/lib64 (the target of /lib64); output digests unchanged",
+   "cargo -vV identifies cargo, not the compiler it invokes: stated in RES-G189-TOOLCHAIN-DIRS-UNHASHED",
+   "ADR section 6: consumers compare outputs as a set"
+  ]
+ },
+ "review_round_6": {
+  "fixed": [
+   "BLOCKING: the dispatcher check rested on names, so a hard-linked or copied rustup named rustc passed and a pin accepted +stable; the soundness rule is now the sysroot check (rustc --print sysroot run as the run runs it must name a sysroot whose bin/rustc is the resolved file; cargo via the rustc beside it), with the name check kept as an early, clearer refusal; the reviewer copy requests (base and +stable, with and without network) are refused TOOLCHAIN_PROXY (rechecked against a temporary copy, deleted)",
+   "P04 (choose -vV by another name): -vV is now recorded whenever the resolved file passes the sysroot rule, whatever name it was found as (a real rustc linked as rustc-1.90 is identified); the mutant that restricts -vV to programs found as rustc/cargo (S05) is killed"
+  ],
+  "demonstration": "rerun on the final build: unchanged outputs and outcomes"
+ },
+ "review_round_7": {
+  "finding": "BLOCKING: the cargo rule checked only the rustc beside cargo's resolved file, never cargo itself, so a rustup copy named cargo beside a link to the real 1.90.0 rustc passed and its pin accepted `+stable` (stdout cargo 1.94.1), network denied or not",
+  "fix": "verify_rust_tool also requires a cargo to be <sysroot>/bin/cargo, the sysroot printed by its sibling rustc's --print sysroot run as the run executes it; otherwise TOOLCHAIN_PROXY",
+  "tests": "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified: a rustup copy named cargo beside a link to the real rustc is refused TOOLCHAIN_PROXY in the direct, network-namespace and confined modes, and the toolchain's own <sysroot>/bin/cargo runs and records -vV in each",
+  "mutants": "the cargo sysroot check replaced by true: killed (one mutant, by the coordinator)"
+ },
+ "decision": ".atlas/decisions/0102-confined-sandbox-with-per-run-toolchain-identity.md",
+ "closes": [],
+ "opens": [
+  "RES-G189-TOOLCHAIN-SOCKETS",
+  "RES-G189-NO-SECCOMP-NO-CGROUP",
+  "RES-G189-CHROOT-NOT-PIVOT",
+  "RES-G189-LOADER-ENV-LIST",
+  "RES-G189-NETWORK-OPTIONAL",
+  "RES-G189-TOOLCHAIN-DIRS-UNHASHED",
+  "RES-G189-CALLER-KUID",
+  "RES-G189-ROOT-CONTAINER-ONLY",
+  "RES-G189-HOST-PATH-TOCTOU",
+  "RES-G189-PROBE-STDERR-MATCH-UNKILLED",
+  "RES-G189-VERIFICATION-AMBIENT"
+ ],
+ "record_schema": {
+  "schema": "atlas.sandbox-run.v2 (core::sandbox::SANDBOX_RUN_SCHEMA); v1 records (atlas.sandbox-run.v1) still read: every added field is optional; none is committed under .atlas/evidence",
+  "request_fields_added": {
+   "confinement": "Option<Confinement{toolchain: Vec<ToolchainPath{path}>, proc: bool}>: Some selects the confined class (backend atlas.sandbox.confined-subprocess.v1); None the restricted-subprocess class (atlas.sandbox.restricted-subprocess.v1)",
+   "toolchain_binaries": "Vec<String>: absolute paths of further binaries to identify (in the confined class each under a declared toolchain path)",
+   "pinned_toolchain": "Option<ToolchainIdentity>: the identity the run must have"
+  },
+  "run_fields_added": {
+   "toolchain": "Option<ToolchainIdentity{program: BinaryIdentity, binaries: Vec<BinaryIdentity> (sorted by path), version: Option<String> (`-vV` stdout for rustc/cargo)}>; BinaryIdentity{path (as found), resolved (links resolved), digest (BLAKE3-256 of the resolved file, the declared-input digest function)}",
+   "refusal_kind": "Option<RefusalKind>: REQUEST_MALFORMED, INPUT_ESCAPES, INPUT_UNREADABLE, INPUT_DIGEST_MISMATCH, OUTPUT_ESCAPES, PROGRAM_NOT_ON_PATH, ENVIRONMENT_REFUSED, TOOLCHAIN_PATH_REFUSED, PROGRAM_OUTSIDE_TOOLCHAIN, TOOLCHAIN_PROXY, TOOLCHAIN_IDENTITY_ABSENT, TOOLCHAIN_IDENTITY_MISMATCH, CONFINEMENT_UNAVAILABLE"
+  },
+  "request_identity": "canonical_request appends confinement, toolchain_binaries and pinned_toolchain lines only when present, each value length-prefixed (`<bytes>:<value>`): a request without them keeps its v1 digest (core test pins the v1 text). Injectivity, on the requests that pass core::sandbox::request_defect, up to the order of inputs, outputs, toolchain paths and toolchain_binaries (the canonical form sorts them; their order does not change what runs: inputs staged by path, outputs digested by path, toolchain paths bound and binaries identified sorted; the record lists outputs in request order, so consumers compare outputs as a set, by path): request_defect refuses (REQUEST_MALFORMED, before anything runs) a control character in the program, an argument, a single empty argument (args [\"\"] joined like args [] -- review round 3), an input/output path, an environment name or value, a toolchain path or binary; `=` or emptiness in an environment name; an input digest that is not blake3-256:<64 hex> (so the input line ends unambiguously); and a program path that is not a bare name or a normalized absolute path. A malformed request is identified by BLAKE3 of \"atlas.sandbox-request.malformed\\n\" + its JSON, a tag no canonical text starts with (review finding f3)."
+ },
+ "mechanism": {
+  "outer": "unshare --user --map-root-user --mount --pid --fork --kill-child --propagation private [--net] -- sh -c CONFINE_SCRIPT (constant; values only as positional parameters; helpers run with an empty environment from /)",
+  "root_layout": [
+   "/ : private tmpfs, remounted read-only, nosuid,nodev, mode 0755",
+   "/work : the stage (digest-verified input copies), read-write, nosuid,nodev; the only writable path",
+   "/dev/null",
+   "each declared toolchain path at its host path: bind ro,nosuid,nodev; a declared path that is itself a link is created in the root as the same link (its target must be under another declared path), so paths beneath it -- .. included -- resolve as on the host; every other declared path must be canonical (no link among its parents)",
+   "/proc : only when confinement.proc; procfs subset=pid of the run's own pid namespace, nosuid,nodev,noexec (needed by rustc: glibc resolves $ORIGIN via /proc/self/exe); the host /proc is never shown",
+   "nothing else: no /etc, /home, /tmp, repository, host stage path"
+  ],
+  "final_exec": "unshare --user --map-user=1000 --map-group=1000 --root=<root> --wd=/work -- <program> <args> (argv built by Atlas; chroot as uid 1000 of a nested user namespace: no capability, so no remount, no double-chroot, no new user namespace inside a chroot)",
+  "why_chroot_not_pivot_root": "after pivot_root every further step (cap drop, old-root unmount) must exist inside the new root; Atlas cannot run its own code there without unsafe code or a dependency",
+  "probe": "per run, same helper/binds/namespaces/stage: exec /work/.atlas-probe-control (0644) must answer EACCES (126); exec of the per-run host sentinel beside the stage, of the control's host path and (with proc) of /proc/1/root<sentinel> must answer ENOENT (127); each with unshare's exact `failed to execute <path>: <error>` line",
+  "claim_rule": "FILESYSTEM_CONFINED ENFORCED only when the probe passed; otherwise REFUSED CONFINEMENT_UNAVAILABLE with FILESYSTEM_CONFINED UNENFORCED{exact reason}; nothing runs unconfined in its place",
+  "identity_rule": "every run records ToolchainIdentity; identity absent -> REFUSED TOOLCHAIN_IDENTITY_ABSENT; pinned identity differs -> REFUSED TOOLCHAIN_IDENTITY_MISMATCH naming the first differing field, observed identity carried; chosen over a recorded mismatch because EXTERNAL-PROVIDER-TRUST admits sandbox output as evidence only with a pinned executed identity",
+  "declarations_refused": "toolchain path not absolute/normalized, missing, not dir/file, nested in another, covering /work /dev /proc, overlapping the staging directory; program not under a declared toolchain path; environment names not plain identifiers or LD_*, GCONV_PATH, GLIBC_TUNABLES, LOCPATH, NLSPATH",
+  "both_classes": "an input resolving outside the source root through a link is refused (INPUT_ESCAPES); inputs are staged as copies; a produced output that is a link or resolves outside the stage is recorded as not produced; the program is resolved once (the PATH hit or a normalized absolute path, links resolved) and the run executes that resolved file -- the one the identity digests (restricted class without a namespace: argv[0] is the found path; otherwise argv[0] is the resolved path) (review finding f1); every class executes the absolute path the program was found at (argv[0]; unshare executes the path it is given), so a multi-call binary such as the rustup proxy runs as the tool asked for, and the identity digests the file that path resolves to (they differ only by a swap between resolution and exec: RES-G189-HOST-PATH-TOCTOU); in the confined class both the found path and its target must lie under declared toolchain paths (PROGRAM_OUTSIDE_TOOLCHAIN); a program or declared binary found as or resolving to rustc must pass the name-independent sysroot rule (review round 6): `<found> --print sysroot`, run exactly as the run executes it (same class, path, declared environment, no request argument, stage still empty), exits 0 and prints an absolute sysroot whose bin/rustc canonicalizes to the resolved file; a cargo passes when the rustc beside its resolved file passes (binding the toolchain directory, not the compiler cargo invokes); otherwise TOOLCHAIN_PROXY -- a rustup proxy linked, hard-linked or copied as rustc prints the sysroot of the toolchain it selected; an earlier name-based check refuses a linked proxy before any confinement is set up (clearer message, not the soundness rule); -vV is recorded whenever the resolved file passes, whatever name it was found as, run the same way as the run; cargo -vV identifies cargo, not the compiler it invokes; declared toolchain_binaries are identified the same way and not executed by the run; the staging directory is created when missing (as at HEAD) and canonicalized, and one that cannot be created or resolved is a host error (io::Error), not a refusal",
+  "runtime_directories": "a toolchain path that is, is inside, or contains /run, /var/run, /tmp, /var/tmp or /dev/shm (declared or resolved) is refused: a read-only bind does not stop connect() on a socket; a declared directory elsewhere that holds a socket still exposes it (RES-G189-TOOLCHAIN-SOCKETS)",
+  "probe_environment": "the probe exports the declared environment exactly as the run does (same helper argv but for the executed path); confinement_available (sandbox probe) uses an empty one",
+  "propagation": "--propagation private is passed explicitly; it is also unshare's default for --mount; this host has no shared or slave mount (0 shared:/master: in its mountinfo), so mutant N09 (unchanged) is equivalent here; the run's own mountinfo is asserted to carry no peer group"
+ },
+ "host": {
+  "kernel": "Linux 6.18 (container, running as root)",
+  "unshare": "/usr/bin/unshare, util-linux 2.39.3",
+  "bwrap": "absent",
+  "landlock": "unknown (/sys/kernel/security/lsm absent); not used",
+  "probe_result": "atlas-systemizer sandbox probe: confined FILESYSTEM_CONFINED ENFORCED"
+ },
+ "probe_record": {
+  "backend": "atlas.sandbox.confined-subprocess.v1",
+  "filesystem_confined": {
+   "enforcement": "ENFORCED",
+   "mechanism": "unshare --user --map-root-user --mount --pid: a private tmpfs root, read-only, holding only /work (the stage, the one writable path), /dev/null and the declared toolchain paths (read-only, nosuid, nodev); the program runs chrooted there (unshare --root) as uid 1000 of a nested user namespace, with no capability; probed this run: the staged control was found (EACCES) and 2 host path(s) outside the stage were absent (ENOENT): a per-run sentinel beside the stage, the control's own host path"
+  }
+ },
+ "demonstration": {
+  "how": "scratch crate run through the CLI: atlas-systemizer sandbox run --request <json> --source <src> --staging <stage> --out <run.json> (debug build of the final code); program rustc on the declared PATH <sysroot>/bin:/usr/bin, TMPDIR=/work when confined (host temp dir unconfined), deny_network true, timeout 120000 ms, toolchain_binaries /usr/bin/cc and /usr/bin/ld; linking done inside the confinement (cc -> gcc-13, ld.bfd) -- not metadata-only",
+  "declared_toolchain": [
+   "/etc/alternatives",
+   "/lib",
+   "/lib64",
+   "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu",
+   "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu",
+   "/usr/bin",
+   "/usr/lib",
+   "/usr/lib64",
+   "/usr/libexec"
+  ],
+  "proc": true,
+  "sources": {
+   "main.rs": {
+    "content": "fn main() {\n    println!(\"hello from a confined rustc build\");\n}\n",
+    "digest": "blake3-256:d77b76d4702c46008dd365516ea1c6a710264873895a0feaace736977d0aef34"
+   },
+   "leak_hostname.rs": {
+    "content": "const HOST: &str = include_str!(\"/etc/hostname\");\nfn main() {\n    print!(\"{HOST}\");\n}\n",
+    "digest": "blake3-256:a81d01b33221d6013cfac3bf627115f2fa8f6130a0f38958bc3a7bb950cb8f9a"
+   },
+   "leak_repo.rs": {
+    "content": "const REPO: &str = include_str!(\"/home/user/Atlas-Studio/Cargo.toml\");\nfn main() {\n    print!(\"{}\", REPO.len());\n}\n",
+    "digest": "blake3-256:ddcb69c3e774abfaeb37d3e0f2068bf101ef3e82bc60db34be56117b8eea7510"
+   }
+  },
+  "request_digest_rule": "each run carries its full request; request_digest = BLAKE3-256 of core::sandbox::canonical_request (v1 lines, then G189 lines with length-prefixed values); recomputed here by an independent implementation (python blake3) and equal for every run",
+  "toolchain_identity": {
+   "binaries": [
+    {
+     "digest": "blake3-256:91be63770ef8003b0624d2a94977fc991d6689956bb6492c063f69cc987c0052",
+     "path": "/usr/bin/cc",
+     "resolved": "/usr/bin/x86_64-linux-gnu-gcc-13"
+    },
+    {
+     "digest": "blake3-256:6107b0a5fa8c1f498b8c5c1c6bb91a81aab35614b07760b301785e1c48551280",
+     "path": "/usr/bin/ld",
+     "resolved": "/usr/bin/x86_64-linux-gnu-ld.bfd"
+    }
+   ],
+   "program": {
+    "digest": "blake3-256:15e762ba8cad17d33265f4763a53e14199ad7e13595eb24c32e89a671816e0fb",
+    "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+    "resolved": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc"
+   },
+   "version": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n"
+  },
+  "filesystem_confined_mechanism": "unshare --user --map-root-user --mount --pid: a private tmpfs root, read-only, holding only /work (the stage, the one writable path), /dev/null and the declared toolchain paths (read-only, nosuid, nodev); the program runs chrooted there (unshare --root) as uid 1000 of a nested user namespace, with no capability; probed this run: the staged control was found (EACCES) and 3 host path(s) outside the stage were absent (ENOENT): a per-run sentinel beside the stage, the control's own host path, the sentinel through /proc/1/root",
+  "runs": [
+   {
+    "run": "compile_confined_1",
+    "what": "confined compile and link of the declared main.rs",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "main.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "main.rs",
+       "digest": "blake3-256:d77b76d4702c46008dd365516ea1c6a710264873895a0feaace736977d0aef34"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     }
+    },
+    "request_digest": "blake3-256:7dd8b6650ccfae7f0d4595228c56cb1f71594787bb3bf091e1be15b06c4eaa4d",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 0,
+    "filesystem_confined": "ENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": "blake3-256:d7d50fdda20902002d96c3b51a87eda3ec7c0d721456415c0ffd8174bd25e186",
+      "path": "main"
+     }
+    ],
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 1.033
+   },
+   {
+    "run": "compile_confined_2",
+    "what": "the same request again: identity and output digest stable",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "main.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "main.rs",
+       "digest": "blake3-256:d77b76d4702c46008dd365516ea1c6a710264873895a0feaace736977d0aef34"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     }
+    },
+    "request_digest": "blake3-256:7dd8b6650ccfae7f0d4595228c56cb1f71594787bb3bf091e1be15b06c4eaa4d",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 0,
+    "filesystem_confined": "ENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": "blake3-256:d7d50fdda20902002d96c3b51a87eda3ec7c0d721456415c0ffd8174bd25e186",
+      "path": "main"
+     }
+    ],
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 1.133
+   },
+   {
+    "run": "leak_hostname_confined",
+    "what": "include_str!(\"/etc/hostname\") inside the confinement",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "leak_hostname.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "leak_hostname.rs",
+       "digest": "blake3-256:a81d01b33221d6013cfac3bf627115f2fa8f6130a0f38958bc3a7bb950cb8f9a"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     }
+    },
+    "request_digest": "blake3-256:52359d77c7be64da9c2dae7d3817e22ac8d9cebffc4575556e6905a701b416c6",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 1,
+    "filesystem_confined": "ENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": null,
+      "path": "main"
+     }
+    ],
+    "stderr_first_error": "error: couldn't read `/etc/hostname`: No such file or directory (os error 2)",
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:a62d9422a27967c768bb7ddb9c19fa822a71665b9abe90c6de11d79c6d0f119c",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 0.718
+   },
+   {
+    "run": "leak_hostname_unconfined",
+    "what": "the same compile without confinement (restricted-subprocess class)",
+    "class": "atlas.sandbox.restricted-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "leak_hostname.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "leak_hostname.rs",
+       "digest": "blake3-256:a81d01b33221d6013cfac3bf627115f2fa8f6130a0f38958bc3a7bb950cb8f9a"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/tmp/claude-0/-home-user-Atlas-Studio/28dd513f-e23d-5be4-99f7-a44e2b6ecf3b/scratchpad/g189/demo/stage"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ]
+    },
+    "request_digest": "blake3-256:1afc00290ce4ae52e78db7d1d0ab6479e7b00c5be56c1b4ed9c5fbf8e5926e83",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 0,
+    "filesystem_confined": "UNENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": "blake3-256:d4b226d371808c6b1e312fbc638f0729d011562cb43eaf2482d173a6c6c411d6",
+      "path": "main"
+     }
+    ],
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 0.662
+   },
+   {
+    "run": "leak_repo_confined",
+    "what": "include_str! of the repository Cargo.toml inside the confinement",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "leak_repo.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "leak_repo.rs",
+       "digest": "blake3-256:ddcb69c3e774abfaeb37d3e0f2068bf101ef3e82bc60db34be56117b8eea7510"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     }
+    },
+    "request_digest": "blake3-256:2557983c9d9cc1f421f790730f8dab8beebb544cedde64405bfde92503f8a409",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 1,
+    "filesystem_confined": "ENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": null,
+      "path": "main"
+     }
+    ],
+    "stderr_first_error": "error: couldn't read `/home/user/Atlas-Studio/Cargo.toml`: No such file or directory (os error 2)",
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:3ec24d1b7990f4ec9bbde2002ce4ed8044bed3eaa75dda8d6c26d173912dfd70",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 0.665
+   },
+   {
+    "run": "leak_repo_unconfined",
+    "what": "the same compile without confinement",
+    "class": "atlas.sandbox.restricted-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "leak_repo.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "leak_repo.rs",
+       "digest": "blake3-256:ddcb69c3e774abfaeb37d3e0f2068bf101ef3e82bc60db34be56117b8eea7510"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/tmp/claude-0/-home-user-Atlas-Studio/28dd513f-e23d-5be4-99f7-a44e2b6ecf3b/scratchpad/g189/demo/stage"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ]
+    },
+    "request_digest": "blake3-256:b928bf70e05093650cb194df4478a1f7720900405e0a69c62edf36673f12159a",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 0,
+    "filesystem_confined": "UNENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": "blake3-256:3d41a71be07f4adc971ba32135e1b655d4a3e5a6498bec9eac793d59354147f3",
+      "path": "main"
+     }
+    ],
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 0.609
+   },
+   {
+    "run": "pinned_match",
+    "what": "compile pinned to the identity recorded by compile_confined_1",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "main.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "main.rs",
+       "digest": "blake3-256:d77b76d4702c46008dd365516ea1c6a710264873895a0feaace736977d0aef34"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     },
+     "pinned_toolchain": {
+      "binaries": [
+       {
+        "digest": "blake3-256:91be63770ef8003b0624d2a94977fc991d6689956bb6492c063f69cc987c0052",
+        "path": "/usr/bin/cc",
+        "resolved": "/usr/bin/x86_64-linux-gnu-gcc-13"
+       },
+       {
+        "digest": "blake3-256:6107b0a5fa8c1f498b8c5c1c6bb91a81aab35614b07760b301785e1c48551280",
+        "path": "/usr/bin/ld",
+        "resolved": "/usr/bin/x86_64-linux-gnu-ld.bfd"
+       }
+      ],
+      "program": {
+       "digest": "blake3-256:15e762ba8cad17d33265f4763a53e14199ad7e13595eb24c32e89a671816e0fb",
+       "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+       "resolved": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc"
+      },
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n"
+     }
+    },
+    "request_digest": "blake3-256:fc5bf214361244ad85cc3367fb02cd74269a84a8fa0e53e4f286204694f38b26",
+    "request_digest_recomputed_independently": true,
+    "outcome": "EXITED",
+    "exit_code": 0,
+    "filesystem_confined": "ENFORCED",
+    "network_denied": "ENFORCED",
+    "outputs": [
+     {
+      "digest": "blake3-256:d7d50fdda20902002d96c3b51a87eda3ec7c0d721456415c0ffd8174bd25e186",
+      "path": "main"
+     }
+    ],
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 0,
+    "wall_s_debug_cli": 1.179
+   },
+   {
+    "run": "pinned_other_toolchain",
+    "what": "the same pin, run with the stable toolchain on the declared PATH",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "main.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "main.rs",
+       "digest": "blake3-256:d77b76d4702c46008dd365516ea1c6a710264873895a0feaace736977d0aef34"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     },
+     "pinned_toolchain": {
+      "binaries": [
+       {
+        "digest": "blake3-256:91be63770ef8003b0624d2a94977fc991d6689956bb6492c063f69cc987c0052",
+        "path": "/usr/bin/cc",
+        "resolved": "/usr/bin/x86_64-linux-gnu-gcc-13"
+       },
+       {
+        "digest": "blake3-256:6107b0a5fa8c1f498b8c5c1c6bb91a81aab35614b07760b301785e1c48551280",
+        "path": "/usr/bin/ld",
+        "resolved": "/usr/bin/x86_64-linux-gnu-ld.bfd"
+       }
+      ],
+      "program": {
+       "digest": "blake3-256:15e762ba8cad17d33265f4763a53e14199ad7e13595eb24c32e89a671816e0fb",
+       "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+       "resolved": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc"
+      },
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n"
+     }
+    },
+    "request_digest": "blake3-256:be0ec2a6fe5ca62e45d940e674658d635312701c6974387a297f5377518f27fd",
+    "request_digest_recomputed_independently": true,
+    "outcome": "REFUSED",
+    "exit_code": null,
+    "filesystem_confined": "(refused before running)",
+    "network_denied": "(refused before running)",
+    "outputs": [],
+    "refusal_kind": "TOOLCHAIN_IDENTITY_MISMATCH",
+    "refusal": "the toolchain differs from the pinned identity: program path: pinned `/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc`, observed `/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc`",
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 2,
+    "wall_s_debug_cli": 0.788
+   },
+   {
+    "run": "pinned_tampered_cc_digest",
+    "what": "the pin with the cc digest altered",
+    "class": "atlas.sandbox.confined-subprocess.v1",
+    "request": {
+     "program": "rustc",
+     "args": [
+      "--edition=2021",
+      "-Copt-level=0",
+      "main.rs",
+      "-o",
+      "main"
+     ],
+     "inputs": [
+      {
+       "path": "main.rs",
+       "digest": "blake3-256:d77b76d4702c46008dd365516ea1c6a710264873895a0feaace736977d0aef34"
+      }
+     ],
+     "env": {
+      "PATH": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:/usr/bin",
+      "TMPDIR": "/work"
+     },
+     "outputs": [
+      "main"
+     ],
+     "timeout_ms": 120000,
+     "deny_network": true,
+     "toolchain_binaries": [
+      "/usr/bin/cc",
+      "/usr/bin/ld"
+     ],
+     "confinement": {
+      "toolchain": [
+       {
+        "path": "/etc/alternatives"
+       },
+       {
+        "path": "/lib"
+       },
+       {
+        "path": "/lib64"
+       },
+       {
+        "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+       },
+       {
+        "path": "/usr/bin"
+       },
+       {
+        "path": "/usr/lib"
+       },
+       {
+        "path": "/usr/lib64"
+       },
+       {
+        "path": "/usr/libexec"
+       }
+      ],
+      "proc": true
+     },
+     "pinned_toolchain": {
+      "binaries": [
+       {
+        "digest": "blake3-256:7127852f95b783af8c68b7a512dbfb0e8fafe8b5c67e61d4759ffeab2690bd9d",
+        "path": "/usr/bin/cc",
+        "resolved": "/usr/bin/x86_64-linux-gnu-gcc-13"
+       },
+       {
+        "digest": "blake3-256:6107b0a5fa8c1f498b8c5c1c6bb91a81aab35614b07760b301785e1c48551280",
+        "path": "/usr/bin/ld",
+        "resolved": "/usr/bin/x86_64-linux-gnu-ld.bfd"
+       }
+      ],
+      "program": {
+       "digest": "blake3-256:15e762ba8cad17d33265f4763a53e14199ad7e13595eb24c32e89a671816e0fb",
+       "path": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+       "resolved": "/root/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc"
+      },
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n"
+     }
+    },
+    "request_digest": "blake3-256:3a83c39a4d4fa75afe38e43408463349f49f3acd5fc485d65016d19231b0bb58",
+    "request_digest_recomputed_independently": true,
+    "outcome": "REFUSED",
+    "exit_code": null,
+    "filesystem_confined": "(refused before running)",
+    "network_denied": "(refused before running)",
+    "outputs": [],
+    "refusal_kind": "TOOLCHAIN_IDENTITY_MISMATCH",
+    "refusal": "the toolchain differs from the pinned identity: binary digest: pinned `blake3-256:7127852f95b783af8c68b7a512dbfb0e8fafe8b5c67e61d4759ffeab2690bd9d`, observed `blake3-256:91be63770ef8003b0624d2a94977fc991d6689956bb6492c063f69cc987c0052`",
+    "stdout_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "stderr_digest": "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "cli_exit": 2,
+    "wall_s_debug_cli": 0.592
+   }
+  ],
+  "findings": [
+   "confined rustc 1.90.0 compiled and linked main.rs: exit 0, output main blake3-256:d7d50fdda20902002d96c3b51a87eda3ec7c0d721456415c0ffd8174bd25e186; identical output digest and toolchain identity on the second run",
+   "include_str!(\"/etc/hostname\"): confined exit 1 `error: couldn't read `/etc/hostname`: No such file or directory (os error 2)`; unconfined exit 0 (output blake3-256:d4b226d371808c6b1e312fbc638f0729d011562cb43eaf2482d173a6c6c411d6)",
+   "include_str!(\"/home/user/Atlas-Studio/Cargo.toml\"): confined exit 1 `error: couldn't read `/home/user/Atlas-Studio/Cargo.toml`: No such file or directory (os error 2)`; unconfined exit 0 (output blake3-256:3d41a71be07f4adc971ba32135e1b655d4a3e5a6498bec9eac793d59354147f3)",
+   "so the confinement, not the compiler or the source, refuses the absolute read",
+   "pinned identity: matching pin runs (exit 0, same output digest); stable toolchain under the 1.90.0 pin and an altered cc digest are REFUSED TOOLCHAIN_IDENTITY_MISMATCH before rustc runs (CLI exit 2)"
+  ]
+ },
+ "falsifications": [
+  {
+   "claim": "absolute and .. reads outside the declared inputs and toolchain are refused; the declared input is readable; the toolchain is readable, not writable, not remountable; writes land only in the stage; the double-chroot escape is refused",
+   "demonstrated_by": "runtime sandbox::tests::a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage (/etc/passwd, repo Cargo.toml, a sentinel outside the inputs, host paths of src/secret.txt and src/a.txt, ../../../../../../etc/passwd, ../outside.txt, /proc/self/root/etc/passwd all DENIED; /usr/bin and /usr/bin/sh not writable per access(2) (no write attempted); writes to /, the host scratch dir, /tmp, ../ refused; remount refused; perl chroot(\"x\") refused)"
+  },
+  {
+   "claim": "inputs are copies; a link leaving the source root is refused; a produced link is not followed",
+   "demonstrated_by": "sandbox::tests::links_in_inputs_or_outputs_cannot_point_outside (both classes)"
+  },
+  {
+   "claim": "toolchain identity recorded, stable across two runs; a mismatched pin and an absent binary are refused",
+   "demonstrated_by": "sandbox::tests::the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused (both classes); core sandbox::tests::a_pinned_identity_names_the_first_difference"
+  },
+  {
+   "claim": "FILESYSTEM_CONFINED is UNENFORCED with the reason and nothing runs when the mechanism is unavailable",
+   "demonstrated_by": "sandbox::tests::filesystem_confinement_is_unenforced_and_nothing_runs_when_the_mechanism_is_missing (HostTools seam: unshare at a missing path, unshare unnamed, mount replaced by true)"
+  },
+  {
+   "claim": "the probe is not vacuous",
+   "demonstrated_by": "sandbox::tests::a_confinement_that_breaks_in_any_probed_way_fails_its_probe (fake mount showing the host run directory, hiding the stage, mounting the host /proc: each REFUSED CONFINEMENT_UNAVAILABLE, nothing run)"
+  },
+  {
+   "claim": "unsafe declarations are refused, each with its reason (normalization, reserved paths, nesting, missing, staging overlap, runtime/socket directories, every loader name LD_PRELOAD LD_LIBRARY_PATH LD_AUDIT GCONV_PATH GLIBC_TUNABLES LOCPATH NLSPATH, non-identifier names, a binary outside the toolchain, a program outside the toolchain)",
+   "demonstrated_by": "sandbox::tests::refused_toolchain_paths_environment_and_programs"
+  },
+  {
+   "claim": "every descendant dies with a confined run (pid namespace); the restricted class lets a setsid descendant survive",
+   "demonstrated_by": "sandbox::tests::a_confined_run_is_killed_with_a_descendant_that_left_its_process_group"
+  },
+  {
+   "claim": "realistic compile",
+   "demonstrated_by": "sandbox::tests::a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file and the demonstration above"
+  },
+  {
+   "claim": "v1 records read; v1 request digests unchanged",
+   "demonstrated_by": "core sandbox::tests::a_v1_record_still_reads_without_toolchain_or_typed_refusal, a_request_without_g189_fields_keeps_its_v1_identity_and_each_field_changes_it"
+  },
+  {
+   "claim": "CLI",
+   "demonstrated_by": "atlas-cli tests::sandbox_run_confines_a_request_and_refuses_a_tampered_one"
+  },
+  {
+   "claim": "the confined root holds exactly /, /work, /dev/null, /proc and the declared toolchain paths (a regular file among them), all private, the root and toolchain ro,nosuid,nodev, /work rw,nosuid,nodev, /proc nosuid,nodev,noexec; a declared file is readable and not writable",
+   "demonstrated_by": "sandbox::tests::the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only (the run reads its own /proc/self/mountinfo; /etc/hostname declared as a file; writability asked through access(2), no write attempted)"
+  },
+  {
+   "claim": "review f1: a relative program path is refused in both classes, and the executed file is the identified one",
+   "demonstrated_by": "sandbox::tests::a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one (../../../alt/x, alt/x, ./x, /usr/bin/../bin/sh, /usr/bin/ refused REQUEST_MALFORMED, nothing ran; readlink /proc/$$/exe equals toolchain.program.resolved in both classes)"
+  },
+  {
+   "claim": "review f3: the forging request is refused under a digest no canonical text has",
+   "demonstrated_by": "core sandbox::tests::a_value_that_could_forge_a_line_is_refused_and_new_lines_are_length_prefixed; runtime sandbox::tests::a_request_forging_another_identity_is_refused_under_its_own_digest"
+  },
+  {
+   "claim": "the staging directory is created when missing and resolved first; one that cannot be created is a host error",
+   "demonstrated_by": "sandbox::tests::the_staging_directory_is_created_and_resolved_before_the_helpers_see_it"
+  },
+  {
+   "claim": "review round 4: argv[0] base name is the link name in all three modes; -vV is asked by the found name; confined found path and target must both be declared; a declared link resolving into /run is refused",
+   "demonstrated_by": "sandbox::tests::a_linked_program_runs_under_its_link_name_in_every_class (link x to the host shell under target/: sh -c 'echo ${0##*/}' prints x directly, in unshare --net and confined; a link named rustc is asked -vV and refused TOOLCHAIN_IDENTITY_ABSENT; undeclared link and undeclared target refused PROGRAM_OUTSIDE_TOOLCHAIN; target/.../runlink -> /run refused live endpoints)"
+  },
+  {
+   "claim": "review round 4: a plain v1 sh request runs as sh",
+   "demonstrated_by": "sandbox::tests::a_plain_sh_request_runs_as_sh_in_every_mode ($0 = /usr/bin/sh directly, in unshare --net and confined)"
+  },
+  {
+   "claim": "review round 5: a toolchain dispatcher is refused; the toolchain binary runs and pins",
+   "demonstrated_by": "sandbox::tests::a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class (the rustup proxy as rustc and as cargo, with +stable, with a staged rust-toolchain.toml, and as a declared binary: TOOLCHAIN_PROXY, nothing run, in the direct, unshare --net and confined modes; <sysroot>/bin/rustc --version runs with its -vV identity, a pin of it runs, and the other installed sysroot is refused TOOLCHAIN_IDENTITY_MISMATCH, in all three modes)"
+  },
+  {
+   "claim": "review round 6: the dispatcher rule is name-independent; a renamed real rustc is identified",
+   "demonstrated_by": "sandbox::tests::a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified (under target/: rustup copied as bin/rustc and hard-linked as bin/cargo; rustc, +stable, cargo and a declared binary refused TOOLCHAIN_PROXY by --print sysroot, nothing run, in the direct, unshare --net and confined modes; bin/rustc-1.90 -> <sysroot>/bin/rustc runs with its -vV recorded in all three modes); the round-5 dispatcher test also asserts the early name-based message"
+  },
+  {
+   "claim": "review round 5: a declared link is a link in the root; its target must be declared; a declaration through a link is refused",
+   "demonstrated_by": "sandbox::tests::a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared (under target/: alias -> nest/real; alias alone refused, alias/file refused, alias + nest: test -L alias, alias/file and alias/../marker read as on the host)"
+  },
+  {
+   "claim": "review round 3: args [] and [\"\"] no longer share an identity",
+   "demonstrated_by": "core sandbox::tests::a_value_that_could_forge_a_line_is_refused_and_new_lines_are_length_prefixed"
+  }
+ ],
+ "tests_gating": "confinement assertions are live on this host; a CONFINEMENT_UNAVAILABLE refusal is accepted only when `unshare --user --map-root-user --mount --pid --fork true` itself fails (then the test asserts UNENFORCED with the reason and reports it)",
+ "mutants": {
+  "method": "hand mutants applied one at a time to the final source (round 6), each followed by cargo test -q -p <runtime|core> --lib sandbox; source restored and checked by sha256 after each; no mutant writes outside test scratch (Drop-guarded test directories under /tmp and target/; the copied rustup fixture is deleted with its directory)",
+  "total": 55,
+  "killed": 51,
+  "list": [
+   {
+    "id": "M01",
+    "mutant": "probe skipped (no check runs)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confinement_that_breaks_in_any_probed_way_fails_its_probe",
+     "filesystem_confinement_is_unenforced_and_nothing_runs_when_the_mechanism_is_missing"
+    ]
+   },
+   {
+    "id": "M02",
+    "mutant": "probe checks exit codes only (stderr message ignored)",
+    "verdict": "SURVIVED",
+    "killed_by": []
+   },
+   {
+    "id": "M03",
+    "mutant": "probe negatives dropped (sentinel and control host path)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confinement_that_breaks_in_any_probed_way_fails_its_probe"
+    ]
+   },
+   {
+    "id": "M04",
+    "mutant": "nested user namespace maps root (program keeps capabilities)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage"
+    ]
+   },
+   {
+    "id": "M05",
+    "mutant": "toolchain binds writable",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage",
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "M06",
+    "mutant": "tmpfs root left writable",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage",
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "M07",
+    "mutant": "helpers inherit the ambient environment",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage"
+    ]
+   },
+   {
+    "id": "M08",
+    "mutant": "loader variables accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "refused_toolchain_paths_environment_and_programs"
+    ]
+   },
+   {
+    "id": "M09",
+    "mutant": "toolchain path overlapping the staging directory accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "refused_toolchain_paths_environment_and_programs"
+    ]
+   },
+   {
+    "id": "M10",
+    "mutant": "nested toolchain paths accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "refused_toolchain_paths_environment_and_programs"
+    ]
+   },
+   {
+    "id": "M12",
+    "mutant": "-vV never recorded",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file",
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified",
+     "a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class"
+    ]
+   },
+   {
+    "id": "M11",
+    "mutant": "pinned identity never compared",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class",
+     "the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused"
+    ]
+   },
+   {
+    "id": "M13",
+    "mutant": "produced links followed when digesting outputs",
+    "verdict": "KILLED",
+    "killed_by": [
+     "links_in_inputs_or_outputs_cannot_point_outside"
+    ]
+   },
+   {
+    "id": "M14",
+    "mutant": "input resolving outside the source root through a link accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "links_in_inputs_or_outputs_cannot_point_outside"
+    ]
+   },
+   {
+    "id": "M15",
+    "mutant": "FILESYSTEM_CONFINED claimed whatever the class",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file",
+     "only_declared_inputs_and_environment_reach_the_run"
+    ]
+   },
+   {
+    "id": "M17",
+    "mutant": "failed probe falls through to running (unconfined claim withheld)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confinement_that_breaks_in_any_probed_way_fails_its_probe",
+     "filesystem_confinement_is_unenforced_and_nothing_runs_when_the_mechanism_is_missing"
+    ]
+   },
+   {
+    "id": "M18",
+    "mutant": "pin comparison ignores the digest",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_pinned_identity_names_the_first_difference"
+    ]
+   },
+   {
+    "id": "M19",
+    "mutant": "request identity ignores the procfs flag",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_request_without_g189_fields_keeps_its_v1_identity_and_each_field_changes_it"
+    ]
+   },
+   {
+    "id": "M20",
+    "mutant": "probe drops the /proc/1/root negative",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confinement_that_breaks_in_any_probed_way_fails_its_probe"
+    ]
+   },
+   {
+    "id": "M21",
+    "mutant": "probe drops the positive control",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confinement_that_breaks_in_any_probed_way_fails_its_probe"
+    ]
+   },
+   {
+    "id": "M22",
+    "mutant": "no pid namespace (no --pid --fork --kill-child)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_confined_run_is_killed_with_a_descendant_that_left_its_process_group",
+     "a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file",
+     "a_confinement_that_breaks_in_any_probed_way_fails_its_probe",
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified",
+     "a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one",
+     "a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class",
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "N01",
+    "mutant": "program path check removed (relative program accepted)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_value_that_could_forge_a_line_is_refused_and_new_lines_are_length_prefixed"
+    ]
+   },
+   {
+    "id": "N02",
+    "mutant": "control characters in outputs accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_value_that_could_forge_a_line_is_refused_and_new_lines_are_length_prefixed"
+    ]
+   },
+   {
+    "id": "N03",
+    "mutant": "new canonical lines not length-prefixed",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_value_that_could_forge_a_line_is_refused_and_new_lines_are_length_prefixed"
+    ]
+   },
+   {
+    "id": "N05",
+    "mutant": "staging directory not resolved before use",
+    "verdict": "KILLED",
+    "killed_by": [
+     "the_staging_directory_is_created_and_resolved_before_the_helpers_see_it"
+    ]
+   },
+   {
+    "id": "N06",
+    "mutant": "socket/runtime directories accepted as toolchain paths",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class",
+     "refused_toolchain_paths_environment_and_programs"
+    ]
+   },
+   {
+    "id": "N07",
+    "mutant": "malformed request identified by its (ambiguous) canonical text",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_request_forging_another_identity_is_refused_under_its_own_digest"
+    ]
+   },
+   {
+    "id": "N08",
+    "mutant": "toolchain binds without nosuid",
+    "verdict": "KILLED",
+    "killed_by": [
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "N09",
+    "mutant": "mount propagation unchanged (not private)",
+    "verdict": "SURVIVED",
+    "killed_by": []
+   },
+   {
+    "id": "N10",
+    "mutant": "a regular-file toolchain path bound as a directory",
+    "verdict": "KILLED",
+    "killed_by": [
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "N11",
+    "mutant": "probe with an empty environment instead of the declared one",
+    "verdict": "SURVIVED",
+    "killed_by": []
+   },
+   {
+    "id": "N12",
+    "mutant": "GLIBC_TUNABLES accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "refused_toolchain_paths_environment_and_programs"
+    ]
+   },
+   {
+    "id": "N13",
+    "mutant": "procfs mounted without noexec",
+    "verdict": "KILLED",
+    "killed_by": [
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "N14",
+    "mutant": "tmpfs root remounted without nosuid",
+    "verdict": "SURVIVED",
+    "killed_by": []
+   },
+   {
+    "id": "N15",
+    "mutant": "LOCPATH accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "refused_toolchain_paths_environment_and_programs"
+    ]
+   },
+   {
+    "id": "R01",
+    "mutant": "single empty argument accepted (args [] and [\"\"] collide)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_value_that_could_forge_a_line_is_refused_and_new_lines_are_length_prefixed"
+    ]
+   },
+   {
+    "id": "R05",
+    "mutant": "socket-directory check ignores where a declared path resolves",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class"
+    ]
+   },
+   {
+    "id": "R06",
+    "mutant": "missing staging directory not created",
+    "verdict": "KILLED",
+    "killed_by": [
+     "the_staging_directory_is_created_and_resolved_before_the_helpers_see_it"
+    ]
+   },
+   {
+    "id": "P01",
+    "mutant": "direct spawn executes the resolved file (argv[0] = target name)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class",
+     "a_plain_sh_request_runs_as_sh_in_every_mode"
+    ]
+   },
+   {
+    "id": "P02",
+    "mutant": "network-namespace spawn executes the resolved file",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class",
+     "a_plain_sh_request_runs_as_sh_in_every_mode"
+    ]
+   },
+   {
+    "id": "P03",
+    "mutant": "confined spawn executes the resolved file",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class",
+     "a_plain_sh_request_runs_as_sh_in_every_mode"
+    ]
+   },
+   {
+    "id": "P05",
+    "mutant": "confined: found path not required under the toolchain",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class"
+    ]
+   },
+   {
+    "id": "P06",
+    "mutant": "confined: resolved target not required under the toolchain",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_linked_program_runs_under_its_link_name_in_every_class"
+    ]
+   },
+   {
+    "id": "Q01",
+    "mutant": "dispatcher program accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class"
+    ]
+   },
+   {
+    "id": "Q02",
+    "mutant": "dispatcher declared binary accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class"
+    ]
+   },
+   {
+    "id": "Q03",
+    "mutant": "cargo not treated as a dispatcher name",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class"
+    ]
+   },
+   {
+    "id": "Q04",
+    "mutant": "a declared link bound with its target content (pre-round-5 behaviour)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared",
+     "the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only"
+    ]
+   },
+   {
+    "id": "Q05",
+    "mutant": "a declared link whose target is undeclared accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared"
+    ]
+   },
+   {
+    "id": "Q06",
+    "mutant": "a declaration passing through a link accepted",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared"
+    ]
+   },
+   {
+    "id": "S01",
+    "mutant": "sysroot check skipped for the program",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified"
+    ]
+   },
+   {
+    "id": "S02",
+    "mutant": "sysroot check compares nothing (any printed sysroot with a bin/rustc passes)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified"
+    ]
+   },
+   {
+    "id": "S03",
+    "mutant": "cargo sibling check skipped",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified"
+    ]
+   },
+   {
+    "id": "S04",
+    "mutant": "sysroot check skipped for declared binaries",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified"
+    ]
+   },
+   {
+    "id": "S05",
+    "mutant": "-vV only for programs found as rustc/cargo (round-5 rule)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified"
+    ]
+   },
+   {
+    "id": "T01",
+    "mutant": "cargo's own sysroot check replaced by true (round 7)",
+    "verdict": "KILLED",
+    "killed_by": [
+     "a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified"
+    ]
+   }
+  ],
+  "survived": [
+   {
+    "id": "M02",
+    "mutant": "probe checks exit codes only",
+    "why": "the positive control in the same layout fails under every tested way to make a negative answer 127 for another reason; defense in depth, not proven equivalent (RES-G189-PROBE-STDERR-MATCH-UNKILLED)"
+   },
+   {
+    "id": "N09",
+    "mutant": "--propagation unchanged",
+    "why": "equivalent on this host: private is unshare's default for --mount and the host has no shared or slave mount to inherit"
+   },
+   {
+    "id": "N11",
+    "mutant": "probe with an empty environment",
+    "why": "equivalent: the probed paths are executed by the nested unshare, whose path resolution does not read the environment; the declared environment is exported anyway so the probe and the run are the same helper invocation"
+   },
+   {
+    "id": "N14",
+    "mutant": "tmpfs root remounted without nosuid",
+    "why": "equivalent by redundancy: the tmpfs is created nosuid,nodev and the remount keeps it"
+   }
+  ],
+  "earlier_rounds": "round 1: 22 mutants, 21 killed (its M05 wrote /usr/bin/atlas-g189-write on the host while live; that write probe is gone); round 2: 37, 32; round 3: 44, 39; round 4: 44, 40; round 5: 50, 45 (P04 then survived; it was not equivalent -- see review_round_6); round 6 re-anchored M12, dropped P04 (its code is gone; S05 is its successor) and added S01-S05"
+ },
+ "cost": {
+  "probe_per_run": "3 confinement starts (4 with proc), ~20 ms each in this container",
+  "confined_rustc_compile_wall_s_debug_cli": 1.133,
+  "first_cold_confined_compile_wall_s": "0.9 (6.8 on the very first cold run of a new toolchain)"
+ },
+ "residuals": [
+  {
+   "id": "RES-G189-NO-SECCOMP-NO-CGROUP",
+   "reproduction": "a confined request whose program makes arbitrary system calls or forks without bound: nothing filters syscalls, nothing limits memory, CPU or pids besides the timeout",
+   "severity": "MEDIUM",
+   "can_create_false_claim": true,
+   "false_claim_condition": "a kernel defect reachable from an unprivileged user namespace lets the program leave the chroot; the record still says FILESYSTEM_CONFINED ENFORCED (the probe ran before the program)",
+   "subsystem": "runtime::sandbox (confined class)",
+   "reopen_trigger": "a seccomp or cgroup mechanism admissible without unsafe code or with a decided dependency, or a confined run used as evidence for an untrusted program"
+  },
+  {
+   "id": "RES-G189-CHROOT-NOT-PIVOT",
+   "reproduction": "from the host, read /proc/<outer unshare child pid>/mountinfo during a confined run: the host mount tree is present in the run's mount namespace below the chroot",
+   "severity": "MEDIUM",
+   "can_create_false_claim": true,
+   "false_claim_condition": "the program regains CAP_SYS_CHROOT or CAP_SYS_ADMIN over the outer namespaces (kernel defect) or inherits a descriptor to a directory outside the root; it could then reach host paths while the record says ENFORCED",
+   "subsystem": "runtime::sandbox (confined class)",
+   "reopen_trigger": "a pivot_root step can run inside the new root (a static helper admitted) or the mechanism changes"
+  },
+  {
+   "id": "RES-G189-LOADER-ENV-LIST",
+   "reproduction": "declare, in a confined request, an environment variable outside LD_*, GCONV_PATH, GLIBC_TUNABLES, LOCPATH, NLSPATH that glibc acts on at process start: the pre-chroot nested unshare receives it",
+   "severity": "MEDIUM",
+   "can_create_false_claim": true,
+   "false_claim_condition": "such a variable makes the pre-chroot unshare load or read attacker-chosen host content; reads outside the inputs happen before the chroot while the record says ENFORCED",
+   "subsystem": "runtime::sandbox (confined class, refused_env_name)",
+   "reopen_trigger": "glibc adds a start-up variable that loads code or data, or a way to apply the environment after the chroot without unsafe code"
+  },
+  {
+   "id": "RES-G189-NETWORK-OPTIONAL",
+   "reproduction": "a confined request with deny_network false: the host network and abstract unix sockets are reachable",
+   "severity": "MEDIUM",
+   "can_create_false_claim": true,
+   "false_claim_condition": "a consumer reads FILESYSTEM_CONFINED as \"cannot obtain host file content\" while a host service on the network or an abstract socket serves files",
+   "subsystem": "runtime::sandbox",
+   "reopen_trigger": "a consumer (M16) relies on confinement without denying the network"
+  },
+  {
+   "id": "RES-G189-TOOLCHAIN-DIRS-UNHASHED",
+   "reproduction": "replace librustc_driver-*.so in the sysroot keeping the rustc shim and its -vV output: the pinned identity still matches",
+   "severity": "MEDIUM",
+   "can_create_false_claim": true,
+   "false_claim_condition": "a pin is read as identifying the whole toolchain while only the program, the declared binaries and -vV are digested (the helpers unshare/sh/mount/mkdir/ln are not identified at all; cargo -vV identifies cargo, not the rustc it invokes, which RUSTC, RUSTC_WRAPPER and PATH select; a wrapper that answers --print sysroot and -vV falsely passes the sysroot rule -- it is the requester's own program, pinned by its digest, but its -vV says nothing true)",
+   "subsystem": "core::sandbox ToolchainIdentity / runtime::sandbox",
+   "reopen_trigger": "M16 hermetic build inputs, or a pin used to admit a build as evidence"
+  },
+  {
+   "id": "RES-G189-TOOLCHAIN-SOCKETS",
+   "reproduction": "declare a toolchain directory outside /run, /var/run, /tmp, /var/tmp, /dev/shm that holds a unix socket (or a FIFO): the read-only bind exposes it and connect() on it succeeds inside the confinement",
+   "severity": "MEDIUM",
+   "can_create_false_claim": true,
+   "false_claim_condition": "a host service listening on a socket inside a declared directory serves host data; the run obtains it while FILESYSTEM_CONFINED says ENFORCED (reads are confined, connections are not)",
+   "subsystem": "runtime::sandbox toolchain_binds",
+   "reopen_trigger": "a declared toolchain directory known to hold sockets, or a socket scan of declared trees becomes affordable"
+  },
+  {
+   "id": "RES-G189-CALLER-KUID",
+   "reproduction": "id inside a confined run shows uid 1000 of the nested namespace; on the host its files are owned by the caller (root here)",
+   "severity": "LOW",
+   "can_create_false_claim": false,
+   "false_claim_condition": "none known: every visible path but /work is mounted read-only and the program has no capability; a writable host path made visible would change this",
+   "subsystem": "runtime::sandbox (confined class)",
+   "reopen_trigger": "a writable path other than /work becomes visible, or an unprivileged outer uid (subordinate ids) becomes available"
+  },
+  {
+   "id": "RES-G189-ROOT-CONTAINER-ONLY",
+   "reproduction": "run the confined tests as a non-root user on a host with unprivileged user namespaces",
+   "severity": "LOW",
+   "can_create_false_claim": false,
+   "false_claim_condition": "none: the probe gates the claim on any host; only availability is untested",
+   "subsystem": "runtime::sandbox",
+   "reopen_trigger": "Atlas runs on a non-root or non-container host"
+  },
+  {
+   "id": "RES-G189-HOST-PATH-TOCTOU",
+   "reproduction": "replace a declared toolchain directory by a link to a broader directory between the declaration check and the helper bind",
+   "severity": "LOW",
+   "can_create_false_claim": true,
+   "false_claim_condition": "a concurrent host writer swaps a declared toolchain path, or a link on the program path between resolution and exec; more of the host is visible than declared (or another file runs than was identified) while the probe (which covers only the run directory and procfs) passes",
+   "subsystem": "runtime::sandbox (toolchain_binds / CONFINE_SCRIPT / Program::resolve)",
+   "reopen_trigger": "toolchain paths writable by an untrusted party"
+  },
+  {
+   "id": "RES-G189-PROBE-STDERR-MATCH-UNKILLED",
+   "reproduction": "mutant M02 (exit codes only) survives the sandbox tests",
+   "severity": "LOW",
+   "can_create_false_claim": false,
+   "false_claim_condition": "only if a negative path could answer 127 for a reason other than ENOENT while the control answers 126 in the same layout; not observed",
+   "subsystem": "runtime::sandbox probe",
+   "reopen_trigger": "a helper change that can make a probed path answer 127 without ENOENT"
+  },
+  {
+   "id": "RES-G189-VERIFICATION-AMBIENT",
+   "reproduction": "runtime::verification command evidence records \"ambient host process ... (not sandboxed: DEBT-SANDBOXED_EXECUTION)\"",
+   "severity": "MEDIUM",
+   "can_create_false_claim": false,
+   "false_claim_condition": "none: those records say they were not sandboxed",
+   "subsystem": "runtime::verification",
+   "reopen_trigger": "M16 / NA-CONFINED-DELEGATED-BUILD or verification evidence produced inside the sandbox"
+  }
+ ],
+ "construction_status": {
+  "M22": "mechanism implemented and demonstrated on this host (confined run, per-run probe, per-run toolchain identity); roadmap not edited by this lane",
+  "M16": "MISSING (confined delegated build unclaimed)"
+ },
+ "boundary": {
+  "not_claimed": "not physically safe, not production-ready, not certified; no seccomp, no cgroup limits; builds and tests of Atlas itself do not yet run confined; verification evidence is still produced with ambient authority"
+ }
+}
