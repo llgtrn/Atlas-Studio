@@ -1,11 +1,15 @@
 //! Agent global context: what an agent working inside one shard must know about the rest of
 //! Chronica before it builds anything substantial — what exists, who physically holds it, how
 //! to depend on it, which canonical technologies it should reuse instead of re-inventing, and
-//! the current migration and extinction state. Generated from the graph, never hand-written.
+//! the current migration and extinction state, and the current milestones and decisions of the
+//! knowledge store. Generated from the graph, never hand-written.
 
 use crate::linker::SystemImage;
 use crate::schema::{DonorState, TechnologyLifecycle, WaveStatus};
 use crate::Assessment;
+
+/// Subjects per kind shown in the knowledge section of the context.
+pub const CONTEXT_KNOWLEDGE_LIMIT: usize = 40;
 
 pub fn render(a: &Assessment, system: Option<&SystemImage>) -> String {
     let d = &a.declaration;
@@ -164,6 +168,11 @@ pub fn render(a: &Assessment, system: Option<&SystemImage>) -> String {
         a.metric("donors_registered"),
         a.metric("external_technology_edges"),
         a.metric("extinction_ratio")
+    ));
+    s.push('\n');
+    s.push_str(&crate::compact::view::summary(
+        &a.knowledge,
+        CONTEXT_KNOWLEDGE_LIMIT,
     ));
     s.push_str("\nBEFORE BUILDING INFRASTRUCTURE\n  ynventa technology search <need>  ·  ynventa show <key> --system <image>  ·  never `cargo add` a donor\n");
     s

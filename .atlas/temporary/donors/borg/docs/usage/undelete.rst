@@ -1,1 +1,0 @@
-.. include:: undelete.rst.inc

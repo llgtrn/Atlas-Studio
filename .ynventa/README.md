@@ -6,7 +6,14 @@ Rust, zero dependencies, no network, no runtime link to any other repository.
     cargo run --manifest-path .ynventa/Cargo.toml -- <command> [--root <repo>]
 
 `status` `verify` `audit` `census` `extinction` `graph` `metrics` `compact` `conformance`
-`migrate` `prove` `protocol` — identical semantics everywhere; `help` lists them.
+`migrate` `prove` `protocol` `fact` `knowledge` — identical semantics everywhere; `help` lists
+them.
+
+Knowledge (architecture, decisions, milestones, gaps) is typed facts, never Markdown:
+`fact add <kind> <subject> <key> <value> --provenance <p>` writes one fact (a newer value of the
+same kind/subject/key supersedes the older one, which is kept); `fact list` and
+`knowledge view` read; `knowledge extract <doc>...` extracts exactly the named documents.
+`status` and `context` show the current milestones and decisions.
 
 Authoritative state (repository-specific, never hand-written Markdown):
 

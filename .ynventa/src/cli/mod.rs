@@ -45,6 +45,9 @@ impl Args {
             "--node",
             "--into",
             "--cargo-home",
+            "--provenance",
+            "--kind",
+            "--subject",
         ];
         let lists = ["--merge", "--aggregate"];
         let mut i = 0;
@@ -87,6 +90,14 @@ impl Args {
             .iter()
             .find(|(n, _)| n == k)
             .map(|(_, v)| v.as_str())
+    }
+    /// Every value of a repeatable valued option, in order.
+    fn values_of(&self, k: &str) -> Vec<String> {
+        self.values
+            .iter()
+            .filter(|(n, _)| n == k)
+            .map(|(_, v)| v.clone())
+            .collect()
     }
     fn list(&self, k: &str) -> Vec<PathBuf> {
         self.multi
@@ -133,6 +144,8 @@ pub fn run(raw: &[String]) -> (i32, String) {
         "backlinks" => show(&args, true),
         "context" => context(&args),
         "technology" => technology(&args),
+        "fact" => fact_cmd(&args),
+        "knowledge" => knowledge_cmd(&args),
         "help" | "--help" | "-h" => Ok((0, usage())),
         other => Err(format!("unknown command `{other}`\n{}", usage())),
     };
@@ -199,6 +212,9 @@ fn gate_text(a: &Assessment) -> (bool, String) {
     (all, s)
 }
 
+/// Subjects per kind shown in the knowledge section of `status`.
+const STATUS_KNOWLEDGE_LIMIT: usize = 12;
+
 fn status(args: &Args, a: &Assessment) -> Out {
     if args.json {
         return Ok((
@@ -211,7 +227,7 @@ fn status(args: &Args, a: &Assessment) -> Out {
     Ok((
         0,
         format!(
-            "{} ({}) system={} shard={} protocol=v{}\nnodes={} donors={} waves={} shims={}\n\nmetrics:\n{}\n{}V1: {}\n\n{}",
+            "{} ({}) system={} shard={} protocol=v{}\nnodes={} donors={} waves={} shims={}\n\nmetrics:\n{}\n{}V1: {}\n\n{}\n{}",
             d.repository.name,
             d.repository.origin,
             d.repository.system,
@@ -224,6 +240,7 @@ fn status(args: &Args, a: &Assessment) -> Out {
             metrics_text(a),
             gate,
             if pass { "PASS" } else { "NOT YET" },
+            compact::view::summary(&a.knowledge, STATUS_KNOWLEDGE_LIMIT),
             findings_text(a, 25)
         ),
     ))
@@ -512,9 +529,10 @@ fn compact_cmd(args: &Args) -> Out {
         let mut seq = a.knowledge.next_seq();
         let mut facts = Vec::new();
         let mut n = 0;
+        let commit = crate::repository::files::head_commit(root);
         for d in a.docs.over_budget().filter(|d| !d.extracted) {
             if let Some(text) = a.files.read(&d.path) {
-                facts.extend(audit::extract(&d.path, &text, seq));
+                facts.extend(audit::extract_at(&d.path, &text, seq, commit.as_deref()));
                 seq += 1;
                 n += 1;
             }
@@ -648,6 +666,237 @@ fn compact_cmd(args: &Args) -> Out {
         compact::VIEW_FILE
     ));
     Ok((0, s))
+}
+
+fn parse_kind(s: &str) -> Result<FactKind, String> {
+    FactKind::from_wire(&s.to_ascii_uppercase())
+        .or_else(|| FactKind::from_variant(s))
+        .ok_or_else(|| {
+            format!(
+                "unknown fact kind `{s}`; one of {}",
+                FactKind::ALL
+                    .iter()
+                    .map(|k| k.wire())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        })
+}
+
+fn kind_filter(args: &Args) -> Result<Option<FactKind>, String> {
+    args.value("--kind").map(parse_kind).transpose()
+}
+
+fn fact_json(f: &Fact) -> Json {
+    Json::obj()
+        .with("id", f.id())
+        .with("kind", f.kind.wire())
+        .with("subject", &f.subject)
+        .with("key", &f.key)
+        .with("value", &f.value)
+        .with(
+            "provenance",
+            f.provenance.iter().cloned().collect::<Vec<_>>(),
+        )
+        .with("seq", f.seq)
+        .with("superseded", f.superseded.clone())
+}
+
+/// `fact add | supersede | list`: single typed facts, written one batch at a time.
+fn fact_cmd(args: &Args) -> Out {
+    const USAGE: &str = "fact add <kind> <subject> <key> <value> --provenance <p> [--provenance <p>...]\n     | fact supersede <kind> <subject> <key> <value> --provenance <p>...\n     | fact list [--kind <kind>] [--subject <prefix>] [--json]";
+    let sub = args.positional.first().map(String::as_str).unwrap_or("");
+    match sub {
+        "add" | "supersede" => {
+            let [kind, subject, key, value] = match &args.positional[1..] {
+                [k, s, ke, v] => [k, s, ke, v],
+                _ => {
+                    return Err(format!(
+                        "fact {sub} takes exactly <kind> <subject> <key> <value> (quote values with spaces)\nusage: {USAGE}"
+                    ))
+                }
+            };
+            let kind = parse_kind(kind)?;
+            let mode = if sub == "add" {
+                compact::facts::Assert::Add
+            } else {
+                compact::facts::Assert::Supersede
+            };
+            let (batch, f) = compact::facts::assert_fact(
+                &args.root,
+                mode,
+                kind,
+                subject,
+                key,
+                value,
+                &args.values_of("--provenance"),
+            )?;
+            if args.json {
+                return Ok((
+                    0,
+                    Json::obj()
+                        .with("batch", batch)
+                        .with("fact", fact_json(&f))
+                        .render(),
+                ));
+            }
+            Ok((
+                0,
+                format!(
+                    "{}wrote {batch} (`ynventa compact` folds batches)\n",
+                    compact::view::line(&f)
+                ),
+            ))
+        }
+        "list" => {
+            let k = Knowledge::load(&args.root);
+            let kind = kind_filter(args)?;
+            let facts = k.current(kind, args.value("--subject"));
+            if args.json {
+                return Ok((
+                    0,
+                    Json::obj()
+                        .with(
+                            "facts",
+                            Json::Array(facts.iter().map(|f| fact_json(f)).collect()),
+                        )
+                        .with("unreadable", k.unreadable.clone())
+                        .render(),
+                ));
+            }
+            let mut s: String = facts.iter().map(|f| compact::view::line(f)).collect();
+            if facts.is_empty() {
+                s.push_str("no facts\n");
+            }
+            for u in &k.unreadable {
+                s.push_str(&format!("unreadable: {u}\n"));
+            }
+            Ok((0, s))
+        }
+        _ => Err(format!("usage: {USAGE}")),
+    }
+}
+
+/// Whether `out` lies under `<root>/.ynventa`, judged on the absolute paths of the existing
+/// ancestors (so `..` and symlinks cannot smuggle a view into canonical state).
+fn under_subsystem(root: &Path, out: &Path) -> bool {
+    let abs = |p: &Path| -> PathBuf {
+        let p = if p.is_absolute() {
+            p.to_path_buf()
+        } else {
+            std::env::current_dir().unwrap_or_default().join(p)
+        };
+        // Canonicalize the deepest existing ancestor; keep the rest lexically.
+        let mut base = p.clone();
+        let mut rest = Vec::new();
+        while !base.exists() {
+            match (base.parent(), base.file_name()) {
+                (Some(parent), Some(name)) => {
+                    rest.push(name.to_os_string());
+                    base = parent.to_path_buf();
+                }
+                _ => break,
+            }
+        }
+        let mut full = base.canonicalize().unwrap_or(base);
+        for r in rest.into_iter().rev() {
+            full.push(r);
+        }
+        full
+    };
+    abs(out).starts_with(abs(&root.join(".ynventa")))
+}
+
+/// `knowledge view | extract`: read-only views of current facts, and targeted extraction.
+fn knowledge_cmd(args: &Args) -> Out {
+    const USAGE: &str = "knowledge view [--kind <kind>] [--text] [--out <file>]\n     | knowledge extract <document>...";
+    let sub = args.positional.first().map(String::as_str).unwrap_or("");
+    match sub {
+        "view" => {
+            let k = Knowledge::load(&args.root);
+            let kind = kind_filter(args)?;
+            let body = if args.flag("--text") {
+                compact::view::text(&k, kind)
+            } else {
+                compact::view::markdown(&k, kind)
+            };
+            match args.value("--out") {
+                None => Ok((0, body)),
+                Some(out) => {
+                    let out = PathBuf::from(out);
+                    if under_subsystem(&args.root, &out) {
+                        return Err(format!(
+                            "{} is under .ynventa/: a view is never written into canonical state",
+                            out.display()
+                        ));
+                    }
+                    if let Some(p) = out.parent().filter(|p| !p.as_os_str().is_empty()) {
+                        std::fs::create_dir_all(p).map_err(|e| e.to_string())?;
+                    }
+                    std::fs::write(&out, &body).map_err(|e| e.to_string())?;
+                    Ok((
+                        0,
+                        format!("view: {} ({} bytes)\n", out.display(), body.len()),
+                    ))
+                }
+            }
+        }
+        "extract" => {
+            let paths: Vec<String> = args.positional[1..]
+                .iter()
+                .map(|p| p.trim_start_matches("./").trim_end_matches('/').to_string())
+                .collect();
+            if paths.is_empty() {
+                return Err(format!("name the documents to extract\nusage: {USAGE}"));
+            }
+            let k = Knowledge::load(&args.root);
+            if !k.unreadable.is_empty() {
+                return Err(format!(
+                    "unreadable knowledge; refusing to write: {}",
+                    k.unreadable.join("; ")
+                ));
+            }
+            // Validate every path before writing anything.
+            let mut texts = Vec::new();
+            for p in &paths {
+                if p.is_empty() || p.starts_with("../") || Path::new(p).is_absolute() {
+                    return Err(format!("`{p}` is not a repository-relative path"));
+                }
+                if p == ".ynventa" || p.starts_with(".ynventa/") {
+                    return Err(format!("`{p}` is canonical state, not a document"));
+                }
+                if !audit::is_document(p) {
+                    return Err(format!("`{p}` is not a document (.md, .markdown, .mdx)"));
+                }
+                let text =
+                    std::fs::read_to_string(args.root.join(p)).map_err(|e| format!("{p}: {e}"))?;
+                texts.push((p.clone(), text));
+            }
+            texts.sort();
+            texts.dedup();
+            let commit = crate::repository::files::head_commit(&args.root);
+            let mut seq = k.next_seq();
+            let mut facts = Vec::new();
+            let mut s = String::new();
+            for (p, text) in &texts {
+                let digest = crate::digest::content_digest(text.as_bytes());
+                if k.document_digest(p) == Some(digest.as_str()) {
+                    s.push_str(&format!("{p}: unchanged since its extraction\n"));
+                    continue;
+                }
+                let x = audit::extract_at(p, text, seq, commit.as_deref());
+                s.push_str(&format!("{p}: {} facts\n", x.len() - 1));
+                facts.extend(x);
+                seq += 1;
+            }
+            if !facts.is_empty() {
+                let batch = Knowledge::add(&args.root, &facts).map_err(|e| e.to_string())?;
+                s.push_str(&format!("wrote {batch}\n"));
+            }
+            Ok((0, s))
+        }
+        _ => Err(format!("usage: {USAGE}")),
+    }
 }
 
 /// The generated human view. Never authoritative; regenerate at will.

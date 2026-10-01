@@ -290,7 +290,7 @@ pub fn audit(files: &Files, d: &Declaration, knowledge: &Knowledge) -> DocAudit 
                 issues.push(Issue::StaleArchitecture(dead, refs.len() as u64));
             }
         }
-        let ls = &line_sets[p];
+        let ls = statement_units(text);
         if !ls.is_empty() && !statements.is_empty() {
             let represented = ls
                 .iter()
@@ -331,37 +331,79 @@ fn referenced_paths(text: &str) -> Vec<String> {
     out.into_iter().collect()
 }
 
-/// Extracts a document's knowledge as facts: statements, definitions, decisions, and the
-/// document's own digest (which later licenses its deletion).
-pub fn extract(path: &str, text: &str, seq: u64) -> Vec<Fact> {
-    let mut facts = Vec::new();
-    let mut headings: Vec<String> = Vec::new();
+/// A logical block of a document: a heading, a fenced code block, a table row, or a paragraph
+/// or list item together with its wrapped continuation lines. Lines are 1-based.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Block {
+    pub first: usize,
+    pub last: usize,
+    pub kind: BlockKind,
+    pub text: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BlockKind {
+    Heading(usize),
+    Code,
+    Text,
+}
+
+/// Whether a line opens a list item: `- `, `* `, `+ ` or `1. ` / `1) `, after any quote marks.
+fn opens_item(line: &str) -> bool {
+    let l = line.trim_start_matches(['>', ' ']);
+    if l.starts_with("- ") || l.starts_with("* ") || l.starts_with("+ ") || l == "-" {
+        return true;
+    }
+    let digits = l.chars().take_while(char::is_ascii_digit).count();
+    digits > 0 && (l[digits..].starts_with(". ") || l[digits..].starts_with(") "))
+}
+
+/// Whether a line is a `Field: value` line (`Status: Accepted`, `**Date**: …`), which starts
+/// its own block even without a blank line before it.
+fn opens_field(line: &str) -> bool {
+    let l = line.trim_start_matches(['>', ' ', '*']);
+    let Some((term, _)) = l.split_once(": ").or_else(|| l.split_once(":** ")) else {
+        return false;
+    };
+    let term = term.trim_end_matches('*');
+    let words = term.split_whitespace().count();
+    (1..=3).contains(&words)
+        && !term.contains('`')
+        && term.chars().next().is_some_and(char::is_uppercase)
+}
+
+/// A rule or table separator: only `-`, `|`, `:`, `=` and spaces.
+fn is_rule(line: &str) -> bool {
+    !line.is_empty()
+        && line
+            .chars()
+            .all(|c| matches!(c, '-' | '|' | ':' | ' ' | '=' | '*' | '_'))
+        && line.chars().any(|c| c != ' ')
+        && line.len() >= 3
+}
+
+/// Splits a document into logical blocks. A wrapped paragraph or list item is one block: its
+/// continuation lines are joined with single spaces, so it is classified as one statement.
+pub fn blocks(text: &str) -> Vec<Block> {
+    let mut out = Vec::new();
+    let mut open: Option<Block> = None;
     let mut in_code = false;
     let mut code = String::new();
-    let decision = is_decision_record(path);
-    let stem = path
-        .rsplit('/')
-        .next()
-        .unwrap_or(path)
-        .trim_end_matches(".md")
-        .to_string();
+    let mut code_start = 0;
     for (i, raw) in text.lines().enumerate() {
+        let n = i + 1;
         let line = raw.trim();
-        let prov = format!("doc:{path}#L{}", i + 1);
         if line.starts_with("```") {
+            out.extend(open.take());
             if in_code {
-                let k = normalize(&code);
-                if !k.is_empty() {
-                    facts.push(Fact::new(
-                        FactKind::Statement,
-                        "",
-                        &k,
-                        code.trim_end(),
-                        &prov,
-                        seq,
-                    ));
-                }
-                code.clear();
+                out.push(Block {
+                    first: code_start,
+                    last: n,
+                    kind: BlockKind::Code,
+                    text: std::mem::take(&mut code),
+                });
+            } else {
+                code_start = n;
             }
             in_code = !in_code;
             continue;
@@ -371,76 +413,188 @@ pub fn extract(path: &str, text: &str, seq: u64) -> Vec<Fact> {
             code.push('\n');
             continue;
         }
+        if line.is_empty() || is_rule(line) {
+            out.extend(open.take());
+            continue;
+        }
         if let Some(h) = line.strip_prefix('#') {
+            out.extend(open.take());
             let level = 1 + h.chars().take_while(|c| *c == '#').count();
-            let title = h.trim_start_matches('#').trim().to_string();
-            headings.truncate(level.saturating_sub(1));
-            headings.push(title.clone());
-            if decision && level == 1 {
-                facts.push(Fact::new(
-                    FactKind::Decision,
-                    &stem,
-                    "title",
-                    &title,
-                    &prov,
-                    seq,
-                ));
-            }
+            out.push(Block {
+                first: n,
+                last: n,
+                kind: BlockKind::Heading(level),
+                text: h.trim_start_matches('#').trim().to_string(),
+            });
             continue;
         }
-        let body = line.trim_start_matches(['-', '*', '+', '>', ' ']).trim();
-        if body.is_empty()
-            || body
-                .chars()
-                .all(|c| matches!(c, '-' | '|' | ':' | ' ' | '='))
-        {
-            continue;
-        }
-        if decision {
-            if let Some(st) = body
-                .strip_prefix("Status:")
-                .or_else(|| body.strip_prefix("**Status**:"))
+        let row = line.starts_with('|');
+        match open.as_mut() {
+            Some(b)
+                if !row && !b.text.starts_with('|') && !opens_item(line) && !opens_field(line) =>
             {
-                facts.push(Fact::new(
-                    FactKind::Decision,
-                    &stem,
-                    "status",
-                    st.trim(),
-                    &prov,
-                    seq,
-                ));
-                continue;
+                b.text.push(' ');
+                b.text.push_str(line.trim_start_matches(['>', ' ']).trim());
+                b.last = n;
+            }
+            _ => {
+                out.extend(open.take());
+                open = Some(Block {
+                    first: n,
+                    last: n,
+                    kind: BlockKind::Text,
+                    text: line.to_string(),
+                });
             }
         }
-        let def = body.split_once(": ").filter(|(t, d)| {
-            !t.is_empty()
-                && t.split_whitespace().count() <= 5
-                && !d.trim().is_empty()
-                && !t.contains('`')
-        });
-        match def {
-            Some((term, definition)) => facts.push(Fact::new(
-                FactKind::Definition,
-                &headings.join(" / "),
-                &normalize(term),
-                definition.trim(),
-                &prov,
-                seq,
-            )),
-            None => {
-                let k = normalize(body);
+    }
+    out.extend(open);
+    out
+}
+
+/// The text of a block without its list or quote marker.
+fn block_body(b: &Block) -> &str {
+    b.text.trim_start_matches(['-', '*', '+', '>', ' ']).trim()
+}
+
+/// Normalised statement keys of a document, as [`extract`] would key them.
+fn statement_units(text: &str) -> BTreeSet<String> {
+    blocks(text)
+        .iter()
+        .filter_map(|b| match b.kind {
+            BlockKind::Heading(_) => None,
+            BlockKind::Code => Some(normalize(&b.text)),
+            BlockKind::Text => Some(normalize(block_body(b))),
+        })
+        .filter(|l| l.len() >= 12 && l.chars().any(|c| c.is_alphabetic()))
+        .collect()
+}
+
+/// Where a block was found: `doc:<path>#L<a>[-L<b>]`, and with a commit also
+/// `git:<sha>:<path>#L<a>[-L<b>]`.
+fn provenance(path: &str, first: usize, last: usize, commit: Option<&str>) -> Vec<String> {
+    let lines = if first == last {
+        format!("#L{first}")
+    } else {
+        format!("#L{first}-L{last}")
+    };
+    let mut out = vec![format!("doc:{path}{lines}")];
+    if let Some(c) = commit.filter(|c| !c.is_empty()) {
+        out.push(format!("git:{c}:{path}{lines}"));
+    }
+    out
+}
+
+fn fact(kind: FactKind, subject: &str, key: &str, value: &str, prov: &[String], seq: u64) -> Fact {
+    let mut f = Fact::new(kind, subject, key, value, &prov[0], seq);
+    f.provenance.extend(prov.iter().cloned());
+    f
+}
+
+/// Extracts a document's knowledge as facts: statements, definitions, decisions, and the
+/// document's own digest (which later licenses its deletion).
+pub fn extract(path: &str, text: &str, seq: u64) -> Vec<Fact> {
+    extract_at(path, text, seq, None)
+}
+
+/// [`extract`], with provenance that also names the commit the document was read at.
+pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec<Fact> {
+    let mut facts = Vec::new();
+    let mut headings: Vec<String> = Vec::new();
+    let decision = is_decision_record(path);
+    let stem = path
+        .rsplit('/')
+        .next()
+        .unwrap_or(path)
+        .trim_end_matches(".md")
+        .to_string();
+    for b in blocks(text) {
+        let prov = provenance(path, b.first, b.last, commit);
+        match b.kind {
+            BlockKind::Code => {
+                let k = normalize(&b.text);
                 if !k.is_empty() {
-                    facts.push(Fact::new(FactKind::Statement, "", &k, body, &prov, seq));
+                    facts.push(fact(
+                        FactKind::Statement,
+                        "",
+                        &k,
+                        b.text.trim_end(),
+                        &prov,
+                        seq,
+                    ));
+                }
+            }
+            BlockKind::Heading(level) => {
+                headings.truncate(level.saturating_sub(1));
+                headings.push(b.text.clone());
+                if decision && level == 1 {
+                    facts.push(fact(
+                        FactKind::Decision,
+                        &stem,
+                        "title",
+                        &b.text,
+                        &prov,
+                        seq,
+                    ));
+                }
+            }
+            BlockKind::Text => {
+                let body = block_body(&b);
+                if body.is_empty() || is_rule(body) {
+                    continue;
+                }
+                if decision {
+                    if let Some(st) = body
+                        .strip_prefix("Status:")
+                        .or_else(|| body.strip_prefix("**Status**:"))
+                        .or_else(|| body.strip_prefix("Status**:"))
+                    {
+                        facts.push(fact(
+                            FactKind::Decision,
+                            &stem,
+                            "status",
+                            st.trim(),
+                            &prov,
+                            seq,
+                        ));
+                        continue;
+                    }
+                }
+                let def = body.split_once(": ").filter(|(t, d)| {
+                    !t.is_empty()
+                        && t.split_whitespace().count() <= 5
+                        && !d.trim().is_empty()
+                        && !t.contains('`')
+                });
+                match def {
+                    Some((term, definition)) => facts.push(fact(
+                        FactKind::Definition,
+                        &headings.join(" / "),
+                        &normalize(term),
+                        definition.trim(),
+                        &prov,
+                        seq,
+                    )),
+                    None => {
+                        let k = normalize(body);
+                        if !k.is_empty() {
+                            facts.push(fact(FactKind::Statement, "", &k, body, &prov, seq));
+                        }
+                    }
                 }
             }
         }
     }
-    facts.push(Fact::new(
+    let mut whole = vec![format!("doc:{path}")];
+    if let Some(c) = commit.filter(|c| !c.is_empty()) {
+        whole.push(format!("git:{c}:{path}"));
+    }
+    facts.push(fact(
         FactKind::Document,
         path,
         "digest",
         &content_digest(text.as_bytes()),
-        &format!("doc:{path}"),
+        &whole,
         seq,
     ));
     facts
@@ -472,5 +626,79 @@ mod tests {
         assert!(facts
             .iter()
             .any(|f| f.kind == FactKind::Document && f.subject == ".atlas/decisions/0001-hash.md"));
+    }
+    #[test]
+    fn wrapped_bullet_is_one_fact() {
+        let text = "# Notes\n\n- The page store is append-only and every\n  record is addressed by its digest.\n- Census: a deterministic observation\n  of committed content.\n1. First numbered item that\n   wraps onto a second line.\n\nA plain paragraph that is\nwrapped by the editor\n> and quoted.\nStatus: Draft\nDate: 2026-10-01\n\n| a | b |\n|---|---|\n| c | d |\n";
+        let facts = extract("docs/notes.md", text, 1);
+        let statements: Vec<&str> = facts
+            .iter()
+            .filter(|f| f.kind == FactKind::Statement)
+            .map(|f| f.value.as_str())
+            .collect();
+        assert!(statements.contains(
+            &"The page store is append-only and every record is addressed by its digest."
+        ));
+        assert!(statements.contains(&"1. First numbered item that wraps onto a second line."));
+        assert!(statements.contains(&"A plain paragraph that is wrapped by the editor and quoted."));
+        assert!(
+            !statements
+                .iter()
+                .any(|s| s.starts_with("record is addressed")),
+            "no fragment of a wrapped bullet: {statements:?}"
+        );
+        let census = facts
+            .iter()
+            .find(|f| f.kind == FactKind::Definition && f.key == "census")
+            .unwrap();
+        assert_eq!(
+            census.value,
+            "a deterministic observation of committed content."
+        );
+        assert_eq!(
+            census.provenance.iter().cloned().collect::<Vec<_>>(),
+            vec!["doc:docs/notes.md#L5-L6".to_string()]
+        );
+        // Field lines start their own block; table rows stay separate.
+        assert!(facts
+            .iter()
+            .any(|f| f.kind == FactKind::Definition && f.key == "status" && f.value == "Draft"));
+        assert!(facts
+            .iter()
+            .any(|f| f.kind == FactKind::Definition && f.key == "date"));
+        assert!(statements.contains(&"| a | b |") && statements.contains(&"| c | d |"));
+    }
+
+    #[test]
+    fn extraction_provenance_names_the_commit() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let facts = extract_at(
+            ".atlas/decisions/0002-x.md",
+            "# X\n\nStatus: Accepted\n\n- A statement that\n  wraps.\n",
+            3,
+            Some(sha),
+        );
+        let st = facts
+            .iter()
+            .find(|f| f.kind == FactKind::Statement)
+            .unwrap();
+        assert!(st
+            .provenance
+            .contains(&format!("git:{sha}:.atlas/decisions/0002-x.md#L5-L6")));
+        assert!(st
+            .provenance
+            .contains("doc:.atlas/decisions/0002-x.md#L5-L6"));
+        let status = facts.iter().find(|f| f.key == "status").unwrap();
+        assert!(status
+            .provenance
+            .contains(&format!("git:{sha}:.atlas/decisions/0002-x.md#L3")));
+        let doc = facts.iter().find(|f| f.kind == FactKind::Document).unwrap();
+        assert!(doc
+            .provenance
+            .contains(&format!("git:{sha}:.atlas/decisions/0002-x.md")));
+        // Without a commit, provenance is the document alone.
+        assert!(extract(".atlas/decisions/0002-x.md", "- a statement\n", 1)
+            .iter()
+            .all(|f| f.provenance.iter().all(|p| p.starts_with("doc:"))));
     }
 }
