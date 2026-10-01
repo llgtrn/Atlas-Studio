@@ -337,11 +337,38 @@ pub fn map_locator(moves: &[(String, String)], locator: &str) -> String {
     }
 }
 
+/// Whether a declared value is, as a whole, a repository path: one token of path characters,
+/// optionally a locator (`file::test`) or an anchored document (`file#section`). Prose that
+/// merely mentions a path (`one step for sim/replay/live; …`) is not one.
+pub fn is_path_value(v: &str) -> bool {
+    let file = v.split_once("::").map_or(v, |(f, _)| f);
+    let file = file.split_once('#').map_or(file, |(f, _)| f);
+    !file.is_empty()
+        && file.bytes().all(path_char)
+        && !v.chars().any(|c| c.is_whitespace() || c.is_control())
+}
+
+/// A capability `spec` through a list of directory moves: rewritten only when the whole spec is
+/// a repository path ([`is_path_value`]); a prose spec is never edited, even where it names a
+/// moved path.
+pub fn map_spec(moves: &[(String, String)], spec: &str) -> String {
+    if !is_path_value(spec) {
+        return spec.to_string();
+    }
+    match spec.split_once('#') {
+        Some((file, anchor)) if !file.contains("::") => {
+            format!("{}#{anchor}", map_path(moves, file))
+        }
+        _ => map_locator(moves, spec),
+    }
+}
+
 /// Rewrites every declared repository path under a moved path: donors' source paths,
-/// capability specs and proof locators, technologies' sources and proof and claim locators,
-/// and shim paths and legacy expiries. Provenance keeps the paths of its time. Evidence is keyed
-/// by locator, so evidence recorded under an old locator stays history: it proves nothing about
-/// the new one until the proof is re-run.
+/// capability specs that are paths ([`map_spec`]; prose specs are never edited) and proof
+/// locators, technologies' sources and proof and claim locators, and shim paths and legacy
+/// expiries. Provenance keeps the paths of its time. Evidence is keyed by locator, so evidence
+/// recorded under an old locator stays history: it proves nothing about the new one until the
+/// proof is re-run.
 pub fn rewrite_declared(d: &mut Declaration, moves: &[(String, String)]) -> Vec<Rewritten> {
     let mut out = Vec::new();
     let mut map = |owner: &'static str,
@@ -362,12 +389,13 @@ pub fn rewrite_declared(d: &mut Declaration, moves: &[(String, String)]) -> Vec<
     };
     let path = |p: &str| map_path(moves, p);
     let locator = |p: &str| map_locator(moves, p);
+    let spec = |p: &str| map_spec(moves, p);
     for dn in d.donors.iter_mut() {
         for p in dn.source_paths.iter_mut() {
             map("donor", &dn.key, "source_path", p, &path);
         }
         for c in dn.capabilities.iter_mut() {
-            map("donor", &dn.key, "spec", &mut c.spec, &path);
+            map("donor", &dn.key, "spec", &mut c.spec, &spec);
             for p in c.proofs.iter_mut() {
                 map("donor", &dn.key, "proof", &mut p.locator, &locator);
             }
@@ -1411,6 +1439,69 @@ mod tests {
             render_technologies(&d3.technologies)
         );
         let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn a_prose_spec_is_never_rewritten() {
+        let mut d = repository(vec![], &[]);
+        let cap = |key: &str, spec: &str| crate::declare::Capability {
+            key: key.into(),
+            required: true,
+            spec: spec.into(),
+            replacement: None,
+            proofs: vec![],
+        };
+        d.donors = vec![crate::declare::Donor {
+            key: "d".into(),
+            name: "d".into(),
+            origin: "o".into(),
+            license: "MIT".into(),
+            claimed: crate::schema::DonorState::Discovered,
+            exception: None,
+            packages: vec![],
+            source_paths: vec!["simulation/vendor".into()],
+            capabilities: vec![
+                cap(
+                    "step",
+                    "One organism step for simulation/replay/live; record + replay with digests",
+                ),
+                cap("modes", "simulation/replay/live modes are deterministic"),
+                cap("file", "simulation/tests/parity.rs"),
+                cap("test", "simulation/tests/parity.rs::step_matches"),
+                cap("section", "simulation/README.md#replay"),
+                cap("dir", "simulation"),
+                cap("elsewhere", "world/spec.md"),
+            ],
+            cutover: None,
+            provenance: vec!["simulation/old".into()],
+        }];
+        let before = d.clone();
+        let moves = vec![("simulation".to_string(), "domain/simulation".to_string())];
+        let out = rewrite_declared(&mut d, &moves);
+        let specs: Vec<&str> = d.donors[0]
+            .capabilities
+            .iter()
+            .map(|c| c.spec.as_str())
+            .collect();
+        assert_eq!(
+            specs,
+            vec![
+                "One organism step for simulation/replay/live; record + replay with digests",
+                "simulation/replay/live modes are deterministic",
+                "domain/simulation/tests/parity.rs",
+                "domain/simulation/tests/parity.rs::step_matches",
+                "domain/simulation/README.md#replay",
+                "domain/simulation",
+                "world/spec.md",
+            ]
+        );
+        assert_eq!(d.donors[0].source_paths, vec!["domain/simulation/vendor"]);
+        assert_eq!(d.donors[0].provenance, before.donors[0].provenance);
+        assert_eq!(
+            out.iter().filter(|r| r.field == "spec").count(),
+            4,
+            "{out:?}"
+        );
     }
 
     #[test]

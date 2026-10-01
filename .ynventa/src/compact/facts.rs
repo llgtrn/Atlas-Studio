@@ -1,6 +1,8 @@
 //! Compacted knowledge: facts with stable identity and provenance, stored as content-addressed
 //! batches in `.ynventa/knowledge/`. Twenty copies of one statement are one fact with twenty
-//! provenances; a newer value supersedes an older one instead of accumulating beside it.
+//! provenances; a newer value supersedes an older one instead of accumulating beside it. Facts
+//! extracted from documents are keyed so that different documents never supersede each other
+//! (`audit::extract_at`): only re-extracting the same document's same item does.
 
 use super::codec::{DecodeError, Decoder, Encoder};
 use crate::digest::{hex, Sha256};
@@ -76,7 +78,8 @@ pub fn normalize(text: &str) -> String {
 }
 
 /// Folds facts: one per identity, newest value wins, older values are marked superseded,
-/// provenances are united. Order-independent.
+/// provenances are united. Order-independent. A STATEMENT is keyed by its normalised text, so
+/// its spellings in several documents are one statement, not values superseding each other.
 pub fn fold(facts: impl IntoIterator<Item = Fact>) -> Vec<Fact> {
     let mut by_id: BTreeMap<String, Vec<Fact>> = BTreeMap::new();
     for f in facts {
@@ -94,7 +97,10 @@ pub fn fold(facts: impl IntoIterator<Item = Fact>) -> Vec<Fact> {
                 }
                 winner.superseded.extend(f.superseded);
             }
-            winner.superseded.retain(|v| *v != winner.value);
+            let (value, statement) = (winner.value.clone(), winner.kind == FactKind::Statement);
+            winner
+                .superseded
+                .retain(|v| *v != value && !(statement && normalize(v) == normalize(&value)));
             winner.superseded.sort();
             winner.superseded.dedup();
             winner

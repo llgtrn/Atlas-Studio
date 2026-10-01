@@ -491,72 +491,211 @@ fn fact(kind: FactKind, subject: &str, key: &str, value: &str, prov: &[String], 
     f
 }
 
+/// One scalar frontmatter entry: (line, lowercased key, value).
+pub type FrontmatterEntry = (usize, String, String);
+
+/// A document's YAML-like frontmatter: `key: value` lines between a first-line `---` fence and
+/// the next `---` (or `...`) fence. Returns the closing fence's line (1-based) and the scalar
+/// entries as (line, key, value); keys are lowercased, quotes around a value are dropped, and
+/// entries without a scalar value (lists, nested maps) are skipped.
+pub fn frontmatter(text: &str) -> Option<(usize, Vec<FrontmatterEntry>)> {
+    let mut lines = text.lines().enumerate();
+    if lines.next()?.1.trim_end() != "---" {
+        return None;
+    }
+    let mut entries = Vec::new();
+    for (i, line) in lines {
+        let t = line.trim_end();
+        if t == "---" || t == "..." {
+            return Some((i + 1, entries));
+        }
+        if line.starts_with([' ', '\t', '-', '#']) {
+            continue;
+        }
+        let Some((key, value)) = t.split_once(':') else {
+            continue;
+        };
+        let key = key.trim();
+        let value = value.trim();
+        let value = value
+            .strip_prefix('"')
+            .and_then(|v| v.strip_suffix('"'))
+            .or_else(|| value.strip_prefix('\'').and_then(|v| v.strip_suffix('\'')))
+            .unwrap_or(value);
+        if key.is_empty()
+            || !key
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'-' | b'.'))
+            || value.is_empty()
+            || value == "|"
+            || value == ">"
+        {
+            continue;
+        }
+        entries.push((i + 1, key.to_ascii_lowercase(), value.to_string()));
+    }
+    None
+}
+
+/// Decision fields read from a decision record's frontmatter and field lines.
+const DECISION_FIELDS: &[&str] = &["status", "title", "date"];
+
+/// A `Status: …` / `**Status**: …` / `status: …` field line naming a decision field
+/// (case-insensitive): (field, value).
+fn decision_field(body: &str) -> Option<(&'static str, &str)> {
+    let (term, value) = body.split_once(':')?;
+    let term = term.trim().trim_matches('*').trim();
+    let value = value.trim_start_matches('*').trim();
+    let field = DECISION_FIELDS
+        .iter()
+        .find(|f| f.eq_ignore_ascii_case(term))?;
+    (!value.is_empty()).then_some((field, value))
+}
+
+/// The subject of facts extracted from a document's text: the document itself, then the
+/// headings the text sits under. Two documents never share one, so their facts never supersede
+/// each other; re-extracting a document supersedes its own earlier values.
+pub fn document_subject(path: &str, headings: &[String]) -> String {
+    if headings.is_empty() {
+        path.to_string()
+    } else {
+        format!("{path} / {}", headings.join(" / "))
+    }
+}
+
+/// The key of a decision record's `## <Heading>` section: the heading, lowercased.
+fn section_key(heading: &str) -> String {
+    heading
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .trim_end_matches(':')
+        .to_lowercase()
+}
+
 /// Extracts a document's knowledge as facts: statements, definitions, decisions, and the
 /// document's own digest (which later licenses its deletion).
 pub fn extract(path: &str, text: &str, seq: u64) -> Vec<Fact> {
     extract_at(path, text, seq, None)
 }
 
+/// Collects the facts of one document, keeping the first value of each decision field.
+struct Extraction<'a> {
+    path: &'a str,
+    commit: Option<&'a str>,
+    seq: u64,
+    stem: String,
+    facts: Vec<Fact>,
+    decided: BTreeSet<String>,
+}
+
+impl Extraction<'_> {
+    fn provenance(&self, first: usize, last: usize) -> Vec<String> {
+        provenance(self.path, first, last, self.commit)
+    }
+    fn push(&mut self, kind: FactKind, subject: &str, key: &str, value: &str, prov: &[String]) {
+        self.facts
+            .push(fact(kind, subject, key, value, prov, self.seq));
+    }
+    /// A DECISION fact of this record; the first value of a key wins (frontmatter, then the
+    /// record's own lines, in document order).
+    fn decide(&mut self, key: &str, value: &str, first: usize, last: usize) {
+        if value.trim().is_empty() || !self.decided.insert(key.to_string()) {
+            return;
+        }
+        let prov = self.provenance(first, last);
+        let stem = self.stem.clone();
+        self.push(FactKind::Decision, &stem, key, value.trim(), &prov);
+    }
+}
+
 /// [`extract`], with provenance that also names the commit the document was read at.
+///
+/// Every fact names where it was found (`doc:<path>#L<a>-L<b>`, and `git:<sha>:…` with a
+/// commit). Statements are keyed by their normalised text, so one statement in several
+/// documents is one fact with every provenance; definitions are keyed by the document
+/// ([`document_subject`]). A decision record ([`is_decision_record`]) also yields DECISION
+/// facts under its file stem: `title`, `status` and `date` from its frontmatter, `# Title` and
+/// field lines (case-insensitive), and one fact per `## <Heading>` section (`context`,
+/// `decision`, `consequences`, …) whose value is the section's text, nested lists included.
 pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec<Fact> {
-    let mut facts = Vec::new();
-    let mut headings: Vec<String> = Vec::new();
     let decision = is_decision_record(path);
-    let stem = path
-        .rsplit('/')
-        .next()
-        .unwrap_or(path)
-        .trim_end_matches(".md")
+    let name = path.rsplit('/').next().unwrap_or(path);
+    let stem = name
+        .rsplit_once('.')
+        .filter(|(_, ext)| is_document(&format!("x.{ext}")))
+        .map_or(name, |(s, _)| s)
         .to_string();
+    let mut x = Extraction {
+        path,
+        commit,
+        seq,
+        stem,
+        facts: Vec::new(),
+        decided: BTreeSet::new(),
+    };
+    let raw: Vec<&str> = text.lines().collect();
+    let (front_end, front) = frontmatter(text).unwrap_or((0, Vec::new()));
+    for (line, key, value) in &front {
+        if decision && DECISION_FIELDS.contains(&key.as_str()) {
+            x.decide(key, value, *line, *line);
+        } else {
+            let prov = x.provenance(*line, *line);
+            x.push(FactKind::Definition, path, key, value, &prov);
+        }
+    }
+    let mut headings: Vec<String> = Vec::new();
+    // The open `## <Heading>` section of a decision record: (key, heading line, last line).
+    let mut section: Option<(String, usize, usize)> = None;
+    let close = |x: &mut Extraction, section: &mut Option<(String, usize, usize)>| {
+        if let Some((key, head, last)) = section.take() {
+            let body = raw[head..last]
+                .iter()
+                .map(|l| l.trim_end())
+                .collect::<Vec<_>>()
+                .join("\n");
+            x.decide(&key, body.trim_matches('\n'), head, last);
+        }
+    };
     for b in blocks(text) {
-        let prov = provenance(path, b.first, b.last, commit);
+        if b.last <= front_end {
+            continue;
+        }
+        if let BlockKind::Heading(level) = b.kind {
+            headings.truncate(level.saturating_sub(1));
+            headings.push(b.text.clone());
+            if decision && level <= 2 {
+                close(&mut x, &mut section);
+                if level == 1 {
+                    x.decide("title", &b.text, b.first, b.last);
+                } else {
+                    section = Some((section_key(&b.text), b.first, b.first));
+                }
+                continue;
+            }
+        }
+        if let Some((_, _, last)) = section.as_mut() {
+            // A section's text, sub-headings and nested lists included, is one DECISION fact.
+            *last = b.last;
+            continue;
+        }
+        let prov = x.provenance(b.first, b.last);
         match b.kind {
             BlockKind::Code => {
                 let k = normalize(&b.text);
                 if !k.is_empty() {
-                    facts.push(fact(
-                        FactKind::Statement,
-                        "",
-                        &k,
-                        b.text.trim_end(),
-                        &prov,
-                        seq,
-                    ));
+                    x.push(FactKind::Statement, "", &k, b.text.trim_end(), &prov);
                 }
             }
-            BlockKind::Heading(level) => {
-                headings.truncate(level.saturating_sub(1));
-                headings.push(b.text.clone());
-                if decision && level == 1 {
-                    facts.push(fact(
-                        FactKind::Decision,
-                        &stem,
-                        "title",
-                        &b.text,
-                        &prov,
-                        seq,
-                    ));
-                }
-            }
+            BlockKind::Heading(_) => {}
             BlockKind::Text => {
                 let body = block_body(&b);
                 if body.is_empty() || is_rule(body) {
                     continue;
                 }
                 if decision {
-                    if let Some(st) = body
-                        .strip_prefix("Status:")
-                        .or_else(|| body.strip_prefix("**Status**:"))
-                        .or_else(|| body.strip_prefix("Status**:"))
-                    {
-                        facts.push(fact(
-                            FactKind::Decision,
-                            &stem,
-                            "status",
-                            st.trim(),
-                            &prov,
-                            seq,
-                        ));
+                    if let Some((field, value)) = decision_field(body) {
+                        x.decide(field, value, b.first, b.last);
                         continue;
                     }
                 }
@@ -567,37 +706,31 @@ pub fn extract_at(path: &str, text: &str, seq: u64, commit: Option<&str>) -> Vec
                         && !t.contains('`')
                 });
                 match def {
-                    Some((term, definition)) => facts.push(fact(
+                    Some((term, definition)) => x.push(
                         FactKind::Definition,
-                        &headings.join(" / "),
+                        &document_subject(path, &headings),
                         &normalize(term),
                         definition.trim(),
                         &prov,
-                        seq,
-                    )),
+                    ),
                     None => {
                         let k = normalize(body);
                         if !k.is_empty() {
-                            facts.push(fact(FactKind::Statement, "", &k, body, &prov, seq));
+                            x.push(FactKind::Statement, "", &k, body, &prov);
                         }
                     }
                 }
             }
         }
     }
+    close(&mut x, &mut section);
     let mut whole = vec![format!("doc:{path}")];
     if let Some(c) = commit.filter(|c| !c.is_empty()) {
         whole.push(format!("git:{c}:{path}"));
     }
-    facts.push(fact(
-        FactKind::Document,
-        path,
-        "digest",
-        &content_digest(text.as_bytes()),
-        &whole,
-        seq,
-    ));
-    facts
+    let digest = content_digest(text.as_bytes());
+    x.push(FactKind::Document, path, "digest", &digest, &whole);
+    x.facts
 }
 
 #[cfg(test)]
@@ -667,6 +800,151 @@ mod tests {
             .iter()
             .any(|f| f.kind == FactKind::Definition && f.key == "date"));
         assert!(statements.contains(&"| a | b |") && statements.contains(&"| c | d |"));
+    }
+
+    #[test]
+    fn decision_fields_are_read_from_frontmatter_case_insensitively() {
+        let text = "---\nid: fi.decision.0007\nStatus: Accepted\nTITLE: \"Native hashing\"\ndate: 2026-09-30\n---\n# 0007 — Use native hashing\n\nstatus: superseded later in the body\n";
+        let facts = extract("docs/adr/0007-hash.md", text, 1);
+        let get = |k: FactKind, key: &str| {
+            facts
+                .iter()
+                .find(|f| f.kind == k && f.key == key)
+                .map(|f| (f.subject.as_str(), f.value.as_str()))
+        };
+        assert_eq!(
+            get(FactKind::Decision, "status"),
+            Some(("0007-hash", "Accepted"))
+        );
+        assert_eq!(
+            get(FactKind::Decision, "title"),
+            Some(("0007-hash", "Native hashing")),
+            "the frontmatter title wins over the heading"
+        );
+        assert_eq!(
+            get(FactKind::Decision, "date"),
+            Some(("0007-hash", "2026-09-30"))
+        );
+        // Other frontmatter keys are definitions of this document.
+        assert_eq!(
+            get(FactKind::Definition, "id"),
+            Some(("docs/adr/0007-hash.md", "fi.decision.0007"))
+        );
+        let status: Vec<&Fact> = facts.iter().filter(|f| f.key == "status").collect();
+        assert_eq!(status.len(), 1, "{status:?}");
+        assert!(status[0]
+            .provenance
+            .contains("doc:docs/adr/0007-hash.md#L3"));
+        // Without frontmatter, a lowercase field line is still the status.
+        let facts = extract("decisions/0008-x.md", "# X\n\nstatus: Proposed\n", 1);
+        assert!(facts
+            .iter()
+            .any(|f| f.kind == FactKind::Decision && f.key == "status" && f.value == "Proposed"));
+    }
+
+    #[test]
+    fn decision_sections_are_decision_facts_with_their_nested_lists() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let text = "# 0003 — One knowledge authority\n\n## Status\n\nAccepted\n\n## Context\n\nTwo authorities drift:\n- the legacy tree\n  - its registries\n  - its ledger\n- the subsystem\n\n## Decision\n\nOne authority.\n\n### Detail\n\n- Knowledge enters through extraction.\n\n## Consequences\n\n- Nothing reads the legacy tree.\n\n## Alternatives Considered\n\nKeeping both.\n";
+        let facts = extract_at(".atlas/decisions/0003-authority.md", text, 4, Some(sha));
+        let decision = |key: &str| {
+            facts
+                .iter()
+                .find(|f| f.kind == FactKind::Decision && f.key == key)
+                .unwrap_or_else(|| panic!("no {key}: {facts:#?}"))
+        };
+        assert_eq!(decision("title").value, "0003 — One knowledge authority");
+        assert_eq!(decision("status").value, "Accepted");
+        let context = decision("context");
+        assert_eq!(
+            context.value,
+            "Two authorities drift:\n- the legacy tree\n  - its registries\n  - its ledger\n- the subsystem"
+        );
+        assert_eq!(context.subject, "0003-authority");
+        assert!(context
+            .provenance
+            .contains("doc:.atlas/decisions/0003-authority.md#L7-L13"));
+        assert!(context.provenance.contains(&format!(
+            "git:{sha}:.atlas/decisions/0003-authority.md#L7-L13"
+        )));
+        assert_eq!(
+            decision("decision").value,
+            "One authority.\n\n### Detail\n\n- Knowledge enters through extraction."
+        );
+        assert_eq!(
+            decision("consequences").value,
+            "- Nothing reads the legacy tree."
+        );
+        assert_eq!(decision("alternatives considered").value, "Keeping both.");
+        // Section text stays in its section: no separate statements or definitions.
+        assert!(
+            facts
+                .iter()
+                .all(|f| !matches!(f.kind, FactKind::Statement | FactKind::Definition)),
+            "{facts:#?}"
+        );
+        // Outside a decision record, the same text is statements as before.
+        let plain = extract("docs/notes.md", text, 1);
+        assert!(plain.iter().all(|f| f.kind != FactKind::Decision));
+        assert!(plain
+            .iter()
+            .any(|f| f.kind == FactKind::Statement && f.value == "its registries"));
+    }
+
+    #[test]
+    fn definitions_of_different_documents_never_supersede_each_other() {
+        use crate::compact::facts::fold;
+        let a = extract(
+            "docs/a.md",
+            "---\nid: doc.a\n---\n# Terms\n\n- Owner: team a\n",
+            1,
+        );
+        let b = extract(
+            "docs/b.md",
+            "---\nid: doc.b\n---\n# Terms\n\n- Owner: team b\n",
+            2,
+        );
+        let folded = fold(a.iter().chain(&b).cloned());
+        let defs: Vec<(&str, &str, &str)> = folded
+            .iter()
+            .filter(|f| f.kind == FactKind::Definition)
+            .map(|f| (f.subject.as_str(), f.key.as_str(), f.value.as_str()))
+            .collect();
+        assert_eq!(defs.len(), 4, "{defs:?}");
+        for want in [
+            ("docs/a.md", "id", "doc.a"),
+            ("docs/b.md", "id", "doc.b"),
+            ("docs/a.md / Terms", "owner", "team a"),
+            ("docs/b.md / Terms", "owner", "team b"),
+        ] {
+            assert!(defs.contains(&want), "{want:?} in {defs:?}");
+        }
+        assert!(
+            folded.iter().all(|f| f.superseded.is_empty()),
+            "{folded:#?}"
+        );
+        // One statement in two documents is one fact with both provenances, superseding nothing.
+        let c = extract("docs/c.md", "- The log is **append-only**.\n", 3);
+        let d = extract("docs/d.md", "- The log is append-only.\n", 4);
+        let folded = fold(c.into_iter().chain(d));
+        let st = folded
+            .iter()
+            .find(|f| f.kind == FactKind::Statement)
+            .unwrap();
+        assert_eq!(st.provenance.len(), 2);
+        assert!(st.superseded.is_empty(), "{st:?}");
+        // Re-extracting the same document supersedes its own earlier value.
+        let again = extract("docs/a.md", "---\nid: doc.a2\n---\n", 5);
+        let folded = fold(a.into_iter().chain(b).chain(again));
+        let id = |s: &str| {
+            folded
+                .iter()
+                .find(|f| f.kind == FactKind::Definition && f.subject == s && f.key == "id")
+                .unwrap()
+        };
+        assert_eq!(id("docs/a.md").value, "doc.a2");
+        assert_eq!(id("docs/a.md").superseded, vec!["doc.a".to_string()]);
+        assert!(id("docs/b.md").superseded.is_empty());
     }
 
     #[test]
