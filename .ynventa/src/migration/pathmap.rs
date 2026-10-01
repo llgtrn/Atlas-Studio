@@ -940,6 +940,7 @@ mod tests {
         let node = |k: &str, kind, p: &str, c: &str| Node::new(k, kind, p, c);
         let mut d = Declaration {
             technologies: vec![],
+            organism: Default::default(),
             repository: Repository {
                 system: "chronica".into(),
                 shard: "chronica".into(),
@@ -1035,6 +1036,7 @@ mod tests {
     fn repository(nodes: Vec<crate::declare::Node>, wave: &[&str]) -> Declaration {
         Declaration {
             technologies: vec![],
+            organism: Default::default(),
             repository: crate::declare::Repository {
                 system: "chronica".into(),
                 shard: "chronica".into(),
@@ -1301,6 +1303,7 @@ mod tests {
         let node = |k: &str, kind, p: &str, c: &str| crate::declare::Node::new(k, kind, p, c);
         let mut d = Declaration {
             technologies: vec![],
+            organism: Default::default(),
             repository: crate::declare::Repository {
                 system: "chronica".into(),
                 shard: "chronica".into(),
@@ -1370,6 +1373,7 @@ mod tests {
         let node = |k: &str, kind, p: &str, c: &str| Node::new(k, kind, p, c);
         let mut d = Declaration {
             technologies: vec![],
+            organism: Default::default(),
             repository: Repository {
                 system: "chronica".into(),
                 shard: "chronica".into(),
@@ -1399,7 +1403,7 @@ mod tests {
         store(&root, &d).unwrap();
         // Written by a human or agent in a compact layout the canonical renderer would not choose:
         // one-line `Proof`s and an invariant list wider than the canonical width.
-        let technologies = "// Ynventa declaration (protocol v1).\n&[\n    Technology {\n        key: \"codec.base64\",\n        name: \"RFC 4648 base64\",\n        kind: TechnologyKind::Codec,\n        claimed: TechnologyLifecycle::Canonical,\n        purpose: \"text encoding of bytes\",\n        implements: &[\"serialization.base64\"],\n        node: \"core\",\n        sources: &[\"core/src/base64.rs\"],\n        invariants: &[\"RFC 4648 vectors, standard and URL-safe alphabets\", \"every byte string round-trips\", \"decoding is strict\"],\n        proofs: &[\n            Proof { kind: ProofKind::Regression, locator: \"core/src/base64.rs::rfc4648_vectors\" },\n        ],\n        lineage: &[],\n        relations: &[],\n        claims: &[],\n    },\n]\n";
+        let technologies = "// Ynventa declaration (protocol v1).\n&[\n    Technology {\n        key: \"codec.base64\",\n        name: \"RFC 4648 base64\",\n        kind: TechnologyKind::Codec,\n        claimed: TechnologyLifecycle::Canonical,\n        purpose: \"text encoding of bytes\",\n        implements: &[\"serialization.base64\"],\n        node: \"core\",\n        sources: &[\"core/src/base64.rs\"],\n        invariants: &[\"RFC 4648 vectors, standard and URL-safe alphabets\", \"every byte string round-trips\", \"decoding is strict\"],\n        proofs: &[\n            Proof { kind: ProofKind::Regression, locator: \"core/src/base64.rs::rfc4648_vectors\" },\n        ],\n        lineage: &[],\n        relations: &[],\n        norl: NorlRelevance::NotRelevant(\"plumbing\"),\n        claims: &[],\n    },\n]\n";
         let donors = "// Donors (none yet).\n&[]\n";
         let dir = declared_dir(&root);
         std::fs::write(dir.join(TECHNOLOGIES_FILE), technologies).unwrap();
@@ -1449,6 +1453,8 @@ mod tests {
             required: true,
             spec: spec.into(),
             replacement: None,
+            maps_to: None,
+            norl: Default::default(),
             proofs: vec![],
         };
         d.donors = vec![crate::declare::Donor {

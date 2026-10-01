@@ -9,6 +9,7 @@ mod declared {
     pub const DONORS: &[Donor] = include!("../declared/donors.rs");
     pub const MIGRATION: Migration = include!("../declared/migration.rs");
     pub const TECHNOLOGIES: &[Technology] = include!("../declared/technologies.rs");
+    pub const ORGANISM: Organism = include!("../declared/organism.rs");
 }
 
 fn main() {
@@ -19,6 +20,7 @@ fn main() {
         declared::DONORS,
         &declared::MIGRATION,
         declared::TECHNOLOGIES,
+        &declared::ORGANISM,
     );
     let own_root = ynventa::default_root();
     if let Ok(read) = ynventa::declare::load(&own_root) {

@@ -121,6 +121,10 @@ pub fn donor(key: &str, package: &str) -> Donor {
             required: true,
             spec: "tests/tests/parity.rs".into(),
             replacement: Some("geo".into()),
+            maps_to: Some("capability/distance".into()),
+            norl: NorlRelevance::NotRelevant(
+                "a geometry primitive; no developmental material".into(),
+            ),
             proofs: vec![
                 proof(
                     ProofKind::Parity,
@@ -167,6 +171,7 @@ pub fn extinct_baseline(name: &str) -> Repo {
     );
     r.store(&Declaration {
         technologies: vec![],
+        organism: Organism::default(),
         repository: Repository {
             system: "chronica".into(),
             shard: "mechatron".into(),
@@ -174,7 +179,13 @@ pub fn extinct_baseline(name: &str) -> Repo {
             origin: "llgtrn/Fixture".into(),
             nodes: vec![
                 node("core", NodeKind::Kernel, "core", "core"),
-                node("geo", NodeKind::Substrate, "substrate/geo", "substrate/geo"),
+                {
+                    // The native replacement was learned from the donor.
+                    let mut geo =
+                        node("geo", NodeKind::Substrate, "substrate/geo", "substrate/geo");
+                    geo.lineage = vec!["geo".into()];
+                    geo
+                },
                 node("tests", NodeKind::Test, "tests", "tests"),
                 node("ynventa", NodeKind::Ynventa, ".ynventa", ".ynventa"),
             ],

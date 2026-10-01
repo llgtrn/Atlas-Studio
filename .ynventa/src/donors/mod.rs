@@ -2,7 +2,8 @@
 //! donor is computed from observations and evidence, one guard per rung:
 //!
 //! ```text
-//! DISCOVERED → REGISTERED → CENSUSED → SPECIFIED → NATIVE_SHADOW → PARITY_PROVEN → CUTOVER → EXTINCT
+//! DISCOVERED → REGISTERED → CENSUSED → TECHNOLOGY_MAPPED → SPECIFIED → NATIVE_SHADOW
+//!   → PARITY_PROVEN → NORL_RELEVANCE_RESOLVED → CUTOVER → EXTINCT
 //! ```
 //!
 //! A claim above the effective state is a false-green violation. Exceptional states (BLOCKED,
@@ -114,11 +115,7 @@ impl NodeIndex {
 }
 
 fn normalize(eco: Ecosystem, name: &str) -> String {
-    match eco {
-        Ecosystem::Python => name.to_ascii_lowercase().replace(['_', '.'], "-"),
-        Ecosystem::Cargo => name.replace('_', "-"),
-        _ => name.to_string(),
-    }
+    crate::census::package_key(eco, name)
 }
 
 fn looks_like_path(spec: &str) -> bool {
@@ -196,7 +193,7 @@ pub fn analyze(
                 }
             }
             None => {
-                if o.via == Via::SourceReference {
+                if matches!(o.via, Via::SourceReference | Via::Lock) {
                     continue;
                 }
                 if o.via == Via::Process && TOOLCHAIN_PROGRAMS.contains(&o.name.as_str()) {
@@ -449,6 +446,8 @@ fn capability_verdicts(
                 specified,
                 replacement_exists,
                 replacement_canonical,
+                mapped: c.maps_to.as_deref().is_some_and(|k| !k.trim().is_empty()),
+                norl_resolved: c.norl.resolved(),
                 native,
                 native_detail,
                 parity: verdicts(ProofKind::Parity),
@@ -498,6 +497,14 @@ fn assess(
             "not decomposed into any required capability".into(),
         ),
         (
+            DonorState::TechnologyMapped,
+            required.iter().all(|c| c.mapped),
+            format!(
+                "capabilities not mapped to a capability or technology of the canonical graph (maps_to): {}",
+                failed(&|c| c.mapped)
+            ),
+        ),
+        (
             DonorState::Specified,
             required.iter().all(|c| c.specified),
             format!(
@@ -528,6 +535,14 @@ fn assess(
                     })
                     .collect::<Vec<_>>()
                     .join(", ")
+            ),
+        ),
+        (
+            DonorState::NorlRelevanceResolved,
+            required.iter().all(|c| c.norl_resolved),
+            format!(
+                "capabilities whose Norl relevance is unresolved (norl): {}",
+                failed(&|c| c.norl_resolved)
             ),
         ),
         (
@@ -653,6 +668,88 @@ fn assess(
                 dn.claimed, effective, stopped_by
             ),
         ));
+    }
+    if dn.claimed > effective && !resolved {
+        // Refinements of CLAIM_EXCEEDS_EVIDENCE: the claimed rung's own evidence is missing,
+        // whatever lower rung the ladder stopped at.
+        let decomposed = !required.is_empty();
+        let unreplaced = failed(&|c| c.replacement_exists);
+        if dn.claimed >= DonorState::NativeShadow && (!decomposed || !unreplaced.is_empty()) {
+            findings.push(Finding::new(
+                Severity::Error,
+                "NATIVE_CLAIM_WITHOUT_EVIDENCE",
+                &dn.key,
+                &format!(
+                    "claims {} but {}",
+                    dn.claimed,
+                    if decomposed {
+                        format!("capabilities have no existing native replacement: {unreplaced}")
+                    } else {
+                        "no required capability is declared".into()
+                    }
+                ),
+            ));
+        }
+        let unproven: Vec<String> = required
+            .iter()
+            .filter(|c| !c.proven())
+            .map(|c| c.key.clone())
+            .collect();
+        if dn.claimed >= DonorState::Cutover && (!decomposed || !unproven.is_empty()) {
+            findings.push(Finding::new(
+                Severity::Error,
+                "EXTINCTION_WITHOUT_PARITY",
+                &dn.key,
+                &format!(
+                    "claims {} without native replacements with fresh passing parity proofs for: {}",
+                    dn.claimed,
+                    if decomposed {
+                        unproven.join(", ")
+                    } else {
+                        "(no required capability)".into()
+                    }
+                ),
+            ));
+        }
+    }
+    if dn.claimed >= DonorState::NativeShadow && !resolved {
+        // Every native replacement must carry its lineage back to the donor it learned from:
+        // the replacement node's `lineage`, or a technology on it (or the one the capability
+        // maps to) that lists the donor in its `lineage`.
+        let mut reps: Vec<&str> = dn
+            .capabilities
+            .iter()
+            .filter(|c| c.required)
+            .filter_map(|c| c.replacement.as_deref())
+            .collect();
+        reps.sort();
+        reps.dedup();
+        let mapped: Vec<&str> = dn
+            .capabilities
+            .iter()
+            .filter_map(|c| c.maps_to.as_deref()?.strip_prefix("technology/"))
+            .collect();
+        let traced = |rep: &str| {
+            d.node(rep).is_some_and(|n| n.lineage.contains(&dn.key))
+                || d.technologies.iter().any(|t| {
+                    (t.node == rep || mapped.contains(&t.key.as_str()))
+                        && t.lineage.contains(&dn.key)
+                })
+        };
+        let untraced: Vec<&str> = reps.iter().copied().filter(|r| !traced(r)).collect();
+        if !untraced.is_empty() {
+            findings.push(Finding::new(
+                Severity::Error,
+                "DONOR_WITHOUT_LINEAGE",
+                &dn.key,
+                &format!(
+                    "claims {} but replacements {} carry no lineage (DERIVES_FROM / LEARNED_FROM) back to it: add `{}` to their `lineage` or to a technology's",
+                    dn.claimed,
+                    untraced.join(", "),
+                    dn.key
+                ),
+            ));
+        }
     }
     if effective < DonorState::Registered && facts.active() && !resolved {
         findings.push(Finding::new(

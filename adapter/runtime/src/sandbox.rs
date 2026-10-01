@@ -547,11 +547,14 @@ fn drain(mut pipe: impl Read + Send + 'static) -> std::sync::mpsc::Receiver<Vec<
 
 /// Kill the run's whole process group (`pgid` = the child's pid), not only the child: a
 /// descendant still in the group would otherwise outlive the timeout and hold the output pipes.
+/// The signal is sent by the POSIX `kill` builtin of `sh` (`kill -s KILL -- -<pgid>`), so no
+/// separately installed `kill` program (procps-ng or util-linux, depending on the host) is run.
 fn kill_group(pgid: u32) {
     let path = std::env::var("PATH").unwrap_or_default();
-    if let Some(kill) = find_on_path("kill", &path) {
-        let _ = Command::new(kill)
-            .args(["-KILL", "--", &format!("-{pgid}")])
+    if let Some(sh) = find_on_path("sh", &path) {
+        let _ = Command::new(sh)
+            .args(["-c", "kill -s KILL -- \"-$1\"", "atlas-kill-group"])
+            .arg(pgid.to_string())
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())

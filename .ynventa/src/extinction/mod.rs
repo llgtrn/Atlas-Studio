@@ -11,7 +11,7 @@
 //! * Donor source tracked anywhere in the repository (vendor/, temporary/, .atlas/, research/,
 //!   fixtures, generated code) fails RESIDENT_SOURCE_ZERO whether or not it is built.
 
-use crate::census::Observation;
+use crate::census::{Observation, Via};
 use crate::evidence::Verdict;
 use crate::schema::{Gate, Scope};
 
@@ -60,6 +60,11 @@ pub struct CapabilityVerdict {
     pub specified: bool,
     pub replacement_exists: bool,
     pub replacement_canonical: bool,
+    /// It maps to a capability or technology of the canonical graph (`maps_to` is non-empty;
+    /// the system linker resolves the key).
+    pub mapped: bool,
+    /// Its relevance to Norl is resolved (feeds a Norl capability, or declared not relevant).
+    pub norl_resolved: bool,
     /// Replacement exists, is canonical, and neither it nor anything it depends on uses the donor.
     pub native: bool,
     pub native_detail: String,
@@ -89,7 +94,22 @@ pub struct GateResult {
 fn sample(obs: &[Observation]) -> String {
     let mut v: Vec<String> = obs
         .iter()
-        .map(|o| format!("{} {} {} in {}", o.via.wire(), o.ecosystem, o.name, o.file))
+        .map(|o| match o.via {
+            Via::Lock => {
+                // `ident` is the path from the direct dependency; its parent pulls it in.
+                let path = o.ident.split(" (in ").next().unwrap_or(&o.ident);
+                let parts: Vec<&str> = path.split(" → ").collect();
+                let via = parts
+                    .len()
+                    .checked_sub(2)
+                    .map_or("no workspace package", |i| parts[i]);
+                format!(
+                    "LOCK {} {} linked via {via}: {} → {}",
+                    o.ecosystem, o.name, o.file, o.ident
+                )
+            }
+            _ => format!("{} {} {} in {}", o.via.wire(), o.ecosystem, o.name, o.file),
+        })
         .collect();
     v.sort();
     let n = v.len();
@@ -189,6 +209,16 @@ pub fn gates(facts: &DonorFacts, caps: &[CapabilityVerdict], cutover: bool) -> V
             Gate::CanonicalReplacement,
             failing(&|c| c.replacement_exists && c.replacement_canonical),
             "have an existing canonical replacement node",
+        ),
+        cap_gate(
+            Gate::TechnologyMapping,
+            failing(&|c| c.mapped),
+            "map to a capability or technology of the canonical graph",
+        ),
+        cap_gate(
+            Gate::NorlRelevance,
+            failing(&|c| c.norl_resolved),
+            "have a resolved Norl relevance",
         ),
         GateResult {
             gate: Gate::CutoverDone,

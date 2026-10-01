@@ -3,8 +3,8 @@
 //! `declare` accepts exactly the same grammar. `into_model` proves both readings agree.
 
 pub use crate::schema::{
-    Concept, Dimension, DonorState, Ecosystem, EdgeKind, NodeKind, NodeLifecycle, ProofKind, Scope,
-    ShimKind, TechnologyKind, TechnologyLifecycle, WaveStatus,
+    BackendKind, Concept, Dimension, DonorState, Ecosystem, EdgeKind, GrowthState, NodeKind,
+    NodeLifecycle, ProofKind, Scope, ShimKind, TechnologyKind, TechnologyLifecycle, WaveStatus,
 };
 
 use super::model;
@@ -59,11 +59,23 @@ pub struct Proof {
     pub locator: &'static str,
 }
 
+/// How something relates to the Norl organism: still undecided, feeding a Norl capability (its
+/// key), or declared not relevant (the reason).
+pub enum NorlRelevance {
+    Unresolved,
+    Feeds(&'static str),
+    NotRelevant(&'static str),
+}
+
 pub struct Capability {
     pub key: &'static str,
     pub required: bool,
     pub spec: &'static str,
     pub replacement: Option<&'static str>,
+    /// The capability or technology key (`capability/<k>`, `technology/<k>`) of the canonical
+    /// graph this donor capability maps to.
+    pub maps_to: Option<&'static str>,
+    pub norl: NorlRelevance,
     pub proofs: &'static [Proof],
 }
 
@@ -133,7 +145,45 @@ pub struct Technology {
     pub proofs: &'static [Proof],
     pub lineage: &'static [&'static str],
     pub relations: &'static [Relation],
+    pub norl: NorlRelevance,
     pub claims: &'static [Improvement],
+}
+
+/// The organism declaration (`declared/organism.rs`): empty outside the norl shard.
+pub struct Organism {
+    pub capabilities: &'static [OrganismCapability],
+    pub backends: &'static [Backend],
+}
+
+pub struct OrganismCapability {
+    /// The capability key (`capability/<key>` in the graph).
+    pub key: &'static str,
+    /// The organ node key.
+    pub organ: &'static str,
+    pub claimed: GrowthState,
+    /// The backend key, if any.
+    pub backend: Option<&'static str>,
+    /// Keys of the Material(Evaluation) nodes that judge it (in any shard).
+    pub evaluations: &'static [&'static str],
+}
+
+pub struct Backend {
+    pub key: &'static str,
+    pub kind: BackendKind,
+    /// The norl physical node implementing it.
+    pub node: &'static str,
+    /// The donor key when the weight is borrowed.
+    pub donor: Option<&'static str>,
+    /// The weight artifact identity; empty for none.
+    pub weight: &'static str,
+}
+
+fn norl(n: &NorlRelevance) -> model::NorlRelevance {
+    match n {
+        NorlRelevance::Unresolved => model::NorlRelevance::Unresolved,
+        NorlRelevance::Feeds(k) => model::NorlRelevance::Feeds(k.to_string()),
+        NorlRelevance::NotRelevant(r) => model::NorlRelevance::NotRelevant(r.to_string()),
+    }
 }
 
 fn strings(v: &[&str]) -> Vec<String> {
@@ -155,8 +205,33 @@ pub fn into_model(
     donors: &[Donor],
     m: &Migration,
     technologies: &[Technology],
+    organism: &Organism,
 ) -> model::Declaration {
     model::Declaration {
+        organism: model::Organism {
+            capabilities: organism
+                .capabilities
+                .iter()
+                .map(|c| model::OrganismCapability {
+                    key: c.key.into(),
+                    organ: c.organ.into(),
+                    claimed: c.claimed,
+                    backend: c.backend.map(str::to_string),
+                    evaluations: strings(c.evaluations),
+                })
+                .collect(),
+            backends: organism
+                .backends
+                .iter()
+                .map(|b| model::Backend {
+                    key: b.key.into(),
+                    kind: b.kind,
+                    node: b.node.into(),
+                    donor: b.donor.map(str::to_string),
+                    weight: b.weight.into(),
+                })
+                .collect(),
+        },
         technologies: technologies
             .iter()
             .map(|t| model::Technology {
@@ -179,6 +254,7 @@ pub fn into_model(
                         target: x.target.into(),
                     })
                     .collect(),
+                norl: norl(&t.norl),
                 claims: t
                     .claims
                     .iter()
@@ -258,6 +334,8 @@ pub fn into_model(
                         required: c.required,
                         spec: c.spec.into(),
                         replacement: c.replacement.map(str::to_string),
+                        maps_to: c.maps_to.map(str::to_string),
+                        norl: norl(&c.norl),
                         proofs: c
                             .proofs
                             .iter()

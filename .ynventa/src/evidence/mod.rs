@@ -73,6 +73,16 @@ pub enum Verdict {
 }
 
 impl Verdict {
+    pub const ALL: &'static [Verdict] = &[
+        Verdict::Pass,
+        Verdict::Fail,
+        Verdict::Stale,
+        Verdict::Unrecorded,
+        Verdict::Absent,
+    ];
+    pub fn rank(self) -> u8 {
+        self as u8
+    }
     pub fn wire(self) -> &'static str {
         match self {
             Verdict::Pass => "PASS",
@@ -229,18 +239,98 @@ pub fn current_digests(
         .read_bytes(file)
         .map(|b| content_digest(&b))
         .unwrap_or_default();
-    // A technology's proofs judge its canonical sources; a node's proofs judge its tree.
-    let subject_digest = match subject.strip_prefix("technology/") {
-        Some(key) => d
-            .technology(key)
+    // A technology's proofs judge its canonical sources; an evaluation's proofs judge what
+    // generates it and the cognition it evaluates; a node's proofs judge its tree.
+    let subject_digest = if let Some(key) = subject.strip_prefix("technology/") {
+        d.technology(key)
             .map(|t| crate::technology::source_digest(files, t))
-            .unwrap_or_default(),
-        None => d
-            .node(subject)
+            .unwrap_or_default()
+    } else if let Some(key) = subject.strip_prefix(MATERIAL_SUBJECT) {
+        material_digest(files, d, key)
+    } else {
+        d.node(subject)
             .map(|n| tree_digest(files, &n.path))
-            .unwrap_or_default(),
+            .unwrap_or_default()
     };
     (proof_digest, subject_digest)
+}
+
+/// Evidence subject prefix of an evaluation material: `material/<key>`.
+pub const MATERIAL_SUBJECT: &str = "material/";
+
+/// The bytes an evaluation's evidence is bound to: the trees (or technology sources) of the
+/// nodes of this shard that GENERATE it, and the trees of the organism backends whose
+/// capabilities it evaluates. A change to the harness or to the evaluated cognition makes the
+/// evidence stale. Empty (never fresh) when nothing here generates it.
+pub fn material_digest(files: &Files, d: &Declaration, key: &str) -> String {
+    use crate::schema::EdgeKind;
+    let mut parts: Vec<(String, String)> = Vec::new();
+    for e in d
+        .repository
+        .edges
+        .iter()
+        .filter(|e| e.to == key && e.kind == EdgeKind::Generates)
+    {
+        if let Some(t) = e
+            .from
+            .strip_prefix("technology/")
+            .and_then(|k| d.technology(k))
+        {
+            parts.push((e.from.clone(), crate::technology::source_digest(files, t)));
+        } else if let Some(n) = d.node(&e.from).filter(|n| !n.path.is_empty()) {
+            parts.push((n.key.clone(), tree_digest(files, &n.path)));
+        }
+    }
+    if parts.is_empty() {
+        return String::new();
+    }
+    for c in d
+        .organism
+        .capabilities
+        .iter()
+        .filter(|c| c.evaluations.iter().any(|e| e == key))
+    {
+        if let Some(n) = c
+            .backend
+            .as_deref()
+            .and_then(|b| d.organism.backend(b))
+            .and_then(|b| d.node(&b.node))
+        {
+            parts.push((format!("backend {}", n.key), tree_digest(files, &n.path)));
+        }
+    }
+    parts.sort();
+    parts.dedup();
+    let mut h = Sha256::new();
+    for (label, digest) in &parts {
+        h.field(label.as_bytes());
+        h.field(digest.as_bytes());
+    }
+    format!("sha256:{}", hex(&h.finish()))
+}
+
+/// The proof bindings of evaluation materials: `(proof, subject)` for every
+/// `proof:<locator> -VERIFIES-> <evaluation>` edge. Evaluations are judged like regression proofs:
+/// their own behaviour, pinned.
+pub fn evaluation_proofs(d: &Declaration) -> Vec<(Proof, String)> {
+    use crate::schema::{Concept, EdgeKind, NodeKind};
+    d.repository
+        .edges
+        .iter()
+        .filter(|e| e.kind == EdgeKind::Verifies)
+        .filter_map(|e| {
+            let locator = e.from.strip_prefix(crate::graph::PROOF_ENDPOINT)?;
+            d.node(&e.to)
+                .filter(|n| n.kind == NodeKind::Material && n.concept == Concept::Evaluation)?;
+            Some((
+                Proof {
+                    kind: ProofKind::Regression,
+                    locator: locator.to_string(),
+                },
+                format!("{MATERIAL_SUBJECT}{}", e.to),
+            ))
+        })
+        .collect()
 }
 
 pub fn judge(
@@ -345,11 +435,11 @@ impl Runner for CargoRunner {
 /// Every declared proof with the subject it judges, as `(proof, subject)`: donor capabilities'
 /// proofs judge their replacement node (a capability without one has no subject and nothing to
 /// record), technologies' proofs and claims' evidence judge `technology/<key>`.
-pub fn declared_proofs(d: &Declaration) -> Vec<(&Proof, String)> {
+pub fn declared_proofs(d: &Declaration) -> Vec<(Proof, String)> {
     let mut out = Vec::new();
     for c in d.donors.iter().flat_map(|dn| &dn.capabilities) {
         if let Some(subject) = &c.replacement {
-            out.extend(c.proofs.iter().map(|p| (p, subject.clone())));
+            out.extend(c.proofs.iter().map(|p| (p.clone(), subject.clone())));
         }
     }
     for t in &d.technologies {
@@ -359,9 +449,10 @@ pub fn declared_proofs(d: &Declaration) -> Vec<(&Proof, String)> {
             .iter()
             .chain(t.claims.iter().flat_map(|c| c.evidence.iter()))
         {
-            out.push((p, subject.clone()));
+            out.push((p.clone(), subject.clone()));
         }
     }
+    out.extend(evaluation_proofs(d));
     out
 }
 
@@ -387,7 +478,7 @@ pub fn prune_stale(root: &Path, files: &Files, d: &Declaration, store: &Store) -
         let Some(records) = store.records.get(&p.locator) else {
             continue;
         };
-        let (pd, sd) = current_digests(files, d, p, &subject);
+        let (pd, sd) = current_digests(files, d, &p, &subject);
         let own: Vec<&Record> = records.iter().filter(|r| r.subject == subject).collect();
         let fresh = |r: &Record| !sd.is_empty() && r.proof_digest == pd && r.subject_digest == sd;
         if !own.iter().any(|r| fresh(r)) {
@@ -487,6 +578,28 @@ pub fn verdicts(
             );
         }
     }
+    for (p, subject) in evaluation_proofs(d) {
+        out.insert(
+            (subject.clone(), p.locator.clone()),
+            judge(store, files, d, &p, Some(&subject)),
+        );
+    }
+    out
+}
+
+/// Every evaluation material's proof verdicts, by material key.
+pub fn evaluation_verdicts(
+    files: &Files,
+    d: &Declaration,
+    store: &Store,
+) -> std::collections::BTreeMap<String, Vec<(String, Verdict)>> {
+    let mut out: std::collections::BTreeMap<String, Vec<(String, Verdict)>> = Default::default();
+    for (p, subject) in evaluation_proofs(d) {
+        let v = judge(store, files, d, &p, Some(&subject));
+        out.entry(subject.trim_start_matches(MATERIAL_SUBJECT).to_string())
+            .or_default()
+            .push((p.locator.clone(), v));
+    }
     out
 }
 
@@ -505,7 +618,12 @@ pub fn prove(
         .filter(|t| only.is_none_or(|k| k == t.key))
         .map(|t| (format!("technology/{}", t.key), t))
         .collect();
+    let evaluations: Vec<(Proof, String)> = evaluation_proofs(d)
+        .into_iter()
+        .filter(|(_, s)| only.is_none_or(|k| s.trim_start_matches(MATERIAL_SUBJECT) == k))
+        .collect();
     let mut jobs: Vec<(&Proof, &str)> = Vec::new();
+    jobs.extend(evaluations.iter().map(|(p, s)| (p, s.as_str())));
     for dn in d
         .donors
         .iter()

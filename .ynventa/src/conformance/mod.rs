@@ -114,7 +114,11 @@ pub fn protocol_checks(a: &Assessment, reference: Option<&Snapshot>) -> Vec<Chec
         == Some(d.repository.clone())
         && declare::parse_donors(&declare::render_donors(&d.donors)).ok() == Some(d.donors.clone())
         && declare::parse_migration(&declare::render_migration(&d.migration)).ok()
-            == Some(d.migration.clone());
+            == Some(d.migration.clone())
+        && declare::parse_technologies(&declare::render_technologies(&d.technologies)).ok()
+            == Some(d.technologies.clone())
+        && declare::parse_organism(&declare::render_organism(&d.organism)).ok()
+            == Some(d.organism.clone());
     v.push(Check::new(
         "declarations.typed_roundtrip",
         fixed,
@@ -176,7 +180,50 @@ pub fn protocol_checks(a: &Assessment, reference: Option<&Snapshot>) -> Vec<Chec
     v.push(no_findings(
         a,
         "lifecycle.claims_within_evidence",
-        &["CLAIM_EXCEEDS_EVIDENCE"],
+        &[
+            "CLAIM_EXCEEDS_EVIDENCE",
+            "TECHNOLOGY_CLAIM_EXCEEDS_EVIDENCE",
+            "NATIVE_CLAIM_WITHOUT_EVIDENCE",
+            "EXTINCTION_WITHOUT_PARITY",
+            "NORL_CAPABILITY_WITHOUT_EVALUATION",
+        ],
+    ));
+    v.push(no_findings(
+        a,
+        "lifecycle.lineage_and_proofs",
+        &["DONOR_WITHOUT_LINEAGE", "MISSING_PROOF"],
+    ));
+    v.push(no_findings(
+        a,
+        "norl.organism",
+        &[
+            "ORGANISM_OUTSIDE_NORL",
+            "CLAUDE_IS_NOT_NORL",
+            "BORROWED_WITHOUT_DONOR",
+            "UNRESOLVED_NORL_NODE",
+        ],
+    ));
+    v.push(no_findings(
+        a,
+        "norl.material",
+        &["INVALID_NORL_FEED", "INVALID_MATERIAL_CONCEPT"],
+    ));
+    let structure = structure_violations(a);
+    v.push(Check::new(
+        "structure.compatible_root",
+        structure.is_empty(),
+        if structure.is_empty() {
+            format!(
+                "same roles, full {} set, no non-canonical code root",
+                declare::DECLARED_DIR
+            )
+        } else {
+            format!(
+                "{}: {}",
+                structure.len(),
+                structure.into_iter().take(5).collect::<Vec<_>>().join("; ")
+            )
+        },
     ));
     v.push(no_findings(
         a,
@@ -304,6 +351,8 @@ pub fn probes() -> Vec<Check> {
         specified: true,
         replacement_exists: true,
         replacement_canonical: true,
+        mapped: true,
+        norl_resolved: true,
         native: true,
         native_detail: String::new(),
         parity: vec![("t::p".into(), crate::evidence::Verdict::Pass)],
@@ -352,6 +401,37 @@ pub fn probes() -> Vec<Check> {
         out.contains("\"../../core\""),
         out,
     ));
+    v
+}
+
+/// Structural compatibility of a shard's root (the same rule for every product shard, Norl
+/// included): the full `.ynventa/declared/` set, only canonical roles and legal files at the
+/// root, no non-canonical top-level code root, no forbidden container. Reuses the shape audit's
+/// findings; returns the violations (empty when compatible).
+pub fn structure_violations(a: &Assessment) -> Vec<String> {
+    let mut v: Vec<String> = declare::DECLARATION_FILES
+        .iter()
+        .filter(|f| !declare::declared_dir(&a.root).join(f).is_file())
+        .map(|f| format!("MISSING_DECLARATION {}/{f}", declare::DECLARED_DIR))
+        .collect();
+    let legacy_dir = crate::repository::ROLES
+        .iter()
+        .find(|r| r.role == crate::schema::Role::Legacy)
+        .map(|r| r.dir)
+        .unwrap_or_default();
+    for f in &a.shape.findings {
+        let structural = match f.code.as_str() {
+            "ILLEGAL_ROOT" | "ILLEGAL_ROOT_FILE" | "FORBIDDEN_CONTAINER" => true,
+            // A declared legacy placement is a non-canonical code root until its wave moves it.
+            "LEGACY_ROOT" => f.subject != legacy_dir,
+            _ => false,
+        };
+        if structural {
+            v.push(format!("{} {}", f.code, f.subject));
+        }
+    }
+    v.sort();
+    v.dedup();
     v
 }
 

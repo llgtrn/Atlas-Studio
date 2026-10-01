@@ -48,6 +48,8 @@ impl Args {
             "--provenance",
             "--kind",
             "--subject",
+            "--document",
+            "--against",
         ];
         let lists = ["--merge", "--aggregate"];
         let mut i = 0;
@@ -144,6 +146,7 @@ pub fn run(raw: &[String]) -> (i32, String) {
         "backlinks" => show(&args, true),
         "context" => context(&args),
         "technology" => technology(&args),
+        "organism" => organism_cmd(&args),
         "fact" => fact_cmd(&args),
         "knowledge" => knowledge_cmd(&args),
         "help" | "--help" | "-h" => Ok((0, usage())),
@@ -471,10 +474,16 @@ fn metrics(args: &Args, a: &Assessment) -> Out {
     let mut total = a.counts.clone();
     let others = args.list("--aggregate");
     let mut names = vec![a.declaration.repository.shard.clone()];
-    for o in &others {
-        let b = assess(o)?;
-        total.add(&b.counts);
-        names.push(b.declaration.repository.shard.clone());
+    if !others.is_empty() {
+        // The ecosystem is the linked system: counts are summed, and what only the linked graph
+        // decides (the organism, orphans, sharing, adoption) is judged on it.
+        let mut capsules = vec![crate::capsule::Capsule::compile(a)];
+        for o in &others {
+            let b = assess(o)?;
+            names.push(b.declaration.repository.shard.clone());
+            capsules.push(crate::capsule::Capsule::compile(&b));
+        }
+        total = crate::linker::link(&capsules).counts();
     }
     if args.json {
         return Ok((0, total.to_json().with("repositories", names).render()));
@@ -530,13 +539,16 @@ fn compact_cmd(args: &Args) -> Out {
         let mut facts = Vec::new();
         let mut n = 0;
         let commit = crate::repository::files::head_commit(root);
+        let mut originals = Vec::new();
         for d in a.docs.over_budget().filter(|d| !d.extracted) {
             if let Some(text) = a.files.read(&d.path) {
                 facts.extend(audit::extract_at(&d.path, &text, seq, commit.as_deref()));
+                originals.push((d.path.clone(), text.into_bytes()));
                 seq += 1;
                 n += 1;
             }
         }
+        prove_round_trip(&facts, &originals)?;
         if !facts.is_empty() {
             let p = Knowledge::add(root, &facts).map_err(|e| e.to_string())?;
             s.push_str(&format!("extracted {n} documents into {p}\n"));
@@ -549,13 +561,7 @@ fn compact_cmd(args: &Args) -> Out {
         let docs: std::collections::BTreeSet<&str> =
             a.docs.docs.iter().map(|d| d.path.as_str()).collect();
         let sources = crate::census::excluded_roots(&a.declaration);
-        let imported: std::collections::BTreeMap<&str, &str> = a
-            .knowledge
-            .facts
-            .iter()
-            .filter(|f| f.kind == crate::schema::FactKind::LegacyRecord && f.key == "imported")
-            .map(|f| (f.subject.as_str(), f.value.as_str()))
-            .collect();
+        let mut originals = Vec::new();
         for sh in a
             .declaration
             .migration
@@ -573,13 +579,15 @@ fn compact_cmd(args: &Args) -> Out {
                 let Some(bytes) = a.files.read_bytes(f) else {
                     continue;
                 };
-                if imported.get(f.as_str()) == Some(&crate::digest::content_digest(&bytes).as_str())
-                {
+                // Already imported when knowledge rebuilds exactly these bytes; a file imported
+                // line by line before content was stored is imported again, losslessly.
+                if a.knowledge.stores(f, &bytes) {
                     continue;
                 }
                 match migration::atlas::extract_file(f, &bytes, seq) {
                     Some(x) => {
                         facts.extend(x);
+                        originals.push((f.clone(), bytes));
                         n += 1;
                         seq += 1;
                     }
@@ -587,6 +595,7 @@ fn compact_cmd(args: &Args) -> Out {
                 }
             }
         }
+        prove_round_trip(&facts, &originals)?;
         if !facts.is_empty() {
             let p = Knowledge::add(root, &facts).map_err(|e| e.to_string())?;
             s.push_str(&format!("extracted {n} legacy files into {p}\n"));
@@ -640,6 +649,23 @@ fn compact_cmd(args: &Args) -> Out {
         compact::VIEW_FILE
     ));
     Ok((0, s))
+}
+
+/// Refuses to write extracted facts unless they rebuild every original byte for byte.
+fn prove_round_trip(facts: &[Fact], originals: &[(String, Vec<u8>)]) -> Result<(), String> {
+    let stored = compact::facts::stored_texts(&compact::facts::fold(facts.iter().cloned()));
+    for (path, bytes) in originals {
+        match stored.get(path) {
+            Some(Ok(t)) if t.as_bytes() == bytes.as_slice() => {}
+            Some(Err(e)) => return Err(format!("refusing to write: {e}")),
+            _ => {
+                return Err(format!(
+                    "refusing to write: the facts extracted from {path} do not rebuild it"
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 fn parse_kind(s: &str) -> Result<FactKind, String> {
@@ -783,16 +809,23 @@ fn under_subsystem(root: &Path, out: &Path) -> bool {
 
 /// `knowledge view | extract`: read-only views of current facts, and targeted extraction.
 fn knowledge_cmd(args: &Args) -> Out {
-    const USAGE: &str = "knowledge view [--kind <kind>] [--text] [--out <file>]\n     | knowledge extract <document>...";
+    const USAGE: &str = "knowledge view [--kind <kind>] [--text] [--out <file>]\n     | knowledge view --document <path> [--outline] [--out <file>]\n     | knowledge extract <document or licence text>...";
     let sub = args.positional.first().map(String::as_str).unwrap_or("");
     match sub {
         "view" => {
             let k = Knowledge::load(&args.root);
             let kind = kind_filter(args)?;
-            let body = if args.flag("--text") {
-                compact::view::text(&k, kind)
-            } else {
-                compact::view::markdown(&k, kind)
+            let body = match args.value("--document") {
+                Some(p) => {
+                    let p = p.trim_start_matches("./");
+                    if args.flag("--outline") {
+                        compact::view::outline(&k, p)?
+                    } else {
+                        compact::view::document(&k, p)?
+                    }
+                }
+                None if args.flag("--text") => compact::view::text(&k, kind),
+                None => compact::view::markdown(&k, kind),
             };
             match args.value("--out") {
                 None => Ok((0, body)),
@@ -839,8 +872,10 @@ fn knowledge_cmd(args: &Args) -> Out {
                 if p == ".ynventa" || p.starts_with(".ynventa/") {
                     return Err(format!("`{p}` is canonical state, not a document"));
                 }
-                if !audit::is_document(p) {
-                    return Err(format!("`{p}` is not a document (.md, .markdown, .mdx)"));
+                if !audit::is_document(p) && !audit::is_licence_text(p) {
+                    return Err(format!(
+                        "`{p}` is not a document (.md, .markdown, .mdx) or a licence text"
+                    ));
                 }
                 let text =
                     std::fs::read_to_string(args.root.join(p)).map_err(|e| format!("{p}: {e}"))?;
@@ -852,17 +887,27 @@ fn knowledge_cmd(args: &Args) -> Out {
             let mut seq = k.next_seq();
             let mut facts = Vec::new();
             let mut s = String::new();
+            let mut originals = Vec::new();
             for (p, text) in &texts {
-                let digest = crate::digest::content_digest(text.as_bytes());
-                if k.document_digest(p) == Some(digest.as_str()) {
+                if k.stores(p, text.as_bytes()) {
                     s.push_str(&format!("{p}: unchanged since its extraction\n"));
                     continue;
                 }
-                let x = audit::extract_at(p, text, seq, commit.as_deref());
-                s.push_str(&format!("{p}: {} facts\n", x.len() - 1));
+                let x = if audit::is_document(p) {
+                    audit::extract_at(p, text, seq, commit.as_deref())
+                } else {
+                    audit::extract_verbatim(p, text, seq, commit.as_deref())
+                };
+                let blocks = x.iter().filter(|f| f.kind == FactKind::Block).count();
+                s.push_str(&format!(
+                    "{p}: {} facts, {blocks} blocks (rebuilds byte for byte: `ynventa knowledge view --document {p}`)\n",
+                    x.len() - 1 - blocks
+                ));
                 facts.extend(x);
+                originals.push((p.clone(), text.clone().into_bytes()));
                 seq += 1;
             }
+            prove_round_trip(&facts, &originals)?;
             if !facts.is_empty() {
                 let batch = Knowledge::add(&args.root, &facts).map_err(|e| e.to_string())?;
                 s.push_str(&format!("wrote {batch}\n"));
@@ -912,7 +957,7 @@ pub fn view(a: &Assessment) -> String {
         .knowledge
         .facts
         .iter()
-        .filter(|f| f.kind != crate::schema::FactKind::Document)
+        .filter(|f| !matches!(f.kind, FactKind::Document | FactKind::Block))
     {
         s.push_str(&format!(
             "- {} {} {}: {}{}{}\n",
@@ -945,10 +990,11 @@ fn migrate(args: &Args) -> Out {
             Ok((
                 0,
                 format!(
-                    "subsystem files copied: {} (stale removed: {})\ndeclarations written: {}\ndialects: {}\nnodes: {} donors: {} waves: {} legacy facts: {}\n",
+                    "subsystem files copied: {} (stale removed: {})\ndeclarations written: {}\ndeclarations migrated to the current grammar: {}\ndialects: {}\nnodes: {} donors: {} waves: {} legacy facts: {}\n",
                     r.copied,
                     r.removed,
                     r.declarations_written,
+                    if r.migrated.is_empty() { "none".into() } else { r.migrated.join(", ") },
                     if r.dialects.is_empty() { "none".into() } else { r.dialects.join(", ") },
                     r.nodes,
                     r.donors,
@@ -956,6 +1002,38 @@ fn migrate(args: &Args) -> Out {
                     r.facts
                 ),
             ))
+        }
+        "schema" => {
+            // The declarations follow the subsystem's grammar: new fields are written with their
+            // undecided values (`maps_to: None`, `norl: NorlRelevance::Unresolved`) and a missing
+            // organism.rs is created empty. No claim is changed; what the new ladder no longer
+            // supports is reported here and by `verify` as CLAIM_EXCEEDS_EVIDENCE.
+            let written = declare::migrate_schema(root)?;
+            let mut s = String::new();
+            for f in &written {
+                s.push_str(&format!("rewrote {f}\n"));
+            }
+            if written.is_empty() {
+                s.push_str("declarations already use the current grammar\n");
+            }
+            let a = crate::assess(root)?;
+            let over: Vec<&crate::donors::DonorAssessment> = a
+                .analysis
+                .donors
+                .iter()
+                .filter(|x| x.claimed > x.effective && !x.resolved())
+                .collect();
+            for x in &over {
+                s.push_str(&format!(
+                    "  claim exceeds evidence: {:<32} claims {} effective {}; stopped at {}\n",
+                    x.key, x.claimed, x.effective, x.stopped_by
+                ));
+            }
+            s.push_str(&format!(
+                "{} donor claims exceed their evidence under the current ladder (claims are never lowered here: map each required capability (maps_to) and resolve its Norl relevance (norl), or lower the claim deliberately)\n",
+                over.len()
+            ));
+            Ok((0, s))
         }
         "register" => {
             // Discovered donors that participate are registered from their own package metadata.
@@ -1335,7 +1413,7 @@ fn migrate(args: &Args) -> Out {
             }
         }
         _ => Err(
-            "migrate import | map | plan [--write] | apply <wave> | scaffold | reclaim [--dry-run] | register [--dry-run] [--cargo-home <dir>]"
+            "migrate import | map | plan [--write] | apply <wave> | scaffold | schema | reclaim [--dry-run] | register [--dry-run] [--cargo-home <dir>]"
                 .into(),
         ),
     }
@@ -1597,6 +1675,151 @@ fn context(args: &Args) -> Out {
     Ok((0, crate::context::render(&a, system.as_ref())))
 }
 
+/// `organism`: what Norl is, its organs, growth, feed chains, material, shared technologies and
+/// donors — of this shard alone, or of a linked system (`--system`); `--against <older image>`
+/// says what changed.
+fn organism_cmd(args: &Args) -> Out {
+    use crate::organism::{DonorView, TechnologyView, View};
+    let system = load_system(args)?;
+    let local;
+    let (report, technologies, sharing, donors, tech_shard) = match &system {
+        Some(sys) => {
+            let runtime = |id: &str| {
+                sys.graph.edges.iter().any(|e| {
+                    e.to.to_string() == id
+                        && matches!(
+                            e.kind,
+                            crate::schema::EdgeKind::DependsOn | crate::schema::EdgeKind::Calls
+                        )
+                        && matches!(
+                            e.scope,
+                            crate::schema::Scope::Runtime | crate::schema::Scope::Linked
+                        )
+                })
+            };
+            (
+                sys.organism_report(),
+                sys.technologies
+                    .iter()
+                    .map(|t| TechnologyView {
+                        key: t.key.clone(),
+                        shard: t.birthplace.clone(),
+                        lineage: t.lineage.clone(),
+                        feeds: t.feeds.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+                sys.sharing.clone(),
+                sys.donors
+                    .iter()
+                    .map(|d| DonorView {
+                        shard: d.shard.clone(),
+                        key: d.key.clone(),
+                        effective: d.effective,
+                        runtime: runtime(&d.id),
+                    })
+                    .collect::<Vec<_>>(),
+                sys.technologies
+                    .iter()
+                    .map(|t| (t.key.clone(), t.birthplace.clone()))
+                    .collect(),
+            )
+        }
+        None => {
+            local = assess_or_import(&args.root)?;
+            let a = &local;
+            let shard = a.declaration.repository.shard.clone();
+            let technologies = a
+                .declaration
+                .technologies
+                .iter()
+                .map(|t| {
+                    let tid = crate::graph::NodeId::of(
+                        crate::graph::SYSTEM,
+                        &crate::graph::technology_key(&t.key),
+                    );
+                    let mut feeds: Vec<String> = a
+                        .graph
+                        .edges
+                        .iter()
+                        .filter(|e| e.from == tid && e.kind == crate::schema::EdgeKind::Feeds)
+                        .map(|e| {
+                            a.graph
+                                .nodes
+                                .get(&e.to)
+                                .map(|n| n.semantic_key.clone())
+                                .unwrap_or_else(|| e.to.to_string())
+                        })
+                        .collect();
+                    feeds.sort();
+                    TechnologyView {
+                        key: t.key.clone(),
+                        shard: shard.clone(),
+                        lineage: t
+                            .lineage
+                            .iter()
+                            .map(|k| match a.donor(k) {
+                                Some(x) => format!("{k} ({})", x.effective),
+                                None => k.clone(),
+                            })
+                            .collect(),
+                        feeds,
+                    }
+                })
+                .collect::<Vec<_>>();
+            (
+                a.organism.clone(),
+                technologies,
+                crate::technology_sharing(a),
+                a.analysis
+                    .donors
+                    .iter()
+                    .filter(|d| !d.resolved())
+                    .map(|d| DonorView {
+                        shard: shard.clone(),
+                        key: d.key.clone(),
+                        effective: d.effective,
+                        runtime: !(d.facts.runtime.is_empty() && d.facts.linked.is_empty()),
+                    })
+                    .collect::<Vec<_>>(),
+                a.declaration
+                    .technologies
+                    .iter()
+                    .map(|t| (t.key.clone(), shard.clone()))
+                    .collect(),
+            )
+        }
+    };
+    let view = View {
+        report: &report,
+        technologies,
+        sharing: &sharing,
+        donors,
+        tech_shard,
+    };
+    let diff = match args.value("--against") {
+        None => None,
+        Some(p) => {
+            let b = std::fs::read(p).map_err(|e| format!("{p}: {e}"))?;
+            let old = crate::linker::SystemImage::decode(&b).map_err(|e| format!("{p}: {e}"))?;
+            Some(crate::organism::diff(&old.organism_report(), &report))
+        }
+    };
+    if args.json {
+        let mut j = view.to_json();
+        if let Some(d) = diff {
+            j = j.with("against", d);
+        }
+        return Ok((0, j.render()));
+    }
+    Ok((
+        0,
+        match diff {
+            Some(d) => d,
+            None => view.render_text(),
+        },
+    ))
+}
+
 fn technology(args: &Args) -> Out {
     let sub = args
         .positional
@@ -1687,28 +1910,19 @@ fn technology(args: &Args) -> Out {
                 .map(|x| x.to_ascii_lowercase())
                 .unwrap_or_default();
             let mut s = String::new();
+            let mut json = Vec::new();
             match &system {
                 Some(sys) => {
                     for t in &sys.technologies {
-                        let hay =
-                            format!("{} {}", t.key, t.implements.join(" ")).to_ascii_lowercase();
+                        let hay = format!("{} {} {}", t.key, t.name, t.implements.join(" "))
+                            .to_ascii_lowercase();
                         let hit = match sub {
                             "consumers" => t.key == needle,
                             _ => needle.split_whitespace().all(|w| hay.contains(w)),
                         };
                         if hit {
-                            s.push_str(&format!(
-                                "{:<36} {:<12} born in {:<20} implements {}; consumers: {}\n",
-                                t.key,
-                                t.effective.wire(),
-                                t.birthplace,
-                                t.implements.join(", "),
-                                if t.consumers.is_empty() {
-                                    "-".into()
-                                } else {
-                                    t.consumers.join(", ")
-                                }
-                            ));
+                            s.push_str(&sys.technology_text(t));
+                            json.push(sys.technology_json(t));
                         }
                     }
                     if sub == "search" {
@@ -1729,18 +1943,71 @@ fn technology(args: &Args) -> Out {
                 }
                 None => {
                     let a = assess_or_import(&args.root)?;
+                    let shard = &a.declaration.repository.shard;
+                    let sharing = crate::technology_sharing(&a);
                     for t in &a.technologies {
-                        if t.key.contains(&needle) {
-                            s.push_str(&format!(
-                                "{:<36} claimed {:<12} effective {:<12} {}\n",
-                                t.key,
-                                t.claimed.wire(),
-                                t.effective.wire(),
-                                t.stopped_by
-                            ));
+                        if !t.key.contains(&needle) {
+                            continue;
                         }
+                        let d = a.declaration.technology(&t.key).expect("declared");
+                        let lineage: Vec<String> = d
+                            .lineage
+                            .iter()
+                            .map(|k| match a.donor(k) {
+                                Some(x) => format!("{k} ({})", x.effective),
+                                None => k.clone(),
+                            })
+                            .collect();
+                        let related: Vec<String> = sharing
+                            .iter()
+                            .filter(|x| x.a == t.key || x.b == t.key)
+                            .map(|x| {
+                                format!(
+                                    "{} [{}]",
+                                    if x.a == t.key { &x.b } else { &x.a },
+                                    x.class.wire()
+                                )
+                            })
+                            .collect();
+                        let list = |v: &[String]| {
+                            if v.is_empty() {
+                                "-".to_string()
+                            } else {
+                                v.join(", ")
+                            }
+                        };
+                        s.push_str(&format!(
+                            "{} — {} ({}) claimed {} effective {}\n  born in {shard} (its owner) node {}\n  implements {}\n  implementations here {}\n  lineage {}\n  proofs {}\n  norl {}; donor-dependent: {}\n{}",
+                            t.key,
+                            d.name,
+                            d.kind.wire(),
+                            t.claimed.wire(),
+                            t.effective.wire(),
+                            d.node,
+                            list(&d.implements),
+                            list(&related),
+                            list(&lineage),
+                            list(&d.proofs.iter().map(|p| p.locator.clone()).collect::<Vec<_>>()),
+                            d.norl.wire(),
+                            if t.effective < crate::schema::TechnologyLifecycle::Native { "yes" } else { "no" },
+                            if t.stopped_by.is_empty() { String::new() } else { format!("  next: {}\n", t.stopped_by) }
+                        ));
+                        json.push(
+                            Json::obj()
+                                .with("key", &t.key)
+                                .with("born_in", shard.as_str())
+                                .with("claimed", t.claimed.wire())
+                                .with("effective", t.effective.wire())
+                                .with("implements", d.implements.clone())
+                                .with("implementations", related)
+                                .with("lineage", lineage)
+                                .with("norl", d.norl.wire()),
+                        );
                     }
                 }
+            }
+            if args.json {
+                return Ok((0, Json::Array(json).render()));
             }
             if s.is_empty() {
                 s.push_str("nothing found: no canonical technology exists for this need; start the research -> native technology pipeline\n");

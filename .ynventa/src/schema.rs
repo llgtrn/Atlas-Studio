@@ -50,6 +50,8 @@ vocabulary! {
         External = "EXTERNAL": "an observed external package that is not (yet) a registered donor",
         Proof = "PROOF": "an executable proof: a parity or regression test",
         System = "SYSTEM": "Chronica itself: the one logical system every shard belongs to",
+        Organ = "ORGAN": "a conceptual organ of the Norl organism (abstract; declared only by the norl shard)",
+        Material = "MATERIAL": "abstract developmental material a shard offers the organism: a world, observation, action, experience, curriculum or evaluation; its Concept says which",
     }
 }
 
@@ -88,6 +90,13 @@ vocabulary! {
         Contract = "CONTRACT": "a versioned interface agreement",
         Experiment = "EXPERIMENT": "a controlled trial",
         Benchmark = "BENCHMARK": "a measured workload",
+        World = "WORLD": "an environment the organism can be placed in",
+        Action = "ACTION": "something the organism can do to a world",
+        Experience = "EXPERIENCE": "a recorded episode of acting in a world",
+        Curriculum = "CURRICULUM": "an ordered course of material that teaches",
+        Evaluation = "EVALUATION": "a judged trial whose evidence decides growth",
+        Organ = "ORGAN": "a part of the organism",
+        Weight = "WEIGHT": "a learned parameter artifact",
     }
 }
 
@@ -122,6 +131,14 @@ vocabulary! {
         Verifies = "VERIFIES": "the source proves the target's behaviour",
         DerivesFrom = "DERIVES_FROM": "provenance: the source was learned from the target donor",
         LearnedFrom = "LEARNED_FROM": "the source's mechanism was learned from the target (knowledge lineage)",
+        Generates = "GENERATES": "the source produces the target material (a world, observation, action, experience, curriculum or evaluation)",
+        Feeds = "FEEDS": "developmental supply: the source material, technology or capability feeds the target Norl capability or organ",
+        Teaches = "TEACHES": "the source curriculum teaches the target Norl capability or organ",
+        Uses = "USES": "the source material uses the target material (an evaluation uses an experience or world; an experience happens in a world)",
+        Observes = "OBSERVES": "the source perceives the target world or observation",
+        ActsOn = "ACTS_ON": "the source acts on the target world",
+        EvaluatedBy = "EVALUATED_BY": "the source capability or organ is judged by the target evaluation",
+        AuthorizedBy = "AUTHORIZED_BY": "the authority path: the source action or actor is authorized by the target capability or node",
     }
 }
 
@@ -194,9 +211,11 @@ vocabulary! {
         Discovered = "DISCOVERED": "the technology is known to exist or is observed in the tree",
         Registered = "REGISTERED": "declared with origin and licence; counts in every denominator forever",
         Censused = "CENSUSED": "decomposed into at least one capability",
+        TechnologyMapped = "TECHNOLOGY_MAPPED": "every required capability maps to a capability or technology of the canonical graph",
         Specified = "SPECIFIED": "every required capability has a specification",
         NativeShadow = "NATIVE_SHADOW": "every required capability has an existing native replacement node",
         ParityProven = "PARITY_PROVEN": "every replacement is native and every required capability has fresh passing parity proofs",
+        NorlRelevanceResolved = "NORL_RELEVANCE_RESOLVED": "every required capability feeds a Norl capability or is declared not relevant to Norl",
         Cutover = "CUTOVER": "cutover declared, no runtime or linked edge to the donor remains, regression proven",
         Extinct = "EXTINCT": "every extinction gate holds",
     }
@@ -242,6 +261,8 @@ vocabulary! {
         ParityProofs = "PARITY_PROOFS_PASS": "every required capability has a fresh passing parity proof",
         RegressionTests = "REGRESSION_TESTS_PASS": "every required capability has a fresh passing regression proof",
         CanonicalReplacement = "CANONICAL_REPLACEMENT_EXISTS": "every replacement node exists, is active and sits in a canonical native role",
+        TechnologyMapping = "TECHNOLOGY_MAPPING_FULL": "every required capability maps to a capability or technology of the canonical graph",
+        NorlRelevance = "NORL_RELEVANCE_RESOLVED": "every required capability's relevance to Norl is resolved",
         CutoverDone = "CUTOVER_COMPLETED": "a cutover is declared",
         RollbackIndependent = "ROLLBACK_INDEPENDENT": "no node consumes, calls, controls or shims the donor",
     }
@@ -305,8 +326,48 @@ pub fn is_physical(kind: NodeKind) -> bool {
             | NodeKind::External
             | NodeKind::Proof
             | NodeKind::System
+            | NodeKind::Organ
+            | NodeKind::Material
     )
 }
+
+vocabulary! {
+    /// THE growth ladder of a Norl organism capability. Effective states are computed from the
+    /// linked graph and evaluation evidence; declared states are only claims.
+    GrowthState {
+        Defined = "DEFINED": "the capability and its organ exist in the norl graph",
+        Exposed = "EXPOSED": "a norl physical node provides or implements it",
+        Experienced = "EXPERIENCED": "at least one experience, generated by a node of its shard, feeds it",
+        Evaluated = "EVALUATED": "evaluated by at least one evaluation with fresh passing evidence",
+        Learned = "LEARNED": "evaluated, and its backend is a native learned weight (tiny or scaled)",
+        Native = "NATIVE": "evaluated, its backend is native, and no borrowed backend or donor is in its provision path",
+    }
+}
+
+vocabulary! {
+    /// Where an organism capability's cognition comes from.
+    BackendKind {
+        Deterministic = "DETERMINISTIC": "native rule or stub cognition; no learned weights",
+        BorrowedWeight = "BORROWED_WEIGHT": "an external model through an adapter",
+        NativeTinyWeight = "NATIVE_TINY_WEIGHT": "a native learned weight of small scale",
+        NativeScaledWeight = "NATIVE_SCALED_WEIGHT": "a native learned weight at scale",
+    }
+}
+
+vocabulary! {
+    /// Computed classification of two technologies implementing the same capability. Never
+    /// declared.
+    TechnologySharing {
+        SharedImplementation = "SHARED_IMPLEMENTATION": "one canonical technology, materialized (REUSES) by other shards",
+        IndependentImplementation = "INDEPENDENT_IMPLEMENTATION": "a directly related family member (ALTERNATIVE_FOR, EVOLVES, ...) with different sources",
+        DomainSpecialization = "DOMAIN_SPECIALIZATION": "one SPECIALIZES or GENERALIZES the other",
+        SharedConcept = "SHARED_CONCEPT": "the same capability in one declared family, with no direct relation between the two",
+        UnrelatedDuplicate = "UNRELATED_DUPLICATE": "the same capability with no declared relation (DUPLICATE_TECHNOLOGY)",
+    }
+}
+
+/// The shard that is the organism. Organs and organism capabilities are legal only there.
+pub const NORL_SHARD: &str = "norl";
 
 /// Node kinds that may serve as a native replacement of a donor capability.
 pub fn is_native_role(kind: NodeKind) -> bool {
@@ -351,15 +412,16 @@ vocabulary! {
         LegacyRecord = "LEGACY_RECORD": "a legacy registry field preserved for provenance",
         Document = "DOCUMENT": "the digest of a document whose knowledge was extracted",
         Milestone = "MILESTONE": "roadmap state of a milestone/<id> or gap/<id>, one key per field (scope, status, evidence, rank); a newer value supersedes an older one",
+        Block = "BLOCK": "one block of an extracted document (heading, paragraph, list, code, table, ...) verbatim, keyed by its position; a document's blocks rebuild it byte for byte",
     }
 }
 
-/// Fact kinds an agent may assert directly (`ynventa fact add`). DOCUMENT digests license the
-/// deletion of documents and legacy kinds license the expiry of legacy shims, so those are
-/// written only by extraction and import.
+/// Fact kinds an agent may assert directly (`ynventa fact add`). DOCUMENT digests and BLOCK
+/// outlines license the deletion of documents and legacy kinds license the expiry of legacy
+/// shims, so those are written only by extraction and import.
 pub fn is_assertable(kind: FactKind) -> bool {
     !matches!(
         kind,
-        FactKind::Document | FactKind::LegacyClaim | FactKind::LegacyRecord
+        FactKind::Document | FactKind::LegacyClaim | FactKind::LegacyRecord | FactKind::Block
     )
 }

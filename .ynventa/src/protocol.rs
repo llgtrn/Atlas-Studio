@@ -57,6 +57,11 @@ pub const SHARDS: &[Shard] = &[
         origin: "llgtrn/Mechatron",
         domain: "machine",
     },
+    Shard {
+        id: "norl",
+        origin: "llgtrn/Norl",
+        domain: "norl",
+    },
 ];
 
 pub fn shard(id: &str) -> Option<&'static Shard> {
@@ -82,10 +87,11 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("extinction", "extinction gates per donor (why is a donor not extinct?)"),
     ("fact", "typed knowledge facts: add | supersede <kind> <subject> <key> <value> --provenance <p>...; list [--kind <kind>] [--subject <prefix>]"),
     ("graph", "the shard graph; --json, --binary <file>, --merge <root>..."),
-    ("knowledge", "view [--kind <kind>] [--text] [--out <file>] (read-only); extract <document>... (exactly those documents)"),
+    ("knowledge", "view [--kind <kind>] [--text] [--out <file>] | view --document <path> [--outline] (read-only; rebuilds a stored document byte for byte); extract <document or licence text>... (exactly those)"),
     ("link", "link capsules or shard roots into chronica.system.ynv: <capsule|root>... [--out <file>] [--json]"),
     ("metrics", "the metric schema; --aggregate <root>... for the ecosystem"),
-    ("migrate", "import | map | plan | apply <wave> | scaffold"),
+    ("migrate", "import | map | plan | apply <wave> | scaffold | schema (rewrite declarations into the current grammar)"),
+    ("organism", "the Norl organism: organs, growth states, feed chains, materials, shared technologies, donors: [--system <image>] [--against <older image>] [--json]"),
     ("protocol", "print the protocol snapshot; --write, --check, --schema"),
     ("prove", "run declared proofs and record content-bound evidence"),
     ("show", "a node, capability or technology with its edges: <key> [--system <image>]"),
@@ -122,6 +128,13 @@ pub fn schema_text() -> String {
         EdgeKind::ALL,
         EdgeKind::wire,
         EdgeKind::meaning,
+    );
+    vocab(
+        &mut s,
+        "concept",
+        Concept::ALL,
+        Concept::wire,
+        Concept::meaning,
     );
     vocab(&mut s, "scope", Scope::ALL, Scope::wire, Scope::meaning);
     vocab(
@@ -160,6 +173,28 @@ pub fn schema_text() -> String {
         Ecosystem::meaning,
     );
     vocab(&mut s, "gate", Gate::ALL, Gate::wire, Gate::meaning);
+    vocab(
+        &mut s,
+        "growth_state",
+        GrowthState::ALL,
+        GrowthState::wire,
+        GrowthState::meaning,
+    );
+    vocab(
+        &mut s,
+        "backend_kind",
+        BackendKind::ALL,
+        BackendKind::wire,
+        BackendKind::meaning,
+    );
+    vocab(
+        &mut s,
+        "technology_sharing",
+        TechnologySharing::ALL,
+        TechnologySharing::wire,
+        TechnologySharing::meaning,
+    );
+    s.push_str("norl_relevance UNRESOLVED | FEEDS(<norl capability>) | NOT_RELEVANT(<reason>)\n");
     vocab(&mut s, "role", Role::ALL, Role::wire, Role::meaning);
     vocab(
         &mut s,
@@ -353,7 +388,8 @@ mod tests {
     fn identity_is_deterministic_and_sensitive() {
         assert_eq!(schema_identity(), schema_identity());
         assert!(schema_identity().starts_with("sha256:"));
-        assert!(schema_text().contains("donor_state 7 EXTINCT"));
+        assert!(schema_text().contains("donor_state 9 EXTINCT"));
+        assert!(schema_text().contains("shard norl origin=llgtrn/Norl domain=norl"));
         let s = Snapshot::current(own_subsystem_dir());
         assert_eq!(Snapshot::parse(&s.render()), Some(s));
     }

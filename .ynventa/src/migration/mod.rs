@@ -19,7 +19,7 @@ use crate::compact::facts::Knowledge;
 use crate::declare::Declaration;
 use crate::donors::Analysis;
 use crate::repository::files::Files;
-use crate::schema::{DonorState, ExpiryKind, FactKind, NodeKind, ShimKind, WaveStatus};
+use crate::schema::{DonorState, ExpiryKind, NodeKind, ShimKind, WaveStatus};
 use crate::{Finding, Severity};
 use std::collections::BTreeMap;
 
@@ -59,22 +59,13 @@ pub fn legacy_consumed(
         .iter()
         .map(|d| (d.path.as_str(), d.extracted))
         .collect();
-    let imported: BTreeMap<&str, &str> = knowledge
-        .facts
-        .iter()
-        .filter(|f| f.kind == FactKind::LegacyRecord && f.key == "imported")
-        .map(|f| (f.subject.as_str(), f.value.as_str()))
-        .collect();
     let mut remaining = 0usize;
     let mut example = String::new();
     for f in files.under(path) {
         let ok = match extracted.get(f.as_str()) {
             Some(e) => *e,
-            None => imported.get(f.as_str()).is_some_and(|d| {
-                files
-                    .read_bytes(f)
-                    .is_some_and(|b| crate::digest::content_digest(&b) == *d)
-            }),
+            // Imported: knowledge rebuilds exactly these bytes.
+            None => files.read_bytes(f).is_some_and(|b| knowledge.stores(f, &b)),
         };
         if !ok {
             remaining += 1;

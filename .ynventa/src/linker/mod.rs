@@ -8,10 +8,15 @@
 
 use crate::capsule::Capsule;
 use crate::compact::codec::{DecodeError, Decoder, Encoder};
+use crate::declare::{NorlRelevance, Organism};
 use crate::formats::json::Json;
-use crate::graph::{Graph, NodeId, SYSTEM};
+use crate::graph::{is_norl_node, Graph, NodeId, NORL_EDGE_KINDS, SYSTEM};
 use crate::metrics::Counts;
-use crate::schema::{EdgeKind, NodeKind, Scope, TechnologyLifecycle};
+use crate::schema::{
+    Concept, DonorState, EdgeKind, NodeKind, Scope, TechnologyKind, TechnologyLifecycle,
+    TechnologySharing,
+};
+use crate::technology::{classify_sharing, family_related, Shared, Sharing};
 use crate::Severity;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -41,17 +46,66 @@ impl LinkIssue {
 /// several shards.
 pub type SymbolGroup = (String, String, Vec<(String, String)>);
 
+/// Edge kinds that may cross shards: run-time capability needs, materialized reuse, the
+/// developmental relations of the organism, technology family relations, and lineage. A
+/// DEPENDS_ON may cross only as ARCHITECTURAL (otherwise CROSS_SHARD_CODE_DEPENDENCY).
+pub const CROSS_SHARD_KINDS: &[EdgeKind] = &[
+    EdgeKind::Requires,
+    EdgeKind::Reuses,
+    EdgeKind::Feeds,
+    EdgeKind::Teaches,
+    EdgeKind::EvaluatedBy,
+    EdgeKind::AuthorizedBy,
+    EdgeKind::Observes,
+    EdgeKind::ActsOn,
+    EdgeKind::Uses,
+    EdgeKind::Specializes,
+    EdgeKind::Generalizes,
+    EdgeKind::AlternativeFor,
+    EdgeKind::Evolves,
+    EdgeKind::ForkedFrom,
+    EdgeKind::Merges,
+    EdgeKind::Supersedes,
+    EdgeKind::Replaces,
+    EdgeKind::LearnedFrom,
+    EdgeKind::DerivesFrom,
+];
+
 /// One technology of the linked system.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SystemTechnology {
     pub key: String,
-    /// The shard where its canonical source lives (birthplace; not its owner — Chronica is).
+    pub name: String,
+    pub kind: TechnologyKind,
+    pub purpose: String,
+    /// The shard that declares it: its one canonical owner (and the birthplace of its source).
     pub birthplace: String,
+    /// The node holding its canonical source.
+    pub node: String,
     pub effective: TechnologyLifecycle,
     pub implements: Vec<String>,
     pub source_digest: String,
     /// Shards (other than the birthplace) that reuse it natively.
     pub consumers: Vec<String>,
+    /// Donors it learned from (LEARNED_FROM), as `<donor key> (<effective state>)`.
+    pub lineage: Vec<String>,
+    /// Proof locators bound to it.
+    pub proofs: Vec<String>,
+    /// Norl capabilities and organs it FEEDS.
+    pub feeds: Vec<String>,
+    pub norl: NorlRelevance,
+    /// Still dependent on a donor: its code is not evidenced native.
+    pub donor_dependent: bool,
+}
+
+/// One donor of the linked system.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SystemDonor {
+    pub shard: String,
+    pub key: String,
+    pub id: String,
+    pub claimed: DonorState,
+    pub effective: DonorState,
 }
 
 /// One capability of the linked system.
@@ -78,6 +132,15 @@ pub struct SystemImage {
     /// Groups of same-shaped public operations found in several shards: (fingerprint,
     /// signature, [(shard, semantic key)]). Candidates for one canonical technology.
     pub duplicate_symbols: Vec<SymbolGroup>,
+    /// How technologies implementing the same capability relate (computed).
+    pub sharing: Vec<Sharing>,
+    pub donors: Vec<SystemDonor>,
+    /// Per linked shard: its structural violations (empty when its root is compatible).
+    pub structure: Vec<(String, Vec<String>)>,
+    /// The organism, as the norl shard declares it.
+    pub organism: Organism,
+    /// Verdicts of every evaluation material of the linked shards.
+    pub evaluations: crate::capsule::EvaluationRows,
 }
 
 impl SystemImage {
@@ -86,6 +149,12 @@ impl SystemImage {
     }
     pub fn counts(&self) -> Counts {
         Counts::from_raw(&self.counts)
+    }
+
+    /// The organism report of the linked system.
+    pub fn organism_report(&self) -> crate::organism::Report {
+        let ev: crate::organism::Evaluations = self.evaluations.iter().cloned().collect();
+        crate::organism::report(&self.graph, &self.organism, &ev, &BTreeMap::new())
     }
 }
 
@@ -102,17 +171,26 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
     let mut shards = Vec::new();
     let mut seen_shards = BTreeSet::new();
     for c in capsules {
-        if c.schema != schema || c.protocol != crate::YNVENTA_PROTOCOL_VERSION {
+        if c.protocol != crate::YNVENTA_PROTOCOL_VERSION {
             issues.push(LinkIssue::new(
                 Severity::Error,
                 "PROTOCOL_MISMATCH",
                 &c.shard,
                 format!(
-                    "capsule schema {} v{}; linker {} v{}",
-                    c.schema,
+                    "capsule protocol v{}; linker v{}",
                     c.protocol,
-                    schema,
                     crate::YNVENTA_PROTOCOL_VERSION
+                ),
+            ));
+        }
+        if c.schema != schema {
+            issues.push(LinkIssue::new(
+                Severity::Error,
+                "SCHEMA_FORK",
+                &c.shard,
+                format!(
+                    "capsule schema {}; linker schema {schema}: the shard speaks another vocabulary (upgrade with `ynventa migrate scaffold`)",
+                    c.schema
                 ),
             ));
         }
@@ -144,6 +222,24 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
         shards.push((c.shard.clone(), c.origin.clone(), c.head.clone(), digest));
     }
     shards.sort();
+    // Same schema, different subsystem bytes: a skewed copy (byte-identity is the rule).
+    let mut by_subsystem: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for c in capsules.iter().filter(|c| c.schema == schema) {
+        by_subsystem.entry(&c.subsystem).or_default().push(&c.shard);
+    }
+    if by_subsystem.len() > 1 {
+        for (digest, members) in &by_subsystem {
+            issues.push(LinkIssue::new(
+                Severity::Warning,
+                "SUBSYSTEM_SKEW",
+                &members.join(","),
+                format!(
+                    "subsystem {digest} differs from the other shards' ({} distinct copies under one schema); re-install the canonical subsystem",
+                    by_subsystem.len()
+                ),
+            ));
+        }
+    }
     let missing: Vec<&str> = crate::protocol::SHARDS
         .iter()
         .map(|s| s.id)
@@ -212,9 +308,14 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
         } else {
             (e.to, e.from)
         };
+        let norl = NORL_EDGE_KINDS.contains(&e.kind);
         issues.push(LinkIssue::new(
             Severity::Error,
-            "UNRESOLVED_REFERENCE",
+            if norl {
+                "UNRESOLVED_NORL_NODE"
+            } else {
+                "UNRESOLVED_REFERENCE"
+            },
             &label(&graph, &known),
             format!(
                 "{} {} references {missing}, which no linked shard declares",
@@ -257,44 +358,135 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
         }
     }
 
-    // Capabilities.
-    // Related: connected through any chain of declared lineage/alternative relations, so every
-    // alternative of one canonical technology belongs to one declared family.
-    let related = |g: &Graph, x: NodeId, y: NodeId| {
-        let family = |e: &&crate::graph::GEdge| {
-            matches!(
-                e.kind,
-                EdgeKind::Specializes
-                    | EdgeKind::AlternativeFor
-                    | EdgeKind::Evolves
-                    | EdgeKind::Generalizes
-                    | EdgeKind::Supersedes
-                    | EdgeKind::Replaces
-                    | EdgeKind::ForkedFrom
-                    | EdgeKind::Merges
-            )
+    // Every other edge that crosses shards must be of a kind that may.
+    let canonical_shard = |s: &str| crate::protocol::shard(s).is_some();
+    for e in &graph.edges {
+        let (Some(f), Some(t)) = (graph.nodes.get(&e.from), graph.nodes.get(&e.to)) else {
+            continue;
         };
-        let mut seen = BTreeSet::from([x]);
-        let mut frontier = vec![x];
-        while let Some(n) = frontier.pop() {
-            for e in g.edges.iter().filter(family) {
-                let next = if e.from == n {
-                    e.to
-                } else if e.to == n {
-                    e.from
-                } else {
-                    continue;
-                };
-                if next == y {
-                    return true;
-                }
-                if seen.insert(next) {
-                    frontier.push(next);
+        let crosses = f.namespace == SYSTEM
+            && t.namespace == SYSTEM
+            && canonical_shard(&f.repository)
+            && canonical_shard(&t.repository)
+            && f.repository != t.repository;
+        if !crosses || e.kind == EdgeKind::DependsOn {
+            continue;
+        }
+        if !CROSS_SHARD_KINDS.contains(&e.kind) {
+            issues.push(LinkIssue::new(
+                Severity::Error,
+                "INVALID_CROSS_REPO_EDGE",
+                &f.semantic_key,
+                format!(
+                    "{} {} {} in {}; shards relate only through {} (DEPENDS_ON only ARCHITECTURAL)",
+                    f.repository,
+                    e.kind,
+                    t.semantic_key,
+                    t.repository,
+                    CROSS_SHARD_KINDS
+                        .iter()
+                        .map(|k| k.wire())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+            ));
+        }
+    }
+
+    // The organism: every feed lands in Norl, every feeding material is produced in its shard,
+    // every evaluation that feeds or judges is bound to proofs.
+    for e in &graph.edges {
+        let (Some(f), Some(t)) = (graph.nodes.get(&e.from), graph.nodes.get(&e.to)) else {
+            continue;
+        };
+        if matches!(e.kind, EdgeKind::Feeds | EdgeKind::Teaches) {
+            if !is_norl_node(&graph, e.to) {
+                issues.push(LinkIssue::new(
+                    Severity::Error,
+                    "UNRESOLVED_NORL_NODE",
+                    &f.semantic_key,
+                    format!(
+                        "{} {} `{}`, which is not an organ or organism capability of norl",
+                        f.repository, e.kind, t.semantic_key
+                    ),
+                ));
+            }
+            if f.kind == NodeKind::Material {
+                let generated = graph.edges.iter().any(|g| {
+                    g.to == f.id
+                        && g.kind == EdgeKind::Generates
+                        && graph.nodes.get(&g.from).is_some_and(|s| {
+                            s.repository == f.repository || s.kind == NodeKind::Capability
+                        })
+                });
+                if !generated {
+                    issues.push(LinkIssue::new(
+                        Severity::Error,
+                        "INVALID_NORL_FEED",
+                        &f.semantic_key,
+                        format!(
+                            "Material({}) of {} {} `{}` but nothing in {} GENERATES it: the feed chain does not resolve",
+                            f.concept, f.repository, e.kind, t.semantic_key, f.repository
+                        ),
+                    ));
                 }
             }
         }
-        false
+        let judged = (e.kind == EdgeKind::EvaluatedBy && t.kind == NodeKind::Material)
+            .then_some(t)
+            .or((e.kind == EdgeKind::Feeds && f.kind == NodeKind::Material).then_some(f));
+        if let Some(m) = judged.filter(|m| m.concept == Concept::Evaluation) {
+            if m.evidence.is_empty() {
+                issues.push(LinkIssue::new(
+                    Severity::Error,
+                    "INVALID_NORL_FEED",
+                    &m.semantic_key,
+                    format!(
+                        "evaluation of {} {} with no proof binding",
+                        m.repository,
+                        if e.kind == EdgeKind::Feeds {
+                            "feeds Norl"
+                        } else {
+                            "judges Norl"
+                        }
+                    ),
+                ));
+            }
+        }
+    }
+
+    // Donor capabilities map to a capability or technology of the canonical graph.
+    let resolves = |k: &str| {
+        [
+            k.to_string(),
+            crate::graph::system_capability_key(k),
+            crate::graph::technology_key(k),
+        ]
+        .iter()
+        .any(|x| graph.node_by_key(SYSTEM, x).is_some())
     };
+    for c in capsules {
+        for d in &c.donors {
+            for (cap, k) in &d.maps {
+                if !k.trim().is_empty() && !resolves(k) {
+                    issues.push(LinkIssue::new(
+                        Severity::Error,
+                        "UNRESOLVED_REFERENCE",
+                        &d.key,
+                        format!(
+                            "{} donor capability `{cap}` maps_to `{k}`, which no linked shard declares",
+                            c.shard
+                        ),
+                    ));
+                }
+            }
+        }
+    }
+
+    // Capabilities.
+    // Related: connected through any chain of declared lineage/alternative relations, so every
+    // alternative of one canonical technology belongs to one declared family.
+    let related = family_related;
     let mut caps: BTreeMap<String, SystemCapability> = BTreeMap::new();
     for n in graph
         .nodes
@@ -370,11 +562,27 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
         caps.insert(key.to_string(), sc);
     }
 
-    // Technologies: birthplace, adoption, duplication.
+    // Technologies: owner, adoption, duplication, lineage, proofs, feeds.
     let mut techs: Vec<SystemTechnology> = Vec::new();
     for c in capsules {
         for t in &c.technologies {
             let tid = NodeId::of(SYSTEM, &crate::graph::technology_key(&t.key));
+            let lineage = t
+                .lineage
+                .iter()
+                .map(|k| match c.donors.iter().find(|d| &d.key == k) {
+                    Some(d) => format!("{k} ({})", d.effective),
+                    None => k.clone(),
+                })
+                .collect();
+            let mut feeds: Vec<String> = graph
+                .edges
+                .iter()
+                .filter(|e| e.from == tid && e.kind == EdgeKind::Feeds)
+                .map(|e| label(&graph, &e.to))
+                .collect();
+            feeds.sort();
+            feeds.dedup();
             let mut consumers: Vec<String> = graph
                 .backlinks(tid)
                 .iter()
@@ -390,11 +598,24 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
             }
             techs.push(SystemTechnology {
                 key: t.key.clone(),
+                name: t.name.clone(),
+                kind: t.kind,
+                purpose: t.purpose.clone(),
                 birthplace: c.shard.clone(),
+                node: t.node.clone(),
                 effective,
                 implements: t.implements.clone(),
                 source_digest: t.source_digest.clone(),
                 consumers,
+                lineage,
+                proofs: graph
+                    .nodes
+                    .get(&tid)
+                    .map(|n| n.evidence.clone())
+                    .unwrap_or_default(),
+                feeds,
+                norl: t.norl.clone(),
+                donor_dependent: t.effective < TechnologyLifecycle::Native,
             });
         }
     }
@@ -437,6 +658,106 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
         }
     }
 
+    let sharing = classify_sharing(
+        &graph,
+        &techs
+            .iter()
+            .map(|t| Shared {
+                key: &t.key,
+                birthplace: &t.birthplace,
+                implements: &t.implements,
+                source_digest: &t.source_digest,
+            })
+            .collect::<Vec<_>>(),
+    );
+
+    // Orphans: capabilities and technologies nothing places in the technology or material graph.
+    for (k, providers) in crate::organism::orphan_capabilities(&graph, None) {
+        issues.push(LinkIssue::new(
+            Severity::Warning,
+            "ORPHAN_CAPABILITY",
+            &k,
+            format!(
+                "provided by {} with no technology implementing it and no material or feed relation",
+                providers.join(", ")
+            ),
+        ));
+    }
+    for t in techs
+        .iter()
+        .filter(|t| t.effective != TechnologyLifecycle::Superseded)
+    {
+        let not_relevant = matches!(&t.norl, NorlRelevance::NotRelevant(r) if !r.trim().is_empty());
+        if t.implements.is_empty() || (t.feeds.is_empty() && !not_relevant) {
+            issues.push(LinkIssue::new(
+                Severity::Warning,
+                "ORPHAN_TECHNOLOGY",
+                &t.key,
+                if t.implements.is_empty() {
+                    "implements no capability".to_string()
+                } else {
+                    format!(
+                        "{}: feeds no Norl capability and is not declared irrelevant to Norl",
+                        t.birthplace
+                    )
+                },
+            ));
+        }
+    }
+
+    // Structural conformance of every linked shard's root.
+    let mut structure: Vec<(String, Vec<String>)> = capsules
+        .iter()
+        .map(|c| (c.shard.clone(), c.structure.clone()))
+        .collect();
+    structure.sort();
+    for (shard, v) in structure.iter().filter(|(_, v)| !v.is_empty()) {
+        issues.push(LinkIssue::new(
+            Severity::Warning,
+            "STRUCTURE_NONCONFORMANT",
+            shard,
+            format!(
+                "{} structural violations: {}",
+                v.len(),
+                v.iter().take(3).cloned().collect::<Vec<_>>().join("; ")
+            ),
+        ));
+    }
+    let mut donors: Vec<SystemDonor> = capsules
+        .iter()
+        .flat_map(|c| {
+            c.donors.iter().map(|d| SystemDonor {
+                shard: c.shard.clone(),
+                key: d.key.clone(),
+                id: d.id.clone(),
+                claimed: d.claimed,
+                effective: d.effective,
+            })
+        })
+        .collect();
+    donors.sort_by(|a, b| (&a.shard, &a.key).cmp(&(&b.shard, &b.key)));
+    let mut organism = Organism::default();
+    for c in capsules {
+        organism
+            .capabilities
+            .extend(c.organism.capabilities.iter().cloned());
+        organism
+            .backends
+            .extend(c.organism.backends.iter().cloned());
+    }
+
+    // Growth of the organism, judged on the whole system: claims above it are errors here.
+    let mut evaluations: crate::capsule::EvaluationRows = capsules
+        .iter()
+        .flat_map(|c| c.evaluations.iter().cloned())
+        .collect();
+    evaluations.sort();
+    let ev: crate::organism::Evaluations = evaluations.iter().cloned().collect();
+    let organism_report = crate::organism::report(&graph, &organism, &ev, &BTreeMap::new());
+    for f in crate::organism::claim_findings(&organism_report.growth, false) {
+        issues.push(LinkIssue::new(f.severity, &f.code, &f.subject, f.detail));
+    }
+
     // YIR: same-shaped public operations in several shards are technology candidates.
     let mut groups: BTreeMap<String, (String, BTreeSet<(String, String)>)> = BTreeMap::new();
     for c in capsules {
@@ -473,6 +794,13 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
         .iter()
         .filter(|t| t.effective == TechnologyLifecycle::Adopted)
         .count() as u64;
+    // System-wide values replace the shards' local views of the organism, the orphans and the
+    // sharing pairs (which only the linked graph decides).
+    organism_report.count(&mut total);
+    let warned = |code: &str| issues.iter().filter(|i| i.code == code).count() as u64;
+    total.orphan_capabilities = warned("ORPHAN_CAPABILITY");
+    total.orphan_technologies = warned("ORPHAN_TECHNOLOGY");
+    crate::organism::count_sharing(&sharing, &mut total);
     issues.sort();
     issues.dedup();
     SystemImage {
@@ -488,6 +816,11 @@ pub fn link(capsules: &[Capsule]) -> SystemImage {
             .map(|(k, v)| (k.to_string(), v))
             .collect(),
         duplicate_symbols,
+        sharing,
+        donors,
+        structure,
+        organism,
+        evaluations,
     }
 }
 
@@ -503,11 +836,20 @@ impl SystemImage {
         e.u64(self.technologies.len() as u64);
         for t in &self.technologies {
             e.str(&t.key)
+                .str(&t.name)
+                .u8(t.kind.rank())
+                .str(&t.purpose)
                 .str(&t.birthplace)
+                .str(&t.node)
                 .u8(t.effective.rank())
                 .strs(&t.implements)
                 .str(&t.source_digest)
-                .strs(&t.consumers);
+                .strs(&t.consumers)
+                .strs(&t.lineage)
+                .strs(&t.proofs)
+                .strs(&t.feeds)
+                .bool(t.donor_dependent);
+            crate::capsule::encode_norl(&mut e, &t.norl);
         }
         e.u64(self.capabilities.len() as u64);
         let pairs = |e: &mut Encoder, v: &[(String, String)]| {
@@ -538,6 +880,27 @@ impl SystemImage {
             e.str(f).str(sig);
             pairs(&mut e, m);
         }
+        e.u64(self.sharing.len() as u64);
+        for x in &self.sharing {
+            e.str(x.class.wire())
+                .str(&x.a)
+                .str(&x.b)
+                .strs(&x.capabilities);
+        }
+        e.u64(self.donors.len() as u64);
+        for x in &self.donors {
+            e.str(&x.shard)
+                .str(&x.key)
+                .str(&x.id)
+                .str(x.claimed.wire())
+                .str(x.effective.wire());
+        }
+        e.u64(self.structure.len() as u64);
+        for (shard, v) in &self.structure {
+            e.str(shard).strs(v);
+        }
+        crate::capsule::encode_organism(&mut e, &self.organism);
+        crate::capsule::encode_evaluations(&mut e, &self.evaluations);
         e.finish()
     }
 
@@ -553,11 +916,20 @@ impl SystemImage {
         for _ in 0..d.u64()? {
             technologies.push(SystemTechnology {
                 key: d.str()?,
+                name: d.str()?,
+                kind: d.word(TechnologyKind::ALL)?,
+                purpose: d.str()?,
                 birthplace: d.str()?,
+                node: d.str()?,
                 effective: d.word(TechnologyLifecycle::ALL)?,
                 implements: d.strs()?,
                 source_digest: d.str()?,
                 consumers: d.strs()?,
+                lineage: d.strs()?,
+                proofs: d.strs()?,
+                feeds: d.strs()?,
+                donor_dependent: d.bool()?,
+                norl: crate::capsule::decode_norl(&mut d)?,
             });
         }
         fn pairs(d: &mut Decoder) -> Result<Vec<(String, String)>, DecodeError> {
@@ -595,6 +967,39 @@ impl SystemImage {
         for _ in 0..d.u64()? {
             duplicate_symbols.push((d.str()?, d.str()?, pairs(&mut d)?));
         }
+        let word = |d: &mut Decoder| -> Result<String, DecodeError> { d.str() };
+        let mut sharing = Vec::new();
+        for _ in 0..d.u64()? {
+            let w = word(&mut d)?;
+            sharing.push(Sharing {
+                class: TechnologySharing::from_wire(&w)
+                    .ok_or_else(|| DecodeError(format!("`{w}` is not a sharing class")))?,
+                a: d.str()?,
+                b: d.str()?,
+                capabilities: d.strs()?,
+            });
+        }
+        let state = |d: &mut Decoder| -> Result<DonorState, DecodeError> {
+            let w = d.str()?;
+            DonorState::from_wire(&w)
+                .ok_or_else(|| DecodeError(format!("`{w}` is not a donor state")))
+        };
+        let mut donors = Vec::new();
+        for _ in 0..d.u64()? {
+            donors.push(SystemDonor {
+                shard: d.str()?,
+                key: d.str()?,
+                id: d.str()?,
+                claimed: state(&mut d)?,
+                effective: state(&mut d)?,
+            });
+        }
+        let mut structure = Vec::new();
+        for _ in 0..d.u64()? {
+            structure.push((d.str()?, d.strs()?));
+        }
+        let organism = crate::capsule::decode_organism(&mut d)?;
+        let evaluations = crate::capsule::decode_evaluations(&mut d)?;
         d.end()?;
         Ok(SystemImage {
             schema,
@@ -605,6 +1010,11 @@ impl SystemImage {
             issues,
             counts,
             duplicate_symbols,
+            sharing,
+            donors,
+            structure,
+            organism,
+            evaluations,
         })
     }
 
@@ -642,6 +1052,25 @@ impl SystemImage {
             get("external_technology_edges"),
             self.issues.iter().filter(|i| i.severity == Severity::Warning).count(),
         );
+        s.push_str("technology sharing (pairs implementing one capability):\n");
+        for class in TechnologySharing::ALL {
+            s.push_str(&format!(
+                "  {:<28} {}\n",
+                class.wire(),
+                self.sharing.iter().filter(|x| x.class == *class).count()
+            ));
+        }
+        s.push_str("shard structure:\n");
+        for (shard, v) in &self.structure {
+            s.push_str(&format!(
+                "  {shard:<20} {}\n",
+                if v.is_empty() {
+                    "CONFORMANT".to_string()
+                } else {
+                    format!("{} violations: {}", v.len(), v.join("; "))
+                }
+            ));
+        }
         let mut by_code: BTreeMap<(&str, &str), usize> = BTreeMap::new();
         for i in &self.issues {
             *by_code
@@ -655,6 +1084,104 @@ impl SystemImage {
             }
         }
         s
+    }
+
+    /// Everything the system knows about one technology: what it is and who owns it, its
+    /// implementations by shard (and how they relate), consumers, lineage, proofs, what it feeds
+    /// in Norl and whether it still depends on a donor.
+    pub fn technology_json(&self, t: &SystemTechnology) -> Json {
+        Json::obj()
+            .with("key", &t.key)
+            .with("name", &t.name)
+            .with("kind", t.kind.wire())
+            .with("purpose", &t.purpose)
+            .with("born_in", &t.birthplace)
+            .with("node", &t.node)
+            .with("effective", t.effective.wire())
+            .with("implements", t.implements.clone())
+            .with(
+                "implementations",
+                Json::Array(
+                    self.implementations(&t.key)
+                        .into_iter()
+                        .map(|(class, other, shard)| {
+                            Json::obj()
+                                .with("class", class.wire())
+                                .with("with", other)
+                                .with("shard", shard)
+                        })
+                        .collect(),
+                ),
+            )
+            .with("consumers", t.consumers.clone())
+            .with("lineage", t.lineage.clone())
+            .with("proofs", t.proofs.clone())
+            .with("feeds", t.feeds.clone())
+            .with("norl", t.norl.wire())
+            .with("donor_dependent", t.donor_dependent)
+    }
+
+    /// The other implementations related to technology `key`: (class, other technology key or
+    /// `<node>@<shard>` copy, shard).
+    pub fn implementations(&self, key: &str) -> Vec<(TechnologySharing, String, String)> {
+        let shard_of = |k: &str| {
+            self.technologies
+                .iter()
+                .find(|t| t.key == k)
+                .map(|t| t.birthplace.clone())
+                .unwrap_or_else(|| {
+                    k.rsplit_once('@')
+                        .map(|(_, s)| s.to_string())
+                        .unwrap_or_default()
+                })
+        };
+        self.sharing
+            .iter()
+            .filter_map(|x| {
+                let other = if x.a == key {
+                    &x.b
+                } else if x.b == key {
+                    &x.a
+                } else {
+                    return None;
+                };
+                Some((x.class, other.clone(), shard_of(other)))
+            })
+            .collect()
+    }
+
+    /// The multi-line text answer for one technology.
+    pub fn technology_text(&self, t: &SystemTechnology) -> String {
+        let or_dash = |v: &[String]| {
+            if v.is_empty() {
+                "-".to_string()
+            } else {
+                v.join(", ")
+            }
+        };
+        let impls: Vec<String> = self
+            .implementations(&t.key)
+            .into_iter()
+            .map(|(c, o, sh)| format!("{o} in {sh} [{}]", c.wire()))
+            .collect();
+        format!(
+            "{} — {} ({}, {})\n  born in {} (its owner) node {}; purpose: {}\n  implements {}\n  implementations {}\n  consumers {}\n  lineage {}\n  proofs {}\n  feeds Norl {}\n  norl {}; donor-dependent: {}\n",
+            t.key,
+            t.name,
+            t.kind.wire(),
+            t.effective.wire(),
+            t.birthplace,
+            t.node,
+            if t.purpose.is_empty() { "-" } else { &t.purpose },
+            or_dash(&t.implements),
+            or_dash(&impls),
+            or_dash(&t.consumers),
+            or_dash(&t.lineage),
+            or_dash(&t.proofs),
+            or_dash(&t.feeds),
+            t.norl.wire(),
+            if t.donor_dependent { "yes" } else { "no" }
+        )
     }
 
     pub fn to_json(&self) -> Json {
@@ -682,14 +1209,7 @@ impl SystemImage {
                 Json::Array(
                     self.technologies
                         .iter()
-                        .map(|t| {
-                            Json::obj()
-                                .with("key", &t.key)
-                                .with("birthplace", &t.birthplace)
-                                .with("effective", t.effective.wire())
-                                .with("implements", t.implements.clone())
-                                .with("consumers", t.consumers.clone())
-                        })
+                        .map(|t| self.technology_json(t))
                         .collect(),
                 ),
             )
@@ -731,6 +1251,35 @@ impl SystemImage {
                                 .with("code", &i.code)
                                 .with("subject", &i.subject)
                                 .with("detail", &i.detail)
+                        })
+                        .collect(),
+                ),
+            )
+            .with(
+                "sharing",
+                Json::Array(
+                    self.sharing
+                        .iter()
+                        .map(|x| {
+                            Json::obj()
+                                .with("class", x.class.wire())
+                                .with("a", &x.a)
+                                .with("b", &x.b)
+                                .with("capabilities", x.capabilities.clone())
+                        })
+                        .collect(),
+                ),
+            )
+            .with(
+                "structure",
+                Json::Array(
+                    self.structure
+                        .iter()
+                        .map(|(shard, v)| {
+                            Json::obj()
+                                .with("shard", shard)
+                                .with("conformant", v.is_empty())
+                                .with("violations", v.clone())
                         })
                         .collect(),
                 ),

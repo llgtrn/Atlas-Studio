@@ -354,3 +354,74 @@ fn platform_libraries_are_not_foreign() {
     assert!(a.analysis.unregistered.is_empty());
     assert_eq!(a.donor("geo").unwrap().effective, DonorState::Extinct);
 }
+
+/// A `Cargo.lock` in which `core-kernel` pulls in `geo` only through other crates.
+const TRANSITIVE_LOCK: &str = "version = 4\n\n[[package]]\nname = \"core-kernel\"\nversion = \"0.1.0\"\ndependencies = [\"spatial-db\"]\n\n[[package]]\nname = \"geo-native\"\nversion = \"0.1.0\"\ndependencies = [\"core-kernel\"]\n\n[[package]]\nname = \"verification\"\nversion = \"0.1.0\"\ndependencies = [\"geo-native\"]\n\n[[package]]\nname = \"spatial-db\"\nversion = \"0.6.12\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\ndependencies = [\"spatial-protocol\"]\n\n[[package]]\nname = \"spatial-protocol\"\nversion = \"0.6.12\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\ndependencies = [\"geo 0.33.0\"]\n\n[[package]]\nname = \"geo\"\nversion = \"0.33.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n";
+
+#[test]
+fn donor_crate_remains_only_in_the_lockfile() {
+    let r = extinct_baseline("lock-transitive");
+    r.write("Cargo.lock", TRANSITIVE_LOCK);
+    let a = not_extinct(&r, Gate::LinkedEdges);
+    let detail = &a
+        .donor("geo")
+        .unwrap()
+        .gates
+        .iter()
+        .find(|g| g.gate == Gate::LinkedEdges)
+        .unwrap()
+        .detail;
+    assert!(
+        detail.contains("linked via spatial-protocol 0.6.12")
+            && detail.contains(
+                "core/Cargo.toml → spatial-db 0.6.12 → spatial-protocol 0.6.12 → geo 0.33.0"
+            ),
+        "the gate names the path that pulls the donor in: {detail}"
+    );
+    assert_eq!(a.metric("linked_external_edges"), "1");
+    assert_eq!(a.metric("external_technology_edges"), "1");
+    // The crates in between are the direct dependency's business: no finding of their own.
+    assert!(
+        a.findings.iter().all(|f| f.code != "UNREGISTERED_EXTERNAL"),
+        "{:#?}",
+        a.findings
+    );
+}
+
+#[test]
+fn a_lockfile_without_the_donor_keeps_it_extinct() {
+    let r = extinct_baseline("lock-clean");
+    r.write(
+        "Cargo.lock",
+        &TRANSITIVE_LOCK.replace("dependencies = [\"geo 0.33.0\"]\n", "")
+            .replace("[[package]]\nname = \"geo\"\nversion = \"0.33.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n", ""),
+    );
+    let a = r.assess();
+    let d = a.donor("geo").unwrap();
+    assert_eq!(d.effective, DonorState::Extinct, "{:#?}", d.gates);
+    assert_eq!(a.metric("linked_external_edges"), "0");
+}
+
+#[test]
+fn donor_package_remains_only_in_an_npm_lockfile() {
+    let r = extinct_baseline("lock-npm");
+    r.edit(|d| {
+        d.donors[0].packages.push(Package {
+            ecosystem: Ecosystem::Npm,
+            name: "geo".into(),
+        })
+    });
+    r.write(
+        "apps/web/package.json",
+        "{\"name\":\"web\",\"devDependencies\":{\"vite\":\"^6\"}}",
+    );
+    r.write("apps/web/package-lock.json", "{\"name\":\"web\",\"lockfileVersion\":3,\"packages\":{\"\":{\"name\":\"web\",\"devDependencies\":{\"vite\":\"^6\"}},\"node_modules/vite\":{\"version\":\"6.0.0\",\"dev\":true,\"dependencies\":{\"geo\":\"^1\"}},\"node_modules/geo\":{\"version\":\"1.0.0\",\"dev\":true}}}");
+    let a = r.assess();
+    let d = a.donor("geo").unwrap();
+    assert_ne!(d.effective, DonorState::Extinct, "{:#?}", d.gates);
+    assert!(
+        !gate(&a, "geo", Gate::BuildEdges),
+        "a dev dependency's closure is build participation"
+    );
+    assert!(gate(&a, "geo", Gate::LinkedEdges));
+}

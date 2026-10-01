@@ -1,8 +1,9 @@
 //! The owned, run-time form of a repository's declarations.
 
 use crate::schema::{
-    Concept, Dimension, DonorState, Ecosystem, EdgeKind, ExceptionKind, ExpiryKind, NodeKind,
-    NodeLifecycle, ProofKind, Scope, ShimKind, TechnologyKind, TechnologyLifecycle, WaveStatus,
+    BackendKind, Concept, Dimension, DonorState, Ecosystem, EdgeKind, ExceptionKind, ExpiryKind,
+    GrowthState, NodeKind, NodeLifecycle, ProofKind, Scope, ShimKind, TechnologyKind,
+    TechnologyLifecycle, WaveStatus,
 };
 
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -11,6 +12,7 @@ pub struct Declaration {
     pub donors: Vec<Donor>,
     pub migration: Migration,
     pub technologies: Vec<Technology>,
+    pub organism: Organism,
 }
 
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -97,7 +99,85 @@ pub struct Capability {
     pub spec: String,
     /// Key of the native replacement node.
     pub replacement: Option<String>,
+    /// The capability or technology of the canonical graph it maps to (`capability/<k>` or
+    /// `technology/<k>`); resolved by the system linker.
+    pub maps_to: Option<String>,
+    /// Its relevance to the Norl organism.
+    pub norl: NorlRelevance,
     pub proofs: Vec<Proof>,
+}
+
+/// How a donor capability or a technology relates to the Norl organism. `Feeds` names a Norl
+/// capability key, resolved by the system linker; `NotRelevant` states why not.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub enum NorlRelevance {
+    #[default]
+    Unresolved,
+    Feeds(String),
+    NotRelevant(String),
+}
+
+impl NorlRelevance {
+    pub fn resolved(&self) -> bool {
+        match self {
+            NorlRelevance::Unresolved => false,
+            NorlRelevance::Feeds(k) | NorlRelevance::NotRelevant(k) => !k.trim().is_empty(),
+        }
+    }
+    pub fn feeds(&self) -> Option<&str> {
+        match self {
+            NorlRelevance::Feeds(k) if !k.trim().is_empty() => Some(k),
+            _ => None,
+        }
+    }
+    pub fn wire(&self) -> String {
+        match self {
+            NorlRelevance::Unresolved => "UNRESOLVED".into(),
+            NorlRelevance::Feeds(k) => format!("FEEDS({k})"),
+            NorlRelevance::NotRelevant(r) => format!("NOT_RELEVANT({r})"),
+        }
+    }
+}
+
+/// The organism declaration: empty outside the norl shard.
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct Organism {
+    pub capabilities: Vec<OrganismCapability>,
+    pub backends: Vec<Backend>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct OrganismCapability {
+    /// The capability key; its graph node is `capability/<key>`.
+    pub key: String,
+    /// The organ node key.
+    pub organ: String,
+    /// The claimed growth state; the effective state is computed.
+    pub claimed: GrowthState,
+    pub backend: Option<String>,
+    /// Keys of the Material(Evaluation) nodes that judge it, in any shard.
+    pub evaluations: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Backend {
+    pub key: String,
+    pub kind: BackendKind,
+    /// The norl physical node implementing it.
+    pub node: String,
+    /// The donor key when the weight is borrowed.
+    pub donor: Option<String>,
+    /// The weight artifact identity; empty for none.
+    pub weight: String,
+}
+
+impl Organism {
+    pub fn is_empty(&self) -> bool {
+        self.capabilities.is_empty() && self.backends.is_empty()
+    }
+    pub fn backend(&self, key: &str) -> Option<&Backend> {
+        self.backends.iter().find(|b| b.key == key)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -193,6 +273,9 @@ pub struct Technology {
     pub lineage: Vec<String>,
     /// Typed relations to other technologies (EVOLVES, SPECIALIZES, ALTERNATIVE_FOR, …).
     pub relations: Vec<Relation>,
+    /// Its relevance to the Norl organism (a technology that feeds no Norl capability must say
+    /// why it is not relevant).
+    pub norl: NorlRelevance,
     pub claims: Vec<Improvement>,
 }
 

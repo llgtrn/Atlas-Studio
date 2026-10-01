@@ -144,6 +144,7 @@ pub fn render(a: &Assessment, system: Option<&SystemImage>) -> String {
     } else {
         s.push_str("\n(no system image given: pass --system target/ynventa/chronica.system.ynv for global capabilities and technologies)\n");
     }
+    s.push_str(&norl_contribution(a, system));
     let applied = d
         .migration
         .waves
@@ -175,5 +176,105 @@ pub fn render(a: &Assessment, system: Option<&SystemImage>) -> String {
         CONTEXT_KNOWLEDGE_LIMIT,
     ));
     s.push_str("\nBEFORE BUILDING INFRASTRUCTURE\n  ynventa technology search <need>  ·  ynventa show <key> --system <image>  ·  never `cargo add` a donor\n");
+    s
+}
+
+/// What this shard contributes to the organism: its material by concept (and how much of it
+/// reaches Norl), its feeds, the Norl relevance of its technologies and donor capabilities and,
+/// in the norl shard, the organism's growth.
+pub fn norl_contribution(a: &Assessment, system: Option<&SystemImage>) -> String {
+    use crate::declare::NorlRelevance;
+    let d = &a.declaration;
+    let shard = d.repository.shard.as_str();
+    let sys_report = system.map(|s| s.organism_report());
+    let report = sys_report.as_ref().unwrap_or(&a.organism);
+    let mut s = format!(
+        "\nNORL CONTRIBUTION ({})\n",
+        if system.is_some() {
+            "judged on the linked system"
+        } else {
+            "this shard alone; pass --system for the linked judgement"
+        }
+    );
+    let mine: Vec<&crate::organism::MaterialView> = report
+        .materials
+        .iter()
+        .filter(|m| m.shard == shard)
+        .collect();
+    let row: Vec<String> = crate::graph::MATERIAL_CONCEPTS
+        .iter()
+        .map(|c| {
+            let all = mine.iter().filter(|m| m.concept == *c).count();
+            let fed = mine
+                .iter()
+                .filter(|m| m.concept == *c && m.feeds_norl)
+                .count();
+            format!("{} {fed}/{all}", c.wire().to_ascii_lowercase())
+        })
+        .collect();
+    s.push_str(&format!(
+        "  material reaching Norl / declared: {}\n",
+        row.join(", ")
+    ));
+    let feeds: Vec<String> = report
+        .feeds
+        .iter()
+        .filter(|f| f.shard == shard)
+        .map(|f| format!("{} -{}-> {}", f.source, f.kind, f.target))
+        .collect();
+    s.push_str(&format!(
+        "  feeds: {}\n",
+        if feeds.is_empty() {
+            "none (offer MATERIAL that FEEDS or TEACHES a Norl capability)".to_string()
+        } else {
+            format!("{}: {}", feeds.len(), feeds.join("; "))
+        }
+    ));
+    let rel = |n: &NorlRelevance| match n {
+        NorlRelevance::Unresolved => 0,
+        NorlRelevance::Feeds(_) => 1,
+        NorlRelevance::NotRelevant(_) => 2,
+    };
+    let count = |v: &[usize], k: usize| v.iter().filter(|x| **x == k).count();
+    let techs: Vec<usize> = d.technologies.iter().map(|t| rel(&t.norl)).collect();
+    let caps: Vec<usize> = d
+        .donors
+        .iter()
+        .flat_map(|dn| dn.capabilities.iter().filter(|c| c.required))
+        .map(|c| rel(&c.norl))
+        .collect();
+    s.push_str(&format!(
+        "  technologies: {} feed Norl, {} not relevant, {} unresolved\n  donor capabilities: {} feed Norl, {} not relevant, {} unresolved\n",
+        count(&techs, 1),
+        count(&techs, 2),
+        count(&techs, 0),
+        count(&caps, 1),
+        count(&caps, 2),
+        count(&caps, 0)
+    ));
+    if shard == crate::schema::NORL_SHARD || !d.organism.is_empty() {
+        let by: Vec<String> = crate::schema::GrowthState::ALL
+            .iter()
+            .map(|st| {
+                format!(
+                    "{} {}",
+                    st.wire().to_ascii_lowercase(),
+                    report
+                        .growth
+                        .iter()
+                        .filter(|g| g.defined && g.effective == *st)
+                        .count()
+                )
+            })
+            .collect();
+        s.push_str(&format!(
+            "  organism: {} organs, {} capabilities ({}); borrowed {}, regressed {}\n",
+            report.organs.len(),
+            report.growth.len(),
+            by.join(", "),
+            report.growth.iter().filter(|g| g.borrowed).count(),
+            report.growth.iter().filter(|g| g.regressed).count()
+        ));
+    }
     s
 }

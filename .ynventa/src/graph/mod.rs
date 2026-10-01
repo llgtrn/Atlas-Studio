@@ -100,9 +100,36 @@ pub fn default_concept(kind: NodeKind) -> Concept {
         NodeKind::Donor | NodeKind::External => Concept::Donor,
         NodeKind::Proof => Concept::Evidence,
         NodeKind::Fixture => Concept::Dataset,
+        NodeKind::Organ => Concept::Organ,
+        NodeKind::Material => Concept::World,
         _ => Concept::Subsystem,
     }
 }
+
+/// The concepts a MATERIAL node may mean.
+pub const MATERIAL_CONCEPTS: &[Concept] = &[
+    Concept::World,
+    Concept::Observation,
+    Concept::Action,
+    Concept::Experience,
+    Concept::Curriculum,
+    Concept::Evaluation,
+];
+
+/// Prefix of a repository-edge endpoint that names a proof locator (`proof:<file>::<test>`):
+/// legal only as the source of VERIFIES into an evaluation material, which it binds to evidence.
+pub const PROOF_ENDPOINT: &str = "proof:";
+
+/// Edge kinds whose endpoints must resolve into the organism (or into the material graph that
+/// feeds it) when the system is linked.
+pub const NORL_EDGE_KINDS: &[EdgeKind] = &[
+    EdgeKind::Feeds,
+    EdgeKind::Teaches,
+    EdgeKind::EvaluatedBy,
+    EdgeKind::Observes,
+    EdgeKind::ActsOn,
+    EdgeKind::AuthorizedBy,
+];
 
 impl GNode {
     pub fn new(namespace: &str, key: &str, kind: NodeKind, name: &str) -> GNode {
@@ -254,8 +281,23 @@ impl Graph {
             gn.outputs = sorted(&n.outputs);
             let id = gn.id;
             push(&mut g, gn, &mut issues);
-            if is_physical(n.kind) {
+            if is_physical(n.kind) || n.kind == NodeKind::Organ {
                 g.add_edge(repo_id, id, EdgeKind::Contains, Scope::Semantic);
+            }
+            if n.kind == NodeKind::Material && !MATERIAL_CONCEPTS.contains(&n.concept) {
+                issues.push(GraphIssue {
+                    code: "INVALID_MATERIAL_CONCEPT",
+                    subject: n.key.clone(),
+                    detail: format!(
+                        "a MATERIAL means one of {}; `{}` is not developmental material",
+                        MATERIAL_CONCEPTS
+                            .iter()
+                            .map(|c| c.wire())
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                        n.concept
+                    ),
+                });
             }
             for c in &n.provides {
                 let cid = capability(&mut g, &mut issues, c);
@@ -292,6 +334,10 @@ impl Graph {
                 let cid = cap.id;
                 push(&mut g, cap, &mut issues);
                 g.add_edge(did, cid, EdgeKind::Provides, Scope::Semantic);
+                if let Some(k) = c.norl.feeds() {
+                    let target = NodeId::of(sys, &system_capability_key(k));
+                    g.add_edge(cid, target, EdgeKind::Feeds, Scope::Semantic);
+                }
                 if let Some(rep) = &c.replacement {
                     let rid = NodeId::of(sys, rep);
                     g.add_edge(rid, cid, EdgeKind::Replaces, Scope::Semantic);
@@ -366,6 +412,38 @@ impl Graph {
             for r in &t.relations {
                 g.add_edge(tid, technology_id(&r.target), r.kind, Scope::Semantic);
             }
+            if let Some(k) = t.norl.feeds() {
+                let target = NodeId::of(sys, &system_capability_key(k));
+                g.add_edge(tid, target, EdgeKind::Feeds, Scope::Semantic);
+            }
+        }
+
+        // The organism: each capability belongs to its organ, is implemented by its backend's
+        // node and judged by its evaluations (which may live in any shard).
+        for c in &d.organism.capabilities {
+            let cid = capability(&mut g, &mut issues, &c.key);
+            g.add_edge(
+                NodeId::of(sys, &c.organ),
+                cid,
+                EdgeKind::Contains,
+                Scope::Semantic,
+            );
+            for e in &c.evaluations {
+                g.add_edge(
+                    cid,
+                    NodeId::of(sys, e),
+                    EdgeKind::EvaluatedBy,
+                    Scope::Semantic,
+                );
+            }
+            if let Some(b) = c.backend.as_deref().and_then(|b| d.organism.backend(b)) {
+                g.add_edge(
+                    NodeId::of(sys, &b.node),
+                    cid,
+                    EdgeKind::Implements,
+                    Scope::Semantic,
+                );
+            }
         }
 
         for n in &d.repository.nodes {
@@ -393,6 +471,35 @@ impl Graph {
         // locally, resolved (or rejected) by the system linker.
         let mut foreign = BTreeSet::new();
         for e in &d.repository.edges {
+            if let Some(locator) = e.from.strip_prefix(PROOF_ENDPOINT) {
+                // An evaluation's proof binding: the proof node and its evidence locator.
+                let pn = owned(GNode::new(
+                    sys,
+                    &proof_key(shard, locator),
+                    NodeKind::Proof,
+                    locator,
+                ));
+                let pid = pn.id;
+                push(&mut g, pn, &mut issues);
+                let to = NodeId::of(sys, &e.to);
+                g.add_edge(pid, to, e.kind, e.scope);
+                let evaluation = d.node(&e.to).is_some_and(|n| {
+                    n.kind == NodeKind::Material && n.concept == Concept::Evaluation
+                });
+                if e.kind != EdgeKind::Verifies || !evaluation {
+                    issues.push(GraphIssue {
+                        code: "ILLEGAL_EDGE",
+                        subject: format!("{} -{}-> {}", e.from, e.kind, e.to),
+                        detail: "a proof locator may only VERIFY an evaluation material declared in this shard".into(),
+                    });
+                } else if let Some(n) = g.nodes.get_mut(&to) {
+                    if !n.evidence.iter().any(|x| x == locator) {
+                        n.evidence.push(locator.to_string());
+                        n.evidence.sort();
+                    }
+                }
+                continue;
+            }
             let resolve_end = |r: &str| -> NodeId {
                 if let Some(k) = r.strip_prefix("donor:") {
                     if let Some(id) = donor_ids.get(k) {
@@ -443,12 +550,67 @@ impl Graph {
                         subject: format!("{} -{}-> {}", e.from, e.kind, e.to),
                         detail: "an edge endpoint is not a node of this graph".into(),
                     });
+                    continue;
+                }
+                // One end lives in another shard: the known end must be legal for some node
+                // the other shard could declare.
+                let known = from.or(to).map(|n| (n.kind, n.concept));
+                if let Some(k) = known {
+                    let legal = |other: (NodeKind, Concept)| {
+                        let (f, t) = if from.is_some() {
+                            (k, other)
+                        } else {
+                            (other, k)
+                        };
+                        edge_illegal(e.kind, e.scope, f.0, t.0)
+                            .or_else(|| edge_illegal_concept(e.kind, f, t))
+                            .is_none()
+                    };
+                    let candidates = NodeKind::ALL
+                        .iter()
+                        .map(|k| (*k, default_concept(*k)))
+                        .chain(MATERIAL_CONCEPTS.iter().map(|c| (NodeKind::Material, *c)));
+                    if !candidates.into_iter().any(legal) {
+                        let label = |id: &NodeId, n: Option<&GNode>| {
+                            n.map(|n| n.semantic_key.clone())
+                                .unwrap_or_else(|| id.to_string())
+                        };
+                        out.push(GraphIssue {
+                            code: if matches!(e.kind, EdgeKind::Feeds | EdgeKind::Teaches) {
+                                "INVALID_NORL_FEED"
+                            } else {
+                                "ILLEGAL_EDGE"
+                            },
+                            subject: format!(
+                                "{} -{}-> {}",
+                                label(&e.from, from),
+                                e.kind,
+                                label(&e.to, to)
+                            ),
+                            detail: format!(
+                                "{} may not {} any node",
+                                k.0,
+                                if from.is_some() {
+                                    format!("start a {} edge to", e.kind)
+                                } else {
+                                    format!("end a {} edge from", e.kind)
+                                }
+                            ),
+                        });
+                    }
                 }
                 continue;
             };
-            if let Some(why) = edge_illegal(e.kind, e.scope, from.kind, to.kind) {
+            let why = edge_illegal(e.kind, e.scope, from.kind, to.kind).or_else(|| {
+                edge_illegal_concept(e.kind, (from.kind, from.concept), (to.kind, to.concept))
+            });
+            if let Some(why) = why {
                 out.push(GraphIssue {
-                    code: "ILLEGAL_EDGE",
+                    code: if matches!(e.kind, EdgeKind::Feeds | EdgeKind::Teaches) {
+                        "INVALID_NORL_FEED"
+                    } else {
+                        "ILLEGAL_EDGE"
+                    },
                     subject: format!("{} -{}-> {}", from.semantic_key, e.kind, to.semantic_key),
                     detail: why,
                 });
@@ -790,15 +952,87 @@ pub fn edge_illegal(kind: EdgeKind, scope: Scope, from: NodeKind, to: NodeKind) 
         EdgeKind::LearnedFrom => (tech(from) || phys(from)) && to == K::Donor,
         EdgeKind::Verifies => {
             matches!(from, K::Proof | K::Test)
-                && (phys(to) || matches!(to, K::Capability | K::Technology))
+                && (phys(to) || matches!(to, K::Capability | K::Technology | K::Material))
         }
         EdgeKind::Contains => {
-            (matches!(from, K::System | K::Repository) || phys(from))
+            ((matches!(from, K::System | K::Repository) || phys(from))
                 && (phys(to)
-                    || matches!(to, K::Capability | K::Proof | K::Technology | K::Repository))
+                    || matches!(to, K::Capability | K::Proof | K::Technology | K::Repository)))
+                || (from == K::Organ && to == K::Capability)
+                || (from == K::Repository && to == K::Organ)
+        }
+        EdgeKind::Generates => {
+            (phys(from) || matches!(from, K::Capability | K::Technology)) && to == K::Material
+        }
+        EdgeKind::Feeds => {
+            matches!(from, K::Material | K::Technology | K::Capability)
+                && matches!(to, K::Capability | K::Organ)
+        }
+        EdgeKind::Teaches => from == K::Material && matches!(to, K::Capability | K::Organ),
+        EdgeKind::Uses => from == K::Material && to == K::Material,
+        EdgeKind::Observes | EdgeKind::ActsOn => {
+            (from == K::Organ || from == K::Material || phys(from)) && to == K::Material
+        }
+        EdgeKind::EvaluatedBy => matches!(from, K::Capability | K::Organ) && to == K::Material,
+        EdgeKind::AuthorizedBy => {
+            (matches!(from, K::Material | K::Organ) || phys(from))
+                && (phys(to) || to == K::Capability)
         }
     };
     (!ok).then(|| format!("{kind} may not connect {from} to {to}"))
+}
+
+/// Returns why an edge is illegal for the concepts of its MATERIAL endpoints, if it is: the
+/// material kinds are typed by what they mean (a curriculum teaches, an evaluation judges, an
+/// action acts on a world, an observation is of a world or another observation).
+pub fn edge_illegal_concept(
+    kind: EdgeKind,
+    from: (NodeKind, Concept),
+    to: (NodeKind, Concept),
+) -> Option<String> {
+    let material = |e: (NodeKind, Concept)| (e.0 == NodeKind::Material).then_some(e.1);
+    let need = |side: &str, e: (NodeKind, Concept), allowed: &[Concept]| -> Option<String> {
+        let c = material(e)?;
+        (!allowed.contains(&c)).then(|| {
+            format!(
+                "{kind} needs a {side} material of {}; found {c}",
+                allowed
+                    .iter()
+                    .map(|c| c.wire())
+                    .collect::<Vec<_>>()
+                    .join(" | ")
+            )
+        })
+    };
+    match kind {
+        EdgeKind::Teaches => need("source", from, &[Concept::Curriculum]),
+        EdgeKind::Observes => need("source", from, &[Concept::Observation])
+            .or_else(|| need("target", to, &[Concept::World, Concept::Observation])),
+        EdgeKind::ActsOn => need("source", from, &[Concept::Action])
+            .or_else(|| need("target", to, &[Concept::World])),
+        EdgeKind::EvaluatedBy => need("target", to, &[Concept::Evaluation]),
+        EdgeKind::AuthorizedBy => need("source", from, &[Concept::Action]),
+        EdgeKind::Verifies => need("target", to, &[Concept::Evaluation]),
+        _ => None,
+    }
+}
+
+/// Whether `id` belongs to the organism: an ORGAN of the norl shard, or a capability one of
+/// those organs contains.
+pub fn is_norl_node(g: &Graph, id: NodeId) -> bool {
+    let organ = |id: NodeId| {
+        g.nodes
+            .get(&id)
+            .is_some_and(|n| n.kind == NodeKind::Organ && n.repository == crate::schema::NORL_SHARD)
+    };
+    match g.nodes.get(&id) {
+        Some(n) if n.kind == NodeKind::Organ => organ(id),
+        Some(n) if n.kind == NodeKind::Capability => g
+            .edges
+            .iter()
+            .any(|e| e.to == id && e.kind == EdgeKind::Contains && organ(e.from)),
+        _ => false,
+    }
 }
 
 #[cfg(test)]
@@ -912,5 +1146,79 @@ mod tests {
             .validate(&BTreeSet::new())
             .iter()
             .any(|i| i.code == "DEPENDENCY_CYCLE"));
+    }
+
+    #[test]
+    fn organism_edge_legality() {
+        use Concept as C;
+        use EdgeKind as E;
+        use NodeKind as K;
+        let m = |c: Concept| (K::Material, c);
+        let k = |k: NodeKind| (k, default_concept(k));
+        let legal = |e: EdgeKind, f: (NodeKind, Concept), t: (NodeKind, Concept)| {
+            edge_illegal(e, Scope::Semantic, f.0, t.0)
+                .or_else(|| edge_illegal_concept(e, f, t))
+                .is_none()
+        };
+        // (edge, from, to, legal)
+        let table = [
+            (E::Generates, k(K::Domain), m(C::Experience), true),
+            (E::Generates, k(K::Technology), m(C::World), true),
+            (E::Generates, k(K::Capability), m(C::Curriculum), true),
+            (E::Generates, k(K::Donor), m(C::World), false),
+            (E::Generates, k(K::Domain), k(K::Capability), false),
+            (E::Feeds, m(C::Experience), k(K::Capability), true),
+            (E::Feeds, k(K::Technology), k(K::Organ), true),
+            (E::Feeds, k(K::Capability), k(K::Capability), true),
+            (E::Feeds, k(K::Domain), k(K::Capability), false),
+            (E::Feeds, m(C::World), m(C::World), false),
+            (E::Teaches, m(C::Curriculum), k(K::Capability), true),
+            (E::Teaches, m(C::Curriculum), k(K::Organ), true),
+            (E::Teaches, m(C::Experience), k(K::Capability), false),
+            (E::Teaches, k(K::Technology), k(K::Capability), false),
+            (E::Uses, m(C::Evaluation), m(C::Experience), true),
+            (E::Uses, m(C::Experience), m(C::World), true),
+            (E::Uses, k(K::Domain), m(C::World), false),
+            (E::Observes, k(K::Organ), m(C::World), true),
+            (E::Observes, k(K::Adapter), m(C::Observation), true),
+            (E::Observes, m(C::Observation), m(C::World), true),
+            (E::Observes, m(C::Action), m(C::World), false),
+            (E::Observes, k(K::Organ), m(C::Curriculum), false),
+            (E::ActsOn, k(K::Organ), m(C::World), true),
+            (E::ActsOn, m(C::Action), m(C::World), true),
+            (E::ActsOn, m(C::Experience), m(C::World), false),
+            (E::ActsOn, k(K::Organ), m(C::Observation), false),
+            (E::EvaluatedBy, k(K::Capability), m(C::Evaluation), true),
+            (E::EvaluatedBy, k(K::Organ), m(C::Evaluation), true),
+            (E::EvaluatedBy, k(K::Capability), m(C::Experience), false),
+            (E::EvaluatedBy, k(K::Domain), m(C::Evaluation), false),
+            (E::AuthorizedBy, m(C::Action), k(K::Capability), true),
+            (E::AuthorizedBy, k(K::Organ), k(K::Domain), true),
+            (E::AuthorizedBy, k(K::Adapter), k(K::Capability), true),
+            (E::AuthorizedBy, m(C::World), k(K::Capability), false),
+            (E::AuthorizedBy, m(C::Action), m(C::World), false),
+            (E::Contains, k(K::Organ), k(K::Capability), true),
+            (E::Contains, k(K::Repository), k(K::Organ), true),
+            (E::Contains, k(K::Organ), k(K::Domain), false),
+            (E::Verifies, k(K::Proof), m(C::Evaluation), true),
+            (E::Verifies, k(K::Proof), m(C::World), false),
+        ];
+        for (e, f, t, ok) in table {
+            assert_eq!(legal(e, f, t), ok, "{e} {f:?} -> {t:?}");
+        }
+        // Every new kind is SEMANTIC.
+        for e in [
+            E::Generates,
+            E::Feeds,
+            E::Teaches,
+            E::Uses,
+            E::Observes,
+            E::ActsOn,
+            E::EvaluatedBy,
+            E::AuthorizedBy,
+        ] {
+            assert!(edge_illegal(e, Scope::Runtime, K::Material, K::Material).is_some());
+        }
+        assert!(!is_physical(K::Organ) && !is_physical(K::Material));
     }
 }
