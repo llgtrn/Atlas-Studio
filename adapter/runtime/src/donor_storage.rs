@@ -14,9 +14,8 @@ use std::{
     process::Command,
 };
 
-/// Legacy tracked donor trees (pre-ADR 0021; drained by extinction, never extended).
-pub const LEGACY_DONOR_ROOT: &str = ".atlas/temporary/donors";
-/// Where every new materialization goes: untracked, git-ignored build state.
+/// Where every materialization goes: untracked, git-ignored build state. The legacy tracked root
+/// (`.atlas/temporary/donors`, pre-ADR 0021) was drained and retired with `.atlas` (ADR 0104).
 pub const SCRATCH_DONOR_ROOT: &str = "target/donors";
 pub const WORKING_SET_FILE: &str = "tools/atlas/roadmap/DONOR-WORKING-SET.toml";
 
@@ -84,8 +83,9 @@ pub struct DonorStorage {
     pub paths: Vec<String>,
 }
 
-/// Reads `storage_state` for every `[[donor]]` in `donor-corpus.toml`; locations are the legacy
-/// root, the scratch root, and the provenance record's own `clone_path`.
+/// Reads `storage_state` for every `[[donor]]` in `donor-corpus.toml`; locations are the scratch
+/// root and the provenance record's own `clone_path` (where the source was recorded, which for a
+/// deleted donor must stay absent).
 pub fn load_donor_storage(root: &Path) -> io::Result<Vec<DonorStorage>> {
     let text = fs::read_to_string(root.join("tools/atlas/references/donor-corpus.toml"))?;
     let field = |block: &str, name: &str| {
@@ -105,10 +105,7 @@ pub fn load_donor_storage(root: &Path) -> io::Result<Vec<DonorStorage>> {
                 "donor `{id}`: unknown storage_state `{state_text}`"
             ))
         })?;
-        let mut paths = vec![
-            format!("{LEGACY_DONOR_ROOT}/{id}"),
-            format!("{SCRATCH_DONOR_ROOT}/{id}"),
-        ];
+        let mut paths = vec![format!("{SCRATCH_DONOR_ROOT}/{id}")];
         let provenance = root.join(format!("tools/atlas/provenance/donors/{id}.json"));
         if let Ok(text) = fs::read_to_string(provenance)
             && let Ok(value) = serde_json::from_str::<serde_json::Value>(&text)
@@ -241,7 +238,7 @@ pub struct WorkingSetReport {
 
 fn local_directories(root: &Path) -> io::Result<Vec<String>> {
     let mut directories = Vec::new();
-    for base in [LEGACY_DONOR_ROOT, SCRATCH_DONOR_ROOT] {
+    for base in [SCRATCH_DONOR_ROOT] {
         let Ok(entries) = fs::read_dir(root.join(base)) else {
             continue;
         };
@@ -352,7 +349,7 @@ pub fn working_set_report(
                 config
                     .blockers
                     .iter()
-                    .any(|b| format!("{LEGACY_DONOR_ROOT}/{}", b.directory) == *directory)
+                    .any(|b| format!("{SCRATCH_DONOR_ROOT}/{}", b.directory) == *directory)
                     || replay_materialized.contains(directory)
             }
             _ => false,
@@ -477,7 +474,7 @@ mod tests {
                 report.recorded_violations.iter().any(|v| matches!(
                     v,
                     StorageViolation::UnownedCheckout { directory }
-                        if *directory == format!("{LEGACY_DONOR_ROOT}/{}", blocker.directory)
+                        if *directory == format!("{SCRATCH_DONOR_ROOT}/{}", blocker.directory)
                 )),
                 "blocker `{}` no longer violates; remove it from {WORKING_SET_FILE}",
                 blocker.directory

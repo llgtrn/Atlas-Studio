@@ -206,7 +206,8 @@ fn gather_census_inputs(
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
     let source = adapter::source_report_from_inventory(&inventory);
-    let docs = adapter::audit_docs(root.join(".atlas"))?;
+    // ADR 0104: the control documents are the repository's knowledge, not files.
+    let docs = adapter::audit_control_knowledge(root)?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let mut adl = compile_adl(&adl_sources, &source);
     let dependency_closure = resolve_dependency_closure(root)?;
@@ -523,8 +524,16 @@ pub fn contract() -> Contract {
     Contract::default()
 }
 
+/// `docs audit --root <path>`: the control documents of the repository at `<path>` when it keeps
+/// them as knowledge (`.ynventa/knowledge`, ADR 0104), otherwise the Markdown control documents in
+/// the directory `<path>`.
 pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
-    adapter::audit_docs(root)
+    let root = root.as_ref();
+    if root.join(adapter::knowledge::KNOWLEDGE_DIR).is_dir() {
+        adapter::audit_control_knowledge(root)
+    } else {
+        adapter::audit_docs(root)
+    }
 }
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
@@ -1096,6 +1105,22 @@ mod tests {
                 .expect("workspace root must exist")
         }
 
+        /// The repository's knowledge (ADR 0104): the documents `.atlas` held are extracted facts.
+        fn knowledge() -> &'static adapter::knowledge::Knowledge {
+            static KNOWLEDGE: std::sync::OnceLock<adapter::knowledge::Knowledge> =
+                std::sync::OnceLock::new();
+            KNOWLEDGE.get_or_init(|| {
+                adapter::knowledge::Knowledge::read(workspace_root())
+                    .expect("the repository knowledge must be readable")
+            })
+        }
+
+        /// A cited record exists: a file on disk, or a document whose knowledge was extracted
+        /// (its `.atlas/` path is its knowledge identity, ADR 0104).
+        fn recorded(root: &Path, path: &str) -> bool {
+            root.join(path).exists() || knowledge().has_document(path)
+        }
+
         struct DonorEntry {
             id: String,
             evidence: Vec<String>,
@@ -1294,8 +1319,8 @@ mod tests {
                 );
                 for path in &entry.evidence {
                     assert!(
-                        root.join(path).exists(),
-                        "donor `{}`'s evidence path `{}` does not exist on disk -- a dangling \
+                        recorded(&root, path),
+                        "donor `{}`'s evidence path `{}` is neither on disk nor extracted knowledge -- a dangling \
                          evidence reference is exactly the kind of unverifiable claim this \
                          repository's own donor-absorption discipline forbids",
                         entry.id,
@@ -1349,51 +1374,52 @@ mod tests {
         /// a currently-known problem.
         #[test]
         fn every_genome_technology_document_is_referenced_by_some_donor() {
-            let root = workspace_root();
-            let genome_dir = root.join(".atlas/genome/technology");
+            // ADR 0104: the Technology Genome documents are extracted knowledge under their
+            // `.atlas/genome/technology/` identity.
+            const GENOME: &str = ".atlas/genome/technology/";
             let entries = load_entries();
             let mut referenced: std::collections::HashSet<String> =
                 std::collections::HashSet::new();
             for entry in &entries {
                 for path in &entry.evidence {
-                    if let Some(name) = path.strip_prefix(".atlas/genome/technology/") {
+                    if let Some(name) = path.strip_prefix(GENOME) {
                         referenced.insert(name.to_owned());
                     }
                 }
             }
 
-            let mut genome_files: Vec<String> = std::fs::read_dir(&genome_dir)
-                .expect(".atlas/genome/technology must exist and be readable")
-                .filter_map(Result::ok)
-                .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "md"))
-                .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            let mut genome_files: Vec<String> = knowledge()
+                .documents()
+                .into_keys()
+                .filter_map(|path| path.strip_prefix(GENOME))
+                .filter(|name| !name.contains('/') && name.ends_with(".md"))
+                .map(str::to_owned)
                 .collect();
             genome_files.sort();
             assert!(
                 !genome_files.is_empty(),
-                "expected at least one Technology Genome document under .atlas/genome/technology \
-                 -- this session alone wrote several; an empty directory means this test's own \
-                 path resolution has drifted"
+                "expected at least one Technology Genome document under {GENOME} in the \
+                 knowledge -- an empty set means this test's own path resolution has drifted"
             );
 
             for file in &genome_files {
                 assert!(
                     referenced.contains(file),
-                    "`.atlas/genome/technology/{file}` exists on disk but is not cited in any \
-                     donor's evidence array in donor-corpus.toml -- an orphaned genome record \
-                     nobody's evidence trail points back to"
+                    "`{GENOME}{file}` is extracted knowledge but is not cited in any donor's \
+                     evidence array in donor-corpus.toml -- an orphaned genome record nobody's \
+                     evidence trail points back to"
                 );
             }
         }
 
-        /// Every location a donor's source may be materialized at: the conventional
-        /// `.atlas/temporary/donors/<id>`, plus its provenance record's own `clone_path` when that
-        /// differs. Both are needed because 10 provenance records still carry the clone path from
+        /// Every location a donor's source may be materialized at: the working-set root
+        /// (`target/donors/<id>`; the legacy `.atlas/temporary/donors` root was retired with
+        /// `.atlas`, ADR 0104), plus its provenance record's own `clone_path` when that differs. Both are needed because 10 provenance records still carry the clone path from
         /// before their checkout was moved (e.g. `.atlas/temporary/wasmtime`, `.../ide/zed`) --
         /// recorded debt (`GENERATIONS.toml` deferred `stale-provenance-clone-paths`), not silently
         /// rewritten here.
         fn donor_clone_paths(root: &Path, id: &str) -> Vec<String> {
-            let mut paths = vec![format!(".atlas/temporary/donors/{id}")];
+            let mut paths = vec![format!("{}/{id}", crate::donor_storage::SCRATCH_DONOR_ROOT)];
             let provenance = root.join(format!("tools/atlas/provenance/donors/{id}.json"));
             let recorded = std::fs::read_to_string(provenance).ok().and_then(|text| {
                 text.lines().find_map(|line| {
@@ -1492,26 +1518,28 @@ mod tests {
                 .flat_map(|entry| donor_clone_paths(&root, &entry.id))
                 .filter(|path| root.join(path).is_dir())
                 .filter_map(|path| {
-                    path.strip_prefix(".atlas/temporary/donors/")
+                    path.strip_prefix(&format!("{}/", crate::donor_storage::SCRATCH_DONOR_ROOT))
                         .and_then(|rest| rest.split('/').next())
                         .map(str::to_owned)
                 })
                 .collect();
-            // The legacy root holds no checkout once every held one is retired; a fresh clone then
-            // has no such directory at all.
-            let mut on_disk: Vec<String> = std::fs::read_dir(root.join(".atlas/temporary/donors"))
-                .into_iter()
-                .flatten()
-                .filter_map(Result::ok)
-                .filter(|entry| entry.path().is_dir())
-                .map(|entry| entry.file_name().to_string_lossy().into_owned())
-                .collect();
+            // Checkouts materialize in the working-set root (the legacy root was retired with
+            // `.atlas`, ADR 0104); a fresh clone has no such directory at all.
+            let mut on_disk: Vec<String> =
+                std::fs::read_dir(root.join(crate::donor_storage::SCRATCH_DONOR_ROOT))
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Result::ok)
+                    .filter(|entry| entry.path().is_dir())
+                    .map(|entry| entry.file_name().to_string_lossy().into_owned())
+                    .collect();
             on_disk.sort();
             for dir in &on_disk {
                 assert!(
                     admitted_top_level.contains(dir) || debt.contains(dir),
-                    "`.atlas/temporary/donors/{dir}` is materialized donor source with no admitted \
-                     donor-corpus entry and no recorded debt: admit it, or delete it"
+                    "`{}/{dir}` is materialized donor source with no admitted \
+                     donor-corpus entry and no recorded debt: admit it, or delete it",
+                    crate::donor_storage::SCRATCH_DONOR_ROOT
                 );
             }
             let recorded = std::fs::read_to_string(
@@ -1579,8 +1607,8 @@ mod tests {
             assert!(!paths.is_empty(), "ledger cites no evidence at all");
             for path in paths {
                 assert!(
-                    root.join(path).exists(),
-                    "GENERATIONS.toml cites `{path}`, which does not exist"
+                    recorded(&root, path),
+                    "GENERATIONS.toml cites `{path}`, which is neither on disk nor extracted knowledge"
                 );
             }
             // Every recorded commit must be a full object name AND a real commit: a plausible-looking
@@ -4030,7 +4058,7 @@ mod tests {
             let pinned: BTreeSet<String> = list(progression, "materialized_checkouts")
                 .into_iter()
                 .collect();
-            let donors_dir = root().join(".atlas/temporary/donors");
+            let donors_dir = root().join(crate::donor_storage::SCRATCH_DONOR_ROOT);
             if donors_dir.is_dir() {
                 for entry in std::fs::read_dir(&donors_dir).unwrap() {
                     let name = entry.unwrap().file_name().to_string_lossy().into_owned();

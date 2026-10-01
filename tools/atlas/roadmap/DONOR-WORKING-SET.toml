@@ -13,7 +13,8 @@ decision = ".atlas/decisions/0021-bounded-donor-working-set.md"
 # Every new materialization: untracked, git-ignored build state (.gitignore: /target/). It was
 # .atlas/.cache/donors until .atlas was retired.
 scratch = "target/donors"
-# Pre-ADR-0021 tracked trees: drained by extinction, never extended; empty since 2026-10-01.
+# Pre-ADR-0021 tracked trees: drained by extinction, never extended; empty since 2026-10-01 and
+# retired with .atlas (ADR 0104). Kept as the historical location the retired_checkout paths name.
 legacy_tracked = ".atlas/temporary/donors"
 
 # Ratios with absolute floors (permille / bytes); never one machine's numbers. Free fraction is
@@ -30,9 +31,9 @@ max_working_set_permille = 250
 large_donor_bytes = 268_435_456
 
 # Local donor directories with no donor-corpus record (storage integrity violations) are recorded
-# here as [[unadmitted_checkout]] (directory, classification, remedy); the integrity test fails on
-# any violation not listed and on any listed one that no longer violates. None is left: the last
-# one (the xz gitlink) was retired 2026-10-01 below.
+# here as [[unadmitted_checkout]] (directory under the scratch root, classification, remedy); the
+# integrity test fails on any violation not listed and on any listed one that no longer violates.
+# None is left: the last one (the xz gitlink) was retired 2026-10-01 below.
 
 # Retired legacy checkouts (owner decision 2026-10-01, unblocking the BLOCKED_ON_USER deletions above):
 # held source -> census what is unique -> preserve content hashes and the provenance genuinely

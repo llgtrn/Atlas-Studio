@@ -1788,7 +1788,7 @@ mod tests {
         DocsReport {
             schema: "test".into(),
             standard: "test".into(),
-            root: "/repo/.atlas".into(),
+            root: "/repo/.ynventa/knowledge".into(),
             gate_ready: true,
             hard_violations_total: 0,
             documents_total: 0,

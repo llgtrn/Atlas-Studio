@@ -1647,7 +1647,7 @@ mod tests {
             report["coding_admission"]["blockers"],
             serde_json::json!(["REPO_GATE_NOT_READY", "DOCS_GATE_NOT_READY"]),
             "exactly these two conditions -- no fewer, no more, no others -- must fire for a bare \
-             git repository with no .atlas/ directory at all: {report:#}"
+             git repository with no tools/atlas control root and no .ynventa knowledge: {report:#}"
         );
 
         std::fs::remove_dir_all(&dir).unwrap();

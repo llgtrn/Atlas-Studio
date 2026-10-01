@@ -3385,7 +3385,9 @@ version = "0.1.0"
             let deleted = record
                 .lines()
                 .any(|line| line.trim() == "storage_state = \"SOURCE_DELETED\"");
-            let root = repository.join(".atlas/temporary/donors").join(name);
+            // The donor working set (`runtime::donor_storage::SCRATCH_DONOR_ROOT`); the legacy
+            // `.atlas/temporary/donors` root was retired with `.atlas` (ADR 0104).
+            let root = repository.join("target/donors").join(name);
             assert_eq!(
                 root.exists(),
                 !deleted,
@@ -3402,9 +3404,9 @@ version = "0.1.0"
     fn real_census_of_every_cargo_based_donor_workspace_reaches_closed_state() {
         // Stronger verification than any synthetic fixture or Atlas's own small workspace (4
         // members, ~29 edges, no target-conditional/optional/git dependencies) can provide: every
-        // real, independently-authored, large Cargo workspace in this repository's own committed
-        // donor corpus (`.atlas/temporary/donors/`, not gitignored -- a permanent part of this
-        // checkout), up to 1,827 packages (zed) and 10,000+ edges. Found and fixed the multi-line
+        // real, independently-authored, large Cargo workspace in this repository's own donor
+        // corpus (then the tracked `.atlas/temporary/donors/`; a donor materializes in the
+        // `target/donors` working set now), up to 1,827 packages (zed) and 10,000+ edges. Found and fixed the multi-line
         // `workspace.members` gap this way: 3 of the first 6 donors tested hit `Partial` purely
         // because of it before that fix existed. It censuses every named donor the corpus still
         // records as materialized (`materialized_cargo_donors`): a donor is absent only when its
