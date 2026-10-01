@@ -8,7 +8,7 @@ canonical: true
 
 ## Purpose
 
-The authored architecture is ahead of current physical code. `main` already has the native owners (`core`, `runtime`, `adapter`, `apps`); since ADR 0102 their physical roots follow the Chronica repository grammar (`.ynventa/`), with the `runtime` crate at `adapter/runtime/`. But production behavior is still concentrated in bootstrap files and a large `tools/` forest.
+The authored architecture is ahead of current physical code. `main` already has the native owners (`core`, `runtime`, `adapter`, `apps`); since ADR 0103 their physical roots follow the Chronica repository grammar (`.ynventa/`), with the `runtime` crate at `adapter/runtime/`. But production behavior is still concentrated in bootstrap files and a large `tools/` forest.
 
 Refoundation closes that gap without a big-bang rewrite and without creating a second Atlas.
 
@@ -256,4 +256,4 @@ A donor scope may disappear from active Atlas-controlled source only when its re
 
 ## Completion
 
-Refoundation is complete when there is no silent inventory omission, foundational semantics are typed, research cannot impersonate observation, dependency census is first-class, incremental/fixed-point closure is real runtime behavior, `tools/` is bounded migration compatibility only, and canonical behavior lives under the native owners at their canonical roots (`core/`, `adapter/` including `adapter/runtime/`, `apps/`; ADR 0102).
+Refoundation is complete when there is no silent inventory omission, foundational semantics are typed, research cannot impersonate observation, dependency census is first-class, incremental/fixed-point closure is real runtime behavior, `tools/` is bounded migration compatibility only, and canonical behavior lives under the native owners at their canonical roots (`core/`, `adapter/` including `adapter/runtime/`, `apps/`; ADR 0103).

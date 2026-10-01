@@ -1,10 +1,10 @@
 ---
-id: atlas.decision.0102.the-chronica-repository-grammar-places-runtime-in-the-adapter-plane
+id: atlas.decision.0103.the-chronica-repository-grammar-places-runtime-in-the-adapter-plane
 type: decision
 status: accepted
 canonical: true
 ---
-# ADR 0102 — The Chronica repository grammar governs physical layout; Runtime is an adapter-plane node at `adapter/runtime`
+# ADR 0103 — The Chronica repository grammar governs physical layout; Runtime is an adapter-plane node at `adapter/runtime`
 
 ## Status
 
@@ -35,5 +35,5 @@ The classification, not the dependency, was wrong:
 ## Consequences
 
 - `PLANE_VIOLATION compiler.runtime`, `LEGACY_PLACEMENT compiler.runtime` and `LEGACY_ROOT runtime` close; every declared node is at its canonical path.
-- History is not rewritten. ADRs 0001–0101, `.atlas/evidence/**`, census records, generation proofs and fixtures keep the `runtime/...` paths they recorded; for any record made before this decision, `runtime/<rest>` is today's `adapter/runtime/<rest>`.
+- History is not rewritten. ADRs 0001–0102, `.atlas/evidence/**`, census records, generation proofs and fixtures keep the `runtime/...` paths they recorded; for any record made before this decision, `runtime/<rest>` is today's `adapter/runtime/<rest>`.
 - Residual (not done here): Runtime still mixes pure Atlas orchestration semantics with effects. Extracting effect-free semantics into a DOMAIN node (which may not depend on adapters) and keeping only the effectful engine in the adapter plane is a later, separate refoundation step with its own decision.
