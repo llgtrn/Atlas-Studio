@@ -69,11 +69,11 @@ Repository {
         },
         Node {
             key: "compiler.runtime",
-            kind: NodeKind::Substrate,
+            kind: NodeKind::Adapter,
             concept: Concept::Subsystem,
             name: "runtime",
             path: "runtime",
-            canonical_path: "substrate/runtime",
+            canonical_path: "adapter/runtime",
             lifecycle: NodeLifecycle::Active,
             provides: &[],
             requires: &[],
