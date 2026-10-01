@@ -464,7 +464,7 @@ fn markdown_headings(text: &str) -> Vec<String> {
 
 fn path_references(text: &str) -> Vec<String> {
     let mut references = Vec::new();
-    for root in ["core/", "runtime/", "adapter/", "apps/studio/"] {
+    for root in ["core/", "adapter/", "apps/studio/"] {
         let mut cursor = 0;
         while let Some(offset) = text[cursor..].find(root) {
             let start = cursor + offset;

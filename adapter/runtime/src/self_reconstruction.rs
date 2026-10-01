@@ -1494,7 +1494,7 @@ pub enum Shape {
     #[test]
     fn the_real_target_lifts_its_body_and_a_body_outside_the_subset_keeps_its_gap() {
         const DONOR: &str = "core/src/donor/mod.rs";
-        let records = census(DONOR, include_str!("../../core/src/donor/mod.rs"));
+        let records = census(DONOR, include_str!("../../../core/src/donor/mod.rs"));
         let module = lift(
             &records,
             "root",

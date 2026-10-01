@@ -8,7 +8,7 @@ canonical: true
 
 ## Status
 
-Accepted. **SUPERSEDES** the local four-root physical layout rule — "production architecture converges on four owners: `core/`, `runtime/`, `adapter/`, `apps/`" — as stated in `architecture/SYSTEM.md` (§Responsibilities, §Native capability ownership), `architecture/README.md`, `architecture/responsibilities.md`, `blueprints/PHYSICAL-REFOUNDATION.md` (§Purpose and its completion criterion "canonical behavior lives under `core/runtime/adapter/apps`") and `tools/README.md`. Those documents are kept; where they name `runtime/` as a root directory they now point here. The crate names (`core`, `runtime`, `adapter`, `atlas-cli`) and the logical owner vocabulary (`runtime/census`, `runtime/query`, ... in roadmap and genome records) are not changed by this decision.
+Accepted. **SUPERSEDES** the local four-root physical layout rule — "production architecture converges on four owners: `core/`, `runtime/`, `adapter/`, `apps/`" — as stated in `architecture/SYSTEM.md` (§Responsibilities, §Native capability ownership), `blueprints/PHYSICAL-REFOUNDATION.md` (§Purpose and its completion criterion "canonical behavior lives under `core/runtime/adapter/apps`") and `tools/README.md`. Those documents are kept; where they name `runtime/` as a root directory they now point here. The crate names (`core`, `runtime`, `adapter`, `atlas-cli`), the logical responsibilities in `architecture/README.md` and `architecture/responsibilities.md`, and the logical owner vocabulary (`runtime/census`, `runtime/query`, ... in roadmap and genome records) are not changed by this decision.
 
 ## Context
 

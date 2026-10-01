@@ -11,7 +11,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 # Overridable so this script is directly testable against a scratch fixture (see
-# runtime/src/lib.rs's own donor_quarantine_script_symlink_detection test module) without ever
+# adapter/runtime/src/lib.rs's own donor_quarantine_script_symlink_detection test module) without ever
 # touching this repository's own real donor corpus during a test run.
 donors_root="${1:-.atlas/temporary/donors}"
 

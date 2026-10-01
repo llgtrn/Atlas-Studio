@@ -28,7 +28,7 @@ chronica = "Atlas is the engine beneath systems such as Chronica, and is not tie
 id = "UNDERSTAND_EXISTING_SYSTEMS"
 meaning = "exhaustive inventory, dependency closure and multi-resolution semantic census of admitted reality, with explicit UNKNOWN"
 evidence = "NORTH-STAR canonical chain; CAPABILITY-ARCHITECTURE technical spine"
-native_state = "PARTIAL: Rust census engine, dependency closure and CensusCertificate exist (runtime/src/census, core/src/certificate)"
+native_state = "PARTIAL: Rust census engine, dependency closure and CensusCertificate exist (adapter/runtime/src/census, core/src/certificate)"
 debts = ["DEBT-CALL", "DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY", "DEBT-PERSISTENCE", "DEBT-TYPE", "DEBT-SYMBOL", "DEBT-DEPENDENCY", "DEBT-MULTI_ENGINE", "DEBT-MULTILANGUAGE"]
 
 [[capability]]

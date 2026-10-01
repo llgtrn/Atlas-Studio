@@ -9,7 +9,7 @@ canonical: true
 ## Responsibilities
 
 - `core/` owns global identity, scope, universal graph primitives, state/event/temporal semantics, bindings, evidence/provenance, claim status, constraints/invariants, Atlas Genome semantics, Organism Genome semantics, ATLAS/ATLASX contracts and compiler IR types.
-- `runtime/` owns secure admission, exhaustive census accounting, transitive dependency closure orchestration, reconciliation/fixed-point closure, corpus/design construction, research orchestration, typed decision orchestration, candidate synthesis admission, generated-code census, invention, organism-genome synthesis, SelectedDesign admission, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
+- `adapter/runtime/` (crate `runtime`, an adapter-plane node under the Chronica repository grammar, ADR 0102) owns secure admission, exhaustive census accounting, transitive dependency closure orchestration, reconciliation/fixed-point closure, corpus/design construction, research orchestration, typed decision orchestration, candidate synthesis admission, generated-code census, invention, organism-genome synthesis, SelectedDesign admission, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
 - `adapter/` owns Git/filesystem/parsers/package-manager/build-system/compiler metadata/storage/research-provider/decision-provider/synthesis-provider/verification-provider/model API/self-hosted inference/benchmark/OS/toolchain/hardware/environment mechanics. Adapters never become semantic authority.
 - `apps/studio/` owns TypeScript/TSX projections only. UI state is not engineering truth.
 - `.atlas/` owns authored control knowledge, Genome sources/contracts, architecture, provenance/license references and durable evidence.
@@ -114,10 +114,10 @@ External providers receive least privilege and submit typed candidates/receipts.
 
 ## Native capability ownership
 
-Production architecture converges on four owners:
+Production architecture converges on four owners. Their physical placement follows the Chronica repository grammar in `.ynventa/` (ADR 0102 supersedes the earlier four-root layout):
 
 - `core/`: typed semantic primitives and contracts;
-- `runtime/`: inventory, census, query, closure, reconciliation, research correlation, invention, sealing, materialization, compilation, verification and recensus;
+- `adapter/runtime/` (crate `runtime`): inventory, census, query, closure, reconciliation, research correlation, invention, sealing, materialization, compilation, verification and recensus;
 - `adapter/`: filesystem/VCS/source/build/binary/storage/security/research/provider/toolchain mechanics;
 - `apps/`: Studio, CLI and MCP projections/invocation surfaces.
 

@@ -112,8 +112,10 @@ The former `core/model` bootstrap bucket is extinct; its running types are owned
 
 ### runtime
 
+The `runtime` crate lives at `adapter/runtime/` (an adapter-plane node of the Chronica repository grammar, ADR 0102).
+
 ```text
-runtime/src/
+adapter/runtime/src/
 ├─ admission/
 ├─ inventory/
 ├─ dependency/

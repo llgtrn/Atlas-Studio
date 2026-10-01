@@ -81,7 +81,7 @@ decision = "NOT_PROMOTED"
 # Investigated differential disagreements (item prefix -> classification). Unlisted
 # disagreements stay UNCLASSIFIED.
 [[classified_difference]]
-fixture = "runtime/tests/fixtures/visual/hermetic-probe.html"
+fixture = "adapter/runtime/tests/fixtures/visual/hermetic-probe.html"
 instruments = ["chromium-playwright", "chromium-webdriver"]
 item_element = "body>div:1"
 class = "INSTRUMENT_LIMITATION"

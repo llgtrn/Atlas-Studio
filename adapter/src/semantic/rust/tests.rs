@@ -6877,11 +6877,15 @@ fn independent_call_sites(file: &syn::File) -> IndependentCallSites {
 /// Every Rust source of the workspace's crates, read from disk.
 fn workspace_rust_sources() -> Vec<(String, String)> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
-    let mut pending: Vec<std::path::PathBuf> =
-        ["core/src", "runtime/src", "adapter/src", "apps/cli/src"]
-            .iter()
-            .map(|dir| root.join(dir))
-            .collect();
+    let mut pending: Vec<std::path::PathBuf> = [
+        "core/src",
+        "adapter/runtime/src",
+        "adapter/src",
+        "apps/cli/src",
+    ]
+    .iter()
+    .map(|dir| root.join(dir))
+    .collect();
     let mut sources = Vec::new();
     while let Some(dir) = pending.pop() {
         for entry in std::fs::read_dir(&dir).unwrap() {

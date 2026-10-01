@@ -262,9 +262,9 @@
         capabilities: &[],
         cutover: None,
         provenance: &[
+            "census:adapter/runtime/Cargo.toml",
             "census:apps/cli/Cargo.toml",
             "census:core/Cargo.toml",
-            "census:runtime/Cargo.toml",
             "registry:ed25519-compact-2.6.0/Cargo.toml",
         ],
     },
@@ -322,9 +322,9 @@
         cutover: None,
         provenance: &[
             "census:adapter/Cargo.toml",
+            "census:adapter/runtime/Cargo.toml",
             "census:apps/cli/Cargo.toml",
             "census:core/Cargo.toml",
-            "census:runtime/Cargo.toml",
             "registry:serde-1.0.229/Cargo.toml",
         ],
     },
@@ -346,9 +346,9 @@
         cutover: None,
         provenance: &[
             "census:adapter/Cargo.toml",
+            "census:adapter/runtime/Cargo.toml",
             "census:apps/cli/Cargo.toml",
             "census:core/Cargo.toml",
-            "census:runtime/Cargo.toml",
             "registry:serde_json-1.0.151/Cargo.toml",
         ],
     },
@@ -1370,7 +1370,10 @@
         source_paths: &[],
         capabilities: &[],
         cutover: None,
-        provenance: &["census:adapter/src/source/mod.rs", "census:runtime/src/donor_storage.rs"],
+        provenance: &[
+            "census:adapter/runtime/src/donor_storage.rs",
+            "census:adapter/src/source/mod.rs",
+        ],
     },
     Donor {
         key: "native-nodejs",

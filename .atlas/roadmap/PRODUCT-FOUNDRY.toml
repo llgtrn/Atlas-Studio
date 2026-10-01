@@ -9,7 +9,7 @@ contract = ".atlas/contracts/PRODUCT-FOUNDRY.md"
 [[product_generation]]
 generation = "G56"
 product_candidate = "desk organizer (FDM 3D print, PLA), variants Small / Large, SKUs ORG-S-BLK / ORG-L-BLK"
-fixture = "runtime/tests/fixtures/product/desk-organizer"
+fixture = "adapter/runtime/tests/fixtures/product/desk-organizer"
 market_evidence = "NONE: hypothesis H1 cites no MarketEvidence; demand UNKNOWN"
 engineering_state = "declared BOM (85 g / 140 g PLA per body, 4 feet); no geometry yet"
 bom_state = "variant-aware BOM exploded exactly; PLA 15..30 USD/kg and feet 0.02..0.05 USD are ESTIMATED assumptions"

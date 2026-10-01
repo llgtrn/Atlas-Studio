@@ -464,7 +464,7 @@ mod tests {
         let dir = scratch("stage-manifest");
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/atlasx/codec/fixture_module.json"
         );
         let (encoded, _) = encode_module(module, &dir).unwrap().unwrap();
         let object = StagedObject {
@@ -672,7 +672,7 @@ mod tests {
 
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/atlasx/codec/fixture_module.json"
         );
         let (encoded, path) = encode_module(module, &dir).unwrap().unwrap();
         assert_eq!(decode_object(&path).unwrap().verdict, CodecVerdict::Decoded);

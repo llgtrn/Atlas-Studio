@@ -65,7 +65,7 @@
   "expect": [
    "VALIDATED"
   ],
-  "manual_alternative": "read runtime/src/recensus.rs and follow its std calls",
+  "manual_alternative": "read adapter/runtime/src/recensus.rs and follow its std calls",
   "class": "EFFECT"
  },
  {
@@ -101,14 +101,14 @@
   "question": "What is the minimal source set and entry surface for changing how self-recensus snapshots are taken?",
   "op": "understand_scope",
   "args": [
-   "path:runtime/src/recensus.rs"
+   "path:adapter/runtime/src/recensus.rs"
   ],
   "expect": [
    "components:1",
    "snapshot",
    "read_snapshot"
   ],
-  "manual_alternative": "read runtime/src/recensus.rs, then grep its callers across the workspace",
+  "manual_alternative": "read adapter/runtime/src/recensus.rs, then grep its callers across the workspace",
   "class": "MINIMAL_SOURCE_SET"
  },
  {

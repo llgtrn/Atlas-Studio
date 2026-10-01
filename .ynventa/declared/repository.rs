@@ -72,7 +72,7 @@ Repository {
             kind: NodeKind::Adapter,
             concept: Concept::Subsystem,
             name: "runtime",
-            path: "runtime",
+            path: "adapter/runtime",
             canonical_path: "adapter/runtime",
             lifecycle: NodeLifecycle::Active,
             provides: &[],
