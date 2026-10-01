@@ -655,3 +655,553 @@ fn every_call_of_the_browser_scripts_is_a_call_record() {
         assert_eq!(records, expressions, "{path}");
     }
 }
+
+/// (scope, name, role) of every SYMBOL record.
+fn symbols(batch: &ExtractionBatch) -> BTreeSet<(String, String, String)> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Symbol(h) => Some((
+                h.subject.scope.join(),
+                h.subject.name.clone(),
+                h.subject.role.as_str().to_owned(),
+            )),
+            _ => None,
+        })
+        .collect()
+}
+
+fn definitions(batch: &ExtractionBatch) -> BTreeSet<(String, String)> {
+    symbols(batch)
+        .into_iter()
+        .filter(|(_, _, role)| role == "DEFINITION")
+        .map(|(scope, name, _)| (scope, name))
+        .collect()
+}
+
+fn pairs(expected: &[(&str, &str)]) -> BTreeSet<(String, String)> {
+    expected
+        .iter()
+        .map(|(scope, name)| ((*scope).to_owned(), (*name).to_owned()))
+        .collect()
+}
+
+/// Every identifier a declaration binds outside every function is a module-level variable:
+/// destructuring patterns, loop heads, catch parameters and blocks included; function-local
+/// bindings are not (G188, ADR 0101: the replay found `for (const path in localeFiles)` missing
+/// while SYMBOL claimed OBSERVED).
+const MODULE_BINDINGS: &str = r#"const o = {}, arr = [];
+const { a, b: c, ...r } = o;
+const [d, , ...e] = arr;
+export let { n } = o;
+const { x = 1, y: { z }, [key]: w } = o;
+var [p = 1, [q]] = arr;
+for (const k in o) { const inner = 1; }
+for (let [kk, vv] of Object.entries(o)) {}
+for (var vi of arr) {}
+for (let i = 0; i < 1; i++) {}
+for (assigned in o) {}
+if (o) { var hoisted = 1; let blockLet = 2; }
+try {} catch ({ message }) {}
+try {} catch (err) {}
+function local(pa, { pb }) {
+  const { fa, fb } = o;
+  for (const fk in o) {}
+  try {} catch (fe) {}
+  var fv;
+}
+const arrow = (qa) => { const inArrow = 1; };
+arr.forEach(function (cb) { const inCallback = 1; });
+class K { static { const staticLocal = 1; } method() { const inMethod = 1; } }
+"#;
+
+#[test]
+fn every_module_level_binding_of_a_javascript_file_is_a_symbol_definition() {
+    let batch = extract("src/bindings.js", MODULE_BINDINGS);
+    let expected = pairs(&[
+        ("", "o"),
+        ("", "arr"),
+        ("", "a"),
+        ("", "c"),
+        ("", "r"),
+        ("", "d"),
+        ("", "e"),
+        ("", "n"),
+        ("", "x"),
+        ("", "z"),
+        ("", "w"),
+        ("", "p"),
+        ("", "q"),
+        ("", "k"),
+        ("", "inner"),
+        ("", "kk"),
+        ("", "vv"),
+        ("", "vi"),
+        ("", "i"),
+        ("", "hoisted"),
+        ("", "blockLet"),
+        ("", "message"),
+        ("", "err"),
+        ("", "local"),
+        ("", "arrow"),
+        ("", "K"),
+        ("K", "staticLocal"),
+        ("K", "method"),
+    ]);
+    assert_eq!(definitions(&batch), expected);
+    assert_eq!(
+        status(&batch, SemanticDimension::Symbol),
+        EpistemicStatus::Observed
+    );
+}
+
+#[test]
+fn every_module_level_binding_of_a_typescript_file_is_a_symbol_definition() {
+    let source = r#"import fs = require("fs");
+import Alias = Space.Inner;
+declare const ambient: number;
+export const { ta, tb: [tc] }: { ta: number; tb: number[] } = make();
+for (const [tk, tv] of Object.entries(fs)) {}
+try {} catch (te: unknown) {}
+export default class {}
+enum E { A }
+function f(this: Window, fp: number, { fq }: { fq: string }) {
+  const [fl] = [fp];
+  import local = Space.Inner;
+}
+"#;
+    let batch = extract("src/bindings.ts", source);
+    let expected = pairs(&[
+        ("", "Alias"),
+        ("", "ambient"),
+        ("", "ta"),
+        ("", "tc"),
+        ("", "tk"),
+        ("", "tv"),
+        ("", "te"),
+        ("", "{class@7:15}"),
+        ("", "E"),
+        ("", "f"),
+    ]);
+    assert_eq!(definitions(&batch), expected);
+    assert!(
+        symbols(&batch).contains(&(
+            "import fs".to_owned(),
+            "fs".to_owned(),
+            "DECLARATION".to_owned()
+        )),
+        "{:?}",
+        symbols(&batch)
+    );
+    assert_eq!(
+        status(&batch, SemanticDimension::Symbol),
+        EpistemicStatus::Observed
+    );
+}
+
+/// A namespace or ambient module body declares members of another scope, which the profile does
+/// not enumerate: the file keeps its records, its members are scoped under it, SYMBOL is
+/// UNKNOWN, FUNCTION_IDENTITY stays exhaustive. So does a module-level `using` declaration.
+#[test]
+fn a_namespace_ambient_module_or_using_makes_symbol_unknown_but_keeps_the_records() {
+    for (source, scope, member) in [
+        (
+            "export const kept = 1;\nnamespace Space { export const member = 1; }\n",
+            "namespace Space",
+            "member",
+        ),
+        (
+            "export const kept = 1;\nexport module Space.Inner { function member() {} }\n",
+            "namespace Space.Inner",
+            "member",
+        ),
+        (
+            "export const kept = 1;\ndeclare module \"m\" { export const member: number; }\n",
+            "module \"m\"",
+            "member",
+        ),
+        (
+            "export const kept = 1;\ndeclare global { interface Window { member: number } }\n",
+            "global",
+            "Window",
+        ),
+        (
+            "export const kept = 1;\nusing r2 = null;\nawait using ares = null;\n",
+            "",
+            "kept",
+        ),
+    ] {
+        let batch = extract("src/space.ts", source);
+        let defined = definitions(&batch);
+        assert!(
+            defined.contains(&(String::new(), "kept".to_owned())),
+            "{source}"
+        );
+        assert!(
+            defined.contains(&(scope.to_owned(), member.to_owned())),
+            "{source}: {defined:?}"
+        );
+        if !scope.is_empty() {
+            assert!(
+                !defined.contains(&(String::new(), member.to_owned())),
+                "{source}: a member is not module-level"
+            );
+        }
+        assert_eq!(
+            status(&batch, SemanticDimension::Symbol),
+            EpistemicStatus::Unknown,
+            "{source}"
+        );
+        assert_eq!(
+            status(&batch, SemanticDimension::FunctionIdentity),
+            EpistemicStatus::Observed,
+            "{source}"
+        );
+    }
+}
+
+/// A bodiless ambient module declares nothing, and a `using` inside a function is not
+/// module-level: SYMBOL stays exhaustive.
+#[test]
+fn a_bodiless_ambient_module_or_a_local_using_keeps_symbol_exhaustive() {
+    for source in [
+        "export const kept = 1;\ndeclare module \"foo\";\ndeclare module \"*.css\";\n",
+        "export function h() { using f = res(); }\n",
+    ] {
+        let batch = extract("src/ok.ts", source);
+        assert_eq!(
+            status(&batch, SemanticDimension::Symbol),
+            EpistemicStatus::Observed,
+            "{source}"
+        );
+    }
+}
+
+/// A class method whose name is computed or a string is still a function region: its locals
+/// are not module-level definitions, and its calls are not module-level calls.
+#[test]
+fn a_computed_method_body_is_a_region_not_module_level_code() {
+    let source = "class K {\n  ['x']() { const inside = 1; try {} catch (ce) {} for (const lh of []) {} go(); }\n  'y'() {}\n}\n";
+    let batch = extract("src/computed.js", source);
+    assert_eq!(definitions(&batch), pairs(&[("", "K")]));
+    assert!(
+        functions(&batch).contains(&(
+            "fn {module}".to_owned(),
+            "{closure@2:2}".to_owned(),
+            "CLOSURE".to_owned()
+        )),
+        "{:?}",
+        functions(&batch)
+    );
+    assert_eq!(
+        calls(&batch)
+            .into_iter()
+            .map(|(caller, spelling, _, _)| (caller, spelling))
+            .collect::<Vec<_>>(),
+        [("{closure@2:2}".to_owned(), "go".to_owned())]
+    );
+    assert_eq!(
+        status(&batch, SemanticDimension::FunctionIdentity),
+        EpistemicStatus::Unknown,
+        "a computed-name method keeps the file partial"
+    );
+}
+
+/// A computed method key is evaluated where the method is defined: its calls belong to the
+/// enclosing region, in a class and in an object literal alike.
+#[test]
+fn a_computed_method_key_is_walked_in_the_enclosing_scope() {
+    let source = "function f() {}\nclass A { [f()]() { f(); } }\nclass B { [\"s\" + f()]() {} }\nconst o = { [f()]() {} };\n";
+    let batch = extract("src/keys.js", source);
+    let sites: BTreeSet<(usize, usize, String, Vec<String>)> = batch
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Call(h) => Some((
+                h.subject.span.line,
+                h.subject.span.column,
+                name_of(&batch, &h.subject.function),
+                h.subject
+                    .callees
+                    .iter()
+                    .map(|c| name_of(&batch, c))
+                    .collect(),
+            )),
+            _ => None,
+        })
+        .collect();
+    let site = |line, column, caller: &str| (line, column, caller.to_owned(), vec!["f".to_owned()]);
+    assert_eq!(
+        sites,
+        BTreeSet::from([
+            site(2, 11, "{module}"),
+            site(2, 20, "{closure@2:10}"),
+            site(3, 17, "{module}"),
+            site(4, 13, "{module}"),
+        ])
+    );
+}
+
+/// An identifier declarator keeps the record id and anchor it had before G188: the identity is
+/// (scope, name, role, path) and the declarator starts at its identifier.
+#[test]
+fn a_plain_module_variable_keeps_its_identity_and_anchor() {
+    let batch = extract(
+        "src/plain.js",
+        "export const plain = 1, other = 2;\nconst { da, db: [dc] } = {};\nfor (const twice of []) {}\nconst twice = 1;\n",
+    );
+    let identity = |name: &str| SymbolIdentity {
+        repository: RepositoryId::new("atlas-studio"),
+        revision: RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        },
+        scope: SemanticScope::new(Vec::<String>::new()),
+        name: name.to_owned(),
+        role: SymbolRole::Definition,
+        path: "src/plain.js".into(),
+        documentation: None,
+        declaration: None,
+    };
+    let anchors: BTreeMap<String, (SemanticRecordId, Option<String>)> = batch
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Symbol(h) => Some((
+                h.subject.name.clone(),
+                (h.record_id.clone(), h.provenance.span.clone()),
+            )),
+            _ => None,
+        })
+        .collect();
+    // A destructured binding is anchored at its own identifier.
+    for (name, span) in [
+        ("plain", "1:13"),
+        ("other", "1:24"),
+        ("da", "2:8"),
+        ("dc", "2:17"),
+        // Bound twice in one scope: one record, anchored at the first binding in source order.
+        ("twice", "3:11"),
+    ] {
+        assert_eq!(
+            anchors[name],
+            (
+                SemanticRecordId::new(SemanticDimension::Symbol, &identity(name).identity_key()),
+                Some(span.to_owned())
+            ),
+            "{name}"
+        );
+    }
+}
+
+/// The binding count and the assignment check of the CALL resolver walk the same patterns: a
+/// loop head binds, a destructuring or loop-head assignment writes, a computed property key in a
+/// pattern is a reference, not a binding.
+#[test]
+fn loop_heads_and_destructuring_assignments_count_for_call_resolution() {
+    let source = "function f() {}\nfunction g() {}\nfunction h() {}\nfunction k() {}\nfunction m() {}\nfunction o() {}\nfunction s() {}\nfor (const f of []) f();\n[g] = [h];\ng();\nfor (m in {}) {}\nm();\nconst { [k]: v } = {};\nk();\nh();\n[o.p] = [1];\nfor (o.q of []) {}\no();\n[s[0]] = [1];\ns();\n";
+    let batch = extract("src/calls.js", source);
+    let resolved: BTreeMap<String, Vec<String>> = calls(&batch)
+        .into_iter()
+        .map(|(_, spelling, callees, _)| (spelling, callees))
+        .collect();
+    assert_eq!(resolved["f"], Vec::<String>::new(), "a loop head shadows f");
+    assert_eq!(
+        resolved["g"],
+        Vec::<String>::new(),
+        "g is assigned by destructuring"
+    );
+    assert_eq!(
+        resolved["m"],
+        Vec::<String>::new(),
+        "m is assigned by a loop head"
+    );
+    assert_eq!(resolved["k"], ["k"], "a computed key is not a binding");
+    assert_eq!(resolved["h"], ["h"], "h is only read");
+    assert_eq!(resolved["o"], ["o"], "a member target writes no binding");
+    assert_eq!(resolved["s"], ["s"], "a subscript target writes no binding");
+}
+
+/// Every other way a name escapes "bound once in the file, never assigned" defeats same-file
+/// resolution, and a name both a declarator and its own function or class expression bind stays
+/// resolved (G188 review fixtures `cx`).
+#[test]
+fn a_name_fixes_a_callee_only_where_its_one_binding_is_visible() {
+    let unresolved = |path: &str, source: &str, spelling: &str| {
+        let batch = extract(path, source);
+        let found: Vec<_> = calls(&batch)
+            .into_iter()
+            .filter(|(_, s, _, _)| s == spelling)
+            .collect();
+        assert!(!found.is_empty(), "{source}");
+        for (_, _, callees, status) in found {
+            assert!(callees.is_empty(), "{source}: {callees:?}");
+            assert_eq!(status, EpistemicStatus::Observed, "{source}");
+        }
+    };
+    for (path, source, spelling) in [
+        (
+            "src/c01.js",
+            "function f() {}\nconst g = function f() { return f(); };\n",
+            "f",
+        ),
+        (
+            "src/c02.js",
+            "function f() {}\nconst X = class f { m() { return f(); } };\n",
+            "f",
+        ),
+        ("src/c03.js", "function f() {}\nf++;\nf();\n", "f"),
+        ("src/c04.mjs", "{ function f() {} }\nf();\n", "f"),
+        ("src/c04.js", "if (x) function f() {}\nf();\n", "f"),
+        (
+            "src/c05.ts",
+            "namespace N { export function g() {} }\ng();\n",
+            "g",
+        ),
+        (
+            "src/c06.js",
+            "function f() {}\nwith (obj) { f(); }\nf();\n",
+            "f",
+        ),
+        (
+            "src/c07.ts",
+            "export {};\nfunction f() {}\nnamespace M { import f = N.g; f(); }\n",
+            "f",
+        ),
+        (
+            "src/c07b.ts",
+            "function f() {}\ndeclare module \"m\" { import f = require(\"x\"); }\nf();\n",
+            "f",
+        ),
+        (
+            "src/c08.js",
+            "class K { constructor() {} }\nconst Q = class K { m() { return new K(); } };\n",
+            "K::constructor",
+        ),
+        (
+            "src/c09.js",
+            "{ class K { constructor() {} } }\nnew K();\n",
+            "K::constructor",
+        ),
+        (
+            "src/c10.js",
+            "const Q = class K { constructor() {} };\nnew K();\n",
+            "K::constructor",
+        ),
+        (
+            "src/c10b.js",
+            "const Q = class K { constructor() {} };\nfunction K() {}\nnew K();\n",
+            "K::constructor",
+        ),
+        (
+            "src/c05b.ts",
+            "namespace N { var v = () => 1; }\nv();\n",
+            "v",
+        ),
+        // In a script another file's `namespace N { export function f() {} }` may merge into N.
+        ("src/c11.ts", "function f() {}\nnamespace N { f(); }\n", "f"),
+        (
+            "src/c12.ts",
+            "export {};\nfunction f() {}\nnamespace N { declare function f(): void; f(); }\n",
+            "f",
+        ),
+        (
+            "src/c13.js",
+            "function f() {}\nfunction h() { eval(\"var f = 2\"); return f(); }\n",
+            "f",
+        ),
+        // Still direct: parenthesized, and TypeScript's type-only wrappers compile away.
+        (
+            "src/c13b.js",
+            "function f() {}\nfunction h() { ((eval))(\"var f = 2\"); return f(); }\n",
+            "f",
+        ),
+        (
+            "src/c13c.ts",
+            "function f() {}\nfunction h() { (eval as any)(\"f = 2\"); return f(); }\n",
+            "f",
+        ),
+        (
+            "src/c13d.ts",
+            "function f() {}\nfunction h() { eval!(\"f = 2\"); return f(); }\n",
+            "f",
+        ),
+        (
+            "src/c13e.ts",
+            "function f() {}\nfunction h() { (<any>eval)(\"f = 2\"); return f(); }\n",
+            "f",
+        ),
+        (
+            "src/c13f.ts",
+            "function f() {}\nfunction h() { (eval satisfies any)(\"f = 2\"); return f(); }\n",
+            "f",
+        ),
+        // Module-level code before the declaration: temporal dead zone, or `undefined`.
+        (
+            "src/c14.js",
+            "new K();\nclass K { constructor() {} }\n",
+            "K::constructor",
+        ),
+        ("src/c15.js", "f();\nconst f = () => 1;\n", "f"),
+        ("src/c16.js", "g();\nvar g = function () {};\n", "g"),
+    ] {
+        unresolved(path, source, spelling);
+    }
+    // Where the one binding is visible, the callee is fixed: a declarator naming its own
+    // expression, an export, a block `const` called in its block, a `var` in a top-level `if`
+    // (module-scoped), and a module function outside a same-named function expression (inside
+    // it, the expression's own name).
+    let batch = extract(
+        "src/same.js",
+        "const f = function f() { return f(); };\nf();\nconst K = class K { constructor() {} };\nnew K();\nexport function e() {}\ne();\n{ const inBlock = () => 1; inBlock(); }\nif (x) { var hoisted = function () {}; }\nhoisted();\nconst other = function h() { return h(); };\nfunction h() {}\nh();\nfunction run() { return later(); }\nconst later = () => 1;\nswitch (x) { case 1: function inCase() {} break; case 2: inCase(); }\nswitch (y) { case 1: inDefault(); break; default: function inDefault() {} }\nnamespace();\nfunction namespace() {}\n",
+    );
+    let got: Vec<(String, String, Vec<String>)> = calls(&batch)
+        .into_iter()
+        .map(|(caller, spelling, callees, _)| (caller, spelling, callees))
+        .collect();
+    let row = |caller: &str, spelling: &str, callees: &[&str]| {
+        (
+            caller.to_owned(),
+            spelling.to_owned(),
+            callees.iter().map(|c| (*c).to_owned()).collect::<Vec<_>>(),
+        )
+    };
+    assert_eq!(
+        got,
+        [
+            row("f", "f", &["f"]),
+            row("other", "h", &[]),
+            row("run", "later", &["later"]),
+            row("{module}", "K::constructor", &["constructor"]),
+            row("{module}", "e", &["e"]),
+            row("{module}", "f", &["f"]),
+            row("{module}", "h", &["h"]),
+            row("{module}", "hoisted", &["hoisted"]),
+            row("{module}", "inBlock", &["inBlock"]),
+            row("{module}", "inCase", &["inCase"]),
+            row("{module}", "inDefault", &["inDefault"]),
+            row("{module}", "namespace", &["namespace"]),
+        ]
+    );
+}
+
+/// In a module a namespace cannot be extended from another file, and an overload signature
+/// does not rebind its implementation's name.
+#[test]
+fn a_module_namespace_and_an_overloaded_function_keep_their_callee() {
+    for (path, source) in [
+        (
+            "src/m.ts",
+            "export {};\nfunction f() {}\nnamespace N { f(); }\n",
+        ),
+        (
+            "src/o.ts",
+            "function f(a: string): void;\nfunction f(a: any) {}\nf(\"x\");\n",
+        ),
+    ] {
+        let batch = extract(path, source);
+        let resolved: Vec<Vec<String>> = calls(&batch).into_iter().map(|c| c.2).collect();
+        assert_eq!(resolved, [vec!["f".to_owned()]], "{source}");
+    }
+}

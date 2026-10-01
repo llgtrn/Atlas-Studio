@@ -1,0 +1,147 @@
+{
+ "schema": "atlas.evidence.full-oss-replay.v1",
+ "replay": "R20",
+ "generation": "G188",
+ "lane": "FULL_OSS_REPLAY",
+ "donor": {
+  "key": "666ghj/mirofish",
+  "remote": "https://github.com/666ghj/MiroFish.git",
+  "pin": "39d849138ef254f6c737ab4c4705e5545dbe31d4",
+  "pin_choice": "the upstream head resolved at execution (2026-09-30, committed 2026-09-03) is the ledger's recorded candidate pin: one tree; the donor was never decided, so no historical pin needs revalidation",
+  "license": "AGPL-3.0 (root LICENSE, the GNU AGPL version 3 text; the root package.json and backend/pyproject.toml declare AGPL-3.0, frontend/package.json declares none; a nested MIT notice under .github/star-history); the recorded license holds at the pin",
+  "code_reuse": "NONE (census, the TypeScript compiler API and an acorn parser as oracles over scratch reads; nothing copied -- the fix is Atlas-native)",
+  "selection": "canonical order after R19: every REVALIDATION_REQUIRED rank replayed, the next NEVER_REPLAYED repository",
+  "dependency_class": "NONE (a Python multi-agent social simulation service behind a Vue front end; no Atlas mechanism depends on it)",
+  "materialization": "blobless depth-1 fetch of the pin at .atlas/.cache/donors/mirofish (128 tracked files, 9.1 MB: 62 Python, 16 Vue single-file components, 9 handwritten JavaScript files, images, JSON, Markdown, YAML), the whole repository censused"
+ },
+ "epochs": {
+  "before": "E26",
+  "after": "E27"
+ },
+ "engines": {
+  "N": "the E26 release binary (HEAD 45eb07d2)",
+  "N_plus_1": "E27: the working tree of the G188 native change (ADR 0101)"
+ },
+ "support_levels": {
+  "note": "python and vue L0_DISCOVERED (62 and 16 files, none parsed, GAP-UNRECOGNIZED-SOURCE, DEBT-MULTILANGUAGE): no record, no OBSERVED coverage, no edge, no component; javascript L6_AGENT_USABLE (9 files; FUNCTION_IDENTITY, FUNCTION_SIGNATURE and SYMBOL OBSERVED, CALL UNKNOWN, the other nine dimensions UNSUPPORTED); html, json, markdown, toml, yaml L2_SYNTAX with every dimension UNSUPPORTED"
+ },
+ "atlas_n_mission": {
+  "commands": [
+   "agent model --root <pin> (45 functions, 1 s)",
+   "recensus snapshot and coverage levels",
+   "agent trace --from main.js {module} --to getProject",
+   "agent impact getProject",
+   "agent understand and agent unknowns"
+  ],
+  "atlas_knew": {
+   "functions": 45,
+   "invokes": 0,
+   "encloses": 4,
+   "call_records": 61,
+   "symbol_records": 69,
+   "python_files": 62,
+   "vue_files": 16,
+   "python_and_vue_records": 0
+  },
+  "challenge": "does starting the front end (main.js) reach getProject in api/graph.js, and what does changing getProject put at risk?",
+  "answer": "UNDECIDABLE for Atlas and said so: the router-to-view wiring and all twelve getProject call sites sit in six unparsed Vue files (L0); trace answered NO_PATH_OBSERVED with status UNKNOWN (absence not established), never NO_PATH; impact reported 0 callers as a lower bound (resolved callers only) without naming the unparsed Vue importers, which only agent unknowns shows (RES-G188-IMPACT-SILENT-ON-UNPARSED-CALLERS); a positive control (api/index.js {module} to its closure) returned PATH_OBSERVED"
+ },
+ "differential": {
+  "oracle": "the TypeScript compiler API and an acorn ECMAScript parser over the nine JavaScript files (functions, call and new nodes, anchors, module-level bindings), and source reads; no Rust or TypeScript in the repository",
+  "summary": {
+   "N": {
+    "functions_atlas": 45,
+    "functions_oracle": 45,
+    "call_records_atlas": 61,
+    "call_nodes_oracle": 61,
+    "anchors_equal": 61,
+    "invokes": 0,
+    "symbol_records_atlas": 69,
+    "module_bindings_oracle": 70,
+    "python_and_vue_claims": 0
+   },
+   "N_plus_1": {
+    "call_records_atlas": 61,
+    "invokes": 0,
+    "symbol_records_atlas": 70,
+    "symbol_missing": 0,
+    "symbol_extra": 0
+   }
+  },
+  "classifications": [
+   {
+    "class": "ATLAS_CORRECT",
+    "n": 61,
+    "what": "every call and new site at N: per function the callee multiset equals the parser's, each anchored at its callee name (E26); no INVOKES claimed and none missing -- every callee is an external package, a member call, or the imported axios instance service"
+   },
+   {
+    "class": "ATLAS_SILENT",
+    "n": 1,
+    "what": "frontend/src/i18n/index.js:8 for (const path in localeFiles): a module-level loop-head binding absent from SYMBOL while the file's SYMBOL coverage is OBSERVED -- a false completeness claim"
+   }
+  ]
+ },
+ "falsification": {
+  "claim": "ADR 0068: on an error-free parse the JavaScript and TypeScript SYMBOL dimension is exhaustive over module-level variables",
+  "evidence": "the walker recorded only identifier declarators: loop-head, destructured, catch and import-alias bindings outside every function were missing under SYMBOL OBSERVED -- 1 of 70 on the donor, 552 top-level names (633 binding sites) in the 2,454 JavaScript and TypeScript files of Atlas's tree whose SYMBOL is OBSERVED; the same blind spot let the CALL resolver fix a same-file callee through a nested scope, a named function or class expression, an update, a with statement or a direct eval, and let a destructured, enum, namespace or alias export fail to shadow export * (independent reviews built a false DERIVED edge for each)",
+  "kind": "a WRONG completeness claim (SYMBOL OBSERVED) and WRONG same-file call edges on constructed inputs; no committed evidence and no replay verdict rested on them"
+ },
+ "implementation": {
+  "mechanism_vs_implementation": "nothing to absorb: the donor is an application whose logic is in languages Atlas does not model",
+  "change": "ADR 0101: every identifier bound outside every function region (declarators and loop heads walked through their patterns, module-level catch parameters, import aliases) is a SYMBOL definition anchored at its first binding; a file whose bindings cannot be enumerated (a module-level using, a namespace or ambient module body) holds SYMBOL UNKNOWN; a same-file callee is fixed only where its declaration is in scope at the call, bound once there and never written, not rebound by a named expression, not called by module-level code before its declaration, and in a file with no with statement and no direct eval (parenthesized and type-wrapped callees included); in a script, a call in a namespace body is fixed only inside that body; a local export of any declaration form shadows export *; computed method keys are walked in the enclosing scope",
+  "falsification": "per file, SYMBOL definitions equal the TypeScript compiler's and acorn's on the donor and on 2,454 JavaScript and TypeScript files (15,521 top-level definitions, 3,824 nested, 18,831 imports, 7,230 bindings, 6,623 anchors: 0 missing, 0 extra, 0 mismatched); every false-edge fixture of the reviews unresolved; 63 hand mutants on the final code, 62 killed, one equivalent",
+  "review": "three independent review rounds: the first found four blocking defects (using declarations, three local export forms, six false-edge forms, an anchor claim), the second three (computed method keys dropped, script namespaces merged from another file, direct eval), the third one (a wrapped direct eval); each fixed and re-checked"
+ },
+ "n_vs_n_plus_1": {
+  "same_pin": "39d849138ef2 (the whole repository)",
+  "N": {
+   "epoch": "E26",
+   "symbol_records": 69,
+   "call_records": 61,
+   "invokes": 0
+  },
+  "N_plus_1": {
+   "epoch": "E27",
+   "symbol_records": 70,
+   "call_records": 61,
+   "invokes": 0,
+   "new_symbol": "frontend/src/i18n/index.js path (the for-in head), read correct"
+  },
+  "edge_delta": {
+   "invokes_gained": 0,
+   "invokes_lost": 0
+  },
+  "atlas_itself": "Atlas's root census: JavaScript SYMBOL 37 -> 39 (chromium in observe.js, spawn in webdriver.js), every Rust dimension, CALL, INVOKES and obligations identical; the 2,481 tracked JavaScript and TypeScript files as a probe: SYMBOL 38,538 -> 39,128, FUNCTION_IDENTITY 38,057 -> 38,059 (two computed-name methods), CALL 186,548 identical, resolved calls 24,483 -> 24,462 and INVOKES 16,861 -> 16,840 -- all 21 withheld in the seven files with a direct eval (18 getNewPrototype calls in protobuf benchmark copies, 3 loadCy calls in cytoscape's documentation script), none changed callee, none newly resolved; 236 SYMBOL ids re-scoped under their namespace in three .d.ts files now SYMBOL UNKNOWN, 3 re-anchored to an earlier loop-head binding"
+ },
+ "manual_reads": [
+  {
+   "what": "frontend/src/i18n/index.js",
+   "why": "the missed binding",
+   "gap": "module-level loop-head bindings"
+  },
+  {
+   "what": "frontend/src/api/graph.js and api/index.js",
+   "why": "why no INVOKES: service is an imported axios instance",
+   "gap": "none (correct absence)"
+  }
+ ],
+ "revalidation": {
+  "record": "none: the donor was never decided (candidate, consumer-gated), so no historical verdict exists to revalidate",
+  "historical_decision": "none",
+  "outcome": "NOT_A_HISTORICAL_DECISION",
+  "finding": "relevant to Atlas only if DEBT-MULTILANGUAGE selects a Python or a Vue single-file-component frontend"
+ },
+ "decision": {
+  "donor": "REFERENCE_ONLY at E27: an application in languages Atlas does not model, nothing absorbed",
+  "capability_delta": "CAPABILITY_ADVANCED (E26 -> E27: complete module-level JavaScript and TypeScript SYMBOL definitions and scope-checked same-file call resolution)",
+  "trigger": "CURRENT; re-opened by a Python or Vue single-file-component frontend (DEBT-MULTILANGUAGE): re-census the same pin"
+ },
+ "extinction": {
+  "attempted": "rm -rf /home/user/Atlas-Studio/.atlas/.cache/donors/mirofish, after resolving the path, asserting it lies under .atlas/.cache/donors/ and that the working directory (the repository root) is outside it; issued once",
+  "scratch_deleted": "no donor file remains in scratch: every scratch file was hashed against the pin's 128 blobs and none matched; census models, oracle counts and the reviewers' own fixtures kept as derived data",
+  "runtime_dependency": "none",
+  "evidence_retained": "this record; no mirofish text in Atlas",
+  "path_absent_after": true,
+  "status": "SOURCE_EXTINCT"
+ }
+}

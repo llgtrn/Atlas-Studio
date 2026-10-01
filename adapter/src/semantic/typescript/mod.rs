@@ -11,14 +11,40 @@
 //!   and anonymous functions as `{closure@line:column}` regions scoped under their enclosing
 //!   function. Calls at module level are attributed to a generated `{module}` region. Overload
 //!   signatures, interface and abstract method signatures declare no body and are not functions.
-//! - SYMBOL: definitions of functions, classes, interfaces, type aliases, enums and module-level
-//!   variables; imported names as declarations under `import <source>`.
+//! - SYMBOL: definitions of functions (with a body), classes, interfaces, type aliases, enums
+//!   and module-level variables; imported names (`import x = require("m")` included) as
+//!   declarations under `import <source>`. A module-level variable (G188, ADR 0101) is every
+//!   identifier bound outside every function region -- at the top level, in a top-level block,
+//!   loop or class static block -- by a `var`/`let`/`const` declarator (`declare const`
+//!   included: it binds a variable), a `for (var|let|const .. in|of ..)` head, a `catch`
+//!   parameter or a TypeScript `import A = N.B` alias, destructuring patterns walked to every
+//!   identifier they bind (`const { a, b: [c], ...r } = o`), each a definition anchored at its
+//!   identifier. Other function-local bindings are not recorded; a function-valued declarator
+//!   (`const f = () => ..`) is a function wherever it is, so its name is recorded in its
+//!   enclosing function's scope too. A bodiless signature (an overload, `declare function`) is
+//!   not a function and not a definition. A symbol is its (scope, name): several bindings of
+//!   one name in one scope are one record, anchored at the first in source order. Namespace and
+//!   ambient module members are scoped under `namespace N`, `module "m"` or `global`. A file
+//!   with a namespace or ambient module body (`namespace N {}`, `declare module "m" {}`,
+//!   `declare global {}`) or a module-level `using` declaration keeps its SYMBOL records but not
+//!   an exhaustive SYMBOL.
 //! - CALL: every call and `new` site, attributed to its innermost region, with its callee
 //!   spelling (`name`, `.method`, `Class::constructor`), anchored at the callee's name token so
 //!   the calls of a chain stay distinct sites (G186, ADR 0098; see `call_anchor`). A bare
-//!   identifier is resolved only to a
-//!   function declared at module level in the same file whose name is bound exactly once in the
-//!   file and never assigned: JavaScript's lexical scoping then fixes the callee (DERIVED).
+//!   identifier is resolved only to a function of the same file declared outside every
+//!   function whose declaration is visible at the call (its module, block, `switch` body or
+//!   namespace body; a `var`'s module or namespace body), whose name is bound exactly once in
+//!   the file (loop heads, catch parameters, `import =`, `declare function` included) and never
+//!   assigned (destructuring and loop-head assignments and `++`/`--` included), not rebound
+//!   around the call by a named function or class expression, in a file with no `with`
+//!   statement and no direct `eval(..)`, and not called by module-level code before its
+//!   declaration gives it its value (a class or a `let`/`const`/`var`-bound function; a call
+//!   in a nested function body is taken to run later). In a script (no top-level
+//!   `import`/`export`) a call in a namespace body resolves only to a declaration of that body,
+//!   since another file's same-named namespace may merge a member into it. JavaScript's lexical
+//!   scoping then fixes the callee (DERIVED); `new C` likewise, to a class's constructor (G188,
+//!   ADR 0101). Script files that share one global scope (browser `<script>`s) can redefine a
+//!   module-level function from another file: that is not modelled (ADR 0101 residual).
 //!   Everything else -- member calls, imported callees, callbacks, `this`, dynamic property
 //!   access, JSX elements, getters and setters, decorators, tagged templates -- stays unresolved
 //!   here, so CALL is always UNKNOWN with its observations. Since G158 (ADR 0073) a second
@@ -176,16 +202,27 @@ struct Context<'a> {
     /// imports, catch clauses), and which identifiers are assigned to.
     bindings: BTreeMap<String, usize>,
     assigned: BTreeSet<String>,
+    /// A `with` statement or a direct `eval` makes every name of the file dynamically scoped.
+    dynamic_scope: bool,
+    /// The file has a top-level `import` or `export`: a module, not a script.
+    module_file: bool,
+    /// The byte ranges of namespace and module bodies.
+    namespace_bodies: Vec<(usize, usize)>,
     /// Module-level functions by name, for same-file resolution.
-    module_functions: BTreeMap<String, SemanticRecordId>,
+    module_functions: BTreeMap<String, Visible>,
     /// Constructors by class name.
-    constructors: BTreeMap<String, SemanticRecordId>,
+    constructors: BTreeMap<String, Visible>,
+    /// The names of named function and class expressions, each visible only inside its own
+    /// expression (byte range): `const g = function f() { f(); }` binds `f` in its body only.
+    expression_names: Vec<(String, usize, usize)>,
     module_region: Option<SemanticRecordId>,
     /// Calls seen while walking, resolved once every declaration of the file is known
     /// (declarations are hoisted: a call may precede the function it names).
     pending: Vec<PendingCall>,
     /// Why no dimension of this file can claim exhaustive coverage (empty: exhaustive).
     partial: BTreeSet<String>,
+    /// Why this file's SYMBOL alone cannot claim exhaustive coverage (G188, ADR 0101).
+    symbol_gaps: BTreeSet<String>,
 }
 
 impl<'a> Context<'a> {
@@ -203,11 +240,16 @@ impl<'a> Context<'a> {
             seen: BTreeSet::new(),
             bindings: BTreeMap::new(),
             assigned: BTreeSet::new(),
+            dynamic_scope: false,
+            module_file: false,
+            namespace_bodies: Vec::new(),
             module_functions: BTreeMap::new(),
             constructors: BTreeMap::new(),
+            expression_names: Vec::new(),
             module_region: None,
             pending: Vec::new(),
             partial: BTreeSet::new(),
+            symbol_gaps: BTreeSet::new(),
         }
     }
 
@@ -242,6 +284,8 @@ impl<'a> Context<'a> {
             | "variable_declarator"
             | "import_specifier"
             | "namespace_import"
+            | "import_require_clause"
+            | "import_alias"
             | "enum_declaration" => {
                 let name = named("alias").or_else(|| named("name")).or_else(|| {
                     // `import * as ns` carries its identifier as a child.
@@ -279,11 +323,80 @@ impl<'a> Context<'a> {
                     self.bind_pattern(parameter);
                 }
             }
-            "assignment_expression" | "augmented_assignment_expression" => {
-                if let Some(left) = named("left")
-                    && left.kind() == "identifier"
+            // A named function or class expression binds its name inside itself (`const g =
+            // function f() { f(); }`), unless a declarator binds the same name to it: then both
+            // names denote the one value.
+            "function_expression" | "function" | "generator_function" | "class" => {
+                if let Some(name) = named("name")
+                    && !self.bound_by_its_declarator(node)
                 {
-                    self.assigned.insert(self.text(left));
+                    for name in pattern_identifiers(name) {
+                        let name = self.text(name);
+                        self.expression_names
+                            .push((name, node.start_byte(), node.end_byte()));
+                    }
+                }
+            }
+            // `f++` writes `f`.
+            "update_expression" => {
+                if let Some(argument) = named("argument") {
+                    self.assign_pattern(argument);
+                }
+            }
+            // A `with` body resolves names against an object at run time: no name of the file
+            // is fixed by its lexical binding.
+            "with_statement" => self.dynamic_scope = true,
+            // A direct `eval(..)` may declare names in the scope it runs in (sloppy code): like
+            // `with`, no name of the file is fixed by its lexical binding. `(eval)(..)` is still
+            // direct, and TypeScript's `(eval as any)(..)`, `eval!(..)` and `(<any>eval)(..)`
+            // compile to a plain `eval(..)`.
+            "call_expression" => {
+                if named("function")
+                    .map(unwrap_callee)
+                    .is_some_and(|f| f.kind() == "identifier" && self.text(f) == "eval")
+                {
+                    self.dynamic_scope = true;
+                }
+            }
+            // A top-level `import`/`export` makes the file a module; otherwise it is a script.
+            "import_statement" | "export_statement"
+                if node.parent().is_some_and(|p| p.kind() == "program") =>
+            {
+                self.module_file = true;
+            }
+            // A namespace body: in a script, another file's same-named namespace may merge a
+            // member into it.
+            "internal_module" | "module" => {
+                if let Some(body) = named("body") {
+                    self.namespace_bodies
+                        .push((body.start_byte(), body.end_byte()));
+                }
+            }
+            // `declare function f()` binds `f` (a bodiless overload signature does not: its
+            // implementation binds the name).
+            "function_signature" => {
+                if node
+                    .parent()
+                    .is_some_and(|p| p.kind() == "ambient_declaration")
+                    && let Some(name) = named("name")
+                {
+                    self.bind_pattern(name);
+                }
+            }
+            // `for (const x of xs)` binds; `for (x of xs)` and `for ([a, b] of xs)` assign.
+            "for_in_statement" => {
+                if let Some(left) = named("left") {
+                    if node.child_by_field_name("kind").is_some() {
+                        self.bind_pattern(left);
+                    } else {
+                        self.assign_pattern(left);
+                    }
+                }
+            }
+            // `f = g`, `f += 1`, and destructuring assignments `[f] = xs`, `({ f } = o)`.
+            "assignment_expression" | "augmented_assignment_expression" => {
+                if let Some(left) = named("left") {
+                    self.assign_pattern(left);
                 }
             }
             _ => {}
@@ -295,31 +408,46 @@ impl<'a> Context<'a> {
         }
     }
 
+    /// Whether a named function or class expression is the value of a declarator that binds the
+    /// expression's own name (`const f = function f() {}`, `const K = class K {}`).
+    fn bound_by_its_declarator(&self, node: Node) -> bool {
+        let own = node.child_by_field_name("name").map(|n| self.text(n));
+        let bound = node
+            .parent()
+            .filter(|d| d.kind() == "variable_declarator")
+            .and_then(|d| d.child_by_field_name("name"))
+            .filter(|n| n.kind() == "identifier")
+            .map(|n| self.text(n));
+        own.is_some() && own == bound
+    }
+
+    /// Why this file's SYMBOL alone is not exhaustive: `what` occurs in it.
+    fn symbol_gap(&mut self, what: &str) {
+        self.symbol_gaps
+            .insert(format!("{what} in {}", self.input.artifact_path));
+    }
+
     /// Counts every identifier a binding pattern introduces (destructuring included).
     fn bind_pattern(&mut self, node: Node) {
-        match node.kind() {
-            "identifier" | "shorthand_property_identifier_pattern" | "type_identifier" => {
-                *self.bindings.entry(self.text(node)).or_default() += 1;
-            }
-            // A parameter's type annotation and default value bind nothing.
-            "type_annotation" => {}
-            _ => {
-                if let Some(pattern) = node
-                    .child_by_field_name("pattern")
-                    .or_else(|| node.child_by_field_name("left"))
-                {
-                    self.bind_pattern(pattern);
-                    return;
-                }
-                let mut cursor = node.walk();
-                let children: Vec<Node> = node.named_children(&mut cursor).collect();
-                for child in children {
-                    if child.kind() == "property_identifier" {
-                        continue;
-                    }
-                    self.bind_pattern(child);
-                }
-            }
+        for name in pattern_identifiers(node) {
+            *self.bindings.entry(self.text(name)).or_default() += 1;
+        }
+    }
+
+    /// Marks every identifier an assignment target writes (destructuring included). A member
+    /// or subscript target (`o.f = ..`, `[o[k]] = ..`) writes no binding.
+    fn assign_pattern(&mut self, node: Node) {
+        for name in pattern_identifiers(node) {
+            self.assigned.insert(self.text(name));
+        }
+    }
+
+    /// Records every identifier a module-level binding pattern introduces as a definition,
+    /// anchored at the identifier (G188, ADR 0101).
+    fn pattern_symbols(&mut self, at: &Walk, pattern: Node) {
+        for name in pattern_identifiers(pattern) {
+            let text = self.text(name);
+            self.symbol(at, &text, SymbolRole::Definition, name);
         }
     }
 
@@ -366,11 +494,83 @@ impl<'a> Context<'a> {
                     self.function(value, &name, FunctionDeclarationKind::FreeFunction, at);
                     return;
                 }
+                // A module-level variable: every identifier its pattern binds.
                 if at.region.is_none()
-                    && let Some(name) = name.filter(|n| n.kind() == "identifier")
+                    && let Some(name) = name
                 {
-                    let name = self.text(name);
-                    self.symbol(at, &name, SymbolRole::Definition, node);
+                    self.pattern_symbols(at, name);
+                }
+            }
+            // A module-level loop head that declares (`for (const k in o)`, `for (let [k, v] of
+            // xs)`) binds like a declarator; one without `var`/`let`/`const` only assigns.
+            "for_in_statement" => {
+                if at.region.is_none()
+                    && node.child_by_field_name("kind").is_some()
+                    && let Some(left) = node.child_by_field_name("left")
+                {
+                    self.pattern_symbols(at, left);
+                }
+            }
+            // A module-level `catch (e)` binds like a module-level block `const`.
+            "catch_clause" => {
+                if at.region.is_none()
+                    && let Some(parameter) = node.child_by_field_name("parameter")
+                {
+                    self.pattern_symbols(at, parameter);
+                }
+            }
+            // TypeScript `import A = N.B;`: a module-level alias binding.
+            "import_alias" => {
+                let mut cursor = node.walk();
+                let alias = node
+                    .named_children(&mut cursor)
+                    .find(|c| c.kind() == "identifier");
+                if at.region.is_none()
+                    && let Some(alias) = alias
+                {
+                    self.pattern_symbols(at, alias);
+                }
+            }
+            // A namespace (`namespace N {}`, `module N {}`) or ambient module body (`declare
+            // module "m" {}`, `declare global {}`) declares members of another scope: they are
+            // scoped under it (`namespace N`, `module "m"`, `global`), and the file's SYMBOL is
+            // not exhaustive, since the profile does not enumerate such scopes. A bodiless
+            // `declare module "m";` declares nothing.
+            "internal_module" | "module" | "ambient_declaration" => {
+                let body = if node.kind() == "ambient_declaration" {
+                    let mut cursor = node.walk();
+                    node.named_children(&mut cursor)
+                        .find(|c| c.kind() == "statement_block")
+                } else {
+                    node.child_by_field_name("body")
+                };
+                if let Some(body) = body {
+                    self.symbol_gap("a namespace or ambient module body");
+                    let segment = match node.child_by_field_name("name") {
+                        Some(name) if name.kind() == "string" => {
+                            format!("module {}", self.text(name))
+                        }
+                        Some(name) => format!("namespace {}", self.text(name)),
+                        None => "global".to_owned(),
+                    };
+                    let mut scope = at.scope.clone();
+                    scope.push(segment);
+                    let inner = Walk {
+                        scope,
+                        depth: at.depth + 1,
+                        ..at.clone()
+                    };
+                    self.walk_children(body, &inner);
+                    return;
+                }
+            }
+            // TypeScript `using x = ..` and `await using x = ..` parse as an assignment carrying a
+            // `using` token, which a line break also produces (`using\nx = 1` is an assignment):
+            // a module-level one makes the file's SYMBOL not exhaustive rather than guessed.
+            "assignment_expression" => {
+                let mut cursor = node.walk();
+                if at.region.is_none() && node.children(&mut cursor).any(|c| c.kind() == "using") {
+                    self.symbol_gap("a `using` declaration");
                 }
             }
             "class_declaration" | "abstract_class_declaration" | "class" => {
@@ -395,21 +595,15 @@ impl<'a> Context<'a> {
                 }
                 return;
             }
-            "method_definition" if node.parent().map(|p| p.kind()) != Some("class_body") => {
-                // An object-literal method is a value, like any anonymous function.
-                let span = self.span(node);
-                let name = format!("{{closure@{}:{}}}", span.line, span.column);
-                self.function(node, &name, FunctionDeclarationKind::Closure, at);
-                return;
-            }
             "method_definition" => {
+                let in_class = node.parent().map(|p| p.kind()) == Some("class_body");
                 let named = node.child_by_field_name("name").filter(|n| {
                     matches!(
                         n.kind(),
                         "property_identifier" | "private_property_identifier" | "identifier"
                     )
                 });
-                match named {
+                match named.filter(|_| in_class) {
                     Some(name) => {
                         let name = self.text(name);
                         let is_static = {
@@ -424,13 +618,29 @@ impl<'a> Context<'a> {
                         self.function(node, &name, kind, at);
                         return;
                     }
-                    None => {
+                    None if in_class => {
                         self.partial.insert(format!(
                             "a method with a computed or string name in {}",
                             self.input.artifact_path
                         ));
                     }
+                    None => {}
                 }
+                // A computed key (`[f()]() {}`) is evaluated where the method is defined, not in
+                // its body.
+                if let Some(key) = node
+                    .child_by_field_name("name")
+                    .filter(|k| k.kind() == "computed_property_name")
+                {
+                    self.walk(key, &at.deeper());
+                }
+                // An object-literal method is a value, like any anonymous function; so is a class
+                // method whose computed or string name the profile does not read: its body is
+                // still a function region, never module-level code.
+                let span = self.span(node);
+                let name = format!("{{closure@{}:{}}}", span.line, span.column);
+                self.function(node, &name, FunctionDeclarationKind::Closure, at);
+                return;
             }
             "arrow_function" | "function_expression" | "function" | "generator_function" => {
                 let span = self.span(node);
@@ -472,7 +682,8 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn imports(&mut self, node: Node, at: &Walk) {
+    /// The `import <source>` scope of the names a node with a `source` field imports.
+    fn import_scope(&self, node: Node, at: &Walk) -> Walk {
         let source = node
             .child_by_field_name("source")
             .map(|s| {
@@ -481,10 +692,14 @@ impl<'a> Context<'a> {
                     .to_owned()
             })
             .unwrap_or_default();
-        let scope = Walk {
+        Walk {
             scope: vec![format!("import {source}")],
             ..at.clone()
-        };
+        }
+    }
+
+    fn imports(&mut self, node: Node, at: &Walk) {
+        let scope = self.import_scope(node, at);
         let mut stack = vec![node];
         while let Some(current) = stack.pop() {
             let mut cursor = current.walk();
@@ -504,6 +719,19 @@ impl<'a> Context<'a> {
                         self.symbol(&scope, &local, SymbolRole::Declaration, child);
                     }
                     "namespace_import" => {
+                        let mut inner = child.walk();
+                        let names: Vec<Node> = child
+                            .named_children(&mut inner)
+                            .filter(|c| c.kind() == "identifier")
+                            .collect();
+                        for local in names {
+                            let local = self.text(local);
+                            self.symbol(&scope, &local, SymbolRole::Declaration, child);
+                        }
+                    }
+                    // TypeScript `import x = require("m")`: the source is the clause's own.
+                    "import_require_clause" => {
+                        let scope = self.import_scope(child, at);
                         let mut inner = child.walk();
                         let names: Vec<Node> = child
                             .named_children(&mut inner)
@@ -599,13 +827,21 @@ impl<'a> Context<'a> {
         if at.region.is_none()
             && at.class.is_none()
             && kind == FunctionDeclarationKind::FreeFunction
+            && let Some(visible) = visible_range(node, &id)
         {
-            self.module_functions.insert(name.to_owned(), id.clone());
+            self.module_functions.insert(name.to_owned(), visible);
         }
+        // A constructor fixes `new Class()` for a class declaration, or a class expression a
+        // declarator binds to the class's own name, where that name is visible.
+        let class_node = node
+            .parent()
+            .and_then(|body| body.parent())
+            .filter(|c| c.kind() != "class" || self.bound_by_its_declarator(*c));
         if name == "constructor"
             && let Some(class) = &at.class
+            && let Some(visible) = class_node.and_then(|c| visible_range(c, &id))
         {
-            self.constructors.insert(class.clone(), id.clone());
+            self.constructors.insert(class.clone(), visible);
         }
         let signature = self.signature(node, identity.clone(), generics, at, kind);
         self.emit_function(identity, signature);
@@ -845,6 +1081,8 @@ impl<'a> Context<'a> {
         }
         let caller = self.region(at);
         self.pending.push(PendingCall {
+            byte: node.start_byte(),
+            module_level: at.region.is_none(),
             caller,
             span: self.span(call_anchor(node)),
             scope: at.scope.clone(),
@@ -857,30 +1095,55 @@ impl<'a> Context<'a> {
     fn resolve_calls(&mut self) {
         for call in std::mem::take(&mut self.pending) {
             let callees = match &call.target {
-                Target::Function(name) => self.resolve_module_function(name),
-                Target::Constructor(name) => match self.constructors.get(name) {
-                    Some(id)
-                        if self.bindings.get(name) == Some(&1) && !self.assigned.contains(name) =>
-                    {
-                        vec![id.clone()]
-                    }
-                    _ => Vec::new(),
-                },
+                Target::Function(name) => self.resolve(&self.module_functions, name, &call),
+                Target::Constructor(name) => self.resolve(&self.constructors, name, &call),
                 Target::None => Vec::new(),
             };
             self.emit_call(call, callees);
         }
     }
 
-    /// A bare identifier names a module-level function of this file when that name is bound
-    /// exactly once in the file and never assigned: lexical scoping then fixes the callee.
-    fn resolve_module_function(&self, name: &str) -> Vec<SemanticRecordId> {
-        match self.module_functions.get(name) {
-            Some(id) if self.bindings.get(name) == Some(&1) && !self.assigned.contains(name) => {
-                vec![id.clone()]
+    /// A bare identifier (or `new Name`) at a call site names a function (a constructor) of
+    /// this file when its declaration is visible there, the name is bound exactly once in the
+    /// file, never assigned, the file has no `with` or direct `eval`, no named function or class
+    /// expression rebinds it around the call, module-level code does not call it before its
+    /// declaration gives it its value, and -- in a script, whose namespaces other files may
+    /// extend -- a call in a namespace body names a declaration of that body: lexical scoping
+    /// then fixes the callee.
+    fn resolve(
+        &self,
+        declared: &BTreeMap<String, Visible>,
+        name: &str,
+        call: &PendingCall,
+    ) -> Vec<SemanticRecordId> {
+        let at = call.byte;
+        match declared.get(name) {
+            Some(visible)
+                if (visible.start..visible.end).contains(&at)
+                    && !(call.module_level && at < visible.ready)
+                    && (self.module_file
+                        || self.namespace_bodies.iter().all(|(start, end)| {
+                            !(*start..*end).contains(&at)
+                                || (*start <= visible.start && visible.end <= *end)
+                        }))
+                    && self.fixed(name)
+                    && !self
+                        .expression_names
+                        .iter()
+                        .any(|(n, start, end)| n == name && (*start..*end).contains(&at)) =>
+            {
+                vec![visible.id.clone()]
             }
             _ => Vec::new(),
         }
+    }
+
+    /// A name its lexical binding fixes file-wide: bound exactly once in the file, never
+    /// assigned, no `with` statement in the file. (A named function or class expression binds
+    /// its name inside itself: [`Self::resolve`] checks where, callers without a site treat
+    /// such a name as not fixed.)
+    fn fixed(&self, name: &str) -> bool {
+        self.bindings.get(name) == Some(&1) && !self.assigned.contains(name) && !self.dynamic_scope
     }
 
     fn emit_call(&mut self, call: PendingCall, callees: Vec<SemanticRecordId>) {
@@ -1093,6 +1356,9 @@ impl<'a> Context<'a> {
             }
             let records = self.records.remove(&dimension);
             let mut gaps: Vec<String> = self.partial.iter().cloned().collect();
+            if dimension == SemanticDimension::Symbol {
+                gaps.extend(self.symbol_gaps.iter().cloned());
+            }
             if dimension == SemanticDimension::Call {
                 gaps.push(
                     "member, imported, callback, `this`, dynamic, JSX, accessor, decorator and \
@@ -1205,7 +1471,22 @@ enum Target {
     None,
 }
 
+/// Where a declared function or class name is visible: its declaration's scope, as a byte
+/// range of the file; `top` when that scope is the whole module.
+struct Visible {
+    id: SemanticRecordId,
+    start: usize,
+    end: usize,
+    top: bool,
+    /// Module-level code before this byte runs before the declaration has its value.
+    ready: usize,
+}
+
 struct PendingCall {
+    /// The call expression's first byte, to test the scopes it lies in.
+    byte: usize,
+    /// The call runs in module-level code (not in a function body, which runs later).
+    module_level: bool,
     caller: SemanticRecordId,
     span: SourceSpan,
     scope: Vec<String>,
@@ -1282,6 +1563,125 @@ fn call_anchor(node: Node) -> Node {
         }
     }
     node.child_by_field_name("arguments").unwrap_or(node)
+}
+
+/// Where the name of a function or class declared outside every function region is visible:
+/// the block, namespace body or module a declaration statement sits in (a block function or
+/// class in module or strict code is block-scoped; a namespace member is not a module
+/// binding), a `let`/`const` declarator's block, a `var` declarator's module or namespace body.
+/// `node` is a function or class declaration, or a function or class expression a declarator
+/// binds; anything else is not a declaration whose name the resolver may fix.
+fn visible_range(node: Node, id: &SemanticRecordId) -> Option<Visible> {
+    // `ready`: from where module-level code may call it. A function declaration is hoisted
+    // with its value; a class is in its temporal dead zone until its declaration runs, and a
+    // declarator's function until the declarator is evaluated (`let`/`const` throw before, a
+    // `var` is still `undefined`).
+    let (statement, is_var, ready) = match node.kind() {
+        "function_declaration" | "generator_function_declaration" => (node, false, 0),
+        "class_declaration" | "abstract_class_declaration" => (node, false, node.end_byte()),
+        _ => {
+            let declarator = node
+                .parent()
+                .filter(|d| d.kind() == "variable_declarator")?;
+            let declaration = declarator.parent()?;
+            (
+                declaration,
+                declaration.kind() == "variable_declaration",
+                declarator.end_byte(),
+            )
+        }
+    };
+    let mut scope = statement.parent()?;
+    if scope.kind() == "export_statement" {
+        scope = scope.parent()?;
+    }
+    // A declaration in a `case` is scoped to the whole switch body.
+    if matches!(scope.kind(), "switch_case" | "switch_default") {
+        scope = scope.parent()?;
+    }
+    while is_var && !is_var_scope(scope) {
+        scope = scope.parent()?;
+    }
+    Some(Visible {
+        id: id.clone(),
+        start: scope.start_byte(),
+        end: scope.end_byte(),
+        top: scope.kind() == "program",
+        ready,
+    })
+}
+
+/// The expression a callee wraps: parentheses and TypeScript's type-only wrappers (`as`,
+/// `satisfies`, `!`, `<T>x`) change neither the value nor whether a call of it is direct.
+fn unwrap_callee(mut node: Node) -> Node {
+    loop {
+        let inner = match node.kind() {
+            "parenthesized_expression"
+            | "as_expression"
+            | "satisfies_expression"
+            | "non_null_expression" => node.named_child(0),
+            // `<T>expr`: the type comes first, the expression last.
+            "type_assertion" => node
+                .named_child_count()
+                .checked_sub(1)
+                .and_then(|last| node.named_child(last)),
+            _ => None,
+        };
+        match inner {
+            Some(inner) => node = inner,
+            None => return node,
+        }
+    }
+}
+
+/// A scope a `var` outside every function belongs to: the module, a namespace body, a class
+/// static block.
+fn is_var_scope(node: Node) -> bool {
+    node.kind() == "program"
+        || node.kind() == "class_static_block"
+        || (node.kind() == "statement_block"
+            && node
+                .parent()
+                .is_some_and(|p| matches!(p.kind(), "internal_module" | "module")))
+}
+
+/// Every identifier a binding or assignment pattern names, destructuring included, in source
+/// order: `a`, `{ a, b: c, ...r }`, `[d, , e = 1, ...f]`, `{ x = 1, y: { z } }`, a parameter's
+/// pattern (its type annotation and default value name nothing), a catch or loop-head pattern.
+/// A property key (`b` in `{ b: c }`, `k` in `{ [k]: v }`) is not a binding, and a member or
+/// subscript target (`o.x`, `o[k]`) of an assignment pattern names no binding. The one pattern
+/// walk shared by the CALL resolver's binding count, its assignment check, and module-level
+/// SYMBOL definitions (G188, ADR 0101).
+fn pattern_identifiers(node: Node) -> Vec<Node> {
+    let mut out = Vec::new();
+    let mut stack = vec![node];
+    while let Some(node) = stack.pop() {
+        match node.kind() {
+            "identifier" | "shorthand_property_identifier_pattern" | "type_identifier" => {
+                out.push(node);
+            }
+            "type_annotation" | "member_expression" | "subscript_expression" => {}
+            _ => {
+                let only = if node.kind() == "pair_pattern" {
+                    node.child_by_field_name("value")
+                } else {
+                    node.child_by_field_name("pattern")
+                        .or_else(|| node.child_by_field_name("left"))
+                };
+                if let Some(pattern) = only {
+                    stack.push(pattern);
+                    continue;
+                }
+                let mut cursor = node.walk();
+                let children: Vec<Node> = node
+                    .named_children(&mut cursor)
+                    .filter(|c| c.kind() != "property_identifier")
+                    .collect();
+                stack.extend(children.into_iter().rev());
+            }
+        }
+    }
+    out
 }
 
 /// A callee expression's spelling on one line, bounded.

@@ -1,0 +1,14 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G188",
+ "trigger": "review cadence: DEBT-IMPACT_CLOSURE -- stale since its last advance (G136) and last reviewed at G175 -- fell due at G188",
+ "method": "git log since the G175 commit 083618b8 over core/src/composition/closure.rs, core/src/closure and runtime/src/agent; the R20 mission's impact and understand outputs on the mirofish pin",
+ "reviews": [
+  {
+   "debt": "DEBT-IMPACT_CLOSURE",
+   "verdict": "CONFIRMED",
+   "finding": "core::composition::closure, core/src/closure and the agent's closure command have no commit since G175: the closure (seeds, callees, callers of removed functions, name candidates of added ones) and its full-recompute oracle are unchanged, nothing consumes it, seeds are whole files; G188 found that impact names only resolved callers and stays silent on unparsed files that may call a function (RES-G188-IMPACT-SILENT-ON-UNPARSED-CALLERS); NA-CLOSURE-CONSUMER stays next",
+   "correction": {}
+  }
+ ]
+}
