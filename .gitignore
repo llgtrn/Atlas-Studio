@@ -1,2 +1,6 @@
 /target/
 .DS_Store
+
+# Ynventa Work/Lease/Result runtime state: local machine coordination, re-derived by the
+# scheduler from the shard; never committed (decision 0010 in .Ynventa- knowledge).
+/.ynventa/state/
