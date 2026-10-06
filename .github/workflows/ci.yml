@@ -26,5 +26,3 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
-      - name: Ynventa verify (the knowledge authority)
-        run: cargo run -q --manifest-path .ynventa/Cargo.toml -- verify --root .

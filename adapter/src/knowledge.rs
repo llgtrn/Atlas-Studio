@@ -1,7 +1,8 @@
 //! A repository's Ynventa knowledge (ADR 0104): the typed facts that replaced its Markdown
 //! documents, read from `.ynventa/knowledge/*.ynv` (protocol v1). Read-only and dependency-free.
 //!
-//! Record layout (`.ynventa/src/compact/{codec,facts}.rs`): the magic `YNV`, format byte 1, record
+//! Record layout (the central engine, `.Ynventa-` `core/protocol/src/codec.rs` and
+//! `core/evidence/src/facts.rs`): the magic `YNV`, format byte 1, record
 //! tag 4, a LEB128 fact count, then per fact a kind rank byte, subject, key and value
 //! (length-prefixed UTF-8), a provenance list, a LEB128 seq and a superseded-values list. Batches
 //! fold by identity (kind, subject, key): the highest seq wins and provenances unite.
@@ -241,7 +242,7 @@ pub(crate) mod tests {
     pub(crate) type Row<'a> = (u8, &'a str, &'a str, &'a str, &'a [&'a str], u64);
 
     /// Encodes facts exactly as Ynventa protocol v1 writes a knowledge batch
-    /// (`.ynventa/src/compact/facts.rs`).
+    /// (the central engine, `.Ynventa-` `core/evidence/src/facts.rs`).
     pub(crate) fn encode(facts: &[Row<'_>]) -> Vec<u8> {
         let mut out = b"YNV".to_vec();
         out.extend([FORMAT, KNOWLEDGE_TAG]);

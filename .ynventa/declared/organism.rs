@@ -4,4 +4,5 @@
 Organism {
     capabilities: &[],
     backends: &[],
+    promotions: &[],
 }
