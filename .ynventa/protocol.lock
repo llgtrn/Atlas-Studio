@@ -1,5 +1,5 @@
 # Ynventa protocol lock. Written by `ynventa protocol --lock`; checked by `ynventa conformance`.
 protocol_version 1
-schema_digest sha256:62dd19639c9d082f0bc7a57217fd99a62c4679545beb88b3a39f2609953e868f
-engine_digest sha256:2a3a8c2ecd593d34b0cc77b9c87a16d154a61639a5c16187b911f9399054c11b
+schema_digest sha256:dcd4302f1f1a246b99fa500ca1e24e0ecac7d60b4acf5cc96cd60facdae7df74
+engine_digest sha256:30f2d32ee03d07c3ee723ffa1a3b6130dc855aeee8b94da8678692558ce2d4a1
 compatibility_epoch 1
