@@ -1,5 +1,7 @@
-# Atlas bootstrap and migration tools
+# Technology-source verification and migration tools
 
-This directory is not a production semantic owner.
+This directory is **current source checkout tooling**, not a permanent source root, semantic owner, standalone compiler authority or product frontend. Its components are source evidence to classify and migrate through the shared eight-repository `.ynventa` protocol.
 
-Long-lived native behavior belongs under `core/`, `adapter/` (including the `runtime` crate at `adapter/runtime/`, ADR 0103), or `apps/`. Existing tool families remain here only until their behavior has been censused, absorbed into a native capability, verified, and then retired. Do not add a parallel semantic universe under `tools/`.
+Long-lived functionality is owned by Chronica's canonical graph and 21 registered Latin-inspired concepts, never by this repository's `tools/` root. **Codara** is the semantic-intent compiler; **Ontogen** forms lawful capability pathways; **Myelion** denotes distributed mathematical evaluation; **Lineara** binds provenance; **Thymora/Porion** retain admission. A tool's existing exact `core/`, `adapter/`, `apps/` path identifies source material for migration, **not a permitted terminal folder**. Proven native algorithms move to the appropriate universal `genome/`, `physiology/`, `membrane/`, `symbiosis/`, `evolution/` or `assays/` responsibility; all genuinely user-facing Studio, visual assets and components must converge on **Chronica/phenotype/** while retaining many distinct **Phenora** expressions.
+
+For each tool: inventory the actual implementation and callers, preserve behavior oracles, compare against the already admitted canonical capability, reuse proven equivalent code, then perform independent parity/authority/resource tests, consumer cutover and retirement of obsolete source/tool paths. Never mark source deletion or donor extinction complete from a documentation edit, and never create a parallel semantic universe under `tools/`. Current build commands are valid only while the source is still undergoing the verified cutover.
