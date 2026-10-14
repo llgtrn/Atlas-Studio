@@ -25,67 +25,67 @@ flowchart LR
 ```
 
 
-## Execution model — subsystem first, IDE later
 
-The existing source code was designed as a tool/runtime subsystem; its verified technology must be reconciled with the canonical Codara implementation inside Chronica.
+## Source execution and convergence — Codara, not an independent Atlas authority
 
-A first-class target is an embedded coding-agent session:
+**The existing repository is a temporary development/source checkout.** Codara is the named canonical semantic-intent capability in Chronica, with real implementation under `physiology/capability/codara` and a governed `phenotype/codara` CLI. Similar historical names are not proof that this checkout's compiler code has been absorbed. Retain source identity, candidate artifacts, oracles, licenses and performance data, but do not describe this repository as owning semantic truth, permission, canonical admission, or a permanent independent coding environment.
 
-~~~text
-Claude Code / another coding agent
-        ↓ local MCP / API adapter
-Atlas Core in the same outer sandbox
-        ↓
-candidate workspaces + Census + verification + admission
-        ↓
-Verified typed candidate → Chronica Codara/graph, after proof
-~~~
+A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
-The cloud coding session may supply compute, checkout and an outer sandbox. Atlas still owns semantic identity, uncertainty/closure, candidate verification and admission. A mutable agent worktree is candidate state until admitted.
+```mermaid
+sequenceDiagram
+    participant A as Coding agent or external provider
+    participant S as Atlas-Studio frozen donor/source checkout
+    participant E as Shared .ynventa Work and evidence engine
+    participant C as Chronica Codara and Ontogen
+    participant R as Chronica Thymora / Porion
+    participant L as Lineara provenance and replay
+    A->>S: Candidate code and typed intent with scoped provenance
+    S->>E: Pinned source revision, tests, license and oracles
+    E->>E: Compare identity, parity and existing native implementations
+    alt Unverified or duplicate without benefit
+       E-->>S: BLOCKED; no second language authority
+    else Unique proven semantic technology
+       E->>C: Proposed native capability and candidate capsule
+       C->>R: Request admission with complete evidence and resource scope
+       alt Denied, unresolved or untrusted
+          R-->>E: Refuse, preserve history without effect
+       else Authorized
+          R->>L: Admit bounded change after required proof and caller checks
+          L-->>S: Verified outcome and consumer-cutover obligations
+       end
+    end
+```
 
-MCP is an agent-facing transport, not a second semantic authority. Studio presentation must be owned by Chronica Phenora; only verified native source algorithms and contracts can survive independently.
+## Agent construction and provider routing
 
-Ephemeral agent context is not project memory. Sealed Atlas artifacts and their evidence/lineage are the durable machine-readable engineering state that a later session can load and incrementally recensus.
+Multi-agent construction is an **orchestration implementation concern**, not a new species, a second canonical graph, or an autonomous programming authority. Coding sessions receive bounded Work/Lease/Result contracts, pinned read/write sets and narrowly scoped semantic context. Any former in-checkout task graph, blackboard or provider router must be **classified as source technology**, compared with the central evolution machinery and absorbed only when independently useful.
 
-See the contract `.atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`, now Ynventa knowledge (`ynventa fact list --subject .atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`).
+```mermaid
+flowchart LR
+    NEED["Typed change intent and graph affected closure"] --> WORK["Central Ynventa Work with exclusive source write scope"]
+    WORK --> AI["Host-native / remote / local agents as bounded proposal generators"]
+    AI --> CAND["Candidate implementations with exact source and tool provenance"]
+    CAND --> CHECK{"Identity, semantics, consumer and safety proof?"}
+    CHECK -->|"no"| REFUSE["Reject or scoped repair; never bypass admission"]
+    CHECK -->|"yes"| COD["Chronica Codara and Ontogen capability binding"]
+    COD --> POR["Thymora grants and Porion effect admission"]
+    POR --> LINE["Lineara evidence, history and feedback"]
+```
 
-## Multi-AI construction
+The historical `tools/atlas/` and `*.atlas` filenames are **existing source/evidence locators**, not canonical subsystem branding or a second approved control plane. Only machine-readable identifiers explicitly frozen in the registry policy are preserved as data; canonical architecture and UI ownership are Chronica-wide. The Studio at `apps/studio` remains migration source until its unique UI functionality moves into Chronica Phenora, verified consumers switch and its independent bundle is retired.
 
-A typed Codara candidate may be constructed by bounded agents, but the swarm is never the authority or durable memory of the project.
-
-~~~text
-Atlas ConstructionTaskGraph
-        ↓
-ProviderRouter
-├─ host-native coding/subagents
-├─ remote AI providers
-├─ Jev-class decision providers
-├─ local/self-hosted models
-└─ remote Atlas/deterministic workers
-        ↓
-typed Atlas blackboard + CandidateAtlas branches
-        ↓
-verify / compare / repair
-        ↓
-authorized selection / admission / seal
-~~~
-
-The first embedded host may be Claude-oriented while Atlas still routes admitted tasks to GPT/Gemini/Jev/other providers or remote Atlas workers. Provider choice is execution routing, not semantic truth.
-
-Agents receive bounded task/capability leases and task-specific semantic context slices. Their conversations are not project memory. Jev emits typed decision proposals; it does not own SelectedDesign. Provider consensus cannot bypass verification, AdmissionTransaction or seal.
-
-See the contract `.atlas/contracts/MULTI-AI-CONSTRUCTION-FABRIC.md`, now Ynventa knowledge.
 
 ## Core invariants
 
-- `.ynventa/` is the only knowledge authority (typed facts, never Markdown; `ynventa context`, `ynventa knowledge view`). It is this shard's protocol projection only (`protocol.lock`, `declared/`, `knowledge/`): the Ynventa engine is central (the sibling checkout `.Ynventa-`) and interprets the shard through `protocol.lock`; no engine source is ever added under `.ynventa/`. Run it from the shard root as `cargo run -q --manifest-path ../.Ynventa-/Cargo.toml --bin ynventa -- <cmd> --root .` (or the built `../.Ynventa-/target/release/ynventa <cmd> --root .`); `tools/atlas/` is the Atlas control root (manifest, declared architecture, self-build ledgers and their evidence); `*.atlas` is a dense binary engineering artifact. The `.atlas/` directory is retired (ADR 0104, a DECISION fact).
+- `.ynventa/` is the only knowledge authority (typed facts, never Markdown; `ynventa context`, `ynventa knowledge view`). It is this shard's protocol projection only (`protocol.lock`, `declared/`, `knowledge/`): the Ynventa engine is central (the sibling checkout `.Ynventa-`) and interprets the shard through `protocol.lock`; no engine source is ever added under `.ynventa/`. Run it from the shard root as `cargo run -q --manifest-path ../.Ynventa-/Cargo.toml --bin ynventa -- <cmd> --root .` (or the built `../.Ynventa-/target/release/ynventa <cmd> --root .`); `tools/atlas/` is a source-code control/evidence locator from the previous implementation (not an authority or an approved destination root); `*.atlas` is a dense binary engineering artifact. The `.atlas/` directory is retired (ADR 0104, a DECISION fact).
 - Every admitted artifact and discovered function is accounted for. UNKNOWN is permitted only explicitly; silent omission is forbidden.
 - Universal graph primitives include identity, scope, node, edge, binding, state, event, temporal, evidence, provenance, constraint/invariant, interface/capability, effect and materialization.
 - Source repositories remain temporary development checkouts; Chronica owns the single sovereign semantic graph and authorization.
-- Logical Atlas may be physically sharded across locations without becoming multiple truth systems.
+- Physical source checkouts may be distributed; their code and evidence converge into Chronica's **one** semantic and authority universe.
 - Completeness outranks file size; semantic interning/dedup/deltas/compression reduce duplication rather than delete meaning.
-- AtlasX is selected executable representation, not prose.
-- Compiler optimization begins at world/graph level and continues through machine code, LTO, post-link, PGO and evidence-backed auto-tuning.
+- Source compiler artifacts can provide candidate executable representations; their semantics and native ownership require Codara parity proof, real callers and authorized Chronica admission.
+- Optimization may use graph-level semantics and native compiler techniques such as LTO or PGO only when the specific implementation, production caller and reproducible benchmark establish a benefit; no unimplemented optimizer is implied.
 - Backend/compiler/runtime bootstrap is Rust. Canonical frontend bootstrap is TypeScript/TSX inside Chronica/phenotype ONLY. C is an explicit low-level boundary by default.
 - Donor OSS is evidence/reference and is removed from the temporary workbench after native absorption proof.
 
