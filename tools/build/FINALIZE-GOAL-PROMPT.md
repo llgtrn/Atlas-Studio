@@ -1,210 +1,159 @@
-# Chronica — Finalize Goal Prompt (parallel subagents · full verify · tracking · audit)
+# Ynventa / Chronica — Evidence-Driven Convergence Work Prompt
 
-> Paste this as a task prompt to drive the **entire** Chronica build to 100% verified, with parallel
-> subagents, percentage tracking, dependency-enforced ordering, money-safety, and adversarial audit.
-> It is the single master prompt composing the **4-layer execution stack**: `docs/` (source of truth) ·
-> **spec-kit** (per-slice structure) · **superpowers** (execution methodology) · **parity harness** (the gate),
-> under the constitution (`.specify/memory/constitution.md`). See [`docs/runbooks/spec-kit-integration.md`](../../docs/runbooks/spec-kit-integration.md).
+Status: **CURRENT PROJECT WORKING PROMPT — never architecture authority by itself**
 
----
+This is a copyable instruction for bounded multi-repository engineering work. **Canonical doctrine and decisions are admitted `.ynventa` facts**; nomenclature is the registered 21-concept Chronica registry; implemented behavior is code with a real caller, successful tests, authorized effects and recorded evidence. This Markdown never grants permission, claims a V1 milestone or creates a new source of truth. Its own placement under this temporary source checkout is not a permanent project-governance owner.
 
-## GOAL
+## North star
 
-Drive Chronica from spec to a verified, money-safe, AI-native enterprise OS. **DONE =** `pnpm parity:check`
-prints ✓ PASS at verified=100% / 0 blockers, every money/side-effect capability has a
-`financialControlTestId`, `pnpm parity:progress` shows 100% across SLICES + DOCS SPEC (all 148 files) +
-MONEY, and `cargo test --workspace` + `pnpm test` are green. Track progress as PERCENTAGES, enforce
-dependency order via the tooling, and adversarially audit every capability.
+Build ONE graph-native **Chronica Digital Holobiont**, not a suite of independently authoritative domain services. Preserve **Chronica** and **Norl** as names; use the canonical Latin-inspired technologies from `Chronica/.ynventa/declared/nomenclature/concepts.jsonl` (DECISION 0115). All source checkouts are temporary capability-development locations that must converge into the single canonical semantic/execution universe.
 
-## HOW TO RUN THIS (read first — honest)
+**ONE BODY; ONE GENORA CONCEPT; MANY PHENORA; ONE UI IMPLEMENTATION OWNER.**
 
-**This is a months-long build; it does NOT finish in one paste.** Context limits, real human/environment
-decisions (SQL layer, provisioning ClickHouse/Coolify, money sign-offs), and sheer scale mean it runs
-**wave-by-wave across many sessions**, with you in the loop. The parity registry is the durable memory between
-sessions; this prompt is the stateless playbook.
+Convergence is measured by real elimination of duplicate authority, unnecessary independent code, fragmented frontend libraries, fractured source grammar, unverified donor dependencies, and conflicting evolution controllers. It must not erase unique optimizations, preserved identity, source evidence, money/device safety, or algorithmic capability.
 
-**Each session:**
-1. Run **`pnpm parity:next`** → it prints where you are (the %s), the next ready wave, and the exact 4-layer
-   commands to run (spec-kit → superpowers → parity). This is your "paste-and-go" starting point every time.
-2. Do that wave (Phase 1 kernel first if `kernel != ready`; then implement the ready crates per §ORCHESTRATION B).
-3. Run **`pnpm parity:progress`** → report the climbing %s; resolve any blocker the gate names.
-4. **Stop for review / decisions, then repeat from step 1** next session (or next wave). The agent should pause
-   and ask whenever a real decision or environment action is required — it must not guess on those.
+## Canonical names (do not use generic biology as subsystem brands)
 
-It is finished only when `pnpm parity:check` is ✓ PASS at 100%. Treat "100%" as the destination, `parity:next`
-as the GPS, and each wave as one leg of the trip.
+The registration keys CN-0001…CN-0021 have these exact names:
 
-## THE 4-LAYER EXECUTION STACK (each layer one job — don't blur them)
+| Registered concept | Responsibility and constraints |
+|---|---|
+| **Ontogen** | Lawful capability/pathway composition; it proposes valid paths, does not execute or grant rights |
+| **Myelion** | Mathematical evaluation distributed across capabilities; no standalone Myelion runtime is demonstrated |
+| **Nomocyte** | State/transition and mathematical-invariant verification |
+| **Genora** | Stable graph identity, inherited laws and capability potential; physical `genome/` remains a frozen path role |
+| **Codara** | Typed semantic-intent language and compiler into candidate programs |
+| **Axora** | Discover and verify bindings to unknown protocols/surfaces |
+| **Somara** | Embodied/world/resource-state concept, home unresolved |
+| **Homeora** | Homeostasis and service/resource regulation concept, home unresolved |
+| **Thymora** | Authority, mandates and bounded grants |
+| **Porion** | Pre-effect admission with explicit denial/unresolved precedence |
+| **Metabion** | Admitted work, resource consumption and bounded execution |
+| **Lineara** | Evidence, provenance, history and causal lineage |
+| **Phenora** | Many observable expressions, read-only projections and shared UI/CLI/API surfaces |
+| **Symbion** | External partner/effect contracts, never a separate authority |
+| **Phylogena** | Technology ancestry, selection and transfer; no complete dedicated runtime demonstrated |
+| **Alloma** | Conserved, justified cross-scale transitions |
+| **Immunara** | Organism-wide distributed security/immune concerns; no fully unified immune system demonstrated |
+| **Regena** | Evidence-driven trusted restoration concept; not a completed runtime |
+| **Genesia** | Origin/reproduction of new canonical structures; not implemented as a complete runtime |
+| **Apoptra** | Controlled termination and death semantics, partially represented |
+| **Ecoria** | Ecology/multi-organism relationships, not a completed runtime |
 
-| Layer | Job | Tool |
+A **concept is not a crate, root, service, graph node kind or an assertion of implementation**. Generic words such as Genome, Regulome, Epigenome, Proteome, Interactome, Metabolism and Phenome are explanatory functional vocabulary, not competing subsystem names. Never rename a machine-frozen NodeId source token, wire value, protocol lock, golden fixture, historical repository identity or provenance key as a cosmetic change. Authorized, identity-preserving migrations have their own explicit proof and cutover.
+
+## Scope: all eight mandatory physical source checkouts
+
+- `Chronica` — one canonical identity, graph, state, authority, evidence, runtime and all maintained product frontend code.
+- `.Ynventa-` — transitionary centralized development/evolution engine, Work/Lease/Result, donor census and Foundry; not a second Chronica authority.
+- `Esellios` — commerce and economic algorithm source, preserving exact-money/tenant/security/ERP guarantees.
+- `Fi-game` — market/simulation/finance/risk source, preserving deterministic replay, exact financial invariants and risk refusal.
+- `Mechatron` — device/twin/robotics/control source, preserving leases, interlocks, safety and real operator behavior.
+- `Atlas-Studio` — compiler/tool/Studio source history; Codara concept, not an independent ongoing compiler regime.
+- `Universal-Connector` — Axora-related protocols, verification and interaction source, not an independent connectivity authority.
+- `ECDEV` — native acquisition, data extraction, crawl frontier, SQL store, donor history and independent `.ecdev` migration source, not an exempt eighth system.
+
+Do not create or keep an alternative Host/Guest physical grammar. The common legal responsibility roots (instantiated **only if they contain real source**) are `genome/`, `physiology/`, `organism/`, `membrane/`, `symbiosis/`, `phenotype/`, `evolution/`, `assays/` and `.ynventa/`. Legal physical vocabulary is not a grant for all repositories to create independent ontology, frontend or runtime sovereignty. All unconverted `core/`, `substrate/`, `domain/`, `adapter/`, `apps/`, `tools/`, `tests/`, `research/` and `.ecdev/` implementation roots are **current migration inputs, NOT permitted final morphology**. Crate-local tests and external provenance fixtures are distinct from forbidden top-level implementation roots.
+
+## Required single presentation owner
+
+All maintained **product UI implementations** — TypeScript/TSX/JS components, HTML/CSS, design tokens, interactive views, studio/dashboard/robot operator code, chart renderers, presentation bundles — must converge into `Chronica/phenotype/`. This is ONE UI **code owner**, not ONE phenotype. Different Phenora can represent markets, commerce, robotics, design and product research using shared governed projection/interaction contracts.
+
+Verified current UI migration sources include:
+
+| Source checkout | Source UI | Required handling |
 |---|---|---|
-| **Design source of truth** — *what* to build | the real specs | `docs/` (155 specs, 36 slices) |
-| **Per-slice structure** — spec→plan→tasks scaffold | makes /plan run | **spec-kit** (`specs/<slice>/`, `/speckit.*`, `pnpm speckit:slice N`) |
-| **Execution methodology** — *how* to build each task well + recover when reality bites | adaptive + decisive | **superpowers** v5.1.0 skills (subagent-driven-development, test-driven-development, systematic-debugging, verification-before-completion, requesting-code-review, using-git-worktrees, writing-plans, executing-plans) |
-| **Done-ness / order / money gate** — *whether* verified | the authority | **parity harness** (`pnpm parity:*`) |
+| ECDEV | `apps/web/` | Port/reuse required behavior in Chronica, verify Rust server consumer cutover, remove old bundle |
+| Fi-game | `apps/frontend/` | Port/reuse financial expression, keep native risk/finance truth and refusal at owner |
+| Mechatron | `apps/operator/` | Preserve typed `mechatron.site-view/2`, `mechatron.site-events/2`, read-only CSP, exact safety verdicts and `mechatron.operator-request/1` behavior |
+| Atlas-Studio | `apps/studio/` | Port/reuse unique Studio interactions, remove duplicate component/design systems and build routes |
 
-## READ FIRST (authoritative)
+A backend HTTP service, web parser, research-only TypeScript oracle, device protocol or native computation is **not** automatically UI and must not be incorrectly deleted. UI cannot independently compute canonical trading permissions, economic/stock truth, physical control authorization or model admission. Every consequential action travels back through Chronica's Thymora/Porion before Metabion execution, followed by Lineara evidence.
 
-- `.specify/memory/constitution.md` — binding principles (parity is the gate of record; `docs/` is the spec
-  source of truth; Rust-only backend; money-safety; capability-parity; neutral naming; phase order).
-- `docs/runbooks/spec-test-driven-parity.md` — the RED→GREEN→verify→flip→gate loop + dependency ordering + % tracking.
-- `docs/runbooks/spec-kit-integration.md` — how spec-kit + superpowers + parity compose per slice (the 4-layer stack).
-- The installed **superpowers** skills (auto-trigger; or read `~/.claude/plugins/.../superpowers/.../skills/*/SKILL.md`).
-- `docs/implementation/14-vertical-slice-plan.md` (36 slices + sequencing) and `docs/implementation/00..12` (phases).
-- `docs/ui/14-ux-evolution-plan.md` — Phase 9 UI (evolve the native Chronica UI, money-first, 24 surfaces).
+## Working method: source revision first
 
-## THE COCKPIT (use every wave)
+1. **Read live facts** with the existing `ynventa context`, `ynventa knowledge view` and `ynventa fact list --kind decision` where available, then inspect the registered concepts/policy and code at each pinned HEAD. Do not use old origin-path Markdown as present authority.
+2. **Build a full file/consumer census** for all eight repositories, including Cargo, scripts, TypeScript, HTML/CSS assets, tests, donor ledgers, `.ecdev` data and evidence. Label each artifact: actual runtime implementation, real consumer, unique native algorithm, UI migration source, research oracle, licensed donor, frozen identity or obsolete path.
+3. **Resolve graph and code ownership before authoring**. Search Chronica's existing capability graph, `phenotype/chart-view`, Codara, Ontogen and named technology families. Reuse proven equivalent implementations. Keep legitimate optimized alternatives under one exact capability contract.
+4. **Plan bounded Work** with explicit before/after paths, principal, write sets, leases, exact source revisions, independent owners, test oracles and rollback. Dispatch nonconflicting workers concurrently; never race on shared protocol lock or same files.
+5. **Implement through code and real callers**. A declared node, compatibility of signatures, parsed donor or a candidate does not prove executable composition. A new requires edge must be selected, reached through a binary/API/CLI caller, authorized if effectful, and yield measured evidence.
+6. **Reverify independently**: format/lint/test the relevant actual workspace; run exact producer/consumer negative tests, leakage/split rules where applicable, security/refusal, budget and retention, hardware-safe interlock checks, chart/UI security and accessibility, performance regression, link/lock convergence and replay.
+7. **Migrate real consumers**, not just directories. Keep source history pinned while transitioning; remove duplicated old executable code, frontend builds, alternate control plane and stale links once evidence passes. Never destroy historical provenance or silently rewrite recorded identifiers.
+8. **Update admitted facts and human-readable docs together**, with fresh exact revision/line/caller evidence. An agent cannot grant a missing owner decision or silently change V1 denominators. Record a typed blocker and assign repair Work when a requirement remains unresolved.
 
-```sh
-pnpm parity:next       # ⭐ START HERE each session: where am I + next ready wave + exact 4-layer commands
-pnpm parity:registry   # regenerate registry (additive; preserves per-spec/per-slice status)
-pnpm parity:plan       # dependency-respecting READY wave (workable now) vs blocked
-pnpm parity:progress   # PERCENTAGE dashboard: SLICES % + DOCS SPEC % (all 148 files) + per-area/crate/phase + MONEY %
-pnpm parity:check      # the gate: ✓ PASS only at 100% verified / 0 blockers
-pnpm parity:set slice|spec|prereq <selector> <status> [--test id] [--fin id]   # record progress
-pnpm speckit:slice N   # spec-kit: materialize specs/<NNN-slice>/ (pointer to docs/) so /speckit.plan runs
-# per-slice ritual: /speckit.plan · /speckit.tasks · /speckit.analyze  +  superpowers skills (TDD, subagent-driven-development, systematic-debugging, verification-before-completion)
+### Normal execution and authority loop
+
+```mermaid
+sequenceDiagram
+    participant W as External operator or world
+    participant A as Axora / membrane verified observation
+    participant H as Chronica history/graph
+    participant N as Norl proposal
+    participant C as Codara / Ontogen / Myelion
+    participant T as Thymora / Porion
+    participant M as Metabion / Symbion bounded effect
+    participant L as Lineara evidence
+    participant P as Chronica phenotype owner: many Phenora
+    W->>A: Untrusted stimulus and provenance
+    A->>H: Scoped typed observation (no grant)
+    H->>N: Authorized state and prior experience
+    N->>C: Candidate goal and constraints
+    C-->>N: Verified typed pathways and uncertainty
+    N->>T: Effect request and complete authority/budget/evidence context
+    alt Denied or unresolved
+        T-->>N: Typed refusal, zero side effect
+    else Authorized
+        T->>M: Bounded admitted action
+        M->>L: Effect, resource cost and execution trace
+        L->>H: Canonicalization after independent evidence
+        H->>P: Rebuildable typed projection
+        P-->>W: Shared UI, API, CLI: different phenotype views
+    end
 ```
 
-## LOCKED INVARIANTS (the constitution + gate enforce them)
+### Eight-repository migration coordinator
 
-- **Rust-only backend/kernel** (`chronica-*`); TS/React = UI only; the TS/Playwright browser capability is the
-  ONLY non-Rust, non-UI execution, behind a Rust boundary; **NO production Python**; ClickHouse/Coolify external.
-- **Capability parity, NOT repo parity.** `donorRefs` are provenance only — never spawn "port repo X" agents.
-- **Money safety:** every spend/commit = `SideEffectAction` → `chronica-policy` → `chronica-approvals` with a
-  dollar threshold, writes `CostRecord`, audit-chained, reversible/irreversible flagged; money capabilities need a
-  financial-control test (gate→approve→execute→record→audit→reconcile) to be `verified`.
-- **Neutral naming** in all executing/generated code; no donor-branded routes/symbols/iframes.
-- **TDD mandatory:** failing test first (tagged capabilityId) → implement minimum → run the slice Verify cmd → flip.
-- **`docs/` is the spec source of truth;** `/speckit.specify` does NOT author new product specs.
+```mermaid
+flowchart TB
+    PIN["Pin eight HEAD revisions + admitted registry epoch"] --> DEC["Read .ynventa facts/decisions and map owners"]
+    DEC --> CENSUS["Complete code, UI, donor and consumer census"]
+    CENSUS --> PLAN["Nonoverlapping Work/Lease/Result transactions"]
+    PLAN --> CORE["Universal path/schema/engine migration"]
+    PLAN --> NAT["Native specialized capability and consumer migration"]
+    PLAN --> UI["One Chronica UI author: port 4+ discovered source interfaces"]
+    CORE --> VERIFY["Exact code/parity tests, negative gates, locks and graph identity"]
+    NAT --> VERIFY
+    UI --> VERIFY
+    VERIFY --> G{"Fresh 8/8 conformance, no second UI or authority, no orphan consumer?"}
+    G -->|"PASS"| RETIRE["Retire source controllers/bundles/duplicate implementations, preserve evidence"]
+    RETIRE --> CHECK["Reverify closure and report pinned commits"]
+    G -->|"FAIL"| BLOCK["BLOCKED: path, owner, proof, next bounded repair Work"]
+    BLOCK --> PLAN
+```
 
-## ORCHESTRATION (Workflow tool — parallelize by CRATE in dependency waves; full implement→verify→audit rigor)
+## No fabricated closure or inflated percentages
 
-**Why crate-keyed, not slice-keyed:** a vertical slice cuts *across* crates (it touches `chronica-core`, the
-schema, `chronica-api`, a domain crate, and the UI), so parallel slice-agents collide on the same shared files.
-Independent `chronica-*` crates share only `chronica-core` + the DB schema, so they parallelize with far fewer
-merge conflicts — same assurance (3 review passes per work unit), more real throughput. A "work unit" below = the
-capability rows whose `owningCrates` include a given crate.
+The V1 readiness contract is the **minimum of eight defined dimensions**; UNDEFINED counts as zero. Do not infer percentage from phase counts, size of docs or number of diagrams. The exact release gates and required donor cohort are subject to admitted owner decisions; do not treat an unapproved cohort of 11 proposal roots as accepted. Scoped donor extinction after independently verified native replacement is distinct from *every OSS anywhere* being extinct. A source UI bundle retired is **not** automatically donor extinction.
 
-**Dependency ordering is machine-enforced — use it.** The registry encodes `dependsOn` (+ `infraDeps`) per slice
-and status-tracked prereq nodes (`phase0.kernel-skeleton`, `infra.clickhouse|coolify|postgres`). `pnpm parity:plan`
-prints the ready wave vs blocked; the gate FAILS any slice marked green/verified before its deps are
-`verified`/`ready` (ORDER-VIOLATION). Drive batches strictly from `parity:plan` — never hand-pick a blocked slice;
-as each verifies, the next wave opens.
+The following are not *automatically required* to claim bounded V1 under recorded scope: pretraining a frontier model, perfect brain simulation, all-world OSS extinction, replacing every cloud provider and unauthorized self-rewriting code. The fifth is **never a permitted execution path**, not an exciting future feature. The ambition to enable authorized evolution and self-hosting must pass Thymora/Porion/Lineara proof.
 
-### PHASE 1 — SERIAL HARD BARRIER (1 agent, no fan-out)
-Build the Rust kernel skeleton: the Cargo workspace, `chronica-core` (shared types, IDs, error model, event-bus +
-persistence traits), `chronica-api` strangler over the existing TS server, the Rust SQL layer against the SHARED
-PostgreSQL schema, and the kernel↔browser-capability transport. Gate: `cargo build --workspace` green + one real
-endpoint served through Rust. Then `pnpm parity:set prereq kernel ready`. Do NOT fan out — it's a true serial
-dependency; parallel agents only conflict. (Spec: `docs/implementation/02-phase-1-rust-kernel.md`,
-`docs/architecture/02-monolith-architecture.md`, `03-rust-kernel-plan.md`.)
+### Required per-Work status report
 
-### THEN loop per wave until 100%:
+Every WorkResult must disclose:
 
-**A) PLAN (1 agent).** `pnpm parity:plan` → group the ready capability rows by `owningCrates` into dependency-ordered
-crate waves (build order from `docs/architecture/03-rust-kernel-plan.md`): wave 1 = leaf crates on `chronica-core`
-only (`chronica-tools`, `chronica-policy`, `chronica-artifacts`, `chronica-observability`); wave 2 =
-`chronica-runtime`, `chronica-scheduler`; wave 3 = `chronica-workflows`, `chronica-worker-supervisor`,
-`chronica-approvals`; wave 4 = `chronica-company`, `chronica-strategy`, `chronica-osint`, `chronica-internet-hand`,
-`chronica-memory`; wave 5 = `chronica-integrations`; then project-template + UI capabilities. Provision any infra
-prereq a wave needs first (`pnpm parity:set prereq infra.clickhouse|coolify|postgres ready`).
+| Field | Required content |
+|---|---|
+| Scope | Exact affected repositories, paths, concept CN IDs, source revisions |
+| What changed | Actual code and consumers, not a spec-only promise |
+| Reality status | DECLARED, PROPOSED, PARTIAL, REACHED, ADMITTED, EVIDENCED, BLOCKED or STALE; definitions and confidence explicit |
+| Proof | Exact commands and results, negative/security tests, evidence revision, held-out data when applicable |
+| Ownership | Canonical graph owner, physical source locations, destination and old consumer cutover |
+| Migration closure | Current incompatible roots/controllers/UI bundles and which were actually retired |
+| Failure | Exact reason, affected owner, rollback or next bounded Work |
+| V1 measurement | Current eight-dimension values only if independently computed; otherwise UNKNOWN |
 
-**B) IMPLEMENT — one IMPLEMENTER per ready crate, in PARALLEL, each in its own git worktree** (`isolation:'worktree'`
-so parallel agents never stomp shared files). Each drives ALL its in-wave capability rows through the **4-layer stack**:
-`docs/` = source of truth · **spec-kit** = per-slice structure · **superpowers** = execution methodology · **parity** = gate.
-Per slice:
-  1. **Materialize the spec-kit feature shell:** `pnpm speckit:slice N` → creates `specs/<NNN-slice>/spec.md` (a THIN
-     pointer that links to + summarizes the slice's canonical `docs/` specs; it does NOT re-author requirements) and
-     pins `specs/feature.json` so `/speckit.plan` runs without a branch. This is what makes spec-kit a real engine while
-     `docs/` stays the source of truth (Principle 0).
-  2. **spec-kit structure:** `/speckit.plan` (plan AGAINST the slice's `docs/` specs: §6 target crate, §7 data models,
-     §8 API, §10 runtime, §11 approval, §15 verify; honor Principles 2–6) → `/speckit.tasks` → `/speckit.analyze`.
-  3. **superpowers execution methodology — USE THE SKILLS, don't hand-roll:** drive the tasks with
-     `superpowers:subagent-driven-development` (dispatch fresh agents per task with two-stage review) +
-     `superpowers:test-driven-development` (RED→GREEN→REFACTOR: failing test tagged with the `capabilityId` first, for
-     EVERY row money or not, watch it fail, minimal code, watch it pass) + `superpowers:using-git-worktrees`. When ANY
-     test fails or behavior is unexpected, STOP and use `superpowers:systematic-debugging` (Iron Law: no fixes without
-     root-cause first) — this is the **flexible, decisive** handling of the unpredictable variables; do not patch symptoms.
-  4. **Money rows** (`requiresFinancialControlTest`): also write + run the financial-control test
-     (gate→approve→execute→CostRecord→audit→reconcile).
-  5. **Decisive completion:** before claiming done, run `superpowers:verification-before-completion` + the row's
-     `verifyCommands` (slice §15). Then record: `pnpm parity:set slice N verified --test … [--fin …]` and
-     `pnpm parity:set spec <area/file> verified --test …` for the docs specs it satisfies; flip the parity ledger.
-  After a worktree's crate is implemented, merge it back; resolve any `chronica-core`/schema conflicts in the
-  orchestrator before the next wave (the only place conflicts can occur, rare because crates are leaf-isolated).
+Never report 100% because a repository compiles, has thousands of tests, a donor is registered, all lines are native, or a diagram renders. A successful documentation-only Work is explicitly **DOCS-ONLY**; global code conformance remains unproven until the source/runtime migration and all relevant gates pass.
 
-**C) VERIFY — one VERIFIER per crate**, the moment its implementer returns (pipeline, not barrier). Independent, from
-a clean merge, using `superpowers:requesting-code-review` (severity-based blocking): re-run every row's verify command
-+ `pnpm parity:check --slice N`; confirm each test exercises real behavior (not a stub), commands pass, money chain
-real. Any fail → bounce to the implementer with the specific gap.
+## Scope of this document
 
-**D) AUDIT — one adversarial AUDITOR per crate** (default skeptical; tries to REFUTE "truly verified"). Per row: test
-asserts real behavior (not `expect(true)`/tautology); NO production Python; neutral / `chronica`-native naming (no
-donor-brand symbols); money/side-effect action genuinely blocks→approves→records→audits→reconciles; spec §11 approval
-rules actually enforced in code (not just documented); no silent error-swallowing; capability registered under a
-neutral ID. Any row refuted by ≥1 strong reason → revert it to `red`, bounce to implementer. **Money/side-effect rows
-get a SECOND auditor** focused only on the financial-control chain.
-
-**E) COMPLETENESS CRITIC (1 agent, after each wave).** Run `pnpm parity:progress` + `pnpm parity:registry` +
-`pnpm parity:check --json`. **REPORT THE CLIMBING PERCENTAGES** — SLICES verified%/weighted%, DOCS SPEC % (all 148
-files) + per-area %, MONEY %, per-crate/per-phase %. Flag any MISS (spec with no slice → author the slice+row),
-MONEY-GAP, SPEC-NOT-MET, and cross-crate slices (run their `--slice N` gate). Feed the next wave. Loop B→E until
-**100% verified / 0 blockers**.
-
-### PHASE 9 — UI
-After the backend a surface depends on is verified, evolve the native Paperclip UI per
-`docs/ui/14-ux-evolution-plan.md` (Phase-0 design-token + shared-components barrier first, then per-surface
-implement→design-critique→money-critique, money surfaces first). Read-only UI may precede write capabilities; the
-money critic forbids faking working actions.
-
-### PHASE 10/11
-Retire any `temporary_reference_runtime` (port to Rust; audit zero production Python); then cross-crate verification +
-financial-control validation + security/OSINT/internet-hand safety review + parity closeout to 100%.
-
-## CONCURRENCY & SPEED
-
-- Phase 1 is serial and unavoidable (the real critical path) — accept it; parallelizing only causes conflicts.
-- Within a wave, spawn all ready crate-implementers at once (the workflow cap auto-throttles); verifier+auditor
-  pipeline per crate. Never hand-pick a blocked slice (the gate raises ORDER-VIOLATION).
-
-## DEFINITION OF DONE
-
-`pnpm parity:check` → ✓ PASS, verified=100%, 0 blockers; `pnpm parity:progress` shows 100% on SLICES + DOCS SPEC
-(148/148) + MONEY; every money capability has a `financialControlTestId`; `cargo build/test --workspace` +
-`clippy -D warnings` + `pnpm -r typecheck` + `pnpm test` + e2e green; a full money flow (e.g. supplier order)
-blocks→approves→executes→CostRecords→audits→reconciles in an integration test; analytics reconcile to the
-Postgres ledger; the UI route audit shows no donor-branded/iframe routes. Verify the running app with the
-`verify`/`run` skill — don't just build.
-
-## REPORT (after every wave)
-
-The percentages (climbing), slices + specs shipped, verifier/auditor verdicts, MISS/MONEY-GAP/SPEC-NOT-MET found,
-next ready wave. Be honest — failures with output, skips stated, no fake `verified`.
-
----
-
-### One-line kickoff (paste to start)
-
-> Finalize Chronica per `.specify/memory/constitution.md` (4-layer stack: docs · spec-kit · superpowers · parity).
-> Run **`pnpm parity:next`** to see where we are and the next wave; if the kernel isn't ready, build the Phase-1
-> Rust kernel skeleton SERIALLY and `pnpm parity:set prereq kernel ready`. Then loop waves: `pnpm parity:next` →
-> fan out one implementer per ready crate (git worktree), each running `pnpm speckit:slice N` → `/speckit.plan`/`tasks`/`analyze`
-> → superpowers `subagent-driven-development` + `test-driven-development` (RED→GREEN→REFACTOR), `systematic-debugging`
-> on any failure (root-cause, not symptom), `verification-before-completion` before done → per-crate verifier +
-> adversarial auditor (money caps get a financial-control auditor) → completeness critic reporting `pnpm parity:progress`
-> percentages — until `pnpm parity:check` is ✓ PASS at 100% (DOCS SPEC 148/148, MONEY 100%). Capability parity,
-> Rust-only, money-safe, neutral-named. Pause for real decisions. Then Phase 9 UI. **It runs wave-by-wave across many
-> sessions — `pnpm parity:next` resumes you each time.**
-
----
-
-## Honest caveats
-
-1. **This is months of engineering, not one paste.** It's a standing instruction run wave-by-wave across many
-   sessions. Each wave is bounded and verifiable; the percentage dashboard is how you watch it converge.
-2. **Phase 1 (Rust kernel) is the real bottleneck and is serial** — nothing parallelizes before `chronica-core`
-   + the strangler exist. The barrier is deliberate; fanning out there only creates merge conflicts.
-3. **The tooling makes "fully verify + track + audit" real, not the wording.** `parity:check` mathematically
-   refuses "done" until 100%/0-blockers; `parity:plan` enforces order; `parity:progress` is the percentage
-   tracker; the per-crate verifier + auditor agents are the audit. The prompt just wires the subagents to those gates.
+This prompt is not an alternative constitution, not an independent master scheduler, not a source of live capability maturity and not a replacement for `.ynventa` Work transactions. It exists to guide a verified, identity-preserving, authorized engineering wave under the one Chronica Digital Holobiont.
