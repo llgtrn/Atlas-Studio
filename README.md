@@ -1,8 +1,38 @@
 # Atlas Studio
 
+
+## Universal Ynventa source morphology — binding owner target (2026-10-14)
+
+**Owner-approved final architecture, NOT a claim of completed source migration.** All eight checkouts — **Chronica, .Ynventa-, Esellios, Fi-game, Mechatron, Atlas-Studio, Universal-Connector, ECDEV** — must use ONE root vocabulary: genome/, physiology/, organism/, membrane/, symbiosis/, phenotype/, evolution/, assays/ and .ynventa/, instantiated only where needed. The current engine still has Host/Guest grammar branching. The owner rejects that distinction as a **permanent physical layout rule**; Chronica remains the sole semantic/authority host, not a filesystem exception. ECDEV is a mandatory eighth repository; its independent .ecdev protocol must be assimilated without destroying provenance. Read the [universal Repository Protocol](https://github.com/llgtrn/.Ynventa-/blob/main/REPOSITORY-PROTOCOL-V1.md) before a structural cutover.
+
+**Repository-specific assessment:** Independent compiler/organism claims in the historical README are donor intent, not an independent permanent authority. Map real algorithms to Codara and the canonical graph only after scoped parity proof.
+
+```mermaid
+flowchart LR
+    subgraph LOCAL["Atlas-Studio — CURRENT source and behavior"]
+        A["frozen source identity"]
+        B["behavior oracles"]
+        A --> B
+    end
+    subgraph TARGET["One Holobiont grammar + one Chronica authority — TARGET"]
+        C["Codara technology candidate"]
+        D["canonical admission"]
+        C --> D
+        V{"Scoped proofs, preserved identities, valid authority?"}
+        D --> V
+    end
+    B -->|"migrate only with source, caller and lineage proofs"| C
+    V -->|"PASS and all consumers migrated"| OK["Converged; retire active legacy roots"]
+    V -->|"BLOCKED"| FAIL["No success claim; exact issue and safe rollback"]
+```
+
+**Status and scope:** Legacy directories, commands and architectural descriptions retained below describe a dated current-code or historical donor implementation; **they are not alternative normative grammars**. The target requires the same .ynventa declaration/evidence model for all eight, one pinned schema+engine epoch, removal of deprecated implementation roots/validators and a reproducible **8/8** conformance certificate. Nothing in this README is proof that migration, extinction or a production effect has already passed.
+
+
+
 Atlas Studio is a product-neutral engineering-world compiler and system invention environment.
 
-Digital Organism is a first-class Atlas target, but Atlas remains independent of any generated organism or external runtime. An organism may use external LLM/model APIs, self-hosted models, deterministic cognition or hybrid bindings; weights are optional organs, not the organism itself.
+Digital Organism is a first-class Atlas target, but [HISTORICAL INTENT, superseded as Ynventa governance] Atlas was designed to be independent of generated systems; under the current owner directive this checkout is temporary source material for one canonical Chronica universe. An organism may use external LLM/model APIs, self-hosted models, deterministic cognition or hybrid bindings; weights are optional organs, not the organism itself.
 
 It performs strict, evidence-linked census from multi-repository scope down to every discovered function and required semantic atom; reconciles gaps/conflicts to a fixed point; synthesizes and validates target-native designs; publishes them as a dense logical `*.atlas`; materializes selected executable worlds as `*.atlasx/`; and compiles them into verified target products.
 
