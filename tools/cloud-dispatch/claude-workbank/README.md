@@ -2,7 +2,7 @@
 
 This directory is a cloud-safe snapshot derived from the local Claude corpus for Chronica.
 
-- Raw source path: `%USERPROFILE%/.claude/projects/c--Users-trngh-Documents-GitHub-Chronica`
+- Raw source path: [REDACTED — local, non-portable private data locator; never copy into documentation or task payloads]
 - Files indexed: 652
 - Bytes indexed: 675531403 (644.24 MB)
 - Records exported: 3000
