@@ -1,5 +1,10 @@
 # Cloud Dispatch
 
+
+**Current checkout tooling, not Ynventa architecture authority (2026-10-14).** These cloud-dispatch helpers are historical/source-local implementation utilities. The one approved development-control and permission system is the central .Ynventa- Work/Lease/Result protocol, with a pinned read/write scope and independent verification. A source helper may prepare a redacted candidate payload only after a valid Work and explicit approved disclosure scope; it cannot create another permanent coordinator, choose its own source-of-truth or apply commits outside the common main-only gates. The canonical 21-name registry is in Chronica; agent utilities are not Norl, Codara or Ontogen by their names. The procedures below describe surviving source commands, not an alternate development workflow.
+
+
+
 Two bounded, reusable helpers for delegating fast bounded Chronica tasks to Codex
 Cloud. Do not send the full local Claude corpus to a cloud task as one prompt.
 Build a redacted workbank first, then delegate one domain slice per task.
