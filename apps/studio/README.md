@@ -1,18 +1,16 @@
 # Atlas Studio
 
+## Studio source convergence — one Chronica Phenora implementation
 
-## Required Studio convergence, not a second application
+The canonical semantic-intent/compiler concept is **Codara**; **Phenora** denotes rebuildable expressions. This Studio is currently a source UI awaiting verified transfer into `Chronica/phenotype/`, not an independent enduring frontend or another authoritative semantic world. Inventory TS/TSX, CSS, design tokens, accessibility behavior, operator workflows and sources; prefer reuse of `Chronica/phenotype/chart-view` over cloning.
 
-Migrate in one bounded program: audit authored Studio TS/TSX, CSS, visual assets, package imports, design tokens and user-flow fixtures → compare with `Chronica/phenotype/chart-view` and any existing Chronica interaction code → migrate or reuse only unique verified behavior in Chronica → integrate guarded query/action API (never UI authority) → validate accessibility, behavior and content provenance → remove source build and routes from Atlas-Studio → independently show zero maintained Studio UI outside Chronica. A donor record, name similarity or Markdown declaration never counts as completed migration.
+**ONE BODY; MANY PHENORA; ONE UI SOURCE OWNER.** Commerce, markets, robotics and engineering views can differ while sharing the same renderer/interaction system. Thymora/Porion authorize effectful actions; Metabion executes; Lineara records provenance. A view never grants its own actions.
 
-**Biological meaning:** a Studio is a Phenotype expression of one canonical graph, not a second organism; Codara's semantic transcription is not an app-shell license; assay evidence and canonical authority remain separate.
+Use tested route parity, security, accessibility, typed contract checks, consumer cutover and deletion of the old studio frontend/build as the real migration gate. Keep only frozen source IDs and proof fixtures as exact evidence, never historical aliases as current functional names. Full registry: https://github.com/llgtrn/Chronica/blob/main/.ynventa/declared/nomenclature/concepts.jsonl
 
+This surface is not a second source of engineering truth. It consumes bounded projections from the Rust source compiler and evolves toward an Engineering World / World Canvas interface over typed Codara capability graph.
 
-**HISTORICAL CURRENT CODE:** TypeScript/TSX Studio source inside Atlas-Studio; **NOT an approved permanent UI owner**. The owner requires all maintained UI code (Studio, dashboard, controls, renderers, design tokens, HTML/CSS/JS/TSX) to converge to `Chronica/phenotype/`. This checkout provides frozen UI-source lineage, UX fixtures and semantic/compiler donor evidence, not a second runtime frontend.
-
-This surface is not a second source of engineering truth. It consumes bounded projections from the Rust Atlas engine and evolves toward an Engineering World / World Canvas interface over ATLASX.
-
-The intended interaction hierarchy is semantic-first:
+The source Studio's documented interaction hierarchy is retained as migration/equivalence evidence:
 
 ```text
 engineering world
@@ -25,4 +23,4 @@ engineering world
 → source
 ```
 
-**TARGET:** source editing, diff, terminal, design and agent interactions become capability-driven views in ONE shared Chronica Phenotype, under Chronica identity/authority and replayable projections; no independent Atlas runtime truth. Preserve old Studio behavior through verified route parity and deletion of the legacy bundle after caller cutover. The earlier sentence describes the donor's historical design intent, not a second present-day Ynventa frontend.
+**TARGET:** source editing, diff, terminal, design and agent interactions become capability-driven views in one Chronica-owned Phenora implementation, under Chronica identity/authority and replayable projections; no independent Atlas runtime truth. Preserve old Studio behavior through verified route parity and deletion of the legacy bundle after caller cutover. The earlier sentence describes the donor's historical design intent, not a second present-day Ynventa frontend.
