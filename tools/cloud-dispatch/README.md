@@ -7,7 +7,7 @@
 
 Two bounded, reusable helpers for delegating fast bounded Chronica tasks to Codex
 Cloud. Do not send the full local Claude corpus to a cloud task as one prompt.
-Build a redacted workbank first, then delegate one domain slice per task.
+Do not export private conversations or a local agent transcript collection by default. Under an explicitly approved Work lease and disclosure scope, build a minimal redacted candidate workbank; otherwise do not dispatch it. Source accessibility does not grant publication permission.
 
 **Obsolete campaign scripts and their prompt files are not in this tracked checkout.** Do not reference an untracked `docs/_archive/cloud-delegation-2026-08-06/` tree as an available local source. The only supported commands below are those backed by existing files at the pinned checkout revision.
 
@@ -15,7 +15,7 @@ Build a redacted workbank first, then delegate one domain slice per task.
 
 ```powershell
 node tools/cloud-dispatch/build-claude-workbank.mjs `
-  --source "C:\Users\trngh\.claude\projects\c--Users-trngh-Documents-GitHub-Chronica" `
+  --source "<OWNER_APPROVED_LOCAL_SOURCE_DIRECTORY>" `
   --out tools/cloud-dispatch/claude-workbank `
   --max-records 3000 `
   --max-chars 6000
