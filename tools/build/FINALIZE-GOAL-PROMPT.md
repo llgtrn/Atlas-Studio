@@ -14,14 +14,14 @@ Convergence is measured by real elimination of duplicate authority, unnecessary 
 
 ## Canonical names (do not use generic biology as subsystem brands)
 
-The registration keys CN-0001…CN-0021 have these exact names:
+The following is a derived reading aid for CN-0001…CN-0021, not a second registry. Resolve every name, owner and maturity against the current live registry before use:
 
 | Registered concept | Responsibility and constraints |
 |---|---|
 | **Ontogen** | Lawful capability/pathway composition; it proposes valid paths, does not execute or grant rights |
 | **Myelion** | Mathematical evaluation distributed across capabilities; no standalone Myelion runtime is demonstrated |
-| **Nomocyte** | State/transition and mathematical-invariant verification |
-| **Genora** | Stable graph identity, inherited laws and capability potential; physical `genome/` remains a frozen path role |
+| **Nomocyte** | Scale-local formal state/transition/invariant interpretation; existing scoped timing-wheel proofs do not establish a universal runtime verifier |
+| **Genora** | Stable graph identity, inherited laws and capability potential; the current `genome/` placement is not automatically renamed by a concept-name change; freeze only actual protected identity/wire preimages |
 | **Codara** | Typed semantic-intent language and compiler into candidate programs |
 | **Axora** | Discover and verify bindings to unknown protocols/surfaces |
 | **Somara** | Embodied/world/resource-state concept, home unresolved |
@@ -33,10 +33,10 @@ The registration keys CN-0001…CN-0021 have these exact names:
 | **Phenora** | Many observable expressions, read-only projections and shared UI/CLI/API surfaces |
 | **Symbion** | External partner/effect contracts, never a separate authority |
 | **Phylogena** | Technology ancestry, selection and transfer; no complete dedicated runtime demonstrated |
-| **Alloma** | Conserved, justified cross-scale transitions |
+| **Alloma** | Explicit cross-scale mappings with preservation/conservation, lifting and error obligations; scoped proofs do not justify arbitrary scale generalization |
 | **Immunara** | Organism-wide distributed security/immune concerns; no fully unified immune system demonstrated |
 | **Regena** | Evidence-driven trusted restoration concept; not a completed runtime |
-| **Genesia** | Origin/reproduction of new canonical structures; not implemented as a complete runtime |
+| **Genesia** | Genesis/reproduction of organism-level identity and existence under inherited laws; not task splitting or starting a workflow; no complete runtime demonstrated |
 | **Apoptra** | Controlled termination and death semantics, partially represented |
 | **Ecoria** | Ecology/multi-organism relationships, not a completed runtime |
 
@@ -59,14 +59,14 @@ Do not create or keep an alternative Host/Guest physical grammar. The common leg
 
 All maintained **product UI implementations** — TypeScript/TSX/JS components, HTML/CSS, design tokens, interactive views, studio/dashboard/robot operator code, chart renderers, presentation bundles — must converge into `Chronica/phenotype/`. This is ONE UI **code owner**, not ONE phenotype. Different Phenora can represent markets, commerce, robotics, design and product research using shared governed projection/interaction contracts.
 
-Verified current UI migration sources include:
+Current UI source locators to verify at each pinned revision include; source presence is not proof of an executable frontend or completed migration:
 
 | Source checkout | Source UI | Required handling |
 |---|---|---|
 | ECDEV | `apps/web/` | Port/reuse required behavior in Chronica, verify Rust server consumer cutover, remove old bundle |
 | Fi-game | `apps/frontend/` | Port/reuse financial expression, keep native risk/finance truth and refusal at owner |
 | Mechatron | `apps/operator/` | Preserve typed `mechatron.site-view/2`, `mechatron.site-events/2`, read-only CSP, exact safety verdicts and `mechatron.operator-request/1` behavior |
-| Atlas-Studio | `apps/studio/` | Port/reuse unique Studio interactions, remove duplicate component/design systems and build routes |
+| Atlas-Studio | `apps/studio/` | Current tracked source is README, package metadata and design tokens only; preserve recorded design intent, and inventory any executable UI before claiming parity or retirement |
 
 A backend HTTP service, web parser, research-only TypeScript oracle, device protocol or native computation is **not** automatically UI and must not be incorrectly deleted. UI cannot independently compute canonical trading permissions, economic/stock truth, physical control authorization or model admission. Every consequential action travels back through Chronica's Thymora/Porion before Metabion execution, followed by Lineara evidence.
 
@@ -105,7 +105,7 @@ sequenceDiagram
     else Authorized
         T->>M: Bounded admitted action
         M->>L: Effect, resource cost and execution trace
-        L->>H: Canonicalization after independent evidence
+        L-->>H: Candidate evidence for authorized reconciliation and Canonicalization
         H->>P: Rebuildable typed projection
         P-->>W: Shared UI, API, CLI: different phenotype views
     end
@@ -120,7 +120,7 @@ flowchart TB
     CENSUS --> PLAN["Nonoverlapping Work/Lease/Result transactions"]
     PLAN --> CORE["Universal path/schema/engine migration"]
     PLAN --> NAT["Native specialized capability and consumer migration"]
-    PLAN --> UI["One Chronica UI author: port 4+ discovered source interfaces"]
+    PLAN --> UI["One Chronica UI owner: migrate verified executable sources and preserve design evidence"]
     CORE --> VERIFY["Exact code/parity tests, negative gates, locks and graph identity"]
     NAT --> VERIFY
     UI --> VERIFY
@@ -135,7 +135,7 @@ flowchart TB
 
 The V1 readiness contract is the **minimum of eight defined dimensions**; UNDEFINED counts as zero. Do not infer percentage from phase counts, size of docs or number of diagrams. The exact release gates and required donor cohort are subject to admitted owner decisions; do not treat an unapproved cohort of 11 proposal roots as accepted. Scoped donor extinction after independently verified native replacement is distinct from *every OSS anywhere* being extinct. A source UI bundle retired is **not** automatically donor extinction.
 
-The following are not *automatically required* to claim bounded V1 under recorded scope: pretraining a frontier model, perfect brain simulation, all-world OSS extinction, replacing every cloud provider and unauthorized self-rewriting code. The fifth is **never a permitted execution path**, not an exciting future feature. The ambition to enable authorized evolution and self-hosting must pass Thymora/Porion/Lineara proof.
+This prompt cannot exclude model, donor, runtime or self-hosting obligations from V1. Apply the existing eight dimensions, their unchanged thresholds and the owner-admitted required-donor scope; provisional exclusions are not binding. Unauthorized self-modification is forbidden. Any authorized evolution still requires independent evidence, current Thymora/Porion admission and Lineara lineage.
 
 ### Required per-Work status report
 

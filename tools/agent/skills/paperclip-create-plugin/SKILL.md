@@ -10,7 +10,7 @@ description: >
 
 # Create and develop a Paperclip plugin
 
-Use this skill when the task is to create, scaffold, or iterate on a Paperclip plugin against a local Paperclip instance.
+This retained source reference documents an external Paperclip plugin authoring workflow. Its packages, trusted workers/UI, CLI endpoints and host component assumptions have not been verified as Chronica implementations in this checkout. The procedures below apply only to an explicitly authorized external Paperclip task with the exact service and source revision verified. They are not permission to create Chronica `packages/`, another UI owner, or a second runtime/governance spine.
 
 ## 1. Default: build the plugin OUTSIDE Paperclip core
 

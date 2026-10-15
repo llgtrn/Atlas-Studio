@@ -1,6 +1,6 @@
 # Claude Workbank Snapshot
 
-This directory is a cloud-safe snapshot derived from the local Claude corpus for Chronica.
+This directory holds a historical, generated candidate snapshot derived from a local Claude corpus. The label “cloud-safe” is not a verified disclosure decision for its present contents or current Work scope; inspect provenance, privacy constraints and authorized minimal disclosure before any external use.
 
 - Raw source path: [REDACTED — local, non-portable private data locator; never copy into documentation or task payloads]
 - Files indexed: 652
@@ -10,4 +10,4 @@ This directory is a cloud-safe snapshot derived from the local Claude corpus for
 
 The raw corpus is intentionally not committed here. Use `manifest.jsonl` for file identity and `records.jsonl` as bounded, redacted candidate work records for Codex Cloud.
 
-Cloud agents must treat these records as leads only. Repo code, tests, docs, `docs/capabilities.db`, `docs/architecture.db`, and verifier output remain the truth sources.
+Cloud agents must treat these records as candidate leads only. Actual repository code, tests, current admitted `.ynventa` knowledge and revision-bound verifier evidence determine source claims. The formerly named `docs/capabilities.db` and `docs/architecture.db` are not tracked and must not be presumed available or canonical. Snapshot records do not authorize dispatch, grant authority or become Memory/World truth.

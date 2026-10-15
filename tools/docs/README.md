@@ -4,14 +4,9 @@ This directory contains the **current local source checkout's documentation-tool
 
 ## Commands
 
-```bash
-pnpm docs:check
-pnpm docs:new -- <type> <docs/...md>
-pnpm arch:contracts
-pnpm arch:contracts:test
-```
+The root `package.json` currently exposes only `atlas:contract`, `atlas:systemize`, `atlas:docs:audit` and `atlas:code:analyze`; the four `pnpm docs:*`/`arch:contracts*` aliases formerly listed here are absent. Do not present them as runnable clean-checkout commands. Existing source entrypoints include `node tools/docs/check-layout.mjs`, `node --test tools/docs/documentation-governance.test.mjs` and `node tools/docs/new-doc.mjs <kind> <target>`; the generator writes a retired local corpus and is described below for source comparison, not prescribed for new Chronica documentation.
 
-`pnpm docs:check` is **this source checkout's local documentation/fixture governance command**, not the global eight-repository architecture or nomenclature verification. It runs `tools/docs/documentation-governance.test.mjs` first, then validates repository layout/reference integrity with `tools/docs/check-layout.mjs`.
+The historical `docs:check` alias was intended to run `tools/docs/documentation-governance.test.mjs` and `tools/docs/check-layout.mjs`. At this revision the alias is missing, the test cannot start without the undeclared `yaml` dependency, and the layout checker requires an absent `docs/architecture/` corpus. These are source-tool compatibility defects; do not recreate a second documentation universe or weaken a gate to claim convergence.
 
 The governance test covers tooling metadata itself—taxonomy uniqueness, canonical-owner placement, fail-closed generator routing—and guards a small set of composition-level semantic boundaries such as `ExecutionAdmission != Canonicalization`, candidate-vs-selected binding and compile-vs-disclose. It does not score prose shape.
 
@@ -46,9 +41,9 @@ README.md
 = the complete maintained architecture document set
 ```
 
-A document in this source-tool corpus does not become architecture authority through directory placement. The global fact/decision owner remains in the admitted `.ynventa` knowledge and 21-concept registry. A genuinely new semantic owner requires architectural review, explicit registration in `canonicalArchitectureOwners`, and exactly one annotated entry in `docs/INDEX.md`.
+A source-tool corpus document never becomes architectural authority through directory placement. The existing checker/generator metadata still demands `canonicalArchitectureOwners` and an annotated `docs/INDEX.md` entry for that retired corpus; this is an unconverted source behavior, not the approved way to allocate a new semantic owner. Current ownership changes require an explicit authorized owner decision in admitted `.ynventa` knowledge, then derived documentation and implementation mapping.
 
-`docs:new architecture-owner ...` may scaffold a candidate owner, but `docs:check` intentionally remains red until that candidate is explicitly registered after review.
+The existing `new-doc.mjs architecture-owner ...` source program scaffolds into that retired corpus and asks users to register a local Markdown owner. Do not use it for new canonical work until an authorized implementation change reconciles it with the admitted `.ynventa` workflow. Retain its templates and tests as source evidence; Markdown registration alone never admits a decision.
 
 ## Document classes
 

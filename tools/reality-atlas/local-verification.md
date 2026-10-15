@@ -2,7 +2,7 @@
 
 Chronica can accumulate execution evidence without GitHub-hosted CI.
 
-Canonical truth remains the repository/runtime state. The ledger is an ignored local evidence projection at `.chronica/verification-evidence.json`.
+Chronica canonical World truth is governed by its admitted history and reconciliation rules; repository state, command success and local ledger entries are distinct evidence classes. This source tool's ignored `.chronica/verification-evidence.json` is a local verification projection, not another canonical history or authority owner.
 
 Evidence classes remain distinct:
 

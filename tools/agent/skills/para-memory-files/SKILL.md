@@ -1,8 +1,8 @@
 ---
 name: para-memory-files
 description: >
-  File-based memory system using Tiago Forte's PARA method. Use this skill whenever
-  you need to store, retrieve, update, or organize knowledge across sessions. Covers
+  Historical external-agent memory reference using Tiago Forte's PARA method.
+  This is not a Chronica memory owner or current Ynventa workflow. Covers
   three memory layers: (1) Knowledge graph in PARA folders with atomic YAML facts,
   (2) Daily notes as raw timeline, (3) Tacit knowledge about user patterns. Also
   handles planning files, memory decay, weekly synthesis, and recall via qmd.
@@ -12,7 +12,7 @@ description: >
 
 # PARA Memory Files
 
-Persistent, file-based memory organized by Tiago Forte's PARA method. Three layers: a knowledge graph, daily notes, and tacit knowledge. All paths are relative to `$AGENT_HOME`.
+This retained external-agent reference describes persistent personal notes organized by Tiago Forte's PARA method. Its `$AGENT_HOME` YAML/Markdown stores, root `plans/` suggestion and qmd instructions are historical source techniques, not approved Chronica storage, canonical knowledge or automatic disclosure. Do not execute the procedures as repository setup or create a second Memory owner. Current governed Memory, authorized Context and canonical World remain distinct; evaluate any useful technique as a candidate through admitted `.ynventa` work.
 
 ## Three Memory Layers
 

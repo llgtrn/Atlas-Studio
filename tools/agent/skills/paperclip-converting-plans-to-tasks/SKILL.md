@@ -12,7 +12,7 @@ description: >
 
 # Paperclip — Converting Plans to Tasks
 
-A companion skill for turning a plan into executable Paperclip work. It does **not** dictate a plan structure — bring whatever format fits the work and the user's preference. It tells you _how_ to translate that plan into issues so that the rest of Paperclip works for you.
+This retained source reference explains how an external Paperclip service turns plans into its own issues. It is not the central Ynventa Work/Lease/Result contract. Its assignment, issue dependency and automatic-wake behavior require that separately verified external service and explicit authorization; they are not demonstrated Chronica scheduling, Active Focus or cognitive continuity. Preserve the planning rationale below as reference without invoking it as the current repository workflow.
 
 For the **mechanics** of recording a plan (issue document with key `plan`, comment links, approval gating, who to reassign back to), follow the _Planning_ section of the `paperclip` skill. This skill covers planning method, not the API surface.
 

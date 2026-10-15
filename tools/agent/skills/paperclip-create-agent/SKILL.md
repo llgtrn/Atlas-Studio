@@ -8,7 +8,7 @@ description: >
 
 # Paperclip Create Agent Skill
 
-Use this skill when you are asked to hire/create an agent.
+This retained source reference describes hiring agents in an external Paperclip company. It is not Chronica Genesia, Apoptra or an admission authority, and it does not establish current availability of its APIs. Apply its procedures only to a separately authorized, verified external Paperclip instance; current Ynventa tasks use the central Work/Lease/Result protocol and preserve one Chronica authority spine.
 
 ## Preconditions
 
