@@ -1,0 +1,530 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "RUNTIME-CONTAINER-RELOCATION-f8f88f973f42",
+  "base_revision": "839be083661e1f1f3d9633cc70e3756981608066",
+  "candidate_revision": "f8f88f973f425a80ecdd16c337e267f8badec08f",
+  "candidate_dirty": false,
+  "before_census_digest": "blake3-256:8e9c708de2024eab487833fdbff01c0c223f7a61ca46e0ad58f916616292b388",
+  "after_census_digest": "blake3-256:eb369d58bdf0b59574f34f4382054d9b0aa7b6db5744bf070e7ce5d816dedd0d",
+  "replay_digest": "blake3-256:eb369d58bdf0b59574f34f4382054d9b0aa7b6db5744bf070e7ce5d816dedd0d",
+  "inventory_delta": {
+    "created": [
+      "adapter/runtime/src/codara/container.rs",
+      "adapter/runtime/tests/codara_container_residence.rs",
+      "apps/cli/tests/container_residence.rs"
+    ],
+    "modified": [
+      "adapter/runtime/src/agent.rs",
+      "adapter/runtime/src/codara/mod.rs",
+      "adapter/runtime/src/lib.rs",
+      "apps/cli/src/main.rs"
+    ],
+    "deleted": [
+      "adapter/runtime/src/atlas.rs"
+    ]
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/runtime/src/lib.rs",
+      "apps/cli/src/main.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 21,
+      "fact:FunctionSignature|OBSERVED": 12,
+      "fact:SemanticObligation|OBSERVED": 10,
+      "fact:SemanticObligation|UNKNOWN": 26,
+      "fact:SemanticObligation|UNSUPPORTED": 2,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 31,
+      "fact:Type|OBSERVED": 20,
+      "record:CALL|OBSERVED": 290,
+      "record:CONTROL_FLOW|INFERRED": 71,
+      "record:CONTROL_FLOW|OBSERVED": 24,
+      "record:DATA_FLOW|OBSERVED": 377,
+      "record:EFFECT|INFERRED": 94,
+      "record:FUNCTION_IDENTITY|OBSERVED": 21,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 12,
+      "record:OWNERSHIP|OBSERVED": 135,
+      "record:PERSISTENCE|INFERRED": 1,
+      "record:STATE|OBSERVED": 2,
+      "record:SYMBOL|OBSERVED": 31,
+      "record:TYPE|OBSERVED": 20
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 1561,
+    "graph_nodes": 1174
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 2,
+    "obligation:CALL|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:RESOURCE|UNKNOWN": 2,
+    "obligation:RESOURCE|UNSUPPORTED": 2,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`adapter/runtime` agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "after": [
+        "`adapter/runtime` agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/atlas_of()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/atlas_of()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/census_atlas()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/census_atlas()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/certificate_with_atlas()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/certificate_with_atlas()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/digest_bytes()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/digest_bytes()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/invalid()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/invalid()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/outcome()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/outcome()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/pack()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/pack()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/publish()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/publish()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/revision()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/revision()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/tests/root()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/tests/root()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "MOVED",
+      "before": [
+        "`adapter/runtime` atlas/verify()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/verify()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`adapter/runtime` `tests/codara_container_residence.rs`/`impl:Drop for Fixture`/drop()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`adapter/runtime` `tests/codara_container_residence.rs`/`impl:Fixture`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`adapter/runtime` `tests/codara_container_residence.rs`/corrupt_content_source_changes_and_revision_drift_refuse_current_root_binding()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`adapter/runtime` `tests/codara_container_residence.rs`/git()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`adapter/runtime` `tests/codara_container_residence.rs`/public_routes_package_the_same_real_census_bytes_and_historical_ids()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`adapter/runtime` `tests/codara_container_residence.rs`/sorted_rows()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `tests/container_residence.rs`/`impl:Drop for Fixture`/drop()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `tests/container_residence.rs`/`impl:Fixture`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `tests/container_residence.rs`/cli()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `tests/container_residence.rs`/pack_verify_and_certificate_cli_preserve_public_api_bytes_and_unsealed_outcome()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `tests/container_residence.rs`/path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "`apps/cli` `tests/container_residence.rs`/report_bytes()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/runtime/src/codara/container.rs: 0 -> 14",
+      "adapter/runtime/tests/codara_container_residence.rs: 0 -> 14",
+      "apps/cli/tests/container_residence.rs: 0 -> 14"
+    ],
+    "decreased": [],
+    "total_before": 2944,
+    "total_after": 2972
+  },
+  "intent": {
+    "objective": "One byte-identical physical runtime container responsibility move in unchanged runtime/compiler.runtime. Preserve supported logical atlas API; switch exactly three production CLI callers and one current physical-source proof assertion. Exact observed source/test entity and signed-total changes reviewed against the frozen candidate; no target/native/rights or extinction claim.",
+    "changed_paths": [
+      "adapter/runtime/src/agent.rs",
+      "adapter/runtime/src/atlas.rs",
+      "adapter/runtime/src/codara/container.rs",
+      "adapter/runtime/src/codara/mod.rs",
+      "adapter/runtime/src/lib.rs",
+      "adapter/runtime/tests/codara_container_residence.rs",
+      "apps/cli/src/main.rs",
+      "apps/cli/tests/container_residence.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:state_variable",
+      "+diagnostic:IncompleteAnalysis",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/runtime/src/codara/container.rs: existing moved artifact retains its14 unresolved observations; new path is not a new resolution claim.",
+      "adapter/runtime/tests/codara_container_residence.rs: new public caller fixtures retain existing extractors13UNKNOWN and1UNSUPPORTED obligations; no native semantics claim.",
+      "apps/cli/tests/container_residence.rs: new actual CLI caller fixtures retain existing extractors13UNKNOWN and1UNSUPPORTED obligations; no target authority claim."
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `adapter/runtime` agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+      "CHANGED `apps/cli` run().",
+      "CREATED `adapter/runtime` `tests/codara_container_residence.rs`/`impl:Drop for Fixture`/drop().",
+      "CREATED `adapter/runtime` `tests/codara_container_residence.rs`/`impl:Fixture`/new().",
+      "CREATED `adapter/runtime` `tests/codara_container_residence.rs`/corrupt_content_source_changes_and_revision_drift_refuse_current_root_binding().",
+      "CREATED `adapter/runtime` `tests/codara_container_residence.rs`/git().",
+      "CREATED `adapter/runtime` `tests/codara_container_residence.rs`/public_routes_package_the_same_real_census_bytes_and_historical_ids().",
+      "CREATED `adapter/runtime` `tests/codara_container_residence.rs`/sorted_rows().",
+      "CREATED `apps/cli` `tests/container_residence.rs`/`impl:Drop for Fixture`/drop().",
+      "CREATED `apps/cli` `tests/container_residence.rs`/`impl:Fixture`/new().",
+      "CREATED `apps/cli` `tests/container_residence.rs`/cli().",
+      "CREATED `apps/cli` `tests/container_residence.rs`/pack_verify_and_certificate_cli_preserve_public_api_bytes_and_unsealed_outcome().",
+      "CREATED `apps/cli` `tests/container_residence.rs`/path().",
+      "CREATED `apps/cli` `tests/container_residence.rs`/report_bytes().",
+      "MOVED `adapter/runtime` atlas/atlas_of(). -> `adapter/runtime` codara/container/atlas_of().",
+      "MOVED `adapter/runtime` atlas/census_atlas(). -> `adapter/runtime` codara/container/census_atlas().",
+      "MOVED `adapter/runtime` atlas/certificate_with_atlas(). -> `adapter/runtime` codara/container/certificate_with_atlas().",
+      "MOVED `adapter/runtime` atlas/digest_bytes(). -> `adapter/runtime` codara/container/digest_bytes().",
+      "MOVED `adapter/runtime` atlas/invalid(). -> `adapter/runtime` codara/container/invalid().",
+      "MOVED `adapter/runtime` atlas/outcome(). -> `adapter/runtime` codara/container/outcome().",
+      "MOVED `adapter/runtime` atlas/pack(). -> `adapter/runtime` codara/container/pack().",
+      "MOVED `adapter/runtime` atlas/publish(). -> `adapter/runtime` codara/container/publish().",
+      "MOVED `adapter/runtime` atlas/revision(). -> `adapter/runtime` codara/container/revision().",
+      "MOVED `adapter/runtime` atlas/tests/root(). -> `adapter/runtime` codara/container/tests/root().",
+      "MOVED `adapter/runtime` atlas/tests/the_self_census_packages_into_a_verified_unsealed_container(). -> `adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+      "MOVED `adapter/runtime` atlas/verify(). -> `adapter/runtime` codara/container/verify()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/runtime/src/agent.rs",
+    "path adapter/runtime/src/atlas.rs",
+    "path adapter/runtime/src/codara/container.rs",
+    "path adapter/runtime/src/codara/mod.rs",
+    "path adapter/runtime/src/lib.rs",
+    "path adapter/runtime/tests/codara_container_residence.rs",
+    "path apps/cli/src/main.rs",
+    "path apps/cli/tests/container_residence.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:state_variable",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:RESOURCE|atlas.rust.source-semantic.v1|UNSUPPORTED",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts",
+    "entity CHANGED `adapter/runtime` agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "entity CHANGED `apps/cli` run().",
+    "entity MOVED `adapter/runtime` atlas/atlas_of(). -> `adapter/runtime` codara/container/atlas_of().",
+    "entity MOVED `adapter/runtime` atlas/census_atlas(). -> `adapter/runtime` codara/container/census_atlas().",
+    "entity MOVED `adapter/runtime` atlas/certificate_with_atlas(). -> `adapter/runtime` codara/container/certificate_with_atlas().",
+    "entity MOVED `adapter/runtime` atlas/digest_bytes(). -> `adapter/runtime` codara/container/digest_bytes().",
+    "entity MOVED `adapter/runtime` atlas/invalid(). -> `adapter/runtime` codara/container/invalid().",
+    "entity MOVED `adapter/runtime` atlas/outcome(). -> `adapter/runtime` codara/container/outcome().",
+    "entity MOVED `adapter/runtime` atlas/pack(). -> `adapter/runtime` codara/container/pack().",
+    "entity MOVED `adapter/runtime` atlas/publish(). -> `adapter/runtime` codara/container/publish().",
+    "entity MOVED `adapter/runtime` atlas/revision(). -> `adapter/runtime` codara/container/revision().",
+    "entity MOVED `adapter/runtime` atlas/tests/root(). -> `adapter/runtime` codara/container/tests/root().",
+    "entity MOVED `adapter/runtime` atlas/tests/the_self_census_packages_into_a_verified_unsealed_container(). -> `adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container().",
+    "entity MOVED `adapter/runtime` atlas/verify(). -> `adapter/runtime` codara/container/verify().",
+    "entity CREATED `adapter/runtime` `tests/codara_container_residence.rs`/`impl:Drop for Fixture`/drop().",
+    "entity CREATED `adapter/runtime` `tests/codara_container_residence.rs`/`impl:Fixture`/new().",
+    "entity CREATED `adapter/runtime` `tests/codara_container_residence.rs`/corrupt_content_source_changes_and_revision_drift_refuse_current_root_binding().",
+    "entity CREATED `adapter/runtime` `tests/codara_container_residence.rs`/git().",
+    "entity CREATED `adapter/runtime` `tests/codara_container_residence.rs`/public_routes_package_the_same_real_census_bytes_and_historical_ids().",
+    "entity CREATED `adapter/runtime` `tests/codara_container_residence.rs`/sorted_rows().",
+    "entity CREATED `apps/cli` `tests/container_residence.rs`/`impl:Drop for Fixture`/drop().",
+    "entity CREATED `apps/cli` `tests/container_residence.rs`/`impl:Fixture`/new().",
+    "entity CREATED `apps/cli` `tests/container_residence.rs`/cli().",
+    "entity CREATED `apps/cli` `tests/container_residence.rs`/pack_verify_and_certificate_cli_preserve_public_api_bytes_and_unsealed_outcome().",
+    "entity CREATED `apps/cli` `tests/container_residence.rs`/path().",
+    "entity CREATED `apps/cli` `tests/container_residence.rs`/report_bytes()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
