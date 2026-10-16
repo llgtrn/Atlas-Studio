@@ -25,6 +25,38 @@ fn json<T: serde::Serialize>(value: &T) -> Result<String, String> {
     serde_json::to_string_pretty(value).map_err(|e| e.to_string())
 }
 
+/// A caller's report budget is explicit and unambiguous; malformed values never disable it.
+fn codec_report_capacity(args: &[String]) -> Result<Option<usize>, String> {
+    if args
+        .iter()
+        .any(|arg| arg.starts_with("--max-report-bytes="))
+    {
+        return Err("--max-report-bytes requires a separate decimal value".into());
+    }
+    let count = args
+        .iter()
+        .filter(|arg| arg.as_str() == "--max-report-bytes")
+        .count();
+    if count > 1 {
+        return Err("--max-report-bytes must occur at most once".into());
+    }
+    value(args, "--max-report-bytes")?
+        .map(|value| {
+            if value.is_empty()
+                || !value.bytes().all(|byte| byte.is_ascii_digit())
+                || (value.len() > 1 && value.starts_with('0'))
+            {
+                return Err(
+                    "--max-report-bytes requires a canonical nonnegative decimal usize".into(),
+                );
+            }
+            value.parse::<usize>().map_err(|_| {
+                "--max-report-bytes requires a canonical nonnegative decimal usize".into()
+            })
+        })
+        .transpose()
+}
+
 /// Writes `text` to `out`, creating its parent directory first. Shared by every subcommand that
 /// takes `--out` so the path-context fix below applies uniformly instead of needing to be
 /// remembered at each of the four call sites separately -- the exact failure mode this closes
@@ -542,11 +574,16 @@ fn run(args: &[String]) -> Result<(), String> {
             // header defect together, otherwise the first found). A refused encode prints its
             // defects the same way. `--codara-payload <object> --out <file>` exports its validated
             // raw payload for the existing Codara digest verifier, printing the same codec report.
-            match (
+            let modes = (
                 value(rest, "--encode")?,
                 value(rest, "--decode")?,
                 value(rest, "--codara-payload")?,
-            ) {
+            );
+            let max_report_bytes = codec_report_capacity(rest)?;
+            if max_report_bytes.is_some() && !matches!(&modes, (None, Some(_), None)) {
+                return Err("--max-report-bytes requires atlasx codec --decode only".into());
+            }
+            match modes {
                 (Some(module), None, None) => {
                     let out =
                         value(rest, "--out")?.ok_or("atlasx codec --encode requires --out")?;
@@ -574,6 +611,16 @@ fn run(args: &[String]) -> Result<(), String> {
                     let report =
                         runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;
                     let text = json(&report)? + "\n";
+                    // Count exactly the UTF-8 bytes the unbounded caller emits, including LF.
+                    // Refuse before stdout, report creation, replay checks or parent creation.
+                    if let Some(max) = max_report_bytes {
+                        if text.len() > max {
+                            return Err(format!(
+                                "ATLASX_REPORT_CAPACITY_EXCEEDED: bytes={}; max={max}",
+                                text.len()
+                            ));
+                        }
+                    }
                     match value(rest, "--out")? {
                         Some(out) => write_codec_report_or_replay(&out, &text)?,
                         None => print!("{text}"),
@@ -1959,6 +2006,82 @@ mod tests {
             "--out".into(),
             report.to_string_lossy().into_owned(),
         ])
+    }
+
+    #[test]
+    fn codec_report_capacity_requires_one_canonical_usize_or_absence() {
+        let args = |values: &[&str]| {
+            values
+                .iter()
+                .map(|value| value.to_string())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(codec_report_capacity(&[]).unwrap(), None);
+        for (text, expected) in [("0", 0), ("1", 1), ("1024", 1024)] {
+            assert_eq!(
+                codec_report_capacity(&args(&["--max-report-bytes", text])).unwrap(),
+                Some(expected)
+            );
+        }
+        assert_eq!(
+            codec_report_capacity(&args(&["--max-report-bytes", &usize::MAX.to_string()])).unwrap(),
+            Some(usize::MAX)
+        );
+        let overflow = format!("{}0", usize::MAX);
+        for malformed in [
+            "", "00", "01", "+1", "-1", " 1", "1 ", "1.0", "1e3", "١", "--out", &overflow,
+        ] {
+            assert!(
+                codec_report_capacity(&args(&["--max-report-bytes", malformed])).is_err(),
+                "{malformed:?} must not disable or alter the limit"
+            );
+        }
+        assert_eq!(
+            codec_report_capacity(&args(&["--max-report-bytes"])).unwrap_err(),
+            "--max-report-bytes requires a value"
+        );
+        for attached in [
+            "--max-report-bytes=0",
+            "--max-report-bytes=1024",
+            "--max-report-bytes=",
+        ] {
+            assert_eq!(
+                codec_report_capacity(&args(&[attached])).unwrap_err(),
+                "--max-report-bytes requires a separate decimal value"
+            );
+        }
+        assert_eq!(
+            codec_report_capacity(&args(&[
+                "--max-report-bytes",
+                "1",
+                "--max-report-bytes",
+                "2"
+            ]))
+            .unwrap_err(),
+            "--max-report-bytes must occur at most once"
+        );
+    }
+
+    #[test]
+    fn codec_report_capacity_rejects_other_modes_before_any_operation() {
+        for modes in [
+            vec![],
+            vec!["--encode", "missing-module.json"],
+            vec!["--codara-payload", "missing-object.atlasx"],
+            vec![
+                "--decode",
+                "missing-object.atlasx",
+                "--encode",
+                "missing-module.json",
+            ],
+        ] {
+            let mut args = vec!["atlasx", "codec", "--max-report-bytes", "1"];
+            args.extend(modes);
+            assert_eq!(
+                run(&args.into_iter().map(str::to_owned).collect::<Vec<_>>()).unwrap_err(),
+                "--max-report-bytes requires atlasx codec --decode only"
+            );
+        }
     }
 
     #[test]

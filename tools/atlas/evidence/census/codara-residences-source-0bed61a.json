@@ -1,0 +1,1985 @@
+{
+  "schema": "read-only-report-local (not a shared wire or canonical registry)",
+  "source_repository": "llgtrn/Atlas-Studio",
+  "source_commit": "0bed61abbf05df6b0a323cfcaf7013e371548408",
+  "created_utc": "2026-10-16T21:04:50.785617+00:00",
+  "scope": "Codara source residences and production caller adjacency; static read-only inspection only",
+  "instructions": {
+    "AGENTS": "none found in workspace/repository root or scoped paths",
+    "local_skills": "no relevant .agents skill found; unrelated tools/agent skills not applied",
+    "original_blueprint_pin": "7828a94acc0a9f94029eac7e0e4439180e3c0e43",
+    "latest_blueprint_pin": "7fe659cdc755afde233b420de4ae814ea2c6b0ce",
+    "latest_blueprint_blob": "5f9c3266519216229fd91c2e0f0f6be137ae4c7b",
+    "blueprint_basis": "Codara section: canonical compiler concept; Atlas physical source/donor facts remain distinct; Compiled != Authorized"
+  },
+  "pure_codara_file_count": 55,
+  "pure_codara_group_counts": {
+    "adl": 3,
+    "artifact/census_container": 6,
+    "artifact/codec.rs": 1,
+    "artifact/codec": 29,
+    "artifact/manifest.rs": 1,
+    "artifact/manifest": 1,
+    "artifact/mod.rs": 1,
+    "artifact/staging": 9,
+    "construction": 3,
+    "mod.rs": 1
+  },
+  "files": [
+    {
+      "path": ".ynventa/declared/migration.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 449,
+      "lines": 13,
+      "sha256": "03ce30b1b80b92a8acb61f32d1bc50b5427c0acae046d3565f78fdec29639e28",
+      "git_blob": "a6b914116c42121aecf64e1209534bc4561c3a7a",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:1b3a745fc17aeb0b8cd705c496ef3b8f",
+        "path": ".ynventa/declared/migration.rs",
+        "digest": "sha256:03ce30b1b80b92a8acb61f32d1bc50b5427c0acae046d3565f78fdec29639e28"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:.ynventa/declared/migration.rs"
+    },
+    {
+      "path": ".ynventa/declared/repository.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 3647,
+      "lines": 117,
+      "sha256": "1fe4b6e4718b547424cc518c85e07b70b8bf20b13fd593004f49f9c0520ed874",
+      "git_blob": "02233e2000dd4f522cc9acd9ef39addaceb5989a",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:7d8c17a902b2f3d77a942c4d42ceb98a",
+        "path": ".ynventa/declared/repository.rs",
+        "digest": "sha256:1fe4b6e4718b547424cc518c85e07b70b8bf20b13fd593004f49f9c0520ed874"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:.ynventa/declared/repository.rs"
+    },
+    {
+      "path": "README.md",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 24011,
+      "lines": 266,
+      "sha256": "d991ba15bc1641e79edf3c88426cc7e001b8e5cd8ff660adc93c76d6a93358f8",
+      "git_blob": "663e90a2598da096d19c410ee9ae1c9f45f688f9",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:732c361b78173c413d0314107a1ea659",
+        "path": "README.md",
+        "digest": "sha256:9ded5701df331908a5b3857e255e3ab754bf7c80602d352257f8467e76791d6f"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:README.md"
+    },
+    {
+      "path": "adapter/Cargo.toml",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 2301,
+      "lines": 43,
+      "sha256": "494f41a252903706ffdef9f8306e377db410a53bfabc28c0177824f2b4795874",
+      "git_blob": "c03fe2acf4673a9e934accd4be3058203a1ba6df",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:6540fba43615c7fa93f8bf5c28e3b1dc",
+        "path": "adapter/Cargo.toml",
+        "digest": "sha256:494f41a252903706ffdef9f8306e377db410a53bfabc28c0177824f2b4795874"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/Cargo.toml"
+    },
+    {
+      "path": "adapter/runtime/Cargo.toml",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 734,
+      "lines": 21,
+      "sha256": "74e867328cbdc75661d2608bc7f2e84f898cea1b9858a1a83403a319a981a690",
+      "git_blob": "acb50847d6801309d4dfa1abe2289bbdafc8f363",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:51f24cfd24edc303cf9d2616207e4673",
+        "path": "adapter/runtime/Cargo.toml",
+        "digest": "sha256:74e867328cbdc75661d2608bc7f2e84f898cea1b9858a1a83403a319a981a690"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/Cargo.toml"
+    },
+    {
+      "path": "adapter/runtime/src/atlas.rs",
+      "role": "remaining_production_runtime_implementation",
+      "bytes": 17204,
+      "lines": 452,
+      "sha256": "e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02",
+      "git_blob": "98111ebf00c5e2c1ea4bd14c56dd897ce74ce582",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:26e8bacde47c550020d97668881a2c85",
+        "path": "adapter/runtime/src/atlas.rs",
+        "digest": "sha256:e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/atlas.rs"
+    },
+    {
+      "path": "adapter/runtime/src/atlasx.rs",
+      "role": "remaining_production_runtime_implementation",
+      "bytes": 47385,
+      "lines": 1008,
+      "sha256": "c9f3f7767822a942ce6c7b6e1cbd77497e5296cea9ed05159fe10cea3701133f",
+      "git_blob": "6732bd0d652bd265c45d16ce78456492e79e93d5",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:2f32ffa5182e57c979455b044070c72a",
+        "path": "adapter/runtime/src/atlasx.rs",
+        "digest": "sha256:f12345f1d4fd0f537f3c66553262ddeabcfa4b97eb9fc8ab46c7520bc251cc10"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/atlasx.rs"
+    },
+    {
+      "path": "adapter/runtime/src/census/extraction.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 87734,
+      "lines": 2070,
+      "sha256": "38a5b99d131c494c46d2596ea60a32106611c452b71e068ed1584b11ff0f57c9",
+      "git_blob": "797f55d5b0e551bf73d55e663c73c6edac90e964",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:3716606cce4ab84edfe55b587f57889f",
+        "path": "adapter/runtime/src/census/extraction.rs",
+        "digest": "sha256:2dece8f6797ef982fa3246755980ad7f7be5dea558ed18a0857612a479022a85"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/census/extraction.rs"
+    },
+    {
+      "path": "adapter/runtime/src/census/mod.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 172792,
+      "lines": 4182,
+      "sha256": "2c00d3fbbd63f700dd0bf83ae1c29ced3d306ec6f49c9a846f21f27eaf280bca",
+      "git_blob": "4a19b1dee4d9e5372b06dc881c22e70cf485f427",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:9618f1f432fff07fcce1677c7512aefb",
+        "path": "adapter/runtime/src/census/mod.rs",
+        "digest": "sha256:2c00d3fbbd63f700dd0bf83ae1c29ced3d306ec6f49c9a846f21f27eaf280bca"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/census/mod.rs"
+    },
+    {
+      "path": "adapter/runtime/src/design.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 21140,
+      "lines": 538,
+      "sha256": "3cf7ec9d88760908a19e11745e4ad844937eb2350f596aa6ce0a8c0493a0370f",
+      "git_blob": "bfa8e1d9df8abc002c6747f1c44c3b376246aca0",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:f911315d2076634f8d5d0215bd34dbd4",
+        "path": "adapter/runtime/src/design.rs",
+        "digest": "sha256:3cf7ec9d88760908a19e11745e4ad844937eb2350f596aa6ce0a8c0493a0370f"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/design.rs"
+    },
+    {
+      "path": "adapter/runtime/src/lib.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 281993,
+      "lines": 6106,
+      "sha256": "b7a1f405a1bdb79f144951bcc32084b57e9fad4bd740bba9092d65940b295e1d",
+      "git_blob": "9e7ad07c82978b50363966b25a41a7b5751ff4f4",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:22d0d28c64cabae780b1c0c8e0abffb2",
+        "path": "adapter/runtime/src/lib.rs",
+        "digest": "sha256:b7a1f405a1bdb79f144951bcc32084b57e9fad4bd740bba9092d65940b295e1d"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/lib.rs"
+    },
+    {
+      "path": "adapter/runtime/src/seal.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 20674,
+      "lines": 504,
+      "sha256": "eb29dd9a36db11672e209c76ef79c977dcf7e5174db6d5e6bbf3a8209fb87cce",
+      "git_blob": "944c2b3443c9c57328e669de4e2397615d35d5be",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:77dcd3cd66f30aa6a6b6bb57f256fa06",
+        "path": "adapter/runtime/src/seal.rs",
+        "digest": "sha256:eb29dd9a36db11672e209c76ef79c977dcf7e5174db6d5e6bbf3a8209fb87cce"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/seal.rs"
+    },
+    {
+      "path": "adapter/runtime/src/self_reconstruction.rs",
+      "role": "remaining_production_runtime_implementation",
+      "bytes": 63226,
+      "lines": 1606,
+      "sha256": "4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd",
+      "git_blob": "3e1e82789c12c18ef97c4e55d5df91b430cf6216",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:5840ab4120952af87788c8ac9c138fe1",
+        "path": "adapter/runtime/src/self_reconstruction.rs",
+        "digest": "sha256:4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/self_reconstruction.rs"
+    },
+    {
+      "path": "adapter/runtime/src/verification.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 20577,
+      "lines": 545,
+      "sha256": "e8f7dabd7f63b74fce8b3388c43fe5c572c7b43fbd7478366cdc449c1331a6e0",
+      "git_blob": "ef6ebc5a0e53236498f569a041fb70848b93b1a1",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:03ff6a8f2d42f7c4616667d94affc0cb",
+        "path": "adapter/runtime/src/verification.rs",
+        "digest": "sha256:93bace422a48ad1d7317a81419063105a75245ad0072923678cfc07e5d1f9477"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/runtime/src/verification.rs"
+    },
+    {
+      "path": "adapter/src/lib.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 57528,
+      "lines": 1319,
+      "sha256": "9532d483d6cd1fc054f8d1a1523dbdff5b1d5552ec85e539e97b30680031e52f",
+      "git_blob": "4bdeaa1bf3705c4a58c245ecb805cbc31726efec",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:49b63c6dc485ba6afeafc67dd408d3df",
+        "path": "adapter/src/lib.rs",
+        "digest": "sha256:9532d483d6cd1fc054f8d1a1523dbdff5b1d5552ec85e539e97b30680031e52f"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/src/lib.rs"
+    },
+    {
+      "path": "adapter/src/source/frontend.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 14860,
+      "lines": 403,
+      "sha256": "5945f9d0086e71f253b6ad760f69047911f9efe026914c4ee8e78e73f4967622",
+      "git_blob": "a80b4a93bd44e2e49c9f4d07d59c871d2a43296e",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:c3986750f1828aa27cdcea606177a408",
+        "path": "adapter/src/source/frontend.rs",
+        "digest": "sha256:2bdcbcaa09fca72ff7959870e70144065fcceace05ef24dd37fe85e0d012bd38"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:adapter/src/source/frontend.rs"
+    },
+    {
+      "path": "apps/cli/Cargo.toml",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 676,
+      "lines": 23,
+      "sha256": "e0373713bc939686dade98d33b2743fba3bfc6aac240b5071513a2c14b72006f",
+      "git_blob": "8c14fc4dbc6defed0a0a0bd8219eb6fdf5c20af6",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:afbf99177df35fab88385f0b00553d58",
+        "path": "apps/cli/Cargo.toml",
+        "digest": "sha256:e0373713bc939686dade98d33b2743fba3bfc6aac240b5071513a2c14b72006f"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:apps/cli/Cargo.toml"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "role": "real_cli_dispatch",
+      "bytes": 135659,
+      "lines": 2706,
+      "sha256": "1e1fb07f4d9175ee6bd8ba9911fdfb26cdd9abcabc275005ca77b36ad4f40169",
+      "git_blob": "e168eb4dadef9a3e727a8d45cf39c9248eb84b66",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:7561852fa29199b63679da5a9b645312",
+        "path": "apps/cli/src/main.rs",
+        "digest": "sha256:6c63186ed190d2654112fbaf612fc4450d46762aff012734ea6f82780794a5a9"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:apps/cli/src/main.rs"
+    },
+    {
+      "path": "apps/cli/tests/full_evidence.rs",
+      "role": "real_process_cli_oracle",
+      "bytes": 5675,
+      "lines": 147,
+      "sha256": "079be59f181e478410a16e08dc951576b73ba16103a83fa1db6c90850772f107",
+      "git_blob": "7e6488dca169ff89ee02e1a63bf08466135647db",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:apps/cli/tests/full_evidence.rs"
+    },
+    {
+      "path": "core/Cargo.toml",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 866,
+      "lines": 22,
+      "sha256": "dc995bd2a13bcd95c141b5b0444d418f30a817b9cb8be3882e95c8b17aeee767",
+      "git_blob": "7f7ee505ade4fc8b4611a7b72a62cd6a622266a5",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:beb4998ee975ff6c5aa9f60e5e21084b",
+        "path": "core/Cargo.toml",
+        "digest": "sha256:dc995bd2a13bcd95c141b5b0444d418f30a817b9cb8be3882e95c8b17aeee767"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/Cargo.toml"
+    },
+    {
+      "path": "core/src/codara/adl/census.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 19708,
+      "lines": 500,
+      "sha256": "cd6e0b8597cafbb05838f31bfe9b2124cac6e6173fbf734d8558ccd9cba2b343",
+      "git_blob": "207af89f5da1e899de376839fff6b496b6441bcd",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:dd3882b77ee0f5e1735eea94aa6596a8",
+        "path": "core/src/codara/adl/census.rs",
+        "digest": "sha256:cd6e0b8597cafbb05838f31bfe9b2124cac6e6173fbf734d8558ccd9cba2b343"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/adl/census.rs"
+    },
+    {
+      "path": "core/src/codara/adl/census/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 10602,
+      "lines": 303,
+      "sha256": "2730eafa1110d914aa16fb1bd06497e3b54bd604a67914133d6861345f5dea77",
+      "git_blob": "2e5ead9a5ae632c47415784d5ca9128eb65319b9",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:114758e0bf0e8f70d9c5082ca54056a7",
+        "path": "core/src/codara/adl/census/tests.rs",
+        "digest": "sha256:2730eafa1110d914aa16fb1bd06497e3b54bd604a67914133d6861345f5dea77"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/adl/census/tests.rs"
+    },
+    {
+      "path": "core/src/codara/adl/mod.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 100781,
+      "lines": 2596,
+      "sha256": "2fa7a71a29ac552d35aab5e7bab3219fd1435d86974188bc4378d2bb079b30e5",
+      "git_blob": "77374aa5893df89abae466da405d9ba081179504",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:27699ff6982373cb8532759868d292b7",
+        "path": "core/src/codara/adl/mod.rs",
+        "digest": "sha256:2fa7a71a29ac552d35aab5e7bab3219fd1435d86974188bc4378d2bb079b30e5"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/adl/mod.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/census_container/mod.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 55629,
+      "lines": 1457,
+      "sha256": "c6bcd3969e274bf5240526a38561fcaa7ed394bc4a9ac0fefed4f01f03eae4f1",
+      "git_blob": "1be353ab136ab5b8924a29bc05c5c8d227cd958a",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:b8a666936822966a0d93ba8f7932dbc8",
+        "path": "core/src/codara/artifact/census_container/mod.rs",
+        "digest": "sha256:c6bcd3969e274bf5240526a38561fcaa7ed394bc4a9ac0fefed4f01f03eae4f1"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/census_container/mod.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/census_container/schema.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 35673,
+      "lines": 954,
+      "sha256": "29f934d2bb0609c5dfa8642b3fb00140de58e5886b2399ea90f68bb741ffbdbf",
+      "git_blob": "9bacbc169c15a296904eee45fd333a6ad52fbf17",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:37b22bac9eced640aa0e1857e75c5d9f",
+        "path": "core/src/codara/artifact/census_container/schema.rs",
+        "digest": "sha256:29f934d2bb0609c5dfa8642b3fb00140de58e5886b2399ea90f68bb741ffbdbf"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/census_container/schema.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/census_container/schema_history.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 63593,
+      "lines": 1944,
+      "sha256": "b59828d2d95d1ee9ece669ede882915859fbf5fcb7c6b19df5f721cc150a8e25",
+      "git_blob": "90c8186d98183fce8393a636d1bfb37ceaea6da4",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:02df2c8694e23fa0872fb9b8622da665",
+        "path": "core/src/codara/artifact/census_container/schema_history.rs",
+        "digest": "sha256:b59828d2d95d1ee9ece669ede882915859fbf5fcb7c6b19df5f721cc150a8e25"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/census_container/schema_history.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/census_container/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 47697,
+      "lines": 1269,
+      "sha256": "e51169ecef27583a635aa5cad1d3b26e4fea21f0a2265a6789df08fd35e6cf13",
+      "git_blob": "c70b5b38f7b5e96ca180635078427a65fe33e636",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:e34ccdc4d92404e59686ac2ca7b87210",
+        "path": "core/src/codara/artifact/census_container/tests.rs",
+        "digest": "sha256:e51169ecef27583a635aa5cad1d3b26e4fea21f0a2265a6789df08fd35e6cf13"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/census_container/tests.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/census_container/typed.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 10882,
+      "lines": 287,
+      "sha256": "f4c1e5fb3e9b5efc0993062f9f1a8732e01a6f2e348e124333a6f24554452e5e",
+      "git_blob": "18b9a14e63de66a637edaabbcedb4890d10bb2a1",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:058565d9c9ace88a2d2c04782ff4cf4f",
+        "path": "core/src/codara/artifact/census_container/typed.rs",
+        "digest": "sha256:f4c1e5fb3e9b5efc0993062f9f1a8732e01a6f2e348e124333a6f24554452e5e"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/census_container/typed.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/census_container/typed_fixture.json",
+      "role": "pinned_fixture_or_test",
+      "bytes": 65517,
+      "lines": 2549,
+      "sha256": "19b48645a42d944f00421c42d7595b6adeccd51b61f34223e220cbec03b3bd9a",
+      "git_blob": "e9bd9190ef9f15f62fbd9b684add2b26827f348f",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:adb4acc107e331646e794f3632111504",
+        "path": "core/src/codara/artifact/census_container/typed_fixture.json",
+        "digest": "sha256:19b48645a42d944f00421c42d7595b6adeccd51b61f34223e220cbec03b3bd9a"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/census_container/typed_fixture.json"
+    },
+    {
+      "path": "core/src/codara/artifact/codec.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 50397,
+      "lines": 1355,
+      "sha256": "1951bbeba8be36dc7a4024e5e7f37969efe2c85e8222ba586666b087168e62bd",
+      "git_blob": "0fe35a9f26339563e1e0d849f584d4776d01395d",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:13c4de2bf195a229c28e8757856e6e17",
+        "path": "core/src/codara/artifact/codec.rs",
+        "digest": "sha256:1951bbeba8be36dc7a4024e5e7f37969efe2c85e8222ba586666b087168e62bd"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/fixture.bin",
+      "role": "pinned_fixture_or_test",
+      "bytes": 465,
+      "lines": 5,
+      "sha256": "7849d58956e964889390361eeecc99873ebcd52965e96f9b5a82e3bb278d7c95",
+      "git_blob": "b099b6a63a425cdbc1a38916c4c1236fe4f19ba8",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:ec22def0907ab7b545106b11c7285e4c",
+        "path": "core/src/codara/artifact/codec/fixture.bin",
+        "digest": "sha256:7849d58956e964889390361eeecc99873ebcd52965e96f9b5a82e3bb278d7c95"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/fixture.bin"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/fixture_module.json",
+      "role": "pinned_fixture_or_test",
+      "bytes": 5094,
+      "lines": 185,
+      "sha256": "08bd874aee4ff4e7bb3dd402215bb29f9db5fbb721e5f8f3536b1ef8d4fdda10",
+      "git_blob": "ae225e37d00895a3be677720f6904e0ada72dc52",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:23d196b5c3f1d6849ffb0f4578b6ec96",
+        "path": "core/src/codara/artifact/codec/fixture_module.json",
+        "digest": "sha256:08bd874aee4ff4e7bb3dd402215bb29f9db5fbb721e5f8f3536b1ef8d4fdda10"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/fixture_module.json"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/fixture_verify.codara",
+      "role": "pinned_fixture_or_test",
+      "bytes": 515,
+      "lines": 21,
+      "sha256": "ac82d797ebf78a0206d278c7c552af49b858942b0a4ee2ab64a5b72866eacfc6",
+      "git_blob": "fbc284360c5d095f73984da27f91b2665d1fee29",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:648968f55398e0241f2e3ee2c52982f4",
+        "path": "core/src/codara/artifact/codec/fixture_verify.codara",
+        "digest": "sha256:ac82d797ebf78a0206d278c7c552af49b858942b0a4ee2ab64a5b72866eacfc6"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/fixture_verify.codara"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/README.md",
+      "role": "pinned_fixture_or_test",
+      "bytes": 20767,
+      "lines": 280,
+      "sha256": "6316925b4da0771cc02aa336ff2fa0554aecadef7b8120e1b9623eb057c34073",
+      "git_blob": "56fb99fadc80a3e0bdb31c2561b0d4c950775708",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:739065b4b47e47572e036f042b862898",
+        "path": "core/src/codara/artifact/codec/parity/README.md",
+        "digest": "sha256:6316925b4da0771cc02aa336ff2fa0554aecadef7b8120e1b9623eb057c34073"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/README.md"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/cases.json",
+      "role": "pinned_fixture_or_test",
+      "bytes": 4904,
+      "lines": 160,
+      "sha256": "a010d9816870679f4ba22a15a7d26f3bb2b910278ee1340bee96984e59864f2a",
+      "git_blob": "a55e50b0f20f1f20f936ae1298269081cecd318a",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:10c03d8f646eb0075c1c167558e1594e",
+        "path": "core/src/codara/artifact/codec/parity/cases.json",
+        "digest": "sha256:a010d9816870679f4ba22a15a7d26f3bb2b910278ee1340bee96984e59864f2a"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/cases.json"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/codara-functions.cdr",
+      "role": "pinned_fixture_or_test",
+      "bytes": 531,
+      "lines": 21,
+      "sha256": "2c8b1a241a339722bbc139b3d24d049daa7c550397548cf4935280a8f06846a3",
+      "git_blob": "b97d1c7ae947a371f2ce302b08c7948348f8e0b2",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:1b2be6cb317f7058a8dce07e8a873c8f",
+        "path": "core/src/codara/artifact/codec/parity/codara-functions.cdr",
+        "digest": "sha256:2c8b1a241a339722bbc139b3d24d049daa7c550397548cf4935280a8f06846a3"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/codara-functions.cdr"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/codara-parity.cdr",
+      "role": "pinned_fixture_or_test",
+      "bytes": 517,
+      "lines": 21,
+      "sha256": "c45c543ce64bccd3b9eb6ec48e2bba602e0ccade0f8ac000789899076cebcf47",
+      "git_blob": "10757c00b7ac2373d6ca414d2f54de1214b668b1",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:f09f77c7215b56df056dbf87bf1adb23",
+        "path": "core/src/codara/artifact/codec/parity/codara-parity.cdr",
+        "digest": "sha256:c45c543ce64bccd3b9eb6ec48e2bba602e0ccade0f8ac000789899076cebcf47"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/codara-parity.cdr"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/codara-parity.payload",
+      "role": "pinned_fixture_or_test",
+      "bytes": 441,
+      "lines": 17,
+      "sha256": "326971364e2938aebbdf929227ad2c01a26d7b8066aaade84486b808cd9fd12b",
+      "git_blob": "75ea3a836bdf752a79ccba193abed023db4e4552",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:507f956eef0f4a6d8b590adb85c6b314",
+        "path": "core/src/codara/artifact/codec/parity/codara-parity.payload",
+        "digest": "sha256:326971364e2938aebbdf929227ad2c01a26d7b8066aaade84486b808cd9fd12b"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/codara-parity.payload"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence.json",
+      "role": "pinned_fixture_or_test",
+      "bytes": 17057,
+      "lines": 306,
+      "sha256": "9c9784254f48f21a977b6c736d1c33a284ba3c6f3c396abe1e2e4f0eb6a77975",
+      "git_blob": "a4cc76d89333ca30597275e76a3f30f198dab189",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence.json"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence/8e6734dc26287d1f6484bf488c0e601420054e684178016d0b084477bd1986cd.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 504,
+      "lines": 14,
+      "sha256": "0cab67b87e6cb89f97702e0de150bd8bc0fdb1fda5fa034bb8acbcf66b0c70b3",
+      "git_blob": "4744a8eb10f67f961139d0ea3289d5ff2a54c4d4",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence/8e6734dc26287d1f6484bf488c0e601420054e684178016d0b084477bd1986cd.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence/README.md",
+      "role": "pinned_fixture_or_test",
+      "bytes": 4733,
+      "lines": 68,
+      "sha256": "300090c86969ace0249a3a7c9d5b516474fc86e86177a240404221d71f7d9f7c",
+      "git_blob": "63bd3098b6fdf06788f7ea435bc456158535747c",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence/README.md"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence/check.py",
+      "role": "pinned_fixture_or_test",
+      "bytes": 1264,
+      "lines": 25,
+      "sha256": "308b06534b1990075d22ed0cb449c619da14a2fda67a0cfa8a8eac46409a3cc5",
+      "git_blob": "0ccadfbc931ad7841891ed1bf6dd94a45539c81a",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence/check.py"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence/payload-digest-mismatch.bin",
+      "role": "pinned_fixture_or_test",
+      "bytes": 521,
+      "lines": 18,
+      "sha256": "4aedd89818f337f1020c8d866186596228bb8224c9c2f7601fb2d4c971fbfcca",
+      "git_blob": "6f0b3e942f62822493b74c503be175349dec008b",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence/payload-digest-mismatch.bin"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence/payload-truncated.bin",
+      "role": "pinned_fixture_or_test",
+      "bytes": 520,
+      "lines": 18,
+      "sha256": "4a66f27d7ab076525b69b2acb79bade74d3e5944d9e258d13cdee57401ebb090",
+      "git_blob": "29617bab906b3c7c2bc4b64fcf8bdba1b38fc413",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence/payload-truncated.bin"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/full-evidence/pre-header-truncated.bin",
+      "role": "pinned_fixture_or_test",
+      "bytes": 7,
+      "lines": 1,
+      "sha256": "d304808b6ff364eccabc944a1d6c7b29bfcd8077dc8f3ffb366bf6a895733e1d",
+      "git_blob": "898e625f9c2862e0dcdb634364c806ded23bd095",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/full-evidence/pre-header-truncated.bin"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/09da9a3f296e0b230bf15fe0f3824a8459c2ef17fa88110b2c287a4f3d7ad5ed.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 722,
+      "lines": 30,
+      "sha256": "0d6f7cdb8ff8c26759c562ca805cce4e9bce0179425f5c6d25459ec83a1d43db",
+      "git_blob": "304c481d57a6f83bb709b9b04586462169428ada",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:7da96c93ca51b593031cfcc468e0ba52",
+        "path": "core/src/codara/artifact/codec/parity/legacy/09da9a3f296e0b230bf15fe0f3824a8459c2ef17fa88110b2c287a4f3d7ad5ed.atlasx",
+        "digest": "sha256:0d6f7cdb8ff8c26759c562ca805cce4e9bce0179425f5c6d25459ec83a1d43db"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/09da9a3f296e0b230bf15fe0f3824a8459c2ef17fa88110b2c287a4f3d7ad5ed.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/0b0bdd5d649420d71b7437d0ac850b672b3fefb647e9eafe4cf905a5a46db9f8.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 401,
+      "lines": 17,
+      "sha256": "81fecc0d2a53eae3fe434d9da99eb1bf4a4ba4f1923d2b520bd389cfd2a1e717",
+      "git_blob": "70b4c95bfbbea36603c3f3d032870d791de1f9f9",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:f7bb6230401f4cb7984d57c156ad1c36",
+        "path": "core/src/codara/artifact/codec/parity/legacy/0b0bdd5d649420d71b7437d0ac850b672b3fefb647e9eafe4cf905a5a46db9f8.atlasx",
+        "digest": "sha256:81fecc0d2a53eae3fe434d9da99eb1bf4a4ba4f1923d2b520bd389cfd2a1e717"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/0b0bdd5d649420d71b7437d0ac850b672b3fefb647e9eafe4cf905a5a46db9f8.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/23e83671d9d8f29cf629b8437df67f007254d6231c31d1a5400bc16258da4f7a.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 370,
+      "lines": 16,
+      "sha256": "75bb74ef7809457981e63ba281c2e12e50fe94aa31dfb2db34b86a1f9a4d75e6",
+      "git_blob": "dc3d0e6399a92cb8aac7a4a9ee0a31e8d2b33edd",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:82ce4e640e16f9220a712aceda999d30",
+        "path": "core/src/codara/artifact/codec/parity/legacy/23e83671d9d8f29cf629b8437df67f007254d6231c31d1a5400bc16258da4f7a.atlasx",
+        "digest": "sha256:75bb74ef7809457981e63ba281c2e12e50fe94aa31dfb2db34b86a1f9a4d75e6"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/23e83671d9d8f29cf629b8437df67f007254d6231c31d1a5400bc16258da4f7a.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/408ff690f7a55dd9495c221f78ee317a63c804e84073396469283916b300d228.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 401,
+      "lines": 14,
+      "sha256": "e59b5e41ad474daded25ab663e4453bc295c732c76b797bf1f437ccb9d99b00e",
+      "git_blob": "db1507957aa69e26533549545b1317d36ce114a1",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:52be21980b7ccaa48ed9afe2b8704241",
+        "path": "core/src/codara/artifact/codec/parity/legacy/408ff690f7a55dd9495c221f78ee317a63c804e84073396469283916b300d228.atlasx",
+        "digest": "sha256:e59b5e41ad474daded25ab663e4453bc295c732c76b797bf1f437ccb9d99b00e"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/408ff690f7a55dd9495c221f78ee317a63c804e84073396469283916b300d228.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 81,
+      "lines": 3,
+      "sha256": "83ca2b98bdfc9c968e9bc053e5498459773e9c7d9fe5d541f0c1984c6914f8ae",
+      "git_blob": "496e1d717a89ea3cd6ad9652152228f0dbceccf9",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:cf4f9496323d07d59b1febab78da507e",
+        "path": "core/src/codara/artifact/codec/parity/legacy/48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b.atlasx",
+        "digest": "sha256:83ca2b98bdfc9c968e9bc053e5498459773e9c7d9fe5d541f0c1984c6914f8ae"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/666c0c7f063e8dd22e766861a9d663c4eb547e99688f77bdce93c2bc708956d6.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 402,
+      "lines": 15,
+      "sha256": "ff4e23730d97925334a08da7c9b4618dc0f93a08e6c9f2ef4b432e1471773520",
+      "git_blob": "a690acf09a8628eebe515103c9c30d4458ed1bab",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:03b6614c9ecfca2377f8592940908db6",
+        "path": "core/src/codara/artifact/codec/parity/legacy/666c0c7f063e8dd22e766861a9d663c4eb547e99688f77bdce93c2bc708956d6.atlasx",
+        "digest": "sha256:ff4e23730d97925334a08da7c9b4618dc0f93a08e6c9f2ef4b432e1471773520"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/666c0c7f063e8dd22e766861a9d663c4eb547e99688f77bdce93c2bc708956d6.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/6d40a74b7ca996bf87259d5a7678a96129df238265f1988d92ae57a9b9378f08.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 418,
+      "lines": 15,
+      "sha256": "b0f7c01f9c45c975c8e777cdee40ced69d58085802be24d15a3ff1ff2709991f",
+      "git_blob": "ec39accff34fb7a08b8332336c58cee275cace1e",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:fe69b4aa0d3c3519f438952fe94d8626",
+        "path": "core/src/codara/artifact/codec/parity/legacy/6d40a74b7ca996bf87259d5a7678a96129df238265f1988d92ae57a9b9378f08.atlasx",
+        "digest": "sha256:b0f7c01f9c45c975c8e777cdee40ced69d58085802be24d15a3ff1ff2709991f"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/6d40a74b7ca996bf87259d5a7678a96129df238265f1988d92ae57a9b9378f08.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 521,
+      "lines": 18,
+      "sha256": "c7f05495d5c43608f55f3c12ca44b1f077755f337919664b4716ff44066d48ef",
+      "git_blob": "74886d96eae2601762ca497b8e6ebc740a9a57c0",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:3ede2cbc0d0b88eb542067fad51b7953",
+        "path": "core/src/codara/artifact/codec/parity/legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx",
+        "digest": "sha256:c7f05495d5c43608f55f3c12ca44b1f077755f337919664b4716ff44066d48ef"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/abf9878cac8cadb4f8f6ca76d7d55ce0958982ebfbd610e47a32720bc3aab5a2.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 97,
+      "lines": 2,
+      "sha256": "5ef95c28bdaf2e3b3ce25aa183bc4d4cf1d59b04d1386e95b0645f4ddbef7058",
+      "git_blob": "6e2f8f9b189bdebca370cc753ecd6e7abb613796",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:12743767545112b029d3e485724ca365",
+        "path": "core/src/codara/artifact/codec/parity/legacy/abf9878cac8cadb4f8f6ca76d7d55ce0958982ebfbd610e47a32720bc3aab5a2.atlasx",
+        "digest": "sha256:5ef95c28bdaf2e3b3ce25aa183bc4d4cf1d59b04d1386e95b0645f4ddbef7058"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/abf9878cac8cadb4f8f6ca76d7d55ce0958982ebfbd610e47a32720bc3aab5a2.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 80,
+      "lines": 1,
+      "sha256": "452d8c4791c81a36c62aba9028b314ef49ce5180d735baf1e2e466826764dbd7",
+      "git_blob": "64ff78b670db5d2ffa64b0335332d030a9e27012",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:837abc010c58ae1140201993b339bc9c",
+        "path": "core/src/codara/artifact/codec/parity/legacy/af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262.atlasx",
+        "digest": "sha256:452d8c4791c81a36c62aba9028b314ef49ce5180d735baf1e2e466826764dbd7"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/bbe3e0411e32a1b51aa4f32f24ef5c1fff6519bb639bb402815c3443636567af.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 311,
+      "lines": 13,
+      "sha256": "2019c874885838ede90428b2c0c7372e3f630be852395424b1c7b1c809e253b6",
+      "git_blob": "574814c49dd8dad6df6bf9200b31fbb70991e0b4",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:58650acd46ff6c481c25409dd4552b24",
+        "path": "core/src/codara/artifact/codec/parity/legacy/bbe3e0411e32a1b51aa4f32f24ef5c1fff6519bb639bb402815c3443636567af.atlasx",
+        "digest": "sha256:2019c874885838ede90428b2c0c7372e3f630be852395424b1c7b1c809e253b6"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/bbe3e0411e32a1b51aa4f32f24ef5c1fff6519bb639bb402815c3443636567af.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/daac7f63b875bc008059dbd2d5ffc73765817faf523d5d50945cc6b649ee2a49.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 521,
+      "lines": 17,
+      "sha256": "fbbe0aa1a43217c9f98b76542ad688e13b730f4ac9bcee2104ac4b7882c52a8d",
+      "git_blob": "516fd6ecad4d9fdc590a36ff0fcc766b1c468bb0",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:5bee7de0eb0eb6e1c33c6559cdc32179",
+        "path": "core/src/codara/artifact/codec/parity/legacy/daac7f63b875bc008059dbd2d5ffc73765817faf523d5d50945cc6b649ee2a49.atlasx",
+        "digest": "sha256:fbbe0aa1a43217c9f98b76542ad688e13b730f4ac9bcee2104ac4b7882c52a8d"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/daac7f63b875bc008059dbd2d5ffc73765817faf523d5d50945cc6b649ee2a49.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/legacy/f9d9a8fddec9c5ec9d0e364634a180e784b758f67ab51c9caa381020081f180e.atlasx",
+      "role": "pinned_fixture_or_test",
+      "bytes": 418,
+      "lines": 16,
+      "sha256": "e6f97c54205434faa314faca0b2dea4c161f77632d4b926e3ed1d7455c238db3",
+      "git_blob": "4796d04d7ce4d99921675c5e96dcbc9800b9d729",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:d098151158d0d504fc15df898369e2a5",
+        "path": "core/src/codara/artifact/codec/parity/legacy/f9d9a8fddec9c5ec9d0e364634a180e784b758f67ab51c9caa381020081f180e.atlasx",
+        "digest": "sha256:e6f97c54205434faa314faca0b2dea4c161f77632d4b926e3ed1d7455c238db3"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/parity/legacy/f9d9a8fddec9c5ec9d0e364634a180e784b758f67ab51c9caa381020081f180e.atlasx"
+    },
+    {
+      "path": "core/src/codara/artifact/codec/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 56988,
+      "lines": 1498,
+      "sha256": "7b862d4d2a40615b5cf4da028cc57bf0749832e820f2facfe99ae8d1fd4ba028",
+      "git_blob": "c79d1253902086c0fe7394f75d0af895f2231022",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:8fb2c232a81dc1a3610b4b7a3f42a1d1",
+        "path": "core/src/codara/artifact/codec/tests.rs",
+        "digest": "sha256:35b2f915b52307723a3805097d55aeb7920814d86d165a809ff29c6993b83ea2"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/codec/tests.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/manifest.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 14084,
+      "lines": 338,
+      "sha256": "57ef47d73e5b41917bca120ffa8f21d83439a2c2df934201aab3e111f20ad0e2",
+      "git_blob": "ee8aca5e3bb0889a48b81eae015c69402c26d5ff",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:95fd17a65ef07210704533243c941ae7",
+        "path": "core/src/codara/artifact/manifest.rs",
+        "digest": "sha256:57ef47d73e5b41917bca120ffa8f21d83439a2c2df934201aab3e111f20ad0e2"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/manifest.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/manifest/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 14391,
+      "lines": 380,
+      "sha256": "5abb5cf75115ef2bf481e44e32ed4921d083793459a11289496012f09ef53dc3",
+      "git_blob": "1d7ac942e188735a4f2bbe96ba5f84631ac90438",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:081d298a06b716aa14ff2d686280625c",
+        "path": "core/src/codara/artifact/manifest/tests.rs",
+        "digest": "sha256:5abb5cf75115ef2bf481e44e32ed4921d083793459a11289496012f09ef53dc3"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/manifest/tests.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/mod.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 885,
+      "lines": 21,
+      "sha256": "b9ac7daa01cb8f5f6d3cd578f252d9626a64fdd8ed14e863b74d0c9e7a0c5d82",
+      "git_blob": "8a4f8ab8b5a7bc5930e0f626bdc03129de6ec278",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:dd3a6b0aa23c33c7b1e9abea7e1e7c12",
+        "path": "core/src/codara/artifact/mod.rs",
+        "digest": "sha256:b9ac7daa01cb8f5f6d3cd578f252d9626a64fdd8ed14e863b74d0c9e7a0c5d82"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/mod.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/fixture.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 13792,
+      "lines": 376,
+      "sha256": "2b4c4d64022b367008163330302467467d5a70ae2c8a77c143e11a766937e018",
+      "git_blob": "9d9b44b01188c292f859ca9447410735e0277841",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:8efd72861a4711c7ed0db65025f40e15",
+        "path": "core/src/codara/artifact/staging/fixture.rs",
+        "digest": "sha256:2b4c4d64022b367008163330302467467d5a70ae2c8a77c143e11a766937e018"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/fixture.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/materialize.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 23540,
+      "lines": 551,
+      "sha256": "0370e9b422f96cb122d1142e70ec273f4c82cc4b0647e0a6c608787cb1f887b6",
+      "git_blob": "bdc9b224db9ae68fad47effb03e76186046060d8",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:a4db84a3a84ec96e7db614f721f2fadf",
+        "path": "core/src/codara/artifact/staging/materialize.rs",
+        "digest": "sha256:0370e9b422f96cb122d1142e70ec273f4c82cc4b0647e0a6c608787cb1f887b6"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/materialize.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/materialize/census_records.json",
+      "role": "pinned_fixture_or_test",
+      "bytes": 8551,
+      "lines": 340,
+      "sha256": "19b7609a1355e19c28a144c57068f1ebce9a07ebf7cc1b963c32616803d05baf",
+      "git_blob": "b0f5bf7c1fe114174fc8821e3ec3225a4fc5940b",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:742b87aaea659ac51971151096d41660",
+        "path": "core/src/codara/artifact/staging/materialize/census_records.json",
+        "digest": "sha256:19b7609a1355e19c28a144c57068f1ebce9a07ebf7cc1b963c32616803d05baf"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/materialize/census_records.json"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/materialize/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 17774,
+      "lines": 452,
+      "sha256": "7affba0999b7923f43b13c28d34c60160f2b2465abd0084d569fe97dfe9bdf37",
+      "git_blob": "e5986cf9e91e76f70e7d837d843fcab8c68ba4c9",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:edb9537ccfb1fca1a3277588b4b26106",
+        "path": "core/src/codara/artifact/staging/materialize/tests.rs",
+        "digest": "sha256:7affba0999b7923f43b13c28d34c60160f2b2465abd0084d569fe97dfe9bdf37"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/materialize/tests.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/mod.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 2505,
+      "lines": 41,
+      "sha256": "a071598d89b1c2a93fafc38f2c8db147eada462482e3f0d84add18c8dc0f1db9",
+      "git_blob": "cd642a68f3fc26f5a73c7943308a1c2a24e8fc49",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:9b0cac048c253007779c2ca58838310c",
+        "path": "core/src/codara/artifact/staging/mod.rs",
+        "digest": "sha256:a071598d89b1c2a93fafc38f2c8db147eada462482e3f0d84add18c8dc0f1db9"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/mod.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/precondition.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 20982,
+      "lines": 511,
+      "sha256": "194dda36acf8ab37d939666f1b37841f5580787169aff43f700704be1a1a90a2",
+      "git_blob": "e952af469d7c2be16f7d587677be84edd788dc62",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:9f9335ea7fb8166f1c1ff537bb679dc3",
+        "path": "core/src/codara/artifact/staging/precondition.rs",
+        "digest": "sha256:194dda36acf8ab37d939666f1b37841f5580787169aff43f700704be1a1a90a2"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/precondition.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/precondition/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 33642,
+      "lines": 841,
+      "sha256": "019cd0af33efdff534cb57b7c32065f8e9c403985c65601bca6b61d80037efa9",
+      "git_blob": "924875683ee2a84ba88348686f134236cfd68639",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:17e1062c9f21b72d82430a24cb5647be",
+        "path": "core/src/codara/artifact/staging/precondition/tests.rs",
+        "digest": "sha256:019cd0af33efdff534cb57b7c32065f8e9c403985c65601bca6b61d80037efa9"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/precondition/tests.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/validate.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 23468,
+      "lines": 560,
+      "sha256": "592d1f4a6379b2d992086139390601d7048e37add99157c6d7794fe8535c1230",
+      "git_blob": "095a9c54e3883fc40a591fc5366929c324d4d690",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:90cfc0e067fd843310d7413bab56900d",
+        "path": "core/src/codara/artifact/staging/validate.rs",
+        "digest": "sha256:592d1f4a6379b2d992086139390601d7048e37add99157c6d7794fe8535c1230"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/validate.rs"
+    },
+    {
+      "path": "core/src/codara/artifact/staging/validate/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 34164,
+      "lines": 889,
+      "sha256": "b5fbae75fbdcf2fd5881beccb05de77526afa5ca7967be415ebaf8170e9f3758",
+      "git_blob": "dfda0630e73ae86a6690b61decf24b5752b559af",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:6cf421c63c5553520c0d7877e96715eb",
+        "path": "core/src/codara/artifact/staging/validate/tests.rs",
+        "digest": "sha256:b5fbae75fbdcf2fd5881beccb05de77526afa5ca7967be415ebaf8170e9f3758"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/artifact/staging/validate/tests.rs"
+    },
+    {
+      "path": "core/src/codara/construction/mod.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 31118,
+      "lines": 837,
+      "sha256": "6afa0a1546d9df16ad1d080d1345dbe90eed9679404566bd538fa0e8b1fbee08",
+      "git_blob": "75ab45ecaf456b673314c40422491d7bbdf7d827",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:b9e79948414c5031c6b2d429492a070f",
+        "path": "core/src/codara/construction/mod.rs",
+        "digest": "sha256:6afa0a1546d9df16ad1d080d1345dbe90eed9679404566bd538fa0e8b1fbee08"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/construction/mod.rs"
+    },
+    {
+      "path": "core/src/codara/construction/rust.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 10599,
+      "lines": 299,
+      "sha256": "3e65adff5409aae98c1df487d0c895fd3d9bcea89bf3782038e0bde36e62e038",
+      "git_blob": "c879b768b4f8f1ba443fdef9edad7cc20e205b69",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:e0414eececc1a961e3962abc222e9334",
+        "path": "core/src/codara/construction/rust.rs",
+        "digest": "sha256:3e65adff5409aae98c1df487d0c895fd3d9bcea89bf3782038e0bde36e62e038"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/construction/rust.rs"
+    },
+    {
+      "path": "core/src/codara/construction/tests.rs",
+      "role": "pinned_fixture_or_test",
+      "bytes": 18551,
+      "lines": 547,
+      "sha256": "9359b3b68fba4126b54a95e524a1edb186715c202dde57cd0a3ece45b8fae96e",
+      "git_blob": "216600c2b4599fbae5a64b579ae518311abf4949",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:a6c08b747f19e433db047b6a4ef7b53b",
+        "path": "core/src/codara/construction/tests.rs",
+        "digest": "sha256:9359b3b68fba4126b54a95e524a1edb186715c202dde57cd0a3ece45b8fae96e"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/construction/tests.rs"
+    },
+    {
+      "path": "core/src/codara/mod.rs",
+      "role": "pure_source_compiler_or_artifact",
+      "bytes": 53,
+      "lines": 3,
+      "sha256": "086a1bcfa817744e96c63b2bdb8967f373214fe37cd0e90266c8fb8454faa803",
+      "git_blob": "dd88eea0741fdabb5c796c8595aba7bfc002a1a1",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:4e792b9b24825f5eecd487971885e7da",
+        "path": "core/src/codara/mod.rs",
+        "digest": "sha256:086a1bcfa817744e96c63b2bdb8967f373214fe37cd0e90266c8fb8454faa803"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/codara/mod.rs"
+    },
+    {
+      "path": "core/src/lib.rs",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 5381,
+      "lines": 131,
+      "sha256": "8dc7baf8da17cffec4fcb3972b7ebbaa8ac744c8a7cabaa84d19b95187f8b987",
+      "git_blob": "b06eb3c433ecd5eba1866f7adee0783a5decb010",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:75ab069fb32be442ce6242784ca1947d",
+        "path": "core/src/lib.rs",
+        "digest": "sha256:8dc7baf8da17cffec4fcb3972b7ebbaa8ac744c8a7cabaa84d19b95187f8b987"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:core/src/lib.rs"
+    },
+    {
+      "path": "tools/atlas/contracts/FUNCTIONS-LOSSLESS-EVIDENCE-HANDOFF.md",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 19570,
+      "lines": 324,
+      "sha256": "27db73d8eb35ec19102fee101a7ba074906d5687c3f8106c727cbb493e1281de",
+      "git_blob": "4e7abaa698d2761409d58ca0f0bd8a6b57949cdd",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:tools/atlas/contracts/FUNCTIONS-LOSSLESS-EVIDENCE-HANDOFF.md"
+    },
+    {
+      "path": "tools/atlas/contracts/NATIVE-V1-SOURCE-CONTRIBUTION.md",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 16688,
+      "lines": 141,
+      "sha256": "8e454722d816ef47a6152cdfffa6f5b1b402b7429ae10878ebf2770c09cb166e",
+      "git_blob": "c0420e4b72e05f82cbc787f4cb26f91c2d6627b4",
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:tools/atlas/contracts/NATIVE-V1-SOURCE-CONTRIBUTION.md"
+    },
+    {
+      "path": "tools/atlas/declared/system.adl",
+      "role": "shared_boundary_or_documentation",
+      "bytes": 2624,
+      "lines": 137,
+      "sha256": "0779ffb6d4df86d516928563811123d806f5c7605de74bc727e8441cef71541d",
+      "git_blob": "ca9dc9b7105792d6a86372fc0b8f0fafdd1bccec",
+      "historical_saved_workspace_artifact": {
+        "id": "art1:385f8e7921c0d9a7da0f9e458b9905dc",
+        "path": "tools/atlas/declared/system.adl",
+        "digest": "sha256:0779ffb6d4df86d516928563811123d806f5c7605de74bc727e8441cef71541d"
+      },
+      "content_source": "immutable git show 0bed61abbf05df6b0a323cfcaf7013e371548408:tools/atlas/declared/system.adl"
+    }
+  ],
+  "entrypoint_edges": [
+    {
+      "entrypoint": "atlas-systemizer parse",
+      "semantics": "Legacy ADL source parsing; no authority/admission.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI parse",
+          "callee": "runtime::parse",
+          "path": "apps/cli/src/main.rs",
+          "line": 162,
+          "kind": "direct",
+          "source_line": "let programs = runtime::parse(&root).map_err(|e| format!(\"{root}: {e}\"))?;"
+        },
+        {
+          "caller": "runtime::parse",
+          "callee": "adapter::read_adl_sources",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 584,
+          "kind": "direct",
+          "source_line": "let sources = adapter::read_adl_sources(root)?;"
+        },
+        {
+          "caller": "runtime::parse",
+          "callee": "atlas_core::codara::adl::parse_adl_source",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 585,
+          "kind": "direct",
+          "source_line": "Ok(sources.iter().map(parse_adl_source).collect())"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI parse",
+          "path": "apps/cli/src/main.rs",
+          "line": 160
+        },
+        {
+          "symbol": "runtime::parse",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 583
+        },
+        {
+          "symbol": "adapter::read_adl_sources",
+          "path": "adapter/src/lib.rs",
+          "line": 43
+        },
+        {
+          "symbol": "atlas_core::codara::adl::parse_adl_source",
+          "path": "core/src/codara/adl/mod.rs",
+          "line": 787
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer systemize / graph / code analyze",
+      "semantics": "Shared repository/source observation feeds the existing ADL compiler and constraint reconciliation; root re-export preserves caller contract.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "runtime::systemize_with",
+          "callee": "runtime::gather_census_inputs",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 352,
+          "kind": "direct",
+          "source_line": "let mut inputs = gather_census_inputs(root, cache.as_deref_mut())?;"
+        },
+        {
+          "caller": "runtime::graph",
+          "callee": "runtime::gather_census_inputs",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 506,
+          "kind": "direct",
+          "source_line": "let mut inputs = gather_census_inputs(root, None)?;"
+        },
+        {
+          "caller": "runtime::code_analyze",
+          "callee": "runtime::gather_census_inputs",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 541,
+          "kind": "direct",
+          "source_line": "let mut inputs = gather_census_inputs(root, None)?;"
+        },
+        {
+          "caller": "runtime::gather_census_inputs",
+          "callee": "atlas_core::codara::adl::compile_adl",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 212,
+          "kind": "direct",
+          "source_line": "let mut adl = compile_adl(&adl_sources, &source);"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "runtime::gather_census_inputs",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 201
+        },
+        {
+          "symbol": "atlas_core::compile_adl",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 212
+        },
+        {
+          "symbol": "atlas_core::codara::adl::compile_adl",
+          "path": "core/src/codara/adl/mod.rs",
+          "line": 1015
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer adl derive",
+      "semantics": "Observed declaration projection; --check detects authored census.adl drift.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI adl derive",
+          "callee": "runtime::derive_census_adl",
+          "path": "apps/cli/src/main.rs",
+          "line": 342,
+          "kind": "direct",
+          "source_line": "let derived = runtime::derive_census_adl(&root).map_err(|e| format!(\"{root}: {e}\"))?;"
+        },
+        {
+          "caller": "runtime::derive_census_adl",
+          "callee": "atlas_core::codara::adl::census::derive_census_adl",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 285,
+          "kind": "direct",
+          "source_line": "let membership = atlas_core::derive_census_adl("
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI adl derive",
+          "path": "apps/cli/src/main.rs",
+          "line": 338
+        },
+        {
+          "symbol": "runtime::derive_census_adl",
+          "path": "adapter/runtime/src/lib.rs",
+          "line": 269
+        },
+        {
+          "symbol": "atlas_core::codara::adl::census::derive_census_adl",
+          "path": "core/src/codara/adl/census.rs",
+          "line": 347
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlas pack",
+      "semantics": "Census/certificate → unsealed legacy .atlas; encode/decode equality precedes transactional publication.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlas pack",
+          "callee": "runtime::atlas::pack",
+          "path": "apps/cli/src/main.rs",
+          "line": 327,
+          "kind": "direct",
+          "source_line": "let packed = runtime::atlas::pack(&root, &out).map_err(|e| format!(\"{root}: {e}\"))?;"
+        },
+        {
+          "caller": "runtime::atlas::pack",
+          "callee": "runtime::atlas::census_atlas",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 263,
+          "kind": "direct",
+          "source_line": "publish(&census_atlas(root)?, out.as_ref())"
+        },
+        {
+          "caller": "runtime::atlas::pack",
+          "callee": "runtime::atlas::publish",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 263,
+          "kind": "direct",
+          "source_line": "publish(&census_atlas(root)?, out.as_ref())"
+        },
+        {
+          "caller": "runtime::atlas::census_atlas",
+          "callee": "runtime::atlas::atlas_of",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 191,
+          "kind": "direct",
+          "source_line": "atlas_of(&report, &genome_schema, &genome_hash, &certificate)"
+        },
+        {
+          "caller": "runtime::atlas::publish",
+          "callee": "atlas_core::codara::artifact::census_container::write",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 239,
+          "kind": "direct",
+          "source_line": "let bytes = write(atlas).map_err(|e| invalid(e.to_string()))?;"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI atlas pack",
+          "path": "apps/cli/src/main.rs",
+          "line": 322
+        },
+        {
+          "symbol": "runtime::atlas::pack",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 262
+        },
+        {
+          "symbol": "runtime::atlas::census_atlas",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 172
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::census_container::write",
+          "path": "core/src/codara/artifact/census_container/mod.rs",
+          "line": 536
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlas verify / census certificate --atlas",
+      "semantics": "Exact legacy container verification; with --root compare fresh census. certificate_with_atlas is another real CLI caller.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlas verify",
+          "callee": "runtime::atlas::verify",
+          "path": "apps/cli/src/main.rs",
+          "line": 334,
+          "kind": "direct",
+          "source_line": "let verified = runtime::atlas::verify(file, root.as_deref().map(std::path::Path::new))"
+        },
+        {
+          "caller": "CLI census certificate --atlas",
+          "callee": "runtime::atlas::certificate_with_atlas",
+          "path": "apps/cli/src/main.rs",
+          "line": 308,
+          "kind": "direct",
+          "source_line": "Some(atlas) => runtime::atlas::certificate_with_atlas(&root, &atlas)"
+        },
+        {
+          "caller": "runtime::atlas::certificate_with_atlas",
+          "callee": "runtime::atlas::verify",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 298,
+          "kind": "direct",
+          "source_line": "let verified = verify(atlas.as_ref(), Some(root))?;"
+        },
+        {
+          "caller": "runtime::atlas::verify",
+          "callee": "atlas_core::codara::artifact::census_container::read",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 271,
+          "kind": "direct",
+          "source_line": "let (atlas, root_id) = read(&bytes).map_err(|e| invalid(e.to_string()))?;"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI atlas verify",
+          "path": "apps/cli/src/main.rs",
+          "line": 330
+        },
+        {
+          "symbol": "runtime::atlas::verify",
+          "path": "adapter/runtime/src/atlas.rs",
+          "line": 268
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::census_container::read",
+          "path": "core/src/codara/artifact/census_container/mod.rs",
+          "line": 1040
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlasx precondition",
+      "semantics": "Declared policies/envelope/principals and exact parent reports are read by the runtime; the pure source gate/projection is not Chronica admission.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlasx precondition",
+          "callee": "runtime::atlasx::precondition",
+          "path": "apps/cli/src/main.rs",
+          "line": 484,
+          "kind": "direct",
+          "source_line": "runtime::atlasx::precondition(&parent.files()).map_err(|e| e.to_string())?;"
+        },
+        {
+          "caller": "runtime::atlasx::precondition",
+          "callee": "atlas_core::codara::artifact::staging::precondition",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 105,
+          "kind": "callback supplied to over_bytes",
+          "source_line": "over_bytes(files, atlas_core::codara::artifact::staging::precondition)"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI atlasx precondition",
+          "path": "apps/cli/src/main.rs",
+          "line": 475
+        },
+        {
+          "symbol": "runtime::atlasx::precondition",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 104
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::staging::precondition",
+          "path": "core/src/codara/artifact/staging/precondition.rs",
+          "line": 208
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlasx materialize",
+      "semantics": "Declared policies/envelope/principals and exact parent reports are read by the runtime; the pure source gate/projection is not Chronica admission.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlasx materialize",
+          "callee": "runtime::atlasx::materialize",
+          "path": "apps/cli/src/main.rs",
+          "line": 506,
+          "kind": "direct",
+          "source_line": "runtime::atlasx::materialize(&parent.files(), &out).map_err(|e| e.to_string())?;"
+        },
+        {
+          "caller": "runtime::atlasx::materialize",
+          "callee": "atlas_core::codara::artifact::staging::materialize",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 116,
+          "kind": "callback supplied to over_bytes",
+          "source_line": "let materialization = over_bytes(files, atlas_core::codara::artifact::staging::materialize)?;"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI atlasx materialize",
+          "path": "apps/cli/src/main.rs",
+          "line": 497
+        },
+        {
+          "symbol": "runtime::atlasx::materialize",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 115
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::staging::materialize",
+          "path": "core/src/codara/artifact/staging/materialize.rs",
+          "line": 167
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlasx validate",
+      "semantics": "Declared policies/envelope/principals and exact parent reports are read by the runtime; the pure source gate/projection is not Chronica admission.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlasx validate",
+          "callee": "runtime::atlasx::validate",
+          "path": "apps/cli/src/main.rs",
+          "line": 525,
+          "kind": "direct",
+          "source_line": "runtime::atlasx::validate(&parent.files(), &root).map_err(|e| e.to_string())?;"
+        },
+        {
+          "caller": "runtime::atlasx::validate",
+          "callee": "atlas_core::codara::artifact::staging::validate",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 346,
+          "kind": "callback supplied to over_bytes",
+          "source_line": "atlas_core::codara::artifact::staging::validate(&root, inputs)"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI atlasx validate",
+          "path": "apps/cli/src/main.rs",
+          "line": 515
+        },
+        {
+          "symbol": "runtime::atlasx::validate",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 343
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::staging::validate",
+          "path": "core/src/codara/artifact/staging/validate.rs",
+          "line": 223
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlasx codec --encode",
+      "semantics": "Construction module → canonical class-4/schema-1 legacy object; immutable create-or-identical-replay output.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlasx codec --encode",
+          "callee": "runtime::atlasx::encode_module",
+          "path": "apps/cli/src/main.rs",
+          "line": 554,
+          "kind": "direct",
+          "source_line": "runtime::atlasx::encode_module(&module, &out).map_err(|e| e.to_string())?;"
+        },
+        {
+          "caller": "runtime::atlasx::encode_module",
+          "callee": "atlas_core::codara::artifact::encode_module",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 368,
+          "kind": "direct",
+          "source_line": "let encoded = match atlas_core::codara::artifact::encode_module(&parsed) {"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI codec encode",
+          "path": "apps/cli/src/main.rs",
+          "line": 554
+        },
+        {
+          "symbol": "runtime::atlasx::encode_module",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 360
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::encode_module",
+          "path": "core/src/codara/artifact/codec.rs",
+          "line": 811
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlasx codec --decode",
+      "semantics": "Bounded named decode → full CodecReport; CLI report writes create-or-identical-replay. No conversion to a native target object.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlasx codec --decode",
+          "callee": "runtime::atlasx::decode_object",
+          "path": "apps/cli/src/main.rs",
+          "line": 575,
+          "kind": "direct",
+          "source_line": "runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;"
+        },
+        {
+          "caller": "runtime::atlasx::decode_object",
+          "callee": "runtime::atlasx::decode_at",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 432,
+          "kind": "direct",
+          "source_line": "Ok(decode_at(path, &bytes))"
+        },
+        {
+          "caller": "runtime::atlasx::decode_at",
+          "callee": "atlas_core::codara::artifact::decode_named",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 440,
+          "kind": "direct",
+          "source_line": "atlas_core::codara::artifact::decode_named(&name, bytes)"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI codec decode",
+          "path": "apps/cli/src/main.rs",
+          "line": 575
+        },
+        {
+          "symbol": "runtime::atlasx::decode_object",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 429
+        },
+        {
+          "symbol": "runtime::atlasx::decode_at",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 435
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::decode_named",
+          "path": "core/src/codara/artifact/codec.rs",
+          "line": 1334
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer atlasx codec --codara-payload",
+      "semantics": "Decode first, then immutable export of original payload bytes[80..] on DECODED only; refusals emit full report without writing payload.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI atlasx codec --codara-payload",
+          "callee": "runtime::atlasx::export_codara_payload",
+          "path": "apps/cli/src/main.rs",
+          "line": 591,
+          "kind": "direct",
+          "source_line": "let report = runtime::atlasx::export_codara_payload(&object, &out)"
+        },
+        {
+          "caller": "runtime::atlasx::export_codara_payload",
+          "callee": "runtime::atlasx::decode_at",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 460,
+          "kind": "direct",
+          "source_line": "let report = decode_at(object, &bytes);"
+        },
+        {
+          "caller": "runtime::atlasx::export_codara_payload",
+          "callee": "runtime::atlasx::write_object_or_replay",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 462,
+          "kind": "DECODED only",
+          "source_line": "write_object_or_replay(out.as_ref(), &bytes[codec::HEADER_LEN..])?;"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI codec payload",
+          "path": "apps/cli/src/main.rs",
+          "line": 591
+        },
+        {
+          "symbol": "runtime::atlasx::export_codara_payload",
+          "path": "adapter/runtime/src/atlasx.rs",
+          "line": 454
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::decode_named",
+          "path": "core/src/codara/artifact/codec.rs",
+          "line": 1334
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer self-reconstruct candidates / roots",
+      "semantics": "Select bounded candidate metadata or typed container roots, not native activation.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI self-reconstruct candidates",
+          "callee": "runtime::self_reconstruction::candidates",
+          "path": "apps/cli/src/main.rs",
+          "line": 660,
+          "kind": "direct",
+          "source_line": "let all = runtime::self_reconstruction::candidates(&model);"
+        },
+        {
+          "caller": "CLI self-reconstruct roots",
+          "callee": "runtime::self_reconstruction::target_roots",
+          "path": "apps/cli/src/main.rs",
+          "line": 679,
+          "kind": "direct",
+          "source_line": "runtime::self_reconstruction::target_roots(&container.typed_records, &path, &name);"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI self-reconstruct candidates",
+          "path": "apps/cli/src/main.rs",
+          "line": 650
+        },
+        {
+          "symbol": "runtime::self_reconstruction::candidates",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 50
+        },
+        {
+          "symbol": "runtime::self_reconstruction::target_roots",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 168
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "atlas-systemizer self-reconstruct attempt",
+      "semantics": "Typed records/design inputs → bounded Rust shadow and report. Original code is verification oracle only; invoking this path runs hosted cargo, NOT_RUN here.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "CLI self-reconstruct attempt",
+          "callee": "runtime::self_reconstruction::attempt",
+          "path": "apps/cli/src/main.rs",
+          "line": 713,
+          "kind": "direct",
+          "source_line": "runtime::self_reconstruction::attempt(&runtime::self_reconstruction::Attempt {"
+        },
+        {
+          "caller": "runtime::self_reconstruction::attempt",
+          "callee": "runtime::self_reconstruction::lift",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 1122,
+          "kind": "direct",
+          "source_line": "let module = lift("
+        },
+        {
+          "caller": "runtime::self_reconstruction::attempt",
+          "callee": "atlas_core::codara::construction::rust::emit",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 1130,
+          "kind": "direct",
+          "source_line": "let emission = atlas_core::codara::construction::rust::emit(&module);"
+        },
+        {
+          "caller": "runtime::self_reconstruction::attempt",
+          "callee": "runtime::self_reconstruction::write_shadow",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 1133,
+          "kind": "direct",
+          "source_line": "let source = write_shadow(a.root, &module, &emission).map_err(|e| e.to_string())?;"
+        },
+        {
+          "caller": "runtime::self_reconstruction::attempt",
+          "callee": "runtime::self_reconstruction::run_differential",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 1157,
+          "kind": "direct",
+          "source_line": "checks = run_differential(a.root, &module).map_err(|e| e.to_string())?;"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "CLI self-reconstruct attempt",
+          "path": "apps/cli/src/main.rs",
+          "line": 682
+        },
+        {
+          "symbol": "runtime::self_reconstruction::attempt",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 1119
+        },
+        {
+          "symbol": "runtime::self_reconstruction::lift",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 419
+        },
+        {
+          "symbol": "atlas_core::codara::construction::rust::emit",
+          "path": "core/src/codara/construction/rust.rs",
+          "line": 211
+        },
+        {
+          "symbol": "runtime::self_reconstruction::write_shadow",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 737
+        },
+        {
+          "symbol": "runtime::self_reconstruction::run_differential",
+          "path": "adapter/runtime/src/self_reconstruction.rs",
+          "line": 780
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    },
+    {
+      "entrypoint": "design / seal source prerequisites",
+      "semantics": "Shared evidence boundary; design/seal own distinct policy and authorization validation semantics. Not recommended for blanket relocation.",
+      "validation": "manual read of current production dispatch/calls; execution NOT_RUN",
+      "calls": [
+        {
+          "caller": "runtime::seal::gate_container",
+          "callee": "runtime::design::read_container",
+          "path": "adapter/runtime/src/seal.rs",
+          "line": 134,
+          "kind": "direct",
+          "source_line": "let (atlas, root_id) = read_container(container)?;"
+        },
+        {
+          "caller": "runtime::design::read_container",
+          "callee": "atlas_core::codara::artifact::census_container::read",
+          "path": "adapter/runtime/src/design.rs",
+          "line": 53,
+          "kind": "direct",
+          "source_line": "let (atlas, root) = read(&bytes).map_err(invalid)?;"
+        }
+      ],
+      "stage_index": [
+        {
+          "symbol": "runtime::design::read_container",
+          "path": "adapter/runtime/src/design.rs",
+          "line": 51
+        },
+        {
+          "symbol": "atlas_core::codara::artifact::census_container::read",
+          "path": "core/src/codara/artifact/census_container/mod.rs",
+          "line": 1040
+        },
+        {
+          "symbol": "runtime::seal::gate_container",
+          "path": "adapter/runtime/src/seal.rs",
+          "line": 125
+        }
+      ],
+      "stage_index_note": "navigation index only; calls is the actual directed caller relation (stages may branch, not a linear call chain)"
+    }
+  ],
+  "production_reference_index": [
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 90,
+      "text": "declared: runtime::atlasx::Declared,",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 118,
+      "text": "let declared = runtime::atlasx::read_declared(&root).map_err(|e| format!(\"{root}: {e}\"))?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 128,
+      "text": "fn files(&self) -> runtime::atlasx::ParentFiles<'_> {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 129,
+      "text": "runtime::atlasx::ParentFiles {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 308,
+      "text": "Some(atlas) => runtime::atlas::certificate_with_atlas(&root, &atlas)",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 327,
+      "text": "let packed = runtime::atlas::pack(&root, &out).map_err(|e| format!(\"{root}: {e}\"))?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 334,
+      "text": "let verified = runtime::atlas::verify(file, root.as_deref().map(std::path::Path::new))",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 484,
+      "text": "runtime::atlasx::precondition(&parent.files()).map_err(|e| e.to_string())?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 490,
+      "text": "if verdict.verdict != runtime::atlasx::PreconditionVerdict::Admitted {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 506,
+      "text": "runtime::atlasx::materialize(&parent.files(), &out).map_err(|e| e.to_string())?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 508,
+      "text": "if result.verdict != runtime::atlasx::MaterializationVerdict::Staged {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 525,
+      "text": "runtime::atlasx::validate(&parent.files(), &root).map_err(|e| e.to_string())?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 531,
+      "text": "if verdict.verdict != runtime::atlasx::ValidationVerdict::Valid {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 554,
+      "text": "runtime::atlasx::encode_module(&module, &out).map_err(|e| e.to_string())?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 561,
+      "text": "\"verdict\": runtime::atlasx::CodecVerdict::Refused,",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 575,
+      "text": "runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 581,
+      "text": "if report.verdict != runtime::atlasx::CodecVerdict::Decoded {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 591,
+      "text": "let report = runtime::atlasx::export_codara_payload(&object, &out)",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 594,
+      "text": "if report.verdict != runtime::atlasx::CodecVerdict::Decoded {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 660,
+      "text": "let all = runtime::self_reconstruction::candidates(&model);",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 663,
+      "text": "\"schema\": runtime::self_reconstruction::CANDIDATES_SCHEMA,",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 679,
+      "text": "runtime::self_reconstruction::target_roots(&container.typed_records, &path, &name);",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 713,
+      "text": "runtime::self_reconstruction::attempt(&runtime::self_reconstruction::Attempt {",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "line": 723,
+      "text": "let violations = runtime::self_reconstruction::validate(&container, &module, &report);",
+      "kind": "immutable commit text reference; directed calls manually checked"
+    }
+  ],
+  "identity_notes": [
+    "Historical saved-workspace art1 IDs, where attached, come from /tmp/atlas-codara-container-wave/artifacts-final.jsonl and are not a fresh native census or a reissued current classification.",
+    "Runtime inventory ArtifactIds are separately path-derived by adapter/src/source/mod.rs::artifact_id; physical moves require an explicit reviewed preservation/relocation plan, not claims of automatic stable runtime IDs.",
+    "Construction module/report IDs hash compact serialized structs with their own ID cleared; historical field ordering and identity prefixes remain frozen.",
+    "Historical MATERIALIZER_IDENTITY atlas_core::atlasx::materialize is persisted data, not a live module locator to rename."
+  ],
+  "execution": {
+    "tests": "NOT_RUN",
+    "heavy_self_census": "NOT_RUN",
+    "target_execution": "NOT_RUN",
+    "repository_edits": false
+  },
+  "recommendation": {
+    "status": "PROPOSED only; no implementation",
+    "smallest_real_move": "Move the implementation in adapter/runtime/src/atlasx.rs into an actual runtime::codara::artifact residence, switch current CLI production callers to it, retain the existing runtime::atlasx public compatibility route without a second implementation.",
+    "conditional_identity_gate": "Freeze source/fixture hashes and historical IDs first; use established engine-owned saved-workspace ID relocation, retain an old-locator compatibility route, and explicitly account for path-derived runtime inventory identity/provenance changes. No new shared identity schema is proposed.",
+    "excluded": [
+      "No native output-format or receipt redesign",
+      "No broad move of design/seal/verification or source extractor families",
+      "No UI/package/engine/schema/authority changes",
+      "No simultaneous atlas.rs or self_reconstruction.rs move",
+      "No deletion of legacy CLI spelling, .atlas/.atlasx bytes, v1 receipts or fixture corpus"
+    ],
+    "important_test_selector_gate": "Module moves change libtest-qualified names. Require actual execution of the new selector set; a zero-test success under retired atlasx:: must not qualify. Historical pinned instructions remain historical."
+  },
+  "baseline_pin_correction": {
+    "reason": "Two CLI file pins initially read concurrent working-tree capacity changes; replaced with immutable commit contents and regenerated CLI locators/reference index.",
+    "corrected_files": [
+      {
+        "path": "apps/cli/src/main.rs",
+        "old_live_sha256": "cfe62457fcf9be6345c19560268b130b86a6d092157d79b59760e547bfd66eb6",
+        "correct_commit_sha256": "1e1fb07f4d9175ee6bd8ba9911fdfb26cdd9abcabc275005ca77b36ad4f40169"
+      },
+      {
+        "path": "apps/cli/tests/full_evidence.rs",
+        "old_live_sha256": "daff55b5f158df552edd7682f71f8d3439240999a83c6b902b0f38058b6a429c",
+        "correct_commit_sha256": "079be59f181e478410a16e08dc951576b73ba16103a83fa1db6c90850772f107"
+      }
+    ],
+    "all_file_records_source": "git show 0bed61abbf05df6b0a323cfcaf7013e371548408:PATH",
+    "verified_file_count": 79,
+    "working_tree_is_not_baseline": true
+  }
+}

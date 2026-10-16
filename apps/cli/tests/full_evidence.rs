@@ -74,6 +74,31 @@ fn command(mode: &str, object: &Path, out: Option<&Path>) -> Output {
     command.stdin(Stdio::null()).output().unwrap()
 }
 
+fn bounded_decode(object: &Path, out: Option<&Path>, max: usize) -> Output {
+    let mut command = Command::new(BINARY);
+    command
+        .args(["atlasx", "codec", "--decode"])
+        .arg(object)
+        .arg("--max-report-bytes")
+        .arg(max.to_string());
+    if let Some(out) = out {
+        command.arg("--out").arg(out);
+    }
+    command.stdin(Stdio::null()).output().unwrap()
+}
+
+fn assert_capacity_refusal(output: &Output, bytes: usize, max: usize) {
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        output.stdout.is_empty(),
+        "capacity refusal leaked partial report"
+    );
+    assert_eq!(
+        String::from_utf8(output.stderr.clone()).unwrap(),
+        format!("atlas-systemizer: ATLASX_REPORT_CAPACITY_EXCEEDED: bytes={bytes}; max={max}\n")
+    );
+}
+
 fn assert_report(output: &Output, case: &Value) {
     let label = case["case"].as_str().unwrap();
     let report: Value = serde_json::from_slice(&output.stdout).unwrap_or_else(|error| {
@@ -115,6 +140,167 @@ fn decode_stdout_and_exit_preserve_all_seven_full_source_reports() {
         assert_eq!(fs::read(&object).unwrap(), bytes, "input changed");
         assert_eq!(fs::read(&fixture).unwrap(), bytes, "fixture changed");
         assert_eq!(fs::read_dir(object.parent().unwrap()).unwrap().count(), 1);
+    }
+}
+
+#[test]
+fn bounded_decode_preserves_exact_bytes_and_refuses_without_output_for_all_seven_cases() {
+    let scratch = Scratch::new("bounded-decode");
+    let mut unicode_cases = 0;
+    for case in cases() {
+        let (fixture, object, bytes) = stage_case(&scratch.0, &case);
+        let baseline = command("--decode", &object, None);
+        assert_report(&baseline, &case);
+        let report_bytes = baseline.stdout.len();
+        assert_eq!(baseline.stdout.last(), Some(&b'\n'));
+        println!(
+            "{}: pretty_report_bytes_with_lf={report_bytes}",
+            case["case"]
+        );
+
+        let exact = bounded_decode(&object, None, report_bytes);
+        assert_report(&exact, &case);
+        assert_eq!(
+            exact.stdout, baseline.stdout,
+            "bounded stdout changed bytes"
+        );
+        assert_eq!(exact.stderr, baseline.stderr, "bounded verdict changed");
+        for max in [0, report_bytes - 1] {
+            assert_capacity_refusal(&bounded_decode(&object, None, max), report_bytes, max);
+        }
+        let chars = std::str::from_utf8(&baseline.stdout)
+            .unwrap()
+            .chars()
+            .count();
+        if chars < report_bytes {
+            unicode_cases += 1;
+            assert_capacity_refusal(&bounded_decode(&object, None, chars), report_bytes, chars);
+        }
+
+        let dir = object.parent().unwrap();
+        let report = dir.join("absent-parent").join("report.json");
+        assert_capacity_refusal(
+            &bounded_decode(&object, Some(&report), report_bytes - 1),
+            report_bytes,
+            report_bytes - 1,
+        );
+        assert!(
+            !report.parent().unwrap().exists(),
+            "capacity refusal created parent"
+        );
+        let prior = dir.join("prior-report.json");
+        fs::write(&prior, b"prior immutable evidence").unwrap();
+        assert_capacity_refusal(&bounded_decode(&object, Some(&prior), 0), report_bytes, 0);
+        assert_eq!(fs::read(&prior).unwrap(), b"prior immutable evidence");
+        let conflict = bounded_decode(&object, Some(&prior), report_bytes);
+        assert_eq!(conflict.status.code(), Some(2));
+        assert!(conflict.stdout.is_empty());
+        assert!(
+            String::from_utf8_lossy(&conflict.stderr).contains("not an identical regular file")
+        );
+        assert_eq!(fs::read(&prior).unwrap(), b"prior immutable evidence");
+
+        // Adequate capacity writes every byte even when the codec verdict itself is REFUSED.
+        // Replay keeps that verdict and capacity remains a separate prerequisite on replay.
+        for _ in 0..2 {
+            let output = bounded_decode(&object, Some(&report), report_bytes);
+            assert_eq!(output.status.code(), baseline.status.code());
+            assert_eq!(output.stderr, baseline.stderr);
+            assert!(output.stdout.is_empty());
+            assert_eq!(fs::read(&report).unwrap(), baseline.stdout);
+        }
+        assert_capacity_refusal(
+            &bounded_decode(&object, Some(&report), report_bytes - 1),
+            report_bytes,
+            report_bytes - 1,
+        );
+        assert_eq!(fs::read(&report).unwrap(), baseline.stdout);
+        assert_eq!(fs::read(&object).unwrap(), bytes, "input changed");
+        assert_eq!(fs::read(&fixture).unwrap(), bytes, "fixture changed");
+    }
+    assert!(
+        unicode_cases > 0,
+        "the real oracle must exercise UTF-8 byte capacity"
+    );
+}
+
+#[test]
+fn report_capacity_argument_errors_fail_before_reading_or_writing() {
+    let scratch = Scratch::new("capacity-arguments");
+    let missing_input = scratch.0.join("missing.atlasx");
+    let out = scratch.0.join("absent-parent").join("report.json");
+    let overflow = format!("{}0", usize::MAX);
+    let invalid_limits: Vec<Vec<&str>> = vec![
+        vec![],
+        vec![""],
+        vec!["00"],
+        vec!["+1"],
+        vec!["-1"],
+        vec![" 1"],
+        vec!["1.0"],
+        vec!["١"],
+        vec![&overflow],
+        vec!["1", "--max-report-bytes", "2"],
+    ];
+    for values in invalid_limits {
+        let output = Command::new(BINARY)
+            .args(["atlasx", "codec", "--decode"])
+            .arg(&missing_input)
+            .arg("--out")
+            .arg(&out)
+            .arg("--max-report-bytes")
+            .args(values)
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        let error = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            error.starts_with("atlas-systemizer: --max-report-bytes"),
+            "{error}"
+        );
+        assert!(!out.parent().unwrap().exists());
+    }
+    for attached in [
+        "--max-report-bytes=0",
+        "--max-report-bytes=1024",
+        "--max-report-bytes=",
+    ] {
+        let output = Command::new(BINARY)
+            .args(["atlasx", "codec", "--decode"])
+            .arg(&missing_input)
+            .arg("--out")
+            .arg(&out)
+            .arg(attached)
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        assert_eq!(
+            String::from_utf8(output.stderr).unwrap(),
+            "atlas-systemizer: --max-report-bytes requires a separate decimal value\n"
+        );
+        assert!(!out.parent().unwrap().exists());
+    }
+    for mode in ["--encode", "--codara-payload"] {
+        let output = Command::new(BINARY)
+            .args(["atlasx", "codec", mode])
+            .arg(&missing_input)
+            .arg("--out")
+            .arg(&out)
+            .args(["--max-report-bytes", "0"])
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        assert_eq!(
+            String::from_utf8(output.stderr).unwrap(),
+            "atlas-systemizer: --max-report-bytes requires atlasx codec --decode only\n"
+        );
+        assert!(!out.parent().unwrap().exists());
     }
 }
 

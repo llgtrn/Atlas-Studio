@@ -1,0 +1,324 @@
+{
+  "test_only_contract": "atlas.functions-evidence-bytes.proposal.v1",
+  "status": "PROPOSED_NOT_TARGET_WIRE",
+  "bounds": {
+    "packet_bytes": 8192,
+    "chunk_bytes": 512,
+    "chunk_count": 16
+  },
+  "source": {
+    "repository": "llgtrn/Atlas-Studio",
+    "revision": "0bed61abbf05df6b0a323cfcaf7013e371548408",
+    "codec_sha256": "1951bbeba8be36dc7a4024e5e7f37969efe2c85e8222ba586666b087168e62bd",
+    "oracle_sha256": "9c9784254f48f21a977b6c736d1c33a284ba3c6f3c396abe1e2e4f0eb6a77975"
+  },
+  "target_reference": "ce3034687fadaf19f12ed094d263c20ec47631e3",
+  "cases": [
+    {
+      "case": "distinct-duplicate-identities",
+      "file": "distinct-duplicate-identities.evidence.json",
+      "source_report_sha256": "sha256:7d5036bc7c6bdc1a0f2034c59ce516919c4be58f4507bc1d74f4718e0dd4fdcf",
+      "source_report_bytes": 1350,
+      "artifact": {
+        "sha256": "sha256:b918b4975509920f4f7b9346d3839b8099ee2c8639de9a22b559dda401862b3c",
+        "bytes": 2500,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:a044aee0af736599a05e8f0c0dcad9fee5eeaebdf9536b3cc74f04b1dfa90f5d"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:e00e8e20bbb8d3da265c80ac19e3a6b87b844b0bc6c725bd95c15e6ae36a3901"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:868f4e65c07d442290c417975b0ca28202f6410c17b4b24670cd6a88ebef36ce"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:bd5193a75bd82da171faa9485eb0902a908d1dc1d70a8d62ddc1ad69f190b894"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 452,
+            "sha256": "sha256:b356a687323a6bda6d152b30783bb7026c68a51107b542b50a7ff64b0538c555"
+          }
+        ]
+      }
+    },
+    {
+      "case": "semantic-refusal-precedes-wrong-filename",
+      "file": "semantic-refusal-precedes-wrong-filename.evidence.json",
+      "source_report_sha256": "sha256:7d5036bc7c6bdc1a0f2034c59ce516919c4be58f4507bc1d74f4718e0dd4fdcf",
+      "source_report_bytes": 1350,
+      "artifact": {
+        "sha256": "sha256:ac90c1fad646108936cd9add983c151f6a4794e7dca1cce028563936d7b0ed45",
+        "bytes": 2452,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:ca3af8687488d9cd7b342373353bc522706760c75eeae0f9763b62e660df64e2"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:ba9d51a29023d546afdb9e017c76c2009b740462829626bd7ed7573e61d1b9fc"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:493e9db248442bdabae01342b72abfeff80afc2316201984b851556b270604d4"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:652aa7ca116d114b4ba94dcc2fbb7923c8243e91f988d86a6acf690ad45b8ae4"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 404,
+            "sha256": "sha256:57e79f5e530b2444780323bc1486374ce8deb738ed17d57d7776bd9d5f0caf31"
+          }
+        ]
+      }
+    },
+    {
+      "case": "payload-digest-mismatch",
+      "file": "payload-digest-mismatch.evidence.json",
+      "source_report_sha256": "sha256:521374641509d850b10fddfe3acc2f5839e40c7e9b66121499ceac11b0eeb6af",
+      "source_report_bytes": 1340,
+      "artifact": {
+        "sha256": "sha256:80757012f6ff83a64d1a2291aeec320b67a4b095a69665edfbf12059baa44cbe",
+        "bytes": 2476,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:354bb364e99388e418a12b316a50ea82c219fa0d8251343e033fdd40c13dd1c3"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:8515daeadc735a9038bd5a62747439130dc4d4a49047a6e4a76c65ebf5e755f8"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:463e3c462169185fcda172c3f9d0783237855d5c9c24d81842b4da6e13163ac9"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:58c65ae1d0a1d7e32973323149e04b1c6a7256f857b1e1f006e192107421eff8"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 428,
+            "sha256": "sha256:49f1cc7e587f4e68c9597d43fbf87461765659c01231643216019015d2a90507"
+          }
+        ]
+      }
+    },
+    {
+      "case": "filename-refusal-after-semantic-success",
+      "file": "filename-refusal-after-semantic-success.evidence.json",
+      "source_report_sha256": "sha256:2202aa3a89aeffc697c859079b288a35e96786cacd57ffc78ecc2f092c54868f",
+      "source_report_bytes": 1343,
+      "artifact": {
+        "sha256": "sha256:dee837b8b6e8e003745ae1d5e4a09dfb71510d48ee7d6eacfd9be0ee44f0ff92",
+        "bytes": 2436,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:0db4e56c668bd41f87b3ad11a5ec11fd42ed2de28aad2da675ea16ee43bc6a95"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:1b2297e6308803349ec7d53d5bd468ecf4594c8be683becb4aa7e9ae200667b5"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:a2af8dd997a6dac190d058bc15e6252a25e6ed2d2b66f87b5c41aa1d36782fd5"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:405dcf632de2dad3a9296a8112ee9d537c9c3fe5ec2e8303b13e83e7c813a2f0"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 388,
+            "sha256": "sha256:860cd83d02f04646f401a3f4fc457edd4e8288cca43951b81771982f700a150a"
+          }
+        ]
+      }
+    },
+    {
+      "case": "pre-header-refusal",
+      "file": "pre-header-refusal.evidence.json",
+      "source_report_sha256": "sha256:bf69f8f949753fc3bae35b594b8c944e37ef50d3fa90775cdc4f2d26220b78fc",
+      "source_report_bytes": 1273,
+      "artifact": {
+        "sha256": "sha256:87471c66e1870f1b6a538a972bc2bbd11c7ec7e8baa08090c5e329ab1b7f8e9c",
+        "bytes": 2217,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:f2120f98031500195d46cf6dd15155fccb437b17ce52a4879b45763d643f06b7"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:e1c250c54ff44a9aad104fd15271e0c76be26a656cbef71d741d17f1c5655acb"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:c268e48a9710c6f2305759cf57923547a2150e7b72f265718d6b60483ac161a7"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:b25afb0e1e9a909021e0f75f9c96e080a53073a1ca88fcb13e621bd00c747fe3"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 169,
+            "sha256": "sha256:0eca0abced7300baa4997e5c5f57f738308081f8bad094540a64b6012aa3548f"
+          }
+        ]
+      }
+    },
+    {
+      "case": "bounds-refusal-before-payload-hash",
+      "file": "bounds-refusal-before-payload-hash.evidence.json",
+      "source_report_sha256": "sha256:52df6fa542504155c01b9631e8a96e394f74079464a00012331df085b547c4a9",
+      "source_report_bytes": 1265,
+      "artifact": {
+        "sha256": "sha256:a674dd195c42921a6cb60ae69ea51be9844dcd36e0a17426e978b44c6f824234",
+        "bytes": 2289,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:ed57c79fa804bff2feacac6609d8e3282227fd4c6fde46c0d35e76d420f85259"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:8ac43f01ddd0b82258649f43fcd69ad8b25484776e983bec535d97e5b7ecb717"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:24d19ee1322e4b92599cf01ef6ce3752061cbf06086b35c20af43f5c1e3300e5"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:3220ac6f3bddd585bca661ddd4b2e62cb208725e06dcb38983eabce507c0869e"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 241,
+            "sha256": "sha256:22e6c00b3434e106a662a1a87064a53239ade8435c051d701a50ae8d8ea33f82"
+          }
+        ]
+      }
+    },
+    {
+      "case": "decoded-comparison",
+      "file": "decoded-comparison.evidence.json",
+      "source_report_sha256": "sha256:6ef095dfd1bdec81e8b975a96125adae4574e19e80b596309848e031af3a6af8",
+      "source_report_bytes": 2236,
+      "artifact": {
+        "sha256": "sha256:e5f3b46e45e25aa100eac56c1a051c77b28ba583d8e0f2b01cfa25149d279c91",
+        "bytes": 3487,
+        "chunks": [
+          {
+            "index": 0,
+            "offset": 0,
+            "bytes": 512,
+            "sha256": "sha256:5614c772dd41ef4c7bb100d15eed612a5ca5ce0bc0f1b5c52d490e644db19980"
+          },
+          {
+            "index": 1,
+            "offset": 512,
+            "bytes": 512,
+            "sha256": "sha256:e3cd7d81caa12a7fe19fd458f508f6eff83bb613e92733209b10c29ebb7d2007"
+          },
+          {
+            "index": 2,
+            "offset": 1024,
+            "bytes": 512,
+            "sha256": "sha256:4f3ef13402eee8a35d5a00899f8f49c6911dd51ffa01405fd29e5f04c2004fad"
+          },
+          {
+            "index": 3,
+            "offset": 1536,
+            "bytes": 512,
+            "sha256": "sha256:a960c240fc7f37712ef55569bed901f357f082b29e250b67ad084a6709723515"
+          },
+          {
+            "index": 4,
+            "offset": 2048,
+            "bytes": 512,
+            "sha256": "sha256:47fc25949eb83636af0ac4bded7aa114e91264410ecbc69602c18e828fb7ab2a"
+          },
+          {
+            "index": 5,
+            "offset": 2560,
+            "bytes": 512,
+            "sha256": "sha256:1b18ca340dd7031af58cfe9204651dfdab8cb7f2b0e89ac4d99bd73d0a02a99e"
+          },
+          {
+            "index": 6,
+            "offset": 3072,
+            "bytes": 415,
+            "sha256": "sha256:1f3dedeb29bfd9189e24bec21b818e81ae3518c0d59b3aa56e2f0aeedf98ace5"
+          }
+        ]
+      }
+    }
+  ]
+}
