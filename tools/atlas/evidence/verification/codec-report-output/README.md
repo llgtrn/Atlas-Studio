@@ -15,7 +15,11 @@ authority grant or durable Chronica effect protocol.
 Three exact CLI caller tests exercise input/relative/hard-link/symlink aliases, different-length
 and equal-length conflicts, exact replay, missing parent creation, the historical SR1 round trip
 and the full typed refusal report/exit on replay. They passed with zero failures or ignored
-cases. Fresh compiled-process observations will be appended against the exact source commit.
+cases. The [fresh compiled-process observation](source-72ded57-process.json) records fourteen
+actual CLI process cases against source `72ded57a1fb9227136f7b34df92c559cc5c19b83`,
+including typed stdout/refusal reports and alias/conflict/replay checks. Every case passed; input
+and prior-report bytes remained unchanged. The receipt pins source/tree, CLI binary, source file
+and fixture bytes. No complete workspace or native hardware pass is claimed.
 
 This bounded source fix supports evidence preservation in N04/N05 and J2/J8; it proves none of
 the physical native journey, Chronica adoption, rights or source-extinction obligations. Existing

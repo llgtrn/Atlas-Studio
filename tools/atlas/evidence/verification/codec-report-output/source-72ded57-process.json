@@ -1,0 +1,233 @@
+{
+  "source_commit": "72ded57a1fb9227136f7b34df92c559cc5c19b83",
+  "source_tree": "998a3e8970dd04e7dffd573064b154cefb4de594",
+  "observed_utc": "2026-10-16T19:02:43.501751+00:00",
+  "requirement_ids": [
+    "N04",
+    "N05",
+    "J2",
+    "J8"
+  ],
+  "scope": "Actual compiled CLI source filesystem behavior only; not native hardware, Chronica authority, adoption or rights qualification.",
+  "binary_sha256": "548e665d5aa351b8dc6efe07505845810ce09b87dd29d7e6d7e8231514eb43e1",
+  "main_rs_sha256": "1e1fb07f4d9175ee6bd8ba9911fdfb26cdd9abcabc275005ca77b36ad4f40169",
+  "fixture_object_sha256": "7849d58956e964889390361eeecc99873ebcd52965e96f9b5a82e3bb278d7c95",
+  "fixture_directory": "/tmp/atlas-codec-process-9c11zj6a",
+  "cases": [
+    {
+      "case": "encode-reference",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--encode",
+        "/workspace/Atlas-Studio-docs-native-v1-app/core/src/codara/artifact/codec/fixture_module.json",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"object\": {\n    \"address\": \"5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed\",\n    \"bodies_not_encoded\": [\n      \"fn:core/src/donor/mod.rs::MaterializationMode::is_local\"\n    ],\n    \"decoded_length\": 385,\n    \"digest\": \"blake3-256:5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed\",\n    \"module_id\": \"construction-module:blake3-256:17830a838e9dbb49789ea3dfb998f12cf215154ee8425a64e5b8c8b763a6fd34\",\n    \"not_verified\": [\n      \"the root manifest: this object's entry, relative path, required flag and logical record count (M13)\",\n      \"the AtlasX root identity and the parent Atlas, Genome and SelectedDesign compatibility (M13)\",\n      \"cross-object references: owner names and parameter and result type spellings are carried, not resolved (M13)\",\n      \"lineage: census record ids are carried as GLOBAL_IDs, not resolved against the parent Atlas root (M11, M13)\",\n      \"that the records are the materialization of an admitted parent (M11)\",\n      \"function bodies: FUNCTION_SIGNATURE carries none, and no body record kind is declared\",\n      \"object classes other than FUNCTIONS, the ZSTD codec and the SHA256 digest (all refused, never decoded)\",\n      \"the source module's census inputs: that they resolve in the container it names, and its lineage against the census and the parent Atlas (encoding checks the module's identity and validates it against its own declared inputs only)\"\n    ],\n    \"object_class\": 4,\n    \"object_schema_version\": 1,\n    \"records\": 1,\n    \"schema\": \"atlas.atlasx-codec.v1\"\n  },\n  \"path\": \"/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "case": "decode-full-stdout",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"schema\": \"atlas.atlasx-codec.v1\",\n  \"verdict\": \"DECODED\",\n  \"defects\": [],\n  \"address\": \"5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed\",\n  \"digest\": \"blake3-256:5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed\",\n  \"object_class\": 4,\n  \"object_schema_version\": 1,\n  \"decoded_length\": 385,\n  \"records\": [\n    {\n      \"function_id\": \"fn:core/src/donor/mod.rs::MaterializationMode::is_local\",\n      \"name\": \"is_local\",\n      \"owner\": \"MaterializationMode\",\n      \"dispatch\": \"INHERENT_METHOD\",\n      \"visibility\": \"pub\",\n      \"documentation\": null,\n      \"params\": [\n        {\n          \"name\": \"self\",\n          \"type_spelling\": \"Self\"\n        }\n      ],\n      \"result\": \"bool\",\n      \"body_fingerprint\": \"blake3-256:37306332b6453e3566f711b7b4e83ae0456608689d830963378ff0f22d008639\",\n      \"lineage\": [\n        \"semantic:FUNCTION_IDENTITY:4d0d794e81097e75\",\n        \"semantic:FUNCTION_SIGNATURE:8ebebb875610393f\"\n      ]\n    }\n  ],\n  \"not_verified\": [\n    \"the root manifest: this object's entry, relative path, required flag and logical record count (M13)\",\n    \"the AtlasX root identity and the parent Atlas, Genome and SelectedDesign compatibility (M13)\",\n    \"cross-object references: owner names and parameter and result type spellings are carried, not resolved (M13)\",\n    \"lineage: census record ids are carried as GLOBAL_IDs, not resolved against the parent Atlas root (M11, M13)\",\n    \"that the records are the materialization of an admitted parent (M11)\",\n    \"function bodies: FUNCTION_SIGNATURE carries none, and no body record kind is declared\",\n    \"object classes other than FUNCTIONS, the ZSTD codec and the SHA256 digest (all refused, never decoded)\",\n    \"the source module's census inputs: that they resolve in the container it names, and its lineage against the census and the parent Atlas (encoding checks the module's identity and validates it against its own declared inputs only)\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "case": "create-new-report",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/reports/decoded.json"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "case": "identical-report-replay",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/reports/decoded.json"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "case": "input-same-path",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "input-relative-alias",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/alias-hop/../5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/alias-hop/../5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "input-hard-link",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/hard-link.atlasx"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/hard-link.atlasx: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "input-symlink",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/symbolic.atlasx"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/symbolic.atlasx: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "prior-report-conflict",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/prior-report.json"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/prior-report.json: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "same-length-report-conflict",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/equal-length-conflict.json"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/equal-length-conflict.json: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "identical-report-symlink-refused",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/report-symlink.json"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: /tmp/atlas-codec-process-9c11zj6a/report-symlink.json: existing codec report is not an identical regular file\n"
+    },
+    {
+      "case": "refused-full-stdout",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/refused.atlasx"
+      ],
+      "exit_code": 2,
+      "stdout": "{\n  \"schema\": \"atlas.atlasx-codec.v1\",\n  \"verdict\": \"REFUSED\",\n  \"defects\": [\n    [\n      \"DIGEST_MISMATCH\",\n      \"the payload does not hash to 5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed\"\n    ]\n  ],\n  \"address\": null,\n  \"digest\": null,\n  \"object_class\": null,\n  \"object_schema_version\": null,\n  \"decoded_length\": null,\n  \"records\": null,\n  \"not_verified\": [\n    \"the root manifest: this object's entry, relative path, required flag and logical record count (M13)\",\n    \"the AtlasX root identity and the parent Atlas, Genome and SelectedDesign compatibility (M13)\",\n    \"cross-object references: owner names and parameter and result type spellings are carried, not resolved (M13)\",\n    \"lineage: census record ids are carried as GLOBAL_IDs, not resolved against the parent Atlas root (M11, M13)\",\n    \"that the records are the materialization of an admitted parent (M11)\",\n    \"function bodies: FUNCTION_SIGNATURE carries none, and no body record kind is declared\",\n    \"object classes other than FUNCTIONS, the ZSTD codec and the SHA256 digest (all refused, never decoded)\",\n    \"the source module's census inputs: that they resolve in the container it names, and its lineage against the census and the parent Atlas (encoding checks the module's identity and validates it against its own declared inputs only)\"\n  ]\n}\n",
+      "stderr": "atlas-systemizer: ATLASX_CODEC_REFUSED: 1 defects\n"
+    },
+    {
+      "case": "refused-report-create",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/refused.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/refused-report.json"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: ATLASX_CODEC_REFUSED: 1 defects\n"
+    },
+    {
+      "case": "refused-report-replay",
+      "command": [
+        "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+        "atlasx",
+        "codec",
+        "--decode",
+        "/tmp/atlas-codec-process-9c11zj6a/refused.atlasx",
+        "--out",
+        "/tmp/atlas-codec-process-9c11zj6a/refused-report.json"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "atlas-systemizer: ATLASX_CODEC_REFUSED: 1 defects\n"
+    }
+  ],
+  "result": "PASS",
+  "case_count": 14,
+  "source_and_prior_reports_preserved": true,
+  "selected_cli_tests": "3 passed; 0 failed; 0 ignored",
+  "format": "PASS",
+  "full_workspace_tests": "NOT_RERUN: previous source-scope run intentionally interrupted; no full-workspace/current-self admission claim",
+  "physical_native_checks": "NOT_RUN",
+  "active_writers": 1,
+  "active_read_only_reviewers": 1
+}
