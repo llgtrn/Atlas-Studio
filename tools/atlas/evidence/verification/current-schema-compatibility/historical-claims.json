@@ -1,0 +1,681 @@
+{
+  "reviewed_at": "2026-10-16T16:36:56.305888+00:00",
+  "first_retired_selector_commit": "6e2ee1d3c5de427a2aed1fb9be7d1c02bbc93782",
+  "published_wave": "706a1c431b8e7abbcd899ebb97893a681572b217",
+  "native_records_total": 24,
+  "native_record_dependencies": "Only three identity/blake3.rs test locators; engine CargoRunner; no runtime verify_self or command_evidence dependency. Eight records per locator, historical keys retained.",
+  "wave_created_runtime_self_scope_records": 0,
+  "native_engine_verify": "apps/cli/src/cli/mod.rs::verify checks engine protocol assessment 33 checks, not Atlas runtime verification::verify_self",
+  "runtime_caller": "Atlas apps/cli/src/main.rs:1256 -> runtime::verification::verify_self -> compatibility command_evidence, read by runtime design/seal/staging as source integrity evidence",
+  "historical_self_scope_claims": [
+    {
+      "path": "tools/atlas/evidence/verification/G127-self-scope.json",
+      "candidate": "blake3-256:4c711fd96cee1157e0d537179b0f0314d53172ed06df48e28f0dd07d6c03ebea",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "22a83636ea9b52fc701399cdc2188bc009aa5e3aec16a7717aad34161728caf4",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G128-self-scope.json",
+      "candidate": "blake3-256:5a3eba1a73949984518c236d464cc75a4c8b031bb5998182f1b4b08958087b93",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "90a698b0850df874aeccd9e4b306a87fc71b1204a49aff4dec323c464e61b592",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G129-self-scope.json",
+      "candidate": "blake3-256:a59ed37474a7d6d603543dca28d717a23410435377c69ff2203c9fdedaf6d607",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "7cc6abaa2537c634948ff7be2ef82a115d5036788db9fb9743a15602be54287e",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G130-self-scope.json",
+      "candidate": "blake3-256:b30ce16201151c6732938fa1f7452f5944cb2ee627fc6c5206e767714af7a538",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "584c3b81a57a3405fd8b68c426729ee60fb366b2f68444220b02e8c612a7fd96",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G131-self-scope.json",
+      "candidate": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "9b34832f2736637d6de7ba59767e640e129a25ca03d3c9f9b31e3e5f4494ac45",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G132-self-scope.json",
+      "candidate": "blake3-256:362b0984f6b3ac0d4167c6138427b112044851ecd51d194a4283daced8a848c2",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "e4e991bf732454a3dc4afc90cb012e08fe65a0955e563228492f64fb9fd4f6d5",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G133-self-scope.json",
+      "candidate": "blake3-256:0779bd33a9c1f51c8b6dc71349e076e381b05a018f6792744aacd8b98371d270",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "50049bd92fec234da01f19e98ecc8d859aac367e0ee763b5210efc952d0c4c5d",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G134-self-scope.json",
+      "candidate": "blake3-256:3ec82608a417ca49fd58b4924fdfc87cf1328cff87fd22405b852a0de2bd2ecf",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "f6954fc28c3e16c7b49dec64c693fd10ed1af81a110e54dbcfb3579990a11959",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G135-self-scope.json",
+      "candidate": "blake3-256:8f306655890cce008d33724b7d5a8dc9a91f8828ead71a74391f79409bbacdfb",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "cf7c560dabe6c11df69c8b8d7d10590df0d797f1d6104a957a2996188697c270",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G136-self-scope.json",
+      "candidate": "blake3-256:d7ccc38b6815d4f6693125dd401b8e92c449f32c2609912c3ae006af06a4022c",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "2366b67debcb26b7a70e069a1d0a8b191711e8d3690f90651260a3e052c65f35",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G137-self-scope.json",
+      "candidate": "blake3-256:34661d182c2b8cfa6a634567f8faa8d0f582c9b7332636c7930ccc61cad4d209",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "4d6468de2dc2fcc857aa4bbc1ebe4395dd8a570cc251191eda904271bfaf296f",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G138-self-scope.json",
+      "candidate": "blake3-256:4930f8e3ad7640d57f9af54d851669092283ea6e7bd24ab1d0e505025991fd68",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "65021e259a7c4777af07dbcc6ae712738ecf3f28952f5a8844576d21a082f22d",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G139-self-scope.json",
+      "candidate": "blake3-256:2ffa8d85dbb03b7a243e8a6f62488585d551caaf6c9b0b8e665d055d472730e4",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "c5e7ab0d45a25f41fc7a7cb71354bf9a47e54c343ecca3526627934423b2bb73",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G140-self-scope.json",
+      "candidate": "blake3-256:ed46f126c96bbfcb252d30445aaf02619492ac6597e142dec7ab0e87eb9f5e60",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "1ecc47c97fa4595393368d8f3edb2a03d6eec987c87fea1341fd3291e6e01c01",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G141-self-scope.json",
+      "candidate": "blake3-256:b67f3730f3c509e2cb3fa0f40c6378fea611cc71f301807b2f1753e3a363a933",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "ad3c89e4e17ff5a47e2ac461854278740f84e3bac0d1b807ab1af09e0bcb9287",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G142-self-scope.json",
+      "candidate": "blake3-256:2524afbc25eda4cccbbbd083ea07fd765a434de2fa916b349343f91d431818f4",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "4175d2956ff8f33abad53b2b58bcedc68a44e584d0f540cc4dbf63b9f2399832",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G143-self-scope.json",
+      "candidate": "blake3-256:547140f7ca44ba14f2dea97d5a2fee59382bbc58600d0896047774bec1a2140d",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "2d505bdef2e7bdd4492436812a1a8eccb4e2ee1a5385b4f169692bd8687a821e",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G144-self-scope.json",
+      "candidate": "blake3-256:6ca764cd0e4ea83849a3f76d71e0fb4169505df6380841924ed80b78af5410c5",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "4a63ae14e49e258624b9bfd8341ee679dcfce6c2cfb6f3ea12722bc9bf358804",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G145-self-scope.json",
+      "candidate": "blake3-256:73a2d210423153b88bc88564eb6c2dea54fb0ed88b019a34dca6d9501b0ef1e6",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "78ce007cb428c94ba36263ec4ff16c160ac93bd466b37fabc770db481a449628",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G146-self-scope.json",
+      "candidate": "blake3-256:c48824e7075c5a978dafc21ccf221e5723b30a5618bc55880e7b40b9b3d7ab0a",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "4c921c331d128311fde7700a19429bc12840123c4022c4fcfef76b9b4edddc69",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G147-self-scope.json",
+      "candidate": "blake3-256:f2c02fb129a51a2ab7d29296cb3a0aee9702c8f45f6982458ceb0a097fdd0433",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "a20149877516131b6463a3168b389ad6a4caaa5296a62dcd4a882045b17ced7d",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G148-self-scope.json",
+      "candidate": "blake3-256:1354b334b22ca463600755cd5580fe4481abf989a81f500758e9c7fb04593bcd",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "3e19fac5ba5b2c6a39a6767068a72323442b7d335d9333f7e25393e50d68b207",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G149-self-scope.json",
+      "candidate": "blake3-256:3dbaa256fbd1e36ff69fd31fdc810db5da73a9f0e22887e58dfb56bb1d1fddf5",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "161cc4bb4595d74753e0bae5fa331f6635965f9bfb79f1f118351d6ffa5e3727",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G150-self-scope.json",
+      "candidate": "blake3-256:5d56cfc4214e5d27f39c68e075f08f578bfaaee35a93e2f08d20915d37bba58b",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "ecb05e84222cd84e8accde0608651e99599863f15de49214e1424e9dbf7dd952",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G151-self-scope.json",
+      "candidate": "blake3-256:40ab6b38e8b954683c5610bcdd5a8f4c5afb592dab862d7669cb1fa0ecdaa13b",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "BLOCKED",
+      "sha256": "3fbddf1ad833757b3a4b03970c614309a190e7c4eac16a6f348706feca88f502",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G152-self-scope.json",
+      "candidate": "blake3-256:0a0bd083252680a3f48cddb7840044c5f22cea252f5841c56d6e65b76a43415b",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "f937814511682dc3f46ae2c6143a2ba996685102b528191538c5403f3ea71acc",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G153-self-scope.json",
+      "candidate": "blake3-256:c2189168d5ddcb04946ea21ef69c1a585bda69d983432e5c09dd4b39431fdcac",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "58828e6587f34d6c1f2ca21aef7964fb104e6c2316dc7c33ddb1e8e404e3bbe7",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G154-self-scope.json",
+      "candidate": "blake3-256:b3e91fd30240bff1388d27dfe445852214d37af62817deb06f5eb5c7b1d88a7c",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "fa9d1015e43d3acd941b6cb9694e49cbb29f4cf205c2b072fd2ef1bdecd238f8",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G155-self-scope.json",
+      "candidate": "blake3-256:c26abc65f43fc49c6078508ef63b2574e4da65193a1d1876f748096edcfe94de",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "8eb0b5705714aa42e9cbcfaa2d12cfbe247809cf0c2fcde27c9b12584cb6413a",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G156-self-scope.json",
+      "candidate": "blake3-256:fa6785eb967dce7e72082fe5af5e7a5d91d682a9fac2782930a932b681c2a84c",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "dfb88a7341a6563055174acb329b3fead54d8cb30b65a01ff20b58038932ff52",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G157-self-scope.json",
+      "candidate": "blake3-256:b1e70590510d82337c9ec83e48627352da547818513e780f11c4ee2eea5add62",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "9f127db558836bd2ea0fe906fad41544447c32972c0bc795b5c2a8bc5583a14d",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G158-self-scope.json",
+      "candidate": "blake3-256:01d5e2f36fca15554c056b913027c42467e8df2b0ec6baac92db61463e672b67",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "e21844a6bbb6c2c6914874a5fd6bfd836cc6d95ae1091a8045c78c9b92ad6939",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G159-self-scope.json",
+      "candidate": "blake3-256:64dc0acda42a33487cfb2543e78b31f8e08e356e76a9ab1f4ba9a4c2911d09ec",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "911d3543dbf7a06be474b2a0d079cce7c924dadd17709953846c438953580496",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G160-self-scope.json",
+      "candidate": "blake3-256:6fe0b1ca7bd14dc7c8f6bb492bbe075dd50548f535227ac83128c95873b8dee4",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "e4af6f93a4b9f7e48d4cf0ac813f1cb30017d2562a0ebf25af21104a911cf0b7",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G161-self-scope.json",
+      "candidate": "blake3-256:54162c26574239c9cb2a6956b470588ce548f30adc3defcbf3783f17b59ea21d",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "b7576228d0497936411aed3c3158fb565ed0ca8221ec06e167d8ef55f2b76f80",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G162-self-scope.json",
+      "candidate": "blake3-256:69e37d0521b38e9ce9a3af3863ace6e8a371457fda38424f0c552abc5b296e73",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "0032ff20b2c4becff785a1aacdec031e1f9119e7e62e1e84b562f03503bdd691",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G163-self-scope.json",
+      "candidate": "blake3-256:4b433e84a6b41e8fc930c352ae8eaec08415c270e59decd737a3bfd894329d70",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "62360f9c6215e8bfa3949ce477df4228472fc3a86a2e4091c1fdfd24a920dbe9",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G164-self-scope.json",
+      "candidate": "blake3-256:8897f64a221896fd77cd494bc0ce0a3dc1bcbc8ebfa74882b8597674a5842108",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "a354a4702e667a315fa494bbb8166919e299ab43acbcd72198864c66bfcdead4",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G165-self-scope.json",
+      "candidate": "blake3-256:a2b5d3d3f902b0d3cd7a2401cfad22da1951fbc915ab278d1fce6838e71753c7",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "1b8db6e9c91c6819b0773057a057ea923ccc9cefafe3b853bc47dbeb81ed418b",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G166-self-scope.json",
+      "candidate": "blake3-256:ffb0b424896d4b71d0a2722bca567a4458aef8c81f60dfd9dabc1356b494669c",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "69d10a801935b5579418d59407685e98973fab458f4c483c191a647b964f13fd",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G167-self-scope.json",
+      "candidate": "blake3-256:ffb0b424896d4b71d0a2722bca567a4458aef8c81f60dfd9dabc1356b494669c",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "74e83ccb5b0e896a6ed3e3b3c845c1e8063712c59f9640751c7cf384935e7ae1",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G168-self-scope.json",
+      "candidate": "blake3-256:5f2203b4c82c9a22aab5487cdac8b160fc1a9c6763cc4ee6f55e0ccb44366454",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "12be23438c188137d47bb373ac890335c2c5711b00d3f532eee8b2fe0ddbbf12",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G169-self-scope.json",
+      "candidate": "blake3-256:ee1f0434106459f0a3ea1820ffcede7e00a8b6b97a8ae9c5ac6de082a8988ca7",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "51ce07774fe0cb74815ecc6f63a90802903eb25ce69bd7507ad6df1c4bb49de6",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G170-self-scope.json",
+      "candidate": "blake3-256:3cde015ca110112b006f09aab7e39a8f2d50d836910adc9bb7e25ab22513cb00",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "1f22a29c9d460a0804cee5e3935061bdbfd395cf59863bb9a87a9aadae10ed5b",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G171-self-scope.json",
+      "candidate": "blake3-256:a1f538d9f7e863f510d23ae841abb00265ca08ff1a32aaa3257c89318efc117a",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "7e3bf9f45073a9e3d345062c50e287420682b6b6ed5ae23db6e2540b0563b455",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G172-self-scope.json",
+      "candidate": "blake3-256:5659fec382de6ec484fb18bc563eceaf4d57b8cfaa74ab6be56343a3ec730409",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "b19cb4d07c96dc42878b929d103b8da69ddfbadac4fdec6f389b3b3b7aaa6cd1",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G173-self-scope.json",
+      "candidate": "blake3-256:51bb20aba52ac8e546cc00f7d0001b29376d2914b412bd726b3fb4b12c52f968",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "52075ed4a68a578688de4933ac2d7f485154fa419e014a9f64d3aa49e3e71247",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G174-self-scope.json",
+      "candidate": "blake3-256:f0c5468001a4a8650388866bea5f4fede880075664e58279a877188af5d450a6",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "5e78a30e89abb1dc50a149105401ee0876dbab7e9de5ac0ad3e5629c7f0bcf12",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G175-self-scope.json",
+      "candidate": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "96ea0d118385e7d33d2f87727696f45513afaf1c901a9c419eae0d49ef69ab35",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G176-self-scope.json",
+      "candidate": "blake3-256:6bc2b7397c2c62e1e0abe9d248be050e866e0d6ddc1e479e76773d64b9dd6be8",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "dbc1e927a95a3ef92a5aa3d523f424f7f44ce35c858e7ea58f32517c91cace3a",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G177-self-scope.json",
+      "candidate": "blake3-256:236e7a4127c7b9c8605383ad63433c5ef1fd9697e3f8bb372830f0f249cb7fdc",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "23c62150391ee7407bf0bd2dda77247f26c6a1ac8293c4f67c0f771cdeb4d1bb",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G178-self-scope.json",
+      "candidate": "blake3-256:7928b607ac4c092b6175027cf1cdf28f3bc3efefb9028f0d1cd5da12bd31343b",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "636a5a7221b7076b1dd5ab924565e069cc2c8c2709b730a24638dee4cbb7aa1a",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G179-self-scope.json",
+      "candidate": "blake3-256:fc204618426dd73bc89f5afc3d958a76e4d4f8339b86a0e41e90bcb93779de81",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "48c16e4f8abe99d54dd06e93f3685c9bcc7a53dc9162588ccbf927b70d525463",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G180-self-scope.json",
+      "candidate": "blake3-256:fc204618426dd73bc89f5afc3d958a76e4d4f8339b86a0e41e90bcb93779de81",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "091f5f40b35381d6e2392f3e7c67032033f1a544451a1ebfc6450aa1bd60c6fd",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G181-self-scope.json",
+      "candidate": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "77274695e922adfeb9aa04c3fdb2c6b82c3121b85fc3ca5f7ef909bc9f82bd62",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G182-self-scope.json",
+      "candidate": "blake3-256:7c9eda6853f1ba98730fc66a8befc3c6b2419597fd9dd7d345064d509ebee63a",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "bcae3518f47b7583d72bc856963394ea9b5894c4e742051e4f9e925bec5c8960",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G183-self-scope.json",
+      "candidate": "blake3-256:8292a7ef786929f47d596afeb41f130d40fffaa1c3fe5a417a2addff093f3325",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "c76abccab6deb2e75492d0a33150da7035d00b488279147d9b85d9398dd6d728",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G184-self-scope.json",
+      "candidate": "blake3-256:d25474f7d3a9fc7bdb1012482d072a8944c669e4e8522e443d1e743a24166f81",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "e332ddf251c076254cfb759c229f6e0d1dcd67a338bddaf6ca3e74579116e080",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G185-self-scope.json",
+      "candidate": "blake3-256:12593fd6e8fa687865656809253cc1815915f87312334809367120fdb5a21519",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "bf2b73cc812039233e3e443947c982755b2863e84128a73aad8b3200d6e5b591",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G186-self-scope.json",
+      "candidate": "blake3-256:208f6a0d0e67eb4403f95bd56759b9042516ffe37e447ca84c4c2ed4f8199176",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "5818a7bf3e6b3a33e19ef64a0ec095c3369171765640397513ebe220f788cb3d",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G187-self-scope.json",
+      "candidate": "blake3-256:7e28b9ffe4ae55b00f45736ff4a2d5049178c714017af3ad4ed15707f8aeff13",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "02e2a7c32a7e089d2a0d2527dabdfad36b59c2cfc746eaf319f542a8028e7804",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G188-self-scope.json",
+      "candidate": "blake3-256:cdcdb35fdf9afcbbff88be141f003bace39e3c94870d58f3590b8c83a764a4f8",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "ac7d68ebf9a70e0f77748ab51ba45bb01d38c0c55d5d4c43ca4d621a7467ea77",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    },
+    {
+      "path": "tools/atlas/evidence/verification/G189-self-scope.json",
+      "candidate": "blake3-256:71c768caa6cfd67ef331bbae441d3e8507e76adfed8daef5b44f22bd9ecb78ae",
+      "compatibility_run_id": "cargo test -q -p core --offline atlas::",
+      "compatibility_result": "SATISFIED",
+      "overall_verdict": "ADMISSIBLE",
+      "sha256": "2f26512bb8205a736c6efd55fbbe1e4cc95db42a8b1c6b2d68daa749051c6f83",
+      "current_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE"
+    }
+  ],
+  "finding": "Current producer retains retired atlas:: filter at706a; command zero exit insufficient to prove compatibility test execution. Historical files remain evidence only for their old candidates, not known false at original generation and not evidence for current source.",
+  "test_only_provenance_review": true,
+  "current_historical_reuse_status": "UNSUPPORTED_STALE_FOR_CURRENT_SOURCE",
+  "historical_run_verdict": "No claim that original runs matched zero or failed; retain original candidates and authored results.",
+  "preserved_native_records": [
+    {
+      "path": ".ynventa/evidence/09298798e8307acad4615c3d33fb1f73.ynv",
+      "sha256": "09298798e8307acad4615c3d33fb1f734ee5735ad5c219ea0352406238a8096a"
+    },
+    {
+      "path": ".ynventa/evidence/15d4ac73c9296d1626b425990b11da95.ynv",
+      "sha256": "15d4ac73c9296d1626b425990b11da955ca65559080a3472c69d205c30eb997e"
+    },
+    {
+      "path": ".ynventa/evidence/1f76064a4af1806d98cae468acb21463.ynv",
+      "sha256": "1f76064a4af1806d98cae468acb214634dccd64343dcbf6294a1252a73d7a1f3"
+    },
+    {
+      "path": ".ynventa/evidence/2550109f93d83accb8034bac6178f299.ynv",
+      "sha256": "2550109f93d83accb8034bac6178f2996d129bcc7bfc518dd87a6b7f59c6d0a8"
+    },
+    {
+      "path": ".ynventa/evidence/3c779bb5cbc9283f1ed5771c92c306d7.ynv",
+      "sha256": "3c779bb5cbc9283f1ed5771c92c306d74f63b78bda51ca32a99f4519fb9f070c"
+    },
+    {
+      "path": ".ynventa/evidence/482f78e2fa6d634a385d86a4989e9d6f.ynv",
+      "sha256": "482f78e2fa6d634a385d86a4989e9d6f379088b2093d5d32ad9d580af430a78a"
+    },
+    {
+      "path": ".ynventa/evidence/6eefd80bf10bb691065bedd1407b93ad.ynv",
+      "sha256": "6eefd80bf10bb691065bedd1407b93add9ab52cecdcd4cdd637a9383ba29bf9b"
+    },
+    {
+      "path": ".ynventa/evidence/72ce1f29af25efc7e9f0d84fdac07314.ynv",
+      "sha256": "72ce1f29af25efc7e9f0d84fdac073147ad637dc7526812d607cc321f60f04d3"
+    },
+    {
+      "path": ".ynventa/evidence/833523e3ee1049b9bf740ac193f55651.ynv",
+      "sha256": "833523e3ee1049b9bf740ac193f556517aace200968d37a6fa874b15aa72c7d2"
+    },
+    {
+      "path": ".ynventa/evidence/875f509186448be58be11fa407186273.ynv",
+      "sha256": "875f509186448be58be11fa407186273825d2dccf50757e234a608a234fd27ec"
+    },
+    {
+      "path": ".ynventa/evidence/8ea8bfdb5477d42b1c0ea6f49efcb49f.ynv",
+      "sha256": "8ea8bfdb5477d42b1c0ea6f49efcb49f27c58f5a2eb3b964eb85a9ca8a72ff4d"
+    },
+    {
+      "path": ".ynventa/evidence/916f231121fb5c869a63fe0f3753bf8a.ynv",
+      "sha256": "916f231121fb5c869a63fe0f3753bf8aa7d03fef6808e97f9218b3fc37278f72"
+    },
+    {
+      "path": ".ynventa/evidence/931a3acbb00e65f5ee0f42d410b7699d.ynv",
+      "sha256": "931a3acbb00e65f5ee0f42d410b7699db5ef575a0a3e1f625b6042bf522c7aed"
+    },
+    {
+      "path": ".ynventa/evidence/95b58cd6ffb9c0e42ff10968bccb7e02.ynv",
+      "sha256": "95b58cd6ffb9c0e42ff10968bccb7e02e1c47d180b9287f7dcb4e546f68af9d2"
+    },
+    {
+      "path": ".ynventa/evidence/9758f7b52525bfed61600a0870b524e8.ynv",
+      "sha256": "9758f7b52525bfed61600a0870b524e81f51b8ae89d04aca7e9c8dd11757ba77"
+    },
+    {
+      "path": ".ynventa/evidence/9f2bc45dde69f142f33ca15b24f7ba1b.ynv",
+      "sha256": "9f2bc45dde69f142f33ca15b24f7ba1b28f6535d9dd5cda2af23a42b091c3bb5"
+    },
+    {
+      "path": ".ynventa/evidence/a1b32fedeb94b4b7f7b64d4d35ffccc0.ynv",
+      "sha256": "a1b32fedeb94b4b7f7b64d4d35ffccc02262dfaec440835c0107e5957a0b9284"
+    },
+    {
+      "path": ".ynventa/evidence/c27e91842a5e37733033569f5d61d8cb.ynv",
+      "sha256": "c27e91842a5e37733033569f5d61d8cb6f25b3d715145e35f9730cd20b2d8997"
+    },
+    {
+      "path": ".ynventa/evidence/ce1df5af1a90fee2f7741c90234fa4fd.ynv",
+      "sha256": "ce1df5af1a90fee2f7741c90234fa4fdc36bd561374208ca3f87240561ccb4b8"
+    },
+    {
+      "path": ".ynventa/evidence/d763ccd2875522a00fac056edc05580a.ynv",
+      "sha256": "d763ccd2875522a00fac056edc05580a38c8eb73cb39351c4e08f3e5cba9e8d8"
+    },
+    {
+      "path": ".ynventa/evidence/dfb2bff33d50ac0d3a664d57132a381b.ynv",
+      "sha256": "dfb2bff33d50ac0d3a664d57132a381bb29fc914a8237f49bf9d95d40b203dfc"
+    },
+    {
+      "path": ".ynventa/evidence/eb4222dfd2feea045a06d55f3efa442c.ynv",
+      "sha256": "eb4222dfd2feea045a06d55f3efa442c148483bad49d39c352d1bb3734e51a4f"
+    },
+    {
+      "path": ".ynventa/evidence/f4294ccdeeba752c334ee598788ed1e9.ynv",
+      "sha256": "f4294ccdeeba752c334ee598788ed1e988a4380a81820bd88b8dda612a00b364"
+    },
+    {
+      "path": ".ynventa/evidence/ffabd1edda3b2e0ce433a50704046b21.ynv",
+      "sha256": "ffabd1edda3b2e0ce433a50704046b21332477c2f1e6699f725192ebb7f65cf4"
+    }
+  ]
+}

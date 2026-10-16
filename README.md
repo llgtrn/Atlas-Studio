@@ -25,7 +25,12 @@ pins the [Chronica responsibility crosswalk](https://github.com/llgtrn/Chronica/
 DECISION 0180 accepts owner scope; DECISION 0181's kernel/hardware mechanisms remain PROPOSED.
 Publication does not select or certify hardware, a kernel or a model. Remaining bindings for the
 complete native product, physical journey evidence and a full-scope acceptance producer are missing.
-This campaign is **documentation first**: implementation and source UI changes remain stopped.
+The owner's **2026-10-16 18:34 UTC** direction to continue until full V1 supersedes the
+16:43:08 documentation-only implementation pause. Bounded implementation and publication resume
+under the accepted full-native scope; the earlier STOP evidence remains historical and unchanged.
+This Atlas lane repairs the [compatibility producer](tools/atlas/evidence/verification/current-schema-compatibility/README.md)
+first (`OBL-SELF-COMPATIBILITY-SCHEMAS`, supporting N11/J8), then resumes artifact/caller cutover.
+Product UI ownership remains exclusively Chronica/Phenora; Atlas source UI remains frozen.
 
 ## Canonical Ynventa/Chronica integration — registered Latin nomenclature
 

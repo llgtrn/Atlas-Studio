@@ -24,12 +24,17 @@ as its kernel/runtime. A userspace application, daemon, container, hosted infere
 or software-test count is not native OS completion. All nine journeys below and all P0–P3 work
 remain V1 obligations; phases order dependencies, not scope reduction or deferral to V2.
 
-This campaign is documentation first. Held implementation patches, staged files and old evidence
-remain separate; this guidance authorizes no feature work, engine/schema change, credentials,
-hardware/compute purchase or change to the user's computer. Product UI ownership remains
-exclusively `Chronica/phenora/`; that canonical residence rename is complete at the pinned
-Chronica source. Atlas source UI stays frozen; its accounting, verified consumer cutover and
-source retirement remain pending, independently of the residence rename.
+**Superseding implementation authorization, 2026-10-16 18:34 UTC:** the owner directs continued
+work until full V1, superseding the 16:43:08 documentation-only pause. This lane resumes the held
+`verify_self` correctness repair before bounded artifact/caller cutover. Each change requires
+review, meaningful direct cloud checks and normal coherent publication to `main`. The earlier
+STOP and held-patch checkpoint remain historical evidence; pending work is neither discarded
+nor silently included. No spending, credential creation, hardware flashing or destructive
+deletion is authorized. Shared engine/schema changes still require coordination.
+
+Product UI ownership remains exclusively `Chronica/phenora/`; that canonical residence rename
+is complete at the pinned Chronica source. Atlas source UI stays frozen; its accounting,
+verified consumer cutover and source retirement remain pending, independently of the residence rename.
 
 ## Current source, required target and gaps
 
@@ -38,7 +43,7 @@ source retirement remain pending, independently of the residence rename.
 | Compiler and artifacts | `core/src/codara/{adl,artifact,construction}` inside the existing `atlas_core` package; historical formats and IDs retained | Native semantic mapping, target caller/admission, body semantics and consumer cutover remain separate |
 | Source callers | Existing `adapter/runtime/src/{atlas,atlasx}.rs` and `apps/cli/src/main.rs` read/write legacy source artifacts | These local filesystem interfaces are not a native OS kernel, boot path or hardware driver |
 | Source parity | Published bounded legacy FUNCTIONS corpus and BLAKE3 source tests; [pinned handoff](../../../core/src/codara/artifact/codec/parity/README.md#pinned-census-handoff) | Full diagnostic multiplicity/checked-evidence mapping, algorithm-specific BLAKE3 target oracle and rights/OD-15 remain open |
-| Source compatibility producer | At published `706a1c431b8e7abbcd899ebb97893a681572b217`, `verification::verify_self` still filters tests with retired `atlas::` and trusts exit zero | Post-relocation compatibility SATISFIED from this producer is unsupported without proof that the intended schema/history tests ran; repair is held, not published here |
+| Source compatibility producer | The historical `706a1c431b8e7abbcd899ebb97893a681572b217` producer used retired `atlas::` and exit zero; the [current repair](../evidence/verification/current-schema-compatibility/README.md) requires three exact schema/history tests and a complete passing summary | Zero/wrong-subset/ignored/failed/incomplete runs cannot qualify; a fresh committed-source observation is appended separately, and no full native acceptance follows |
 | Native system | Atlas supplies source candidates and scoped evidence | No certified hardware profile, independent boot chain, native protection/scheduler/drivers, real-weight native inference or complete journey acceptance is established by this repository |
 | Canonical admission | Atlas seal/precondition results qualify historical source integrity/projection | They supply no Chronica requester, resource, lease, work authority or OS completion claim |
 
@@ -132,5 +137,5 @@ This closes the documentary reciprocal-pin gap once; it requires no recursive ne
 synchronization. The old central N10 UI locator remains historical at that immutable pin;
 the [central UI correction `5e66958cd66b9450f23a6dc5466663955052ad86`](https://github.com/llgtrn/.Ynventa-/blob/5e66958cd66b9450f23a6dc5466663955052ad86/BLUEPRINT-V1.md#613-native-operating-requirements-and-executable-acceptance)
 uses `Chronica/phenora/`. The full-scope acceptance producer and native physical journey evidence
-remain missing. Documentary closure does not certify the product, reopen owner scope or authorize
-implementation.
+remain missing. Documentary closure does not certify the product or reopen owner scope; implementation
+authorization comes from the superseding owner direction above.
