@@ -1,0 +1,57 @@
+{
+  "source_commit": "5fee71078975a73ba27b11d818a4c8b3c982ddc0",
+  "source_tree": "ddb261086f1ea46e9cbf16a92f7903b56bc78df8",
+  "observed_utc": "2026-10-16T19:08:45.683422+00:00",
+  "requirement_ids": [
+    "N04",
+    "N05",
+    "N11",
+    "J2",
+    "J8"
+  ],
+  "scope": "Committed source oracle and existing artifact callers only; not target wire parity, Chronica admission, rights qualification or physical native acceptance.",
+  "result": "PASS",
+  "oracle_sha256": "9c9784254f48f21a977b6c736d1c33a284ba3c6f3c396abe1e2e4f0eb6a77975",
+  "case_count": 7,
+  "core_reader_sha256": "1951bbeba8be36dc7a4024e5e7f37969efe2c85e8222ba586666b087168e62bd",
+  "assets_sha256_check": "PASS: 7 full-evidence input, filename and checked-payload SHA256 pins\n",
+  "tests": [
+    {
+      "log": "core-full-evidence.log",
+      "sha256": "c75e741fe8af198267f5fd66c76c53eae2cc69e6f9786f63050e0ce7307ea3ca",
+      "transcript": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/core-e10d20cabfe0b48a)\n\nrunning 1 test\ntest codara::artifact::codec::tests::full_functions_evidence_oracle_preserves_diagnostics_and_check_boundaries ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 535 filtered out; finished in 0.00s\n\n",
+      "required_tests": [
+        "codara::artifact::codec::tests::full_functions_evidence_oracle_preserves_diagnostics_and_check_boundaries"
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "runtime-full-evidence.log",
+      "sha256": "b11e82ddd4575efd679415ef93413ef2faf9423c89579b5fd3d5bc8c1a7efd51",
+      "transcript": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d)\n\nrunning 1 test\ntest atlasx::tests::codara_export_enforces_the_legacy_functions_corpus ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.01s\n\n",
+      "required_tests": [
+        "atlasx::tests::codara_export_enforces_the_legacy_functions_corpus"
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "cli-full-evidence.log",
+      "sha256": "8887b9e593126c90407b4fdd7cbc3ad4681c7c6bcc0bc77f730d562aa1f18473",
+      "transcript": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running tests/full_evidence.rs (/workspace/atlas-proof-repair-target/debug/deps/full_evidence-17726615c616c8bd)\n\nrunning 2 tests\ntest decode_stdout_and_exit_preserve_all_seven_full_source_reports ... ok\ntest payload_export_preserves_full_reports_and_existing_evidence_for_all_seven_cases ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s\n\n",
+      "required_tests": [
+        "decode_stdout_and_exit_preserve_all_seven_full_source_reports",
+        "payload_export_preserves_full_reports_and_existing_evidence_for_all_seven_cases"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "format": "PASS",
+  "full_workspace": "NOT_RERUN; earlier full caller UNIT run intentionally interrupted and remains unqualified",
+  "Chronica_target_tests": "NOT_RUN",
+  "physical_native_checks": "NOT_RUN",
+  "target_reference_for_mapping_gap": "cf677cb9fe9435777cfbec4accf950aa586bf093",
+  "mapping_gap": "Pinned target generic diagnosis deduplication and FunctionsResult v1 first_defect cannot losslessly retain ordered identity-specific source diagnoses; checked digests are separate evidence and must not be erased or relabeled as semantic acceptance. No shared wire changed.",
+  "rights": "Atlas UNLICENSED; target OD-15 open; no adoption or rights grant.",
+  "active_source_writers": 1,
+  "active_read_only_reviewers": 1
+}

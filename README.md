@@ -196,6 +196,9 @@ JSON, refusal exits and payload export/replay without replacing input or prior e
 adds source regression coverage, not a new artifact format or target receipt contract. The pinned
 target's generic diagnosis deduplication and `first_defect` receipt remain a qualified mapping
 gap; source checked digests must survive without being promoted into semantic acceptance.
+The [committed-source checks](tools/atlas/evidence/verification/full-functions-evidence/source-5fee710.json)
+record seven pinned cases, one Core test, one Runtime test and two CLI process tests passing on
+source `5fee71078975a73ba27b11d818a4c8b3c982ddc0`; target and physical native checks are NOT_RUN.
 
 **PROPOSED convergence interaction, not an implemented source-to-Chronica call trace.** The sequence expresses required review/authority/evidence obligations; it does not establish automatic central-engine admission or actual consumer cutover.
 
