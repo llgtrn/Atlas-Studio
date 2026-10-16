@@ -1,0 +1,464 @@
+{
+  "schema": "atlas.source-lossless-bytes-validation.v1",
+  "schema_scope": "Source-hosted validation metadata only; not shared execution/evidence/authority wire",
+  "source_commit": "7d1a277663e474e5faf7fb190cc7b5ecd6acc56f",
+  "source_tree": "303da6439c9253bf9bfd4979604e16c6664ee846",
+  "status": "PASS",
+  "scope": "Focused source-only direct cloud checks. Not full workspace/selfadmission, Chronica execution, native adoption, hardware or rights qualification.",
+  "interface": "atlasx codec --decode FILE [--out REPORT] [--max-report-bytes DECIMAL]",
+  "source_files": [
+    {
+      "path": "apps/cli/src/main.rs",
+      "git_blob": "4691278854adc7dfcde3e86184956292381168db",
+      "sha256": "ecf451c09488887eb3feabd3097cd380372af7e2f997b3b68ed3099f077e351f",
+      "bytes": 140323
+    },
+    {
+      "path": "apps/cli/tests/full_evidence.rs",
+      "git_blob": "cba52f980cadcac6d725230a2f0241b643026e4b",
+      "sha256": "050a5b73761a517d60e090dcdb092f82b188ec9767906f7318fa292c65c785f7",
+      "bytes": 12600
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/bounds-refusal-before-payload-hash.evidence.json",
+      "git_blob": "5f6136bdea95b88b55e5113c090cf78b325cd677",
+      "sha256": "a674dd195c42921a6cb60ae69ea51be9844dcd36e0a17426e978b44c6f824234",
+      "bytes": 2289
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/check.py",
+      "git_blob": "c2ce2b33c7a516c8951bba25fbd0b4203c4173b5",
+      "sha256": "e8c0c0ef09b0594fa20c1f3f46f244a9590f822275da754dd01878119d3841d5",
+      "bytes": 17584
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/decoded-comparison.evidence.json",
+      "git_blob": "9283a7ad8b7164dee9505904f5c1db5481e06b53",
+      "sha256": "e5f3b46e45e25aa100eac56c1a051c77b28ba583d8e0f2b01cfa25149d279c91",
+      "bytes": 3487
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/distinct-duplicate-identities.evidence.json",
+      "git_blob": "37b077d1daa888a5d681d5051557c6d4bde62dbd",
+      "sha256": "b918b4975509920f4f7b9346d3839b8099ee2c8639de9a22b559dda401862b3c",
+      "bytes": 2500
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/filename-refusal-after-semantic-success.evidence.json",
+      "git_blob": "5c795caebdb2c43048b4597bab74ad2ab2ff3b27",
+      "sha256": "dee837b8b6e8e003745ae1d5e4a09dfb71510d48ee7d6eacfd9be0ee44f0ff92",
+      "bytes": 2436
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/payload-digest-mismatch.evidence.json",
+      "git_blob": "f0f778a6cca050f3fa0a7d2dd96483f69d2282b6",
+      "sha256": "80757012f6ff83a64d1a2291aeec320b67a4b095a69665edfbf12059baa44cbe",
+      "bytes": 2476
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/pre-header-refusal.evidence.json",
+      "git_blob": "61495e288aacb183b577ea0a31a2473c50ca163a",
+      "sha256": "87471c66e1870f1b6a538a972bc2bbd11c7ec7e8baa08090c5e329ab1b7f8e9c",
+      "bytes": 2217
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/semantic-refusal-precedes-wrong-filename.evidence.json",
+      "git_blob": "9997f65bbe8b52554b46216af595ecfbf0c110fd",
+      "sha256": "ac90c1fad646108936cd9add983c151f6a4794e7dca1cce028563936d7b0ed45",
+      "bytes": 2452
+    },
+    {
+      "path": "core/src/codara/artifact/codec/parity/lossless-bytes/vectors.json",
+      "git_blob": "9a0348c4a098132ef8f591e25e333ae84f41382e",
+      "sha256": "2c1f3303b29e2a4c4ab1a8a7d705f2ee833af7301247c581af6c62c6236e8f58",
+      "bytes": 10952
+    },
+    {
+      "path": "tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md",
+      "git_blob": "788d08a46a37cb5bbd8a87bf37c56a8976f34096",
+      "sha256": "13b34cb3ed3cf8c05c731bcdc6d889a8b98c471f978de576dcf7a2b774cc283b",
+      "bytes": 14484
+    },
+    {
+      "path": "tools/atlas/contracts/FUNCTIONS-EVIDENCE-BYTES-PROPOSAL.md",
+      "git_blob": "0886000f6adbc26be5487611937b70f9884302e4",
+      "sha256": "4464ec853e47d4f432ff074bcba3b89c4eb51677ea9941e69f686ae2f95ed6ef",
+      "bytes": 11266
+    },
+    {
+      "path": "tools/atlas/evidence/census/codara-residences-source-0bed61a.json",
+      "git_blob": "38d655645a2a7d624ae765324d311f6de5e9d4b1",
+      "sha256": "eac9365b50edca7911157863e5eef27e5ebc502584dccb49da4f68c6d36fc69a",
+      "bytes": 92946
+    }
+  ],
+  "direct_checks": {
+    "source_commit": "7d1a277663e474e5faf7fb190cc7b5ecd6acc56f",
+    "source_tree": "303da6439c9253bf9bfd4979604e16c6664ee846",
+    "environment": {
+      "CARGO_HOME": "/workspace/.cargo",
+      "RUSTUP_HOME": "/workspace/.rustup",
+      "CARGO_TARGET_DIR": "/workspace/atlas-proof-repair-target"
+    },
+    "PATH_prefix": "/workspace/.cargo/bin",
+    "commands": [
+      {
+        "label": "build",
+        "command": [
+          "cargo",
+          "build",
+          "-p",
+          "atlas-cli",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.202712504004012,
+        "expected_tests": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "0d402abc7039c1498b9cb9fc46fa6b0cd195c94a4ba6647a78c43e7e16a4ee1a"
+      },
+      {
+        "label": "cli-unit",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--bin",
+          "atlas-systemizer",
+          "--offline",
+          "--",
+          "tests::codec_report_capacity_requires_one_canonical_usize_or_absence",
+          "tests::codec_report_capacity_rejects_other_modes_before_any_operation",
+          "tests::codec_decode_refusal_keeps_the_full_typed_report_and_refusal_exit_on_replay",
+          "tests::codec_decode_reports_preserve_input_and_prior_evidence_and_allow_exact_replay",
+          "--exact",
+          "--format=pretty",
+          "--color=never"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 2.2136395140041714,
+        "expected_tests": 4,
+        "stdout_sha256": "a5b02ab1ea26f7f0fa725fa7a5a3f63c534f3cd690f78086efcc02be047c3a5f",
+        "stderr_sha256": "dc1730ff6db4b0d8dd4c5d1d21bf492b05a27f8c45dfa916d9b12088695bd331"
+      },
+      {
+        "label": "cli-integration",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--test",
+          "full_evidence",
+          "--offline",
+          "--",
+          "--format=pretty",
+          "--color=never"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.7295814040044206,
+        "expected_tests": 4,
+        "stdout_sha256": "e877b09a5d4ed200654b1c597dd7e8b3ac2977c4c675956258f5450aee19e303",
+        "stderr_sha256": "15c9793a555eac0a7be30ccb40a425aa7ee41af79f51f48740f50afbc04f5f34"
+      },
+      {
+        "label": "core-oracle",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "core",
+          "--lib",
+          "--offline",
+          "--",
+          "codara::artifact::codec::tests::full_functions_evidence_oracle_preserves_diagnostics_and_check_boundaries",
+          "--exact",
+          "--format=pretty",
+          "--color=never"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.11999603699950967,
+        "expected_tests": 1,
+        "stdout_sha256": "b03f1901426345e8946e7d30ec2f607727723b8f33b35bddc6b17187a407de25",
+        "stderr_sha256": "37e723070061b476f3a516d343fa9377b693c5d1459efbfed8ab62e59c292a90"
+      },
+      {
+        "label": "runtime-oracle",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "runtime",
+          "--lib",
+          "--offline",
+          "--",
+          "atlasx::tests::codara_export_enforces_the_legacy_functions_corpus",
+          "--exact",
+          "--format=pretty",
+          "--color=never"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 3.572067606000928,
+        "expected_tests": 1,
+        "stdout_sha256": "0a5e4f03b50f57db33e90495b411ead77c9b9f7037d7c6ad56aff1f9471709a2",
+        "stderr_sha256": "542038344c11927f673332d21dd0982a02dc4d19d8ca39de9dd1104cccb94c26"
+      },
+      {
+        "label": "asset-pins",
+        "command": [
+          "python3",
+          "core/src/codara/artifact/codec/parity/full-evidence/check.py"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.03267846300150268,
+        "expected_tests": null,
+        "stdout_sha256": "359e2e034eac44253bfe770f21ab43927496a80f719fb1764b77d150b02abb0a",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "byte-profile",
+        "command": [
+          "python3",
+          "-B",
+          "core/src/codara/artifact/codec/parity/lossless-bytes/check.py",
+          "--cli",
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.13288290899799904,
+        "expected_tests": null,
+        "stdout_sha256": "a88e88d11156ae781e4b03fe3815b1f7d86ebff498cd53233325ec851b8ff837",
+        "stderr_sha256": "0cb6b1e88be6755de70f228244bc5f5056c3bb3ae8350a9be77fb229c4a20da7"
+      },
+      {
+        "label": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 1.587572297998122,
+        "expected_tests": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "diff",
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.005583596001088154,
+        "expected_tests": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "source_clean_before_and_after": true,
+    "binary_sha256": "f79d03309c2db3260deb3afe8e4308c0e8d0e18f927b1cb6291cdc4357f642d1",
+    "utc": "2026-10-16T21:11:32.905927+00:00",
+    "status": "PASS",
+    "scope": "Focused source-only direct cloud checks. Not full workspace/selfadmission, Chronica execution, native adoption, hardware or rights qualification."
+  },
+  "raw_stage_logs": {
+    "build": {
+      "stdout": "",
+      "stderr": "   Compiling adapter v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter)\n   Compiling runtime v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter/runtime)\n   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.14s\n"
+    },
+    "cli-unit": {
+      "stdout": "\nrunning 4 tests\ntest tests::codec_report_capacity_requires_one_canonical_usize_or_absence ... ok\ntest tests::codec_report_capacity_rejects_other_modes_before_any_operation ... ok\ntest tests::codec_decode_reports_preserve_input_and_prior_evidence_and_allow_exact_replay ... ok\ntest tests::codec_decode_refusal_keeps_the_full_typed_report_and_refusal_exit_on_replay ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.01s\n\n",
+      "stderr": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.10s\n     Running unittests src/main.rs (/workspace/atlas-proof-repair-target/debug/deps/atlas_systemizer-0ff4842d67bc09f8)\n"
+    },
+    "cli-integration": {
+      "stdout": "\nrunning 4 tests\ntest decode_stdout_and_exit_preserve_all_seven_full_source_reports ... ok\ntest report_capacity_argument_errors_fail_before_reading_or_writing ... ok\ntest payload_export_preserves_full_reports_and_existing_evidence_for_all_seven_cases ... ok\ntest bounded_decode_preserves_exact_bytes_and_refuses_without_output_for_all_seven_cases ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s\n\n",
+      "stderr": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s\n     Running tests/full_evidence.rs (/workspace/atlas-proof-repair-target/debug/deps/full_evidence-17726615c616c8bd)\n"
+    },
+    "core-oracle": {
+      "stdout": "\nrunning 1 test\ntest codara::artifact::codec::tests::full_functions_evidence_oracle_preserves_diagnostics_and_check_boundaries ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 535 filtered out; finished in 0.01s\n\n",
+      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/core-e10d20cabfe0b48a)\n"
+    },
+    "runtime-oracle": {
+      "stdout": "\nrunning 1 test\ntest atlasx::tests::codara_export_enforces_the_legacy_functions_corpus ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.01s\n\n",
+      "stderr": "   Compiling runtime v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter/runtime)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.52s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d)\n"
+    },
+    "asset-pins": {
+      "stdout": "PASS: 7 full-evidence input, filename and checked-payload SHA256 pins\n",
+      "stderr": ""
+    },
+    "byte-profile": {
+      "stdout": "PASS: 7 actual CLI reports match exact preserved source_report_utf8 bytes\nPASS: proposed source-only bounded byte profile; target adoption and rights remain gated\n",
+      "stderr": "test_all_seven_exact_round_trips_and_safe_chunk_retry (__main__.ProfileTests.test_all_seven_exact_round_trips_and_safe_chunk_retry) ... ok\ntest_maximum_boundary_opaque_chunks_and_invalid_descriptors (__main__.ProfileTests.test_maximum_boundary_opaque_chunks_and_invalid_descriptors) ... ok\ntest_missing_duplicate_reordered_substituted_and_corrupt_chunks_refuse (__main__.ProfileTests.test_missing_duplicate_reordered_substituted_and_corrupt_chunks_refuse) ... ok\ntest_semantic_and_checked_evidence_loss_is_never_full_parity (__main__.ProfileTests.test_semantic_and_checked_evidence_loss_is_never_full_parity) ... ok\ntest_serialization_versions_duplicate_keys_and_noncanonical_bytes_refuse (__main__.ProfileTests.test_serialization_versions_duplicate_keys_and_noncanonical_bytes_refuse) ... ok\ntest_whole_and_chunk_capacity_fail_closed (__main__.ProfileTests.test_whole_and_chunk_capacity_fail_closed) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.009s\n\nOK\n"
+    },
+    "fmt": {
+      "stdout": "",
+      "stderr": ""
+    },
+    "diff": {
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "independent_review": {
+    "result": "PASS bounded source proposal/caller patch; not renewed full self-admission",
+    "reviewed_utc": "2026-10-16T21:10:15.114061+00:00",
+    "baseline": "0bed61abbf05df6b0a323cfcaf7013e371548408",
+    "source_paths_count": 14,
+    "source_files": [
+      {
+        "path": "apps/cli/src/main.rs",
+        "sha256": "ecf451c09488887eb3feabd3097cd380372af7e2f997b3b68ed3099f077e351f",
+        "bytes": 140323
+      },
+      {
+        "path": "apps/cli/tests/full_evidence.rs",
+        "sha256": "050a5b73761a517d60e090dcdb092f82b188ec9767906f7318fa292c65c785f7",
+        "bytes": 12600
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/bounds-refusal-before-payload-hash.evidence.json",
+        "sha256": "a674dd195c42921a6cb60ae69ea51be9844dcd36e0a17426e978b44c6f824234",
+        "bytes": 2289
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/check.py",
+        "sha256": "e8c0c0ef09b0594fa20c1f3f46f244a9590f822275da754dd01878119d3841d5",
+        "bytes": 17584
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/decoded-comparison.evidence.json",
+        "sha256": "e5f3b46e45e25aa100eac56c1a051c77b28ba583d8e0f2b01cfa25149d279c91",
+        "bytes": 3487
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/distinct-duplicate-identities.evidence.json",
+        "sha256": "b918b4975509920f4f7b9346d3839b8099ee2c8639de9a22b559dda401862b3c",
+        "bytes": 2500
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/filename-refusal-after-semantic-success.evidence.json",
+        "sha256": "dee837b8b6e8e003745ae1d5e4a09dfb71510d48ee7d6eacfd9be0ee44f0ff92",
+        "bytes": 2436
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/payload-digest-mismatch.evidence.json",
+        "sha256": "80757012f6ff83a64d1a2291aeec320b67a4b095a69665edfbf12059baa44cbe",
+        "bytes": 2476
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/pre-header-refusal.evidence.json",
+        "sha256": "87471c66e1870f1b6a538a972bc2bbd11c7ec7e8baa08090c5e329ab1b7f8e9c",
+        "bytes": 2217
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/semantic-refusal-precedes-wrong-filename.evidence.json",
+        "sha256": "ac90c1fad646108936cd9add983c151f6a4794e7dca1cce028563936d7b0ed45",
+        "bytes": 2452
+      },
+      {
+        "path": "core/src/codara/artifact/codec/parity/lossless-bytes/vectors.json",
+        "sha256": "2c1f3303b29e2a4c4ab1a8a7d705f2ee833af7301247c581af6c62c6236e8f58",
+        "bytes": 10952
+      },
+      {
+        "path": "tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md",
+        "sha256": "13b34cb3ed3cf8c05c731bcdc6d889a8b98c471f978de576dcf7a2b774cc283b",
+        "bytes": 14484
+      },
+      {
+        "path": "tools/atlas/contracts/FUNCTIONS-EVIDENCE-BYTES-PROPOSAL.md",
+        "sha256": "4464ec853e47d4f432ff074bcba3b89c4eb51677ea9941e69f686ae2f95ed6ef",
+        "bytes": 11266
+      },
+      {
+        "path": "tools/atlas/evidence/census/codara-residences-source-0bed61a.json",
+        "sha256": "eac9365b50edca7911157863e5eef27e5ebc502584dccb49da4f68c6d36fc69a",
+        "bytes": 92946
+      }
+    ],
+    "resolved_findings": [
+      "Embedded JSON exponent overflow now rejected by finite_float/math.isfinite with positive/negative regression cases.",
+      "Source oracle comparison now preserves boolean/integer/float distinctions through canonical JSON.",
+      "Generic shape validation distinguished from exact source parity; no duplicate source semantic validator claimed.",
+      "Removed blank rows within census guidance Markdown tables; root must stage this final text edit."
+    ],
+    "checks": {
+      "reviewer_executed": "Python -B checker6testsPASS +7 actualCLI exact report bytesPASS",
+      "recorded_capacity_tests": "2unit+4realintegration+2priorimmutable PASS0failed0ignored",
+      "recorded_runtime_oracle": "1PASS0failed0ignored",
+      "immutable_baseline_inventory": "79file SHA256/blob/bytes/textline counts exact at0bed61;41directed call locators and reference index exact",
+      "identity_gate": "Structural future move explicitly conditional on engine-owned saved IDs and separate runtime path-derived inventory identity/provenance; no move or identity-schema change now",
+      "scope": "2CLI files+9newlosslessbyte assets+2newdocs+1newstaticinventory, noexistingfixture/codec/history/sharedwire/target/UI/rights changes"
+    },
+    "remaining": [
+      "Fresh direct checks from exact clean source commit and native knowledge extraction are parent-owned follow-up.",
+      "No current full self-admission claim after source changes; old0bed61 report remains historical.",
+      "Target native storage/retrieval, result version/budgets, authority/disclosure binding, native acceptance and rights remain open."
+    ],
+    "reviewer_actions": "Read source/Git/evidence; authorized lightweight Python+7realCLI only. No Cargo/heavy tests/census/source edits."
+  },
+  "resolved_review_findings": [
+    "Finite exponent overflow refused; typed JSON oracle equality no bool/int/float conflation",
+    "Markdown tables repaired",
+    "Two census CLI working pins corrected; all79pins verified against immutable baseline0bed"
+  ],
+  "target_reference": "ce3034687fadaf19f12ed094d263c20ec47631e3",
+  "unchanged_target_contracts": [
+    "FunctionsResultv1 first_defect and1024byte decoder",
+    "Lineara workreceipt1024byte limit",
+    "ArtifactBook metadata only; no native blob/chunk reader invented"
+  ],
+  "target_dependencies": [
+    "approved canonical immutable bytes/storage/read owner and bounded native reference/response",
+    "actual durable request/input/name/IR/EffectRef/known-settled-outcome bindings",
+    "current requester/scope/resource.observe/disclosure and capacity/retention admission",
+    "AtlasUNLICENSED/OD15 rights"
+  ],
+  "proposal_profile": "atlas.functions-evidence-bytes.proposal.v1",
+  "test_only_bounds": {
+    "packet_bytes": 8192,
+    "chunk_bytes": 512,
+    "chunk_count": 16
+  },
+  "native_knowledge": {
+    "path": ".ynventa/knowledge/9cf2ea6b775bafa4a7ec05017b428b0c.ynv",
+    "sha256": "9cf2ea6b775bafa4a7ec05017b428b0cc6bf06b7cc9de659767a10fb0b398e23",
+    "bytes": 110071,
+    "source_citations": "7d1a277663e474e5faf7fb190cc7b5ecd6acc56f",
+    "both_docs_byte_exact_roundtrip": true,
+    "extract_log": "tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md: 58 facts, 29 blocks (rebuilds byte for byte: `ynventa knowledge view --document tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md`)\ntools/atlas/contracts/FUNCTIONS-EVIDENCE-BYTES-PROPOSAL.md: 46 facts, 31 blocks (rebuilds byte for byte: `ynventa knowledge view --document tools/atlas/contracts/FUNCTIONS-EVIDENCE-BYTES-PROPOSAL.md`)\nwrote .ynventa/knowledge/9cf2ea6b775bafa4a7ec05017b428b0c.ynv\n"
+  },
+  "native_verify": {
+    "exit_code": 0,
+    "protocol_checks": "33/33 pass",
+    "stdout": "findings: 0 errors, 80 warnings, 0 info\n  WARNING AMBIGUOUS_DONOR_IDENTITY   cli: 4 distinct upstreams look alike (github.com/cli/cli, github.com/docker/cli, github.com/higgsfield-ai/cli, github.com/npm/cli); they stay distinct until an alias with provenance proves them one\n  WARNING DOCUMENT_OVER_BUDGET       apps/studio/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       core/src/codara/artifact/codec/parity/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       core/src/codara/artifact/codec/parity/full-evidence/README.md: OVER_BUDGET; REPRESENTED_CANONICALLY (100% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/diagnose-why-work-stopped/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-converting-plans-to-tasks/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/agent-instruction-templates.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/agents/coder.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/agents/qa.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/agents/securityengineer.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/agents/uxdesigner.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/api-reference.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/baseline-role-guide.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-agent/references/draft-review-checklist.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-create-plugin/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip-dev/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip/references/api-reference.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip/references/company-skills.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip/references/issue-workspaces.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip/references/routines.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/paperclip/references/workflows.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/para-memory-files/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/para-memory-files/references/schemas.md: OVER_BUDGET; SUPERSEDED_DOCUMENT\n  WARNING DOCUMENT_OVER_BUDGET       tools/agent/skills/terminal-bench-loop/SKILL.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md: OVER_BUDGET; REPRESENTED_CANONICALLY (98% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/contracts/FUNCTIONS-EVIDENCE-BYTES-PROPOSAL.md: OVER_BUDGET; REPRESENTED_CANONICALLY (95% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/contracts/FUNCTIONS-LOSSLESS-EVIDENCE-HANDOFF.md: OVER_BUDGET; SESSION_OR_PROGRESS_LOG; REPRESENTED_CANONICALLY (98% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/contracts/NATIVE-V1-SOURCE-CONTRIBUTION.md: OVER_BUDGET; REPRESENTED_CANONICALLY (97% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/evidence/verification/codec-report-output/README.md: OVER_BUDGET; REPRESENTED_CANONICALLY (100% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/evidence/verification/current-schema-compatibility/README.md: OVER_BUDGET; REPRESENTED_CANONICALLY (100% of statements are knowledge facts); knowledge extracted — safe to prune\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/licenses/donors/composer/Commercial.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/licenses/donors/composer/PATENTS.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/atlas/licenses/elkjs/LICENSE.md: OVER_BUDGET; DONOR_NOTE\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP01.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP02.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP03.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP04.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP05.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP06.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP07.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP08.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP09.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP10.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP11.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP12.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP13.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP14.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP15.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP16.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP17.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/packets/CAP18.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/architecture.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/automation-coverage.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/cap-acceptance-matrix.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/cap-agent-template.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/cross-cap-matrix.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/flow-coverage.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/golden-flow-matrix.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/manual-review-queue.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/p0-ci-integration-handoff.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED; SESSION_OR_PROGRESS_LOG\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/proof-obligation-coverage.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/contracts/generated/reports/release-changelog.md: OVER_BUDGET; GENERATED_REPORT_COMMITTED\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/engine/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/benchmark/thread4/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/build/FINALIZE-GOAL-PROMPT.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/cloud-dispatch/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/cloud-dispatch/claude-workbank/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/docs/README.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/docs/templates/architecture-owner.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/docs/templates/blueprint.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/docs/templates/decision.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/docs/templates/guide.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/docs/templates/reference.md: OVER_BUDGET\n  WARNING DOCUMENT_OVER_BUDGET       tools/reality-atlas/local-verification.md: OVER_BUDGET\n  WARNING ORPHAN_CAPABILITY          codec.executable-world-objects: provided by compiler.core@atlas-studio with no technology implementing it and no material or feed relation\n  WARNING ORPHAN_CAPABILITY          security.blake3-tree-hash: provided by compiler.core@atlas-studio with no technology implementing it and no material or feed relation\nprotocol checks: 33/33 pass\nverify: PASS\n",
+    "sha256": "ce834465c95d9d297ab39b1a76cae37081288ff10f75aedc29a43b7123bd95b8"
+  },
+  "preservation": {
+    "checked_utc": "2026-10-16T21:12:34.699198+00:00",
+    "held14_files_byte_exact": true,
+    "held_index_empty": true,
+    "saved2502_ArtifactId_registry_byte_exact": true,
+    "all_saved_paths_retained": true,
+    "all65_baseline_native_knowledge_and_codec_parity_files_byte_exact": true,
+    "held_fae_patch_byte_exact": true,
+    "no_file_moves_or_oldID_edits_in_current_increment": true
+  },
+  "residence_census": {
+    "baseline": "0bed61abbf05df6b0a323cfcaf7013e371548408",
+    "pure_files": 55,
+    "pinned_files": 79,
+    "static_production_edges": 41,
+    "entrypoint_groups": 14,
+    "scope": "Static source baseline; no executable/target parity claim; new profile fixtures excluded",
+    "next_candidate": "Move realruntimeartifact implementation+actualCLI only after identity-domain preservation plan; NOT_PERFORMED"
+  },
+  "full_self_admission": "NOT_RERUN_FOR_THIS_SOURCE; old e9f3 fullPASS historical only, not rebound",
+  "target_execution_and_hardware": "NOT_RUN",
+  "retention": "Only new native book and this JSON appended after sourcecommit checks; no code/history/ID rewrite",
+  "created_utc": "2026-10-16T21:13:33.023138+00:00"
+}
