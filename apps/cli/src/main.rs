@@ -1805,6 +1805,10 @@ mod tests {
         assert_eq!(decoded["verdict"], "DECODED", "{decoded:#}");
         assert_eq!(decoded["address"], address);
         assert_eq!(decoded["records"][0]["name"], "is_local");
+        run(&args(&[
+            "atlasx", "codec", "--encode", module, "--out", &out,
+        ]))
+        .expect("an identical source-artifact replay succeeds");
 
         let mut bytes = fs::read(&object).unwrap();
         let last = bytes.len() - 1;
@@ -1814,6 +1818,12 @@ mod tests {
         assert_eq!(err, "ATLASX_CODEC_REFUSED: 1 defects");
         assert_eq!(report()["defects"][0][0], "DIGEST_MISMATCH");
         assert_eq!(report()["records"], serde_json::Value::Null);
+        let err = run(&args(&[
+            "atlasx", "codec", "--encode", module, "--out", &out,
+        ]))
+        .expect_err("encoding refuses to overwrite conflicting evidence");
+        assert!(err.contains("not an identical regular file"), "{err}");
+        assert_eq!(fs::read(&object).unwrap(), bytes);
 
         bytes[last] ^= 1;
         let renamed = dir.join("renamed.atlasx");

@@ -120,8 +120,20 @@ pub fn materialize(files: &ParentFiles, out_dir: impl AsRef<Path>) -> io::Result
 
 /// Stages the objects of `materialization` under `out_dir`, which must be empty, or absent with
 /// its parent present; on any failure, removes every file and directory it created, `out_dir`
-/// included when it created it.
+/// included when it created it. The staging root itself must not be a symbolic link. As with
+/// `read_root`, concurrent replacement of directories is outside the filesystem model.
 fn stage(materialization: &Materialization, out_dir: &Path) -> io::Result<()> {
+    match fs::symlink_metadata(out_dir) {
+        Ok(metadata) if !metadata.is_dir() => {
+            return Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                format!("{}: the staging root is not a directory", out_dir.display()),
+            ));
+        }
+        Ok(_) => {}
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+        Err(e) => return Err(at(out_dir)(e)),
+    }
     let existed = match fs::read_dir(out_dir) {
         Ok(mut entries) => {
             if entries.next().is_some() {
@@ -336,7 +348,10 @@ pub type Encoded = Result<(EncodedObject, PathBuf), CodecDefects>;
 /// M12: the FUNCTIONS object of the construction module at `module` (JSON), written into the
 /// directory `out_dir` under its address (`<address>.atlasx`), with the path written. A file that
 /// cannot be read or parsed is an error; a module the codec cannot write canonically is its typed
-/// defects.
+/// defects. Existing regular files are accepted only as byte-identical replays; conflicting
+/// bytes and nonregular entries (including symbolic links) are refused without overwriting
+/// evidence. This produces a source artifact, not authority to execute it. Concurrent changes
+/// to output directories are outside the filesystem model.
 pub fn encode_module(module: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> io::Result<Encoded> {
     let module = module.as_ref();
     let parsed: ConstructionModule = serde_json::from_slice(&read(module)?).map_err(|e| {
@@ -351,10 +366,44 @@ pub fn encode_module(module: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> io:
     };
     let out_dir = out_dir.as_ref();
     let path = out_dir.join(format!("{}.atlasx", encoded.address));
-    fs::create_dir_all(out_dir)
-        .and_then(|()| fs::write(&path, &encoded.bytes))
-        .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
+    fs::create_dir_all(out_dir).map_err(at(out_dir))?;
+    write_object_or_replay(&path, &encoded.bytes)?;
     Ok(Ok((encoded, path)))
+}
+
+/// Create an immutable addressed object, or verify the exact bytes of an existing one.
+fn write_object_or_replay(path: &Path, bytes: &[u8]) -> io::Result<()> {
+    match fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+    {
+        Ok(mut file) => {
+            if let Err(error) = file.write_all(bytes).and_then(|()| file.sync_all()) {
+                drop(file);
+                let _ = fs::remove_file(path);
+                return Err(at(path)(error));
+            }
+            Ok(())
+        }
+        Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+            let listing = fs::symlink_metadata(path).map_err(at(path))?;
+            if listing.is_file()
+                && listing.len() == bytes.len() as u64
+                && read_listed(path, &listing, bytes.len() as u64 + 1)?.as_deref() == Some(bytes)
+            {
+                return Ok(());
+            }
+            Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                format!(
+                    "{}: existing object is not an identical regular file",
+                    path.display()
+                ),
+            ))
+        }
+        Err(error) => Err(at(path)(error)),
+    }
 }
 
 /// The most bytes `decode_object` reads: a header, the largest payload, and one byte more, so an
@@ -431,6 +480,24 @@ mod tests {
         {
             let elsewhere = dir.join("elsewhere");
             fs::create_dir(&elsewhere).unwrap();
+            let linked_root = dir.join("linked-root");
+            std::os::unix::fs::symlink(&elsewhere, &linked_root).unwrap();
+            let err = stage(&m, &linked_root).unwrap_err();
+            assert!(
+                err.to_string().contains("staging root is not a directory"),
+                "{err}"
+            );
+            assert_eq!(fs::read_dir(&elsewhere).unwrap().count(), 0);
+            assert!(fs::symlink_metadata(&linked_root).unwrap().is_symlink());
+            let absent = dir.join("absent");
+            let dangling_root = dir.join("dangling-root");
+            std::os::unix::fs::symlink(&absent, &dangling_root).unwrap();
+            let err = stage(&m, &dangling_root).unwrap_err();
+            assert!(
+                err.to_string().contains("staging root is not a directory"),
+                "{err}"
+            );
+            assert!(!absent.exists());
             let fresh = dir.join("fresh");
             fs::create_dir(&fresh).unwrap();
             std::os::unix::fs::symlink(&elsewhere, fresh.join("functions")).unwrap();
@@ -451,6 +518,52 @@ mod tests {
         fs::write(out.join("stale"), b"x").unwrap();
         let err = stage(&m, &out).unwrap_err();
         assert!(err.to_string().contains("not empty"), "{err}");
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn encoding_replays_only_identical_regular_objects_and_preserves_conflicts() {
+        let dir = scratch("codec-replay");
+        let module = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/fixture_module.json"
+        );
+        let (encoded, path) = encode_module(module, &dir).unwrap().unwrap();
+        let before = fs::metadata(&path).unwrap();
+        let (replayed, replay_path) = encode_module(module, &dir).unwrap().unwrap();
+        assert_eq!(replay_path, path);
+        assert_eq!(replayed.bytes, encoded.bytes);
+        assert!(same_file(&before, &fs::metadata(&path).unwrap()));
+
+        let mut conflicting = encoded.bytes.clone();
+        conflicting[0] ^= 1;
+        fs::write(&path, &conflicting).unwrap();
+        let err = encode_module(module, &dir).unwrap_err();
+        assert_eq!(err.kind(), io::ErrorKind::AlreadyExists);
+        assert_eq!(fs::read(&path).unwrap(), conflicting);
+        fs::remove_file(&path).unwrap();
+
+        fs::create_dir(&path).unwrap();
+        assert!(encode_module(module, &dir).is_err());
+        assert!(path.is_dir());
+        fs::remove_dir(&path).unwrap();
+
+        #[cfg(unix)]
+        {
+            // Even an identical target is not accepted through an address-named link.
+            let target = dir.join("evidence");
+            fs::write(&target, &encoded.bytes).unwrap();
+            std::os::unix::fs::symlink(&target, &path).unwrap();
+            let err = encode_module(module, &dir).unwrap_err();
+            assert_eq!(err.kind(), io::ErrorKind::AlreadyExists);
+            assert!(fs::symlink_metadata(&path).unwrap().is_symlink());
+            assert_eq!(fs::read(&target).unwrap(), encoded.bytes);
+            fs::remove_file(&path).unwrap();
+            let absent = dir.join("absent");
+            std::os::unix::fs::symlink(&absent, &path).unwrap();
+            assert!(encode_module(module, &dir).is_err());
+            assert!(!absent.exists());
+        }
         fs::remove_dir_all(&dir).ok();
     }
 
