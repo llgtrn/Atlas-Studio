@@ -119,7 +119,7 @@ struct ParentArgs {
     design: Option<String>,
     verification: String,
     integrity: String,
-    declared: runtime::atlasx::Declared,
+    declared: runtime::codara::artifact::Declared,
 }
 
 impl ParentArgs {
@@ -147,7 +147,8 @@ impl ParentArgs {
         let root = value(rest, declared_at)?.unwrap_or_else(|| ".".into());
         let atlas = required("--atlas")?;
         let (verification, integrity) = (required("--verification")?, required("--integrity")?);
-        let declared = runtime::atlasx::read_declared(&root).map_err(|e| format!("{root}: {e}"))?;
+        let declared =
+            runtime::codara::artifact::read_declared(&root).map_err(|e| format!("{root}: {e}"))?;
         Ok(Self {
             atlas,
             design: value(rest, "--design")?,
@@ -157,8 +158,8 @@ impl ParentArgs {
         })
     }
 
-    fn files(&self) -> runtime::atlasx::ParentFiles<'_> {
-        runtime::atlasx::ParentFiles {
+    fn files(&self) -> runtime::codara::artifact::ParentFiles<'_> {
+        runtime::codara::artifact::ParentFiles {
             atlas: Path::new(&self.atlas),
             design: self.design.as_deref().map(Path::new),
             verification: Path::new(&self.verification),
@@ -512,14 +513,14 @@ fn run(args: &[String]) -> Result<(), String> {
             // reports, and a record the re-run seal gate decides. Exits
             // ATLASX_PRECONDITION_REFUSED with every typed reason.
             let parent = ParentArgs::parse(rest, "atlasx precondition")?;
-            let verdict =
-                runtime::atlasx::precondition(&parent.files()).map_err(|e| e.to_string())?;
+            let verdict = runtime::codara::artifact::precondition(&parent.files())
+                .map_err(|e| e.to_string())?;
             let text = json(&verdict)? + "\n";
             match value(rest, "--out")? {
                 Some(out) => write_report_to_out(&out, &text)?,
                 None => print!("{text}"),
             }
-            if verdict.verdict != runtime::atlasx::PreconditionVerdict::Admitted {
+            if verdict.verdict != runtime::codara::artifact::PreconditionVerdict::Admitted {
                 return Err(format!(
                     "ATLASX_PRECONDITION_REFUSED: {} reasons",
                     verdict.reasons.len()
@@ -534,10 +535,10 @@ fn run(args: &[String]) -> Result<(), String> {
             // the number of defects. A refused parent writes nothing. Nothing is published.
             let parent = ParentArgs::parse(rest, "atlasx materialize")?;
             let out = value(rest, "--out")?.ok_or("atlasx materialize requires --out")?;
-            let result =
-                runtime::atlasx::materialize(&parent.files(), &out).map_err(|e| e.to_string())?;
+            let result = runtime::codara::artifact::materialize(&parent.files(), &out)
+                .map_err(|e| e.to_string())?;
             println!("{}", json(&result)?);
-            if result.verdict != runtime::atlasx::MaterializationVerdict::Staged {
+            if result.verdict != runtime::codara::artifact::MaterializationVerdict::Staged {
                 return Err(format!(
                     "ATLASX_MATERIALIZATION_REFUSED: {} defects",
                     result.defects.len()
@@ -553,14 +554,14 @@ fn run(args: &[String]) -> Result<(), String> {
             // defects.
             let root = value(rest, "--root")?.ok_or("atlasx validate requires --root")?;
             let parent = ParentArgs::parse_declared_at(rest, "atlasx validate", "--root-declared")?;
-            let verdict =
-                runtime::atlasx::validate(&parent.files(), &root).map_err(|e| e.to_string())?;
+            let verdict = runtime::codara::artifact::validate(&parent.files(), &root)
+                .map_err(|e| e.to_string())?;
             let text = json(&verdict)? + "\n";
             match value(rest, "--out")? {
                 Some(out) => write_report_to_out(&out, &text)?,
                 None => print!("{text}"),
             }
-            if verdict.verdict != runtime::atlasx::ValidationVerdict::Valid {
+            if verdict.verdict != runtime::codara::artifact::ValidationVerdict::Valid {
                 return Err(format!(
                     "ATLASX_ROOT_INVALID: {} defects",
                     verdict.defects.len()
@@ -587,15 +588,15 @@ fn run(args: &[String]) -> Result<(), String> {
                 (Some(module), None, None) => {
                     let out =
                         value(rest, "--out")?.ok_or("atlasx codec --encode requires --out")?;
-                    let encoded =
-                        runtime::atlasx::encode_module(&module, &out).map_err(|e| e.to_string())?;
+                    let encoded = runtime::codara::artifact::encode_module(&module, &out)
+                        .map_err(|e| e.to_string())?;
                     let (encoded, path) = match encoded {
                         Ok(written) => written,
                         Err(defects) => {
                             println!(
                                 "{}",
                                 json(&serde_json::json!({
-                                    "verdict": runtime::atlasx::CodecVerdict::Refused,
+                                    "verdict": runtime::codara::artifact::CodecVerdict::Refused,
                                     "defects": defects,
                                 }))?
                             );
@@ -608,8 +609,8 @@ fn run(args: &[String]) -> Result<(), String> {
                     );
                 }
                 (None, Some(object), None) => {
-                    let report =
-                        runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;
+                    let report = runtime::codara::artifact::decode_object(&object)
+                        .map_err(|e| e.to_string())?;
                     let text = json(&report)? + "\n";
                     // Count exactly the UTF-8 bytes the unbounded caller emits, including LF.
                     // Refuse before stdout, report creation, replay checks or parent creation.
@@ -625,7 +626,7 @@ fn run(args: &[String]) -> Result<(), String> {
                         Some(out) => write_codec_report_or_replay(&out, &text)?,
                         None => print!("{text}"),
                     }
-                    if report.verdict != runtime::atlasx::CodecVerdict::Decoded {
+                    if report.verdict != runtime::codara::artifact::CodecVerdict::Decoded {
                         return Err(format!(
                             "ATLASX_CODEC_REFUSED: {} defects",
                             report.defects.len()
@@ -635,10 +636,10 @@ fn run(args: &[String]) -> Result<(), String> {
                 (None, None, Some(object)) => {
                     let out = value(rest, "--out")?
                         .ok_or("atlasx codec --codara-payload requires --out")?;
-                    let report = runtime::atlasx::export_codara_payload(&object, &out)
+                    let report = runtime::codara::artifact::export_codara_payload(&object, &out)
                         .map_err(|e| e.to_string())?;
                     println!("{}", json(&report)?);
-                    if report.verdict != runtime::atlasx::CodecVerdict::Decoded {
+                    if report.verdict != runtime::codara::artifact::CodecVerdict::Decoded {
                         return Err(format!(
                             "ATLASX_CODEC_REFUSED: {} defects",
                             report.defects.len()

@@ -2,9 +2,12 @@
 
 pub mod agent;
 pub mod atlas;
+// Preserve the historical logical module/type identities while relocating its implementation.
+#[path = "codara/artifact.rs"]
 pub mod atlasx;
 pub mod census;
 pub mod certificate;
+pub mod codara;
 pub mod design;
 pub mod donor_storage;
 pub mod integrity;

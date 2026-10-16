@@ -604,7 +604,7 @@ mod tests {
     #[test]
     fn codara_export_preserves_the_recorded_preimage_and_refuses_before_writing() {
         let dir = scratch("codara-export");
-        let bytes = include_bytes!("../../../core/src/codara/artifact/codec/fixture.bin");
+        let bytes = include_bytes!("../../../../core/src/codara/artifact/codec/fixture.bin");
         let address = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
         let object = dir.join(format!("{address}.atlasx"));
         let out = dir.join("payload.bin");
@@ -614,7 +614,8 @@ mod tests {
         assert_eq!(report.address.as_deref(), Some(address));
         assert_eq!(report.decoded_length, Some(385));
         assert_eq!(fs::read(&out).unwrap(), bytes[codec::HEADER_LEN..]);
-        let program = include_str!("../../../core/src/codara/artifact/codec/fixture_verify.codara");
+        let program =
+            include_str!("../../../../core/src/codara/artifact/codec/fixture_verify.codara");
         assert!(program.contains(&format!("input claimed = \"{address}\";")));
         assert!(program.contains("input input_bytes = 385;"));
         export_codara_payload(&object, &out).expect("identical replay");
