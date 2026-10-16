@@ -19,18 +19,23 @@ cognition is unavailable. Norl/Neurora require real models, weights and inferenc
 offspring have distinct organism identities within the same canonical World.
 
 The [source contribution and acceptance guidance](tools/atlas/contracts/NATIVE-V1-SOURCE-CONTRIBUTION.md)
-separates this required target from current Atlas source and unqualified gaps. The engine lane's
-detailed **Native OS V1 Completion Contract** publication is pending; no commit, selected hardware,
-kernel architecture, certification or completion result is asserted here. This campaign is
-**documentation first**: implementation and source UI changes remain stopped.
+separates this required target from current Atlas source and unqualified gaps. The published
+[Native OS V1 Completion Contract, Blueprint §61](https://github.com/llgtrn/.Ynventa-/blob/08d412aa310f2508b215fbe9c9b025e58119af8b/BLUEPRINT-V1.md#61-full-native-v1-operating-organism-completion-contract)
+pins the [Chronica responsibility crosswalk](https://github.com/llgtrn/Chronica/commit/65bcd2693f9afd40ce8f3a0cb876182c90ed254e):
+DECISION 0180 accepts owner scope; DECISION 0181's kernel/hardware mechanisms remain PROPOSED.
+Publication does not select or certify hardware, a kernel or a model. Remaining bindings for the
+complete native product, physical journey evidence and a full-scope acceptance producer are missing.
+This campaign is **documentation first**: implementation and source UI changes remain stopped.
 
 ## Canonical Ynventa/Chronica integration — registered Latin nomenclature
 
 **One Digital Holobiont.** [Chronica's nomenclature registry](https://github.com/llgtrn/Chronica/blob/main/.ynventa/declared/nomenclature/concepts.jsonl) and [frozen-form policy](https://github.com/llgtrn/Chronica/blob/main/.ynventa/declared/nomenclature/policy.jsonl) provide admitted stable names, identities and current declared bindings (DECISION 0115); their current entry count does not limit the Blueprint's design scope or prove executable bindings. **Norl is cognition hosted within Chronica.** Chronica owns canonical identity, history, authority and governed execution. Generic biological words explain functions without creating competing identities, implementation homes or permission.
 
-**This checkout's contribution:** This repository is temporary source/donor material. **Codara** is the canonical semantic-language concept and implementation under Chronica, not a promise that every compiler source here was absorbed. `apps/studio` contains historical placeholder metadata and design tokens, not an executable frontend or route-parity oracle. Preserve that evidence and unique source semantics; all new product UI is owned exclusively by `Chronica/phenotype/`.
+**Neurora status:** [CN-0026 registration](https://github.com/llgtrn/Chronica/blob/09ce89f847628db531c42759c2cbcf880071c3bd/.ynventa/declared/nomenclature/concepts.jsonl) names Neurora with implementation status **REQUIRED_MISSING** and semantic home `norl.cognition`. AGNC (Adaptive Graph of Neural Cores) remains a required computational architecture inside Neurora, not an exact global synonym or a retired technical term. Registration creates no module, directory, service, execution binding or authority; existing Norl cognition is a foundation only.
 
-**ONE body, MANY Phenora, ONE product-UI code owner.** All frontends, dashboards, charts, studios and operator UI eventually reside under `Chronica/phenotype/`; native algorithms and typed contracts can remain specialized capability implementations until converged. One common physical source grammar applies to all eight repositories including ECDEV; current old source roots are **migration inputs** and have no permanent architectural exemption. A README is not evidence that code migration, protocol relock, user-interface cutover or V1 completion has occurred. [Architecture](https://github.com/llgtrn/.Ynventa-/blob/main/BLUEPRINT-V1.md) · [Morphology](https://github.com/llgtrn/.Ynventa-/blob/main/REPOSITORY-PROTOCOL-V1.md) · [Concept vocabulary](https://github.com/llgtrn/.Ynventa-/blob/main/SEMANTIC-MODEL-V1.md).
+**This checkout's contribution:** This repository is temporary source/donor material. **Codara** is the canonical semantic-language concept and implementation under Chronica, not a promise that every compiler source here was absorbed. `apps/studio` contains historical placeholder metadata and design tokens, not an executable frontend or route-parity oracle. Preserve that evidence and unique source semantics; all new product UI is owned exclusively by `Chronica/phenora/`.
+
+**ONE body, MANY Phenora, ONE product-UI code owner.** The canonical residence rename to [`Chronica/phenora/`](https://github.com/llgtrn/Chronica/tree/65bcd2693f9afd40ce8f3a0cb876182c90ed254e/phenora) is complete. All product frontends, dashboards, charts, studios and operator UI belong there; Atlas source retirement and verified consumer cutover remain pending. Native algorithms and typed contracts can remain specialized capability implementations until converged. One common physical source grammar applies to all eight repositories including ECDEV; current old source roots are **migration inputs** and have no permanent architectural exemption. A README is not evidence that code migration, protocol relock, user-interface cutover or V1 completion has occurred. [Architecture](https://github.com/llgtrn/.Ynventa-/blob/main/BLUEPRINT-V1.md) · [Morphology](https://github.com/llgtrn/.Ynventa-/blob/main/REPOSITORY-PROTOCOL-V1.md) · [Concept vocabulary](https://github.com/llgtrn/.Ynventa-/blob/main/SEMANTIC-MODEL-V1.md).
 
 ```mermaid
 flowchart LR
@@ -44,7 +49,7 @@ flowchart LR
       P -. "sealed plan and bounds" .-> M["Metabion: bound execution"]
       M -. "success, failure or unknown effect" .-> L["Lineara: evidence, reconciliation and canonicalization"]
       L -. "accepted canonical event" .-> H["One history; replay-derived World"]
-      H -. "derived permitted projection" .-> F["Studio / compiler Phenora; shared UI at Chronica/phenotype"]
+      H -. "derived permitted projection" .-> F["Studio / compiler Phenora; shared UI at Chronica/phenora"]
     end
 ```
 
@@ -87,7 +92,7 @@ current census module path; this move does not rewrite or rebind historical cens
 Chronica integration still needs a native semantic/IR mapping, an actual admitted caller and
 bounded result evidence; this source namespace supplies none of those target contracts.
 
-**The existing repository is a temporary development/source checkout.** Codara is the named canonical semantic-intent capability in Chronica, with real implementation under `physiology/capability/codara` and a governed `phenora/codara` CLI. Similar historical names are not proof that this checkout's compiler code has been absorbed. Retain source identity, candidate artifacts, oracles, licenses and performance data, but do not describe this repository as owning semantic truth, permission, canonical admission, or a permanent independent coding environment.
+**The existing repository is a temporary development/source checkout.** Codara is the named canonical semantic-intent capability in Chronica, with a pure library at [`codara/`](https://github.com/llgtrn/Chronica/blob/65bcd2693f9afd40ce8f3a0cb876182c90ed254e/codara/Cargo.toml) (package `capability-codara`) and a governed [`phenora/codara/`](https://github.com/llgtrn/Chronica/blob/65bcd2693f9afd40ce8f3a0cb876182c90ed254e/phenora/codara/Cargo.toml) CLI (package `codara`). Similar historical names are not proof that this checkout's compiler code has been absorbed. Retain source identity, candidate artifacts, oracles, licenses and performance data, but do not describe this repository as owning semantic truth, permission, canonical admission, or a permanent independent coding environment.
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
@@ -220,7 +225,7 @@ flowchart LR
     POR --> LINE["Lineara evidence, history and feedback"]
 ```
 
-The historical `tools/atlas/` and `*.atlas` filenames are **existing source/evidence locators**, not canonical subsystem branding or a second approved control plane. Only machine-readable identifiers explicitly frozen in the registry policy are preserved as data; canonical architecture and UI ownership are Chronica-wide. The Studio at `apps/studio` remains migration source until its unique UI functionality moves into Chronica Phenora, verified consumers switch and its independent bundle is retired.
+The historical `tools/atlas/` and `*.atlas` filenames are **existing source/evidence locators**, not canonical subsystem branding or a second approved control plane. Only machine-readable identifiers explicitly frozen in the registry policy are preserved as data; canonical architecture and UI ownership are Chronica-wide. The historical placeholder metadata and design tokens at `apps/studio` remain migration inputs, not evidence of an executable Studio or unique UI functionality. Source retirement remains pending until any independently established unique functionality is accounted for in Chronica Phenora, actual consumers switch and the independent source bundle is retired; the completed residence rename alone does not prove that cutover.
 
 
 ## Core invariants
@@ -233,7 +238,7 @@ The historical `tools/atlas/` and `*.atlas` filenames are **existing source/evid
 - Completeness outranks file size; semantic interning/dedup/deltas/compression reduce duplication rather than delete meaning.
 - Source compiler artifacts can provide candidate executable representations; their semantics and native ownership require Codara parity proof, real callers and authorized Chronica admission.
 - Optimization may use graph-level semantics and native compiler techniques such as LTO or PGO only when the specific implementation, production caller and reproducible benchmark establish a benefit; no unimplemented optimizer is implied.
-- Current source/bootstrap uses Rust for backend/compiler/runtime and TypeScript/TSX for frontend work inside Chronica/phenotype ONLY; C is an explicit low-level boundary by default. These bootstrap choices do not impose a mandatory host kernel/runtime on the final native OS.
+- Current source/bootstrap uses Rust for backend/compiler/runtime and TypeScript/TSX for frontend work inside Chronica/phenora ONLY; C is an explicit low-level boundary by default. These bootstrap choices do not impose a mandatory host kernel/runtime on the final native OS.
 - Donor OSS is evidence/reference and is removed from the temporary workbench after native absorption proof.
 
 The physical source binary identifiers `atlas-systemizer` and `atlas.systemizer.cli.v1` remain source-code locators for comparison and must not be described as current canonical subsystem names.

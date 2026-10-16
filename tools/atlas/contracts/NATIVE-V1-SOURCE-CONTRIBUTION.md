@@ -6,10 +6,13 @@ Provenance: the explicit owner decision supplied for this campaign at **2026-10-
 16:43:08 UTC**, titled **OWNER DECISION — FULL V1 NATIVE OPERATING ORGANISM. NO SCOPE
 REDUCTION.** This document applies that decision to Atlas source contribution guidance.
 It does not mint a concept, change a stable identity, select an implementation directory or
-replace the central [Blueprint](https://github.com/llgtrn/.Ynventa-/blob/main/BLUEPRINT-V1.md).
-The engine lane owns publication of the detailed **Native OS V1 Completion Contract**;
-that publication and its immutable pin are pending. The Blueprint link is a mutable locator,
-not a claim that the pending contract is already present there.
+replace the published [Native OS V1 Completion Contract, Blueprint §61](https://github.com/llgtrn/.Ynventa-/blob/08d412aa310f2508b215fbe9c9b025e58119af8b/BLUEPRINT-V1.md#61-full-native-v1-operating-organism-completion-contract).
+That central publication pins [Chronica `65bcd2693f9afd40ce8f3a0cb876182c90ed254e`](https://github.com/llgtrn/Chronica/commit/65bcd2693f9afd40ce8f3a0cb876182c90ed254e):
+DECISION 0180 accepts owner scope; DECISION 0181's kernel/hardware comparison remains PROPOSED.
+The published crosswalk reconciles N01–N12 with Chronica's fourteen responsibility groups
+and twenty-two K proposal rows. These are views of the same obligations, not competing
+acceptance denominators. Formal executable integration and full native completion remain pending;
+contract publication supplies neither a full-scope acceptance producer nor physical journey evidence.
 
 **Required final product:** one graph-native Chronica Digital Intelligence Holobiont Operating
 System, capable of independent native operation on one certified hardware target, with
@@ -24,7 +27,9 @@ remain V1 obligations; phases order dependencies, not scope reduction or deferra
 This campaign is documentation first. Held implementation patches, staged files and old evidence
 remain separate; this guidance authorizes no feature work, engine/schema change, credentials,
 hardware/compute purchase or change to the user's computer. Product UI ownership remains
-exclusively Chronica; Atlas source UI stays frozen until real, verified consumer cutover.
+exclusively `Chronica/phenora/`; that canonical residence rename is complete at the pinned
+Chronica source. Atlas source UI stays frozen; its accounting, verified consumer cutover and
+source retirement remain pending, independently of the residence rename.
 
 ## Current source, required target and gaps
 
@@ -44,6 +49,12 @@ they do not repair a producer attestation. Historical self-scope reports retain 
 candidates and authored results. Their reuse for the changed/current source is unsupported/stale;
 this does not assert that their original runs failed. No historical evidence is rewritten.
 
+[Neurora CN-0026](https://github.com/llgtrn/Chronica/blob/09ce89f847628db531c42759c2cbcf880071c3bd/.ynventa/declared/nomenclature/concepts.jsonl)
+is registered with implementation status **REQUIRED_MISSING** and semantic home `norl.cognition`.
+AGNC (Adaptive Graph of Neural Cores) remains a required computational architecture inside
+Neurora, not an exact global synonym or a retired technical term. No module, directory, service
+or execution binding is created by registration; existing Norl cognition remains a foundation.
+
 Nomenclature, source relocation, package metadata and target requirements do not establish
 implementation or native adoption. Preserve existing encoded bytes, IDs, lineage, licenses,
 negative results and unknown outcomes. No source artifact may fabricate a canonical grant.
@@ -52,8 +63,12 @@ negative results and unknown outcomes. No source artifact may fabricate a canoni
 
 The rows below are required source handoff criteria, not implemented target bindings or newly
 granted authority. Existing source ownership stays with the declared Core/Runtime/CLI nodes.
-The central contract must name concrete target owners, hardware/model profiles, resource bounds
-and executable acceptance procedures before a completion judgment can be made.
+The published central contract names accountable functions, required I/O, authority, failure
+cases and executable acceptance obligations. Its proposed kernel, physical feasibility profile
+and model candidates are unselected and unqualified. Remaining module/caller bindings for the
+complete native product, frozen hardware/model identities and resource thresholds, and executed
+acceptance evidence remain
+required before a completion judgment can be made.
 
 | Responsibility / owner | Input → output | State and authority | Failure / executable acceptance obligation |
 |---|---|---|---|
@@ -77,9 +92,11 @@ remain required engineering work. The settled same-World offspring decision is n
 
 ## All nine V1 product journeys
 
-Every row is a **required target acceptance**, not a result obtained here. The central contract
-must connect these journeys to the owner/I/O/state/authority/failure obligations above and to one
-feasible selected hardware profile; certification is blocked until that profile and tests exist.
+Every row is a **required target acceptance**, not a result obtained here. The published
+[central journey-to-contract crosswalk](https://github.com/llgtrn/.Ynventa-/blob/08d412aa310f2508b215fbe9c9b025e58119af8b/BLUEPRINT-V1.md#6141-journey-to-contract-crosswalk)
+connects J1–J9 to N01–N12; privacy/forgetting and governed assimilation/extinction remain mandatory
+cross-cutting obligations. The selected physical profile, remaining caller bindings for the
+complete native product and complete executed assays remain missing. Documentary mapping is not executable acceptance or certification.
 
 | Journey | Required acceptance chain / current gap |
 |---|---|
@@ -102,5 +119,11 @@ coverage, hosted tests, partial kernels or phase labels.
 Technology reuse remains possible. Driver, bootloader and algorithm research need not start from
 zero, but each adopted technology must satisfy native closure, parity, rights, caller and current
 evidence gates. No kernel architecture, hardware model, accelerator stack or inference model is
-selected by this guide. Native architecture comparisons and the one-target completion contract
-belong to the coordinated central documentation lane; their publication is still pending.
+selected by this guide. The published [central comparison and proposed physical profile](https://github.com/llgtrn/.Ynventa-/blob/08d412aa310f2508b215fbe9c9b025e58119af8b/BLUEPRINT-V1.md#616-kernel-strategy-and-native-technology-reuse)
+compare seL4/Microkit, Redox, FreeBSD-derived integration and bespoke/hybrid routes; the proposed
+FreeBSD-derived feasibility profile is not selected or certified. Exact hardware/firmware,
+kernel/runtime and low-level ABI, model artifacts, numerical thresholds, rights/dependency
+closure, implementation/caller bindings and native physical acceptance remain unresolved.
+Chronica's pinned crosswalk still records PUBLISHED_ENGINE_PIN_PENDING; its reciprocal
+published-source pin and the full-scope acceptance producer remain integration gaps. These
+qualified gaps do not reopen owner scope or make central contract publication pending.
