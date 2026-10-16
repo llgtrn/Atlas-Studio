@@ -18,17 +18,116 @@ const FIXTURE_ADDRESS: &str = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce
 /// is valid. The manifest pins semantic values/refusals independently of the reader's output.
 #[test]
 fn legacy_functions_corpus_pins_codara_payload_and_semantic_refusals() {
+    const FIXTURES: &[(&str, &[u8])] = &[
+        (
+            "86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx",
+            include_bytes!(
+                "parity/legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx"
+            ),
+        ),
+        (
+            "408ff690f7a55dd9495c221f78ee317a63c804e84073396469283916b300d228.atlasx",
+            include_bytes!(
+                "parity/legacy/408ff690f7a55dd9495c221f78ee317a63c804e84073396469283916b300d228.atlasx"
+            ),
+        ),
+        (
+            "666c0c7f063e8dd22e766861a9d663c4eb547e99688f77bdce93c2bc708956d6.atlasx",
+            include_bytes!(
+                "parity/legacy/666c0c7f063e8dd22e766861a9d663c4eb547e99688f77bdce93c2bc708956d6.atlasx"
+            ),
+        ),
+        (
+            "bbe3e0411e32a1b51aa4f32f24ef5c1fff6519bb639bb402815c3443636567af.atlasx",
+            include_bytes!(
+                "parity/legacy/bbe3e0411e32a1b51aa4f32f24ef5c1fff6519bb639bb402815c3443636567af.atlasx"
+            ),
+        ),
+        (
+            "6d40a74b7ca996bf87259d5a7678a96129df238265f1988d92ae57a9b9378f08.atlasx",
+            include_bytes!(
+                "parity/legacy/6d40a74b7ca996bf87259d5a7678a96129df238265f1988d92ae57a9b9378f08.atlasx"
+            ),
+        ),
+        (
+            "f9d9a8fddec9c5ec9d0e364634a180e784b758f67ab51c9caa381020081f180e.atlasx",
+            include_bytes!(
+                "parity/legacy/f9d9a8fddec9c5ec9d0e364634a180e784b758f67ab51c9caa381020081f180e.atlasx"
+            ),
+        ),
+        (
+            "daac7f63b875bc008059dbd2d5ffc73765817faf523d5d50945cc6b649ee2a49.atlasx",
+            include_bytes!(
+                "parity/legacy/daac7f63b875bc008059dbd2d5ffc73765817faf523d5d50945cc6b649ee2a49.atlasx"
+            ),
+        ),
+        (
+            "0b0bdd5d649420d71b7437d0ac850b672b3fefb647e9eafe4cf905a5a46db9f8.atlasx",
+            include_bytes!(
+                "parity/legacy/0b0bdd5d649420d71b7437d0ac850b672b3fefb647e9eafe4cf905a5a46db9f8.atlasx"
+            ),
+        ),
+        (
+            "09da9a3f296e0b230bf15fe0f3824a8459c2ef17fa88110b2c287a4f3d7ad5ed.atlasx",
+            include_bytes!(
+                "parity/legacy/09da9a3f296e0b230bf15fe0f3824a8459c2ef17fa88110b2c287a4f3d7ad5ed.atlasx"
+            ),
+        ),
+        (
+            "23e83671d9d8f29cf629b8437df67f007254d6231c31d1a5400bc16258da4f7a.atlasx",
+            include_bytes!(
+                "parity/legacy/23e83671d9d8f29cf629b8437df67f007254d6231c31d1a5400bc16258da4f7a.atlasx"
+            ),
+        ),
+        (
+            "abf9878cac8cadb4f8f6ca76d7d55ce0958982ebfbd610e47a32720bc3aab5a2.atlasx",
+            include_bytes!(
+                "parity/legacy/abf9878cac8cadb4f8f6ca76d7d55ce0958982ebfbd610e47a32720bc3aab5a2.atlasx"
+            ),
+        ),
+        (
+            "48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b.atlasx",
+            include_bytes!(
+                "parity/legacy/48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b.atlasx"
+            ),
+        ),
+        (
+            "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262.atlasx",
+            include_bytes!(
+                "parity/legacy/af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262.atlasx"
+            ),
+        ),
+    ];
     let cases: serde_json::Value = serde_json::from_str(include_str!("parity/cases.json")).unwrap();
-    let dir = std::path::Path::new(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/src/atlasx/codec/parity"
-    ));
     let cases = cases.as_array().unwrap();
     assert_eq!(cases.len(), 13, "do not silently lose a counterexample");
+    let fixture_names: std::collections::BTreeSet<_> =
+        FIXTURES.iter().map(|(name, _)| *name).collect();
+    assert_eq!(
+        fixture_names.len(),
+        FIXTURES.len(),
+        "duplicate embedded fixture"
+    );
+    let manifest_names: std::collections::BTreeSet<_> = cases
+        .iter()
+        .map(|case| case["file"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        manifest_names.len(),
+        cases.len(),
+        "duplicate manifest fixture"
+    );
+    assert_eq!(
+        manifest_names, fixture_names,
+        "manifest/embedded fixture mismatch"
+    );
     for case in cases {
         let name = case["file"].as_str().unwrap();
-        let bytes = std::fs::read(dir.join("legacy").join(name)).unwrap();
-        let header = ObjectHeader::parse(&bytes).unwrap();
+        let bytes = FIXTURES
+            .iter()
+            .find_map(|(file, bytes)| (*file == name).then_some(*bytes))
+            .unwrap_or_else(|| panic!("no embedded fixture for {name}"));
+        let header = ObjectHeader::parse(bytes).unwrap();
         // These must reach the semantic reader; a digest/name failure would test another contract.
         assert_eq!(header, ObjectHeader::functions(&bytes[HEADER_LEN..]));
         assert_eq!(name, format!("{}.atlasx", header.address()));
@@ -36,7 +135,7 @@ fn legacy_functions_corpus_pins_codara_payload_and_semantic_refusals() {
             header.decoded_content_hash,
             *::blake3::hash(&bytes[HEADER_LEN..]).as_bytes()
         );
-        let report = decode_named(name, &bytes);
+        let report = decode_named(name, bytes);
         let defects: Vec<_> = report.defects.iter().map(|(d, _)| d).collect();
         assert_eq!(
             serde_json::to_value(defects).unwrap(),
@@ -53,12 +152,11 @@ fn legacy_functions_corpus_pins_codara_payload_and_semantic_refusals() {
             let records: Vec<FunctionSignatureRecord> =
                 serde_json::from_value(case["records"].clone()).unwrap();
             assert_eq!(encode_functions(&records).unwrap(), bytes, "{case}");
-            let payload =
-                std::fs::read(dir.join(case["canonical_payload"].as_str().unwrap())).unwrap();
-            assert_eq!(payload, bytes[HEADER_LEN..]);
-            let program =
-                std::fs::read_to_string(dir.join(case["canonical_program"].as_str().unwrap()))
-                    .unwrap();
+            assert_eq!(case["canonical_payload"], "codara-parity.payload");
+            let payload = include_bytes!("parity/codara-parity.payload");
+            assert_eq!(payload, &bytes[HEADER_LEN..]);
+            assert_eq!(case["canonical_program"], "codara-parity.cdr");
+            let program = include_str!("parity/codara-parity.cdr");
             assert!(program.contains(&format!("input claimed = \"{}\";", header.address())));
             assert!(program.contains(&format!("input input_bytes = {};", payload.len())));
             assert_eq!(report.address.as_deref(), Some(header.address().as_str()));
