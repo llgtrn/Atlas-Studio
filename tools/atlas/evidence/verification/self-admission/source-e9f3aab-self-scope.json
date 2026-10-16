@@ -1,0 +1,131 @@
+{
+  "evidence": [
+    {
+      "candidate": "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a",
+      "content_hash": "blake3-256:7ea3d938a7912d63766add06d8262bc555c051262ecbb348737cac75d70493d6",
+      "environment": "self-recensus report /tmp/atlas-self-admission-followup/full-remount-fixed/replay.json",
+      "id": "evidence:recensus:FULL-SELF-ADMISSION-e9f3aabbd41a",
+      "inputs": [
+        "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a"
+      ],
+      "obligations": [
+        "OBL-SELF-SEMANTIC-RECENSUS"
+      ],
+      "producer": {
+        "tool": "atlas-systemizer recensus prove",
+        "version": "atlas.self-recensus-report.v1"
+      },
+      "result": "SATISFIED",
+      "run_id": "FULL-SELF-ADMISSION-e9f3aabbd41a",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a",
+      "content_hash": "blake3-256:53563c87f154c186f3d8c352b620b3e672026bb64c397cded0a7d69f4b59bfcd",
+      "environment": "ambient host process in /workspace/Atlas-Studio-docs-native-v1-app (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad",
+      "inputs": [
+        "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a"
+      ],
+      "obligations": [
+        "OBL-SELF-UNIT-WORKSPACE"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "SATISFIED",
+      "run_id": "cargo test -q --workspace --offline",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a",
+      "content_hash": "blake3-256:4391fb442bee541c9a7dbe562fa28522bd5a28c2339243935422f702367acaa3",
+      "environment": "ambient host process in /workspace/Atlas-Studio-docs-native-v1-app (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:a54feab2777f0966",
+      "inputs": [
+        "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a"
+      ],
+      "obligations": [
+        "OBL-SELF-COMPATIBILITY-SCHEMAS"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "SATISFIED",
+      "run_id": "cargo test -p core --lib --offline -- codara::artifact::census_container::tests::the_current_schema_is_the_latest_recorded_generation codara::artifact::census_container::tests::every_recorded_schema_conforms_to_the_current_one codara::artifact::census_container::tests::a_container_an_older_conforming_writer_produced_is_read_with_its_history --exact --format=pretty --color=never",
+      "status": "OBSERVED"
+    }
+  ],
+  "report": {
+    "blockers": [],
+    "candidate": "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a",
+    "coverage": {
+      "COMPATIBILITY": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "SEMANTIC": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "UNIT": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      }
+    },
+    "failures": [],
+    "outcomes": [
+      {
+        "class": "SEMANTIC",
+        "evidence": [
+          "evidence:recensus:FULL-SELF-ADMISSION-e9f3aabbd41a"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-SEMANTIC-RECENSUS",
+        "required": true,
+        "state": "SATISFIED"
+      },
+      {
+        "class": "UNIT",
+        "evidence": [
+          "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-UNIT-WORKSPACE",
+        "required": true,
+        "state": "SATISFIED"
+      },
+      {
+        "class": "COMPATIBILITY",
+        "evidence": [
+          "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:a54feab2777f0966"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-COMPATIBILITY-SCHEMAS",
+        "required": true,
+        "state": "SATISFIED"
+      }
+    ],
+    "policy": {
+      "artifact_kind": "LIBRARY_PACKAGE",
+      "required_classes": [
+        "SEMANTIC",
+        "UNIT",
+        "COMPATIBILITY"
+      ]
+    },
+    "schema": "atlas.verification-report.v1",
+    "verdict": "ADMISSIBLE"
+  }
+}

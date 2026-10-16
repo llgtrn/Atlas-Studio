@@ -1,0 +1,240 @@
+{
+  "schema": "atlas.self-admission-run.v1",
+  "schema_scope": "Local source-hosted run metadata, not a shared execution, authority or evidence wire contract",
+  "scope": "Actual current-source library SEMANTIC/UNIT/COMPATIBILITY admission; deterministic same-source replay, not cross-revision semantic change proof, full native V1, target adoption, rights or hardware certification.",
+  "source_commit": "e9f3aabbd41a2298d6f39a47d783245dd6396f2c",
+  "source_tree": "87d12321de91ed16c32a2ea6755e79325fa12ae9",
+  "candidate": "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a",
+  "executed_binary": {
+    "path": "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+    "sha256": "d7524cc220cb54e024aa6ccddbd9a81e3feda2ce5cae81e1c181336fa7f85ccb",
+    "bytes": 184167312,
+    "observed_utc": "2026-10-16T20:22:05.624667+00:00",
+    "stage": "after successful build, before snapshot/replay/self",
+    "scope": "Observed source-hosted executable identity, not target IR digest or Chronica admission"
+  },
+  "binary_sha256_at_retention": "d7524cc220cb54e024aa6ccddbd9a81e3feda2ce5cae81e1c181336fa7f85ccb",
+  "raw_json_sha256": {
+    "snapshot.json": "d65e91efba0f52fa934d381ca74a8120ee21e9ba0f3e39ac8b65a580420c1d1a",
+    "replay.json": "8f1653be9ead93692f583528969395d73d0646038e8dd6f17f2ac19daed0e681",
+    "self-scope.json": "2319b19d1cd323d60698b010f6c986b867c86f50f507cb2e4fee81f23e67a9ff"
+  },
+  "actual_cli_result": {
+    "source_commit": "e9f3aabbd41a2298d6f39a47d783245dd6396f2c",
+    "source_tree": "87d12321de91ed16c32a2ea6755e79325fa12ae9",
+    "stages": [
+      {
+        "stage": "build",
+        "command": [
+          "cargo",
+          "build",
+          "-p",
+          "atlas-cli",
+          "--offline"
+        ],
+        "started_utc": "2026-10-16T20:21:54.998504+00:00",
+        "finished_utc": "2026-10-16T20:22:05.013705+00:00",
+        "elapsed_seconds": 10.015218842003378,
+        "budget_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0
+      },
+      {
+        "stage": "snapshot",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "recensus",
+          "snapshot",
+          "--root",
+          "/workspace/Atlas-Studio-docs-native-v1-app",
+          "--out",
+          "/tmp/atlas-self-admission-followup/full-remount-fixed/snapshot.json"
+        ],
+        "started_utc": "2026-10-16T20:22:05.624999+00:00",
+        "finished_utc": "2026-10-16T20:23:46.002331+00:00",
+        "elapsed_seconds": 100.37768709000375,
+        "budget_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0
+      },
+      {
+        "stage": "replay",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "recensus",
+          "prove",
+          "--root",
+          "/workspace/Atlas-Studio-docs-native-v1-app",
+          "--generation",
+          "FULL-SELF-ADMISSION-e9f3aabbd41a",
+          "--before",
+          "/tmp/atlas-self-admission-followup/full-remount-fixed/snapshot.json",
+          "--intent",
+          "/tmp/atlas-self-admission-followup/full-remount-fixed/intent.json",
+          "--out",
+          "/tmp/atlas-self-admission-followup/full-remount-fixed/replay.json"
+        ],
+        "started_utc": "2026-10-16T20:23:46.011303+00:00",
+        "finished_utc": "2026-10-16T20:26:46.468771+00:00",
+        "elapsed_seconds": 180.45746249499643,
+        "budget_seconds": 1200,
+        "timed_out": false,
+        "exit_code": 0
+      },
+      {
+        "stage": "self",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "verification",
+          "self",
+          "--root",
+          "/workspace/Atlas-Studio-docs-native-v1-app",
+          "--recensus",
+          "/tmp/atlas-self-admission-followup/full-remount-fixed/replay.json",
+          "--out",
+          "/tmp/atlas-self-admission-followup/full-remount-fixed/self-scope.json"
+        ],
+        "started_utc": "2026-10-16T20:26:46.469683+00:00",
+        "finished_utc": "2026-10-16T20:52:20.834615+00:00",
+        "elapsed_seconds": 1534.3649747319942,
+        "budget_seconds": 5400,
+        "timed_out": false,
+        "exit_code": 0
+      }
+    ],
+    "source_clean_after": true,
+    "self_scope_verdict": "ADMISSIBLE",
+    "scope": "Actual current-source library SEMANTIC/UNIT/COMPATIBILITY admission; not full native V1, target adoption, rights or hardware certification.",
+    "same_root_argument_for_all_stages": "/workspace/Atlas-Studio-docs-native-v1-app",
+    "baseline_container_seconds": 909.83,
+    "self_stage_budget_basis": "5400s approximately6timesknown909.83s debug container baseline for serialized whole-repo tests and caller work; no assertions removed or ignored.",
+    "result": "PASS",
+    "candidate_binding_matches": true,
+    "all_three_required_obligations_satisfied": true
+  },
+  "same_absolute_root_argument": "/workspace/Atlas-Studio-docs-native-v1-app",
+  "resources": {
+    "build": {
+      "sample_count": 1,
+      "peak_process_rss_kib": 11816,
+      "peak_process_group_rss_kib": 11816,
+      "last_elapsed_seconds": 0.0005866470019100234
+    },
+    "snapshot": {
+      "sample_count": 10,
+      "peak_process_rss_kib": 2676448,
+      "peak_process_group_rss_kib": 2676448,
+      "last_elapsed_seconds": 90.34660700699897
+    },
+    "replay": {
+      "sample_count": 18,
+      "peak_process_rss_kib": 2929264,
+      "peak_process_group_rss_kib": 2929264,
+      "last_elapsed_seconds": 170.44389944099385
+    },
+    "self": {
+      "sample_count": 153,
+      "peak_process_rss_kib": 11922044,
+      "peak_process_group_rss_kib": 14246408,
+      "last_elapsed_seconds": 1524.3328364959962
+    }
+  },
+  "diagnostic_progress": {
+    "container-progress.jsonl": {
+      "sha256": "9d2ca2aeb6daa2177b82c40d394def093262573068f6bde74d3d57ab70d6b6a2",
+      "observations": [
+        {
+          "utc": "2026-10-16T20:42:03.975763+00:00",
+          "stage": "self",
+          "elapsed_seconds": 912.4942676599967,
+          "containers": [
+            {
+              "path": "/tmp/atlas-pack-137007/again.atlas",
+              "bytes": 189833117
+            },
+            {
+              "path": "/tmp/atlas-pack-137007/self.atlas",
+              "bytes": 189833117
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resource_log_sha256": "4bce7b392336d7e3b7040e18d1337bb1d425e2750d218962e4ef2d50f281fb90",
+  "focused_container": {
+    "source": "bd744371a640ae96288fbf5deb771358aafbf28a",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "runtime",
+      "--lib",
+      "--offline",
+      "--",
+      "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container",
+      "--exact",
+      "--format=pretty",
+      "--color=never",
+      "--nocapture"
+    ],
+    "started_utc": "2026-10-16T19:14:48.875897+00:00",
+    "finished_utc": "2026-10-16T19:26:30.385122+00:00",
+    "elapsed_seconds": 701.5083492449994,
+    "budget_seconds": 1800,
+    "budget_basis": "Approximately twice parent-supplied recorded 909-second baseline; identical assertions, debug test profile, current source fixture census.",
+    "timed_out": false,
+    "exit_code": 0,
+    "result": "PASS",
+    "source_clean_after": true
+  },
+  "focused_container_stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d)\n\nrunning 1 test\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container has been running for over 60 seconds\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 697.86s\n\n",
+  "focused_container_stdout_sha256": "9831b806b8c5b318c61d4800cde8b64ff0175bea6cc701cd084aa6e49c750d27",
+  "preservation": {
+    "checked_utc": "2026-10-16T19:31:14.091343+00:00",
+    "held_14_hashes_unchanged": true,
+    "saved_artifact_registry_byte_exact": true,
+    "saved_artifact_records": 2502,
+    "all_saved_artifact_paths_retained": true,
+    "existing_ynventa_files_byte_exact": 39,
+    "active_source_clean": true,
+    "held_fae_patch_sha256": "887236f625652978743f32e25d2489220f2cbda23f9aff3d8e73122eb95ed6d5"
+  },
+  "portable_handoff_publication": {
+    "base": "bd744371a640ae96288fbf5deb771358aafbf28a",
+    "source_commit": "ec3e840b2179fa462a144bfd0e6d5475f4ecb81c",
+    "published_main": "7f770bc53086bb5730bf3ef50219c3778926996e",
+    "source_path": "tools/atlas/contracts/FUNCTIONS-LOSSLESS-EVIDENCE-HANDOFF.md",
+    "knowledge_path": ".ynventa/knowledge/40bd066c94a23131cab2161e58366b03.ynv",
+    "normal_fast_forward": true,
+    "force": false,
+    "exact_remote_verified": true,
+    "protocol_checks": "33/33 PASS",
+    "native_view": "byte exact 19570 bytes",
+    "independent_review": "/tmp/atlas-native-v1-docs-review/portable-lossless-final-review.json",
+    "timestamp_utc": "2026-10-16T19:30:20.920533+00:00",
+    "rights": "UNLICENSED / OD-15 remains open; no copy or license election",
+    "wire_change": false,
+    "target_adoption_claim": false
+  },
+  "stage_outputs": {
+    "build": {
+      "stdout": "",
+      "stderr": "   Compiling runtime v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter/runtime)\n   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.19s\n"
+    },
+    "snapshot": {
+      "stdout": "blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a e9f3aabbd41a2298d6f39a47d783245dd6396f2c\n",
+      "stderr": ""
+    },
+    "replay": {
+      "stdout": "{\n  \"schema\": \"atlas.self-recensus-report.v1\",\n  \"generation\": \"FULL-SELF-ADMISSION-e9f3aabbd41a\",\n  \"base_revision\": \"e9f3aabbd41a2298d6f39a47d783245dd6396f2c\",\n  \"candidate_revision\": \"e9f3aabbd41a2298d6f39a47d783245dd6396f2c\",\n  \"candidate_dirty\": false,\n  \"before_census_digest\": \"blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a\",\n  \"after_census_digest\": \"blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a\",\n  \"replay_digest\": \"blake3-256:5cec884ef65b3c8bf31eb7b6bfe5ac5ed80ea9f77ddbc772b13c7db8df311c9a\",\n  \"inventory_delta\": {\n    \"created\": [],\n    \"modified\": [],\n    \"deleted\": []\n  },\n  \"semantic_delta\": {\n    \"changed\": [],\n    \"counts\": {}\n  },\n  \"dependency_delta\": {\n    \"added\": [],\n    \"removed\": []\n  },\n  \"dependency_state\": [\n    \"Closed\",\n    \"Closed\"\n  ],\n  \"graph_delta\": {},\n  \"obligation_delta\": {},\n  \"adl_delta\": {\n    \"added\": [],\n    \"removed\": []\n  },\n  \"entity_delta\": [],\n  \"coverage_delta\": [],\n  \"unknown_delta\": {\n    \"increased\": [],\n    \"decreased\": [],\n    \"total_before\": 2799,\n    \"total_after\": 2799\n  },\n  \"intent\": {\n    \"objective\": \"Committed-source deterministic self-replay for actual library self-admission. No cross-revision semantic change proof or full native OS certification.\",\n    \"changed_paths\": [],\n    \"total_changes\": [],\n    \"dependency_changes\": [],\n    \"adl_changes\": [],\n    \"coverage_changes\": [],\n    \"explained_unknowns\": [],\n    \"accepted_unexpected\": [],\n    \"entity_changes\": []\n  },\n  \"intended_changes\": [],\n  \"intended_but_unobserved\": [],\n  \"unexpected_changes\": [],\n  \"regressions\": [],\n  \"verdict\": \"PROVEN\"\n}\n",
+      "stderr": ""
+    },
+    "self": {
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "retention": "Only these append-only JSON receipts under the pre-existing excluded tools/atlas control root are added after this test. Existing reports, IDs and evidence are not rewritten. Current-source applicability requires the separate post-publication census equality check.",
+  "created_utc": "2026-10-16T20:52:47.396179+00:00"
+}
