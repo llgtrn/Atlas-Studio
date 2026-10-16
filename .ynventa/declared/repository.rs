@@ -60,7 +60,7 @@ Repository {
             path: "core",
             canonical_path: "core",
             lifecycle: NodeLifecycle::Active,
-            provides: &[],
+            provides: &["security.blake3-tree-hash"],
             requires: &[],
             reuses: &[],
             inputs: &[],

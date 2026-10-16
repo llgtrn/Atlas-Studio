@@ -134,11 +134,24 @@
             Capability {
                 key: "hashing",
                 required: true,
-                spec: "",
-                replacement: None,
-                maps_to: None,
+                spec: "Public-byte unkeyed BLAKE3 tree hash only: 7 compression rounds, 64-byte blocks, 1024-byte chunks, incremental updates and 32-byte output equal to the committed official vectors. Source core/src/identity/blake3.rs retains its original upstream 6aab490a26124663329dfd3961b8469f8fdb158b provenance. No keyed/MAC/KDF, SIMD/parallel/mmap, hazmat, C or CLI coverage is claimed; XOF regression does not claim those families.",
+                replacement: Some("compiler.core"),
+                maps_to: Some("capability/security.blake3-tree-hash"),
                 norl: NorlRelevance::Unresolved,
-                proofs: &[],
+                proofs: &[
+                    Proof {
+                        kind: ProofKind::Parity,
+                        locator: "core/src/identity/blake3.rs::official_test_vectors_match",
+                    },
+                    Proof {
+                        kind: ProofKind::Regression,
+                        locator: "core/src/identity/blake3.rs::every_official_vector_survives_every_update_split",
+                    },
+                    Proof {
+                        kind: ProofKind::Regression,
+                        locator: "core/src/identity/blake3.rs::compress_uses_the_high_counter_word",
+                    },
+                ],
             },
             Capability {
                 key: "content-addressing",

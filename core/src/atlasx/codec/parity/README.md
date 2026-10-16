@@ -76,3 +76,69 @@ Chronica owns the actual authenticated requester, current resource and lease/wor
 one `cpu_units` demand, budget/capacity/envelope checks, payload binding to durable work,
 bounded output evidence and fail-closed retries. This corpus adds no shared wire fields,
 authority schema, permission, host invocation, runtime source dependency or consumer cutover.
+
+## Native reader handoff
+
+The receiving implementation belongs to Chronica's native capability owner. This source
+corpus supplies a bounded oracle, not another reader or a runtime source dependency.
+FUNCTIONS has class 4/schema 1. Its 80-byte header uses format 1.0, BLAKE3 digest id 1,
+codec NONE (0), equal encoded/decoded lengths, zero flags/reserved and a 64 MiB payload limit.
+The payload contains version-1, zero-flag records with 16-byte headers; fields have 8-byte
+headers. Field tags strictly ascend. Nesting is limited to depth 8.
+
+| Record kind | Fields in tag order (`!` means required flag bit 0) |
+|---|---|
+| 1 FUNCTION_SIGNATURE | 1 function_id GLOBAL_ID!, 2 name UTF8!, 3 owner UTF8, 4 dispatch UVARINT!, 5 visibility UTF8!, 6 documentation UTF8, 7 params RECORD, 8 result UTF8, 9 body_fingerprint HASH32, 10 lineage RECORD! |
+| 2 PARAM, embedded only | 1 name UTF8!, 2 type_spelling UTF8! |
+| 3 LINEAGE_REF, embedded only | 1 record GLOBAL_ID! |
+
+Dispatch codes are 1 free function, 2 inherent method, 3 associated function; integers must
+be minimally encoded. GLOBAL_ID is nonempty UTF8, carried without target identity resolution.
+HASH32 is exactly 32 bytes. Parameters retain declaration order; function records sort by
+identity bytes, while lineage sorts/deduplicates as a set. Empty optional sequences are absent;
+empty optional text remains distinguishable from absent text. Minor 0 rejects unknown fields
+even when marked optional. Canonical re-encoding must reproduce the complete input exactly.
+The source report clears semantic/address fields on refusal and retains its `not_verified`
+limits. Matching these thirteen cases is necessary bounded evidence, not full equivalence.
+
+## BLAKE3 scope and dependency closure
+
+The existing source `hashing` donor row maps only public-byte unkeyed BLAKE3-256 tree hashing
+to the current census capability `security.blake3-tree-hash`. Its existing source node is
+`compiler.core`; this is a local locator, not the target native module or Chronica admission.
+Current census description fact `080d15de6f87ff8341b9ba72` pins upstream
+`f55849f89cd85083c1c9daa2c5de20766f309c00`; it does not rewrite the older source provenance
+`6aab490a26124663329dfd3961b8469f8fdb158b`. Committed official vectors, streaming splits and
+the high counter regression are the scoped source oracles. Keyed/MAC/KDF, SIMD dispatch,
+parallel/mmap, hazmat composition, C implementations and CLI behavior are not mapped.
+The source also implements public-byte XOF; its tests do not prove the separate keyed/KDF/XOF
+family. Content-addressing and integrity remain required, unresolved application contracts.
+
+Zero external dependencies is a target cutover requirement, not the current source state.
+For the unchanged locked source manifests on x86_64-unknown-linux-gnu/default, the engine's
+`deps closure --json` reports these dependency-class rows (classes overlap package identities):
+
+| Engine class | Rows | Direct | Transitive |
+|---|---:|---:|---:|
+| RUNTIME | 22 | 8 | 14 |
+| COMPILE_TIME | 5 | 0 | 5 |
+| BUILD | 17 | 2 | 15 |
+| DEVELOPMENT_TEST | 6 | 2 | 4 |
+
+This is `ALL_PRODUCTION_TARGETS`, with no frozen V1 cohort, and includes one libc reference
+classified `NOT_APPLICABLE_ON_HOST`; it is not a certificate for other targets. Core still uses
+serde/serde_json, and its live BLAKE3 1.8.7 differential oracle remains a test edge. Adapter
+uses parser/grammar crates; its build script consumes local core hashing. Other source paths
+invoke Git, Node/npm/browser tools, cargo/rustc, sandbox tools and operator-selected verifier
+programs. The payload export path itself invokes none of those services. No service installation
+can replace a native dependency-cutover proof.
+
+Cutover must demonstrate native bounded record/schema/value/canonical/refusal parity and
+caller migration at pinned revisions, then root/reference/materialization behavior separately.
+It must preserve source identities/rights and optimized behavior, copy permitted byte oracles
+with provenance, replace live external test oracles with qualified pinned evidence, and remove
+source-repository path/git/build/test/runtime/RPC edges. Existing world/requester admission,
+bounded work/evidence and denial/crash/replay tests must pass in the target. Source verification,
+target native verification, actual consumer binding, Chronica admission and all fourteen donor
+extinction gates remain distinct. The source donor's unchanged CENSUSED claim and absent
+cutover do not declare any of those later states complete.
