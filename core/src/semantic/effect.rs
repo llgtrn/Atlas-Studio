@@ -17,8 +17,8 @@
 //! process-environment and clock reads of `std::env` and `std::time`.
 
 use super::SemanticRecordId;
+use crate::codara::adl::SourceSpan;
 use crate::identity::RepositoryId;
-use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
 

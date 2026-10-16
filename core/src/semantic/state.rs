@@ -14,8 +14,8 @@
 //! overall STATE obligation UNKNOWN rather than fabricating verified absence.
 
 use super::SemanticRecordId;
+use crate::codara::adl::SourceSpan;
 use crate::identity::RepositoryId;
-use crate::language::adl::SourceSpan;
 use crate::semantic::SemanticScope;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};

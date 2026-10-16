@@ -49,8 +49,8 @@
 
 use super::SemanticRecordId;
 use super::place::PlaceRef;
+use crate::codara::adl::SourceSpan;
 use crate::identity::RepositoryId;
-use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
 

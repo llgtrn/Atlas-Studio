@@ -1,5 +1,5 @@
 use super::*;
-use crate::language::adl::SourceSpan;
+use crate::codara::adl::SourceSpan;
 
 fn node(kind: &str, name: &str, attributes: &[(&str, &str)]) -> DeclaredNode {
     DeclaredNode {

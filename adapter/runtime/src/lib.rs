@@ -5968,7 +5968,7 @@ mod tests {
             .iter()
             .filter(|c| {
                 c.derivation.first().map(|d| d.rule)
-                    == Some(atlas_core::language::adl::ConstraintCheckKind::ObservedDependency)
+                    == Some(atlas_core::codara::adl::ConstraintCheckKind::ObservedDependency)
             })
             .map(|c| (c.name.as_str(), c.verdict))
             .collect();

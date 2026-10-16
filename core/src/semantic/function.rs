@@ -21,8 +21,8 @@
 use super::SemanticScope;
 use super::symbol::SymbolIdentity;
 use super::types::TypeIdentity;
+use crate::codara::adl::SourceSpan;
 use crate::identity::RepositoryId;
-use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
 

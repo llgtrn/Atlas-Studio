@@ -20,11 +20,11 @@
 
 use super::WorldModel;
 use crate::EpistemicStatus;
-use crate::constraint::ConstraintVerdict;
-use crate::language::adl::{
+use crate::codara::adl::{
     AdlCompileReport, AdlDiagnostic, CensusForbidden, ConstraintCheck, ConstraintCheckDerivation,
     ConstraintCheckKind, ConstraintResult,
 };
+use crate::constraint::ConstraintVerdict;
 use std::collections::BTreeSet;
 
 /// Counterexamples named in diagnostics before the rest are counted.

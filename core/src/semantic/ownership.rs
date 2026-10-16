@@ -20,8 +20,8 @@
 //! this extractor this wave.
 
 use super::SemanticRecordId;
+use crate::codara::adl::SourceSpan;
 use crate::identity::RepositoryId;
-use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
 

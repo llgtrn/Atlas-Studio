@@ -20,7 +20,7 @@ pub mod dynamics;
 
 use crate::{
     ConstraintVerdict, EpistemicStatus,
-    language::adl::DeclaredNode,
+    codara::adl::DeclaredNode,
     quantity::{Dimension, Quantity, QuantityKind, Rational},
 };
 use serde::{Deserialize, Serialize};
@@ -1121,7 +1121,7 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::language::adl::SourceSpan;
+    use crate::codara::adl::SourceSpan;
     use std::collections::BTreeMap;
 
     fn node(kind: &str, name: &str, attributes: &[(&str, &str)]) -> DeclaredNode {

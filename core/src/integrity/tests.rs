@@ -1,5 +1,5 @@
 use super::*;
-use crate::language::adl::{AdlSource, compile_adl};
+use crate::codara::adl::{AdlSource, compile_adl};
 use crate::{SourceReport, constraint::ConstraintVerdict};
 
 const ADL: &str = "atlas 1\nsystem Example\n\

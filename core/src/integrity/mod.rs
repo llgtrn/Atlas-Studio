@@ -17,9 +17,9 @@
 //! is weakened silently. Counts and verdict are derived from the evaluations, and
 //! `check_report` re-derives them.
 
+use crate::codara::adl::{CensusForbidden, ConstraintCheck, ConstraintResult, DeclaredGraph};
 use crate::constraint::ConstraintVerdict;
 use crate::identity::IntegrityDigest;
-use crate::language::adl::{CensusForbidden, ConstraintCheck, ConstraintResult, DeclaredGraph};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 

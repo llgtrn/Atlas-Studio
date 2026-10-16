@@ -16,7 +16,7 @@ pub mod closure;
 pub mod lens;
 pub mod quantified;
 
-use crate::language::adl::ConstraintCheckKind;
+use crate::codara::adl::ConstraintCheckKind;
 use crate::semantic::call::callee_name;
 use crate::semantic::{
     ControlFlowEdgeKind, PlaceRef, SemanticDimension, SemanticObservation, SemanticRecordId,
@@ -557,7 +557,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
 pub struct CompositionInput<'a> {
     pub census: &'a crate::schema::CensusReport,
     pub inventory: &'a crate::census::InventoryReport,
-    pub adl: &'a crate::language::adl::AdlCompileReport,
+    pub adl: &'a crate::codara::adl::AdlCompileReport,
     pub dependency_closure: &'a crate::census::DependencyClosureReport,
     pub revision: &'a str,
 }
@@ -569,7 +569,7 @@ pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
     let mut accounting = CompositionAccounting::default();
 
     // Subsystems are declared: an ADL entity with a materialization path.
-    let nodes: BTreeMap<&str, &crate::language::adl::DeclaredNode> = declared
+    let nodes: BTreeMap<&str, &crate::codara::adl::DeclaredNode> = declared
         .nodes
         .iter()
         .map(|n| (n.name.as_str(), n))

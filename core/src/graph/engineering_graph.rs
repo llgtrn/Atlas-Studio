@@ -1,8 +1,8 @@
 use super::{Binding, Edge, EdgeKind, EngineeringGraph, Fact, Node};
 use crate::{
     census::{DependencyClosureReport, DependencyIdentity},
+    codara::adl::ConstraintResult,
     identity::{escape_identity_field, stable_id},
-    language::adl::ConstraintResult,
     provenance::{Provenance, provenance},
     schema::{
         DocsReport, EpistemicStatus, GraphSummary, NormalizationReport, SemanticFact,
@@ -366,7 +366,7 @@ pub fn build_system_graph(
             }
             // `fact.subject`/`fact.predicate`/`fact.object` are ADL-authored free text (extracted
             // by `parse_relation`'s simple `split_once("->")`, not a restrictive lexer -- see
-            // `core::language::adl::mod`'s own `DeclaredEdge.id` computation, which already
+            // `core::codara::adl::mod`'s own `DeclaredEdge.id` computation, which already
             // escapes this identical field set for this identical reason, and the sibling
             // `ConstraintResult | Diagnostic` arm below). Escaped before joining so two genuinely
             // different declared relations/bindings can never collapse onto one edge/binding id.
@@ -1565,7 +1565,7 @@ fn constraint_result_node_id(name: &str) -> String {
 }
 
 /// Projects a `ConstraintResult`'s Souffle-provenance-shaped `derivation` (which declared facts
-/// each evaluated check actually consulted -- see `core::language::adl::ConstraintCheckDerivation`)
+/// each evaluated check actually consulted -- see `core::codara::adl::ConstraintCheckDerivation`)
 /// into `graph`: one `ConstraintResult` node per result, and a `SUPPORTED_BY` edge to every
 /// `DeclaredNode` graph node an `AttributeEquals` check consulted. This is Atlas's absorption of
 /// R5's "evidence/provenance lineage through derived facts" requirement
@@ -1767,7 +1767,7 @@ mod tests {
     use crate::{
         DocumentFact, EpistemicStatus, NormalizationReport, Provenance, SemanticFact,
         SemanticFactKind, TypedClosureAccounting,
-        language::adl::{ConstraintCheckDerivation, ConstraintCheckKind},
+        codara::adl::{ConstraintCheckDerivation, ConstraintCheckKind},
     };
 
     fn source() -> SourceReport {
@@ -1895,7 +1895,7 @@ mod tests {
         // `fact.subject`/`fact.predicate`/`fact.object` for a Diagnostic fact are not restricted
         // to a fixed, code-controlled charset the way an enum's own `.as_str()` is: `subject` in
         // particular can be an ADL-authored materialization target name, extracted from raw
-        // source text by simple substring splitting (`core::language::adl::parse_relation` and
+        // source text by simple substring splitting (`core::codara::adl::parse_relation` and
         // friends), not through a restrictive lexer. A hostile/careless ADL author could name two
         // genuinely different things such that their (subject, predicate, object) triples, joined
         // unescaped with `:`, produce the identical string -- silently merging two distinct
@@ -1980,7 +1980,7 @@ mod tests {
         // Same defect class as the Diagnostic case above, in the sibling `DeclaredEdge` arm:
         // `fact.subject`/`fact.predicate`/`fact.object` are ADL-authored free text (extracted by
         // `parse_relation`'s simple `split_once("->")`, not a restrictive lexer -- see
-        // `core::language::adl::mod`'s own `DeclaredEdge.id` computation, which already escapes
+        // `core::codara::adl::mod`'s own `DeclaredEdge.id` computation, which already escapes
         // this identical field set for this identical reason). Two genuinely different declared
         // relations must never collapse onto one edge id merely because their unescaped `:` join
         // renders the same string.
@@ -2291,7 +2291,7 @@ mod tests {
                 documentation: None,
                 declaration: None,
             },
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line: 1,
                 column: 1,
@@ -2353,7 +2353,7 @@ mod tests {
             repository: repository.clone(),
             revision: revision.clone(),
             function: caller.clone(),
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line: 5,
                 column: 4,
@@ -2407,7 +2407,7 @@ mod tests {
             repository: repository.clone(),
             revision: revision.clone(),
             function: caller.clone(),
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line: 5,
                 column: 4,
@@ -2523,7 +2523,7 @@ mod tests {
             revision: revision.clone(),
             function: function.clone(),
             name: name.to_owned(),
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line,
                 column: 5,
@@ -2582,7 +2582,7 @@ mod tests {
             function: function.clone(),
             scope: scope.clone(),
             name: name.to_owned(),
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line,
                 column: 5,
@@ -2632,7 +2632,7 @@ mod tests {
             revision: revision.clone(),
             function: function.clone(),
             category: EffectCategory::Panic,
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line,
                 column: 5,
@@ -2682,7 +2682,7 @@ mod tests {
             revision: revision.clone(),
             function: function.clone(),
             name: name.to_owned(),
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line,
                 column: 5,
@@ -2737,7 +2737,7 @@ mod tests {
             revision: revision.clone(),
             function: function.clone(),
             name: name.to_owned(),
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line,
                 column: 5,
@@ -2792,7 +2792,7 @@ mod tests {
             revision: revision.clone(),
             function: function.clone(),
             kind,
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line,
                 column: 5,
@@ -3071,7 +3071,7 @@ mod tests {
                 documentation: None,
                 declaration: None,
             },
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line: 1,
                 column: 1,
@@ -3167,7 +3167,7 @@ mod tests {
                 documentation: None,
                 declaration: None,
             },
-            span: crate::language::adl::SourceSpan {
+            span: crate::codara::adl::SourceSpan {
                 path: "src/lib.rs".into(),
                 line: 1,
                 column: 1,

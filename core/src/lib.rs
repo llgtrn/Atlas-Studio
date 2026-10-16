@@ -10,6 +10,7 @@ pub mod capability;
 pub mod census;
 pub mod certificate;
 pub mod closure;
+pub mod codara;
 pub mod composition;
 pub mod constraint;
 pub mod construction;
@@ -20,7 +21,6 @@ pub mod evidence;
 pub mod graph;
 pub mod identity;
 pub mod integrity;
-pub mod language;
 pub mod physical;
 pub mod product;
 pub mod provenance;
@@ -47,6 +47,17 @@ pub use census::{
     diff_inventories,
 };
 pub use closure::{DeltaRelation, FixedPointRecord, semi_naive_fixed_point};
+pub use codara::adl::census::{
+    CENSUS_ADL_PATH, CENSUS_DERIVATION_ID, DependencyReconciliation, ObservedArchitecture,
+    ObservedMember, ObservedMemberDependency, derive_census_adl, derive_effect_envelopes,
+    reconcile_dependencies,
+};
+pub use codara::adl::{
+    AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,
+    BindingDecl, CapabilityDecl, ConstraintCheck, ConstraintDecl, ConstraintResult, DeclaredEdge,
+    DeclaredGraph, DeclaredNode, DeclaredObservedDelta, EntityDecl, MaterializationDecl,
+    RelationDecl, SourceSpan, TransformDecl, compile_adl, lex_adl, parse_adl_source,
+};
 pub use constraint::{
     CodingAdmission, ConstraintVerdict, declared_root_is_contained, validate_manifest,
 };
@@ -61,17 +72,6 @@ pub use identity::{
     ArtifactId, CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId,
     RawObservationId, RepositoryId, RevisionId, SemanticObligationId, SymbolId, TechnologyId,
     blake3, escape_identity_field, stable_id,
-};
-pub use language::adl::census::{
-    CENSUS_ADL_PATH, CENSUS_DERIVATION_ID, DependencyReconciliation, ObservedArchitecture,
-    ObservedMember, ObservedMemberDependency, derive_census_adl, derive_effect_envelopes,
-    reconcile_dependencies,
-};
-pub use language::adl::{
-    AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,
-    BindingDecl, CapabilityDecl, ConstraintCheck, ConstraintDecl, ConstraintResult, DeclaredEdge,
-    DeclaredGraph, DeclaredNode, DeclaredObservedDelta, EntityDecl, MaterializationDecl,
-    RelationDecl, SourceSpan, TransformDecl, compile_adl, lex_adl, parse_adl_source,
 };
 pub use provenance::{Provenance, provenance};
 pub use quantity::{Dimension, Quantity, QuantityError, Rational};

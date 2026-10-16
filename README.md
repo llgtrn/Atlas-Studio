@@ -32,6 +32,23 @@ flowchart LR
 
 ## Source execution and convergence — Codara, not an independent Atlas authority
 
+The ADL source compiler resides at `core/src/codara`, exposed as `atlas_core::codara::adl`
+within the existing `core` package. Its parser, compiler and census bridge retain their
+algorithms and wire contracts. Active Rust callers use this namespace without a `language`
+alias. This bounded source naming slice establishes no Chronica grammar parity, native
+absorption or runtime admission.
+
+| Historical source locator | Current source locator |
+|---|---|
+| `core/src/language/mod.rs` | `core/src/codara/mod.rs` |
+| `core/src/language/adl/mod.rs` | `core/src/codara/adl/mod.rs` |
+| `core/src/language/adl/census.rs` | `core/src/codara/adl/census.rs` |
+| `core/src/language/adl/census/tests.rs` | `core/src/codara/adl/census/tests.rs` |
+
+The four files moved byte-for-byte with their saved-workspace ArtifactIds. Historical
+observations keep their original IDs and locators; `atlas.adl.*` schemas, source-span data,
+the census derivation ID and `tools/atlas/declared/census.adl` remain unchanged.
+
 **The existing repository is a temporary development/source checkout.** Codara is the named canonical semantic-intent capability in Chronica, with real implementation under `physiology/capability/codara` and a governed `phenotype/codara` CLI. Similar historical names are not proof that this checkout's compiler code has been absorbed. Retain source identity, candidate artifacts, oracles, licenses and performance data, but do not describe this repository as owning semantic truth, permission, canonical admission, or a permanent independent coding environment.
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.

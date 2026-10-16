@@ -4,10 +4,10 @@
 
 use crate::{
     census::InventoryReport,
+    codara::adl::AdlCompileReport,
     constraint::CodingAdmission,
     evidence::Evidence,
     identity::RawObservationId,
-    language::adl::AdlCompileReport,
     provenance::Provenance,
     semantic::{
         ExtractionDiagnostic, SemanticDimension, SemanticObligationRecord, SemanticObservation,

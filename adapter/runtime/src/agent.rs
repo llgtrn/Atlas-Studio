@@ -1749,8 +1749,8 @@ fn run(s: &core::store::Store) { s.save(); }
             c.coverage
                 .insert("EFFECT".into(), EpistemicStatus::Observed);
         }
+        use atlas_core::codara::adl::CensusForbidden;
         use atlas_core::composition::quantified;
-        use atlas_core::language::adl::CensusForbidden;
         let spawn = CensusForbidden::Effect {
             category: "PROCESS_SPAWN".into(),
         };

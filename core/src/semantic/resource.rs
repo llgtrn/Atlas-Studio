@@ -22,8 +22,8 @@
 //! release claimed: its release point is not known, never "none".
 
 use super::SemanticRecordId;
+use crate::codara::adl::SourceSpan;
 use crate::identity::RepositoryId;
-use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use crate::vocabulary_enum;
 use serde::{Deserialize, Serialize};

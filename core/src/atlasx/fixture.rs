@@ -115,7 +115,7 @@ pub fn integrity_for(
     candidate_ref: &str,
     candidate: &str,
 ) -> IntegrityReport {
-    let satisfied = crate::language::adl::ConstraintResult {
+    let satisfied = crate::codara::adl::ConstraintResult {
         name: "core-does-not-call-runtime".into(),
         passed: true,
         verdict: crate::constraint::ConstraintVerdict::Satisfied,
