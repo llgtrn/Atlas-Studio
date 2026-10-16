@@ -1,4 +1,4 @@
-# Current codec/manifest/staging source locators follow the lossless relocation recorded in README.md.
+# Current Codara source locators follow the lossless relocation recorded in README.md.
 # Residual IDs, generation observations, verdicts and historical contract names are unchanged.
 # The residual ledger (G179, ADR 0092). A residual is a known gap a generation recorded instead of
 # fixing: a claim withheld, an input read as absent, a case outside the model. Each carries its exact
@@ -259,7 +259,7 @@ pressure = 1
 [[residual]]
 id = "RES-G181-REF-RECEIVERS"
 found_in = "G181"
-source = "adapter/runtime/src/self_reconstruction.rs (lifter), core/src/construction/rust.rs (backend)"
+source = "adapter/runtime/src/self_reconstruction.rs (lifter), core/src/codara/construction/rust.rs (backend)"
 subsystem = "runtime self_reconstruction lifter and core construction backend"
 reproduction = "fn f(&self) -> bool { match self { Self::A => true, _ => false } } stays BODY_UNOBSERVED: bodies over &self or &mut self receivers, and bodies with calls or arithmetic, are outside the G181 subset (most real methods)"
 severity = "MEDIUM"
@@ -271,7 +271,7 @@ pressure = 3
 [[residual]]
 id = "RES-G181-CONSERVATIVE-COPY"
 found_in = "G181"
-source = "core/src/construction/mod.rs (validate_body)"
+source = "core/src/codara/construction/mod.rs (validate_body)"
 subsystem = "core construction IR validation"
 reproduction = "a COPY of self requires an observed Copy derive even where != only borrows, so the IR may refuse a body rustc would accept"
 severity = "LOW"
@@ -283,7 +283,7 @@ pressure = 1
 [[residual]]
 id = "RES-G181-EMIT-TRUSTS-VALIDATION"
 found_in = "G181"
-source = "core/src/construction/rust.rs (emit)"
+source = "core/src/codara/construction/rust.rs (emit)"
 subsystem = "core construction Rust backend"
 reproduction = "rust::emit does not re-validate its module: an INTRINSIC node without an intrinsic prints != for a module that never passed validate_module"
 severity = "LOW"

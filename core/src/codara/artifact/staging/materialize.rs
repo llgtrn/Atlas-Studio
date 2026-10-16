@@ -43,7 +43,7 @@ use crate::codara::artifact::codec::{self, CodecVerdict, FunctionSignatureRecord
 use crate::codara::artifact::manifest::{
     self, AtlasxManifest, CLASS_ROOT_MANIFEST, MANIFEST_FILE, ObjectEntry,
 };
-use crate::construction::{Dispatch, IrParam};
+use crate::codara::construction::{Dispatch, IrParam};
 use crate::design::SelectedDesign;
 use crate::identity::IntegrityDigest;
 use crate::semantic::{FunctionDeclarationKind, SemanticDimension};

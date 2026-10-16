@@ -6,7 +6,7 @@
 //! input is refused, never a panic.
 
 use super::*;
-use crate::construction::ConstructionModule;
+use crate::codara::construction::ConstructionModule;
 
 use CodecDefect as D;
 
@@ -621,7 +621,7 @@ fn the_writer_refuses_what_it_cannot_write_canonically() {
 
 /// Re-stamps `module`'s id as its content identity.
 fn reidentified(mut module: ConstructionModule) -> ConstructionModule {
-    module.module_id = crate::construction::module_identity(&module);
+    module.module_id = crate::codara::construction::module_identity(&module);
     module
 }
 

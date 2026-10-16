@@ -42,7 +42,7 @@
 //! (`validate`, M13, G187) over what the materializer (`materialize`, M11, G185) stages.
 
 use crate::atlas::{read_uvarint, u16_at, u32_at, u64_at, uvarint};
-use crate::construction::{
+use crate::codara::construction::{
     ConstructionInputKind, ConstructionModule, Dispatch, IrFunction, IrParam, module_identity,
     validate_module,
 };

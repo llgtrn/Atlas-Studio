@@ -4231,7 +4231,7 @@ mod tests {
         /// level is reached only by a reconstruction, and shadows live where nothing is admitted.
         #[test]
         fn self_reconstruction_keeps_its_boundary_and_feeds_its_gaps_back() {
-            use atlas_core::construction::{
+            use atlas_core::codara::construction::{
                 ConstructionModule, ReconstructionVerdict, SelfReconstructionReport,
                 validate_report,
             };
@@ -4248,7 +4248,7 @@ mod tests {
             }
             assert_eq!(
                 text(&ledger, "bootstrap_construction_target"),
-                atlas_core::construction::BOOTSTRAP_CONSTRUCTION_TARGET
+                atlas_core::codara::construction::BOOTSTRAP_CONSTRUCTION_TARGET
             );
             let shadow_root = text(&ledger, "shadow_root");
             assert_eq!(shadow_root, crate::self_reconstruction::SHADOW_ROOT);

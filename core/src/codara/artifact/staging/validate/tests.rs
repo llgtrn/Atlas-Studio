@@ -695,7 +695,7 @@ fn a_root_of_a_parent_not_admitted_or_of_another_parent_is_invalid() {
 /// materializer version by the manifest's binding.
 #[test]
 fn a_record_edited_beyond_its_lineage_is_not_reproduced() {
-    use crate::construction::{Dispatch, IrParam};
+    use crate::codara::construction::{Dispatch, IrParam};
     let f = fixture();
     let (_, root) = staged(&f);
     let records = records_of(&root);

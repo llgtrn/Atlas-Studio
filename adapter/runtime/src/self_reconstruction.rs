@@ -8,8 +8,7 @@
 //! lives under `target/atlas/shadow`, which is ignored and never admitted.
 
 use atlas_core::atlas::CensusAtlas;
-use atlas_core::composition::WorldModel;
-use atlas_core::construction::{
+use atlas_core::codara::construction::{
     BOOTSTRAP_CONSTRUCTION_TARGET, CONSTRUCTION_IR_SCHEMA, CheckResult, ConstructionGap,
     ConstructionInput, ConstructionInputKind, ConstructionModule, Dispatch, EquivalenceCheck,
     EquivalenceKind, GapKind, HirArm, HirBody, HirIntrinsic, HirNode, HirNodeKind, HirPattern,
@@ -17,6 +16,7 @@ use atlas_core::construction::{
     SelfHostingLevel, SelfReconstructionReport, ShadowArtifact, TypeKind, decide, module_identity,
     report_identity, rust::RUST_BACKEND, rust::RustEmission,
 };
+use atlas_core::composition::WorldModel;
 use atlas_core::identity::IntegrityDigest;
 use atlas_core::semantic::{DeclaredItem, FieldShape, FunctionDeclarationKind, SymbolRole};
 use atlas_core::{BodyNode, BodyNodeKind};
@@ -608,7 +608,7 @@ pub fn lift(
     // A lowered body the IR refuses (untyped, unresolved, non-exhaustive, a capability not
     // derived) is dropped whole and becomes the function's gap: no partial or invalid body.
     let own: BTreeSet<String> = module.inputs.iter().map(|i| i.reference.clone()).collect();
-    let refused = atlas_core::construction::validate_module(&module, &own);
+    let refused = atlas_core::codara::construction::validate_module(&module, &own);
     for f in &mut module.functions {
         let prefix = format!("{}: ", f.id);
         if let Some(v) = refused
@@ -1127,7 +1127,7 @@ pub fn attempt(
         a.design_id,
         a.comparison_id,
     )?;
-    let emission = atlas_core::construction::rust::emit(&module);
+    let emission = atlas_core::codara::construction::rust::emit(&module);
     let (mut shadow, mut checks, mut oracle_uses) = (None, Vec::new(), Vec::new());
     if !emission.emitted.is_empty() {
         let source = write_shadow(a.root, &module, &emission).map_err(|e| e.to_string())?;
@@ -1178,7 +1178,7 @@ pub fn attempt(
         } else {
             declared_variations(&a.container.typed_records, &module, &emission)
         },
-        verdict: atlas_core::construction::ReconstructionVerdict::Unsupported,
+        verdict: atlas_core::codara::construction::ReconstructionVerdict::Unsupported,
     };
     report.verdict = decide(&report);
     report.report_id = report_identity(&report);
@@ -1191,14 +1191,16 @@ pub fn validate(
     container: &CensusAtlas,
     module: &ConstructionModule,
     report: &SelfReconstructionReport,
-) -> Vec<atlas_core::construction::Violation> {
+) -> Vec<atlas_core::codara::construction::Violation> {
     let ids: BTreeSet<String> = container
         .typed_records
         .iter()
         .map(|r| r.record_id().as_str().to_owned())
         .collect();
-    let mut violations = atlas_core::construction::validate_module(module, &ids);
-    violations.extend(atlas_core::construction::validate_report(report, module));
+    let mut violations = atlas_core::codara::construction::validate_module(module, &ids);
+    violations.extend(atlas_core::codara::construction::validate_report(
+        report, module,
+    ));
     violations
 }
 
@@ -1270,7 +1272,7 @@ pub enum Shape {
         let records = census(PATH, SOURCE);
         let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
         assert_eq!(
-            atlas_core::construction::validate_module(&module, &ids(&records)),
+            atlas_core::codara::construction::validate_module(&module, &ids(&records)),
             vec![]
         );
         let ty = &module.types[0];
@@ -1322,7 +1324,7 @@ pub enum Shape {
         let signature = f.lineage[1].clone();
         assert!(body.nodes.iter().all(|n| n.lineage.contains(&signature)));
         assert!(body.nodes[1].lineage.contains(&ty.variants[0].lineage[0]));
-        let emission = atlas_core::construction::rust::emit(&module);
+        let emission = atlas_core::codara::construction::rust::emit(&module);
         assert_eq!(emission.emitted, [ty.id.clone(), f.id.clone()]);
         assert!(
             emission
@@ -1346,7 +1348,7 @@ pub enum Shape {
         }
         let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
         assert_eq!(
-            atlas_core::construction::validate_module(&module, &ids(&records)),
+            atlas_core::codara::construction::validate_module(&module, &ids(&records)),
             vec![]
         );
         let kinds: BTreeSet<GapKind> = module.gaps.iter().map(|g| g.kind).collect();
@@ -1360,7 +1362,7 @@ pub enum Shape {
             assert!(kinds.contains(&kind), "{kind:?}");
         }
         assert!(
-            atlas_core::construction::rust::emit(&module)
+            atlas_core::codara::construction::rust::emit(&module)
                 .emitted
                 .is_empty()
         );
@@ -1388,7 +1390,7 @@ pub enum Shape {
     fn the_shadow_census_round_trips_and_catches_a_reordered_or_underived_emission() {
         let records = census(PATH, SOURCE);
         let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
-        let emission = atlas_core::construction::rust::emit(&module);
+        let emission = atlas_core::codara::construction::rust::emit(&module);
         let checks = semantic_checks(&module, &emission, &emission.source);
         // G181: the type's four, and the method's signature and body.
         assert_eq!(checks.len(), 6, "{checks:?}");
@@ -1452,7 +1454,7 @@ pub enum Shape {
         let records = census(PATH, source);
         let module = lift(&records, "root", PATH, "Plain", "design:1", None).unwrap();
         assert_eq!(
-            atlas_core::construction::validate_module(&module, &ids(&records)),
+            atlas_core::codara::construction::validate_module(&module, &ids(&records)),
             vec![]
         );
         assert_eq!(module.functions[0].body, None);
@@ -1466,7 +1468,7 @@ pub enum Shape {
             "{gap:?}"
         );
         assert!(
-            !atlas_core::construction::rust::emit(&module)
+            !atlas_core::codara::construction::rust::emit(&module)
                 .emitted
                 .contains(&module.functions[0].id)
         );
@@ -1505,7 +1507,7 @@ pub enum Shape {
         )
         .unwrap();
         assert_eq!(
-            atlas_core::construction::validate_module(&module, &ids(&records)),
+            atlas_core::codara::construction::validate_module(&module, &ids(&records)),
             vec![]
         );
         assert_eq!(module.gaps, vec![]);
@@ -1515,7 +1517,7 @@ pub enum Shape {
             .map(|f| (f.name.as_str(), f.body.is_some()))
             .collect();
         assert_eq!(names, [("is_local", true)]);
-        let emission = atlas_core::construction::rust::emit(&module);
+        let emission = atlas_core::codara::construction::rust::emit(&module);
         assert!(
             emission.source.contains(
                 "    pub fn is_local(self) -> bool {\n        self != Self::RemoteMetadata\n    }\n"
@@ -1532,7 +1534,7 @@ pub enum Shape {
         );
         let other = lift(&records, "root", DONOR, "StorageState", "design:1", None).unwrap();
         assert_eq!(
-            atlas_core::construction::validate_module(&other, &ids(&records)),
+            atlas_core::codara::construction::validate_module(&other, &ids(&records)),
             vec![]
         );
         let unobserved: BTreeSet<&str> = other
@@ -1551,7 +1553,7 @@ pub enum Shape {
     fn the_differential_compares_every_derived_property_and_is_exhaustive() {
         let records = census(PATH, SOURCE);
         let module = lift(&records, "root", PATH, "Mode", "design:1", None).unwrap();
-        let emission = atlas_core::construction::rust::emit(&module);
+        let emission = atlas_core::codara::construction::rust::emit(&module);
         let harness = differential(&module, &emission, "atlas_shadow_mode");
         for test in [
             "exhaustive",
@@ -1585,6 +1587,18 @@ pub enum Shape {
         assert_eq!(
             oracle_path("core/src/census/dependency.rs", "ReachOrigin").as_deref(),
             Some("atlas_core::census::dependency::ReachOrigin")
+        );
+        assert_eq!(
+            oracle_path(
+                "core/src/codara/construction/mod.rs",
+                "ConstructionInputKind"
+            )
+            .as_deref(),
+            Some("atlas_core::codara::construction::ConstructionInputKind")
+        );
+        assert_eq!(
+            oracle_path("core/src/codara/construction/rust.rs", "RustEmission").as_deref(),
+            Some("atlas_core::codara::construction::rust::RustEmission")
         );
         assert_eq!(oracle_path("runtime/src/lib.rs", "X"), None);
         assert_eq!(slug("MaterializationMode"), "materialization_mode");

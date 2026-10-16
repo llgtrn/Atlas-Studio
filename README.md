@@ -49,7 +49,25 @@ The four files moved byte-for-byte with their saved-workspace ArtifactIds. Histo
 observations keep their original IDs and locators; `atlas.adl.*` schemas, source-span data,
 the census derivation ID and `tools/atlas/declared/census.adl` remain unchanged.
 
-**The existing repository is a temporary development/source checkout.** Codara is the named canonical semantic-intent capability in Chronica, with real implementation under `physiology/capability/codara` and a governed `phenotype/codara` CLI. Similar historical names are not proof that this checkout's compiler code has been absorbed. Retain source identity, candidate artifacts, oracles, licenses and performance data, but do not describe this repository as owning semantic truth, permission, canonical admission, or a permanent independent coding environment.
+The target-neutral construction IR and pure Rust string emitter now reside at
+`atlas_core::codara::construction`, with the same three saved-workspace ArtifactIds:
+
+| Historical source locator | Current source locator |
+|---|---|
+| `core/src/construction/mod.rs` | `core/src/codara/construction/mod.rs` |
+| `core/src/construction/rust.rs` | `core/src/codara/construction/rust.rs` |
+| `core/src/construction/tests.rs` | `core/src/codara/construction/tests.rs` |
+
+The three files remain byte-identical. Current callers use the new namespace without an alias;
+construction still reads only census records, design and comparison inputs, retains explicit
+gaps, and separates source oracles from construction. Runtime still validates the lifted IR
+before emitting it. Historical `atlas.construction.*` schemas, identity preimages, fixture
+objects, generated text and past observations are unchanged. Current oracle imports follow the
+current census module path; this move does not rewrite or rebind historical census records.
+Chronica integration still needs a native semantic/IR mapping, an actual admitted caller and
+bounded result evidence; this source namespace supplies none of those target contracts.
+
+**The existing repository is a temporary development/source checkout.** Codara is the named canonical semantic-intent capability in Chronica, with real implementation under `physiology/capability/codara` and a governed `phenora/codara` CLI. Similar historical names are not proof that this checkout's compiler code has been absorbed. Retain source identity, candidate artifacts, oracles, licenses and performance data, but do not describe this repository as owning semantic truth, permission, canonical admission, or a permanent independent coding environment.
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 

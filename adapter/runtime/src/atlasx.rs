@@ -16,7 +16,7 @@ pub use atlas_core::codara::artifact::staging::{
 pub use atlas_core::codara::artifact::{
     CodecDefect, CodecReport, CodecVerdict, EncodedObject, MANIFEST_FILE,
 };
-use atlas_core::construction::ConstructionModule;
+use atlas_core::codara::construction::ConstructionModule;
 use atlas_core::integrity::PINNED_ENVELOPE_PATH;
 use std::{
     fs,

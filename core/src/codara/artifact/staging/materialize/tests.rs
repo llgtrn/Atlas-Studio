@@ -10,7 +10,7 @@ use crate::codara::artifact::staging::fixture::{
     self, Fixture, IS_LOCAL_IDENTITY, IS_LOCAL_SIGNATURE, MODE_SYMBOL, fixture,
 };
 use crate::codara::artifact::staging::precondition::PreconditionRefusal;
-use crate::construction::ConstructionModule;
+use crate::codara::construction::ConstructionModule;
 use crate::design::{SelectedDesign, SemanticRoot};
 use crate::seal::seal_identity;
 
