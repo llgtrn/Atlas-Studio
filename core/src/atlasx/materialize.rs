@@ -34,13 +34,15 @@
 //! are not done (`MATERIALIZE_NOT_DONE`): what this produces is a staged root, never a published
 //! or advertised one, and a staged root is VALID only when `validate` says so.
 
-use super::codec::{self, CodecVerdict, FunctionSignatureRecord};
-use super::manifest::{self, AtlasxManifest, CLASS_ROOT_MANIFEST, MANIFEST_FILE, ObjectEntry};
 use super::precondition::{
     Admission, AdmittedParent, Precondition, PreconditionInputs, PreconditionVerdict, evaluate,
 };
 use crate::SemanticObservation;
 use crate::atlas::CensusAtlas;
+use crate::codara::artifact::codec::{self, CodecVerdict, FunctionSignatureRecord};
+use crate::codara::artifact::manifest::{
+    self, AtlasxManifest, CLASS_ROOT_MANIFEST, MANIFEST_FILE, ObjectEntry,
+};
 use crate::construction::{Dispatch, IrParam};
 use crate::design::SelectedDesign;
 use crate::identity::IntegrityDigest;
@@ -410,8 +412,7 @@ pub(crate) fn manifest_for(
     objects: Vec<ObjectEntry>,
 ) -> Result<AtlasxManifest, codec::Defects> {
     let digest = |value: &str| {
-        IntegrityDigest::parse(value)
-            .or_else(|e| codec::defect(codec::CodecDefect::MalformedValue, e))
+        IntegrityDigest::parse(value).map_err(|e| vec![(codec::CodecDefect::MalformedValue, e)])
     };
     let mut manifest = AtlasxManifest {
         root_id: IntegrityDigest::blake3_256(&[0; 32]),

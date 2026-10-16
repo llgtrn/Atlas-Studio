@@ -1,3 +1,5 @@
+# Current codec/manifest source locators follow the lossless relocation recorded in README.md.
+# Residual IDs, generation observations, verdicts and historical contract names are unchanged.
 # The residual ledger (G179, ADR 0092). A residual is a known gap a generation recorded instead of
 # fixing: a claim withheld, an input read as absent, a case outside the model. Each carries its exact
 # reproduction, a severity and whether it can make Atlas assert something false. A HARDENING
@@ -319,9 +321,9 @@ pressure = 3
 [[residual]]
 id = "RES-G183-GLOBAL-ID-PROVISIONAL"
 found_in = "G183"
-source = "core/src/atlasx/codec.rs (FUNCTIONS_SCHEMA field 1)"
+source = "core/src/codara/artifact/codec.rs (FUNCTIONS_SCHEMA field 1)"
 subsystem = "core atlasx codec M12"
-reproduction = "core/src/atlasx/codec/fixture.bin: field 1 (GLOBAL_ID) of the FUNCTION_SIGNATURE record carries the UTF-8 bytes of the construction IR's function id (fn:core/...::is_local); no stable AtlasX identity form is defined yet"
+reproduction = "core/src/codara/artifact/codec/fixture.bin: field 1 (GLOBAL_ID) of the FUNCTION_SIGNATURE record carries the UTF-8 bytes of the construction IR's function id (fn:core/...::is_local); no stable AtlasX identity form is defined yet"
 severity = "LOW"
 can_create_false_claim = false
 reopen_trigger = "the materializer (M11) defines the stable GLOBAL_ID form; a different form must come with a new record schema version, which the pinned schema digest forces"
@@ -331,9 +333,9 @@ pressure = 1
 [[residual]]
 id = "RES-G183-BODIES-NOT-ENCODED"
 found_in = "G183"
-source = "core/src/atlasx/codec.rs (encode_module, bodies_not_encoded)"
+source = "core/src/codara/artifact/codec.rs (encode_module, bodies_not_encoded)"
 subsystem = "core atlasx codec M12"
-reproduction = "atlas-systemizer atlasx codec --encode core/src/atlasx/codec/fixture_module.json --out <dir> reports bodies_not_encoded = [the is_local function id]: the FUNCTIONS object carries signatures only, the construction IR's HIR body is dropped"
+reproduction = "atlas-systemizer atlasx codec --encode core/src/codara/artifact/codec/fixture_module.json --out <dir> reports bodies_not_encoded = [the is_local function id]: the FUNCTIONS object carries signatures only, the construction IR's HIR body is dropped"
 severity = "MEDIUM"
 can_create_false_claim = true
 false_claim_condition = "a consumer reads a DECODED FUNCTIONS object as the function's executable semantics. It does not hold on the current tree: nothing consumes a decoded object, and every encode and decode report names the body among what it does not carry (bodies_not_encoded, CODEC_NOT_VERIFIED)"
@@ -344,7 +346,7 @@ pressure = 9
 [[residual]]
 id = "RES-G183-DECODED-IS-NOT-VALIDATED"
 found_in = "G183"
-source = "core/src/atlasx/codec.rs (read, CODEC_NOT_VERIFIED)"
+source = "core/src/codara/artifact/codec.rs (read, CODEC_NOT_VERIFIED)"
 subsystem = "core atlasx codec M12, validator M13"
 reproduction = "any canonical FUNCTIONS object whose lineage or owner resolve nowhere, re-hashed after editing, decodes as DECODED (the codec test of a re-hashed payload edit): the digest authenticates bytes, not provenance, and no manifest, root identity or cross-object closure is checked"
 severity = "MEDIUM"
@@ -359,7 +361,7 @@ pressure = 9
 [[residual]]
 id = "RES-G183-SINGLE-CLASS"
 found_in = "G183"
-source = "core/src/atlasx/codec.rs (read: expected class FUNCTIONS)"
+source = "core/src/codara/artifact/codec.rs (read: expected class FUNCTIONS)"
 subsystem = "core atlasx codec M12"
 reproduction = "any object whose header object_class is not 4 (FUNCTIONS) is refused CLASS_MISMATCH; the other twenty classes, ROOT_MANIFEST among them, have no schema"
 severity = "LOW"
@@ -373,7 +375,7 @@ pressure = 1
 [[residual]]
 id = "RES-G183-FRAME-MEMORY"
 found_in = "G183"
-source = "core/src/atlasx/codec.rs (frames)"
+source = "core/src/codara/artifact/codec.rs (frames)"
 subsystem = "core atlasx codec M12"
 reproduction = "a correctly hashed 63.5 MiB payload of FUNCTION_SIGNATURE records each carrying 65,535 empty BOOL fields is framed whole before the schema runs and refused FIELD_FLAGS at a peak of about 466 MB resident (the fixture peaks at about 13 MB): each 8-byte field header becomes a frame of about 48 bytes -- bounded by the decoded-length limit, not unbounded"
 severity = "LOW"
@@ -591,7 +593,7 @@ pressure = 3
 [[residual]]
 id = "RES-G187-FUNCTIONS-ONLY-ROOT"
 found_in = "G187"
-source = "core/src/atlasx/validate.rs (directory_of), core/src/atlasx/codec.rs"
+source = "core/src/atlasx/validate.rs (directory_of), core/src/codara/artifact/codec.rs"
 subsystem = "core atlasx codec M12, validator M13"
 reproduction = "a manifest entry of any class but FUNCTIONS (4) is ENTRY_CLASS_UNSUPPORTED and never validated; the other nineteen object classes (MODULES, TYPES, ... UI) have no schema; ROOT_MANIFEST (1) has one since G187"
 severity = "LOW"
@@ -603,7 +605,7 @@ pressure = 1
 [[residual]]
 id = "RES-G187-MANIFEST-SCHEMA-DEVIATIONS"
 found_in = "G187"
-source = "core/src/atlasx/manifest.rs (MANIFEST_SCHEMA), core/src/atlasx/materialize.rs (TARGET_KIND_NONE, COMPILER_IR_CONTRACT_UNKNOWN, MATERIALIZER_VERSION)"
+source = "core/src/codara/artifact/manifest.rs (MANIFEST_SCHEMA), core/src/atlasx/materialize.rs (TARGET_KIND_NONE, COMPILER_IR_CONTRACT_UNKNOWN, MATERIALIZER_VERSION)"
 subsystem = "core atlasx manifest M13"
 reproduction = "ROOT_MANIFEST schema 1 adds required tags 17-19 (parent census digest, revision, seal id) beyond the contract's 16, leaves the repeated tags 11-13, 15, 16 (profiles, external bindings, semantic barriers, dynamic obligations, compatibility requirements) undeclared and refused, writes target_kind NONE and compiler_ir_contract_version UNKNOWN, and a materializer_version constant (1) rather than a build identity"
 severity = "LOW"

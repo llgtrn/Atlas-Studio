@@ -16,6 +16,13 @@ carry no new license or downstream rights grant. A target transfer must retain e
 and byte provenance and resolve its existing rights obligations.
 The codec source SHA256 is `636464f0c41053fd37b6f796590f098623456fd7ea5d925840458545620f3ccc`.
 
+The current source locator is `core/src/codara/artifact/codec.rs`; the complete codec fixture
+subtree moved from `core/src/atlasx/codec/` to `core/src/codara/artifact/codec/` with its
+saved-workspace ArtifactIds. The sibling pure root-manifest codec moved from
+`core/src/atlasx/manifest.rs` to `core/src/codara/artifact/manifest.rs`, together with its tests.
+The pinned path, revision and digest above describe historical provenance. Fixture basenames,
+content bytes, encoded IDs and historical materializer identity are unchanged.
+
 Naming is resolved from Chronica's CN-0005 and DECISIONS 0044, 0115 and 0125 at
 `d9e8a067f18cdb931715027631a2fb60125a6166`: Codara's native owners are
 `physiology/capability/codara` and `phenotype/codara`; the current source examples use `.cdr`.
@@ -23,7 +30,7 @@ CHGC capsules and their existing SHA256 identity domains are a separate native f
 No approved native FUNCTIONS object extension or conversion into Codara semantic IR was found.
 Such a migration needs a coordinated versioned contract and consumer proof, not a suffix change
 to ATLSX bytes. Legacy format names/addresses remain confined to legacy input and evidence.
-The older committed `fixture_verify.codara` is retained at its historical provenance locator;
+The older committed `fixture_verify.codara` retains its historical basename in the relocated codec subtree;
 new source programs in this corpus use `.cdr`.
 
 Recommendation for the next naming decision: keep `.cdr` for text source, and give a new
@@ -132,7 +139,7 @@ The thirteen pinned cases, object bytes and expected values remain unchanged.
 
 | Source caller | Actual contract |
 |---|---|
-| `core/src/atlasx/codec.rs::encode_functions`, `read`, `decode_named` | Pure canonical class-4/schema-1 signature codec, typed refusals and historical basename checks; no function bodies or target identity/authority resolution. |
+| `core/src/codara/artifact/codec.rs::encode_functions`, `read`, `decode_named` | Pure canonical class-4/schema-1 signature codec, typed refusals and historical basename checks; no function bodies or target identity/authority resolution. |
 | `adapter/runtime/src/atlasx.rs::decode_object`, `decode_at` | Bounded file read followed by strict named source decoding. |
 | `adapter/runtime/src/atlasx.rs::export_codara_payload` | Read once, validate the complete named object, then write bytes after header through create-or-identical replay; refused input creates no output or parent and preserves prior evidence. |
 | `apps/cli/src/main.rs` codec dispatch | Existing encode/decode/export commands call the source runtime. These are source callers, not a Chronica integration trace. |

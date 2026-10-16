@@ -1795,7 +1795,7 @@ mod tests {
         let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/codara/artifact/codec/fixture_module.json"
         );
         let address = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
         let dir = std::env::temp_dir().join(format!("atlas-cli-codec-{}", std::process::id()));
@@ -1897,7 +1897,7 @@ mod tests {
         let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/codara/artifact/codec/fixture_module.json"
         );
         let dir = std::env::temp_dir().join(format!("atlas-cli-codara-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
@@ -1975,11 +1975,11 @@ mod tests {
     fn atlasx_codara_payload_enforces_the_legacy_functions_corpus() {
         let fixtures = Path::new(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/parity"
+            "/../../core/src/codara/artifact/codec/parity"
         ));
         let cases: Vec<serde_json::Value> = serde_json::from_str(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/parity/cases.json"
+            "/../../core/src/codara/artifact/codec/parity/cases.json"
         )))
         .unwrap();
         let dir = env::temp_dir().join(format!(

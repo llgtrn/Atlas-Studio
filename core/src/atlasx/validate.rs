@@ -41,13 +41,13 @@
 //! spellings are carried as text, not references. What VALID does not claim is listed in every
 //! verdict (`VALIDATE_NOT_VERIFIED`). The validator is a pure function of the bytes it is given.
 
-use super::codec::{self, CodecVerdict, FunctionSignatureRecord};
-use super::manifest::{self, MANIFEST_FILE, ObjectEntry};
 use super::materialize::{
     FUNCTIONS_DIRECTORY, Materialization, MaterializationDefect, MaterializationVerdict,
     check_lineage, manifest_for, materialize_over,
 };
 use super::precondition::{Precondition, PreconditionInputs, evaluate};
+use crate::codara::artifact::codec::{self, CodecVerdict, FunctionSignatureRecord};
+use crate::codara::artifact::manifest::{self, MANIFEST_FILE, ObjectEntry};
 use crate::identity::IntegrityDigest;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};

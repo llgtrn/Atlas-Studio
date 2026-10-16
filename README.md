@@ -53,9 +53,27 @@ the census derivation ID and `tools/atlas/declared/census.adl` remain unchanged.
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
+The historical object codec and pure root-manifest codec now live together under
+`core/src/codara/artifact` inside the same `atlas_core` crate. The 25 existing files moved
+byte-for-byte before caller updates, preserving their saved-workspace ArtifactIds. Their
+source relocation is explicit:
+
+| Historical source locator | Current source locator |
+|---|---|
+| `core/src/atlasx/codec.rs` | `core/src/codara/artifact/codec.rs` |
+| `core/src/atlasx/codec/**` | `core/src/codara/artifact/codec/**` |
+| `core/src/atlasx/manifest.rs` | `core/src/codara/artifact/manifest.rs` |
+| `core/src/atlasx/manifest/tests.rs` | `core/src/codara/artifact/manifest/tests.rs` |
+
+Current Rust callers use `codara::artifact` directly. Sealed-parent admission, materialization
+and root validation remain in `atlasx`; their persisted materializer identity remains unchanged.
+Historical `.atlasx` formats, schema names, encoded IDs, object bytes and pinned provenance stay
+historical. This source naming step establishes no native Codara format, consumer cutover or
+source extinction. Existing declared ownership and proof selectors still address the same core.
+
 The following command is a legacy AtlasX source-reader/export interface. It does not write
 Codara's canonical artifact format. New Codara programs in the
-`core/src/atlasx/codec/parity/` corpus use `.cdr`; its `.atlasx` objects are explicitly legacy
+`core/src/codara/artifact/codec/parity/` corpus use `.cdr`; its `.atlasx` objects are explicitly legacy
 inputs and the exported `.payload` file is a raw byte oracle for the existing digest flow.
 No native Codara FUNCTIONS object format or semantic conversion is established by this export.
 
@@ -66,7 +84,7 @@ conflicting files are preserved. Refused objects write nothing. Standard output 
 codec report: its `address` is the program's `claimed` fact, and `decoded_length` is its
 `input_bytes` fact. The digest covers bytes after the 80-byte header, so the exported file is
 fed unchanged to `codara run --payload FILE CAPSULE`; the complete `.atlasx` file is retained as source
-evidence. `core/src/atlasx/codec/fixture_verify.codara` is a reusable source fixture for the
+evidence. `core/src/codara/artifact/codec/fixture_verify.codara` is a reusable source fixture for the
 committed codec object (385 payload bytes), with target-world aliases `agent` and `cpu-1`.
 Its one-step budget is one `cpu_units`, matching the existing verifier's declared demand;
 the target still checks resource capacity and its current envelope.

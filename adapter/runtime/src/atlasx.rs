@@ -2,16 +2,19 @@
 //! gate of G185, ADR 0097), the object codec (G183, M12, ADR 0095), the materializer's first
 //! slice (G185, M11, ADR 0097) with its root manifest, and the validator (G187, M13, ADR 0099).
 //! The files are read and written here; each decision is a pure function of their bytes in
-//! `atlas_core::atlasx`.
+//! `atlas_core::atlasx` for parent admission/staging and `atlas_core::codara::artifact` for
+//! the historical object codec and root manifest.
 
 use atlas_core::atlasx::PreconditionInputs;
-use atlas_core::atlasx::codec;
-pub use atlas_core::atlasx::codec::Defects as CodecDefects;
 pub use atlas_core::atlasx::{
-    AdmittedParent, CodecDefect, CodecReport, CodecVerdict, EncodedObject, MANIFEST_FILE,
-    Materialization, MaterializationDefect, MaterializationVerdict, Precondition,
+    AdmittedParent, Materialization, MaterializationDefect, MaterializationVerdict, Precondition,
     PreconditionRefusal, PreconditionVerdict, RootEntry, RootFiles, Validation, ValidationDefect,
     ValidationVerdict,
+};
+use atlas_core::codara::artifact::codec;
+pub use atlas_core::codara::artifact::codec::Defects as CodecDefects;
+pub use atlas_core::codara::artifact::{
+    CodecDefect, CodecReport, CodecVerdict, EncodedObject, MANIFEST_FILE,
 };
 use atlas_core::construction::ConstructionModule;
 use atlas_core::integrity::PINNED_ENVELOPE_PATH;
@@ -205,10 +208,10 @@ fn stage_objects(
         let path = out_dir.join(&manifest.path);
         create_synced(&path, &manifest.bytes, written)?;
         let bytes = read_at_most(&path, OBJECT_READ_LIMIT)?;
-        let verified = atlas_core::atlasx::read_manifest(&bytes)
+        let verified = atlas_core::codara::artifact::read_manifest(&bytes)
             .ok()
             .and_then(|(_, read)| {
-                atlas_core::atlasx::root_identity(&read)
+                atlas_core::codara::artifact::root_identity(&read)
                     .ok()
                     .zip(Some(read))
             });
@@ -360,7 +363,7 @@ pub fn encode_module(module: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> io:
             format!("{}: {e}", module.display()),
         )
     })?;
-    let encoded = match atlas_core::atlasx::encode_module(&parsed) {
+    let encoded = match atlas_core::codara::artifact::encode_module(&parsed) {
         Ok(encoded) => encoded,
         Err(defects) => return Ok(Err(defects)),
     };
@@ -432,7 +435,7 @@ fn decode_at(path: &Path, bytes: &[u8]) -> CodecReport {
         .file_name()
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default();
-    atlas_core::atlasx::decode_named(&name, bytes)
+    atlas_core::codara::artifact::decode_named(&name, bytes)
 }
 
 /// Export a validated FUNCTIONS object's recorded digest preimage for Chronica Codara's
@@ -554,7 +557,7 @@ mod tests {
         let dir = scratch("codec-replay");
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/codara/artifact/codec/fixture_module.json"
         );
         let (encoded, path) = encode_module(module, &dir).unwrap().unwrap();
         let before = fs::metadata(&path).unwrap();
@@ -598,7 +601,7 @@ mod tests {
     #[test]
     fn codara_export_preserves_the_recorded_preimage_and_refuses_before_writing() {
         let dir = scratch("codara-export");
-        let bytes = include_bytes!("../../../core/src/atlasx/codec/fixture.bin");
+        let bytes = include_bytes!("../../../core/src/codara/artifact/codec/fixture.bin");
         let address = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
         let object = dir.join(format!("{address}.atlasx"));
         let out = dir.join("payload.bin");
@@ -608,7 +611,7 @@ mod tests {
         assert_eq!(report.address.as_deref(), Some(address));
         assert_eq!(report.decoded_length, Some(385));
         assert_eq!(fs::read(&out).unwrap(), bytes[codec::HEADER_LEN..]);
-        let program = include_str!("../../../core/src/atlasx/codec/fixture_verify.codara");
+        let program = include_str!("../../../core/src/codara/artifact/codec/fixture_verify.codara");
         assert!(program.contains(&format!("input claimed = \"{address}\";")));
         assert!(program.contains("input input_bytes = 385;"));
         export_codara_payload(&object, &out).expect("identical replay");
@@ -665,11 +668,11 @@ mod tests {
     fn codara_export_enforces_the_legacy_functions_corpus() {
         let fixtures = Path::new(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/parity"
+            "/../../core/src/codara/artifact/codec/parity"
         ));
         let cases: Vec<serde_json::Value> = serde_json::from_str(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/parity/cases.json"
+            "/../../core/src/codara/artifact/codec/parity/cases.json"
         )))
         .unwrap();
         let dir = scratch("codara-semantic-parity");
@@ -736,12 +739,13 @@ mod tests {
     /// everything, objects included.
     #[test]
     fn a_manifest_that_does_not_read_back_leaves_nothing_behind() {
-        use atlas_core::atlasx::{AtlasxManifest, ObjectEntry, StagedObject};
+        use atlas_core::atlasx::StagedObject;
+        use atlas_core::codara::artifact::{AtlasxManifest, ObjectEntry};
         use atlas_core::identity::IntegrityDigest;
         let dir = scratch("stage-manifest");
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/codara/artifact/codec/fixture_module.json"
         );
         let (encoded, _) = encode_module(module, &dir).unwrap().unwrap();
         let object = StagedObject {
@@ -778,8 +782,8 @@ mod tests {
             revision: "r".into(),
             seal_id: "seal".into(),
         };
-        manifest.root_id = atlas_core::atlasx::root_identity(&manifest).unwrap();
-        let bytes = atlas_core::atlasx::encode_manifest(&manifest).unwrap();
+        manifest.root_id = atlas_core::codara::artifact::root_identity(&manifest).unwrap();
+        let bytes = atlas_core::codara::artifact::encode_manifest(&manifest).unwrap();
         let staged_manifest = StagedObject {
             path: MANIFEST_FILE.into(),
             bytes: bytes.clone(),
@@ -817,12 +821,12 @@ mod tests {
         forged.root_id = digest(9);
         let mut unrooted = m.clone();
         unrooted.manifest.as_mut().unwrap().bytes =
-            atlas_core::atlasx::encode_manifest(&forged).unwrap();
+            atlas_core::codara::artifact::encode_manifest(&forged).unwrap();
         unrooted.root_id = Some(digest(9));
         // A manifest carrying another root id than the one it and the materialization give.
         let mut carried = m.clone();
         carried.manifest.as_mut().unwrap().bytes =
-            atlas_core::atlasx::encode_manifest(&forged).unwrap();
+            atlas_core::codara::artifact::encode_manifest(&forged).unwrap();
         for (name, bad) in [
             ("garbage", garbage),
             ("other", other),
@@ -949,7 +953,7 @@ mod tests {
 
         let module = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../core/src/atlasx/codec/fixture_module.json"
+            "/../../core/src/codara/artifact/codec/fixture_module.json"
         );
         let (encoded, path) = encode_module(module, &dir).unwrap().unwrap();
         assert_eq!(decode_object(&path).unwrap().verdict, CodecVerdict::Decoded);

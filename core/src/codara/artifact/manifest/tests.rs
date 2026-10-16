@@ -5,7 +5,7 @@
 
 use super::*;
 use crate::atlas::u32_at;
-use crate::atlasx::codec::{HEADER_LEN, RECORD_HEADER_LEN, decode};
+use crate::codara::artifact::codec::{HEADER_LEN, RECORD_HEADER_LEN, decode};
 
 type D = CodecDefect;
 

@@ -8,11 +8,13 @@
 use super::*;
 use crate::atlas::CensusAtlas;
 use crate::atlas::write;
-use crate::atlasx::codec::{HEADER_LEN, encode_functions};
 use crate::atlasx::fixture::{self, Fixture, IS_LOCAL_IDENTITY, fixture};
-use crate::atlasx::manifest::{AtlasxManifest, encode_manifest, read_manifest, root_identity};
 use crate::atlasx::materialize::{Materialization, MaterializationVerdict, materialize};
 use crate::atlasx::precondition::PreconditionVerdict;
+use crate::codara::artifact::codec::{HEADER_LEN, encode_functions};
+use crate::codara::artifact::manifest::{
+    AtlasxManifest, encode_manifest, read_manifest, root_identity,
+};
 use crate::design::{SelectedDesign, SemanticRoot};
 use crate::semantic::SemanticDimension;
 
@@ -793,7 +795,13 @@ fn reverse_lineage(bytes: &[u8]) -> Vec<u8> {
     let mut out_payload =
         payload[..codec::RECORD_HEADER_LEN + last + codec::FIELD_HEADER_LEN].to_vec();
     out_payload.extend(refs.concat());
-    codec::object(codec::ObjectHeader::functions(&out_payload), &out_payload)
+    [
+        codec::ObjectHeader::functions(&out_payload)
+            .to_bytes()
+            .as_slice(),
+        out_payload.as_slice(),
+    ]
+    .concat()
 }
 
 /// xorshift64*: deterministic pseudo-random bytes, no dependency.

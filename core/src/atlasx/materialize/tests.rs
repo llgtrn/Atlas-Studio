@@ -128,8 +128,10 @@ fn an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent
     );
     // The signature is the one the construction IR lifted for SR1-3 (G181) from an earlier
     // census of the same source: every field but the lineage, whose records are that census's.
-    let module: ConstructionModule =
-        serde_json::from_str(include_str!("../codec/fixture_module.json")).unwrap();
+    let module: ConstructionModule = serde_json::from_str(include_str!(
+        "../../codara/artifact/codec/fixture_module.json"
+    ))
+    .unwrap();
     let mut lifted = FunctionSignatureRecord::of(&module.functions[0]);
     lifted.lineage = record.lineage.clone();
     assert_eq!(*record, lifted);
@@ -145,7 +147,7 @@ fn an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent
     // G187: the manifest over the object, and the root identity it carries (pinned and
     // validated in `validate::tests`).
     let manifest = m.manifest.as_ref().expect("a manifest");
-    let (_, read) = crate::atlasx::manifest::read_manifest(&manifest.bytes).unwrap();
+    let (_, read) = crate::codara::artifact::manifest::read_manifest(&manifest.bytes).unwrap();
     assert_eq!(Some(&read.root_id), m.root_id.as_ref());
     assert_eq!(read.objects.len(), 1);
     assert_eq!(read.objects[0].relative_path, object.path);

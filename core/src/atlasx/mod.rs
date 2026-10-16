@@ -1,7 +1,9 @@
 //! AtlasX: the deterministic executable projection of one SelectedDesign from one SEALED Atlas
 //! root (`.atlas/contracts/ATLAS-TO-ATLASX.md`, `.atlas/contracts/ATLASX-FORMAT.md`).
 //!
-//! Five parts exist. The precondition gate (G179, construction node M10, ADR 0093) decides
+//! The pure object and root-manifest codecs live in `crate::codara::artifact`; this module
+//! retains sealed-parent admission, materialization and root validation. The precondition gate
+//! (G179, construction node M10, ADR 0093) decides
 //! whether a parent may be materialized at all; since G185 (ADR 0097) it re-runs the seal gate
 //! over the inputs the seal record names, so an admitted parent is one the gate decided. The
 //! object codec (G183, M12, ADR 0095) writes and reads one object class, FUNCTIONS, canonically
@@ -15,23 +17,12 @@
 //! nothing is published or advertised: a VALID root is a validated staged root of the FUNCTIONS
 //! class only, and every verdict lists what it does not verify.
 
-pub mod codec;
 #[cfg(test)]
 pub(crate) mod fixture;
-pub mod manifest;
 pub mod materialize;
 pub mod precondition;
 pub mod validate;
 
-pub use codec::{
-    CODEC_NOT_VERIFIED, CODEC_SCHEMA_VERSION, CodecDefect, CodecReport, CodecVerdict,
-    EncodedObject, FunctionSignatureRecord, ObjectHeader, decode, decode_named, encode_functions,
-    encode_module, object_address,
-};
-pub use manifest::{
-    AtlasxManifest, CLASS_ROOT_MANIFEST, MANIFEST_FILE, MANIFEST_SCHEMA_VERSION, ObjectEntry,
-    encode_manifest, read_manifest, root_identity,
-};
 pub use materialize::{
     COMPILER_IR_CONTRACT_UNKNOWN, FUNCTIONS_DIRECTORY, MATERIALIZATION_SCHEMA_VERSION,
     MATERIALIZE_NOT_DONE, MATERIALIZER_IDENTITY, MATERIALIZER_VERSION, Materialization,
