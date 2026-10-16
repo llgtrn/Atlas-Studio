@@ -1,0 +1,209 @@
+{
+  "scope": "Local immutable observation of a completed BLOCKED source-library self-admission; not a shared wire/authority schema or successful full admission",
+  "actual_run": {
+    "source_commit": "7f770bc53086bb5730bf3ef50219c3778926996e",
+    "source_tree": "439836cb7a24b6a2d2d3ea7893fcdfe86c587424",
+    "stages": [
+      {
+        "stage": "build",
+        "command": [
+          "cargo",
+          "build",
+          "-p",
+          "atlas-cli",
+          "--offline"
+        ],
+        "started_utc": "2026-10-16T19:29:57.481522+00:00",
+        "finished_utc": "2026-10-16T19:30:07.493375+00:00",
+        "elapsed_seconds": 10.011873488001584,
+        "budget_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0
+      },
+      {
+        "stage": "snapshot",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "recensus",
+          "snapshot",
+          "--root",
+          "/workspace/Atlas-Studio-docs-native-v1-app",
+          "--out",
+          "/tmp/atlas-self-admission-followup/full/snapshot.json"
+        ],
+        "started_utc": "2026-10-16T19:30:07.493758+00:00",
+        "finished_utc": "2026-10-16T19:31:37.671373+00:00",
+        "elapsed_seconds": 90.17765985000005,
+        "budget_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0
+      },
+      {
+        "stage": "replay",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "recensus",
+          "prove",
+          "--root",
+          "/workspace/Atlas-Studio-docs-native-v1-app",
+          "--generation",
+          "FULL-SELF-ADMISSION-7f770bc53086",
+          "--before",
+          "/tmp/atlas-self-admission-followup/full/snapshot.json",
+          "--intent",
+          "/tmp/atlas-self-admission-followup/full/intent.json",
+          "--out",
+          "/tmp/atlas-self-admission-followup/full/replay.json"
+        ],
+        "started_utc": "2026-10-16T19:31:37.671921+00:00",
+        "finished_utc": "2026-10-16T19:35:08.313605+00:00",
+        "elapsed_seconds": 210.6417689020018,
+        "budget_seconds": 1200,
+        "timed_out": false,
+        "exit_code": 0
+      },
+      {
+        "stage": "self",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "verification",
+          "self",
+          "--root",
+          "/workspace/Atlas-Studio-docs-native-v1-app",
+          "--recensus",
+          "/tmp/atlas-self-admission-followup/full/replay.json",
+          "--out",
+          "/tmp/atlas-self-admission-followup/full/self-scope.json"
+        ],
+        "started_utc": "2026-10-16T19:35:08.314979+00:00",
+        "finished_utc": "2026-10-16T20:01:22.383419+00:00",
+        "elapsed_seconds": 1574.0685420849986,
+        "budget_seconds": 5400,
+        "timed_out": false,
+        "exit_code": 2
+      }
+    ],
+    "source_clean_after": true,
+    "self_scope_verdict": "BLOCKED",
+    "scope": "Actual current-source library SEMANTIC/UNIT/COMPATIBILITY admission; not full native V1, target adoption, rights or hardware certification.",
+    "same_root_argument_for_all_stages": "/workspace/Atlas-Studio-docs-native-v1-app",
+    "baseline_container_seconds": 909.83,
+    "self_stage_budget_basis": "5400s approximately6timesknown909.83s debug container baseline for serialized whole-repo tests and caller work; no assertions removed or ignored.",
+    "result": "NOT_ADMISSIBLE",
+    "candidate_binding_matches": true,
+    "all_three_required_obligations_satisfied": false
+  },
+  "focused_container": {
+    "source": "bd744371a640ae96288fbf5deb771358aafbf28a",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "runtime",
+      "--lib",
+      "--offline",
+      "--",
+      "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container",
+      "--exact",
+      "--format=pretty",
+      "--color=never",
+      "--nocapture"
+    ],
+    "started_utc": "2026-10-16T19:14:48.875897+00:00",
+    "finished_utc": "2026-10-16T19:26:30.385122+00:00",
+    "elapsed_seconds": 701.5083492449994,
+    "budget_seconds": 1800,
+    "budget_basis": "Approximately twice parent-supplied recorded 909-second baseline; identical assertions, debug test profile, current source fixture census.",
+    "timed_out": false,
+    "exit_code": 0,
+    "result": "PASS",
+    "source_clean_after": true
+  },
+  "focused_stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d)\n\nrunning 1 test\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container has been running for over 60 seconds\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 697.86s\n\n",
+  "actual_caller_stdout": "",
+  "actual_caller_stderr": "atlas-systemizer: VERIFICATION_BLOCKED: OBL-SELF-UNIT-WORKSPACE is FAILED\n",
+  "diagnosis": "Runtime234passed15failed0ignored1360.31s. Thirteen sandbox failures reproduced separately: final tmpfs remount imports an unmapped host uid. Shallow checkout also lacked historical ledger objects; existing full cloud history supplies all225. This report is retained unchanged; no successful result is inferred from diagnosis or narrow checks. Fresh full actual admission remains required after a reviewed fix.",
+  "sandbox_diagnosis_stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/lib.rs (/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d)\n\nrunning 21 tests\n\nthread 'sandbox::tests::a_confined_run_is_killed_with_a_descendant_that_left_its_process_group' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-pidns-120953/stage/atlas-sandbox-919db4764bb1c29a-120953-2/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\ntest sandbox::tests::a_confined_run_is_killed_with_a_descendant_that_left_its_process_group ... FAILED\n\nthread 'sandbox::tests::a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-confined-120953/stage/atlas-sandbox-3559e8a7d30a05d8-120953-0/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage ... FAILED\n\nthread 'sandbox::tests::a_confinement_that_breaks_in_any_probed_way_fails_its_probe' panicked at adapter/runtime/src/sandbox.rs:2753:13:\nshows-run-dir: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-broken-120953/stage/atlas-sandbox-31101d98b4bd5411-120953-1/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_confinement_that_breaks_in_any_probed_way_fails_its_probe ... FAILED\nthe toolchain is not under ~/.rustup: not run\ntest sandbox::tests::a_copied_dispatcher_is_refused_by_its_sysroot_and_a_renamed_rustc_is_identified ... ok\n\nthread 'sandbox::tests::a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /workspace/Atlas-Studio-docs-native-v1-app/target/atlas-sandbox-test-declared-links-120953/stage/atlas-sandbox-6a5fdeeb3f8e5b82-120953-3/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared ... FAILED\n\nthread 'sandbox::tests::a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-rustc-120953/stage/atlas-sandbox-c01a962a651823b2-120953-6/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file ... FAILED\ntest sandbox::tests::a_request_forging_another_identity_is_refused_under_its_own_digest ... ok\n\nthread 'sandbox::tests::a_linked_program_runs_under_its_link_name_in_every_class' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /workspace/Atlas-Studio-docs-native-v1-app/target/atlas-sandbox-test-alias-120953/stage/atlas-sandbox-4d9c8b74afd01a98-120953-9/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\n\nthread 'sandbox::tests::a_plain_sh_request_runs_as_sh_in_every_mode' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-plain-sh-120953/stage/atlas-sandbox-3b71a17cebbd7573-120953-10/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_plain_sh_request_runs_as_sh_in_every_mode ... FAILED\ntest sandbox::tests::a_linked_program_runs_under_its_link_name_in_every_class ... FAILED\nno rustup proxy on this host: the dispatcher refusal was not exercised\ntest sandbox::tests::a_tampered_or_escaping_input_is_refused_before_anything_runs ... ok\n\nthread 'sandbox::tests::a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-program-120953/stage/atlas-sandbox-891b2b16209bf85a-120953-12/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one ... FAILED\ntest sandbox::tests::filesystem_confinement_is_unenforced_and_nothing_runs_when_the_mechanism_is_missing ... ok\ntest sandbox::tests::network_denial_is_claimed_only_when_probed_and_real ... ok\ntest sandbox::tests::only_declared_inputs_and_environment_reach_the_run ... ok\ntest sandbox::tests::refused_toolchain_paths_environment_and_programs ... ok\n\nthread 'sandbox::tests::links_in_inputs_or_outputs_cannot_point_outside' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-links-120953/stage/atlas-sandbox-81fdd830ec4f2861-120953-20/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::links_in_inputs_or_outputs_cannot_point_outside ... FAILED\n\nthread 'sandbox::tests::the_staging_directory_is_created_and_resolved_before_the_helpers_see_it' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-staging-120953/stage/atlas-sandbox-89305bcca23e5cbe-120953-23/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::the_staging_directory_is_created_and_resolved_before_the_helpers_see_it ... FAILED\n\nthread 'sandbox::tests::the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-mounts-120953/stage/atlas-sandbox-8715aa60eb1564d2-120953-22/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only ... FAILED\n\nthread 'sandbox::tests::the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-identity-120953/stage/atlas-sandbox-88809bbc3907819b-120953-32/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused ... FAILED\n\nthread 'sandbox::tests::a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class' panicked at adapter/runtime/src/sandbox.rs:1510:13:\nthe host has the namespaces but the run was refused: probe failed: the staged control file was not reachable inside the confinement (`/work/.atlas-probe-control`: exit Some(32), \"mount: /tmp/atlas-sandbox-test-dispatcher-120953/stage/atlas-sandbox-6d9f84d236528552-120953-36/root: fsconfig() failed: tmpfs: Invalid uid '1000'.\\n       dmesg(1) may have more information after failed mount system call.\")\ntest sandbox::tests::a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class ... FAILED\ntest sandbox::tests::a_run_is_killed_at_its_timeout_with_its_descendants ... ok\n\nfailures:\n\nfailures:\n    sandbox::tests::a_confined_run_is_killed_with_a_descendant_that_left_its_process_group\n    sandbox::tests::a_confined_run_reads_only_its_inputs_and_toolchain_and_writes_only_its_stage\n    sandbox::tests::a_confined_rustc_compiles_its_declared_crate_and_cannot_include_a_host_file\n    sandbox::tests::a_confinement_that_breaks_in_any_probed_way_fails_its_probe\n    sandbox::tests::a_declared_link_is_a_link_in_the_root_and_its_target_must_be_declared\n    sandbox::tests::a_linked_program_runs_under_its_link_name_in_every_class\n    sandbox::tests::a_plain_sh_request_runs_as_sh_in_every_mode\n    sandbox::tests::a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one\n    sandbox::tests::a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class\n    sandbox::tests::links_in_inputs_or_outputs_cannot_point_outside\n    sandbox::tests::the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only\n    sandbox::tests::the_staging_directory_is_created_and_resolved_before_the_helpers_see_it\n    sandbox::tests::the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused\n\ntest result: FAILED. 8 passed; 13 failed; 0 ignored; 0 measured; 228 filtered out; finished in 2.34s\n\nerror: test failed, to rerun pass `-p runtime --lib`\n",
+  "preservation": {
+    "checked_utc": "2026-10-16T19:31:14.091343+00:00",
+    "held_14_hashes_unchanged": true,
+    "saved_artifact_registry_byte_exact": true,
+    "saved_artifact_records": 2502,
+    "all_saved_artifact_paths_retained": true,
+    "existing_ynventa_files_byte_exact": 39,
+    "active_source_clean": true,
+    "held_fae_patch_sha256": "887236f625652978743f32e25d2489220f2cbda23f9aff3d8e73122eb95ed6d5"
+  },
+  "resource_log_sha256": "22ffe3484e890bf9ae7a12cae928e4af6c93c57397762cef0edb2ddffed42add",
+  "container_progress": [
+    {
+      "utc": "2026-10-16T19:39:20.978465+00:00",
+      "stage": "self",
+      "elapsed_seconds": 250.72250714999973,
+      "containers": []
+    },
+    {
+      "utc": "2026-10-16T19:42:19.204992+00:00",
+      "stage": "self",
+      "elapsed_seconds": 421.1066208909979,
+      "containers": []
+    },
+    {
+      "utc": "2026-10-16T19:44:25.652077+00:00",
+      "stage": "self",
+      "elapsed_seconds": 551.3997891059989,
+      "containers": []
+    },
+    {
+      "utc": "2026-10-16T19:51:41.333881+00:00",
+      "stage": "self",
+      "elapsed_seconds": 992.8857648799967,
+      "containers": [
+        {
+          "path": "/tmp/atlas-pack-117591/self.atlas",
+          "bytes": 189563957
+        }
+      ]
+    },
+    {
+      "utc": "2026-10-16T19:54:34.227308+00:00",
+      "stage": "self",
+      "elapsed_seconds": 1163.2797082179968,
+      "containers": [
+        {
+          "path": "/tmp/atlas-pack-117591/corrupt.atlas",
+          "bytes": 189563957
+        },
+        {
+          "path": "/tmp/atlas-pack-117591/again.atlas",
+          "bytes": 189563957
+        },
+        {
+          "path": "/tmp/atlas-pack-117591/self.atlas",
+          "bytes": 189563957
+        }
+      ]
+    }
+  ],
+  "thread_progress": [
+    {
+      "utc": "2026-10-16T19:45:28.681380+00:00",
+      "runtime_pid": 117591,
+      "threads_ps": "   SPID COMMAND             TIME %CPU WCHAN\n 117591 runtime-a04a27e 00:00:00  0.0 futex_wait\n 118085 atlas::tests::t 00:05:07 74.9 -\n 118258 certificate::te 00:00:00  0.0 futex_wait\n 118265 certificate::te 00:00:00  0.0 futex_wait\n 118467 donor_storage:: 00:00:00  0.0 futex_wait\n",
+      "note": "Read-only scheduling observation; active container thread, certificate/donor threads wait on existing whole-repo census mutex. No signal, ptrace or pipe reads."
+    },
+    {
+      "utc": "2026-10-16T19:52:46.205437+00:00",
+      "runtime_pid": 117591,
+      "io": "rchar: 541332196\nwchar: 190868764\nsyscr: 19345\nsyscw: 2382\nread_bytes: 8192\nwrite_bytes: 20480\ncancelled_write_bytes: 0\n",
+      "threads": "   SPID COMMAND             TIME %CPU WCHAN\n 117591 runtime-a04a27e 00:00:00  0.0 futex_wait\n 118085 atlas::tests::t 00:12:25 87.8 -\n 118258 certificate::te 00:00:00  0.0 futex_wait\n 118265 certificate::te 00:00:00  0.0 futex_wait\n 118467 donor_storage:: 00:00:00  0.0 futex_wait\n",
+      "containers": [
+        {
+          "path": "/tmp/atlas-pack-117591/self.atlas",
+          "bytes": 189563957
+        }
+      ]
+    }
+  ],
+  "created_utc": "2026-10-16T20:05:57.942672+00:00"
+}

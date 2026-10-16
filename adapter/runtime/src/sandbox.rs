@@ -176,7 +176,9 @@ if [ "$proc" = 1 ]; then
   "$mkdir" "$new/proc"
   "$mount" -t proc -o subset=pid,nosuid,nodev,noexec atlas-sandbox-proc "$new/proc"
 fi
-"$mount" -o remount,ro,nosuid,nodev "$new"
+# Set VFS flags without reconfiguring tmpfs, whose uid/gid options may be outside this user map.
+# This changes only the root mount; /work and the read-only toolchain retain their own flags.
+"$mount" -o remount,bind,ro,nosuid,nodev "$new"
 unset PWD
 while [ "$1" != -- ]; do
   export "$1"

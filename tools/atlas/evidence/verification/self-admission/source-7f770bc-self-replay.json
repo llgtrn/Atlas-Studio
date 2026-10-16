@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "FULL-SELF-ADMISSION-7f770bc53086",
+  "base_revision": "7f770bc53086bb5730bf3ef50219c3778926996e",
+  "candidate_revision": "7f770bc53086bb5730bf3ef50219c3778926996e",
+  "candidate_dirty": false,
+  "before_census_digest": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+  "after_census_digest": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+  "replay_digest": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+  "inventory_delta": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [],
+    "counts": {}
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {},
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 2750,
+    "total_after": 2750
+  },
+  "intent": {
+    "objective": "Committed-source deterministic self-replay for actual library self-admission. No cross-revision semantic change proof or full native OS certification.",
+    "changed_paths": [],
+    "total_changes": [],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": []
+  },
+  "intended_changes": [],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -1,0 +1,142 @@
+{
+  "evidence": [
+    {
+      "candidate": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+      "content_hash": "blake3-256:2bc2f397a1d32f2168eb61fd4c73818ed0267838d1ba643710d5dfabaaa20dc0",
+      "environment": "self-recensus report /tmp/atlas-self-admission-followup/full/replay.json",
+      "id": "evidence:recensus:FULL-SELF-ADMISSION-7f770bc53086",
+      "inputs": [
+        "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943"
+      ],
+      "obligations": [
+        "OBL-SELF-SEMANTIC-RECENSUS"
+      ],
+      "producer": {
+        "tool": "atlas-systemizer recensus prove",
+        "version": "atlas.self-recensus-report.v1"
+      },
+      "result": "SATISFIED",
+      "run_id": "FULL-SELF-ADMISSION-7f770bc53086",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+      "content_hash": "blake3-256:776d1a2f951658a1019016367527001bd75c7b18549eb48a6532105a427ff5ef",
+      "counterexample": "    sandbox::tests::a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one\n    sandbox::tests::a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class\n    sandbox::tests::links_in_inputs_or_outputs_cannot_point_outside\n    sandbox::tests::the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only\n    sandbox::tests::the_staging_directory_is_created_and_resolved_before_the_helpers_see_it\n    sandbox::tests::the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused\n    tests::donor_corpus_integrity::generation_ledger_references_real_paths_and_real_base_commits\n\ntest result: FAILED. 234 passed; 15 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1360.31s\n\nfatal: Not a valid object name a53c52e76ccd00495812d9765853d30e80943c59^{commit}\nerror: test failed, to rerun pass `-p runtime --lib`",
+      "environment": "ambient host process in /workspace/Atlas-Studio-docs-native-v1-app (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad",
+      "inputs": [
+        "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943"
+      ],
+      "obligations": [
+        "OBL-SELF-UNIT-WORKSPACE"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "VIOLATED",
+      "run_id": "cargo test -q --workspace --offline",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+      "content_hash": "blake3-256:a1029449f6dc32a9ebc7be9960b94ee6ec0cfbd387234ce24ad2420ce52572ae",
+      "environment": "ambient host process in /workspace/Atlas-Studio-docs-native-v1-app (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:a54feab2777f0966",
+      "inputs": [
+        "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943"
+      ],
+      "obligations": [
+        "OBL-SELF-COMPATIBILITY-SCHEMAS"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "SATISFIED",
+      "run_id": "cargo test -p core --lib --offline -- codara::artifact::census_container::tests::the_current_schema_is_the_latest_recorded_generation codara::artifact::census_container::tests::every_recorded_schema_conforms_to_the_current_one codara::artifact::census_container::tests::a_container_an_older_conforming_writer_produced_is_read_with_its_history --exact --format=pretty --color=never",
+      "status": "OBSERVED"
+    }
+  ],
+  "report": {
+    "blockers": [
+      "OBL-SELF-UNIT-WORKSPACE is FAILED"
+    ],
+    "candidate": "blake3-256:60185437bc131f943e4a09e5e9c6494913214b66e8a22f0b3bccc770690db943",
+    "coverage": {
+      "COMPATIBILITY": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "SEMANTIC": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "UNIT": {
+        "failed": 1,
+        "obligations": 1,
+        "satisfied": 0,
+        "unresolved": 0,
+        "unverified": 0
+      }
+    },
+    "failures": [
+      {
+        "counterexample": "    sandbox::tests::a_relative_program_path_is_refused_and_the_executed_file_is_the_identified_one\n    sandbox::tests::a_toolchain_dispatcher_is_refused_and_the_toolchain_binary_pins_in_every_class\n    sandbox::tests::links_in_inputs_or_outputs_cannot_point_outside\n    sandbox::tests::the_confined_root_holds_exactly_its_declared_mounts_private_and_read_only\n    sandbox::tests::the_staging_directory_is_created_and_resolved_before_the_helpers_see_it\n    sandbox::tests::the_toolchain_identity_is_recorded_stable_and_a_mismatched_pin_is_refused\n    tests::donor_corpus_integrity::generation_ledger_references_real_paths_and_real_base_commits\n\ntest result: FAILED. 234 passed; 15 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1360.31s\n\nfatal: Not a valid object name a53c52e76ccd00495812d9765853d30e80943c59^{commit}\nerror: test failed, to rerun pass `-p runtime --lib`",
+        "evidence": [
+          "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad"
+        ],
+        "obligation": "OBL-SELF-UNIT-WORKSPACE"
+      }
+    ],
+    "outcomes": [
+      {
+        "class": "SEMANTIC",
+        "evidence": [
+          "evidence:recensus:FULL-SELF-ADMISSION-7f770bc53086"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-SEMANTIC-RECENSUS",
+        "required": true,
+        "state": "SATISFIED"
+      },
+      {
+        "class": "UNIT",
+        "evidence": [
+          "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-UNIT-WORKSPACE",
+        "required": true,
+        "state": "FAILED"
+      },
+      {
+        "class": "COMPATIBILITY",
+        "evidence": [
+          "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:a54feab2777f0966"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-COMPATIBILITY-SCHEMAS",
+        "required": true,
+        "state": "SATISFIED"
+      }
+    ],
+    "policy": {
+      "artifact_kind": "LIBRARY_PACKAGE",
+      "required_classes": [
+        "SEMANTIC",
+        "UNIT",
+        "COMPATIBILITY"
+      ]
+    },
+    "schema": "atlas.verification-report.v1",
+    "verdict": "BLOCKED"
+  }
+}
