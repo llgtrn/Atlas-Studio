@@ -1,0 +1,143 @@
+{
+  "evidence": [
+    {
+      "candidate": "blake3-256:4d52b29c3bc75a0607012935ea8e68b58ab717222f3512848709d5af32ce9bf4",
+      "content_hash": "blake3-256:cb79eee7e742085af69570864bf79b18308ec7d3758a2a1ddf7c7e0ca6d19582",
+      "environment": "self-recensus report /tmp/atlas-verify-resume-20261016/self-replay-report.json",
+      "id": "evidence:recensus:SCHEMA-COMPATIBILITY-SELF-REPLAY-20261016",
+      "inputs": [
+        "blake3-256:4d52b29c3bc75a0607012935ea8e68b58ab717222f3512848709d5af32ce9bf4"
+      ],
+      "obligations": [
+        "OBL-SELF-SEMANTIC-RECENSUS"
+      ],
+      "producer": {
+        "tool": "atlas-systemizer recensus prove",
+        "version": "atlas.self-recensus-report.v1"
+      },
+      "result": "SATISFIED",
+      "run_id": "SCHEMA-COMPATIBILITY-SELF-REPLAY-20261016",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:3852b8798fc4d7473d18972e0d726861c65948b8e22356d5215aac9d75c8c20e",
+      "content_hash": "blake3-256:e5071df6b3ad8dae12b14f0d050b515cb47170717db06d3463dcced09e0a0731",
+      "counterexample": "\nrunning 249 tests\n....................................................................................... 87/249\n........................test agent::tests::atlas_self_world_model_is_complete_and_deterministic has been running for over 60 seconds\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container has been running for over 60 seconds\ntest certificate::tests::the_certificate_conforms_to_its_json_schema_field_sets has been running for over 60 seconds\ntest certificate::tests::the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing has been running for over 60 seconds\n....test donor_storage::tests::repository_donor_storage_has_no_unrecorded_violation has been running for over 60 seconds\nerror: test failed, to rerun pass `-p runtime --lib`\n\nCaused by:\n  process didn't exit successfully: `/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d --quiet` (signal: 15, SIGTERM: termination signal)",
+      "environment": "ambient host process in /workspace/Atlas-Studio-docs-native-v1-app (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad",
+      "inputs": [
+        "blake3-256:3852b8798fc4d7473d18972e0d726861c65948b8e22356d5215aac9d75c8c20e"
+      ],
+      "obligations": [
+        "OBL-SELF-UNIT-WORKSPACE"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "VIOLATED",
+      "run_id": "cargo test -q --workspace --offline",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:3852b8798fc4d7473d18972e0d726861c65948b8e22356d5215aac9d75c8c20e",
+      "content_hash": "blake3-256:d0e028b2599bcc832743714c867c213a476b9a1e6376723e239f00a3d976e148",
+      "environment": "ambient host process in /workspace/Atlas-Studio-docs-native-v1-app (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:a54feab2777f0966",
+      "inputs": [
+        "blake3-256:3852b8798fc4d7473d18972e0d726861c65948b8e22356d5215aac9d75c8c20e"
+      ],
+      "obligations": [
+        "OBL-SELF-COMPATIBILITY-SCHEMAS"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "SATISFIED",
+      "run_id": "cargo test -p core --lib --offline -- codara::artifact::census_container::tests::the_current_schema_is_the_latest_recorded_generation codara::artifact::census_container::tests::every_recorded_schema_conforms_to_the_current_one codara::artifact::census_container::tests::a_container_an_older_conforming_writer_produced_is_read_with_its_history --exact --format=pretty --color=never",
+      "status": "OBSERVED"
+    }
+  ],
+  "report": {
+    "blockers": [
+      "OBL-SELF-SEMANTIC-RECENSUS is UNVERIFIED",
+      "OBL-SELF-UNIT-WORKSPACE is FAILED"
+    ],
+    "candidate": "blake3-256:3852b8798fc4d7473d18972e0d726861c65948b8e22356d5215aac9d75c8c20e",
+    "coverage": {
+      "COMPATIBILITY": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "SEMANTIC": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 0,
+        "unresolved": 0,
+        "unverified": 1
+      },
+      "UNIT": {
+        "failed": 1,
+        "obligations": 1,
+        "satisfied": 0,
+        "unresolved": 0,
+        "unverified": 0
+      }
+    },
+    "failures": [
+      {
+        "counterexample": "\nrunning 249 tests\n....................................................................................... 87/249\n........................test agent::tests::atlas_self_world_model_is_complete_and_deterministic has been running for over 60 seconds\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container has been running for over 60 seconds\ntest certificate::tests::the_certificate_conforms_to_its_json_schema_field_sets has been running for over 60 seconds\ntest certificate::tests::the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing has been running for over 60 seconds\n....test donor_storage::tests::repository_donor_storage_has_no_unrecorded_violation has been running for over 60 seconds\nerror: test failed, to rerun pass `-p runtime --lib`\n\nCaused by:\n  process didn't exit successfully: `/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d --quiet` (signal: 15, SIGTERM: termination signal)",
+        "evidence": [
+          "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad"
+        ],
+        "obligation": "OBL-SELF-UNIT-WORKSPACE"
+      }
+    ],
+    "outcomes": [
+      {
+        "class": "SEMANTIC",
+        "evidence": [],
+        "inadmissible": [
+          "evidence:recensus:SCHEMA-COMPATIBILITY-SELF-REPLAY-20261016"
+        ],
+        "obligation": "OBL-SELF-SEMANTIC-RECENSUS",
+        "required": true,
+        "state": "UNVERIFIED"
+      },
+      {
+        "class": "UNIT",
+        "evidence": [
+          "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-UNIT-WORKSPACE",
+        "required": true,
+        "state": "FAILED"
+      },
+      {
+        "class": "COMPATIBILITY",
+        "evidence": [
+          "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:a54feab2777f0966"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-COMPATIBILITY-SCHEMAS",
+        "required": true,
+        "state": "SATISFIED"
+      }
+    ],
+    "policy": {
+      "artifact_kind": "LIBRARY_PACKAGE",
+      "required_classes": [
+        "SEMANTIC",
+        "UNIT",
+        "COMPATIBILITY"
+      ]
+    },
+    "schema": "atlas.verification-report.v1",
+    "verdict": "BLOCKED"
+  }
+}

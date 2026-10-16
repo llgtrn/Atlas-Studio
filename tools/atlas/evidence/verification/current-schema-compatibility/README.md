@@ -33,7 +33,20 @@ unqualified and do not authorize adoption.
 
 The 2026-10-16 18:34 UTC owner direction supersedes the earlier implementation pause. The saved
 STOP checkpoint and held source patch remain intact; the reviewed repair is resumed in the
-current-main checkout. The committed-source observation will be appended separately after the
-source commit exists. Until that observation is present, this source contribution claims no
-new compatibility SATISFIED result. Full SEMANTIC/UNIT/COMPATIBILITY admission, native execution,
-Chronica adoption, target receipts, rights and UI cutover remain separate obligations.
+current-main checkout.
+
+The [committed-source observation](source-ef99a8b-run.json) records the actual existing CLI
+`verification self` caller on source `ef99a8b80c6e916d91018289fc480602371e9c3a`. Its
+[schema/history evidence](source-ef99a8b-self-scope.json) is SATISFIED for the exact three-test
+compatibility run. After ten minutes of caller validation, its long-running workspace UNIT
+Runtime test process was deliberately interrupted with SIGTERM. The actual UNIT evidence is
+VIOLATED and the complete caller verdict is BLOCKED; the full workspace suite is
+**NOT COMPLETED**, not a reported intrinsic regression failure. The receipt retains process
+ancestry, timing, interruption and the original counterexample. This demonstrates fail-closed
+caller behavior when UNIT is interrupted. The [semantic input](source-ef99a8b-self-replay.json) is actual same-current-source
+deterministic self-replay, not a cross-revision semantic change proof. Its candidate differs from
+the caller's snapshot candidate, so the caller correctly records SEMANTIC as UNVERIFIED. The
+snapshot/prove commands used relative root `.` while the caller used an absolute root; both
+digests remain intact and are not rebound or treated as interchangeable. Preserve the separate
+results and their source/candidate/transcript bindings. This source observation does not qualify
+Chronica adoption, native execution, full V1, hardware, rights or UI cutover.

@@ -1,0 +1,77 @@
+{
+  "source_commit": "ef99a8b80c6e916d91018289fc480602371e9c3a",
+  "source_tree": "707cef55f4d0ef63c4fcb671f92a0a85f0bae32b",
+  "command": [
+    "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+    "verification",
+    "self",
+    "--root",
+    "/workspace/Atlas-Studio-docs-native-v1-app",
+    "--recensus",
+    "/tmp/atlas-verify-resume-20261016/self-replay-report.json",
+    "--out",
+    "/tmp/atlas-verify-resume-20261016/self-scope.json"
+  ],
+  "start_utc": "2026-10-16T18:46:50.430946+00:00",
+  "end_utc": "2026-10-16T18:57:12.045432+00:00",
+  "exit_code": 2,
+  "semantic_scope": "Same-current-source deterministic self-replay only; NOT a cross-revision semantic change proof.",
+  "execution_scope": "Ambient cloud process; not sandbox enforcement or native hardware certification.",
+  "requirement_ids": [
+    "OBL-SELF-COMPATIBILITY-SCHEMAS",
+    "N11",
+    "J8"
+  ],
+  "compatibility_result": "SATISFIED",
+  "workspace_unit_result": "VIOLATED",
+  "self_scope_verdict": "BLOCKED",
+  "result_scope": "Current .atlas schema/history compatibility on exact source ef99a8b; not Chronica adoption, cross-revision semantic proof, full V1 or hardware certification.",
+  "evidence_records": {
+    "source-ef99a8b-self-replay.json": "4efd641c24ffa8f5e1c3198ca04248e09161fc7fe67251e4309a6227051ff9de",
+    "source-ef99a8b-self-scope.json": "a6cbe81d11cff1069e7f9566e6e5d359d03fcc785991ac44d6243c5b6820ce7b"
+  },
+  "runtime_verification_artifact_id": "art1:03ff6a8f2d42f7c4616667d94affc0cb",
+  "runtime_verification_source_sha256": "e8f7dabd7f63b74fce8b3388c43fe5c572c7b43fbd7478366cdc449c1331a6e0",
+  "saved_ArtifactIds_preserved": 2502,
+  "historical_self_scope_reports_preserved": 63,
+  "historical_native_proof_records_preserved": 24,
+  "active_implementation_writers": 1,
+  "active_read_only_reviewers": 1,
+  "not_run": [
+    "Physical native boot and J1-J9 acceptance",
+    "Hardware/model qualification",
+    "Complete workspace test run (intentionally interrupted)",
+    "Chronica target parity/admission and rights closure"
+  ],
+  "workspace_validation_status": "NOT_COMPLETED_INTENTIONALLY_INTERRUPTED",
+  "semantic_input_candidate": "blake3-256:4d52b29c3bc75a0607012935ea8e68b58ab717222f3512848709d5af32ce9bf4",
+  "caller_candidate": "blake3-256:3852b8798fc4d7473d18972e0d726861c65948b8e22356d5215aac9d75c8c20e",
+  "semantic_admission_state": "UNVERIFIED",
+  "semantic_input_applicability": "Replay input and actual caller candidate differ; caller correctly rejects that semantic evidence. Snapshot/prove used relative root dot, caller used absolute root; no digest is rebound and no full-admission claim is made.",
+  "unit_interruption": {
+    "action_utc": "2026-10-16T18:57:11.078668+00:00",
+    "action": "SIGTERM to own UNIT Runtime test subprocess only; let existing caller observe nonzero UNIT and continue exact compatibility producer",
+    "reason": "Bound real-caller cloud validation after ten minutes; long unchanged whole-repository container test; NOT a claimed intrinsic regression failure",
+    "validation_budget_seconds": 600,
+    "processes": {
+      "105189": "/workspace/atlas-proof-repair-target/debug/atlas-systemizer verification self --root /workspace/Atlas-Studio-docs-native-v1-app --recensus /tmp/atlas-verify-resume-20261016/self-replay-report.json --out /tmp/atlas-verify-resume-20261016/self-scope.json",
+      "105386": "/workspace/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo test -q --workspace --offline",
+      "108155": "/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d --quiet"
+    },
+    "process_state": "    PID    PPID     ELAPSED     TIME %CPU COMMAND\n 105189  105176       10:20 00:01:10 11.3 /workspace/atlas-proof-repair-target/debug/atlas-systemizer verification self --root /workspace/Atlas-Studio-docs-native-v1-app --recensus /tmp/atlas-verify-resume-20261016/self-replay-report.json --out /tmp/atlas-verify-resume-20261016/self-scope.json\n 105386  105189       09:09 00:00:00  0.0 /workspace/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo test -q --workspace --offline\n 108155  105386       07:37 00:07:38  100 /workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d --quiet\n"
+  },
+  "failed_checks": [
+    {
+      "check": "Workspace UNIT process inside verification self",
+      "result": "VIOLATED",
+      "classification": "Intentional SIGTERM after validation budget; not an intrinsic regression failure",
+      "counterexample": "\nrunning 249 tests\n....................................................................................... 87/249\n........................test agent::tests::atlas_self_world_model_is_complete_and_deterministic has been running for over 60 seconds\ntest atlas::tests::the_self_census_packages_into_a_verified_unsealed_container has been running for over 60 seconds\ntest certificate::tests::the_certificate_conforms_to_its_json_schema_field_sets has been running for over 60 seconds\ntest certificate::tests::the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing has been running for over 60 seconds\n....test donor_storage::tests::repository_donor_storage_has_no_unrecorded_violation has been running for over 60 seconds\nerror: test failed, to rerun pass `-p runtime --lib`\n\nCaused by:\n  process didn't exit successfully: `/workspace/atlas-proof-repair-target/debug/deps/runtime-a04a27ece356f88d --quiet` (signal: 15, SIGTERM: termination signal)"
+    }
+  ],
+  "direct_regressions": {
+    "runtime_verification_tests": "5 passed, 0 failed, 0 ignored",
+    "actual_exact_schema_history_tests": "3 passed, 0 failed, 0 ignored",
+    "format": "PASS",
+    "engine_protocol": "33/33 PASS"
+  }
+}
