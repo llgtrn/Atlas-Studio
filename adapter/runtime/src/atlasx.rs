@@ -424,11 +424,39 @@ fn read_at_most(path: &Path, limit: u64) -> io::Result<Vec<u8>> {
 pub fn decode_object(path: impl AsRef<Path>) -> io::Result<CodecReport> {
     let path = path.as_ref();
     let bytes = read_at_most(path, OBJECT_READ_LIMIT)?;
+    Ok(decode_at(path, &bytes))
+}
+
+fn decode_at(path: &Path, bytes: &[u8]) -> CodecReport {
     let name = path
         .file_name()
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default();
-    Ok(atlas_core::atlasx::decode_named(&name, &bytes))
+    atlas_core::atlasx::decode_named(&name, bytes)
+}
+
+/// Export a validated FUNCTIONS object's recorded digest preimage for Chronica Codara's
+/// existing `digest.blake3-256-verify` kernel. Its `--payload` is the decoded payload, bytes
+/// after the 80-byte AtlasX header; its `claimed` fact is this report's address (64 hex digits).
+/// The header is not part of that digest. No framing, digest or semantic identity is invented.
+///
+/// The object is read once, bounded, and decoded under its file name before any output is
+/// created. Refusal returns the existing codec report and writes nothing. Output uses the
+/// immutable create-or-identical-replay rule; its parent directory must already exist.
+/// Exporting or verifying these bytes grants no authority and does not import or execute the
+/// object's semantics. A Codara capsule, current world binding, authentication and host
+/// admission remain the target caller's separate obligations.
+pub fn export_codara_payload(
+    object: impl AsRef<Path>,
+    out: impl AsRef<Path>,
+) -> io::Result<CodecReport> {
+    let object = object.as_ref();
+    let bytes = read_at_most(object, OBJECT_READ_LIMIT)?;
+    let report = decode_at(object, &bytes);
+    if report.verdict == CodecVerdict::Decoded {
+        write_object_or_replay(out.as_ref(), &bytes[codec::HEADER_LEN..])?;
+    }
+    Ok(report)
 }
 
 #[cfg(test)]
@@ -565,6 +593,72 @@ mod tests {
             assert!(!absent.exists());
         }
         fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn codara_export_preserves_the_recorded_preimage_and_refuses_before_writing() {
+        let dir = scratch("codara-export");
+        let bytes = include_bytes!("../../../core/src/atlasx/codec/fixture.bin");
+        let address = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
+        let object = dir.join(format!("{address}.atlasx"));
+        let out = dir.join("payload.bin");
+        fs::write(&object, bytes).unwrap();
+        let report = export_codara_payload(&object, &out).unwrap();
+        assert_eq!(report.verdict, CodecVerdict::Decoded);
+        assert_eq!(report.address.as_deref(), Some(address));
+        assert_eq!(report.decoded_length, Some(385));
+        assert_eq!(fs::read(&out).unwrap(), bytes[codec::HEADER_LEN..]);
+        let program = include_str!("../../../core/src/atlasx/codec/fixture_verify.codara");
+        assert!(program.contains(&format!("input claimed = \"{address}\";")));
+        assert!(program.contains("input input_bytes = 385;"));
+        export_codara_payload(&object, &out).expect("identical replay");
+        let err = export_codara_payload(&object, &object).unwrap_err();
+        assert_eq!(err.kind(), io::ErrorKind::AlreadyExists);
+        assert_eq!(fs::read(&object).unwrap(), bytes);
+        fs::write(&out, b"prior evidence").unwrap();
+        assert_eq!(
+            export_codara_payload(&object, &out).unwrap_err().kind(),
+            io::ErrorKind::AlreadyExists
+        );
+        assert_eq!(fs::read(&out).unwrap(), b"prior evidence");
+
+        let renamed = dir.join("renamed.atlasx");
+        fs::write(&renamed, bytes).unwrap();
+        let absent = dir.join("absent-parent/payload.bin");
+        let report = export_codara_payload(&renamed, &absent).unwrap();
+        assert_eq!(report.verdict, CodecVerdict::Refused);
+        assert_eq!(report.defects[0].0, CodecDefect::AddressMismatch);
+        assert!(!absent.parent().unwrap().exists());
+        for edit in [0, codec::HEADER_LEN, bytes.len() - 1] {
+            let mut corrupted = bytes.to_vec();
+            corrupted[edit] ^= 1;
+            fs::write(&object, &corrupted).unwrap();
+            let report = export_codara_payload(&object, &absent).unwrap();
+            assert_eq!(report.verdict, CodecVerdict::Refused);
+            assert!(!report.defects.is_empty());
+            assert!(!absent.parent().unwrap().exists());
+        }
+        // A different object class is not a FUNCTIONS candidate, even with the same payload.
+        let mut other_class = bytes.to_vec();
+        other_class[16..18].copy_from_slice(&1_u16.to_le_bytes());
+        fs::write(&object, &other_class).unwrap();
+        let report = export_codara_payload(&object, &absent).unwrap();
+        assert_eq!(report.verdict, CodecVerdict::Refused);
+        assert_eq!(report.defects[0].0, CodecDefect::ClassMismatch);
+        assert!(!absent.parent().unwrap().exists());
+        // A matching digest alone is insufficient: the record table must also decode.
+        let mut bad_table = bytes[codec::HEADER_LEN..].to_vec();
+        bad_table[..2].copy_from_slice(&u16::MAX.to_le_bytes());
+        let header = codec::ObjectHeader::functions(&bad_table);
+        let mut framed = header.to_bytes().to_vec();
+        framed.extend_from_slice(&bad_table);
+        let malformed = dir.join(format!("{}.atlasx", header.address()));
+        fs::write(&malformed, framed).unwrap();
+        let report = export_codara_payload(&malformed, &absent).unwrap();
+        assert_eq!(report.verdict, CodecVerdict::Refused);
+        assert_eq!(report.defects[0].0, CodecDefect::UndeclaredRecordKind);
+        assert!(!absent.parent().unwrap().exists());
+        fs::remove_dir_all(dir).unwrap();
     }
 
     /// G187: a staged manifest that does not read back, or does not carry the root identity the

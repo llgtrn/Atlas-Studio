@@ -36,6 +36,22 @@ flowchart LR
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
+`atlas-systemizer atlasx codec --codara-payload OBJECT --out FILE` exports a codec-validated,
+address-named FUNCTIONS object's raw payload for Chronica's existing
+`digest.blake3-256-verify` kernel. The output parent must exist; identical replays succeed and
+conflicting files are preserved. Refused objects write nothing. Standard output is the existing
+codec report: its `address` is the program's `claimed` fact, and `decoded_length` is its
+`input_bytes` fact. The digest covers bytes after the 80-byte header, so the exported file is
+fed unchanged to `codara run --payload FILE CAPSULE`; the complete `.atlasx` file is retained as source
+evidence. `core/src/atlasx/codec/fixture_verify.codara` is a reusable source fixture for the
+committed codec object (385 payload bytes), with target-world aliases `agent` and `cpu-1`.
+Its one-step budget is one `cpu_units`, matching the existing verifier's declared demand;
+the target still checks resource capacity and its current envelope.
+The operator must supply the target world's actual declarations, binding, current authority,
+authentication and admission, and build a capsule there. This export creates no capsule or grant.
+Digest comparison verifies content identity only; it does not import, execute or establish
+semantic parity of AtlasX records. Historical formats and IDs remain unchanged.
+
 **PROPOSED convergence interaction, not an implemented source-to-Chronica call trace.** The sequence expresses required review/authority/evidence obligations; it does not establish automatic central-engine admission or actual consumer cutover.
 
 ```mermaid

@@ -501,9 +501,14 @@ fn run(args: &[String]) -> Result<(), String> {
             // object of a construction module as `<dir>/<address>.atlasx`; `--decode <file>`
             // prints the typed verdict and exits ATLASX_CODEC_REFUSED with the number of defects (every
             // header defect together, otherwise the first found). A refused encode prints its
-            // defects the same way.
-            match (value(rest, "--encode")?, value(rest, "--decode")?) {
-                (Some(module), None) => {
+            // defects the same way. `--codara-payload <object> --out <file>` exports its validated
+            // raw payload for the existing Codara digest verifier, printing the same codec report.
+            match (
+                value(rest, "--encode")?,
+                value(rest, "--decode")?,
+                value(rest, "--codara-payload")?,
+            ) {
+                (Some(module), None, None) => {
                     let out =
                         value(rest, "--out")?.ok_or("atlasx codec --encode requires --out")?;
                     let encoded =
@@ -526,7 +531,7 @@ fn run(args: &[String]) -> Result<(), String> {
                         json(&serde_json::json!({ "path": path, "object": encoded }))?
                     );
                 }
-                (None, Some(object)) => {
+                (None, Some(object), None) => {
                     let report =
                         runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;
                     let text = json(&report)? + "\n";
@@ -541,7 +546,23 @@ fn run(args: &[String]) -> Result<(), String> {
                         ));
                     }
                 }
-                _ => return Err("atlasx codec requires exactly one of --encode or --decode".into()),
+                (None, None, Some(object)) => {
+                    let out = value(rest, "--out")?
+                        .ok_or("atlasx codec --codara-payload requires --out")?;
+                    let report = runtime::atlasx::export_codara_payload(&object, &out)
+                        .map_err(|e| e.to_string())?;
+                    println!("{}", json(&report)?);
+                    if report.verdict != runtime::atlasx::CodecVerdict::Decoded {
+                        return Err(format!(
+                            "ATLASX_CODEC_REFUSED: {} defects",
+                            report.defects.len()
+                        ));
+                    }
+                }
+                _ => return Err(
+                    "atlasx codec requires exactly one of --encode, --decode or --codara-payload"
+                        .into(),
+                ),
             }
         }
         [cmd, sub, rest @ ..] if cmd == "weights" && sub == "census" => {
@@ -1864,11 +1885,90 @@ mod tests {
         let err = run(&args(&["atlasx", "codec"])).expect_err("one mode");
         assert_eq!(
             err,
-            "atlasx codec requires exactly one of --encode or --decode"
+            "atlasx codec requires exactly one of --encode, --decode or --codara-payload"
         );
         let err = decode(&dir.join("missing.atlasx").to_string_lossy()).expect_err("no file");
         assert!(err.contains("missing.atlasx"), "{err}");
         fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn atlasx_codara_payload_exports_raw_bytes_and_refuses_invalid_inputs_without_output() {
+        let args = |list: &[&str]| list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>();
+        let module = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/fixture_module.json"
+        );
+        let dir = std::env::temp_dir().join(format!("atlas-cli-codara-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let out = dir.to_string_lossy().into_owned();
+        run(&args(&[
+            "atlasx", "codec", "--encode", module, "--out", &out,
+        ]))
+        .unwrap();
+        let object =
+            dir.join("5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed.atlasx");
+        let payload = dir.join("payload.bin");
+        let export = |input: &std::path::Path, output: &std::path::Path| {
+            run(&args(&[
+                "atlasx",
+                "codec",
+                "--codara-payload",
+                &input.to_string_lossy(),
+                "--out",
+                &output.to_string_lossy(),
+            ]))
+        };
+        let bytes = fs::read(&object).unwrap();
+        export(&object, &payload).unwrap();
+        assert_eq!(fs::read(&payload).unwrap(), bytes[80..]);
+        export(&object, &payload).expect("identical export replay");
+        assert!(export(&object, &object).is_err());
+        assert_eq!(fs::read(&object).unwrap(), bytes);
+
+        let renamed = dir.join("renamed.atlasx");
+        fs::write(&renamed, &bytes).unwrap();
+        let refused_out = dir.join("refused.bin");
+        assert!(
+            export(&renamed, &refused_out)
+                .unwrap_err()
+                .starts_with("ATLASX_CODEC_REFUSED:")
+        );
+        assert!(!refused_out.exists());
+        let mut corrupted = bytes;
+        *corrupted.last_mut().unwrap() ^= 1;
+        fs::write(&object, corrupted).unwrap();
+        assert!(
+            export(&object, &refused_out)
+                .unwrap_err()
+                .starts_with("ATLASX_CODEC_REFUSED:")
+        );
+        assert!(!refused_out.exists());
+        assert_eq!(
+            run(&args(&[
+                "atlasx",
+                "codec",
+                "--codara-payload",
+                &object.to_string_lossy()
+            ]))
+            .unwrap_err(),
+            "atlasx codec --codara-payload requires --out"
+        );
+        assert!(
+            run(&args(&[
+                "atlasx",
+                "codec",
+                "--decode",
+                &object.to_string_lossy(),
+                "--codara-payload",
+                &object.to_string_lossy(),
+                "--out",
+                &payload.to_string_lossy(),
+            ]))
+            .unwrap_err()
+            .contains("requires exactly one")
+        );
+        fs::remove_dir_all(dir).unwrap();
     }
 
     /// G179 (M10, ADR 0093): the G161 fixture end to end through the CLI -- `seal gate` decides

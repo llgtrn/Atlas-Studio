@@ -1,0 +1,21 @@
+codara 1;
+
+program verify_atlasx_fixture_payload {
+  as agent;
+  entity cpu-1 : resource;
+
+  time at 100 known latest;
+  goal digest.blake3-256-verify;
+
+  input input_bytes = 385;
+  input claimed = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
+  constraint budget cpu_units <= 1 unit;
+  constraint steps <= 1;
+  constraint pre input_bytes <= 268435456;
+
+  effect may resource.lease on cpu-1;
+  effect may resource.work on cpu-1;
+  effect may resource.release on cpu-1;
+
+  evidence verified;
+}
