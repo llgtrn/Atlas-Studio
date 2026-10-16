@@ -5,7 +5,7 @@
 //! gate input that does not decide the record the container carries.
 
 use super::*;
-use crate::atlas::{read, write};
+use crate::codara::artifact::census_container::{read, write};
 use crate::codara::artifact::staging::fixture::{self, Fixture, SHA, fixture};
 use crate::design::{PrincipalRegistry, SemanticRoot, container_candidate};
 use crate::integrity::{ArchitectureDiagnostic, EvaluationStatus, IntegrityVerdict, Strength};

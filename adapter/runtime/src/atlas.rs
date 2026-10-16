@@ -1,7 +1,7 @@
 //! Census -> validated semantic state -> packaged `.atlas` (G64, ADR 0027).
 //!
 //! `census_atlas` packages one census of a root as an unsealed census container
-//! (`atlas_core::atlas`); `pack` publishes it transactionally after verifying the written bytes
+//! (`atlas_core::codara::artifact::census_container`); `pack` publishes it transactionally after verifying the written bytes
 //! decode back to exactly the packaged state; `verify` re-reads a container and, given a root,
 //! checks that it still describes that root's census; `certificate_with_atlas` issues the
 //! CensusCertificate with the container's verified root identity.
@@ -9,7 +9,7 @@
 use crate::certificate::{CensusCertificate, CertificateInputs, certify, genome_identity};
 use atlas_core::{
     IntegrityDigest, SystemizeReport,
-    atlas::{
+    codara::artifact::census_container::{
         CensusAtlas, CensusFact, CensusObligation, CertificateRecord, DeclaredEdgeRecord,
         DeclaredNodeRecord, RootManifest, UNSEALED, read, write,
     },
@@ -384,7 +384,7 @@ mod tests {
         assert_eq!(verify(&out, None).unwrap(), packed);
         assert_eq!(
             fs::read(&out).unwrap(),
-            atlas_core::atlas::write(&atlas).unwrap()
+            atlas_core::codara::artifact::census_container::write(&atlas).unwrap()
         );
         let again = publish(&atlas, &dir.join("again.atlas")).unwrap();
         assert_eq!(again.root_id, packed.root_id, "deterministic root identity");
@@ -393,7 +393,7 @@ mod tests {
         // (`publish` proved the decoded container equal to `atlas`).
         let decoded = &atlas;
         let mut censused = report.census.typed_semantic_records.clone();
-        censused.sort_by_cached_key(atlas_core::atlas::typed_key);
+        censused.sort_by_cached_key(atlas_core::codara::artifact::census_container::typed_key);
         assert_eq!(decoded.typed_records, censused);
         let families: std::collections::BTreeSet<_> = decoded
             .typed_records

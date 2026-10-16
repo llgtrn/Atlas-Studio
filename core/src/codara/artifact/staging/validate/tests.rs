@@ -6,8 +6,8 @@
 //! arbitrary bytes are refused, never a panic.
 
 use super::*;
-use crate::atlas::CensusAtlas;
-use crate::atlas::write;
+use crate::codara::artifact::census_container::CensusAtlas;
+use crate::codara::artifact::census_container::write;
 use crate::codara::artifact::codec::{HEADER_LEN, encode_functions};
 use crate::codara::artifact::manifest::{
     AtlasxManifest, encode_manifest, read_manifest, root_identity,
@@ -774,7 +774,7 @@ fn a_record_edited_beyond_its_lineage_is_not_reproduced() {
 /// The FUNCTIONS object `bytes` (one record, lineage last) with its lineage records reversed,
 /// re-hashed.
 fn reverse_lineage(bytes: &[u8]) -> Vec<u8> {
-    use crate::atlas::{u32_at, u64_at};
+    use crate::codara::artifact::census_container::{u32_at, u64_at};
     let payload = &bytes[HEADER_LEN..];
     let record = &payload[codec::RECORD_HEADER_LEN..];
     // The fields, in order; the lineage (tag 10) is the last.

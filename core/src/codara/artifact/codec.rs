@@ -41,7 +41,7 @@
 //! parent Atlas, and every other class. Those are judged, for a staged root, by the validator
 //! (`validate`, M13, G187) over what the materializer (`materialize`, M11, G185) stages.
 
-use crate::atlas::{read_uvarint, u16_at, u32_at, u64_at, uvarint};
+use crate::codara::artifact::census_container::{read_uvarint, u16_at, u32_at, u64_at, uvarint};
 use crate::codara::construction::{
     ConstructionInputKind, ConstructionModule, Dispatch, IrFunction, IrParam, module_identity,
     validate_module,

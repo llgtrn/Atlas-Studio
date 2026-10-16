@@ -1,5 +1,7 @@
 use super::*;
-use crate::atlas::{CensusAtlas, CertificateRecord, RootManifest, UNSEALED};
+use crate::codara::artifact::census_container::{
+    CensusAtlas, CertificateRecord, RootManifest, UNSEALED,
+};
 use crate::identity::blake3;
 use crate::verification::{ReportVerdict, VerificationPolicy, VerificationReport};
 use crate::{Evidence, ExtractionDiagnostic, SemanticObservation};
@@ -15,8 +17,10 @@ const ROOT_ID: &str = "blake3-256:root";
 
 /// A container of the G147 typed fixture (records of every family).
 fn container() -> CensusAtlas {
-    let fixture: Fixture =
-        serde_json::from_str(include_str!("../atlas/typed_fixture.json")).unwrap();
+    let fixture: Fixture = serde_json::from_str(include_str!(
+        "../codara/artifact/census_container/typed_fixture.json"
+    ))
+    .unwrap();
     let mut atlas = CensusAtlas {
         manifest: RootManifest {
             genome_schema: "atlas.genome.v1".into(),

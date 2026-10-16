@@ -7,7 +7,7 @@
 //! may relax it only within what `validate_policy` admits.
 
 use crate::design::{invalid, read_container, read_design, read_json, read_report};
-use atlas_core::atlas::{SEALED, seal_binding, write};
+use atlas_core::codara::artifact::census_container::{SEALED, seal_binding, write};
 use atlas_core::design::PrincipalRegistry;
 use atlas_core::integrity::{IntegrityEnvelope, IntegrityReport};
 use atlas_core::seal::{
@@ -181,7 +181,8 @@ pub fn seal_container(
     atlas.manifest.seal = SEALED.into();
     atlas.seal = Some(record);
     let bytes = write(&atlas).map_err(invalid)?;
-    let (_, root) = atlas_core::atlas::read(&bytes).map_err(invalid)?;
+    let (_, root) =
+        atlas_core::codara::artifact::census_container::read(&bytes).map_err(invalid)?;
     std::fs::write(out, &bytes)?;
     Ok(root.as_str().to_owned())
 }
@@ -246,7 +247,9 @@ mod tests {
     /// test-fixture principal, never a recorded selection.
     #[test]
     fn a_container_every_input_admits_is_gated_sealed_and_read_back_sealed() {
-        use atlas_core::atlas::{CensusAtlas, CertificateRecord, RootManifest, UNSEALED};
+        use atlas_core::codara::artifact::census_container::{
+            CensusAtlas, CertificateRecord, RootManifest, UNSEALED,
+        };
         use atlas_core::design::{
             AuthorityEvent, AuthorityMode, DesignState, EventSignature, Principal, PrincipalKey,
             PrincipalKind, SelectedDesign, container_candidate, design_identity, event_identity,

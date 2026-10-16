@@ -6,7 +6,7 @@
 
 use crate::Evidence;
 use crate::SemanticObservation;
-use crate::atlas::{
+use crate::codara::artifact::census_container::{
     CensusAtlas, CertificateRecord, RootManifest, SEALED, UNSEALED, read, seal_binding, write,
 };
 use crate::codara::artifact::staging::precondition::Declared;

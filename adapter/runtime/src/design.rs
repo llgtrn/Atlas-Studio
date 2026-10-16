@@ -6,7 +6,7 @@
 //! a `SELECTED` design needs an authority event from a principal the registry declares, and a
 //! provider never is one.
 
-use atlas_core::atlas::{CensusAtlas, read};
+use atlas_core::codara::artifact::census_container::{CensusAtlas, read};
 use atlas_core::design::{
     AuthorityEvent, AuthorityMode, DESIGN_SCHEMA_VERSION, DesignBinding, DesignState,
     DesignVerdict, DesignViolation, PRINCIPAL_REGISTRY_PATH, Principal, PrincipalKind,
@@ -287,7 +287,9 @@ pub fn function_roots_in(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atlas_core::atlas::{CertificateRecord, RootManifest, UNSEALED, write};
+    use atlas_core::codara::artifact::census_container::{
+        CertificateRecord, RootManifest, UNSEALED, write,
+    };
     use atlas_core::design::{AuthorityEvent, Principal, PrincipalKind, event_identity};
 
     /// A published container of core's typed fixture, and a report admitting its candidate.
@@ -298,9 +300,10 @@ mod tests {
             evidence: Vec<atlas_core::Evidence>,
             diagnostics: Vec<atlas_core::ExtractionDiagnostic>,
         }
-        let fixture: Fixture =
-            serde_json::from_str(include_str!("../../../core/src/atlas/typed_fixture.json"))
-                .unwrap();
+        let fixture: Fixture = serde_json::from_str(include_str!(
+            "../../../core/src/codara/artifact/census_container/typed_fixture.json"
+        ))
+        .unwrap();
         let mut atlas = CensusAtlas {
             manifest: RootManifest {
                 genome_schema: "atlas.genome.v1".into(),

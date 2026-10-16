@@ -4,7 +4,7 @@
 //! refused with the codec's typed defects; arbitrary bytes refused, never a panic.
 
 use super::*;
-use crate::atlas::u32_at;
+use crate::codara::artifact::census_container::u32_at;
 use crate::codara::artifact::codec::{HEADER_LEN, RECORD_HEADER_LEN, decode};
 
 type D = CodecDefect;
@@ -70,9 +70,12 @@ fn split_records(content: &[u8]) -> Framed {
     let mut out = Vec::new();
     let mut at = 0;
     while at < content.len() {
-        let len = crate::atlas::u64_at(content, at + 8) as usize;
+        let len = crate::codara::artifact::census_container::u64_at(content, at + 8) as usize;
         let end = at + RECORD_HEADER_LEN + len;
-        out.push((crate::atlas::u16_at(content, at), content[at..end].to_vec()));
+        out.push((
+            crate::codara::artifact::census_container::u16_at(content, at),
+            content[at..end].to_vec(),
+        ));
         at = end;
     }
     out
@@ -84,7 +87,10 @@ fn split_fields(payload: &[u8]) -> Vec<(u16, Vec<u8>)> {
     let mut at = 0;
     while at < payload.len() {
         let end = at + codec::FIELD_HEADER_LEN + u32_at(payload, at + 4) as usize;
-        out.push((crate::atlas::u16_at(payload, at), payload[at..end].to_vec()));
+        out.push((
+            crate::codara::artifact::census_container::u16_at(payload, at),
+            payload[at..end].to_vec(),
+        ));
         at = end;
     }
     out

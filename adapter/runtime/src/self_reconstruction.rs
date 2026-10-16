@@ -7,7 +7,7 @@
 //! shadow's census is compared with the records construction started from. The shadow workspace
 //! lives under `target/atlas/shadow`, which is ignored and never admitted.
 
-use atlas_core::atlas::CensusAtlas;
+use atlas_core::codara::artifact::census_container::CensusAtlas;
 use atlas_core::codara::construction::{
     BOOTSTRAP_CONSTRUCTION_TARGET, CONSTRUCTION_IR_SCHEMA, CheckResult, ConstructionGap,
     ConstructionInput, ConstructionInputKind, ConstructionModule, Dispatch, EquivalenceCheck,

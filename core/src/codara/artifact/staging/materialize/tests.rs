@@ -5,7 +5,7 @@
 //! the parent cannot answer and lineage that does not map back are refused with typed defects.
 
 use super::*;
-use crate::atlas::write;
+use crate::codara::artifact::census_container::write;
 use crate::codara::artifact::staging::fixture::{
     self, Fixture, IS_LOCAL_IDENTITY, IS_LOCAL_SIGNATURE, MODE_SYMBOL, fixture,
 };

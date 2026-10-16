@@ -38,7 +38,7 @@ use super::precondition::{
     Admission, AdmittedParent, Precondition, PreconditionInputs, PreconditionVerdict, evaluate,
 };
 use crate::SemanticObservation;
-use crate::atlas::CensusAtlas;
+use crate::codara::artifact::census_container::CensusAtlas;
 use crate::codara::artifact::codec::{self, CodecVerdict, FunctionSignatureRecord};
 use crate::codara::artifact::manifest::{
     self, AtlasxManifest, CLASS_ROOT_MANIFEST, MANIFEST_FILE, ObjectEntry,

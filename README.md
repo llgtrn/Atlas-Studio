@@ -71,6 +71,26 @@ bounded result evidence; this source namespace supplies none of those target con
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
+The six-file historical `.atlas` census-container reader, writer, typed encoding and schema
+history now reside at `atlas_core::codara::artifact::census_container`. This is artifact
+serialization; census observation, seal authority and runtime filesystem work keep their
+existing owners. All six files and their encoded fixtures/history moved byte-for-byte with
+preserved saved-workspace ArtifactIds:
+
+| Historical source locator | Current source locator |
+|---|---|
+| `core/src/atlas/mod.rs` | `core/src/codara/artifact/census_container/mod.rs` |
+| `core/src/atlas/schema.rs` | `core/src/codara/artifact/census_container/schema.rs` |
+| `core/src/atlas/schema_history.rs` | `core/src/codara/artifact/census_container/schema_history.rs` |
+| `core/src/atlas/typed.rs` | `core/src/codara/artifact/census_container/typed.rs` |
+| `core/src/atlas/tests.rs` | `core/src/codara/artifact/census_container/tests.rs` |
+| `core/src/atlas/typed_fixture.json` | `core/src/codara/artifact/census_container/typed_fixture.json` |
+
+Current callers use the qualified module without an `atlas` compatibility namespace. The
+historical `runtime::atlas` file interface and CLI commands still address `.atlas` wire bytes;
+format names, schema generations, encoded identities and synthetic historical design bindings
+remain unchanged. This source move establishes no native adoption or Chronica authority.
+
 The historical object codec and pure root-manifest codec now live together under
 `core/src/codara/artifact` inside the same `atlas_core` crate. The 25 existing files moved
 byte-for-byte before caller updates, preserving their saved-workspace ArtifactIds. Their

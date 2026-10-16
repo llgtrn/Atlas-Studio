@@ -18,7 +18,7 @@
 //! (`signing_message`) that must verify under one of its principal's declared keys. The principal
 //! signs outside Atlas with its own tool; Atlas only verifies, and never holds a private key.
 
-use crate::atlas::CensusAtlas;
+use crate::codara::artifact::census_container::CensusAtlas;
 use crate::identity::IntegrityDigest;
 use crate::semantic::SemanticDimension;
 use crate::verification::{ReportVerdict, VerificationReport};

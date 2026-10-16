@@ -35,7 +35,9 @@
 //! outcomes and invariant evaluations are taken as authored: their evidence is not in the
 //! container, and nothing here re-runs it.
 
-use crate::atlas::{self, CensusAtlas, SEALED, UNSEALED, seal_binding};
+use crate::codara::artifact::census_container::{
+    self, CensusAtlas, SEALED, UNSEALED, seal_binding,
+};
 use crate::design::{
     DesignState, PrincipalRegistry, SelectedDesign, authority_violations, design_identity,
 };
@@ -211,7 +213,7 @@ pub fn precondition(inputs: &PreconditionInputs) -> Precondition {
 pub(crate) fn evaluate(inputs: &PreconditionInputs) -> (Precondition, Option<Admission>) {
     use PreconditionRefusal as R;
     let mut reasons = Reasons::new();
-    let parent = match atlas::read(inputs.parent) {
+    let parent = match census_container::read(inputs.parent) {
         Ok((atlas, root)) => Some((atlas, root.as_str().to_owned())),
         Err(e) => {
             reasons.push((R::Unreadable, format!("parent: {e}")));
@@ -442,16 +444,17 @@ fn gate_decides(
     let mut unsealed = atlas.clone();
     unsealed.manifest.seal = UNSEALED.into();
     unsealed.seal = None;
-    let root = match atlas::write(&unsealed).and_then(|bytes| atlas::read(&bytes)) {
-        Ok((_, root)) => root.as_str().to_owned(),
-        Err(e) => {
-            reasons.push((
-                R::SealGateNotEligible,
-                format!("the container does not encode unsealed: {e}"),
-            ));
-            return;
-        }
-    };
+    let root =
+        match census_container::write(&unsealed).and_then(|bytes| census_container::read(&bytes)) {
+            Ok((_, root)) => root.as_str().to_owned(),
+            Err(e) => {
+                reasons.push((
+                    R::SealGateNotEligible,
+                    format!("the container does not encode unsealed: {e}"),
+                ));
+                return;
+            }
+        };
     let mut container = seal_binding(&atlas.manifest);
     container.root_id = root;
     let certificate = CertificateBinding {

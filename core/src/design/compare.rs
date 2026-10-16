@@ -15,7 +15,7 @@
 
 use super::{DesignState, DesignViolation, SelectedDesign, SemanticRoot, validate, violation};
 use crate::SemanticObservation;
-use crate::atlas::CensusAtlas;
+use crate::codara::artifact::census_container::CensusAtlas;
 use crate::identity::IntegrityDigest;
 use crate::semantic::SemanticDimension;
 use crate::verification::VerificationReport;

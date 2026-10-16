@@ -5,6 +5,7 @@
 //! selected FUNCTIONS objects and validates their staged root. These source integrity checks
 //! grant no Chronica authority or semantic equivalence.
 
+pub mod census_container;
 pub mod codec;
 pub mod manifest;
 pub mod staging;

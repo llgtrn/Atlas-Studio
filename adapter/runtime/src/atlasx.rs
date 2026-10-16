@@ -28,7 +28,7 @@ use std::{
 /// envelope, a SelectedDesign with its authority event, and (G185) a seal record -- re-exported
 /// so a consumer of the runtime (the CLI's end-to-end test) reaches Core only through Runtime.
 pub mod inputs {
-    pub use atlas_core::atlas::{
+    pub use atlas_core::codara::artifact::census_container::{
         CensusAtlas, CertificateRecord, RootManifest, SEALED, UNSEALED, read, write,
     };
     pub use atlas_core::design::{

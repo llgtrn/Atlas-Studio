@@ -179,7 +179,7 @@ pressure = 1
 [[residual]]
 id = "RES-G179-SEAL-SELF-CERTIFYING"
 found_in = "G179"
-source = "core/src/atlas (SEALED container, M9), core/src/codara/artifact/staging/precondition.rs (M10)"
+source = "core/src/codara/artifact/census_container (SEALED container, M9), core/src/codara/artifact/staging/precondition.rs (M10)"
 subsystem = "core seal M9 and atlasx precondition M10"
 reproduction = "take any unsealed census container; build a SealRecord with arbitrary policy, report, envelope and design ids, copying the manifest's certificate, census and revision, covering every blocker in permitted and setting seal_id = seal_identity(record); atlas::write accepts it, it reads back SEALED, and atlasx precondition ADMITs it with a matching envelope and SELECTED design although no seal gate ran -- the seal identity is a digest, not a signature"
 severity = "HIGH"
