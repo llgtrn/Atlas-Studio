@@ -14,16 +14,18 @@
 
 ```mermaid
 flowchart LR
-    subgraph SOURCE["Atlas-Studio — implementation/evidence source"]
-      A["Source compiler/UX evidence"] --> B["Codara parity candidates"]
+    subgraph SOURCE["Atlas-Studio: current development and migration input"]
+      A["Source compiler / design evidence"] --> B["Codara parity candidates"]
     end
-    subgraph CANON["Single Chronica canonical runtime + many Phenora"]
-      C["Verified Chronica graph binding"] --> D["Studio Phenora"]
-      D --> V{"Proof and consumer cutover?"}
+    B -. "PROPOSED migration; runtime join NOT YET PROVEN" .-> V{"Independent identity, behavior, authority and consumer proof"}
+    V -. "candidate only; evidence grants no authority" .-> C["One Chronica world: verified target binding"]
+    subgraph CANON["Required governed relationships; these dashed edges are not source integration calls"]
+      C -. "typed WorkRequest and current authority" .-> P["Thymora / Porion: pre-effect admission"]
+      P -. "sealed plan and bounds" .-> M["Metabion: bound execution"]
+      M -. "success, failure or unknown effect" .-> L["Lineara: evidence, reconciliation and canonicalization"]
+      L -. "accepted canonical event" .-> H["One history; replay-derived World"]
+      H -. "derived permitted projection" .-> F["Studio / compiler Phenora; shared UI at Chronica/phenotype"]
     end
-    B -->|"Typed data, native code and verified lineage"| C
-    V -->|"passed"| OK["Admitted capability / rebuildable view"]
-    V -->|"failed"| NO["BLOCKED: no new authority, no duplicate UI"]
 ```
 
 
@@ -34,6 +36,8 @@ flowchart LR
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
+**PROPOSED convergence interaction, not an implemented source-to-Chronica call trace.** The sequence expresses required review/authority/evidence obligations; it does not establish automatic central-engine admission or actual consumer cutover.
+
 ```mermaid
 sequenceDiagram
     participant A as Coding agent or external provider
@@ -41,19 +45,21 @@ sequenceDiagram
     participant E as Shared .ynventa Work and evidence engine
     participant C as Chronica Codara and Ontogen
     participant R as Chronica Thymora / Porion
+    participant X as Bounded Metabion execution
     participant L as Lineara provenance and replay
     A->>S: Candidate code and typed intent with scoped provenance
     S->>E: Pinned source revision, tests, license and oracles
     E->>E: Compare identity, parity and existing native implementations
     alt Unverified or duplicate without benefit
-       E-->>S: BLOCKED; no second language authority
+       E-->>S: BLOCKED, no second language authority
     else Unique proven semantic technology
        E->>C: Proposed native capability and candidate capsule
        C->>R: Request admission with complete evidence and resource scope
        alt Denied, unresolved or untrusted
           R-->>E: Refuse, preserve history without effect
        else Authorized
-          R->>L: Admit bounded change after required proof and caller checks
+          R->>X: Admit a bounded attempt after required proof and caller checks
+          X->>L: Observed result and scoped evidence, then owner reconciliation
           L-->>S: Verified outcome and consumer-cutover obligations
        end
     end
@@ -62,6 +68,8 @@ sequenceDiagram
 ## Agent construction and provider routing
 
 Multi-agent construction is an **orchestration implementation concern**, not a new species, a second canonical graph, or an autonomous programming authority. Coding sessions receive bounded Work/Lease/Result contracts, pinned read/write sets and narrowly scoped semantic context. Any former in-checkout task graph, blackboard or provider router must be **classified as source technology**, compared with the central evolution machinery and absorbed only when independently useful.
+
+**PROPOSED construction relationships, not a current integrated runtime.** Actual source-local agent tooling and central Work mechanisms must be verified separately.
 
 ```mermaid
 flowchart LR

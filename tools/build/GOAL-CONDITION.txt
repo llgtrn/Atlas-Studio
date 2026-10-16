@@ -1,30 +1,80 @@
-STOP CONDITION (the single machine check that ends the loop):
-  `pnpm parity:check` exits 0 and prints "✓ PASS".
-  → While it exits non-zero ("✗ FAIL"), the build is NOT done — keep looping (do the next wave).
-  → It only passes at verified=100% / 0 blockers, with every money capability holding a financial-control test.
-  Re-run `pnpm parity:check` after EACH wave; stop the loop the first time it ✓ PASSes. Do not stop on a percentage you eyeballed — only on this exit code.
+YNVENTA / CHRONICA — EVIDENCE-BASED WORK COMPLETION CONTRACT
 
-Chronica is FINISHED when ALL of these are true (parity:check enforces the first three mechanically):
-- `pnpm parity:check` prints ✓ PASS at verified=100% / 0 blockers   ← THE stop signal
-- `pnpm parity:progress` shows 100% on SLICES + DOCS SPEC (148/148) + MONEY
-- every money/side-effect capability has a financialControlTestId
-- `cargo build --workspace` + `cargo test --workspace` + `cargo clippy --workspace -- -D warnings` pass
-- `pnpm -r typecheck` + `pnpm test` + e2e pass
-- a full money flow (e.g. supplier order) blocks→approves→executes→writes CostRecord→audit-chains→reconciles in an integration test
-- the UI route audit shows no donor-branded / iframe routes (Phase 9 UI done per docs/ui/14-ux-evolution-plan.md)
+Status: CURRENT SOURCE WORKING GUIDE. This file is neither an admitted decision nor
+an executable readiness gate. Resolve authority through current admitted .ynventa facts,
+Chronica's live nomenclature registry and the exact repository revision before work.
 
-HOW TO GET THERE — follow the playbook in tools/build/FINALIZE-GOAL-PROMPT.md under the constitution .specify/memory/constitution.md. This is a months-long, wave-by-wave build across many sessions; pause and ask on real decisions (SQL layer, provisioning ClickHouse/Coolify, money sign-offs); never fake a `verified`.
+ONE Chronica canonical World, identity, history and governed execution spine.
+Norl proposes within Chronica; learning, model qualification and fitness grant no authority.
+Eight source checkouts converge toward one system; a source checkout is not a final domain.
+Many Phenora expressions share ONE maintained frontend owner: Chronica/phenotype/.
+Source presence, a passed local checker or a rendered diagram never proves integration.
 
-EACH WAVE:
-1. `pnpm parity:next`  → it prints where you are (the %s) + the next ready wave + the exact commands.
-2. If kernel != ready: build the Phase-1 Rust kernel skeleton SERIALLY (chronica-core + chronica-api strangler over the TS server + Rust SQL layer on the shared Postgres schema + kernel↔browser-capability transport), gate `cargo build --workspace` green + one endpoint via Rust, then `pnpm parity:set prereq kernel ready`. Do NOT fan out on Phase 1.
-3. Otherwise fan out ONE implementer per ready crate in its own git worktree. Per slice, run the 4-layer loop:
-   - `pnpm speckit:slice N`  (spec-kit: materialize specs/<NNN-slice>/ as a thin pointer to the slice's docs/ specs + pin)
-   - `/speckit.plan` (plan AGAINST the docs/ specs + constitution) → `/speckit.tasks` → `/speckit.analyze`
-   - superpowers methodology (USE THE SKILLS, don't hand-roll): subagent-driven-development + test-driven-development (RED→GREEN→REFACTOR, failing test tagged with the capabilityId first); on ANY failure → systematic-debugging (root-cause before fixes, no symptom patches — this is the flexible/decisive recovery); before done → verification-before-completion + requesting-code-review.
-   - money rows: also write+run the financial-control test (gate→approve→execute→CostRecord→audit→reconcile).
-   - record: `pnpm parity:set slice N verified --test <id> [--fin <id>]` and `pnpm parity:set spec <area/file> verified --test <id>`.
-4. Per crate: independent VERIFIER (re-run verify + `pnpm parity:check --slice N`) then adversarial AUDITOR (refute "truly verified": real assertions, no production Python, neutral naming, money chain real, §11 approval enforced in code). Money rows get a 2nd financial-control auditor. Any refutation → revert to red, fix.
-5. After the wave: `pnpm parity:progress` — report the climbing %s; resolve any MISS / MONEY-GAP / SPEC-NOT-MET / ORDER-VIOLATION the gate names. Then repeat from step 1 (next wave / next session).
+THE STOP CONDITION FOR A BOUNDED WORK
+- The authorized write set and explicit deliverables have been met, or an exact blocker
+  requiring an owner decision or unavailable evidence has been recorded.
+- Claims match the demonstrated revision, scope, actual callers and executed checks.
+- Relevant positive, failure, refusal, recovery, resource and identity-preservation checks
+  pass. Report unavailable prerequisites and failed checks without weakening a gate.
+- Required independent review has resolved its findings or recorded specific blockers.
+- Knowledge and human-readable explanations agree; use the existing .ynventa workflow.
+- Report actual commits/pushes only after their success and all required applicable gates.
+A bounded Work completion is NOT global V1 completion or eight-source convergence.
 
-LOCKED INVARIANTS: Rust-only backend/kernel (chronica-*); TS/React UI only; the one non-Rust non-UI execution is the TS/Playwright browser capability behind a Rust boundary; NO production Python; ClickHouse/Coolify external. Capability parity (not repo parity). Money safety on every spend/commit. Neutral naming. Dependency order (Phase 1 kernel first; gate raises ORDER-VIOLATION otherwise).
+THE V1 STOP CONDITION
+Use the current admitted eight-dimension V1 contract, its unchanged thresholds and the
+owner-admitted required-donor scope from the central UPGRADE-ROADMAP-V1.md and underlying
+.ynventa facts. Do not substitute a local percentage, documentation count or obsolete
+148-document denominator. A previously proposed narrowed donor cohort is not admitted.
+A research proposal for native boot, cellular learning or offspring formation is not
+silently a new release requirement. Unresolved V1 scope decisions remain explicit.
+
+BEFORE EACH WAVE
+1. Pin live main HEADs and read current operating instructions and admitted knowledge.
+   Preserve completed work. No feature branches, worktree-per-crate branch workflow,
+   history rewrite or force push. Verify current source and remote alignment.
+2. Inventory actual contracts, consumers, dependencies, old roots and UI migration input.
+   Compare existing canonical implementations before adding or selecting technology.
+3. Select a bounded Work with an owner, nonoverlapping write scope, resources, evidence,
+   rollback and refusal conditions. Dispatch independent readers/workers only where the
+   approved task permits them and physical write sets cannot collide.
+4. During documentation-only campaigns, edit explanatory documents only: no runtime,
+   source comments, manifests, registry IDs, generated projections or wire/key changes.
+   During a separately authorized implementation Work, satisfy the same admitted
+   contracts rather than treating this guide as permission to implement a new subsystem.
+5. Run actual applicable repository commands, capture result and scope, independently
+   review consequential claims, update admitted knowledge through the existing CLI,
+   and report what remains blocked. No model or source-local scheduler grants approval.
+
+CURRENT ATLAS-STUDIO COMMAND SURFACE
+The tracked package.json defines atlas:contract, atlas:systemize, atlas:docs:audit and
+atlas:code:analyze. It does NOT define parity:check, parity:progress, parity:next,
+parity:set or speckit:slice; the former pnpm stop loop cannot run in this checkout.
+Use exact existing commands and inspect their prerequisites. Root workspace Cargo checks
+and source-local benchmark checks have distinct scopes; neither certifies all of Chronica.
+See README.md, tools/benchmark/engine/README.md and tools/docs/README.md for their current
+source roles and known missing prerequisites. Resolve these relative paths from this
+repository root, not from this file's directory. The detailed working prompt is
+ tools/build/FINALIZE-GOAL-PROMPT.md; canonical decisions remain admitted .ynventa facts.
+
+PRESERVE SAFETY AND SPECIALIZED CONTRACTS
+- Native backend/kernel computation remains Rust under approved ownership; no production
+  Python core or shell-based replacement governance. New permanent roots follow the shared
+  Holobiont placement grammar, not retired generic layered or domain-owned roots.
+- Current TypeScript/JavaScript UI source is migration input until verified Chronica caller
+  cutover; do not duplicate a frontend or erase required rendering/refusal behavior.
+- Money/side-effect behavior still needs current grants, approval where required,
+  pre-effect admission, exact monetary semantics, effect evidence, audit and reconciliation.
+  A passing command or a source-local financialControlTestId is insufficient by itself.
+- Preserve frozen identities, licensed donor evidence, immutable history, source provenance,
+  specialized algorithms and valid behavior oracles. Source migration is not consumer cutover;
+  consumer cutover is not donor extinction.
+- Historical SQL-layer, ClickHouse/Coolify, TS/browser-provider and vendor-specific choices
+  from the retired build loop are provenance of that loop, not newly ratified dependencies,
+  exemptions or final kernel/OS decisions. Verify an actual admitted decision before reuse.
+
+The previous 30-line worktree/parity/spec-kit procedure is preserved verbatim outside this
+active guidance for approved knowledge ingestion and remains recoverable from Git history.
+Its phantom commands, retired docs/ and .specify/ paths and completion claims are not active
+instructions. Recommendation is not owner approval; a documentation freeze may finish with
+DOCS_BLOCKED_BY_EXPLICIT_DECISIONS or DOCS_INCOMPLETE when the evidence requires it.

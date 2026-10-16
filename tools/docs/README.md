@@ -50,7 +50,7 @@ The existing `new-doc.mjs architecture-owner ...` source program scaffolds into 
 - `architecture-owner` — one canonical semantic responsibility.
 - `blueprint` — composition of existing owners.
 - `decision` — an architecture decision and its consequences/supersession.
-- `guide` — repeatable procedure; operational runbooks are guides and remain under `docs/guides/`.
+- `guide` — repeatable procedure; the retained source-tool classifier routes its retired local corpus to `docs/guides/`. This describes existing tool behavior, not permission to create a competing canonical documentation tree.
 - `reference` — stable facts, mappings or provenance.
 
 Frontend/operations source documents here are development or migration evidence only. Product UI/renderers and design-system implementation converge exclusively into Chronica `phenotype/`, with many Phenora expressions.
