@@ -191,3 +191,90 @@ bounded work/evidence and denial/crash/replay tests must pass in the target. Sou
 target native verification, actual consumer binding, Chronica admission and all fourteen donor
 extinction gates remain distinct. The source donor's unchanged CENSUSED claim and absent
 cutover do not declare any of those later states complete.
+
+## Pinned census handoff
+
+This reviewed addendum is portable source evidence, not admission or an adoption/extinction
+claim. Earlier package paragraphs retain their original historical pins. Target tests were
+not run; no registry, old package metadata or extraction/admission gate was changed.
+
+| Observation | Exact Git revision |
+|---|---|
+| Implementation source (Core and runtime) | `6e2ee1d3c5de427a2aed1fb9be7d1c02bbc93782` |
+| Target implementation inspected | `cf677cb9fe9435777cfbec4accf950aa586bf093` |
+| Central package metadata | `d66313834c6d584b259650033bcf72f16c4e34f7` |
+| Retained target declarations used by package projection | `848149d0c2d2d8b8923b394533879faabc5b6fb1` |
+| Atlas HEAD at projection start; concurrent source WIP was possible | `0cd2d93671d1231bc408d287e7209f73b981f125` |
+| Historical FUNCTIONS source claim | `fc8dbc4ee7c9cc94c50375672966f24b5ff1bbf7` |
+| Historical native-result source | `b87472dee45b89e8dda355aad8c528b7b4cc64d4` |
+
+Current source paths are `core/src/codara/artifact/{codec.rs,manifest.rs,staging/**,
+census_container/**}`, `core/src/codara/construction/**` and unchanged
+`core/src/identity/blake3.rs`. Source callers are `adapter/runtime/src/atlasx.rs` and
+`apps/cli/src/main.rs`; `atlas_core` and existing node identities are unchanged.
+
+| Target file at pinned target revision | SHA256 |
+|---|---|
+| `phenora/codara/src/run.rs` | `7e132058fb19da5ba2c1b930ed6f832645390fed78e3c98e2a9938933d8d28f6` |
+| `phenora/codara/src/cli.rs` | `ca065b6092e982252cbe69c1bf92cf6fcf3f60cd120c7f95906a7d2d8405505c` |
+| `physiology/capability/kernels/src/blake3.rs` | `46e61f433e093ab8734b5c807531d236760436c4e55bcc0c73e74b2b7c8d73a1` |
+| `physiology/capability/kernels/src/legacy_artifact.rs` | `703c8f0699bfb504e738bf1f29516312aa57aaab4d5ef01788af4c833ad72905` |
+
+FUNCTIONS codec SHA256 at the implementation pin is `1951bbeba8be36dc7a4024e5e7f37969efe2c85e8222ba586666b087168e62bd`;
+BLAKE3 source SHA256 is `401e1cf27d4800c2fb8e0bd770e51fd6d67b3b156c675440c30e8fe648d98ff4`.
+All **15** corpus object/payload/program pins, **17** target provenance entries and **three**
+Atlas native-result copies were verified from exact Git objects. The existing `cases.json`
+provides the individual byte pins; `.atlas`/`.atlasx` formats and encoded IDs remain historical.
+
+| Capability key | Package digest | Read-only derived state |
+|---|---|---|
+| `codec.executable-world-objects` | `031429d3ff517ec7ce87c879` | `READY_FOR_ABSORPTION`; native coverage empty, donor IN_PROGRESS/license UNKNOWN |
+| `security.blake3-tree-hash` | `9a0a1d79002b65fb9709a22a` | `STATIC_READY`; target-key donor-derived oracle missing |
+
+These are pinned metadata observations, not current native verification. Package identity
+hashes knowledge/owner/family/citation IDs, not live Rust bytes or source HEAD; the projections
+were not rerun when source digests were refreshed.
+
+**BLAKE3 classification decision:** central facts `fcdece2c1791587076db0a10` and
+`85fc0e5455061d8dc0f6238c` record ALTERNATIVE_FOR BLAKE2 and native SHA256. The projection
+calls BLAKE3 covered by `security.blake2-hash-and-mac` as the same native function. At the
+pinned target, `.ynventa/declared/absorption/security.blake2-hash-and-mac.jsonl:6`, package
+`50f757eea6fcc1f46b563d9e`, member `security.blake3-tree-hash`, class
+`OPTIONAL_SPECIALIZATION`, explicitly says BLAKE3 is a different algorithm with its own
+capability, not implemented inside BLAKE2. Record-file Git blob:
+`822e19b23f6f6fb396a623689dd71fcc0f5e74e3`; SHA256:
+`9cedf4049ea36d362ef5f1257f6c84c0df49bbf89fea1ab2a83ee71242a48bca`.
+The responsible owner must resolve this contradiction and attach the algorithm-specific
+oracle/caller mapping. BLAKE2 cannot preserve historical BLAKE3 digest identities.
+
+Use the existing `codara run --payload FILE CAPSULE`. Actual target callers are
+`phenora/codara/src/{cli.rs,run.rs}`; kernels are
+`physiology/capability/kernels/src/{blake3.rs,legacy_artifact.rs}`.
+
+- Digest flow selects `digest.blake3-256-verify` / `blake3-256.portable-reference`: bounded
+  public bytes, 64-hex `claimed` and `input_bytes`; computed 32-byte digest and match verdict.
+- FUNCTIONS selects `artifact.legacy-identity-verify` / `legacy.functions-object`: the complete
+  named historical object, `file_name` and `input_bytes`; success yields exact original payload
+  after the 80-byte header. Digest-only success does not establish semantic decoding.
+
+Both require existing authenticated requester scope, capsule/world/authority/budget/envelope
+checks, capacity, one `cpu_units`, and resource lease/work/release bindings. Disclosure separately
+requires `resource.observe`. Request binding covers domain, IR digest, implementation,
+capability, selected kernel and actual payload SHA256; claim/filename are bound IR facts.
+Preserve pending **Unknown** across retry/reopen; never rebind or rerun it as a new request.
+Existing version-1 `Blake3Result`/`FunctionsResult` receipts have bounded 1024-byte decoders and
+retain input/object/IR/filename digests, checked optional claim/computation, verdict and first
+FUNCTIONS defect. No interface field is missing for the pinned corpus flow.
+
+**FUNCTIONS mapping decision:** source `[a,a,b,b]` duplicates retain two identity-specific
+`DUPLICATE_IDENTITY` diagnoses; target deduplicates generic diagnoses, while compact receipt
+records only the first defect. Source clears semantic/address fields on refusal; target retains
+checked digests. Preserve that evidence; full detail/multiplicity parity needs an explicit mapping.
+
+Target validation remains required at the selected target revision: `phenora/codara/tests/`
+`e2e_native_result.rs`, `e2e_source_native_result.rs`, `e2e_legacy_functions.rs`, and
+`physiology/capability/kernels/tests/legacy_functions_parity.rs`.
+Atlas remains UNLICENSED; no rights grant was added. BLAKE3 provenance retains upstream
+`6aab490a26124663329dfd3961b8469f8fdb158b`; target CC0 election still records owner decision
+OD-15 as open. Root/materialization replacement, body semantics, complete donor census,
+consumer/dependency cutover and V1 extinction qualification remain separate obligations.

@@ -90,6 +90,8 @@ Current callers use the qualified module without an `atlas` compatibility namesp
 historical `runtime::atlas` file interface and CLI commands still address `.atlas` wire bytes;
 format names, schema generations, encoded identities and synthetic historical design bindings
 remain unchanged. This source move establishes no native adoption or Chronica authority.
+The [pinned census handoff](core/src/codara/artifact/codec/parity/README.md#pinned-census-handoff)
+records exact source/target bytes, package identities, invocation contracts and open mapping decisions.
 
 The historical object codec and pure root-manifest codec now live together under
 `core/src/codara/artifact` inside the same `atlas_core` crate. The 25 existing files moved
