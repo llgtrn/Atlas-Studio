@@ -1,0 +1,539 @@
+{
+  "scope": "Source-local observation correspondence, not shared authority/wire schema or native adoption",
+  "base_revision": "839be083661e1f1f3d9633cc70e3756981608066",
+  "old_source": "adapter/runtime/src/atlas.rs",
+  "new_source": "adapter/runtime/src/codara/container.rs",
+  "moved_file_sha256": "e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02",
+  "logical_module": "runtime::atlas",
+  "new_route": "runtime::codara::container",
+  "native_reconciliation": {
+    "count": 2553,
+    "all_ids_retained": true,
+    "only_changed_row": {
+      "before": {
+        "id": "art1:26e8bacde47c550020d97668881a2c85",
+        "path": "adapter/runtime/src/atlas.rs",
+        "digest": "sha256:e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02"
+      },
+      "after": {
+        "id": "art1:26e8bacde47c550020d97668881a2c85",
+        "path": "adapter/runtime/src/codara/container.rs",
+        "digest": "sha256:e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02"
+      }
+    },
+    "native_cli_log": "2553 artifacts: 0 born, 1 moved, 0 changed, 0 retired, 0 ambiguous\n",
+    "scope": "Actual isolated full-index native byte move; old evidence and active state untouched"
+  },
+  "native_witness": {
+    "source_revision": "839be083661e1f1f3d9633cc70e3756981608066",
+    "source_root": "/workspace/Atlas-Studio-docs-native-v1-app",
+    "witness_root": "/tmp/atlas-runtime-container-relocation/identity-witness",
+    "seed_registry": "/tmp/atlas-runtime-artifact-relocation/artifacts-edited-source.jsonl",
+    "seed_count": 2546,
+    "scope": "Fresh isolated full-index native CLI witness; saved prior witness and active state untouched",
+    "native_baseline_count": 2553,
+    "target_row": {
+      "id": "art1:26e8bacde47c550020d97668881a2c85",
+      "path": "adapter/runtime/src/atlas.rs",
+      "digest": "sha256:e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02"
+    },
+    "seed_ids_all_retained": true,
+    "baseline_cli_log": "identity-baseline-sync.log"
+  },
+  "actual_runtime_coordinate_output": "/tmp/atlas-runtime-container-relocation/coordinate-before\tadapter/runtime/src/atlas.rs\tartifact:d595dda1ddf8c19b\tblake3-256:8b015331579cae0d356bbca1c80b7bd107f202aec1abfbc69eb53a099252c458\n/tmp/atlas-runtime-container-relocation/coordinate-after\tadapter/runtime/src/codara/container.rs\tartifact:22fd555aa325f788\tblake3-256:8b015331579cae0d356bbca1c80b7bd107f202aec1abfbc69eb53a099252c458\n",
+  "read_only_audit": {
+    "source_commit": "839be083661e1f1f3d9633cc70e3756981608066",
+    "scope": "Read-only immutable audit; no cargo/tests/engine/source/state mutations. All new audit files outside repository.",
+    "files": [
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "sha256": "e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02",
+        "git_blob": "98111ebf00c5e2c1ea4bd14c56dd897ce74ce582",
+        "bytes": 17204,
+        "lines": 452
+      },
+      {
+        "path": "adapter/runtime/src/lib.rs",
+        "sha256": "9350b8f63403a1334f0f2458f703e76871c2f34561ee6fcef307673cc3f31cff",
+        "git_blob": "1c1f68afe91c34b3a96f1ae39baaa47d8b21df18",
+        "bytes": 282135,
+        "lines": 6109
+      },
+      {
+        "path": "adapter/runtime/src/codara/mod.rs",
+        "sha256": "62fa1cf15e2425498c35d90e88e13e7d62b7ed8a3ba0b512a94be8dd02b6c453",
+        "git_blob": "0d9c29096b540e582dad48d7f306a8723af44986",
+        "bytes": 387,
+        "lines": 7
+      },
+      {
+        "path": "adapter/runtime/src/agent.rs",
+        "sha256": "2c96357acfb50090eea21d962abd0adc87338fa489fa5172b57b42a545b46ac3",
+        "git_blob": "5574824f3cbdbfbe4ff67807dd906d57201a3c78",
+        "bytes": 94450,
+        "lines": 2242
+      },
+      {
+        "path": "apps/cli/src/main.rs",
+        "sha256": "a21e5003975a0c2945fedc2a4a3f73dd8ba779dc1f9289af5402e764906e0416",
+        "git_blob": "a3b6df324b09ba491578ed9e24917202c24275ac",
+        "bytes": 140500,
+        "lines": 2830
+      },
+      {
+        "path": "adapter/src/source/mod.rs",
+        "sha256": "b11b37cf72ca7d91f81f05fb169d767793b497a180992bbe55c9b7ca2726e963",
+        "git_blob": "a7084c1d0de5a93ed4986bbb9e800305a024ce0e",
+        "bytes": 52717,
+        "lines": 1252
+      },
+      {
+        "path": "core/src/identity/mod.rs",
+        "sha256": "6607d1f481c9040ea8a18fef2fe0a2e4fd1a8507264f0a9743f698bbbf16117e",
+        "git_blob": "4cdd04cfd5ae5dace94fd651414c3230486616fc",
+        "bytes": 9176,
+        "lines": 262
+      },
+      {
+        "path": "core/src/codara/artifact/census_container/mod.rs",
+        "sha256": "c6bcd3969e274bf5240526a38561fcaa7ed394bc4a9ac0fefed4f01f03eae4f1",
+        "git_blob": "1be353ab136ab5b8924a29bc05c5c8d227cd958a",
+        "bytes": 55629,
+        "lines": 1457
+      },
+      {
+        "path": "core/src/codara/artifact/census_container/tests.rs",
+        "sha256": "e51169ecef27583a635aa5cad1d3b26e4fea21f0a2265a6789df08fd35e6cf13",
+        "git_blob": "c70b5b38f7b5e96ca180635078427a65fe33e636",
+        "bytes": 47697,
+        "lines": 1269
+      },
+      {
+        "path": "adapter/runtime/src/recensus.rs",
+        "sha256": "c36b08aeeaba1392fa4a891b95f7fbc8d34807f68a55a0eab3a25082e9b109a5",
+        "git_blob": "17667963475e6f2ba7d2c8f39f30053a73e8d901",
+        "bytes": 1739,
+        "lines": 48
+      },
+      {
+        "path": "adapter/runtime/src/verification.rs",
+        "sha256": "e8f7dabd7f63b74fce8b3388c43fe5c572c7b43fbd7478366cdc449c1331a6e0",
+        "git_blob": "ef6ebc5a0e53236498f569a041fb70848b93b1a1",
+        "bytes": 20577,
+        "lines": 545
+      },
+      {
+        "path": ".ynventa/declared/migration.rs",
+        "sha256": "03ce30b1b80b92a8acb61f32d1bc50b5427c0acae046d3565f78fdec29639e28",
+        "git_blob": "a6b914116c42121aecf64e1209534bc4561c3a7a",
+        "bytes": 449,
+        "lines": 13
+      },
+      {
+        "path": ".ynventa/protocol.lock",
+        "sha256": "babd4abf13cff3ba7fbc3974bf1e515dcedf49a11bdcc42702094cf9f2c67ec9",
+        "git_blob": "76ffde85ff61ababb47ea2536ee6dadc626f88a4",
+        "bytes": 310,
+        "lines": 5
+      }
+    ],
+    "references": [
+      {
+        "path": "adapter/runtime/src/lib.rs",
+        "line": 4,
+        "text": "pub mod atlas;"
+      },
+      {
+        "path": "adapter/runtime/src/agent.rs",
+        "line": 1999,
+        "text": "&& p.subject.span.path == \"adapter/runtime/src/atlas.rs\""
+      },
+      {
+        "path": "apps/cli/src/main.rs",
+        "line": 341,
+        "text": "Some(atlas) => runtime::atlas::certificate_with_atlas(&root, &atlas)"
+      },
+      {
+        "path": "apps/cli/src/main.rs",
+        "line": 360,
+        "text": "let packed = runtime::atlas::pack(&root, &out).map_err(|e| format!(\"{root}: {e}\"))?;"
+      },
+      {
+        "path": "apps/cli/src/main.rs",
+        "line": 367,
+        "text": "let verified = runtime::atlas::verify(file, root.as_deref().map(std::path::Path::new))"
+      }
+    ],
+    "container_functions": [
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 24,
+        "name": "invalid",
+        "public": false
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 28,
+        "name": "digest_bytes",
+        "public": false
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 41,
+        "name": "revision",
+        "public": false
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 50,
+        "name": "atlas_of",
+        "public": true
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 172,
+        "name": "census_atlas",
+        "public": true
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 211,
+        "name": "outcome",
+        "public": false
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 238,
+        "name": "publish",
+        "public": true
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 262,
+        "name": "pack",
+        "public": true
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 268,
+        "name": "verify",
+        "public": true
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 293,
+        "name": "certificate_with_atlas",
+        "public": true
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 322,
+        "name": "root",
+        "public": false
+      },
+      {
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 330,
+        "name": "the_self_census_packages_into_a_verified_unsealed_container",
+        "public": false
+      }
+    ],
+    "directed_edges": [
+      {
+        "caller": "CLI census certificate --atlas",
+        "callee": "runtime::atlas::certificate_with_atlas",
+        "path": "apps/cli/src/main.rs",
+        "line": 341,
+        "text": "Some(atlas) => runtime::atlas::certificate_with_atlas(&root, &atlas)"
+      },
+      {
+        "caller": "CLI atlas pack",
+        "callee": "runtime::atlas::pack",
+        "path": "apps/cli/src/main.rs",
+        "line": 360,
+        "text": "let packed = runtime::atlas::pack(&root, &out).map_err(|e| format!(\"{root}: {e}\"))?;"
+      },
+      {
+        "caller": "CLI atlas verify",
+        "callee": "runtime::atlas::verify",
+        "path": "apps/cli/src/main.rs",
+        "line": 367,
+        "text": "let verified = runtime::atlas::verify(file, root.as_deref().map(std::path::Path::new))"
+      },
+      {
+        "caller": "runtime::atlas::pack",
+        "callee": "publish + census_atlas",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 263,
+        "text": "publish(&census_atlas(root)?, out.as_ref())"
+      },
+      {
+        "caller": "runtime::atlas::census_atlas",
+        "callee": "systemize",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 175,
+        "text": "let report = crate::systemize(root)?;"
+      },
+      {
+        "caller": "runtime::atlas::census_atlas",
+        "callee": "recensus::snapshot",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 178,
+        "text": "crate::recensus::snapshot(root)?.census_digest,"
+      },
+      {
+        "caller": "runtime::atlas::census_atlas",
+        "callee": "atlas_of",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 191,
+        "text": "atlas_of(&report, &genome_schema, &genome_hash, &certificate)"
+      },
+      {
+        "caller": "runtime::atlas::publish",
+        "callee": "census_container::write",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 239,
+        "text": "let bytes = write(atlas).map_err(|e| invalid(e.to_string()))?;"
+      },
+      {
+        "caller": "runtime::atlas::publish",
+        "callee": "census_container::read",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 240,
+        "text": "let (decoded, root_id) = read(&bytes).map_err(|e| invalid(e.to_string()))?;"
+      },
+      {
+        "caller": "runtime::atlas::verify",
+        "callee": "census_container::read",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 271,
+        "text": "let (atlas, root_id) = read(&bytes).map_err(|e| invalid(e.to_string()))?;"
+      },
+      {
+        "caller": "runtime::atlas::verify",
+        "callee": "census_atlas",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 273,
+        "text": "let current = census_atlas(root)?;"
+      },
+      {
+        "caller": "runtime::atlas::certificate_with_atlas",
+        "callee": "verify",
+        "path": "adapter/runtime/src/atlas.rs",
+        "line": 298,
+        "text": "let verified = verify(atlas.as_ref(), Some(root))?;"
+      }
+    ],
+    "source_relative_fixture_includes": [],
+    "manifest_relative_root": "Path::new(env!(\"CARGO_MANIFEST_DIR\")).join(\"../..\") unchanged",
+    "native_source_artifact": {
+      "historical_published_row": {
+        "id": "art1:26e8bacde47c550020d97668881a2c85",
+        "path": "adapter/runtime/src/atlas.rs",
+        "digest": "sha256:e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02"
+      },
+      "source": "tools/atlas/evidence/census/runtime-artifact-relocation/native-baseline2540.jsonl",
+      "current_implementation_sha256": "e7ee8e43baa15489ae1885bb4038ba0739d1c9d348f1662af0624729cf096f02",
+      "requirement": "Parent must measure current full-index native reconciliation carrying same art1 ID at exact byte move; published row is prior observation, not current active canonical registry."
+    },
+    "path_derived_inventory_coordinates": {
+      "old": {
+        "path": "adapter/runtime/src/atlas.rs",
+        "id": "artifact:d595dda1ddf8c19b"
+      },
+      "new": {
+        "path": "adapter/runtime/src/codara/container.rs",
+        "id": "artifact:22fd555aa325f788"
+      },
+      "method": "Exact readonly transcription of existing core identity::stable_id(artifact,path) FNV1a-64; not a new runtime producer execution; actual scoped inventory fixture check remains required."
+    },
+    "historical_references": [
+      {
+        "path": ".ynventa/knowledge/42e5224e6e76b1f54cc7bd3b3c5e1b96.ynv",
+        "sha256": "42e5224e6e76b1f54cc7bd3b3c5e1b96063235f676c7a312fd8d517c5dc300cf",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 3
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": ".ynventa/knowledge/9cf2ea6b775bafa4a7ec05017b428b0c.ynv",
+        "sha256": "9cf2ea6b775bafa4a7ec05017b428b0cc6bf06b7cc9de659767a10fb0b398e23",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 6
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md",
+        "sha256": "13b34cb3ed3cf8c05c731bcdc6d889a8b98c471f978de576dcf7a2b774cc283b",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 2
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/contracts/CODARA-RUNTIME-ARTIFACT-RELOCATION.md",
+        "sha256": "14862920fa3435223b3672f915c2fc5bdd599627aed8f3f47466cb71bc4d9d36",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 1
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/census/codara-residences-source-0bed61a.json",
+        "sha256": "eac9365b50edca7911157863e5eef27e5ebc502584dccb49da4f68c6d36fc69a",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 12
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/census/runtime-artifact-relocation/correspondence.json",
+        "sha256": "a6808d0f4cbad44ea0468e578bc6bcca413911b38ac3ea038d0708920d51ca09",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 8
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/census/runtime-artifact-relocation/native-baseline2540.jsonl",
+        "sha256": "e5eb3ca57a701b8f050c21c513e2e38c119d12fc00ef920fe677a7a4ef13ea96",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 1
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/census/runtime-artifact-relocation/native-byte-moved2540.jsonl",
+        "sha256": "dd4200ffdddf17f7ee265948d8ec0533d161a6f253472055a3b3a8900fe6489d",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 1
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/current-schema-compatibility/source-ef99a8b-run.json",
+        "sha256": "d841127283115557e97f784da727d1cb8902457207b9bbb1a4afd037cfd8a88c",
+        "occurrences": {
+          "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container": 1
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/current-schema-compatibility/source-ef99a8b-self-scope.json",
+        "sha256": "a6cbe81d11cff1069e7f9566e6e5d359d03fcc785991ac44d6243c5b6820ce7b",
+        "occurrences": {
+          "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container": 2
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/runtime-artifact-relocation/before-9bbc0e13.json",
+        "sha256": "f102bedba08b6a8a2ea889b3721bb8e538e759f8858c2a6a5e69f2cb6c2db966",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 13
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/runtime-artifact-relocation/candidate-76c97025.json",
+        "sha256": "064a85293e95c01f46ac814063380355bf7360aedc479b33509e5b55b563a8d7",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 13
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/runtime-artifact-relocation/source-76c97025-run.json",
+        "sha256": "4b971658c7474d9ec6f018b2c1c50946c56130440e2886e170fbab9e59a67ace",
+        "occurrences": {
+          "adapter/runtime/src/atlas.rs": 10
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/self-admission/remount-and-source-family-validation.json",
+        "sha256": "c7a6a01abee82d8058df200f5b78b3cd4bf128221838f2db4ebe41fd683a49e2",
+        "occurrences": {
+          "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container": 1
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/self-admission/source-7f770bc-run.json",
+        "sha256": "1cecbebc6edcf6c0058e6f092da2da8812773a7b7e5c32c112b53596d459a6b8",
+        "occurrences": {
+          "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container": 3
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      },
+      {
+        "path": "tools/atlas/evidence/verification/self-admission/source-e9f3aab-run.json",
+        "sha256": "13c71f9b80d46fde48d441a7b50ed9615c15d7827b3a4aced499267a2cbc369f",
+        "occurrences": {
+          "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container": 3
+        },
+        "meaning": "historical evidence or documentary reference; preserve bytes, append current correspondence"
+      }
+    ],
+    "test_selectors": {
+      "required_existing_runtime": [
+        "atlas::tests::the_self_census_packages_into_a_verified_unsealed_container",
+        "agent::tests::atlas_self_world_model_is_complete_and_deterministic",
+        "tests::donor_corpus_integrity::generation_ledger_references_real_paths_and_real_base_commits",
+        "tests::donor_corpus_integrity::generation_ledger_self_recensus_chain"
+      ],
+      "core_schema_exact3": [
+        "codara::artifact::census_container::tests::the_current_schema_is_the_latest_recorded_generation",
+        "codara::artifact::census_container::tests::every_recorded_schema_conforms_to_the_current_one",
+        "codara::artifact::census_container::tests::a_container_an_older_conforming_writer_produced_is_read_with_its_history"
+      ],
+      "additional_core_roundtrip": [
+        "codara::artifact::census_container::tests::a_census_container_round_trips_exactly_and_deterministically",
+        "codara::artifact::census_container::tests::every_typed_record_evidence_and_diagnostic_round_trips_field_by_field"
+      ],
+      "proposed_new": "One disjoint public API test target comparing historical/new route PackOutcome type identity, publish/read/verify equality and corruption refusal on a bounded owned fixture; no nested cargo or duplicate production body."
+    },
+    "proof_route_observation": {
+      "tracked_declared_proof_list": false,
+      "active_ynventa_state_present": false,
+      "note": "No explicit Atlas declared proof.rs/proof list. Historical source locators in native knowledge and evidence are immutable. Current code literal agent.rs1999 changes to new physical span; logical Rust harness stays atlas::tests."
+    },
+    "published_engine": {
+      "head": "a35d9faf6e9178106271eece7ef11b7dfcebcd84",
+      "decl": {
+        "path": "core/semantic/src/declare/decl.rs",
+        "blob": "4279c05619ffec2d02e1ab211f3ee5742183577f"
+      },
+      "schema": {
+        "path": "core/semantic/src/schema.rs",
+        "blob": "ce772c9c303ce05152b839a0738a7db595406345"
+      },
+      "migration": {
+        "path": "apps/cli/src/migration/mod.rs",
+        "blob": "e74a625d9a95b947b1bb7c6024d5e224963b39cc"
+      },
+      "note": "schema path moved since prior reference; file blob/grammar unchanged. No engine relock or migration edits."
+    }
+  },
+  "current_proof": {
+    "path": "adapter/runtime/src/agent.rs",
+    "test": "agent::tests::atlas_self_world_model_is_complete_and_deterministic",
+    "historical_span": "adapter/runtime/src/atlas.rs",
+    "current_span": "adapter/runtime/src/codara/container.rs",
+    "rule": "Change current assertion only; retain qualified historical evidence"
+  },
+  "fresh_container_rule": "At exact final published clean HEAD actual pack and verify --root plus independent complete readback; manifest revision changes on receipt-only commits, so final artifact/receipt outside repository and no later commits",
+  "remaining_runtime_responsibilities": {
+    "baseline_this_wave": 2,
+    "relocated_this_wave": 1,
+    "remaining": 1,
+    "remaining_path": "adapter/runtime/src/self_reconstruction.rs",
+    "no_extinction_or_target_adoption_claim": true
+  },
+  "raw_native_registries": {
+    "native-baseline2553.jsonl": "8ef3e9de5f811c468ab3b80c0dcaa5c3c116d5cf2b4df94dc122194ac844441a",
+    "native-byte-moved2553.jsonl": "fee21edc359d66c9e21076ca3dd10ed014ee1883dab27f3cb0fae01c7197ef51"
+  }
+}

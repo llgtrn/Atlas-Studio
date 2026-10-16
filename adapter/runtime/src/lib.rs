@@ -1,6 +1,8 @@
 //! Atlas runtime orchestration.
 
 pub mod agent;
+// Preserve the historical container API and Rust type identities at its new source residence.
+#[path = "codara/container.rs"]
 pub mod atlas;
 // Preserve the historical logical module/type identities while relocating its implementation.
 #[path = "codara/artifact.rs"]

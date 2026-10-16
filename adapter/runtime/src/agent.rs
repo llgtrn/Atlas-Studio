@@ -1996,7 +1996,7 @@ fn run(s: &core::store::Store) { s.save(); }
                     atlas_core::SemanticObservation::Persistence(p)
                         if p.status == EpistemicStatus::Derived
                             && p.subject.kind == atlas_core::PersistenceKind::Sync
-                            && p.subject.span.path == "adapter/runtime/src/atlas.rs"
+                            && p.subject.span.path == "adapter/runtime/src/codara/container.rs"
                 )),
             "the container writer's sync_all"
         );
