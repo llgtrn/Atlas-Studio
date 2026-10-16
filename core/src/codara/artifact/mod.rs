@@ -1,11 +1,13 @@
-//! Pure codecs for historical AtlasX FUNCTIONS objects and root manifests.
+//! Historical AtlasX object codecs and source staging.
 //!
 //! This source module preserves the existing wire contracts, identities and typed refusals.
-//! Decoding authenticates bytes; sealed-parent admission, staging, lineage and root validation
-//! remain in `crate::atlasx`. This module grants no Chronica authority or semantic equivalence.
+//! Decoding authenticates bytes. `staging` evaluates sealed-parent prerequisites, materializes
+//! selected FUNCTIONS objects and validates their staged root. These source integrity checks
+//! grant no Chronica authority or semantic equivalence.
 
 pub mod codec;
 pub mod manifest;
+pub mod staging;
 
 pub use codec::{
     CODEC_NOT_VERIFIED, CODEC_SCHEMA_VERSION, CodecDefect, CodecReport, CodecVerdict,

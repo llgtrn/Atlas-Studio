@@ -2,17 +2,17 @@
 //! gate of G185, ADR 0097), the object codec (G183, M12, ADR 0095), the materializer's first
 //! slice (G185, M11, ADR 0097) with its root manifest, and the validator (G187, M13, ADR 0099).
 //! The files are read and written here; each decision is a pure function of their bytes in
-//! `atlas_core::atlasx` for parent admission/staging and `atlas_core::codara::artifact` for
+//! `atlas_core::codara::artifact::staging` for parent admission/staging and `atlas_core::codara::artifact` for
 //! the historical object codec and root manifest.
 
-use atlas_core::atlasx::PreconditionInputs;
-pub use atlas_core::atlasx::{
+use atlas_core::codara::artifact::codec;
+pub use atlas_core::codara::artifact::codec::Defects as CodecDefects;
+use atlas_core::codara::artifact::staging::PreconditionInputs;
+pub use atlas_core::codara::artifact::staging::{
     AdmittedParent, Materialization, MaterializationDefect, MaterializationVerdict, Precondition,
     PreconditionRefusal, PreconditionVerdict, RootEntry, RootFiles, Validation, ValidationDefect,
     ValidationVerdict,
 };
-use atlas_core::codara::artifact::codec;
-pub use atlas_core::codara::artifact::codec::Defects as CodecDefects;
 pub use atlas_core::codara::artifact::{
     CodecDefect, CodecReport, CodecVerdict, EncodedObject, MANIFEST_FILE,
 };
@@ -49,7 +49,7 @@ fn read(path: &Path) -> io::Result<Vec<u8>> {
     fs::read(path).map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))
 }
 
-pub use atlas_core::atlasx::Declared;
+pub use atlas_core::codara::artifact::staging::Declared;
 
 /// G185: the declarations of the repository at `root`, read from disk: the declared seal policy,
 /// the pinned integrity envelope and the declared principals. There is no override: the parent
@@ -102,7 +102,7 @@ fn over_bytes<T>(
 /// Whether the container in `files` is admitted as an AtlasX parent. A file that cannot be read
 /// is an error; bytes that do not decode are a typed UNREADABLE refusal.
 pub fn precondition(files: &ParentFiles) -> io::Result<Precondition> {
-    over_bytes(files, atlas_core::atlasx::precondition)
+    over_bytes(files, atlas_core::codara::artifact::staging::precondition)
 }
 
 /// M11 (FUNCTIONS only): materializes the parent in `files` into the staging directory
@@ -113,7 +113,7 @@ pub fn precondition(files: &ParentFiles) -> io::Result<Precondition> {
 /// materialization writes nothing, and a staging failure removes what it wrote. Publication
 /// steps 1 to 6 are done in staging; nothing is atomically published or advertised (7, 8).
 pub fn materialize(files: &ParentFiles, out_dir: impl AsRef<Path>) -> io::Result<Materialization> {
-    let materialization = over_bytes(files, atlas_core::atlasx::materialize)?;
+    let materialization = over_bytes(files, atlas_core::codara::artifact::staging::materialize)?;
     if materialization.verdict != MaterializationVerdict::Staged {
         return Ok(materialization);
     }
@@ -342,7 +342,9 @@ fn same_file(_: &fs::Metadata, _: &fs::Metadata) -> bool {
 /// file that cannot be read is an error.
 pub fn validate(files: &ParentFiles, root_dir: impl AsRef<Path>) -> io::Result<Validation> {
     let root = read_root(root_dir)?;
-    over_bytes(files, |inputs| atlas_core::atlasx::validate(&root, inputs))
+    over_bytes(files, |inputs| {
+        atlas_core::codara::artifact::staging::validate(&root, inputs)
+    })
 }
 
 /// A module written: the object and its path; or why the codec refuses to write it.
@@ -487,15 +489,16 @@ mod tests {
             "objects": [], "functions": [], "not_materialized": [], "not_done": []
         }))
         .unwrap();
-        let object: atlas_core::atlasx::StagedObject = serde_json::from_value(serde_json::json!({
+        let object: atlas_core::codara::artifact::staging::StagedObject = serde_json::from_value(serde_json::json!({
             "path": "functions/00.atlasx", "address": "00",
             "digest": format!("blake3-256:{}", "0".repeat(64)), "object_class": 4, "decoded_length": 0, "records": 0
         }))
         .unwrap();
-        m.objects.push(atlas_core::atlasx::StagedObject {
-            bytes: b"not an object".to_vec(),
-            ..object
-        });
+        m.objects
+            .push(atlas_core::codara::artifact::staging::StagedObject {
+                bytes: b"not an object".to_vec(),
+                ..object
+            });
         let out = dir.join("staging");
         // Absent: created, then removed with everything in it.
         let err = stage(&m, &out).unwrap_err();
@@ -739,7 +742,7 @@ mod tests {
     /// everything, objects included.
     #[test]
     fn a_manifest_that_does_not_read_back_leaves_nothing_behind() {
-        use atlas_core::atlasx::StagedObject;
+        use atlas_core::codara::artifact::staging::StagedObject;
         use atlas_core::codara::artifact::{AtlasxManifest, ObjectEntry};
         use atlas_core::identity::IntegrityDigest;
         let dir = scratch("stage-manifest");

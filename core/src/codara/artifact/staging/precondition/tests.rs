@@ -6,7 +6,7 @@
 
 use super::*;
 use crate::atlas::{read, write};
-use crate::atlasx::fixture::{self, Fixture, SHA, fixture};
+use crate::codara::artifact::staging::fixture::{self, Fixture, SHA, fixture};
 use crate::design::{PrincipalRegistry, SemanticRoot, container_candidate};
 use crate::integrity::{ArchitectureDiagnostic, EvaluationStatus, IntegrityVerdict, Strength};
 use crate::seal::seal_identity;

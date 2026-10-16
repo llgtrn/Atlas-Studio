@@ -9,7 +9,7 @@ use crate::SemanticObservation;
 use crate::atlas::{
     CensusAtlas, CertificateRecord, RootManifest, SEALED, UNSEALED, read, seal_binding, write,
 };
-use crate::atlasx::precondition::Declared;
+use crate::codara::artifact::staging::precondition::Declared;
 use crate::design::{
     AuthorityEvent, AuthorityMode, DesignState, EventSignature, Principal, PrincipalKey,
     PrincipalKind, PrincipalRegistry, SelectedDesign, SemanticRoot, container_candidate,

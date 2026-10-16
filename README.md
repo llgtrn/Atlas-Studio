@@ -65,8 +65,28 @@ source relocation is explicit:
 | `core/src/atlasx/manifest.rs` | `core/src/codara/artifact/manifest.rs` |
 | `core/src/atlasx/manifest/tests.rs` | `core/src/codara/artifact/manifest/tests.rs` |
 
-Current Rust callers use `codara::artifact` directly. Sealed-parent admission, materialization
-and root validation remain in `atlasx`; their persisted materializer identity remains unchanged.
+Current Rust callers use `codara::artifact` directly. The nine sealed-parent prerequisite,
+materialization and root-validation files now form `codara::artifact::staging`, with the same
+saved-workspace ArtifactIds and the following explicit source relocation:
+
+| Historical source locator | Current source locator |
+|---|---|
+| `core/src/atlasx/mod.rs` | `core/src/codara/artifact/staging/mod.rs` |
+| `core/src/atlasx/precondition.rs` | `core/src/codara/artifact/staging/precondition.rs` |
+| `core/src/atlasx/precondition/tests.rs` | `core/src/codara/artifact/staging/precondition/tests.rs` |
+| `core/src/atlasx/materialize.rs` | `core/src/codara/artifact/staging/materialize.rs` |
+| `core/src/atlasx/materialize/tests.rs` | `core/src/codara/artifact/staging/materialize/tests.rs` |
+| `core/src/atlasx/materialize/census_records.json` | `core/src/codara/artifact/staging/materialize/census_records.json` |
+| `core/src/atlasx/validate.rs` | `core/src/codara/artifact/staging/validate.rs` |
+| `core/src/atlasx/validate/tests.rs` | `core/src/codara/artifact/staging/validate/tests.rs` |
+| `core/src/atlasx/fixture.rs` | `core/src/codara/artifact/staging/fixture.rs` |
+
+The existing source gate still checks the declared seal policy, pinned envelope, signed design,
+parent binding and report consistency before materialization. Its ADMITTED result qualifies
+that historical source projection; it supplies no Chronica requester, resource, lease or work
+authority. The persisted materializer identity `atlas_core::atlasx::materialize` remains an
+opaque historical identity, independent of the current Rust module path. The file adapter
+`runtime::atlasx` and historical `atlasx` CLI commands retain their existing format interface.
 Historical `.atlasx` formats, schema names, encoded IDs, object bytes and pinned provenance stay
 historical. This source naming step establishes no native Codara format, consumer cutover or
 source extinction. Existing declared ownership and proof selectors still address the same core.

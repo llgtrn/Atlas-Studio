@@ -2098,7 +2098,7 @@ mod tests {
         };
         // G185: the real census records of `MaterializationMode::is_local` (the core fixture).
         let census: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../core/src/atlasx/materialize/census_records.json"
+            "../../../core/src/codara/artifact/staging/materialize/census_records.json"
         ))
         .unwrap();
         atlas.typed_records = serde_json::from_value(census["typed_records"].clone()).unwrap();

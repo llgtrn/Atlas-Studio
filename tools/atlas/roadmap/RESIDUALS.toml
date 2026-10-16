@@ -1,4 +1,4 @@
-# Current codec/manifest source locators follow the lossless relocation recorded in README.md.
+# Current codec/manifest/staging source locators follow the lossless relocation recorded in README.md.
 # Residual IDs, generation observations, verdicts and historical contract names are unchanged.
 # The residual ledger (G179, ADR 0092). A residual is a known gap a generation recorded instead of
 # fixing: a claim withheld, an input read as absent, a case outside the model. Each carries its exact
@@ -179,7 +179,7 @@ pressure = 1
 [[residual]]
 id = "RES-G179-SEAL-SELF-CERTIFYING"
 found_in = "G179"
-source = "core/src/atlas (SEALED container, M9), core/src/atlasx/precondition.rs (M10)"
+source = "core/src/atlas (SEALED container, M9), core/src/codara/artifact/staging/precondition.rs (M10)"
 subsystem = "core seal M9 and atlasx precondition M10"
 reproduction = "take any unsealed census container; build a SealRecord with arbitrary policy, report, envelope and design ids, copying the manifest's certificate, census and revision, covering every blocker in permitted and setting seal_id = seal_identity(record); atlas::write accepts it, it reads back SEALED, and atlasx precondition ADMITs it with a matching envelope and SELECTED design although no seal gate ran -- the seal identity is a digest, not a signature"
 severity = "HIGH"
@@ -209,7 +209,7 @@ pressure = 9
 [[residual]]
 id = "RES-G179-DESIGN-PARENT-ROOT-UNCOMPARED"
 found_in = "G179"
-source = "core/src/atlasx/precondition.rs"
+source = "core/src/codara/artifact/staging/precondition.rs"
 subsystem = "atlasx precondition M10"
 reproduction = "the SelectedDesign's parent_root is not compared with the admitted container: sealing changes the container root, so the link rests on the seal record's design_id, which covers the design identity"
 severity = "LOW"
@@ -463,7 +463,7 @@ pressure = 3
 [[residual]]
 id = "RES-G185-STAGED-NOT-PUBLISHED"
 found_in = "G185"
-source = "core/src/atlasx/materialize.rs, adapter/runtime/src/atlasx.rs (materialize)"
+source = "core/src/codara/artifact/staging/materialize.rs, adapter/runtime/src/atlasx.rs (materialize)"
 subsystem = "core atlasx materializer M11"
 reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx into staging only: no ROOT_MANIFEST, no AtlasX root identity, and publication steps 4 to 8 of ATLASX-BINARY-WIRE-FORMAT are not done"
 severity = "MEDIUM"
@@ -478,7 +478,7 @@ pressure = 9
 [[residual]]
 id = "RES-G185-CLOSURE-ROOTS-ONLY"
 found_in = "G185"
-source = "core/src/atlasx/materialize.rs (selection)"
+source = "core/src/codara/artifact/staging/materialize.rs (selection)"
 subsystem = "core atlasx materializer M11"
 reproduction = "the materialized selection is exactly the SelectedDesign's FUNCTION_IDENTITY roots: calls, types, state and effects they reach are not followed, and a SYMBOL root is listed in not_materialized"
 severity = "MEDIUM"
@@ -491,7 +491,7 @@ pressure = 9
 [[residual]]
 id = "RES-G185-LINEAGE-ROOT-IN-RESULT-ONLY"
 found_in = "G185"
-source = "core/src/atlasx/materialize.rs (lineage), adapter/runtime/src/atlasx.rs"
+source = "core/src/codara/artifact/staging/materialize.rs (lineage), adapter/runtime/src/atlasx.rs"
 subsystem = "core atlasx materializer M11"
 reproduction = "a staged object's records carry only census record ids as lineage; the parent root, the seal and the design they came from are bound only in the noncanonical JSON result (the embedded precondition verdict), since no manifest exists"
 severity = "LOW"
@@ -505,7 +505,7 @@ pressure = 1
 [[residual]]
 id = "RES-G185-RECORD-STATUS-UNJUDGED"
 found_in = "G185"
-source = "core/src/atlasx/materialize.rs (pairing)"
+source = "core/src/codara/artifact/staging/materialize.rs (pairing)"
 subsystem = "core atlasx materializer M11"
 reproduction = "the epistemic status (OBSERVED, INFERRED and others) of the FUNCTION_IDENTITY and FUNCTION_SIGNATURE records a design selects is not checked before they are materialized"
 severity = "LOW"
@@ -517,7 +517,7 @@ pressure = 1
 [[residual]]
 id = "RES-G185-GATE-RERUN-REENCODES-CONTAINER"
 found_in = "G185"
-source = "core/src/atlasx/precondition.rs (gate_decides)"
+source = "core/src/codara/artifact/staging/precondition.rs (gate_decides)"
 subsystem = "core atlasx precondition M10"
 reproduction = "gate_decides clones and re-encodes the whole sealed container to recompute its pre-seal root: about twice the container's memory (the self census container is 168 MB)"
 severity = "LOW"
@@ -529,7 +529,7 @@ pressure = 1
 [[residual]]
 id = "RES-G185-REPORT-CONTENTS-AS-AUTHORED"
 found_in = "G185"
-source = "core/src/atlasx/precondition.rs (NOT_VERIFIED step 5), core/src/verification/mod.rs and core/src/integrity/mod.rs (check_report)"
+source = "core/src/codara/artifact/staging/precondition.rs (NOT_VERIFIED step 5), core/src/verification/mod.rs and core/src/integrity/mod.rs (check_report)"
 subsystem = "core atlasx precondition M10 and seal gate M8"
 reproduction = "the holder of a SELECTED design signed by a principal declared in .atlas/declared/principals.json writes a verification report whose outcomes claim SATISFIED citing evidence ids no run produced, and an integrity report evaluating each pinned invariant PASS, both internally consistent (a required class covered by a required obligation, HARD invariants decided PASS, FAIL or UNKNOWN with their diagnostics) and citing the pinned envelope; seal gate decides ELIGIBLE, atlas seal writes the container, atlasx precondition admits and atlasx materialize stages it: the container carries neither the ADL constraint results integrity::evaluate needs nor the evidence runs verification::evaluate needs, so outcomes and evaluations are taken as authored"
 severity = "MEDIUM"
@@ -542,7 +542,7 @@ pressure = 9
 [[residual]]
 id = "RES-G185-PRE-SEAL-ROOT-REENCODE"
 found_in = "G185"
-source = "core/src/atlasx/precondition.rs (gate_decides)"
+source = "core/src/codara/artifact/staging/precondition.rs (gate_decides)"
 subsystem = "core atlasx precondition M10"
 reproduction = "a SEALED container written before a container schema generation change reads back (schema::accepted_schema_ids) but gate_decides re-encodes it under the current section schema ids, so its recomputed pre-seal root differs from the root the design selected and the re-run gate refuses SEAL_GATE_NOT_ELIGIBLE: DESIGN_CANDIDATE_MISMATCH although the gate once decided it"
 severity = "LOW"
@@ -567,7 +567,7 @@ pressure = 3
 [[residual]]
 id = "RES-G187-STAGED-ROOT-NOT-PUBLISHED"
 found_in = "G187"
-source = "adapter/runtime/src/atlasx.rs (materialize, stage_objects), core/src/atlasx/materialize.rs (MATERIALIZE_NOT_DONE)"
+source = "adapter/runtime/src/atlasx.rs (materialize, stage_objects), core/src/codara/artifact/staging/materialize.rs (MATERIALIZE_NOT_DONE)"
 subsystem = "core atlasx materializer M11, publication"
 reproduction = "atlas-systemizer atlasx materialize on the G161 fixture writes functions/<address>.atlasx and then manifest.atlasx into the staging directory (publication steps 1 to 6, the manifest read back with its root identity recomputed); step 7 (atomically publish or switch the root directory or reference) and step 8 (advertise the root) do not exist"
 severity = "MEDIUM"
@@ -580,7 +580,7 @@ pressure = 9
 [[residual]]
 id = "RES-G187-VALIDATION-BY-REPRODUCTION"
 found_in = "G187"
-source = "core/src/atlasx/validate.rs (reproduction_defect, VALIDATE_NOT_VERIFIED), core/src/atlasx/materialize.rs (select, materialize_over)"
+source = "core/src/codara/artifact/staging/validate.rs (reproduction_defect, VALIDATE_NOT_VERIFIED), core/src/codara/artifact/staging/materialize.rs (select, materialize_over)"
 subsystem = "core atlasx validator M13"
 reproduction = "the validator's record-field check is reproduction by the same code: it re-materializes the admitted parent with materialize_over and requires byte equality, so a mapping error in materialize::select (a census field carried into the wrong FUNCTION_SIGNATURE field, or dropped) would be written and validated alike; and a root from any other materializer identity or version is refused SCHEMA_INCOMPATIBLE rather than validated on its own terms"
 severity = "LOW"
@@ -593,7 +593,7 @@ pressure = 3
 [[residual]]
 id = "RES-G187-FUNCTIONS-ONLY-ROOT"
 found_in = "G187"
-source = "core/src/atlasx/validate.rs (directory_of), core/src/codara/artifact/codec.rs"
+source = "core/src/codara/artifact/staging/validate.rs (directory_of), core/src/codara/artifact/codec.rs"
 subsystem = "core atlasx codec M12, validator M13"
 reproduction = "a manifest entry of any class but FUNCTIONS (4) is ENTRY_CLASS_UNSUPPORTED and never validated; the other nineteen object classes (MODULES, TYPES, ... UI) have no schema; ROOT_MANIFEST (1) has one since G187"
 severity = "LOW"
@@ -605,7 +605,7 @@ pressure = 1
 [[residual]]
 id = "RES-G187-MANIFEST-SCHEMA-DEVIATIONS"
 found_in = "G187"
-source = "core/src/codara/artifact/manifest.rs (MANIFEST_SCHEMA), core/src/atlasx/materialize.rs (TARGET_KIND_NONE, COMPILER_IR_CONTRACT_UNKNOWN, MATERIALIZER_VERSION)"
+source = "core/src/codara/artifact/manifest.rs (MANIFEST_SCHEMA), core/src/codara/artifact/staging/materialize.rs (TARGET_KIND_NONE, COMPILER_IR_CONTRACT_UNKNOWN, MATERIALIZER_VERSION)"
 subsystem = "core atlasx manifest M13"
 reproduction = "ROOT_MANIFEST schema 1 adds required tags 17-19 (parent census digest, revision, seal id) beyond the contract's 16, leaves the repeated tags 11-13, 15, 16 (profiles, external bindings, semantic barriers, dynamic obligations, compatibility requirements) undeclared and refused, writes target_kind NONE and compiler_ir_contract_version UNKNOWN, and a materializer_version constant (1) rather than a build identity"
 severity = "LOW"
@@ -617,7 +617,7 @@ pressure = 1
 [[residual]]
 id = "RES-G187-UNLISTED-FILES-REFUSED"
 found_in = "G187"
-source = "core/src/atlasx/validate.rs (UNLISTED_FILE)"
+source = "core/src/codara/artifact/staging/validate.rs (UNLISTED_FILE)"
 subsystem = "core atlasx validator M13"
 reproduction = "a staged root holding any entry the manifest does not list -- a file (notes.md, a debug projection), a directory holding no listed object (an empty types/, a .git/), a name that is not UTF-8 -- is INVALID UNLISTED_FILE, although ATLASX-BINARY-WIRE-FORMAT lets noncanonical files coexist without affecting the root"
 severity = "LOW"

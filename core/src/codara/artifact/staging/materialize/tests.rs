@@ -6,10 +6,10 @@
 
 use super::*;
 use crate::atlas::write;
-use crate::atlasx::fixture::{
+use crate::codara::artifact::staging::fixture::{
     self, Fixture, IS_LOCAL_IDENTITY, IS_LOCAL_SIGNATURE, MODE_SYMBOL, fixture,
 };
-use crate::atlasx::precondition::PreconditionRefusal;
+use crate::codara::artifact::staging::precondition::PreconditionRefusal;
 use crate::construction::ConstructionModule;
 use crate::design::{SelectedDesign, SemanticRoot};
 use crate::seal::seal_identity;
@@ -128,10 +128,8 @@ fn an_admitted_parent_stages_its_selected_functions_with_lineage_into_the_parent
     );
     // The signature is the one the construction IR lifted for SR1-3 (G181) from an earlier
     // census of the same source: every field but the lineage, whose records are that census's.
-    let module: ConstructionModule = serde_json::from_str(include_str!(
-        "../../codara/artifact/codec/fixture_module.json"
-    ))
-    .unwrap();
+    let module: ConstructionModule =
+        serde_json::from_str(include_str!("../../codec/fixture_module.json")).unwrap();
     let mut lifted = FunctionSignatureRecord::of(&module.functions[0]);
     lifted.lineage = record.lineage.clone();
     assert_eq!(*record, lifted);

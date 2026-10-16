@@ -8,13 +8,15 @@
 use super::*;
 use crate::atlas::CensusAtlas;
 use crate::atlas::write;
-use crate::atlasx::fixture::{self, Fixture, IS_LOCAL_IDENTITY, fixture};
-use crate::atlasx::materialize::{Materialization, MaterializationVerdict, materialize};
-use crate::atlasx::precondition::PreconditionVerdict;
 use crate::codara::artifact::codec::{HEADER_LEN, encode_functions};
 use crate::codara::artifact::manifest::{
     AtlasxManifest, encode_manifest, read_manifest, root_identity,
 };
+use crate::codara::artifact::staging::fixture::{self, Fixture, IS_LOCAL_IDENTITY, fixture};
+use crate::codara::artifact::staging::materialize::{
+    Materialization, MaterializationVerdict, materialize,
+};
+use crate::codara::artifact::staging::precondition::PreconditionVerdict;
 use crate::design::{SelectedDesign, SemanticRoot};
 use crate::semantic::SemanticDimension;
 

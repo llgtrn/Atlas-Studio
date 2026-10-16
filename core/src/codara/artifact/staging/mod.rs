@@ -1,8 +1,10 @@
-//! AtlasX: the deterministic executable projection of one SelectedDesign from one SEALED Atlas
+//! Historical AtlasX source staging: the deterministic projection of one SelectedDesign from one SEALED Atlas
 //! root (`.atlas/contracts/ATLAS-TO-ATLASX.md`, `.atlas/contracts/ATLASX-FORMAT.md`).
 //!
 //! The pure object and root-manifest codecs live in `crate::codara::artifact`; this module
-//! retains sealed-parent admission, materialization and root validation. The precondition gate
+//! retains sealed-parent admission, materialization and root validation. ADMITTED qualifies
+//! this source projection only; it grants no Chronica requester, resource, lease or work authority.
+//! The precondition gate
 //! (G179, construction node M10, ADR 0093) decides
 //! whether a parent may be materialized at all; since G185 (ADR 0097) it re-runs the seal gate
 //! over the inputs the seal record names, so an admitted parent is one the gate decided. The

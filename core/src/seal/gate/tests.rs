@@ -68,16 +68,16 @@ fn certificate() -> CertificateBinding {
 
 /// Written by the real evaluator (G185: the gate refuses a report its contents contradict).
 fn verification() -> VerificationReport {
-    crate::atlasx::fixture::verification(DIGEST)
+    crate::codara::artifact::staging::fixture::verification(DIGEST)
 }
 
 /// Written by the real evaluator against the pinned envelope.
 fn integrity() -> IntegrityReport {
-    crate::atlasx::fixture::integrity_for(&envelope(), "revision:abc123", DIGEST)
+    crate::codara::artifact::staging::fixture::integrity_for(&envelope(), "revision:abc123", DIGEST)
 }
 
 fn envelope() -> crate::integrity::IntegrityEnvelope {
-    crate::atlasx::fixture::envelope()
+    crate::codara::artifact::staging::fixture::envelope()
 }
 
 /// A test fixture's design: selected by a fixture principal, never a recorded selection.
@@ -308,7 +308,7 @@ fn every_input_that_does_not_admit_the_candidate_refuses_the_seal() {
     );
     assert_eq!(
         case(
-            &|_, _, v, _, _| *v = crate::atlasx::fixture::verification_with(
+            &|_, _, v, _, _| *v = crate::codara::artifact::staging::fixture::verification_with(
                 DIGEST,
                 crate::verification::EvidenceResult::Violated
             )
