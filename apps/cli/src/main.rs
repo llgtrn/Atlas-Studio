@@ -1971,6 +1971,75 @@ mod tests {
         fs::remove_dir_all(dir).unwrap();
     }
 
+    #[test]
+    fn atlasx_codara_payload_enforces_the_legacy_functions_corpus() {
+        let fixtures = Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/parity"
+        ));
+        let cases: Vec<serde_json::Value> = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/parity/cases.json"
+        )))
+        .unwrap();
+        let dir = env::temp_dir().join(format!(
+            "atlas-cli-codara-semantic-parity-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let export = |object: &Path, out: &Path| {
+            run(&[
+                "atlasx".to_owned(),
+                "codec".to_owned(),
+                "--codara-payload".to_owned(),
+                object.to_string_lossy().into_owned(),
+                "--out".to_owned(),
+                out.to_string_lossy().into_owned(),
+            ])
+        };
+        assert!(!cases.is_empty());
+        for case in cases {
+            let name = case["case"].as_str().unwrap();
+            let file = case["file"].as_str().unwrap();
+            let bytes = fs::read(fixtures.join("legacy").join(file)).unwrap();
+            let case_dir = dir.join(name);
+            fs::create_dir(&case_dir).unwrap();
+            let object = case_dir.join(file);
+            fs::write(&object, &bytes).unwrap();
+            let out = case_dir.join("payload.bin");
+            if case["defects"].as_array().unwrap().is_empty() {
+                export(&object, &out).unwrap_or_else(|err| panic!("{name}: {err}"));
+                let canonical_payload =
+                    fs::read(fixtures.join(case["canonical_payload"].as_str().unwrap())).unwrap();
+                assert_eq!(fs::read(&out).unwrap(), canonical_payload, "{name}");
+                assert_eq!(fs::read(&out).unwrap(), bytes[80..], "{name}");
+                export(&object, &out).expect("identical corpus replay");
+                assert_eq!(fs::read(&out).unwrap(), bytes[80..], "{name}");
+            } else {
+                let refuse = |output: &Path| {
+                    let err = export(&object, output).expect_err(name);
+                    assert!(err.starts_with("ATLASX_CODEC_REFUSED:"), "{name}: {err}");
+                };
+                refuse(&out);
+                assert!(!out.exists(), "{name}: refusal created output");
+                let absent = case_dir.join("absent-parent/payload.bin");
+                refuse(&absent);
+                assert!(!absent.parent().unwrap().exists(), "{name}");
+                fs::write(&out, b"prior evidence").unwrap();
+                refuse(&out);
+                assert_eq!(fs::read(&out).unwrap(), b"prior evidence", "{name}");
+            }
+            assert_eq!(fs::read(&object).unwrap(), bytes, "{name}: input changed");
+            assert_eq!(
+                fs::read(fixtures.join("legacy").join(file)).unwrap(),
+                bytes,
+                "{name}"
+            );
+        }
+        fs::remove_dir_all(dir).unwrap();
+    }
+
     /// G179 (M10, ADR 0093): the G161 fixture end to end through the CLI -- `seal gate` decides
     /// ELIGIBLE, `atlas seal` writes the sealed container, and `atlasx precondition` admits it
     /// with the envelope and design its record names; the unsealed container is refused

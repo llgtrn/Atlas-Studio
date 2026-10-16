@@ -661,6 +661,76 @@ mod tests {
         fs::remove_dir_all(dir).unwrap();
     }
 
+    #[test]
+    fn codara_export_enforces_the_legacy_functions_corpus() {
+        let fixtures = Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/parity"
+        ));
+        let cases: Vec<serde_json::Value> = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/atlasx/codec/parity/cases.json"
+        )))
+        .unwrap();
+        let dir = scratch("codara-semantic-parity");
+        assert!(!cases.is_empty());
+        for case in cases {
+            let name = case["case"].as_str().unwrap();
+            let file = case["file"].as_str().unwrap();
+            let bytes = fs::read(fixtures.join("legacy").join(file)).unwrap();
+            let case_dir = dir.join(name);
+            fs::create_dir(&case_dir).unwrap();
+            let object = case_dir.join(file);
+            fs::write(&object, &bytes).unwrap();
+            let out = case_dir.join("payload.bin");
+            let report = export_codara_payload(&object, &out).unwrap();
+            let actual = serde_json::to_value(&report).unwrap();
+            let defects: Vec<_> = actual["defects"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|defect| defect[0].clone())
+                .collect();
+            assert_eq!(serde_json::json!(defects), case["defects"], "{name}");
+            assert_eq!(actual["records"], case["records"], "{name}");
+            if case["defects"].as_array().unwrap().is_empty() {
+                assert_eq!(report.verdict, CodecVerdict::Decoded, "{name}");
+                let canonical_payload =
+                    fs::read(fixtures.join(case["canonical_payload"].as_str().unwrap())).unwrap();
+                assert_eq!(fs::read(&out).unwrap(), canonical_payload, "{name}");
+                assert_eq!(
+                    fs::read(&out).unwrap(),
+                    bytes[codec::HEADER_LEN..],
+                    "{name}"
+                );
+                export_codara_payload(&object, &out).expect("identical corpus replay");
+                assert_eq!(
+                    fs::read(&out).unwrap(),
+                    bytes[codec::HEADER_LEN..],
+                    "{name}"
+                );
+            } else {
+                assert_eq!(report.verdict, CodecVerdict::Refused, "{name}");
+                assert!(!out.exists(), "{name}: refusal created output");
+                let absent = case_dir.join("absent-parent/payload.bin");
+                let refused = export_codara_payload(&object, &absent).unwrap();
+                assert_eq!(refused.verdict, CodecVerdict::Refused, "{name}");
+                assert!(!absent.parent().unwrap().exists(), "{name}");
+                fs::write(&out, b"prior evidence").unwrap();
+                let refused = export_codara_payload(&object, &out).unwrap();
+                assert_eq!(refused.verdict, CodecVerdict::Refused, "{name}");
+                assert_eq!(fs::read(&out).unwrap(), b"prior evidence", "{name}");
+            }
+            assert_eq!(fs::read(&object).unwrap(), bytes, "{name}: input changed");
+            assert_eq!(
+                fs::read(fixtures.join("legacy").join(file)).unwrap(),
+                bytes,
+                "{name}"
+            );
+        }
+        fs::remove_dir_all(dir).unwrap();
+    }
+
     /// G187: a staged manifest that does not read back, or does not carry the root identity the
     /// materialization computed, is refused after its objects were written, and staging removes
     /// everything, objects included.

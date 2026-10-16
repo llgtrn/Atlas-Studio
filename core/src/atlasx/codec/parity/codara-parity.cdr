@@ -1,0 +1,21 @@
+codara 1;
+
+program verify_legacy_functions_payload {
+  as agent;
+  entity cpu-1 : resource;
+
+  time at 100 known latest;
+  goal digest.blake3-256-verify;
+
+  input input_bytes = 441;
+  input claimed = "86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2";
+  constraint budget cpu_units <= 1 unit;
+  constraint steps <= 1;
+  constraint pre input_bytes <= 268435456;
+
+  effect may resource.lease on cpu-1;
+  effect may resource.work on cpu-1;
+  effect may resource.release on cpu-1;
+
+  evidence verified;
+}

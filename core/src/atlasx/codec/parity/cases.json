@@ -1,0 +1,160 @@
+[
+  {
+    "case": "legacy-rich-to-codara-payload",
+    "defects": [],
+    "records": [
+      {
+        "function_id": "fixture:alpha",
+        "name": "α",
+        "owner": "",
+        "dispatch": "FREE_FUNCTION",
+        "visibility": "pub(crate)",
+        "documentation": "",
+        "params": [
+          {
+            "name": "z",
+            "type_spelling": "u8"
+          },
+          {
+            "name": "a",
+            "type_spelling": "&str"
+          }
+        ],
+        "result": "Result<(), E>",
+        "body_fingerprint": "blake3-256:000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        "lineage": [
+          "fixture:lineage:a",
+          "fixture:lineage:z"
+        ]
+      },
+      {
+        "function_id": "fixture:beta",
+        "name": "new",
+        "owner": null,
+        "dispatch": "ASSOCIATED_FUNCTION",
+        "visibility": "private",
+        "documentation": null,
+        "params": [],
+        "result": null,
+        "body_fingerprint": null,
+        "lineage": [
+          "fixture:lineage:a"
+        ]
+      }
+    ],
+    "file": "86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx",
+    "sha256": "c7f05495d5c43608f55f3c12ca44b1f077755f337919664b4716ff44066d48ef",
+    "canonical_payload": "codara-parity.payload",
+    "canonical_program": "codara-parity.cdr",
+    "canonical_program_sha256": "c45c543ce64bccd3b9eb6ec48e2bba602e0ccade0f8ac000789899076cebcf47",
+    "canonical_payload_sha256": "326971364e2938aebbdf929227ad2c01a26d7b8066aaade84486b808cd9fd12b"
+  },
+  {
+    "case": "dispatch-unknown",
+    "defects": [
+      "MALFORMED_VALUE"
+    ],
+    "records": null,
+    "file": "408ff690f7a55dd9495c221f78ee317a63c804e84073396469283916b300d228.atlasx",
+    "sha256": "e59b5e41ad474daded25ab663e4453bc295c732c76b797bf1f437ccb9d99b00e"
+  },
+  {
+    "case": "dispatch-overlong",
+    "defects": [
+      "MALFORMED_VALUE"
+    ],
+    "records": null,
+    "file": "666c0c7f063e8dd22e766861a9d663c4eb547e99688f77bdce93c2bc708956d6.atlasx",
+    "sha256": "ff4e23730d97925334a08da7c9b4618dc0f93a08e6c9f2ef4b432e1471773520"
+  },
+  {
+    "case": "lineage-missing",
+    "defects": [
+      "MISSING_REQUIRED_FIELD"
+    ],
+    "records": null,
+    "file": "bbe3e0411e32a1b51aa4f32f24ef5c1fff6519bb639bb402815c3443636567af.atlasx",
+    "sha256": "2019c874885838ede90428b2c0c7372e3f630be852395424b1c7b1c809e253b6"
+  },
+  {
+    "case": "unknown-optional",
+    "defects": [
+      "UNDECLARED_OPTIONAL_FIELD"
+    ],
+    "records": null,
+    "file": "6d40a74b7ca996bf87259d5a7678a96129df238265f1988d92ae57a9b9378f08.atlasx",
+    "sha256": "b0f7c01f9c45c975c8e777cdee40ced69d58085802be24d15a3ff1ff2709991f"
+  },
+  {
+    "case": "unknown-required",
+    "defects": [
+      "UNDECLARED_REQUIRED_FIELD"
+    ],
+    "records": null,
+    "file": "f9d9a8fddec9c5ec9d0e364634a180e784b758f67ab51c9caa381020081f180e.atlasx",
+    "sha256": "e6f97c54205434faa314faca0b2dea4c161f77632d4b926e3ed1d7455c238db3"
+  },
+  {
+    "case": "records-reversed",
+    "defects": [
+      "NON_CANONICAL"
+    ],
+    "records": null,
+    "file": "daac7f63b875bc008059dbd2d5ffc73765817faf523d5d50945cc6b649ee2a49.atlasx",
+    "sha256": "fbbe0aa1a43217c9f98b76542ad688e13b730f4ac9bcee2104ac4b7882c52a8d"
+  },
+  {
+    "case": "lineage-reversed",
+    "defects": [
+      "NON_CANONICAL"
+    ],
+    "records": null,
+    "file": "0b0bdd5d649420d71b7437d0ac850b672b3fefb647e9eafe4cf905a5a46db9f8.atlasx",
+    "sha256": "81fecc0d2a53eae3fe434d9da99eb1bf4a4ba4f1923d2b520bd389cfd2a1e717"
+  },
+  {
+    "case": "identity-duplicate",
+    "defects": [
+      "DUPLICATE_IDENTITY"
+    ],
+    "records": null,
+    "file": "09da9a3f296e0b230bf15fe0f3824a8459c2ef17fa88110b2c287a4f3d7ad5ed.atlasx",
+    "sha256": "0d6f7cdb8ff8c26759c562ca805cce4e9bce0179425f5c6d25459ec83a1d43db"
+  },
+  {
+    "case": "nested-kind",
+    "defects": [
+      "UNDECLARED_RECORD_KIND"
+    ],
+    "records": null,
+    "file": "23e83671d9d8f29cf629b8437df67f007254d6231c31d1a5400bc16258da4f7a.atlasx",
+    "sha256": "75bb74ef7809457981e63ba281c2e12e50fe94aa31dfb2db34b86a1f9a4d75e6"
+  },
+  {
+    "case": "field-truncated",
+    "defects": [
+      "FIELD_FRAMING"
+    ],
+    "records": null,
+    "file": "abf9878cac8cadb4f8f6ca76d7d55ce0958982ebfbd610e47a32720bc3aab5a2.atlasx",
+    "sha256": "5ef95c28bdaf2e3b3ce25aa183bc4d4cf1d59b04d1386e95b0645f4ddbef7058"
+  },
+  {
+    "case": "record-truncated",
+    "defects": [
+      "RECORD_FRAMING"
+    ],
+    "records": null,
+    "file": "48fc721fbbc172e0925fa27af1671de225ba927134802998b10a1568a188652b.atlasx",
+    "sha256": "83ca2b98bdfc9c968e9bc053e5498459773e9c7d9fe5d541f0c1984c6914f8ae"
+  },
+  {
+    "case": "empty-object",
+    "defects": [
+      "EMPTY_OBJECT"
+    ],
+    "records": null,
+    "file": "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262.atlasx",
+    "sha256": "452d8c4791c81a36c62aba9028b314ef49ce5180d735baf1e2e466826764dbd7"
+  }
+]

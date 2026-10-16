@@ -14,6 +14,68 @@ const FIXTURE: &[u8] = include_bytes!("fixture.bin");
 /// The fixture object's address: the lowercase hex of its decoded content hash.
 const FIXTURE_ADDRESS: &str = "5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed";
 
+/// Externalized counterexamples for a native replacement: every header, digest and filename
+/// is valid. The manifest pins semantic values/refusals independently of the reader's output.
+#[test]
+fn legacy_functions_corpus_pins_codara_payload_and_semantic_refusals() {
+    let cases: serde_json::Value = serde_json::from_str(include_str!("parity/cases.json")).unwrap();
+    let dir = std::path::Path::new(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/src/atlasx/codec/parity"
+    ));
+    let cases = cases.as_array().unwrap();
+    assert_eq!(cases.len(), 13, "do not silently lose a counterexample");
+    for case in cases {
+        let name = case["file"].as_str().unwrap();
+        let bytes = std::fs::read(dir.join("legacy").join(name)).unwrap();
+        let header = ObjectHeader::parse(&bytes).unwrap();
+        // These must reach the semantic reader; a digest/name failure would test another contract.
+        assert_eq!(header, ObjectHeader::functions(&bytes[HEADER_LEN..]));
+        assert_eq!(name, format!("{}.atlasx", header.address()));
+        assert_eq!(
+            header.decoded_content_hash,
+            *::blake3::hash(&bytes[HEADER_LEN..]).as_bytes()
+        );
+        let report = decode_named(name, &bytes);
+        let defects: Vec<_> = report.defects.iter().map(|(d, _)| d).collect();
+        assert_eq!(
+            serde_json::to_value(defects).unwrap(),
+            case["defects"],
+            "{case}"
+        );
+        assert_eq!(
+            serde_json::to_value(&report.records).unwrap(),
+            case["records"],
+            "{case}"
+        );
+        if case["defects"].as_array().unwrap().is_empty() {
+            assert_eq!(report.verdict, CodecVerdict::Decoded);
+            let records: Vec<FunctionSignatureRecord> =
+                serde_json::from_value(case["records"].clone()).unwrap();
+            assert_eq!(encode_functions(&records).unwrap(), bytes, "{case}");
+            let payload =
+                std::fs::read(dir.join(case["canonical_payload"].as_str().unwrap())).unwrap();
+            assert_eq!(payload, bytes[HEADER_LEN..]);
+            let program =
+                std::fs::read_to_string(dir.join(case["canonical_program"].as_str().unwrap()))
+                    .unwrap();
+            assert!(program.contains(&format!("input claimed = \"{}\";", header.address())));
+            assert!(program.contains(&format!("input input_bytes = {};", payload.len())));
+            assert_eq!(report.address.as_deref(), Some(header.address().as_str()));
+            assert_eq!(
+                report.decoded_length,
+                Some((bytes.len() - HEADER_LEN) as u64)
+            );
+        } else {
+            assert_eq!(report.verdict, CodecVerdict::Refused);
+            assert!(report.address.is_none() && report.digest.is_none());
+            assert!(report.object_class.is_none() && report.object_schema_version.is_none());
+            assert!(report.decoded_length.is_none() && report.records.is_none());
+        }
+        assert_eq!(report.not_verified, not_verified());
+    }
+}
+
 fn module() -> ConstructionModule {
     serde_json::from_str(include_str!("fixture_module.json")).expect("the fixture module parses")
 }

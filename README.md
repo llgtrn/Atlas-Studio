@@ -36,6 +36,12 @@ flowchart LR
 
 A coding-agent session can call a locally bounded MCP/API adapter while preparing **candidate artifacts**. Those source artifacts and tests remain scoped and non-authoritative until Chronica graph/capability verification, Thymora/Porion admission and Lineara evidence accept the specified behavior. Remote providers, including coding agents, may make proposals; neither consensus nor an independent local `Atlas Core` can authorize changes to the body.
 
+The following command is a legacy AtlasX source-reader/export interface. It does not write
+Codara's canonical artifact format. New Codara programs in the
+`core/src/atlasx/codec/parity/` corpus use `.cdr`; its `.atlasx` objects are explicitly legacy
+inputs and the exported `.payload` file is a raw byte oracle for the existing digest flow.
+No native Codara FUNCTIONS object format or semantic conversion is established by this export.
+
 `atlas-systemizer atlasx codec --codara-payload OBJECT --out FILE` exports a codec-validated,
 address-named FUNCTIONS object's raw payload for Chronica's existing
 `digest.blake3-256-verify` kernel. The output parent must exist; identical replays succeed and
