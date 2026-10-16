@@ -4,6 +4,26 @@
 
 **Architecture reference:** Read the [full Blueprint](https://github.com/llgtrn/.Ynventa-/blob/main/BLUEPRINT-V1.md) for the complete design under explicit owner instructions and applicable accepted decisions. The [nomenclature architecture atlas](https://github.com/llgtrn/.Ynventa-/blob/main/NOMENCLATURE-ARCHITECTURE-ATLAS.md) is derived navigation for currently registered names and bindings, not the full architecture or a ceiling on its requirements. Proposals retain their recorded status; a design requirement alone neither registers an identity nor proves implementation.
 
+## Full V1 native operating organism — owner decision
+
+The explicit owner decision of **2026-10-16 16:43:08 UTC**, “FULL V1 NATIVE OPERATING
+ORGANISM. NO SCOPE REDUCTION,” defines Chronica V1 as one graph-native Digital Intelligence
+Holobiont Operating System. It must boot and operate independently on one certified hardware
+target, with no mandatory Linux or Windows kernel/runtime. Linux is development, bootstrap and
+test infrastructure. A hosted application, container, daemon or passing software suite cannot
+establish native OS completion.
+
+All nine product journeys and P0–P3 remain in V1; the phases only order dependencies and work.
+Native protection, scheduling, interrupts, boot, authority and recovery must operate when
+cognition is unavailable. Norl/Neurora require real models, weights and inference. Governed
+offspring have distinct organism identities within the same canonical World.
+
+The [source contribution and acceptance guidance](tools/atlas/contracts/NATIVE-V1-SOURCE-CONTRIBUTION.md)
+separates this required target from current Atlas source and unqualified gaps. The engine lane's
+detailed **Native OS V1 Completion Contract** publication is pending; no commit, selected hardware,
+kernel architecture, certification or completion result is asserted here. This campaign is
+**documentation first**: implementation and source UI changes remain stopped.
+
 ## Canonical Ynventa/Chronica integration — registered Latin nomenclature
 
 **One Digital Holobiont.** [Chronica's nomenclature registry](https://github.com/llgtrn/Chronica/blob/main/.ynventa/declared/nomenclature/concepts.jsonl) and [frozen-form policy](https://github.com/llgtrn/Chronica/blob/main/.ynventa/declared/nomenclature/policy.jsonl) provide admitted stable names, identities and current declared bindings (DECISION 0115); their current entry count does not limit the Blueprint's design scope or prove executable bindings. **Norl is cognition hosted within Chronica.** Chronica owns canonical identity, history, authority and governed execution. Generic biological words explain functions without creating competing identities, implementation homes or permission.
@@ -213,7 +233,7 @@ The historical `tools/atlas/` and `*.atlas` filenames are **existing source/evid
 - Completeness outranks file size; semantic interning/dedup/deltas/compression reduce duplication rather than delete meaning.
 - Source compiler artifacts can provide candidate executable representations; their semantics and native ownership require Codara parity proof, real callers and authorized Chronica admission.
 - Optimization may use graph-level semantics and native compiler techniques such as LTO or PGO only when the specific implementation, production caller and reproducible benchmark establish a benefit; no unimplemented optimizer is implied.
-- Backend/compiler/runtime bootstrap is Rust. Canonical frontend bootstrap is TypeScript/TSX inside Chronica/phenotype ONLY. C is an explicit low-level boundary by default.
+- Current source/bootstrap uses Rust for backend/compiler/runtime and TypeScript/TSX for frontend work inside Chronica/phenotype ONLY; C is an explicit low-level boundary by default. These bootstrap choices do not impose a mandatory host kernel/runtime on the final native OS.
 - Donor OSS is evidence/reference and is removed from the temporary workbench after native absorption proof.
 
 The physical source binary identifiers `atlas-systemizer` and `atlas.systemizer.cli.v1` remain source-code locators for comparison and must not be described as current canonical subsystem names.
