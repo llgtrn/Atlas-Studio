@@ -38,6 +38,45 @@ fn write_report_to_out(out: &str, text: &str) -> Result<(), String> {
     fs::write(&out_path, text).map_err(|e| format!("{out}: {e}"))
 }
 
+/// Codec reports are evidence too: create a new report or accept an exact regular-file replay.
+/// Never open an existing output for writing, including aliases of the binary input. Other CLI
+/// report commands retain their existing output behavior. Concurrent path replacement is
+/// outside the filesystem model, as for the artifact runtime's immutable output operations.
+fn write_codec_report_or_replay(out: &str, text: &str) -> Result<(), String> {
+    use std::io::{Read, Write};
+
+    let path = Path::new(out);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("{out}: {e}"))?;
+    }
+    match fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+    {
+        Ok(mut file) => file
+            .write_all(text.as_bytes())
+            .and_then(|()| file.sync_all())
+            .map_err(|e| format!("{out}: {e}")),
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+            let metadata = fs::symlink_metadata(path).map_err(|e| format!("{out}: {e}"))?;
+            if metadata.is_file() && metadata.len() == text.len() as u64 {
+                let mut bytes = Vec::new();
+                fs::File::open(path)
+                    .and_then(|file| file.take(text.len() as u64 + 1).read_to_end(&mut bytes))
+                    .map_err(|e| format!("{out}: {e}"))?;
+                if bytes == text.as_bytes() {
+                    return Ok(());
+                }
+            }
+            Err(format!(
+                "{out}: existing codec report is not an identical regular file"
+            ))
+        }
+        Err(error) => Err(format!("{out}: {error}")),
+    }
+}
+
 /// G185 (ADR 0097): what `atlasx precondition` and `atlasx materialize` judge a parent by: the
 /// container, design, verification report and integrity report files, under the declarations of
 /// the repository at `--root` -- its seal policy, pinned integrity envelope and principals. Neither
@@ -536,7 +575,7 @@ fn run(args: &[String]) -> Result<(), String> {
                         runtime::atlasx::decode_object(&object).map_err(|e| e.to_string())?;
                     let text = json(&report)? + "\n";
                     match value(rest, "--out")? {
-                        Some(out) => write_report_to_out(&out, &text)?,
+                        Some(out) => write_codec_report_or_replay(&out, &text)?,
                         None => print!("{text}"),
                     }
                     if report.verdict != runtime::atlasx::CodecVerdict::Decoded {
@@ -1831,6 +1870,7 @@ mod tests {
         ]))
         .expect("an identical source-artifact replay succeeds");
 
+        fs::rename(&report_path, dir.join("decoded-report.json")).unwrap();
         let mut bytes = fs::read(&object).unwrap();
         let last = bytes.len() - 1;
         bytes[last] ^= 1;
@@ -1846,6 +1886,7 @@ mod tests {
         assert!(err.contains("not an identical regular file"), "{err}");
         assert_eq!(fs::read(&object).unwrap(), bytes);
 
+        fs::rename(&report_path, dir.join("digest-refusal-report.json")).unwrap();
         bytes[last] ^= 1;
         let renamed = dir.join("renamed.atlasx");
         fs::write(&renamed, &bytes).unwrap();
@@ -1890,6 +1931,106 @@ mod tests {
         let err = decode(&dir.join("missing.atlasx").to_string_lossy()).expect_err("no file");
         assert!(err.contains("missing.atlasx"), "{err}");
         fs::remove_dir_all(&dir).ok();
+    }
+
+    fn codec_report_fixture(label: &str) -> (PathBuf, PathBuf, Vec<u8>) {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = env::temp_dir().join(format!("atlas-cli-codec-report-{label}-{nonce}"));
+        let module = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/codara/artifact/codec/fixture_module.json"
+        );
+        let (_, object) = runtime::atlasx::encode_module(module, &dir)
+            .unwrap()
+            .unwrap();
+        let bytes = fs::read(&object).unwrap();
+        (dir, object, bytes)
+    }
+
+    fn decode_codec_report(object: &Path, report: &Path) -> Result<(), String> {
+        run(&[
+            "atlasx".into(),
+            "codec".into(),
+            "--decode".into(),
+            object.to_string_lossy().into_owned(),
+            "--out".into(),
+            report.to_string_lossy().into_owned(),
+        ])
+    }
+
+    #[test]
+    fn codec_decode_reports_preserve_input_and_prior_evidence_and_allow_exact_replay() {
+        let (dir, object, bytes) = codec_report_fixture("immutable");
+        let expected = json(&runtime::atlasx::decode_object(&object).unwrap()).unwrap() + "\n";
+        let check_conflict = |out: &Path| {
+            let before = fs::read(out).unwrap();
+            let error = decode_codec_report(&object, out).expect_err("existing bytes are evidence");
+            assert!(error.contains("not an identical regular file"), "{error}");
+            assert_eq!(fs::read(out).unwrap(), before);
+            assert_eq!(fs::read(&object).unwrap(), bytes);
+        };
+        check_conflict(&object);
+        fs::create_dir(dir.join("alias-hop")).unwrap();
+        let relative_alias = dir
+            .join("alias-hop")
+            .join("..")
+            .join(object.file_name().unwrap());
+        check_conflict(&relative_alias);
+        let hardlink = dir.join("object-hardlink.atlasx");
+        fs::hard_link(&object, &hardlink).unwrap();
+        check_conflict(&hardlink);
+        #[cfg(unix)]
+        {
+            let symlink = dir.join("object-symlink.atlasx");
+            std::os::unix::fs::symlink(&object, &symlink).unwrap();
+            check_conflict(&symlink);
+            assert!(
+                fs::symlink_metadata(&symlink)
+                    .unwrap()
+                    .file_type()
+                    .is_symlink()
+            );
+        }
+        let conflict = dir.join("prior-report.json");
+        fs::write(&conflict, b"prior evidence").unwrap();
+        check_conflict(&conflict);
+        let same_length = dir.join("same-length-prior-report.json");
+        let other_report = expected.replacen("DECODED", "REFUSED", 1);
+        assert_ne!(other_report, expected);
+        assert_eq!(other_report.len(), expected.len());
+        fs::write(&same_length, other_report).unwrap();
+        check_conflict(&same_length);
+        let report = dir.join("reports").join("decoded.json");
+        decode_codec_report(&object, &report).unwrap();
+        assert_eq!(fs::read(&report).unwrap(), expected.as_bytes());
+        decode_codec_report(&object, &report).expect("byte-identical report replay");
+        assert_eq!(fs::read(&report).unwrap(), expected.as_bytes());
+        assert_eq!(fs::read(&object).unwrap(), bytes);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn codec_decode_refusal_keeps_the_full_typed_report_and_refusal_exit_on_replay() {
+        let (dir, object, bytes) = codec_report_fixture("refused");
+        let renamed = dir.join("wrong-name.atlasx");
+        fs::write(&renamed, &bytes).unwrap();
+        let report = dir.join("refused.json");
+        let expected = runtime::atlasx::decode_object(&renamed).unwrap();
+        assert_eq!(expected.verdict, runtime::atlasx::CodecVerdict::Refused);
+        let expected_text = json(&expected).unwrap() + "\n";
+        for _ in 0..2 {
+            assert_eq!(
+                decode_codec_report(&renamed, &report).unwrap_err(),
+                "ATLASX_CODEC_REFUSED: 1 defects"
+            );
+            assert_eq!(fs::read(&report).unwrap(), expected_text.as_bytes());
+            assert_eq!(fs::read(&renamed).unwrap(), bytes);
+            assert_eq!(fs::read(&object).unwrap(), bytes);
+        }
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

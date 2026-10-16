@@ -161,6 +161,12 @@ Historical `.atlasx` formats, schema names, encoded IDs, object bytes and pinned
 historical. This source naming step establishes no native Codara format, consumer cutover or
 source extinction. Existing declared ownership and proof selectors still address the same core.
 
+`atlas-systemizer atlasx codec --decode OBJECT --out REPORT` preserves its input and prior
+report evidence. It creates a new report or accepts an identical regular-file replay; an
+existing conflict or input alias is refused without replacement. A refused decode still retains
+its full typed report and existing refusal exit when that report can be safely written.
+This is a source filesystem boundary, not Chronica admission or native OS acceptance.
+
 The following command is a legacy AtlasX source-reader/export interface. It does not write
 Codara's canonical artifact format. New Codara programs in the
 `core/src/codara/artifact/codec/parity/` corpus use `.cdr`; its `.atlasx` objects are explicitly legacy
