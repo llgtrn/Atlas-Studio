@@ -1474,6 +1474,123 @@ mod production_wiring_tests {
     }
 
     #[test]
+    fn codara_and_python_inventory_recognition_never_fabricates_semantic_support() {
+        let dir = scratch_dir();
+        fs::create_dir_all(&dir).unwrap();
+        for (path, contents) in [
+            (
+                "program.cdr",
+                "not valid Codara syntax: family recognition does not validate it\n",
+            ),
+            (
+                "historical.codara",
+                "program fixture { input input_bytes = 1; }\n",
+            ),
+            ("check.py", "def apparent_function():\n    return 1\n"),
+            ("opaque.unknown", "pub fn this_must_not_be_claimed() {}\n"),
+        ] {
+            fs::write(dir.join(path), contents).unwrap();
+        }
+        fs::write(dir.join("binary.py"), b"\0not source text").unwrap();
+        let inventory = adapter::inventory_source(&dir).unwrap();
+        assert_eq!(inventory.artifacts_total, 5);
+        let artifact = |path: &str| inventory.artifacts.iter().find(|a| a.path == path).unwrap();
+        for (path, language) in [
+            ("program.cdr", "codara"),
+            ("historical.codara", "codara"),
+            ("check.py", "python"),
+        ] {
+            let artifact = artifact(path);
+            // PARSED is the existing inventory admission-for-parsing state, not a successful
+            // grammar parse. The deliberately invalid .cdr above must get no semantic claims.
+            assert_eq!(artifact.disposition, ArtifactDisposition::Parsed);
+            assert_eq!(artifact.language.as_deref(), Some(language));
+            assert!(adapter::extractors_for_language(language).is_empty());
+        }
+        assert_eq!(
+            artifact("opaque.unknown").disposition,
+            ArtifactDisposition::Unknown
+        );
+        assert!(artifact("opaque.unknown").language.is_none());
+        assert_eq!(
+            artifact("binary.py").disposition,
+            ArtifactDisposition::BinaryDescribed
+        );
+        let source = adapter::source_report_from_inventory(&inventory);
+        assert_eq!(source.files_total, 3);
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "source-family-fixture".into(),
+        };
+        let batches = extract_semantics(&inventory, RepositoryId::new("fixture"), revision.clone());
+        assert_eq!(
+            batches.len(),
+            3,
+            "unsupported families still have explicit closed accounting"
+        );
+        for batch in &batches {
+            assert_eq!(batch.extractor.id, UNSUPPORTED_LANGUAGE_ACCOUNTING);
+            assert!(batch.is_closed(&ALL_SEMANTIC_DIMENSIONS));
+            assert!(batch.observations.is_empty() && batch.evidence.is_empty());
+            assert_eq!(batch.diagnostics.len(), 1);
+            assert_eq!(
+                batch.diagnostics[0].code,
+                DiagnosticCode::UnsupportedLanguageOrProfile
+            );
+            for obligation in &batch.obligations {
+                assert_eq!(obligation.status, EpistemicStatus::Unsupported);
+                assert!(
+                    obligation.observation_ids.is_empty() && obligation.evidence_refs.is_empty()
+                );
+                assert!(!obligation.diagnostics.is_empty());
+            }
+        }
+        let adl = atlas_core::compile_adl(&[], &source);
+        let census = crate::census::build_census(&inventory, &source, &adl, &batches, &revision);
+        assert!(census.typed_semantics_closed());
+        assert!(census.typed_semantic_records.is_empty() && census.evidence.is_empty());
+        assert_eq!(
+            census.typed_obligations.len(),
+            3 * ALL_SEMANTIC_DIMENSIONS.len()
+        );
+        assert!(
+            census
+                .typed_obligations
+                .iter()
+                .all(|obligation| obligation.status == EpistemicStatus::Unsupported)
+        );
+        assert!(!census.facts.iter().any(|fact| matches!(
+            fact.kind,
+            atlas_core::SemanticFactKind::FunctionIdentity
+                | atlas_core::SemanticFactKind::FunctionSignature
+        )));
+        let dependencies = crate::resolve_dependency_closure(&dir).unwrap();
+        let model =
+            atlas_core::composition::compose_input(atlas_core::composition::CompositionInput {
+                census: &census,
+                inventory: &inventory,
+                adl: &adl,
+                dependency_closure: &dependencies,
+                revision: &revision.value,
+            });
+        assert!(model.functions.is_empty());
+        let support = atlas_core::coverage::measure(&inventory, &census, &model);
+        for language in ["codara", "python"] {
+            let subject = support
+                .subjects
+                .iter()
+                .find(|subject| subject.subject == language)
+                .unwrap();
+            assert_eq!(subject.level, atlas_core::coverage::SupportLevel::L2Syntax);
+            assert!(
+                !subject.level.is_semantic(),
+                "inventory admission is not semantic support"
+            );
+        }
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
     fn extract_semantics_accounts_for_artifacts_with_no_registered_extractor_explicitly() {
         // Before `unsupported_language_batch` existed, such an artifact silently vanished from
         // extraction accounting: zero batches, zero obligations, zero diagnostics. That violated

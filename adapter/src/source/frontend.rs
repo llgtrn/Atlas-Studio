@@ -59,6 +59,19 @@ impl SourceFrontend for ExtensionSourceFrontend {
     }
 }
 
+// These bootstrap frontends identify source families only. No Codara or Python
+// SemanticExtractor is registered here: syntax, lowering and semantic obligations stay separate.
+static CODARA: ExtensionSourceFrontend = ExtensionSourceFrontend {
+    id: "atlas.source.codara.bootstrap.v1",
+    language: "codara",
+    extensions: &["cdr", "codara"],
+};
+static PYTHON: ExtensionSourceFrontend = ExtensionSourceFrontend {
+    id: "atlas.source.python.bootstrap.v1",
+    language: "python",
+    extensions: &["py"],
+};
+
 static RUST: ExtensionSourceFrontend = ExtensionSourceFrontend {
     id: "atlas.source.rust.bootstrap.v1",
     language: "rust",
@@ -116,7 +129,9 @@ static RUST_INCLUDE_FRAGMENT: ExtensionSourceFrontend = ExtensionSourceFrontend 
     extensions: &[],
 };
 
-static BUILTIN_FRONTENDS: [&'static dyn SourceFrontend; 10] = [
+static BUILTIN_FRONTENDS: [&'static dyn SourceFrontend; 12] = [
+    &CODARA,
+    &PYTHON,
     &RUST,
     &TYPESCRIPT,
     &JAVASCRIPT,
@@ -253,6 +268,33 @@ mod tests {
             resolve_source_frontend(Path::new("core/src/vectors.in")).is_none(),
             "an include fragment is never recognized by its path alone"
         );
+    }
+
+    #[test]
+    fn codara_and_python_bootstrap_frontends_do_not_register_semantic_extractors() {
+        for (path, language, frontend_id) in [
+            ("program.cdr", "codara", "atlas.source.codara.bootstrap.v1"),
+            (
+                "historical.codara",
+                "codara",
+                "atlas.source.codara.bootstrap.v1",
+            ),
+            ("fixture.CDR", "codara", "atlas.source.codara.bootstrap.v1"),
+            ("check.py", "python", "atlas.source.python.bootstrap.v1"),
+            ("fixture.PY", "python", "atlas.source.python.bootstrap.v1"),
+        ] {
+            let matched = resolve_source_frontend(Path::new(path)).unwrap();
+            assert_eq!(matched.language, language, "{path}");
+            assert_eq!(matched.frontend_id, frontend_id, "{path}");
+            assert_eq!(source_frontend_for_language(language), Some(matched));
+            assert!(
+                crate::extractors_for_language(language).is_empty(),
+                "family recognition is not a syntax or semantic engine: {path}"
+            );
+        }
+        assert!(resolve_source_frontend(Path::new("capsule.chgc")).is_none());
+        assert!(resolve_source_frontend(Path::new("object.atlasx")).is_none());
+        assert!(resolve_source_frontend(Path::new("opaque.unknown")).is_none());
     }
 
     #[test]
