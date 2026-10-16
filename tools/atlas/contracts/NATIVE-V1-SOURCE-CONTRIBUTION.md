@@ -124,6 +124,13 @@ compare seL4/Microkit, Redox, FreeBSD-derived integration and bespoke/hybrid rou
 FreeBSD-derived feasibility profile is not selected or certified. Exact hardware/firmware,
 kernel/runtime and low-level ABI, model artifacts, numerical thresholds, rights/dependency
 closure, implementation/caller bindings and native physical acceptance remain unresolved.
-Chronica's pinned crosswalk still records PUBLISHED_ENGINE_PIN_PENDING; its reciprocal
-published-source pin and the full-scope acceptance producer remain integration gaps. These
-qualified gaps do not reopen owner scope or make central contract publication pending.
+Chronica's earlier `65bcd269` crosswalk recorded PUBLISHED_ENGINE_PIN_PENDING; that state is
+historical. [Chronica `d212a9e56a1661a41ed1cffb8cf758c0a2653f51`](https://github.com/llgtrn/Chronica/blob/d212a9e56a1661a41ed1cffb8cf758c0a2653f51/AGENTS.md#L31-L37)
+publishes the reciprocal central reference to
+[`10d62f52f9c1496a2f1f823af57bc7332478c90c`](https://github.com/llgtrn/.Ynventa-/blob/10d62f52f9c1496a2f1f823af57bc7332478c90c/BLUEPRINT-V1.md#613-native-operating-requirements-and-executable-acceptance).
+This closes the documentary reciprocal-pin gap once; it requires no recursive newest-hash
+synchronization. The old central N10 UI locator remains historical at that immutable pin;
+the [central UI correction `5e66958cd66b9450f23a6dc5466663955052ad86`](https://github.com/llgtrn/.Ynventa-/blob/5e66958cd66b9450f23a6dc5466663955052ad86/BLUEPRINT-V1.md#613-native-operating-requirements-and-executable-acceptance)
+uses `Chronica/phenora/`. The full-scope acceptance producer and native physical journey evidence
+remain missing. Documentary closure does not certify the product, reopen owner scope or authorize
+implementation.
