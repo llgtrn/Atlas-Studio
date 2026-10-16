@@ -76,6 +76,59 @@ fn legacy_functions_corpus_pins_codara_payload_and_semantic_refusals() {
     }
 }
 
+#[test]
+fn strict_functions_program_binds_the_complete_object_instead_of_the_raw_export() {
+    let bytes = include_bytes!(
+        "parity/legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx"
+    );
+    let program = include_str!("parity/codara-functions.cdr");
+    let file_name = format!("{}.atlasx", ObjectHeader::parse(bytes).unwrap().address());
+    assert_eq!(bytes.len(), 521);
+    assert!(program.contains("goal artifact.legacy-identity-verify;"));
+    assert!(program.contains(&format!("input input_bytes = {};", bytes.len())));
+    assert!(program.contains(&format!("input file_name = \"{file_name}\";")));
+    assert!(program.contains("constraint pre input_bytes <= 67108944;"));
+    assert!(!program.contains("input claimed"));
+    assert_ne!(
+        bytes.len(),
+        include_bytes!("parity/codara-parity.payload").len()
+    );
+    assert_eq!(
+        decode_named(&file_name, bytes).verdict,
+        CodecVerdict::Decoded
+    );
+}
+
+/// Distinct duplicate identities are distinct refusal evidence, even though the defect codes
+/// agree. This is a counterexample to a reader that deduplicates generic diagnostic strings.
+#[test]
+fn multiple_duplicate_identities_keep_distinct_diagnostic_evidence() {
+    let a = signature(&signature_fields("fixture:a"));
+    let b = signature(&signature_fields("fixture:b"));
+    let bytes = forge(&[a.clone(), a, b.clone(), b].concat());
+    let file_name = format!("{}.atlasx", ObjectHeader::parse(&bytes).unwrap().address());
+    let report = decode_named(&file_name, &bytes);
+    assert_eq!(report.verdict, CodecVerdict::Refused);
+    assert_eq!(
+        kinds(&report.defects),
+        [D::DuplicateIdentity, D::DuplicateIdentity]
+    );
+    assert_ne!(report.defects[0].1, report.defects[1].1);
+    assert!(
+        report
+            .defects
+            .iter()
+            .any(|(_, detail)| detail.contains("fixture:a"))
+    );
+    assert!(
+        report
+            .defects
+            .iter()
+            .any(|(_, detail)| detail.contains("fixture:b"))
+    );
+    assert!(report.records.is_none() && report.address.is_none());
+}
+
 fn module() -> ConstructionModule {
     serde_json::from_str(include_str!("fixture_module.json")).expect("the fixture module parses")
 }

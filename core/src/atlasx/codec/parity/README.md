@@ -66,11 +66,22 @@ The legacy export command writes only bytes after the 80-byte header. The positi
 `86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2`.
 For Chronica's `codara run --payload FILE CAPSULE`, the claim is the header's 64-hex payload digest and the
 input bound is the payload byte count. BLAKE3 comparison can match all thirteen payloads;
-it cannot prove FUNCTIONS decoding. Chronica's partial `legacy_artifact::verify_atlasx_object`
-checks header/bounds/hash/address and explicitly excludes record semantics. A native reader
-must reproduce these decoded values/refusals and the broader codec invariants before semantic
-parity is claimed. Root manifest, cross-object resolution and admitted materialization remain
-separate obligations even for the positive case.
+it cannot prove FUNCTIONS decoding. The generic `legacy_artifact::verify_atlasx_object`
+checks header/bounds/hash/address only. Chronica `848149d0c2d2d8b8923b394533879faabc5b6fb1`
+also contains the separate strict `verify_atlasx_functions`/`read_atlasx_functions` and governed
+`legacy.functions-object` caller. Their presence does not establish complete source equivalence,
+engine native qualification, consumer cutover or admission. Root manifest, cross-object resolution
+and admitted materialization remain separate obligations even for the positive case.
+
+`codara-functions.cdr` prepares the positive case for that strict caller: goal
+`artifact.legacy-identity-verify`, `input_bytes = 521` and the exact historical `file_name`.
+Pass the original complete `legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx`
+as `codara run --payload FILE CAPSULE` input. Do not pass the 441-byte raw export to this reader.
+The target world's catalogue must actually select `legacy.functions-object`; the program does
+not supply a binding or grant. Successful kernel output is the 441-byte payload. The target's
+persisted `codara.legacy.functions.v1` result binds full-object, filename and IR evidence; it is
+not the source `CodecReport` wire contract. The older `codara-parity.cdr` remains the separate
+raw-payload digest flow, with a digest claim rather than a `file_name` fact.
 
 Chronica owns the actual authenticated requester, current resource and lease/work bindings,
 one `cpu_units` demand, budget/capacity/envelope checks, payload binding to durable work,
@@ -94,12 +105,43 @@ headers. Field tags strictly ascend. Nesting is limited to depth 8.
 
 Dispatch codes are 1 free function, 2 inherent method, 3 associated function; integers must
 be minimally encoded. GLOBAL_ID is nonempty UTF8, carried without target identity resolution.
+Function names must also be nonempty. Required visibility and parameter name/type text can be
+empty; the source does not impose target identifier/type syntax on these carried strings.
 HASH32 is exactly 32 bytes. Parameters retain declaration order; function records sort by
 identity bytes, while lineage sorts/deduplicates as a set. Empty optional sequences are absent;
 empty optional text remains distinguishable from absent text. Minor 0 rejects unknown fields
 even when marked optional. Canonical re-encoding must reproduce the complete input exactly.
 The source report clears semantic/address fields on refusal and retains its `not_verified`
 limits. Matching these thirteen cases is necessary bounded evidence, not full equivalence.
+
+The source regression `multiple_duplicate_identities_keep_distinct_diagnostic_evidence` adds
+the `[a,a,b,b]` counterexample: source retains two identity-specific DUPLICATE_IDENTITY defects.
+The strict target at `848149d0` collapses those to one generic diagnosis after deduplication.
+Both refuse; exact diagnostic multiplicity is a remaining compatibility decision. Source clears
+semantic/address report fields on refusal, while target retains checked expected/computed
+evidence. An explicit output mapping must preserve that evidence rather than claim wire parity.
+
+## Accepted source subset and callers
+
+Current engine `b1d8c58966cfcaad60f2c979c4258b585009d26a` accepts
+`codec.executable-world-objects` only as the bounded historical FUNCTIONS contribution described
+by census fact `b9939df4b81e68134b4037b8`, pinned to source
+`fc8dbc4ee7c9cc94c50375672966f24b5ff1bbf7`. Package
+`fc3f98883297411649967d46` is WAITING_OWNER; source metadata does not choose its target route.
+The thirteen pinned cases, object bytes and expected values remain unchanged.
+
+| Source caller | Actual contract |
+|---|---|
+| `core/src/atlasx/codec.rs::encode_functions`, `read`, `decode_named` | Pure canonical class-4/schema-1 signature codec, typed refusals and historical basename checks; no function bodies or target identity/authority resolution. |
+| `adapter/runtime/src/atlasx.rs::decode_object`, `decode_at` | Bounded file read followed by strict named source decoding. |
+| `adapter/runtime/src/atlasx.rs::export_codara_payload` | Read once, validate the complete named object, then write bytes after header through create-or-identical replay; refused input creates no output or parent and preserves prior evidence. |
+| `apps/cli/src/main.rs` codec dispatch | Existing encode/decode/export commands call the source runtime. These are source callers, not a Chronica integration trace. |
+
+The existing `compiler.core` provides and `compiler.runtime` requires declarations describe
+that local source relationship. They declare no new technology, target native owner, permission,
+cross-repository runtime edge or completed absorption. Other reserved classes, root/reference
+resolution, complete donor census, rights qualification, zero external dependencies and target
+consumer/denial/crash/replay evidence remain separate obligations.
 
 ## BLAKE3 scope and dependency closure
 
