@@ -189,6 +189,14 @@ authentication and admission, and build a capsule there. This export creates no 
 Digest comparison verifies content identity only; it does not import, execute or establish
 semantic parity of AtlasX records. Historical formats and IDs remain unchanged.
 
+The [seven-case full source evidence oracle](core/src/codara/artifact/codec/parity/full-evidence/README.md)
+is reusable test data for complete ordered diagnoses, absent source fields and independent checked
+byte evidence. Core and Runtime compare complete reports; real CLI process tests compare full
+JSON, refusal exits and payload export/replay without replacing input or prior evidence. This
+adds source regression coverage, not a new artifact format or target receipt contract. The pinned
+target's generic diagnosis deduplication and `first_defect` receipt remain a qualified mapping
+gap; source checked digests must survive without being promoted into semantic acceptance.
+
 **PROPOSED convergence interaction, not an implemented source-to-Chronica call trace.** The sequence expresses required review/authority/evidence obligations; it does not establish automatic central-engine admission or actual consumer cutover.
 
 ```mermaid

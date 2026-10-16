@@ -673,17 +673,45 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../core/src/codara/artifact/codec/parity"
         ));
-        let cases: Vec<serde_json::Value> = serde_json::from_str(include_str!(concat!(
+        let mut cases: Vec<serde_json::Value> = serde_json::from_str(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../../core/src/codara/artifact/codec/parity/cases.json"
         )))
         .unwrap();
+        let full: serde_json::Value = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../core/src/codara/artifact/codec/parity/full-evidence.json"
+        )))
+        .unwrap();
+        for oracle in full["cases"].as_array().unwrap() {
+            let mut case = oracle.clone();
+            case["case"] = serde_json::json!(format!(
+                "full-evidence-{}",
+                oracle["case"].as_str().unwrap()
+            ));
+            case["file"] = oracle["file_name"].clone();
+            case["defects"] = serde_json::json!(
+                oracle["source_report"]["defects"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|defect| defect[0].clone())
+                    .collect::<Vec<_>>()
+            );
+            case["records"] = oracle["source_report"]["records"].clone();
+            case["canonical_payload"] = serde_json::json!("codara-parity.payload");
+            cases.push(case);
+        }
         let dir = scratch("codara-semantic-parity");
         assert!(!cases.is_empty());
         for case in cases {
             let name = case["case"].as_str().unwrap();
             let file = case["file"].as_str().unwrap();
-            let bytes = fs::read(fixtures.join("legacy").join(file)).unwrap();
+            let fixture = case["fixture"].as_str().map_or_else(
+                || fixtures.join("legacy").join(file),
+                |relative| fixtures.join(relative),
+            );
+            let bytes = fs::read(&fixture).unwrap();
             let case_dir = dir.join(name);
             fs::create_dir(&case_dir).unwrap();
             let object = case_dir.join(file);
@@ -691,6 +719,9 @@ mod tests {
             let out = case_dir.join("payload.bin");
             let report = export_codara_payload(&object, &out).unwrap();
             let actual = serde_json::to_value(&report).unwrap();
+            if let Some(expected) = case.get("source_report") {
+                assert_eq!(&actual, expected, "{name}: full report evidence changed");
+            }
             let defects: Vec<_> = actual["defects"]
                 .as_array()
                 .unwrap()
@@ -728,11 +759,7 @@ mod tests {
                 assert_eq!(fs::read(&out).unwrap(), b"prior evidence", "{name}");
             }
             assert_eq!(fs::read(&object).unwrap(), bytes, "{name}: input changed");
-            assert_eq!(
-                fs::read(fixtures.join("legacy").join(file)).unwrap(),
-                bytes,
-                "{name}"
-            );
+            assert_eq!(fs::read(&fixture).unwrap(), bytes, "{name}");
         }
         fs::remove_dir_all(dir).unwrap();
     }

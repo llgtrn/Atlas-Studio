@@ -227,6 +227,113 @@ fn multiple_duplicate_identities_keep_distinct_diagnostic_evidence() {
     assert!(report.records.is_none() && report.address.is_none());
 }
 
+/// Frozen full reports and separately checked byte evidence are different contracts: a refusal
+/// clears the source report even after an independent digest check has produced evidence.
+#[test]
+fn full_functions_evidence_oracle_preserves_diagnostics_and_check_boundaries() {
+    const INPUTS: &[(&str, &[u8])] = &[
+        (
+            "full-evidence/8e6734dc26287d1f6484bf488c0e601420054e684178016d0b084477bd1986cd.atlasx",
+            include_bytes!(
+                "parity/full-evidence/8e6734dc26287d1f6484bf488c0e601420054e684178016d0b084477bd1986cd.atlasx"
+            ),
+        ),
+        (
+            "full-evidence/payload-digest-mismatch.bin",
+            include_bytes!("parity/full-evidence/payload-digest-mismatch.bin"),
+        ),
+        (
+            "full-evidence/pre-header-truncated.bin",
+            include_bytes!("parity/full-evidence/pre-header-truncated.bin"),
+        ),
+        (
+            "full-evidence/payload-truncated.bin",
+            include_bytes!("parity/full-evidence/payload-truncated.bin"),
+        ),
+        (
+            "legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx",
+            include_bytes!(
+                "parity/legacy/86e6111beb161e9b7241cf136ad8738eed8bbd3872707d6511dbcc192d6296d2.atlasx"
+            ),
+        ),
+    ];
+    let oracle: serde_json::Value =
+        serde_json::from_str(include_str!("parity/full-evidence.json")).unwrap();
+    let cases = oracle["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 7);
+    let mut used = std::collections::BTreeSet::new();
+    for case in cases {
+        let fixture = case["fixture"].as_str().unwrap();
+        let bytes = INPUTS
+            .iter()
+            .find_map(|(name, bytes)| (*name == fixture).then_some(*bytes))
+            .unwrap();
+        used.insert(fixture);
+        assert_eq!(bytes.len() as u64, case["input_bytes"].as_u64().unwrap());
+        let name = case["file_name"].as_str().unwrap();
+        let report = decode_named(name, bytes);
+        let expected: CodecReport = serde_json::from_value(case["source_report"].clone()).unwrap();
+        assert_eq!(report, expected, "full source evidence: {}", case["case"]);
+        assert_eq!(
+            serde_json::to_value(&report).unwrap(),
+            case["source_report"]
+        );
+        let checked = &case["checked_evidence"];
+        let header = bytes.get(..80);
+        let declared = header.map(|h| {
+            h[40..72]
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect::<String>()
+        });
+        assert_eq!(
+            serde_json::to_value(declared).unwrap(),
+            checked["expected_payload_blake3"]
+        );
+        // Independently identify when the fixed, valid corpus header and bounds permit hashing.
+        // Do not infer check completion from verdict: semantic/name/hash refusals retain it.
+        let bounded_payload = header.and_then(|h| {
+            let encoded = u64::from_le_bytes(h[24..32].try_into().unwrap());
+            let decoded = u64::from_le_bytes(h[32..40].try_into().unwrap());
+            (h[..24]
+                == [
+                    65, 84, 76, 83, 88, 0, 1, 0, 80, 0, 1, 0, 0, 0, 0, 0, 4, 0, 1, 0, 1, 0, 0, 0,
+                ]
+                && encoded == decoded
+                && decoded <= 1 << 26
+                && bytes.len() as u64 - 80 == decoded)
+                .then_some(&bytes[80..])
+        });
+        let computed = bounded_payload.map(|payload| ::blake3::hash(payload).to_hex().to_string());
+        assert_eq!(
+            serde_json::to_value(computed).unwrap(),
+            checked["computed_payload_blake3"]
+        );
+        assert_eq!(
+            serde_json::to_value(bounded_payload.map(|p| p.len())).unwrap(),
+            checked["checked_payload_length"]
+        );
+        if report.verdict == CodecVerdict::Refused {
+            assert!(
+                report.address.is_none() && report.digest.is_none() && report.records.is_none()
+            );
+        }
+    }
+    assert_eq!(used.len(), INPUTS.len(), "uncovered input fixture");
+    let duplicate = &cases[0]["source_report"]["defects"];
+    assert_eq!(
+        duplicate,
+        &serde_json::json!([
+            ["DUPLICATE_IDENTITY", "two records for fixture:a"],
+            ["DUPLICATE_IDENTITY", "two records for fixture:b"]
+        ])
+    );
+    assert_eq!(
+        cases[0]["source_report"], cases[1]["source_report"],
+        "semantic refusal precedes filename"
+    );
+}
+
 fn module() -> ConstructionModule {
     serde_json::from_str(include_str!("fixture_module.json")).expect("the fixture module parses")
 }
