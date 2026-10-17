@@ -349,6 +349,7 @@ mod tests {
         let first = duplicated.census.facts[0].clone();
         duplicated.census.facts.push(first);
         assert!(atlas_of(&duplicated, &genome_schema, &genome_hash, &certificate).is_err());
+        drop(duplicated);
         assert_eq!(atlas.facts.len(), report.census.facts.len());
         assert_eq!(
             atlas.obligations.len(),
@@ -395,6 +396,7 @@ mod tests {
         let mut censused = report.census.typed_semantic_records.clone();
         censused.sort_by_cached_key(atlas_core::codara::artifact::census_container::typed_key);
         assert_eq!(decoded.typed_records, censused);
+        drop(censused);
         let families: std::collections::BTreeSet<_> = decoded
             .typed_records
             .iter()
@@ -416,6 +418,7 @@ mod tests {
             .is_err(),
             "typed records that collapse are refused, not shrunk"
         );
+        drop(duplicated_record);
 
         // The certificate issued with this root is not SEALED and says why.
         let with_root = certify(
@@ -428,6 +431,7 @@ mod tests {
                 atlas_root_sealed: false,
             },
         );
+        drop(report);
         assert_eq!(
             with_root
                 .atlas
@@ -440,12 +444,14 @@ mod tests {
             crate::certificate::CertificateState::Sealed
         );
         assert_eq!(with_root.certificate_id, atlas.certificate.certificate_id);
+        drop(atlas);
 
         // A corrupted file on disk is rejected.
         let mut bytes = fs::read(&out).unwrap();
         let last = bytes.len() - 1;
         bytes[last] ^= 1;
         fs::write(dir.join("corrupt.atlas"), &bytes).unwrap();
+        drop(bytes);
         assert!(verify(dir.join("corrupt.atlas"), None).is_err());
         fs::remove_dir_all(&dir).unwrap();
     }

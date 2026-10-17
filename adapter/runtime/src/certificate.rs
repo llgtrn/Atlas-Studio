@@ -114,6 +114,7 @@ mod tests {
             .artifacts
             .retain(|a| !a.path.starts_with("apps/cli/"));
         let reopened = certify_with(&without_cli, &[&pass, &pass]);
+        drop(without_cli);
         assert!(
             reopened
                 .blockers
@@ -179,6 +180,7 @@ mod tests {
                 .iter()
                 .any(|b| b == "ARTIFACTS_WITHOUT_SOURCE_FRONTEND: 1"),
         );
+        drop(unrecognized);
         assert!(has("COVERAGE_UNKNOWN: CALL"));
         assert!(has("MULTI_ENGINE_RECONCILIATION_ABSENT"));
         assert!(has("ATLAS_ROOT_ABSENT"));
@@ -215,6 +217,7 @@ mod tests {
         let mut unaccounted = report.clone();
         unaccounted.census.artifacts_accounted_total -= 1;
         let draft = certify_with(&unaccounted, &[&pass, &pass]);
+        drop(unaccounted);
         assert_eq!(draft.state, CertificateState::Draft);
         assert!(
             draft
@@ -228,6 +231,7 @@ mod tests {
         let mut orphan = report.clone();
         orphan.census.facts[0].provenance.source_revision = None;
         let orphaned = certify_with(&orphan, &[&pass, &pass]);
+        drop(orphan);
         assert!(
             orphaned
                 .blockers
@@ -242,6 +246,7 @@ mod tests {
         let last = anonymous.census.facts.len() - 1;
         anonymous.census.facts[last].provenance.extractor.clear();
         let anonymized = certify_with(&anonymous, &[&pass, &pass]);
+        drop(anonymous);
         assert!(
             anonymized
                 .blockers
@@ -298,10 +303,12 @@ mod tests {
                 .unwrap()
                 .contains(dimension)
         );
+        drop(asserted_only);
         let mut two_engines = report.clone();
         second.status = evaluated.status;
         two_engines.census.typed_obligations.push(second);
         let doubled = certify_with(&two_engines, &[&pass, &pass]);
+        drop(two_engines);
         let after = multi(&doubled).unwrap();
         assert!(!after.contains(dimension), "{after}");
         // Two engines on every evaluated (artifact, dimension): no blocker at all.
@@ -319,6 +326,7 @@ mod tests {
             .collect();
         everywhere.census.typed_obligations.extend(seconds);
         assert_eq!(multi(&certify_with(&everywhere, &[&pass, &pass])), None);
+        drop(everywhere);
 
         // A dirty input is not a pinned revision.
         let mut dirty = report.clone();
@@ -329,6 +337,7 @@ mod tests {
                 .iter()
                 .any(|b| b.starts_with("REVISION_DIRTY"))
         );
+        drop(dirty);
 
         // The certificate identity is deterministic for pinned input.
         assert_eq!(
