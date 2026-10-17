@@ -129,4 +129,50 @@ No such target changes or authority decisions are made in this source increment.
 This closes the third of three specifically inventoried runtime source responsibilities.
 It does not retire supported historical APIs, prove native target parity, extinguish any OSS
 dependency, resolve Atlas UNLICENSED/OD-15 rights or complete native Chronica OS V1.
+
+## Source emission without hosted reconstruction
+
+`self-reconstruct emit` is a source-owned caller for the existing pure `lift`,
+module validation and Rust backend. It reads a verified container and a design over
+that exact parent root; it does not call `attempt`, read workspace sources, create
+a shadow, discover a toolchain or run compiler/oracle checks. An unselected design
+remains data. For example, from the repository root:
+
+```sh
+atlas-systemizer self-reconstruct emit \
+  --atlas tools/atlas/evidence/self-reconstruction/governed-source-handoff/source.atlas \
+  --path core/src/lib.rs --type Mode \
+  --design tools/atlas/evidence/self-reconstruction/governed-source-handoff/design.json \
+  --out target/atlas/emission/mode.json --max-output-bytes 16384
+```
+
+The output contains the complete `module` and `emission`. The latter retains all
+four existing RustEmission fields: source, emitted identifiers, omitted reasons
+and assumptions. Arrays retain the backend's order and multiplicity. No report,
+equivalence verdict or authority is synthesized. `--comparison` is optional;
+workspace `--root` and `--out-dir` arguments belong to `attempt` and are refused.
+Without `--out`, the complete JSON is written to stdout. With it, only a new file
+or an identical regular-file replay is accepted. Conflicting evidence is never
+opened for writing. The optional byte cap counts the entire UTF-8 JSON plus final
+LF and refuses before stdout, output or parent creation; it never truncates fields.
+This is a caller's output-file limit, not work admission or a resource budget.
+
+At pinned Chronica `6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1`, the native
+`artifact.rust.emit` entry introduced at `a956c7b90d9ff1a1aa3e32a5fe55ac9ae8d61c58`
+accepts a bounded enum/predicate subset. Its declared bounds are 16384 input bytes,
+512 source bytes and 768 encoded emission bytes; its complete native result must
+also fit the existing 1024-byte work receipt. That result preserves source and
+identifier arrays with NATIVE_PORT provenance, not the source backend's assumptions
+or a compiler-equivalence report. The source CLI's complete module/emission bundle
+is not that native result frame and must not be substituted into it or reduced to
+hashes to fit. Broader source omissions remain explicit, rather than implying the
+target accepts the same construction language.
+
+Read-only comparison found the target's retained 3602-byte module, 4393-byte report,
+428-byte source, 45834-byte input and 679-byte design identical to the committed
+source exports. This compares retained bytes only; no target harness or runtime was
+executed by this source wave. The source caller's retained 428-byte text is an oracle
+for projection bytes, not new compiler, native-execution, rights or retirement proof.
+Hosted shadow/compiler execution and unresolved Atlas UNLICENSED/OD-15 rights remain
+separate contracts. Historical headers and IDs are compatibility data, not authority.
 Those obligations remain mandatory and separate. UI remains exclusively Chronica/Phenora.

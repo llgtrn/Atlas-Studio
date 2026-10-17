@@ -218,6 +218,43 @@ fn real_callers_preserve_candidates_roots_gap_report_and_parent_refusal() {
     assert_eq!(module, new.0);
     assert_eq!(emission, new.1);
     assert_eq!(report, new.2);
+    let pure = codara::emit(
+        &atlas,
+        &root,
+        "core/src/lib.rs",
+        "Opaque",
+        &design.design_id,
+        None,
+    )
+    .unwrap();
+    assert_eq!(pure.0, module);
+    assert_eq!(pure.1, emission);
+    assert!(!pure.1.omitted.is_empty());
+    assert!(!pure.1.assumptions.is_empty());
+    let pure_output = cli(&[
+        "self-reconstruct",
+        "emit",
+        "--atlas",
+        path(&atlas_path),
+        "--path",
+        "core/src/lib.rs",
+        "--type",
+        "Opaque",
+        "--design",
+        path(&design_path),
+    ]);
+    assert_eq!(pure_output.status.code(), Some(0));
+    assert!(pure_output.stderr.is_empty());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&pure_output.stdout).unwrap(),
+        serde_json::json!({
+            "module": module,
+            "emission": {
+                "source": emission.source, "emitted": emission.emitted,
+                "omitted": emission.omitted, "assumptions": emission.assumptions,
+            },
+        })
+    );
     let out_dir = fixture.base.join("attempt");
     let output = cli(&[
         "self-reconstruct",

@@ -1,0 +1,279 @@
+{
+  "utc": "2026-10-17T11:05:06.220707+00:00",
+  "scope": "Atlas source-only self-reconstruct emit caller; scoped direct cloud qualification independent of GitHub CI",
+  "base_commit": "6d6e7a1a1fe96a69307193245c0b5b6a16d6e30e",
+  "remote_main_before_publication": "6d6e7a1a1fe96a69307193245c0b5b6a16d6e30e",
+  "code_and_contract_preimages": [
+    {
+      "path": "adapter/runtime/src/codara/reconstruction.rs",
+      "bytes": 64329,
+      "sha256": "4a72acc38f8c5a1065b5572a4d319500ffc31428c2fbf44f9910cdb26e3a9cd4"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "bytes": 144440,
+      "sha256": "f7964ab3398b9e9452864ac67b44b8037c09ce496beec17022d42b17988deb5b"
+    },
+    {
+      "path": "apps/cli/tests/reconstruction_emission.rs",
+      "bytes": 7375,
+      "sha256": "a1c8df14ea53639fd63924f85e0a3385b439f350c45234b43fcc0622500cd5c1"
+    },
+    {
+      "path": "apps/cli/tests/reconstruction_residence.rs",
+      "bytes": 11506,
+      "sha256": "1ecaf48b421dd5517a72ed328abb1edac99963fe2870e9ad81432660634ff746"
+    },
+    {
+      "path": "tools/atlas/contracts/CODARA-RUNTIME-RECONSTRUCTION-RELOCATION.md",
+      "bytes": 12259,
+      "sha256": "419cf50f78ade0733f5ac9203104fb95134d7dcf8c8368bf506b184222088806"
+    }
+  ],
+  "checks": {
+    "cwd": "/workspace/Atlas-Studio-docs-native-v1-app",
+    "environment": {
+      "CARGO_HOME": "/workspace/.cargo",
+      "RUSTUP_HOME": "/workspace/.rustup",
+      "CARGO_TARGET_DIR": "/workspace/atlas-proof-repair-target",
+      "RUST_TEST_THREADS": "1",
+      "CARGO_BUILD_JOBS": "1"
+    },
+    "checks": [
+      {
+        "label": "fmt-apply",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all"
+        ],
+        "exit_code": 0,
+        "seconds": 1.6570158004760742,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "label": "fmt-final",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "seconds": 1.8728711605072021,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "label": "emission-final",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--test",
+          "reconstruction_emission",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "seconds": 3.611720085144043,
+        "stdout": "\nrunning 4 tests\ntest emission_rejects_workspace_arguments_and_ambiguous_or_invalid_byte_limits ... ok\ntest real_emission_preserves_the_full_module_source_identifiers_and_assumptions ... ok\ntest stale_parent_and_corrupt_container_refuse_before_creating_evidence ... ok\ntest whole_emission_budget_and_immutable_replay_preserve_every_byte ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s\n\n",
+        "stderr": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.21s\n     Running tests/reconstruction_emission.rs (/workspace/atlas-proof-repair-target/debug/deps/reconstruction_emission-e857e8664c901f26)\n"
+      },
+      {
+        "label": "cli-residence",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--test",
+          "reconstruction_residence",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "seconds": 1.6874985694885254,
+        "stdout": "\nrunning 1 test\ntest real_callers_preserve_candidates_roots_gap_report_and_parent_refusal ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s\n\n",
+        "stderr": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.35s\n     Running tests/reconstruction_residence.rs (/workspace/atlas-proof-repair-target/debug/deps/reconstruction_residence-ced14df10097a993)\n"
+      },
+      {
+        "label": "runtime-residence",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "runtime",
+          "--test",
+          "codara_reconstruction_residence",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "seconds": 0.7024147510528564,
+        "stdout": "\nrunning 1 test\ntest public_routes_preserve_full_lift_lineage_identity_and_refusals ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s\n\n",
+        "stderr": "   Compiling runtime v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter/runtime)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s\n     Running tests/codara_reconstruction_residence.rs (/workspace/atlas-proof-repair-target/debug/deps/codara_reconstruction_residence-a29d740a15903fd1)\n"
+      },
+      {
+        "label": "codec-units",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--bin",
+          "atlas-systemizer",
+          "--offline",
+          "codec_"
+        ],
+        "exit_code": 0,
+        "seconds": 6.4317307472229,
+        "stdout": "\nrunning 5 tests\ntest tests::atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte ... ok\ntest tests::codec_decode_refusal_keeps_the_full_typed_report_and_refusal_exit_on_replay ... ok\ntest tests::codec_decode_reports_preserve_input_and_prior_evidence_and_allow_exact_replay ... ok\ntest tests::codec_report_capacity_rejects_other_modes_before_any_operation ... ok\ntest tests::codec_report_capacity_requires_one_canonical_usize_or_absence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.02s\n\n",
+        "stderr": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.35s\n     Running unittests src/main.rs (/workspace/atlas-proof-repair-target/debug/deps/atlas_systemizer-0ff4842d67bc09f8)\n"
+      },
+      {
+        "label": "full-evidence",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--test",
+          "full_evidence",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "seconds": 0.7227902412414551,
+        "stdout": "\nrunning 4 tests\ntest bounded_decode_preserves_exact_bytes_and_refuses_without_output_for_all_seven_cases ... ok\ntest decode_stdout_and_exit_preserve_all_seven_full_source_reports ... ok\ntest payload_export_preserves_full_reports_and_existing_evidence_for_all_seven_cases ... ok\ntest report_capacity_argument_errors_fail_before_reading_or_writing ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s\n\n",
+        "stderr": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s\n     Running tests/full_evidence.rs (/workspace/atlas-proof-repair-target/debug/deps/full_evidence-17726615c616c8bd)\n"
+      },
+      {
+        "label": "clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--workspace",
+          "--all-targets",
+          "--offline",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 7.072527170181274,
+        "stdout": "",
+        "stderr": "    Checking runtime v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter/runtime)\n    Checking atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.98s\n"
+      }
+    ]
+  },
+  "actual_source_caller": {
+    "command": [
+      "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+      "self-reconstruct",
+      "emit",
+      "--atlas",
+      "/workspace/Atlas-Studio-docs-native-v1-app/tools/atlas/evidence/self-reconstruction/governed-source-handoff/source.atlas",
+      "--path",
+      "core/src/lib.rs",
+      "--type",
+      "Mode",
+      "--design",
+      "/workspace/Atlas-Studio-docs-native-v1-app/tools/atlas/evidence/self-reconstruction/governed-source-handoff/design.json",
+      "--out",
+      "/workspace/scratch/atlas-rust-emit-20261017T105345Z/mode.emission.json",
+      "--max-output-bytes",
+      "16384"
+    ],
+    "exit_code": 0,
+    "output_bytes": 4655,
+    "output_sha256": "5ab5cc1b2483dca11bb2a5dbe6fd8d690e94131642fbc562bb209e3a95d39aae",
+    "source_bytes": 428,
+    "source_sha256": "899ac904cb1f012a336edda3060f480e36bdfcac7e8501fd1813cca9240b3636",
+    "emitted": [
+      "type:core/src/lib.rs::Mode",
+      "fn:core/src/lib.rs::Mode::is_local"
+    ],
+    "omitted": [],
+    "assumptions": [
+      "derive paths: Debug Clone Copy PartialEq Eq PartialOrd Ord Hash Default from the prelude, Serialize Deserialize from serde"
+    ],
+    "module_id": "construction-module:blake3-256:501a1d01ea42e042c2f4feb7cee4debe30f856865c5dda4350da15e2f71706ce",
+    "scope": "Actual source caller only; no attempt, compiler/oracle, target execution, work admission, or authority"
+  },
+  "independent_review": {
+    "reviewer": "/root/emit_source_boundary_sol",
+    "model": "gpt-6.1-sol",
+    "mode": "independent read-only static review",
+    "result": "No actionable findings",
+    "scope": [
+      "runtime emission",
+      "strict CLI parsing",
+      "capacity and immutable-output helper compatibility",
+      "positive and Opaque regressions",
+      "contract documentation"
+    ],
+    "details": "Complete emission evidence and historical IDs preserved; no compiler/oracle path entered; no target-native parity claimed. Reviewer performed no writes or tests."
+  },
+  "retained_target_fixture_comparison": {
+    "status": "PASS_STATIC_BYTE_COMPARISON_ONLY",
+    "utc": "2026-10-17T11:01:06.146856+00:00",
+    "chronica": "6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1",
+    "source_export_commit": "6d6e7a1a1fe96a69307193245c0b5b6a16d6e30e",
+    "files": [
+      {
+        "target_path": "module.json",
+        "source_path": "attempt/module.json",
+        "url": "https://raw.githubusercontent.com/llgtrn/Chronica/6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1/assays/gate/fixtures/construction-emitter/module.json",
+        "bytes": 3602,
+        "sha256": "99af30ee1593a2c41893053642e188ac5d94f911f07865612c3e5699d7aa74c0",
+        "byteexact": true
+      },
+      {
+        "target_path": "report.json",
+        "source_path": "attempt/report.json",
+        "url": "https://raw.githubusercontent.com/llgtrn/Chronica/6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1/assays/gate/fixtures/construction-emitter/report.json",
+        "bytes": 4393,
+        "sha256": "ba52049caeaac42a29124248ea6ffbf2d715c6cbfae6b1e4ace32b4e6f943dcd",
+        "byteexact": true
+      },
+      {
+        "target_path": "shadow.rs.txt",
+        "source_path": "attempt/shadow.rs.txt",
+        "url": "https://raw.githubusercontent.com/llgtrn/Chronica/6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1/assays/gate/fixtures/construction-emitter/shadow.rs.txt",
+        "bytes": 428,
+        "sha256": "899ac904cb1f012a336edda3060f480e36bdfcac7e8501fd1813cca9240b3636",
+        "byteexact": true
+      },
+      {
+        "target_path": "source.atlas",
+        "source_path": "source.atlas",
+        "url": "https://raw.githubusercontent.com/llgtrn/Chronica/6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1/assays/gate/fixtures/construction-emitter/source.atlas",
+        "bytes": 45834,
+        "sha256": "46317c1fd72ad8b79a8138118e18e2f97d4c4a4472e8623e020d7c65af58b4b8",
+        "byteexact": true
+      },
+      {
+        "target_path": "design.json",
+        "source_path": "design.json",
+        "url": "https://raw.githubusercontent.com/llgtrn/Chronica/6d6a61dbf9f2e57b5150463a35bebef1ed93d7c1/assays/gate/fixtures/construction-emitter/design.json",
+        "bytes": 679,
+        "sha256": "d2c9a93866e7b21a7258eba53c6d36c0d85c8851593236c4a233f88081e3487b",
+        "byteexact": true
+      }
+    ],
+    "scope": "HTTPreadbytecomparison only; no target code, native harness, compiler, shadow, authority or rights assay."
+  },
+  "preservation": {
+    "other_checkouts_checked": 4,
+    "other_checkouts_unchanged": true,
+    "held_dirty_files_unchanged": 15,
+    "evidence_directory": "/workspace/scratch/atlas-rust-emit-20261017T105345Z"
+  },
+  "limits": [
+    "No Chronica native harness, target compiler, Fi-game or Esellios operations were executed.",
+    "No hosted reconstruction attempt, source compiler/oracle workflow, work admission, authority or live effects. Development Cargo checks compile Atlas source only.",
+    "Scoped source tests and lint do not requalify historical full source census/admission containers for this new commit.",
+    "Source full bundle is 4655 bytes, with 428 source bytes; it is not the native 1024-byte work-result frame. No truncation or hash-only substitution.",
+    "Historical identities and fixture bytes retained. Atlas UNLICENSED/OD-15 rights and broader compiler/shadow execution remain separate."
+  ]
+}

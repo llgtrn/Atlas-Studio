@@ -1103,6 +1103,38 @@ pub fn declared_variations(
     out
 }
 
+/// Lifts and emits from verified container records without reading a workspace, writing a
+/// shadow, discovering a toolchain or running an oracle. The caller supplies the verified
+/// container root; the complete source emission retains omissions and backend assumptions.
+pub fn emit(
+    container: &CensusAtlas,
+    container_root: &str,
+    path: &str,
+    type_name: &str,
+    design_id: &str,
+    comparison_id: Option<&str>,
+) -> Result<(ConstructionModule, RustEmission), String> {
+    let module = lift(
+        &container.typed_records,
+        container_root,
+        path,
+        type_name,
+        design_id,
+        comparison_id,
+    )?;
+    let ids = container
+        .typed_records
+        .iter()
+        .map(|record| record.record_id().as_str().to_owned())
+        .collect();
+    let violations = atlas_core::codara::construction::validate_module(&module, &ids);
+    if !violations.is_empty() {
+        return Err(format!("RECONSTRUCTION_INVALID: {violations:?}"));
+    }
+    let emission = atlas_core::codara::construction::rust::emit(&module);
+    Ok((module, emission))
+}
+
 /// Everything one attempt needs besides the container.
 pub struct Attempt<'a> {
     pub root: &'a Path,

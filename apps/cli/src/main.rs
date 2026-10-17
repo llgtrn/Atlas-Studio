@@ -27,32 +27,30 @@ fn json<T: serde::Serialize>(value: &T) -> Result<String, String> {
 
 /// A caller's report budget is explicit and unambiguous; malformed values never disable it.
 fn codec_report_capacity(args: &[String]) -> Result<Option<usize>, String> {
-    if args
-        .iter()
-        .any(|arg| arg.starts_with("--max-report-bytes="))
-    {
-        return Err("--max-report-bytes requires a separate decimal value".into());
+    byte_capacity(args, "--max-report-bytes")
+}
+
+fn byte_capacity(args: &[String], name: &str) -> Result<Option<usize>, String> {
+    if args.iter().any(|arg| arg.starts_with(&format!("{name}="))) {
+        return Err(format!("{name} requires a separate decimal value"));
     }
-    let count = args
-        .iter()
-        .filter(|arg| arg.as_str() == "--max-report-bytes")
-        .count();
+    let count = args.iter().filter(|arg| arg.as_str() == name).count();
     if count > 1 {
-        return Err("--max-report-bytes must occur at most once".into());
+        return Err(format!("{name} must occur at most once"));
     }
-    value(args, "--max-report-bytes")?
+    value(args, name)?
         .map(|value| {
             if value.is_empty()
                 || !value.bytes().all(|byte| byte.is_ascii_digit())
                 || (value.len() > 1 && value.starts_with('0'))
             {
-                return Err(
-                    "--max-report-bytes requires a canonical nonnegative decimal usize".into(),
-                );
+                return Err(format!(
+                    "{name} requires a canonical nonnegative decimal usize"
+                ));
             }
-            value.parse::<usize>().map_err(|_| {
-                "--max-report-bytes requires a canonical nonnegative decimal usize".into()
-            })
+            value
+                .parse::<usize>()
+                .map_err(|_| format!("{name} requires a canonical nonnegative decimal usize"))
         })
         .transpose()
 }
@@ -75,6 +73,10 @@ fn write_report_to_out(out: &str, text: &str) -> Result<(), String> {
 /// report commands retain their existing output behavior. Concurrent path replacement is
 /// outside the filesystem model, as for the artifact runtime's immutable output operations.
 fn write_codec_report_or_replay(out: &str, text: &str) -> Result<(), String> {
+    write_immutable_report_or_replay(out, text, "codec report")
+}
+
+fn write_immutable_report_or_replay(out: &str, text: &str, kind: &str) -> Result<(), String> {
     use std::io::{Read, Write};
 
     let path = Path::new(out);
@@ -102,7 +104,7 @@ fn write_codec_report_or_replay(out: &str, text: &str) -> Result<(), String> {
                 }
             }
             Err(format!(
-                "{out}: existing codec report is not an identical regular file"
+                "{out}: existing {kind} is not an identical regular file"
             ))
         }
         Err(error) => Err(format!("{out}: {error}")),
@@ -731,6 +733,86 @@ fn run(args: &[String]) -> Result<(), String> {
                 &name,
             );
             println!("{}", roots.join(","));
+        }
+        [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "emit" => {
+            // Source-only emission from the same verified inputs as an attempt, stopping
+            // before workspace writes, toolchain discovery and compiler/oracle execution.
+            let mut seen = std::collections::BTreeSet::new();
+            for pair in rest.chunks(2) {
+                let flag = pair[0].as_str();
+                if ![
+                    "--atlas",
+                    "--path",
+                    "--type",
+                    "--design",
+                    "--comparison",
+                    "--out",
+                    "--max-output-bytes",
+                ]
+                .contains(&flag)
+                {
+                    return Err(format!(
+                        "self-reconstruct emit: unsupported argument {flag}"
+                    ));
+                }
+                if pair.len() != 2 || pair[1].is_empty() || pair[1].starts_with("--") {
+                    return Err(format!("{flag} requires a value"));
+                }
+                if !seen.insert(flag) {
+                    return Err(format!("{flag} must occur at most once"));
+                }
+            }
+            let max = byte_capacity(rest, "--max-output-bytes")?;
+            let atlas = value(rest, "--atlas")?.ok_or("self-reconstruct emit requires --atlas")?;
+            let path = value(rest, "--path")?.ok_or("self-reconstruct emit requires --path")?;
+            let name = value(rest, "--type")?.ok_or("self-reconstruct emit requires --type")?;
+            let design_path =
+                value(rest, "--design")?.ok_or("self-reconstruct emit requires --design")?;
+            let design = runtime::design::read_design(&design_path)
+                .map_err(|e| format!("{design_path}: {e}"))?;
+            let comparison = match value(rest, "--comparison")? {
+                Some(path) => Some(
+                    runtime::design::read_comparison(&path).map_err(|e| format!("{path}: {e}"))?,
+                ),
+                None => None,
+            };
+            let (container, container_root) =
+                runtime::design::read_container(&atlas).map_err(|e| format!("{atlas}: {e}"))?;
+            if design.parent_root != container_root {
+                return Err(format!(
+                    "RECONSTRUCTION_INVALID: the design is over {}, the container is {container_root}",
+                    design.parent_root
+                ));
+            }
+            let (module, emission) = runtime::codara::reconstruction::emit(
+                &container,
+                &container_root,
+                &path,
+                &name,
+                &design.design_id,
+                comparison.as_ref().map(|c| c.comparison_id.as_str()),
+            )?;
+            let text = json(&serde_json::json!({
+                "module": module,
+                "emission": {
+                    "source": emission.source,
+                    "emitted": emission.emitted,
+                    "omitted": emission.omitted,
+                    "assumptions": emission.assumptions,
+                },
+            }))? + "\n";
+            if let Some(max) = max
+                && text.len() > max
+            {
+                return Err(format!(
+                    "RECONSTRUCTION_EMISSION_CAPACITY_EXCEEDED: bytes={}; max={max}",
+                    text.len()
+                ));
+            }
+            match value(rest, "--out")? {
+                Some(out) => write_immutable_report_or_replay(&out, &text, "emission evidence")?,
+                None => print!("{text}"),
+            }
         }
         [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "attempt" => {
             // G153 (ADR 0069): one SH1 shadow reconstruction of `--type` in `--path` from the
