@@ -1,0 +1,1047 @@
+{
+  "audit_kind": "READ_ONLY_TARGET_CALLER_CONTRACT",
+  "final_remote_observation": {"started_utc":"2026-10-17T00:01:45.826150+00:00","completed_utc":"2026-10-17T00:01:46.480583+00:00","exit_code":0,"stdout":"59f4e409a61ef1044515d80f7dca66e7decead4d\trefs/heads/main","stderr":"","audit_inspected_pin":"59f4e409a61ef1044515d80f7dca66e7decead4d","policy":"No further moving-main chase; future commits require separate audit"},
+  "checked_at_utc": "2026-10-16T23:58:31Z",
+  "scope": {
+    "atlas_source": "492406ea795bd6fe73018e15c2c545353b0e33b4",
+    "chronica_main_observed": "59f4e409a61ef1044515d80f7dca66e7decead4d",
+    "prior_chronica_pin": "994ba80f6e91a6ea85147f378e934652aeed4a51",
+    "central_fixed_blueprint": "7828a94acc0a9f94029eac7e0e4439180e3c0e43",
+    "central_fixed_blueprint_sha256": "264470ad8ff620bf23c4b0f7224140a51ba82bf0c3019048006820b55152c8c5",
+    "central_main_observed": "6f64251283bcdcdde41f4bfb4a066c053332e149",
+    "chronica_initial_main_observed": "4b5e163042c621702d7700b53087351f40fe192f"
+  },
+  "actions": {
+    "source_changes": false,
+    "index_changes": false,
+    "state_changes": false,
+    "tests_run": false,
+    "census_run": false,
+    "host_opened": false,
+    "live_effects": false,
+    "other_repositories_edited": false,
+    "checkout_or_clone": false,
+    "reads": "git show/rev-parse/ls-remote; existing snapshot paths; authorized GitHub get_repo/fetch_file/compare_commits/git tree",
+    "writes": [
+      "/tmp/atlas-runtime-reconstruction-relocation/target-contract-audit.md",
+      "/tmp/atlas-runtime-reconstruction-relocation/target-contract-audit.json"
+    ]
+  },
+  "target_delta": {
+    "status": "ahead",
+    "ahead_by": 5,
+    "behind_by": 0,
+    "relevant_new": [
+      "physiology/world/src/source_job.rs",
+      "physiology/world/src/event_envelope.rs",
+      "physiology/storage/src/native_log.rs conditional batch",
+      "physiology/storage/src/materialization.rs mixed projections",
+      "physiology/host/src/lib.rs mixed world wiring"
+    ],
+    "unchanged_blobs": {
+      "run": "6f6cb85eab67a2d11e09e4a61efc8a109e24b4e3",
+      "work_receipt": "c42d1645bda9cff9f13fa010c5dca4e1b39f059a"
+    },
+    "interpretation": "New dedicated source assertion capture/read is a real reusable target-owned precedent; no reconstruction provider/result mapping or compiler workflow implemented by that commit. Existing result1/Functions limits unchanged.",
+    "final_ahead_by": 6,
+    "final_new_mechanisms": [
+      "Lineara source assertion receipt codec and exact bounded corpus/case/phase capture",
+      "Host import_source_observation and current Holding/purpose-aware observe_source_observation",
+      "Host-private work_under_lease_with_codec refactor with complete TargetBinding",
+      "Native node pump source validation/import/read CLI"
+    ]
+  },
+  "target_tree": {
+    "sha": "4b5e163042c621702d7700b53087351f40fe192f",
+    "truncated": false,
+    "entries": 4306,
+    "construction_reconstruction_paths": [
+      {
+        "path": ".ynventa/declared/absorption/evaluation.request-construction-cache.jsonl",
+        "sha": "25ae12f99afddbb902f8a3e9e09312130423e9aa"
+      },
+      {
+        "path": "evolution/census/tests/reconstruction.rs",
+        "sha": "90cba204a16739ef83470cc0b63748005c271c3d"
+      },
+      {
+        "path": "organism/evaluation/tests/absorb_evaluation_request_construction_cache.rs",
+        "sha": "4da84a5a190bcd4155807582eea47d0523b5a948"
+      }
+    ],
+    "negative_scope": "No Atlas reconstruction-named implementation path in complete tree; inspected production KernelTable has no Atlas reconstruction entry. This is bounded static evidence, not an executed target census."
+  },
+  "local_files": [
+    {
+      "path": "adapter/runtime/src/self_reconstruction.rs",
+      "bytes": 63226,
+      "sha256": "4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd",
+      "blob": "3e1e82789c12c18ef97c4e55d5df91b430cf6216"
+    },
+    {
+      "path": "apps/cli/src/main.rs",
+      "bytes": 140573,
+      "sha256": "5d816d57a446d91970b09c1a1ab757ce45cb28a335279b5507d4124669c88ecc",
+      "blob": "3756e2d398ad736ac8fcacced4ab0daecbafdd5b"
+    },
+    {
+      "path": "core/src/codara/construction/mod.rs",
+      "bytes": 31118,
+      "sha256": "6afa0a1546d9df16ad1d080d1345dbe90eed9679404566bd538fa0e8b1fbee08",
+      "blob": "75ab45ecaf456b673314c40422491d7bbdf7d827"
+    },
+    {
+      "path": "core/src/codara/construction/rust.rs",
+      "bytes": 10599,
+      "sha256": "3e65adff5409aae98c1df487d0c895fd3d9bcea89bf3782038e0bde36e62e038",
+      "blob": "c879b768b4f8f1ba443fdef9edad7cc20e205b69"
+    },
+    {
+      "path": "tools/atlas/contracts/FUNCTIONS-EVIDENCE-BYTES-PROPOSAL.md",
+      "bytes": 11266,
+      "sha256": "4464ec853e47d4f432ff074bcba3b89c4eb51677ea9941e69f686ae2f95ed6ef",
+      "blob": "0886000f6adbc26be5487611937b70f9884302e4"
+    },
+    {
+      "path": "tools/atlas/contracts/CODARA-REMAINING-SOURCE-RESIDENCES.md",
+      "bytes": 14484,
+      "sha256": "13b34cb3ed3cf8c05c731bcdc6d889a8b98c471f978de576dcf7a2b774cc283b",
+      "blob": "788d08a46a37cb5bbd8a87bf37c56a8976f34096"
+    },
+    {
+      "path": "tools/atlas/roadmap/SELF-RECONSTRUCTION.toml",
+      "bytes": 6906,
+      "sha256": "c5c3ffd73815feebecb0485efe0e26c0ac1d2493903c0f179e4f8c07c86a5874",
+      "blob": "7ae13a7f9d2f53e766005a967c9a9281d416d3c7"
+    },
+    {
+      "path": "Cargo.toml",
+      "bytes": 281,
+      "sha256": "cdc29903fb53584dace14c3932bc0caeb32cfd28f813960a95b334c46e572b69",
+      "blob": "05c8879e999dc49cb03fe7375e14eb71354eb4a1"
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/candidates.json",
+      "bytes": 1908,
+      "sha256": "18619add7a2f95d8e64f8355d742e5b3ffd6670b14fa5760b0082d7e90143d45",
+      "blob": "1c2a17656cab40ae89257f698475c92cde1ffa7b"
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt1/module.json",
+      "bytes": 5685,
+      "sha256": "2e9065b2ee4c3da8e6edc65ee819993a85e7be736165d11d956183f1944dfc0d",
+      "fields": {
+        "module_id": "construction-module:blake3-256:98f1fb2f750174d70389b0bd4d7835431cfa33b89d7e089b695fb4788b4b1fe9",
+        "target": "core/src/donor/mod.rs::MaterializationMode"
+      },
+      "checks": 0,
+      "gaps": 10
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt1/report.json",
+      "bytes": 4088,
+      "sha256": "4c66ef687d0c859aa5a01f197faa2e1d440128d60c3b4a9cd1b89aee4dcbc2e7",
+      "fields": {
+        "module_id": "construction-module:blake3-256:98f1fb2f750174d70389b0bd4d7835431cfa33b89d7e089b695fb4788b4b1fe9",
+        "report_id": "self-reconstruction:blake3-256:b398bc6b1046b78c536214241a6fcd01c52ac392368940869f3645ded6bbfd8a",
+        "target": "core/src/donor/mod.rs::MaterializationMode",
+        "verdict": "CONSTRUCTION_GAP",
+        "design_state": "VALIDATED"
+      },
+      "checks": 0,
+      "gaps": 10
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt2/module.json",
+      "bytes": 4079,
+      "sha256": "6c265f0459d3dfd226dc12f4724ad0d4f423a96390a7f50fab36494fbea517c0",
+      "fields": {
+        "module_id": "construction-module:blake3-256:704416c727da3ad2af445cd3b41db0272da0e8648d1f2f83443f9151b8bf6969",
+        "target": "core/src/donor/mod.rs::MaterializationMode"
+      },
+      "checks": 0,
+      "gaps": 1
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt2/report.json",
+      "bytes": 5770,
+      "sha256": "7386eba5a73610eae276cc412bab7b480e0907307498b3a2a2790e4e658f1b8e",
+      "fields": {
+        "module_id": "construction-module:blake3-256:704416c727da3ad2af445cd3b41db0272da0e8648d1f2f83443f9151b8bf6969",
+        "report_id": "self-reconstruction:blake3-256:b791c2e9e8bc933436bb30abce22dd9d32b415f2e1718b18900fcfcc5e0c068d",
+        "target": "core/src/donor/mod.rs::MaterializationMode",
+        "verdict": "CONSTRUCTION_GAP",
+        "design_state": "VALIDATED"
+      },
+      "checks": 11,
+      "gaps": 1
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt2/shadow.rs.txt",
+      "bytes": 723,
+      "sha256": "fd578ef7275268a27436b7448ada225f7c4a6e94a94649ae731066f58e87161e",
+      "fields": {},
+      "checks": 0,
+      "gaps": 0
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt3/module.json",
+      "bytes": 5094,
+      "sha256": "08bd874aee4ff4e7bb3dd402215bb29f9db5fbb721e5f8f3536b1ef8d4fdda10",
+      "fields": {
+        "module_id": "construction-module:blake3-256:17830a838e9dbb49789ea3dfb998f12cf215154ee8425a64e5b8c8b763a6fd34",
+        "target": "core/src/donor/mod.rs::MaterializationMode"
+      },
+      "checks": 0,
+      "gaps": 0
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt3/report.json",
+      "bytes": 6491,
+      "sha256": "c80c181caae777487e360b50d8a3b84d8a34e1d2bcd02497a5a5f08939720fdc",
+      "fields": {
+        "module_id": "construction-module:blake3-256:17830a838e9dbb49789ea3dfb998f12cf215154ee8425a64e5b8c8b763a6fd34",
+        "report_id": "self-reconstruction:blake3-256:10b731c96346e72d6f23342a6c3ffda4d09e5e79eb5f895ff82d91689748b8ba",
+        "target": "core/src/donor/mod.rs::MaterializationMode",
+        "verdict": "RECONSTRUCTED_WITH_DECLARED_VARIATION",
+        "design_state": "VALIDATED"
+      },
+      "checks": 14,
+      "gaps": 0
+    },
+    {
+      "path": "tools/atlas/evidence/self-reconstruction/SR1/attempt3/shadow.rs.txt",
+      "bytes": 832,
+      "sha256": "64c7eba33ac171271761ea414c45747476c21da26296cf30852aed6644e12bd1",
+      "fields": {},
+      "checks": 0,
+      "gaps": 0
+    }
+  ],
+  "target_files": [
+    {
+      "path": "phenora/codara/src/run.rs",
+      "git_blob": "6f6cb85eab67a2d11e09e4a61efc8a109e24b4e3",
+      "characters": 91738,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/phenora/codara/src/run.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 62,
+          "text": "//! Running: verify the capsule against the world as it is now, check that the authorities it\n//! records are the ones the host will ask, then ask the host to run the pathway. The host\n//! re-offers the pathway, asks authority for each placement and admission for each step; this\n//! module decides none of it, and a capsule carries no witness it could use instead.\n//!\n//! ```text\n//! authenticate_requester    the requester is proved when the directory requires a proof (a credential)\n//! Capsule::verify           the world the capsule rests on is still the world (Valid grants nothing)\n//! compose_checked           the steps are still compatible under the obligations the caller holds\n//! required authorities      what the capsule records covers what the host will ask\n//! authorized_pathways       the requester may request every step (Thymora, reads only)\n//! run_pathway               the host composes again, then per step asks Thymora, Porion, Metabion\n//! ```\n//!\n//! Each stage is reported under its own name and no stage stands in for another: a verified\n//! capsule is not an authorized pathway, an authorized pathway is not an admitted step, an\n//! admitted step is not an executed one, and an executed one is not an observation until the host\n//! has read it back.\n//!\n//! Who runs it is a statement until it is proved (DECISION 0157, PROVISIONAL). A capsule names the\n//! principal it runs as (the `as` clause of its program), and a name proves nobody. A directory\n//! whose operator set `auth-require` has said that no request may be taken on a name again, and the\n//! node's command line and control socket keep that: a bare `--as` is refused and a socket line\n//! must begin `auth TOKEN`. [`authenticate_requester`] is the same door for a capsule: before the\n//! world is read it asks the host to authenticate the credential the caller presents, which must\n//! prove the principal the capsule runs as, and it refuses a bare name when the directory requires\n//! a credential. It decides nothing else: authentication grants nothing, and the requester still\n//! acts only while Active and authorized, within the scope of the credential, which the host\n//! applies from then on to every act of the run. [`run`] does not ask it again, because it takes a\n//! host the caller has opened and has not been given a credential: the stage belongs to whoever\n//! opens the host for a run (the command line, `cli::run_capsule`), and a caller that runs a\n//! capsule without it runs it on a name.\n//!\n//! The command line executes only kernels it was given in a [`KernelTable`], which\n//! [`KernelTable::production`] builds from the production kernels that exist, each with what it\n//! asks of the body ([`TableDemand`] is the resource model Ontogen is given). The work a pathway\n//! performs is a [`ProgramWork`]: where each step is placed comes from the program (the resources\n//! it allows effects on and the instant it reads), and what each step runs comes from the table.\n//! A step whose implementation has no kernel in the table is not placed, so it is not requested\n//! and not run, and the refusal names it (DECISION 0125, Q8).\n//!\n//! A kernel answers bytes for the step after it. Most of the production kernels answer text\n//! written to be read (the byte door of their module defines it), and the table enters those as\n//! printing ([`KernelTable::register_printing`]): the work keeps what its last step answered, and\n//! the command line prints it when every step of the pathway ran, met its contract and was read\n//! back (DECISION 0146), and, under another label, when the pathway stopped at a step that ran and\n//! did not meet its contract, so that the kernel's own account of why is not lost (DECISION 0149).\n//! These printing outputs remain the output of an executed step, not an observation. The bounded\n//! native BLAKE3 verification also supplies a digest-only result in its immutable work evidence;\n//! the command line displays that result only after the host's authorized canonical read.\n//!\n//! Bytes pass from one step to the next as the work keeps them: the first chain that runs is a\n//! feature transform and then the held-out comparison of least squares, where the frame the\n//! transform answers is the frame the comparison reads (DECISION 0150). Which kernels are chained\n//! is decided by the graph and its declarations and never here; the graph joins these two only by a\n//! declaration that neither family makes for itself.\n//!\n//! One kernel answers bytes when its contract is met and text when it is not: the chart constructor\n//! returns the canonical bytes of a specification, or the rules that its description breaks. The\n//! table enters it as diagnosing ([`KernelTable::register_diagnosing`]): nothing of a met answer is\n//! printed, as for a kernel entered plainly, and the text of a step that stopped the run is printed\n//! under the label of a stopped step, as for a printing kernel (DECISION 0154, PROVISIONAL)."
+        },
+        {
+          "start_line": 232,
+          "end_line": 303,
+          "text": "pub fn run<M: ResourceModel, W: PathwayWork>(\n    host: &mut Host,\n    capsule: &Capsule,\n    graph: &GraphView,\n    model: &M,\n    contracts: &Contracts,\n    work: &mut W,\n    run_key: &str,\n    reading: Reading,\n) -> Result<PathwayRun, RunError> {\n    let Some(requester) = capsule.ir().requester().cloned() else {\n        return Err(RunError::NoRequester);\n    };\n    let pathway = capsule.selection().pathway.clone();\n    let snapshot: Snapshot = graph.as_of(reading.valid, reading.known);\n    {\n        let world = HostWorld::new(&*host, graph);\n        // VERIFY: the world the capsule rests on, read again.\n        let verified = capsule.verify(&world, &snapshot, model, reading);\n        let faults = world.faults();\n        if !faults.is_empty() {\n            return Err(RunError::World(faults));\n        }\n        if let Verification::Drifted(drifts) = verified {\n            return Err(RunError::Drifted(drifts));\n        }\n        // OBLIGATIONS: the steps are still compatible under the contracts the caller holds.\n        if let Some(goal) = capsule.ir().goal() {\n            let checked = compose_checked(\n                &snapshot,\n                goal,\n                model,\n                &capsule.ir().selection_constraints(),\n                contracts,\n                &capsule.ir().facts(),\n            )\n            .map_err(RunError::FlowUndefined)?;\n            if !checked.pathways.contains(&pathway) {\n                if let Some(refused) = checked.refused.into_iter().find(|i| i.pathway == pathway) {\n                    return Err(RunError::Incompatible(Box::new(refused)));\n                }\n            }\n        }\n        // AUTHORITIES: what the host will ask is covered by what the capsule recorded.\n        let asked = world\n            .asks(&requester, &pathway, &*work)\n            .map_err(|e| match e {\n                AsksError::Unplaced { step } => RunError::Unplaced { step },\n                AsksError::Host(e) => RunError::Host(e),\n            })?;\n        let asked: Vec<(String, NodeId)> = asked.into_iter().collect();\n        let missing = capsule.understated(&asked);\n        if !missing.is_empty() {\n            return Err(RunError::CapsuleUnderstatesAuthority { missing });\n        }\n        // AUTHORIZED: the requester may request every step (reads only).\n        let authorized = host\n            .authorized_pathways(&requester, std::slice::from_ref(&pathway), &*work)\n            .map_err(RunError::Host)?;\n        if let Some(withheld) = authorized.withheld.first() {\n            return Err(RunError::Withheld(*withheld));\n        }\n    }\n    // EXECUTED: the host composes again, then asks authority and admission for every step.\n    let constraints = capsule.ir().selection_constraints();\n    let offer = Offer {\n        graph: &snapshot,\n        model,\n        constraints: &constraints,\n    };\n    host.run_pathway(&requester, &offer, &pathway, work, run_key)\n        .map_err(RunError::Pathway)"
+        },
+        {
+          "start_line": 308,
+          "end_line": 344,
+          "text": "/// What a kernel answers for one step.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub struct KernelAnswer {\n    /// The bytes it produced; the next step is fed them.\n    pub output: Vec<u8>,\n    /// Whether the output meets the contract of the capability, judged by the entry and not by\n    /// the host.\n    pub met: bool,\n}\n\n/// One kernel the command line may run.\n#[derive(Clone, Debug)]\npub struct KernelEntry {\n    /// The capability the kernel realizes, by its name.\n    pub capability: String,\n    /// The kernel's name; the implementation that stands for it carries the same name.\n    pub name: String,\n    /// What running the kernel for one step asks of the body, by dimension: the amounts the table\n    /// states for it, in the words of the host's declared quantities. It is the resource model\n    /// Ontogen is given for an implementation of this name (an implementation with no entry has\n    /// no demand and is refused), declared by the owner of the table and never measured.\n    pub demand: &'static [(&'static str, u128)],\n    /// Runs the kernel on the bytes of the step before and the program's facts, or says why it\n    /// cannot (a kernel's own refusal is the step failing).\n    pub run: fn(&[u8], &Facts) -> Result<KernelAnswer, String>,\n}\n\n/// Why a kernel was not entered in a table.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub enum TableError {\n    /// A kernel of this name is already in the table.\n    Duplicate(String),\n}\n\n/// The kernels the command line executes, by name. An implementation the graph offers is run\n/// only if a kernel of its name, realizing its capability, is in the table: the table is the\n/// whole of what `run` can execute."
+        },
+        {
+          "start_line": 554,
+          "end_line": 582,
+          "text": "/// What one BLAKE3-256 verification asks of the body: one `cpu_units`. PROVISIONAL, awaiting the\n/// owner's ratification (DECISION 0129): the amount is a declared unit cost, the one the suite has\n/// always used for this kernel, and not a measurement; `cpu_units` is the quantity the host\n/// declares for a resource of type `cpu`. A measured cost is a change of this constant, or of\n/// where a demand is read from, and of nothing else.\npub const VERIFY_DEMAND: [(&str, u128); 1] = [(\"cpu_units\", 1)];\n\n/// The production BLAKE3-256 verification: the input is hashed and set beside the digest the\n/// program claims (the fact `claimed`, 64 hexadecimal digits). Nothing claimed verifies nothing,\n/// so the contract is not met. The kernels crate's registry selects the kernel, so its own\n/// requirement (the input size) is the registry's refusal.\nfn verify_blake3(input: &[u8], facts: &Facts) -> Result<KernelAnswer, String> {\n    let claimed = facts\n        .text(\"claimed\")\n        .and_then(unhex)\n        .and_then(|bytes| <[u8; 32]>::try_from(bytes).ok());\n    let request = DigestRequest { input, claimed };\n    let mut registry = KernelRegistry::new();\n    blake3::register(&mut registry).map_err(|e| e.to_string())?;\n    let capability =\n        SemanticAction::try_from(blake3::VERIFY_CAPABILITY).map_err(|e| format!(\"{e:?}\"))?;\n    let bound = registry\n        .select_named(&capability, blake3::VERIFY_KERNEL, &request)\n        .map_err(|e| e.to_string())?;\n    let check = bound.run(&request);\n    Ok(KernelAnswer {\n        output: check.computed.to_vec(),\n        met: check.matches() == Some(true),\n    })"
+        },
+        {
+          "start_line": 1217,
+          "end_line": 1324,
+          "text": "/// A bounded native BLAKE3 verification result. The input itself is never exposed in evidence.\n/// This is a provider payload inside the existing work receipt, not an authority contract.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub struct Blake3Result {\n    pub input_sha256: [u8; 32],\n    pub ir_digest: [u8; 32],\n    pub claimed: Option<[u8; 32]>,\n    pub computed: [u8; 32],\n    pub matched: bool,\n}\n\nimpl Blake3Result {\n    pub fn to_bytes(&self) -> Vec<u8> {\n        let mut out = Writer::new();\n        out.u16(1)\n            .str(\"codara.blake3.verification\")\n            .bytes(&self.input_sha256)\n            .bytes(&self.ir_digest);\n        match self.claimed {\n            Some(claimed) => {\n                out.u8(1).bytes(&claimed);\n            }\n            None => {\n                out.u8(0);\n            }\n        }\n        out.bytes(&self.computed).u8(u8::from(self.matched));\n        out.finish()\n    }\n\n    pub fn from_bytes(bytes: &[u8]) -> Result<Self, DecodeError> {\n        let invalid = |field| DecodeError::Invalid {\n            field,\n            reason: \"invalid native verification result\".to_owned(),\n        };\n        if bytes.len() > 1024 {\n            return Err(invalid(\"result size\"));\n        }\n        let mut input = Reader::new(bytes);\n        let version = input.u16()?;\n        if version != 1 {\n            return Err(DecodeError::UnsupportedVersion(version));\n        }\n        if input.str()? != \"codara.blake3.verification\" {\n            return Err(invalid(\"result kind\"));\n        }\n        let input_sha256 = input\n            .bytes()?\n            .try_into()\n            .map_err(|_| invalid(\"input digest\"))?;\n        let ir_digest = input\n            .bytes()?\n            .try_into()\n            .map_err(|_| invalid(\"IR digest\"))?;\n        let claimed = match input.u8()? {\n            0 => None,\n            1 => Some(\n                input\n                    .bytes()?\n                    .try_into()\n                    .map_err(|_| invalid(\"claimed digest\"))?,\n            ),\n            tag => {\n                return Err(DecodeError::UnknownTag {\n                    field: \"claim\",\n                    tag,\n                })\n            }\n        };\n        let computed = input\n            .bytes()?\n            .try_into()\n            .map_err(|_| invalid(\"computed digest\"))?;\n        let matched = match input.u8()? {\n            0 => false,\n            1 => true,\n            tag => {\n                return Err(DecodeError::UnknownTag {\n                    field: \"matched\",\n                    tag,\n                })\n            }\n        };\n        input.finish()?;\n        if matched != (claimed == Some(computed)) {\n            return Err(invalid(\"verdict\"));\n        }\n        Ok(Self {\n            input_sha256,\n            ir_digest,\n            claimed,\n            computed,\n            matched,\n        })\n    }\n}\n\n/// Compact evidence for strict historical FUNCTIONS validation, never the decoded record tables.\n/// Missing digests remain missing when refusal happened before their recomputation.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub struct FunctionsResult {\n    pub object_sha256: [u8; 32],\n    pub ir_digest: [u8; 32],\n    pub file_name_sha256: [u8; 32],\n    pub expected: Option<[u8; 32]>,\n    pub computed: Option<[u8; 32]>,\n    pub verified: bool,\n    pub first_defect: Option<Defect>,"
+        },
+        {
+          "start_line": 1357,
+          "end_line": 1366,
+          "text": "    pub fn from_bytes(bytes: &[u8]) -> Result<Self, DecodeError> {\n        let invalid = |field| DecodeError::Invalid {\n            field,\n            reason: \"invalid historical FUNCTIONS result\".into(),\n        };\n        if bytes.len() > 1024 {\n            return Err(invalid(\"result size\"));\n        }\n        let mut input = Reader::new(bytes);\n        let version = input.u16()?;"
+        },
+        {
+          "start_line": 1577,
+          "end_line": 1585,
+          "text": "    /// The work of a program: `ir` says where steps may be placed and from when; `snapshot` is the\n    /// graph the pathway was composed over, which names the capabilities and implementations the\n    /// table is matched against; `payload` is what the first step is fed.\n    pub fn new(\n        ir: &SemanticIr,\n        snapshot: &Snapshot,\n        table: &KernelTable,\n        payload: Vec<u8>,\n    ) -> ProgramWork {"
+        },
+        {
+          "start_line": 1638,
+          "end_line": 1662,
+          "text": "        let mut resources: Vec<ResourceId> = ir\n            .allowed_effects()\n            .into_iter()\n            .filter(|(word, _)| word == \"resource.work\")\n            .filter_map(|(_, on)| snapshot.node(on))\n            .filter_map(|node| ResourceId::try_from(node.key.local()).ok())\n            .collect();\n        resources.sort();\n        resources.dedup();\n        ProgramWork {\n            ir_digest: *ir.digest().as_bytes(),\n            native_results: BTreeMap::new(),\n            functions_results: BTreeMap::new(),\n            price_results: BTreeMap::new(),\n            price_text_results: BTreeMap::new(),\n            kernels,\n            printing,\n            diagnosing,\n            resources,\n            start: ir.reading().valid,\n            native_execution_at: None,\n            facts: ir.facts(),\n            carry: payload,\n            last: None,\n            refused,"
+        },
+        {
+          "start_line": 1749,
+          "end_line": 1794,
+          "text": "impl PathwayWork for ProgramWork {\n    fn request_binding(&self, _index: usize, step: &Step) -> Option<RequestDigest> {\n        let kernel = self.kernels.get(&step.implementation)?;\n        let domain: &[u8] = if kernel.name == blake3::VERIFY_KERNEL\n            && kernel.capability == blake3::VERIFY_CAPABILITY\n        {\n            b\"codara.blake3.verification.v1\"\n        } else if kernel.name == legacy_artifact::KERNEL_FUNCTIONS_OBJECT\n            && kernel.capability == legacy_artifact::VERIFY_CAPABILITY\n        {\n            b\"codara.legacy.functions.v1\"\n        } else if kernel.name == price::PRICE_KERNEL && kernel.capability == price::PRICE_CAPABILITY\n        {\n            b\"codara.commerce.price.parse-exact.v1\"\n        } else if kernel.name == price_text::PRICE_TEXT_KERNEL\n            && kernel.capability == price_text::PRICE_TEXT_CAPABILITY\n        {\n            b\"codara.commerce.price.parse-text.v1\"\n        } else {\n            return None;\n        };\n        Some(RequestDigest::of(&[\n            domain,\n            &self.ir_digest,\n            step.implementation.to_string().as_bytes(),\n            step.capability.to_string().as_bytes(),\n            kernel.name.as_bytes(),\n            &sha256(&self.carry),\n        ]))\n    }\n\n    fn outcome_evidence(&self, index: usize, _step: &Step) -> Option<Vec<u8>> {\n        self.native_results\n            .get(&index)\n            .map(Blake3Result::to_bytes)\n            .or_else(|| {\n                self.functions_results\n                    .get(&index)\n                    .map(FunctionsResult::to_bytes)\n            })\n            .or_else(|| self.price_results.get(&index).map(PriceResult::to_bytes))\n            .or_else(|| {\n                self.price_text_results\n                    .get(&index)\n                    .map(PriceTextResult::to_bytes)\n            })"
+        },
+        {
+          "start_line": 1838,
+          "end_line": 1844,
+          "text": "    fn perform(\n        &mut self,\n        index: usize,\n        step: &Step,\n        _effect: &EffectRef,\n        _lease: &world::lease::Lease,\n    ) -> Result<WorkReport, String> {"
+        },
+        {
+          "start_line": 1877,
+          "end_line": 1931,
+          "text": "        } else if kernel.name == legacy_artifact::KERNEL_FUNCTIONS_OBJECT\n            && kernel.capability == legacy_artifact::VERIFY_CAPABILITY\n        {\n            let (answer, verdict) = functions_answer(&self.carry, &self.facts)?;\n            let file_name = self\n                .facts\n                .text(\"file_name\")\n                .expect(\"functions_answer required file_name\");\n            let result = FunctionsResult {\n                object_sha256: sha256(&self.carry),\n                ir_digest: self.ir_digest,\n                file_name_sha256: sha256(file_name.as_bytes()),\n                expected: verdict.expected.map(|digest| *digest.bytes()),\n                computed: verdict.computed.map(|digest| *digest.bytes()),\n                verified: verdict.is_verified(),\n                first_defect: verdict.refusals().first().map(|(defect, _)| *defect),\n            };\n            FunctionsResult::from_bytes(&result.to_bytes()).map_err(|error| error.to_string())?;\n            self.functions_results.insert(index, result);\n            answer\n        } else {\n            (kernel.run)(&self.carry, &self.facts)?\n        };\n        let met = answer.met;\n        if kernel.name == blake3::VERIFY_KERNEL && kernel.capability == blake3::VERIFY_CAPABILITY {\n            let computed = <[u8; 32]>::try_from(answer.output.as_slice())\n                .map_err(|_| \"the BLAKE3 kernel returned no 32-byte digest\".to_owned())?;\n            let claimed = self\n                .facts\n                .text(\"claimed\")\n                .and_then(unhex)\n                .and_then(|bytes| <[u8; 32]>::try_from(bytes).ok());\n            if met != (claimed == Some(computed)) {\n                return Err(\"the BLAKE3 kernel verdict contradicts its digest\".to_owned());\n            }\n            self.native_results.insert(\n                index,\n                Blake3Result {\n                    input_sha256: sha256(&self.carry),\n                    ir_digest: self.ir_digest,\n                    claimed,\n                    computed,\n                    matched: met,\n                },\n            );\n        }\n        self.carry = answer.output;\n        self.last = Some(Performed {\n            step: index,\n            kernel: kernel.name.clone(),\n            diagnosing: self.diagnosing.contains(&step.implementation),\n            printing: self.printing.contains(&step.implementation),\n            met,\n        });\n        Ok(WorkReport::known(consumed, met))"
+        }
+      ]
+    },
+    {
+      "path": "phenora/codara/src/cli.rs",
+      "git_blob": "c172099114b53cd65953878ebe0af630997c9606",
+      "characters": 95242,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/phenora/codara/src/cli.rs",
+      "evidence": [
+        {
+          "start_line": 209,
+          "end_line": 216,
+          "text": "    }\n}\n\n/// The most bytes of a kernel's text that `run` prints. PROVISIONAL, awaiting the owner (DECISION\n/// 0146): large enough for the summary, a quantile and a fit over some tens of columns (about\n/// 250 bytes a column), small enough that one run cannot flood a terminal or a log.\npub const OUTPUT_LIMIT: usize = 16 * 1024;\n"
+        },
+        {
+          "start_line": 263,
+          "end_line": 275,
+          "text": "        .iter()\n        .filter(|c| **c != Command::Declarations)\n        .map(|c| c.name())\n        .collect();\n    format!(\n        \"usage: codara {} [--data DIR] [--time VALID --known TRANSACTION] FILE\\n       \\\n         codara build [--target ir|capsule] [--out FILE] [--data DIR] FILE\\n       \\\n         codara run [--payload FILE] [--run-key KEY] [--token TOKEN] [--data DIR] CAPSULE\\n       \\\n         codara graph [--allow-unresolved] [--data DIR] FILE\\n       \\\n         codara declarations [FAMILY...]\\n\",\n        names.join(\"|\")\n    )\n}"
+        },
+        {
+          "start_line": 459,
+          "end_line": 471,
+          "text": "    let read = |path: &PathBuf| {\n        std::fs::read(path).map_err(|e| format!(\"codara: cannot read {}: {e}\\n\", path.display()))\n    };\n    let source = match read(&invocation.file) {\n        Ok(bytes) => bytes,\n        Err(message) => return failure(message),\n    };\n    let payload = match &invocation.payload {\n        Some(path) => match read(path) {\n            Ok(bytes) => bytes,\n            Err(message) => return failure(message),\n        },\n        None => Vec::new(),"
+        },
+        {
+          "start_line": 1480,
+          "end_line": 1519,
+          "text": "fn run_capsule(\n    invocation: &Invocation,\n    source: &[u8],\n    world: World<'_>,\n    setting: &Setting<'_>,\n) -> Outcome {\n    let mut report = Report::new();\n    report.line(\"codara run\");\n    let capsule = match Capsule::from_bytes(source) {\n        Ok(capsule) => capsule,\n        Err(error) => {\n            report.line(format_args!(\n                \"stage capsule: refused: not a capsule: {error:?}\"\n            ));\n            return report.end(exit::REFUSED);\n        }\n    };\n    report.line(format_args!(\n        \"stage capsule: read: {}, meaning {}\",\n        capsule.digest(),\n        capsule.semantic_digest()\n    ));\n    // AUTHENTICATION: the principal the capsule runs as is a name until it is proved. This is the\n    // one place the command line opens the host for a run and knows who the run is for, so it is\n    // asked here, before the world is read and before anything is requested; a capsule that names\n    // no principal is refused further on, by the run, before anything is requested either.\n    if let Some(requester) = capsule.ir().requester() {\n        let presented = invocation.token.as_ref().map(Presented::token);\n        match run::authenticate_requester(&mut *world.host, requester, presented, setting.clock) {\n            Ok(Some(proven)) => report.line(format_args!(\n                \"stage authentication: ok: the credential proves {proven} (authentication grants nothing: authority and admission are asked next)\"\n            )),\n            Ok(None) => {}\n            Err(refusal) => {\n                report.line(format_args!(\n                    \"stage authentication: refused: {refusal}; nothing was verified, nothing was requested\"\n                ));\n                report.line(format_args!(\"ir digest: {}\", capsule.semantic_digest()));\n                return report.end(exit::NOT_AUTHENTICATED);\n            }"
+        },
+        {
+          "start_line": 1540,
+          "end_line": 1563,
+          "text": "    let model = Model(setting.demand);\n    let mut work = ProgramWork::new(\n        capsule.ir(),\n        &snapshot,\n        setting.kernels,\n        setting.payload.clone(),\n    )\n    .at_execution(setting.clock);\n    let run_key = invocation\n        .run_key\n        .clone()\n        .unwrap_or_else(|| default_run_key(&capsule));\n    let semantic = capsule.semantic_digest();\n    let World { host, graph, .. } = world;\n    let result = run::run(\n        host,\n        &capsule,\n        graph,\n        &model,\n        setting.contracts,\n        &mut work,\n        &run_key,\n        reading,\n    );"
+        },
+        {
+          "start_line": 1578,
+          "end_line": 1599,
+          "text": "                // Use the resource and request key the host actually executed, and authority now,\n                // rather than the program's historical reading or a predicted placement.\n                let Some(requester) = capsule.ir().requester() else {\n                    continue;\n                };\n                let observed = match host.work_evidence(\n                    requester,\n                    &step.resource,\n                    &step.work,\n                    setting.clock,\n                ) {\n                    // A requester without observation rights retains the original execution\n                    // report; receiving a verification result requires its own existing right.\n                    Err(HostError::Unauthorized { .. }) => continue,\n                    other => other.ok().flatten(),\n                };\n                let saved_bytes = observed.and_then(|evidence| match evidence.proof {\n                    lineara::record::EvidenceProof::ProviderAck(receipt) => {\n                        lineara::work_receipt::result(&receipt).ok().flatten()\n                    }\n                    lineara::record::EvidenceProof::Unobserved => None,\n                });"
+        },
+        {
+          "start_line": 1626,
+          "end_line": 1656,
+          "text": "                if let Some(expected) = functions_expected {\n                    let saved = saved_bytes\n                        .as_deref()\n                        .and_then(|bytes| run::FunctionsResult::from_bytes(bytes).ok());\n                    match saved {\n                        Some(saved) if &saved == expected => report.line(format_args!(\n                            \"historical FUNCTIONS result: persisted canonical evidence; step {}; resource {}; key {}; object sha256:{}; verified {}; first_defect {}; expected blake3:{}; computed blake3:{}\",\n                            step.index, step.resource, step.work,\n                            genora_primitives::digest::hex(&saved.object_sha256), saved.verified,\n                            saved.first_defect.map(|defect| defect.code()).unwrap_or(\"none\"),\n                            saved.expected.map(|digest| genora_primitives::digest::hex(&digest)).unwrap_or_else(|| \"not computed\".to_owned()),\n                            saved.computed.map(|digest| genora_primitives::digest::hex(&digest)).unwrap_or_else(|| \"not computed\".to_owned()),\n                        )),\n                        _ => report.line(format_args!(\"historical FUNCTIONS result: unavailable or inconsistent at step {}; no persisted result claimed\", step.index)),\n                    }\n                    continue;\n                }\n                let saved = saved_bytes\n                    .as_deref()\n                    .and_then(|bytes| run::Blake3Result::from_bytes(bytes).ok());\n                match saved {\n                    Some(saved) if Some(&saved) == blake_expected => report.line(format_args!(\n                        \"native verification result: persisted canonical evidence; step {}; resource {}; key {}; input sha256:{}; computed blake3:{}; matched {}\",\n                        step.index, step.resource, step.work,\n                        genora_primitives::digest::hex(&saved.input_sha256),\n                        genora_primitives::digest::hex(&saved.computed), saved.matched\n                    )),\n                    _ => {\n                        report.line(format_args!(\"native verification result: unavailable or inconsistent at step {}; no persisted result claimed\", step.index));\n                    }\n                }"
+        },
+        {
+          "start_line": 1778,
+          "end_line": 1794,
+          "text": "    report.line(format_args!(\n        \"{opening}: {} bytes, {} printed, {} truncated, {} control characters escaped (limit {})\",\n        bytes.len(),\n        shown.len(),\n        bytes.len() - shown.len(),\n        escaped,\n        OUTPUT_LIMIT\n    ));\n    let produced = match door {\n        Door::Completed => \"produced by the executed step\",\n        Door::Stopped => {\n            \"produced by the executed step, which did not meet its contract and ended the run there\"\n        }\n    };\n    report.line(format_args!(\n        \"kernel output status: {produced}, not read back from canonical history (the observation covers consumption and completion, not these bytes); not an authorization and not a claim that the output is correct\"\n    ));"
+        }
+      ]
+    },
+    {
+      "path": "phenora/codara/src/main.rs",
+      "git_blob": "e8905951683acb7e027d0c8a556a12f036fb4f98",
+      "characters": 897,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/phenora/codara/src/main.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 24,
+          "text": "//! `codara` -- the Codara command line.\n//!\n//! ```text\n//! codara check|graph|plan|prove|run|build [--data DIR] [--time VALID --known TRANSACTION] FILE\n//! codara declarations [FAMILY...]\n//! ```\n//!\n//! Exit codes: 0 done, 1 usage, 2 refused (something does not resolve), 3 not offered or withheld,\n//! 4 refused by authority or admission, 5 the work ran and did not meet its contract or could not be\n//! read back, 6 the requester is not authenticated.\n\nuse codara::cli;\nuse std::io::Write;\nuse std::process::ExitCode;\n\nfn main() -> ExitCode {\n    let args: Vec<String> = std::env::args().skip(1).collect();\n    let outcome = cli::execute(&args);\n    // A closed pipe is the reader's choice, not an error of this command.\n    let _ = std::io::stdout().write_all(outcome.stdout.as_bytes());\n    let _ = std::io::stderr().write_all(outcome.stderr.as_bytes());\n    ExitCode::from(outcome.exit)\n}\n"
+        }
+      ]
+    },
+    {
+      "path": "lineara/src/work_receipt.rs",
+      "git_blob": "c42d1645bda9cff9f13fa010c5dca4e1b39f059a",
+      "characters": 10772,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/lineara/src/work_receipt.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 18,
+          "text": "//! Native lease-work receipts carried by the existing opaque provider acknowledgement.\n//!\n//! Historical receipts retain their bytes and unknown outcomes. A provider may additionally\n//! preserve a bounded result under an explicit version; readers validate the complete receipt\n//! before trusting either its report or its result. This does not change evidence log framing,\n//! resource accounting, or the shared work-report contract.\n\nuse genora_primitives::digest::{hex, unhex};\nuse metabion::lease_work::WorkReport;\nuse metabion::work_run::EffectRef;\nuse std::fmt;\n\n/// Maximum opaque result size, independent of a resource's admitted work budget.\npub const MAX_RESULT_BYTES: usize = 1024;\n\nconst WORK_MARK: &str = \" · work \";\nconst RESULT_MARK: &str = \" · \";\nconst RESULT_VERSION: &str = \"result1 \";"
+        },
+        {
+          "start_line": 45,
+          "end_line": 87,
+          "text": "/// Encodes the report without changing historical bytes when no result was observed.\npub fn encode(\n    provider: &str,\n    effect: &EffectRef,\n    lease: &str,\n    report: &WorkReport,\n    result: Option<&[u8]>,\n) -> Result<String, ReceiptError> {\n    if let Some(bytes) = result {\n        check_size(bytes.len())?;\n    }\n    let part = |v: Option<String>| v.unwrap_or_else(|| UNKNOWN.into());\n    let mut receipt = format!(\n        \"{provider} ran effect {effect} under lease {lease}{WORK_MARK}{} {}\",\n        part(report.consumed.map(|c| c.to_string())),\n        part(report.completed.map(|c| c.to_string()))\n    );\n    if let Some(bytes) = result {\n        receipt.push_str(RESULT_MARK);\n        receipt.push_str(RESULT_VERSION);\n        receipt.push_str(&hex(bytes));\n    }\n    Ok(receipt)\n}\n\n/// Reads a report only when the complete receipt, including any result, is supported and valid.\npub fn report(receipt: &str) -> Option<WorkReport> {\n    parse(receipt).ok().map(|(report, _)| report)\n}\n\n/// Reads preserved result bytes; a historical receipt has no result, never an invented one.\npub fn result(receipt: &str) -> Result<Option<Vec<u8>>, ReceiptError> {\n    parse(receipt).map(|(_, result)| result)\n}\n\nfn check_size(bytes: usize) -> Result<(), ReceiptError> {\n    if bytes > MAX_RESULT_BYTES {\n        Err(ReceiptError::ResultTooLarge {\n            bytes,\n            max: MAX_RESULT_BYTES,\n        })\n    } else {\n        Ok(())"
+        }
+      ]
+    },
+    {
+      "path": "physiology/world/src/artifact.rs",
+      "git_blob": "6903c942e4cf8c61cdc6a1245236e20891973e29",
+      "characters": 17471,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/world/src/artifact.rs",
+      "evidence": [
+        {
+          "start_line": 145,
+          "end_line": 169,
+          "text": "/// One registered artifact: its identity (digest), its labels, what it is, and where it came\n/// from.\n#[derive(Debug, Clone, PartialEq, Eq)]\npub struct Artifact {\n    pub digest: ArtifactDigest,\n    pub name: String,\n    pub version: String,\n    pub kind: ArtifactKind,\n    pub size: u64,\n    /// Where its bytes were read from when registered (`file:/absolute/path`).\n    pub source: String,\n    pub by: PrincipalId,\n    pub at: Timestamp,\n}\n\nimpl Artifact {\n    /// `NAME@VERSION`.\n    pub fn label(&self) -> String {\n        format!(\"{}@{}\", self.name, self.version)\n    }\n\n    /// The local path its bytes were registered from, when its source is a file.\n    pub fn source_path(&self) -> Option<&Path> {\n        self.source.strip_prefix(\"file:\").map(Path::new)\n    }"
+        },
+        {
+          "start_line": 202,
+          "end_line": 207,
+          "text": "/// Every registered artifact, by digest and by label.\n#[derive(Debug, Clone, Default, PartialEq, Eq)]\npub struct ArtifactBook {\n    by_digest: BTreeMap<ArtifactDigest, Artifact>,\n    by_label: BTreeMap<(String, String), ArtifactDigest>,\n}"
+        },
+        {
+          "start_line": 244,
+          "end_line": 274,
+          "text": "    /// The artifact `reference` names: `sha256:<hex>`, or `NAME@VERSION`.\n    pub fn resolve(&self, reference: &str) -> Result<Artifact, ArtifactError> {\n        let digest = if reference.starts_with(PREFIX) {\n            ArtifactDigest::parse(reference)?\n        } else {\n            let (name, version) = reference.split_once('@').ok_or_else(|| {\n                ArtifactError::Malformed(format!(\"{reference}: NAME@VERSION or sha256:<hex>\"))\n            })?;\n            *self\n                .by_label\n                .get(&(name.to_owned(), version.to_owned()))\n                .ok_or_else(|| ArtifactError::Unknown(reference.to_owned()))?\n        };\n        let mut artifact = self\n            .by_digest\n            .get(&digest)\n            .cloned()\n            .ok_or_else(|| ArtifactError::Unknown(reference.to_owned()))?;\n        if let Some((name, version)) = reference.split_once('@') {\n            artifact.name = name.to_owned();\n            artifact.version = version.to_owned();\n        }\n        Ok(artifact)\n    }\n\n    /// Every label and the digest it names, in label order.\n    pub fn labels(&self) -> impl Iterator<Item = (String, ArtifactDigest)> + '_ {\n        self.by_label\n            .iter()\n            .map(|((n, v), d)| (format!(\"{n}@{v}\"), *d))\n    }"
+        },
+        {
+          "start_line": 360,
+          "end_line": 388,
+          "text": "pub struct NativeArtifactStore {\n    store: FactStore<ArtifactBook, ArtifactFact>,\n}\n\nimpl NativeArtifactStore {\n    pub fn open(path: impl AsRef<Path>) -> Result<Self, FactStoreError> {\n        Ok(Self {\n            store: FactStore::open(path)?,\n        })\n    }\n\n    /// Records `fact` if it changes the book (`Ok(true)`); a retry or a refusal writes nothing.\n    pub fn record(&mut self, fact: ArtifactFact) -> Result<bool, ArtifactStoreError> {\n        if !self\n            .store\n            .resolver()\n            .admits(&fact)\n            .map_err(ArtifactStoreError::Refused)?\n        {\n            return Ok(false);\n        }\n        self.store.record(fact).map_err(ArtifactStoreError::Log)?;\n        Ok(true)\n    }\n\n    pub fn book(&self) -> &ArtifactBook {\n        self.store.resolver()\n    }\n}"
+        }
+      ]
+    },
+    {
+      "path": "physiology/host/src/artifact.rs",
+      "git_blob": "35af3559f9a128647148d5b187b7d06e6089deb1",
+      "characters": 4609,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/host/src/artifact.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 9,
+          "text": "//! Artifacts through the governed spine (`world::artifact`). The book is canonical history\n//! (`artifacts.log`, replicated like every log); registering reads the bytes, so the digest is\n//! what the file holds, never what a caller claims, and needs `artifact.register` on the\n//! authority resource. A provider may name an artifact -- `artifact:NAME@VERSION` or\n//! `artifact:sha256:<hex>` -- anywhere a provider is named (binding a program to a resource,\n//! submitting a job, declaring or deploying a service): it is resolved here, once, into the\n//! runtime's provider, which pins the content (`process:PATH@sha256:<hex>`), so a revision of a\n//! service is its artifact's digest and the executor runs exactly those bytes\n//! (`process_executor`)."
+        },
+        {
+          "start_line": 24,
+          "end_line": 73,
+          "text": "    /// Registers the file at `path` (absolute) as artifact `name`@`version` of `kind`, by `who`,\n    /// who must hold `artifact.register` on the authority resource. Its digest and size are read\n    /// from the file. `Ok(false)`: the same bytes were already that version.\n    pub fn register_artifact(\n        &mut self,\n        who: &PrincipalId,\n        name: &str,\n        version: &str,\n        kind: ArtifactKind,\n        path: &Path,\n        at: Timestamp,\n    ) -> Result<bool, HostError> {\n        self.writable()?;\n        self.require(who, ARTIFACT_REGISTER, &resource(AUTHORITY_RESOURCE)?, at)?;\n        if !path.is_absolute() {\n            return Err(HostError::Invalid(format!(\n                \"{}: an artifact is registered from an absolute path\",\n                path.display()\n            )));\n        }\n        let (digest, size) = ArtifactDigest::of_file(path)\n            .map_err(|e| HostError::Rejected(format!(\"{}: {e}\", path.display())))?;\n        self.artifacts\n            .record(ArtifactFact::Registered(Artifact {\n                digest,\n                name: name.to_owned(),\n                version: version.to_owned(),\n                kind,\n                size,\n                source: format!(\"file:{}\", path.display()),\n                by: who.clone(),\n                at,\n            }))\n            .map_err(|e| match e {\n                ArtifactStoreError::Refused(e) => HostError::Rejected(e.to_string()),\n                ArtifactStoreError::Log(e) => storage(format!(\"{e:?}\")),\n            })\n    }\n\n    /// The artifact `reference` names (`NAME@VERSION` or `sha256:<hex>`).\n    pub fn artifact(&self, reference: &str) -> Result<Artifact, HostError> {\n        self.artifacts\n            .book()\n            .resolve(reference)\n            .map_err(|e| HostError::Rejected(e.to_string()))\n    }\n\n    /// Every artifact label and the digest it names.\n    pub fn artifacts(&self) -> Vec<(String, ArtifactDigest)> {\n        self.artifacts.book().labels().collect()"
+        }
+      ]
+    },
+    {
+      "path": "physiology/host/src/allocation.rs",
+      "git_blob": "9bf64a0a183ce46dc97eb9437dd26500464b7a5d",
+      "characters": 54655,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/host/src/allocation.rs",
+      "evidence": [
+        {
+          "start_line": 1016,
+          "end_line": 1038,
+          "text": "/// The persisted lease-work request grammar, shared with the pathway's error observation.\n/// Time is deliberately excluded; the optional native input binding retains its historical domain.\npub(super) fn lease_work_request(\n    who: &PrincipalId,\n    on: &ResourceId,\n    lease: &str,\n    provider: &str,\n    binding: Option<&RequestDigest>,\n) -> RequestDigest {\n    let request = request_of(\n        \"lease-work\",\n        who,\n        &[\n            on.as_str().as_bytes(),\n            lease.as_bytes(),\n            provider.as_bytes(),\n        ],\n    );\n    match binding {\n        Some(input) => RequestDigest::of(&[&request.0, b\"native-input\", &input.0]),\n        None => request,\n    }\n}"
+        },
+        {
+          "start_line": 1102,
+          "end_line": 1119,
+          "text": "        // Optional native input binding extends only that provider's new requests. The default\n        // retains every historical request digest and receipt byte-for-byte.\n        let binding = work.request_binding();\n        let request = lease_work_request(who, on, lease, provider, binding.as_ref());\n        let previous = self.runs.restore(&run_id).map_err(storage)?;\n        if let Some(held_run) = &previous {\n            if held_run.request().is_some_and(|held| held != &request)\n                || (binding.is_some() && held_run.request().is_none())\n            {\n                return Err(HostError::RequestKeyReused(format!(\n                    \"{key} is bound to another work input\"\n                )));\n            }\n        }\n        let effect = EffectRef {\n            work_run: run_id.clone(),\n            effect: EFFECT,\n        };"
+        },
+        {
+          "start_line": 1157,
+          "end_line": 1198,
+          "text": "        // Native work with no durable observed outcome cannot authorize its own retry. Keep\n        // pending work unknown, even though this particular kernel is pure and deterministic.\n        if binding.is_some() && previous.is_some() {\n            return Err(HostError::Rejected(format!(\n                \"{key}: work outcome remains unknown; native work was not re-executed\"\n            )));\n        }\n        let selected = self.admit(\n            who,\n            &action(\"resource.work\")?,\n            on,\n            key,\n            at,\n            Checks {\n                via: Some(provider),\n                ..Checks::default()\n            },\n        )?;\n        if binding.is_some() {\n            let mut begun = GovernedWorkRun::begin_for(run_id.clone(), selected.clone(), request);\n            begun.run_mut().record_effect_emitted(EFFECT);\n            self.runs.snapshot(begun.run()).map_err(storage)?;\n        }\n        let report = work\n            .perform(&effect, lease, &held)\n            .map_err(|e| HostError::Rejected(format!(\"{provider}: {e}\")))?;\n        let result = work.outcome_evidence();\n        if result.is_some() && !report.is_known() {\n            return Err(HostError::Rejected(\n                \"native result evidence cannot turn an unknown work outcome into a fact\".into(),\n            ));\n        }\n        let mut settlement = Settlement {\n            validation: WorldValidation {\n                resource: on.clone(),\n                state,\n                head,\n            },\n            receipt: match result.as_deref() {\n                Some(result) => {\n                    lineara::work_receipt::encode(provider, &effect, lease, &report, Some(result))\n                        .map_err(|e| HostError::Rejected(format!(\"native result evidence: {e:?}\")))?"
+        },
+        {
+          "start_line": 1224,
+          "end_line": 1281,
+          "text": "    /// Reads an observed work outcome only after it is canonical on `on`. Current observation\n    /// rights are required, including for historical work; a request key alone reveals nothing.\n    /// Pending, unobserved or partly unknown outcomes return None and never authorize execution.\n    pub fn work_evidence(\n        &self,\n        who: &PrincipalId,\n        on: &ResourceId,\n        key: &str,\n        at: Timestamp,\n    ) -> Result<Option<Evidence>, HostError> {\n        self.require(who, \"resource.observe\", on, at)?;\n        let effect = Self::evidence_of(key)?;\n        let canonical_key = lineara::canonicalization::idempotency_key(&effect.work_run, EFFECT);\n        let Some(revision) = self\n            .world\n            .applied(on.as_str(), &canonical_key)\n            .map_err(storage)?\n        else {\n            return Ok(None);\n        };\n        let Some(evidence) = EvidenceStore::get(&self.evidence, &effect).map_err(storage)? else {\n            return Ok(None);\n        };\n        let EvidenceProof::ProviderAck(receipt) = &evidence.proof else {\n            return Ok(None);\n        };\n        let Some(report) = reported(receipt).filter(WorkReport::is_known) else {\n            return Ok(None);\n        };\n        let event = self\n            .world\n            .replay(on.as_str())\n            .map_err(storage)?\n            .into_iter()\n            .find(|(r, _)| *r == revision)\n            .map(|(_, event)| event);\n        let Some(ResourceEvent {\n            change:\n                ResourceChange::LeaseSettled {\n                    lease,\n                    consumed,\n                    completed,\n                    ..\n                },\n            ..\n        }) = event\n        else {\n            return Ok(None);\n        };\n        if consumed != report.consumed\n            || completed != report.completed\n            || !receipt.contains(&format!(\" ran effect {effect} under lease {lease} · work \"))\n        {\n            return Err(HostError::Rejected(format!(\n                \"{key}: work evidence disagrees with its canonical settlement\"\n            )));\n        }\n        Ok(Some(evidence))"
+        }
+      ]
+    },
+    {
+      "path": "physiology/host/src/pathway.rs",
+      "git_blob": "3676165eb11e32416245709df44826c37cab3e41",
+      "characters": 34134,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/host/src/pathway.rs",
+      "evidence": [
+        {
+          "start_line": 30,
+          "end_line": 56,
+          "text": "//!   ([`Host::authorized_pathways`] asks it of whole pathways, to be called before a ranker is):\n//!   the step goes to the best placement where the requester holds a witness of an `Allow` for\n//!   both `resource.lease` and `resource.work`, and admission of the work is asked before the\n//!   lease is, so a lease is not taken for work that would be refused. A lease is an allocation\n//!   and not the admission to work; here the two are asked together.\n//! - The first refusal ends the run, as `NorlRuntime::execute_plan` ends a plan of Norl's own. So\n//!   does a step whose work ran and did not meet its contract (`completed` is not `Some(true)`),\n//!   and so does a step whose effect canonical history does not show. No step after it is\n//!   requested. An absent durable Host run retains the legacy release behavior\n//!   (`resource.release`, governed like everything else). Absence is only local record absence:\n//!   an unbound legacy provider may have acted before its snapshot, so release is not proof of\n//!   nonexecution. Pending work retains its allocation, including when its outcome is unknown;\n//!   lookup uncertainty also leaves the lease held ([`Stranded`]). Lease expiry remains unchanged,\n//!   so this does not establish indefinite economic reservation custody.\n//! - Each step that ran is read back from canonical history ([`Host::observe_step`]): the lease is\n//!   settled, the provider's evidence exists and names the lease, the settlement is canonical\n//!   under this request's own key, and what the run reported is what the settlement says. What it\n//!   returns is the only way to hold a [`StepObservation`], and its [`basis`](StepObservation::basis)\n//!   is the host's to give, not the caller's.\n//!\n//! Not claimed. A run key names one run: reusing it is refused, so a pathway is not resumed after\n//! a crash (each of its requests is idempotent by key; resuming the sequence is not built). The\n//! host cannot tell a simulator from a real provider by what it does: the simulated work provider\n//! ([`SIMULATED_WORK`]) is known by its name, and a real provider that lies about being one is the\n//! membrane's concern. `work_under_lease` itself does not ask whether the lease is still live when\n//! it runs the work (see DECISION 0116, defects found); a pathway always runs its work under the\n//! lease it has just taken."
+        },
+        {
+          "start_line": 88,
+          "end_line": 119,
+          "text": "/// What the caller knows of its steps that the capability graph does not: where each is placed and\n/// what performing it does.\npub trait PathwayWork {\n    /// Where step `index` of the pathway is requested; `None` when the caller cannot place it\n    /// (nothing is then requested, and the run stops there).\n    fn placement(&self, index: usize, step: &Step) -> Option<StepPlacement>;\n\n    /// Optional immutable input identity for native work. Existing providers retain their\n    /// historical request identity when they return None; an identity grants no authority.\n    fn request_binding(\n        &self,\n        _index: usize,\n        _step: &Step,\n    ) -> Option<metabion::work_run::RequestDigest> {\n        None\n    }\n\n    /// Bounded opaque result evidence of the step actually performed, never a prediction.\n    fn outcome_evidence(&self, _index: usize, _step: &Step) -> Option<Vec<u8>> {\n        None\n    }\n\n    /// Performs the work of step `index` under the lease it holds and reports what it consumed and\n    /// whether it met its contract (`completed`). An `Err` is a failure to run at all.\n    fn perform(\n        &mut self,\n        index: usize,\n        step: &Step,\n        effect: &EffectRef,\n        lease: &world::lease::Lease,\n    ) -> Result<WorkReport, String>;\n}"
+        },
+        {
+          "start_line": 630,
+          "end_line": 678,
+          "text": "        self.allocate(who, &pinned, &lease_key, at)\n            .map_err(|e| halt(index, e))?;\n        let mut performing = StepWork::new(work, index, step);\n        // Capture the original input identity before work can change the next step's payload.\n        let request = lease_work_request(\n            who,\n            &on,\n            &lease_key,\n            &placement.provider,\n            performing.request_binding().as_ref(),\n        );\n        let done = match self.work_under_lease(\n            who,\n            &on,\n            &lease_key,\n            &placement.provider,\n            &mut performing,\n            &work_key,\n            at,\n        ) {\n            Ok(done) => done,\n            Err(e) => {\n                // A provider may have acted before the error. Pending work, including durable\n                // evidence not yet settled, retains its allocation; uncertainty never frees it.\n                let observation = WorkRunId::try_from(work_key.as_str())\n                    .map_err(|error| HostError::Invalid(format!(\"request key: {error}\")))\n                    .and_then(|run| observe_request(&self.runs, &self.evidence, &run, &request));\n                let release = match observation {\n                    Ok(RequestObservation::NotStarted) => true,\n                    Ok(RequestObservation::NoPendingEffect { .. }) => self\n                        .world\n                        .current(&on)\n                        .ok()\n                        .and_then(|(state, _)| state)\n                        .and_then(|state| state.lease(&lease_key).cloned())\n                        .is_some_and(|lease| lease.settled.is_some()),\n                    Ok(RequestObservation::PendingUnknown { .. })\n                    | Ok(RequestObservation::PendingEvidenced { .. })\n                    | Err(_) => false,\n                };\n                let stranded = if release {\n                    self.strand(who, &on, &lease_key, &release_key, at)\n                } else {\n                    Stranded::Held {\n                        resource: on.clone(),\n                        lease: lease_key.clone(),\n                    }\n                };\n                return Err(stopped(index, StopCause::Refused(e), Some(stranded)));"
+        }
+      ]
+    },
+    {
+      "path": "metabion/src/work_run.rs",
+      "git_blob": "7d6ae1f65d8a6149eda1b0e88562edac924f5d95",
+      "characters": 19845,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/metabion/src/work_run.rs",
+      "evidence": [
+        {
+          "start_line": 68,
+          "end_line": 116,
+          "text": "pub struct EffectId(pub u64);\n\n/// The globally unique identity of one effect: the WorkRun it belongs to and its number within\n/// that run. Effect ids alone repeat across runs; anything that outlives a run's memory --\n/// evidence, retention, legal hold, canonicalization -- is keyed by this, never by\n/// [`EffectId`] alone.\n#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]\npub struct EffectRef {\n    pub work_run: WorkRunId,\n    pub effect: EffectId,\n}\n\nimpl std::fmt::Display for EffectRef {\n    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n        write!(f, \"{}#{}\", self.work_run, self.effect.0)\n    }\n}\n\n/// Why a retry attempt could not start.\n/// What a WorkRun was started for: a SHA-256 over the request's identifying parts (its family,\n/// who asks, which entities, which change -- whatever the caller says makes two requests the\n/// same request). A run id is the caller's idempotency key; binding the run to its request\n/// makes a key reused for a different request refused instead of resumed (the check Stripe\n/// and AWS make when an idempotency key comes back with other parameters), so completed or\n/// evidenced work can never be attributed to another request.\n#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\npub struct RequestDigest(pub [u8; 32]);\n\nimpl RequestDigest {\n    /// The digest of `parts`, each length-prefixed so that no two part lists share one.\n    pub fn of(parts: &[&[u8]]) -> Self {\n        use genora_primitives::digest::Sha256;\n        let mut hash = Sha256::new();\n        hash.update(b\"chronica.request.v1\\0\");\n        for part in parts {\n            hash.update((part.len() as u64).to_le_bytes());\n            hash.update(part);\n        }\n        Self(hash.finalize())\n    }\n}\n\n#[derive(Debug, Clone, PartialEq, Eq)]\npub enum WorkRunError {\n    /// One or more effects from the current attempt have not yet been durably acknowledged.\n    /// Starting a new attempt now could run concurrently with the still-unacknowledged one and\n    /// duplicate a side effect -- the caller must wait for these to drain, never override it.\n    EffectsStillPending { pending: usize },\n}"
+        },
+        {
+          "start_line": 209,
+          "end_line": 220,
+          "text": "    /// Starts the next retry attempt, advancing the fencing token -- only once every effect from\n    /// the current attempt has drained. Returns the new generation on success.\n    pub fn begin_retry(&mut self) -> Result<Generation, WorkRunError> {\n        if !self.pending_effects.is_empty() {\n            return Err(WorkRunError::EffectsStillPending {\n                pending: self.pending_effects.len(),\n            });\n        }\n        self.generation = self.generation.next();\n        Ok(self.generation)\n    }\n"
+        },
+        {
+          "start_line": 244,
+          "end_line": 254,
+          "text": "pub fn check_request(stored: &WorkRun, new: &WorkRun) -> Result<(), WorkRunStoreError> {\n    match (stored.request(), new.request()) {\n        (Some(a), Some(b)) if a == b => Ok(()),\n        (None, _) => Ok(()),\n        _ => Err(WorkRunStoreError::RequestMismatch(format!(\n            \"{} is bound to another request\",\n            stored.id()\n        ))),\n    }\n}\n"
+        }
+      ]
+    },
+    {
+      "path": "metabion/src/lease_work.rs",
+      "git_blob": "acbf39000054408944e8acca6ee4a768b86ee181",
+      "characters": 3849,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/metabion/src/lease_work.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 60,
+          "text": "//! Work run under a lease (`world::lease`): the contract an execution provider implements to run\n//! work on a resource's leased capacity and report what it consumed. The governed spine around\n//! it -- admission through a provider binding, evidence, settlement of the lease -- is the\n//! registry's (`host::allocation::work_under_lease`); providers live next to this contract\n//! (the simulated one) or in `adapter` (`process_executor`, a real executor).\n\nuse crate::work_run::EffectRef;\n\n/// What a work run under a lease reports when it ends: what it consumed of the lease's\n/// quantity, and whether it completed -- each `None` when it is not known. Unknown is not a\n/// fact: a run whose outcome nobody observed reports neither, and nothing is ever filled in for\n/// it (no invented failure, no invented consumption).\n#[derive(Debug, Clone, Copy, PartialEq, Eq)]\npub struct WorkReport {\n    pub consumed: Option<i64>,\n    pub completed: Option<bool>,\n}\n\nimpl WorkReport {\n    /// Nothing is known of the run: whether it ran, what it consumed, how it ended.\n    pub const UNKNOWN: Self = Self {\n        consumed: None,\n        completed: None,\n    };\n\n    /// A run whose provider reported both.\n    pub fn known(consumed: i64, completed: bool) -> Self {\n        Self {\n            consumed: Some(consumed),\n            completed: Some(completed),\n        }\n    }\n\n    /// Whether both are known.\n    pub fn is_known(&self) -> bool {\n        self.consumed.is_some() && self.completed.is_some()\n    }\n}\n\n/// An execution provider running work under a lease. It must be idempotent per effect: asked\n/// again for the same effect (a retry after a crash), it reports the same run, never runs the\n/// work twice.\npub trait LeaseWork {\n    /// Additional immutable input identity, when the provider accepts payload beyond the host's\n    /// resource, lease and provider fields. The host binds it before execution and on resume.\n    /// Providers with no additional payload keep the existing request identity.\n    fn request_binding(&self) -> Option<crate::work_run::RequestDigest> {\n        None\n    }\n\n    /// Bounded opaque evidence of the result actually observed by this provider. This is not\n    /// an authorization or a replacement for an unknown report. The evidence owner validates\n    /// its size before capture; an absent result leaves historical receipt bytes unchanged.\n    fn outcome_evidence(&self) -> Option<Vec<u8>> {\n        None\n    }\n\n    fn perform(\n        &mut self,\n        effect: &EffectRef,"
+        }
+      ]
+    },
+    {
+      "path": "physiology/regulation/src/work_request.rs",
+      "git_blob": "3e25e74c102defed27193eb452d8162366c11686",
+      "characters": 16104,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/regulation/src/work_request.rs",
+      "evidence": [
+        {
+          "start_line": 35,
+          "end_line": 76,
+          "text": "\n/// A concrete request for a governed effect: enough for ExecutionAdmission to resolve\n/// `Can(...)`, `Authorized(...)`, and every other admission dimension against. Carries no\n/// authority or capability of its own -- forming a `WorkRequest` never means an effect will\n/// happen; it means governance can now evaluate whether it may.\n#[derive(Debug, Clone, PartialEq, Eq)]\npub struct WorkRequest {\n    requester: PrincipalId,\n    action: SemanticAction,\n    resource: ResourceId,\n    /// The purpose the request is made for (`crate::purpose`), empty when none is stated.\n    /// `Authorized(...)` is decided for it: a purpose-bound grant allows only requests stating\n    /// its purpose.\n    purpose: String,\n    /// The quantity the request is about (a resource's declared parameter).\n    quantity: Option<String>,\n    /// The value the request proposes (a setpoint), checked against bounded grants.\n    value: Option<i64>,\n    requested_at: Timestamp,\n    idempotency_key: String,\n}\n\nimpl WorkRequest {\n    pub fn new(\n        requester: PrincipalId,\n        action: SemanticAction,\n        resource: ResourceId,\n        purpose: impl Into<String>,\n        requested_at: Timestamp,\n        idempotency_key: impl Into<String>,\n    ) -> Self {\n        Self {\n            requester,\n            action,\n            resource,\n            purpose: purpose.into(),\n            quantity: None,\n            value: None,\n            requested_at,\n            idempotency_key: idempotency_key.into(),\n        }\n    }"
+        }
+      ]
+    },
+    {
+      "path": "codara/src/lib.rs",
+      "git_blob": "d706caa6ca1e9fb7222014bc89e7d4505f29c508",
+      "characters": 1707,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/codara/src/lib.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 30,
+          "text": "//! Codara, Chronica's graph-native semantic intent language, as a pure library.\n//!\n//! A program states what must become true, what must remain true, what may change, what\n//! evidence is required and what constraints govern the transformation. This crate turns that\n//! text into a *candidate*: it parses and types the surface, resolves every name against a\n//! bitemporal reading of the capability graph, lowers the result to a semantic IR with a\n//! canonical encoding, states the proof obligations, and seals a capsule that records which\n//! pathway was selected and what is still open. It decides nothing about what may happen.\n//!\n//! The chain it keeps apart: Source != Meaning (the IR) != Plan (a pathway) != Authority !=\n//! Admission != Execution != Observation != Truth. Compiled != Authorized; a valid program is not\n//! admitted now; a capsule is not authority; an AST is not the source of truth; the IR is not a\n//! second graph store.\n//!\n//! The language owner resides at `codara/` and is pure: no I/O, no clock, no randomness,\n//! no threads, floats nowhere. Its manifest names the genome, the world and the capability graph\n//! and nothing that authorizes, admits, records evidence or executes, so a compiled program\n//! cannot name an authority witness (a test of this crate pins that no source file ever does).\n//!\n//! A name in a program is data, never an identity: resolution reads what the graph holds and\n//! mints nothing. The only value that refers to a node is a [`ir::HeldRef`], built from a node the\n//! reading holds.\n\npub mod capsule;\npub mod encode;\npub mod ir;\npub mod lower;\npub mod prove;\npub mod refusal;\npub mod resolve;"
+        }
+      ]
+    },
+    {
+      "path": "codara/src/capsule.rs",
+      "git_blob": "b92e7235b0c78bf1702ac7788af9a17a3c58a45d",
+      "characters": 23798,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/codara/src/capsule.rs",
+      "evidence": [
+        {
+          "start_line": 366,
+          "end_line": 389,
+          "text": "        if constraints\n            .max_steps\n            .is_some_and(|limit| pathway.steps.len() > limit)\n        {\n            return Some(SealRefusal::PathwayAgainstProgram(\n                \"the pathway has more steps than the program allows\",\n            ));\n        }\n        if pathway\n            .demand\n            .dimensions()\n            .any(|(dimension, amount)| amount > constraints.budget.limit(dimension))\n        {\n            return Some(SealRefusal::PathwayAgainstProgram(\n                \"the pathway demands more than the program's budget\",\n            ));\n        }\n        // The total compared with the invariant is the one the steps ask: a pathway recorded as\n        // asking less than its steps would seal around the budget and the invariant alike.\n        let asked: Vec<(&str, u128)> = pathway\n            .steps\n            .iter()\n            .flat_map(|s| s.proof.demand.dimensions())\n            .collect();"
+        },
+        {
+          "start_line": 471,
+          "end_line": 488,
+          "text": "    pub fn proof(&self) -> &ProofSummary {\n        &self.proof\n    }\n\n    /// The (action word, resource) pairs the program allows its steps to ask authority for, as\n    /// data, sorted.\n    pub fn required_authorities(&self) -> &[(String, NodeId)] {\n        &self.required_authorities\n    }\n\n    /// The pairs of `asked` that the capsule does not record: what a host will ask that the\n    /// capsule understates. A run starts only when this is empty.\n    pub fn understated(&self, asked: &[(String, NodeId)]) -> Vec<(String, NodeId)> {\n        let recorded: BTreeSet<&(String, NodeId)> = self.required_authorities.iter().collect();\n        let missing: BTreeSet<(String, NodeId)> = asked\n            .iter()\n            .filter(|pair| !recorded.contains(pair))\n            .cloned()"
+        }
+      ]
+    },
+    {
+      "path": "physiology/world/src/source_job.rs",
+      "git_blob": "53f81598633c573eb2ad94ff66778cbea6683ad9",
+      "characters": 20546,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/world/src/source_job.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 20,
+          "text": "//! A bounded, lossless record of untrusted source job assertions, not a native job transition.\n//!\n//! Independently authored from the public value contract inspected at Esellios\n//! b72b2aa4a941c800eec4b990dba67eb9dca656e9 and 5acde1aa69b0fcbb327f2db02baf400ec3ff7afe.\n//! No source implementation, currency table or fixture was copied. All nineteen job fields and\n//! three trace fields retain their values; source times remain signed milliseconds. Empty IDs,\n//! unusual Unicode and inconsistent source states are recorded without conferring validity.\n//! Attempts are data, never an authenticated generation or a canonical revision.\n//!\n//! The enclosing admitted evidence record owns provenance, identity and access. This codec\n//! grants no authority, claim, lease, retry, execution or completion. A provider's unknown outcome\n//! remains separate from the source job state. Size limits bound this target capture domain;\n//! refusal never truncates a source assertion or means that an effect did not happen.\n\nuse genora_primitives::codec::{DecodeError, Reader, Writer};\n\npub const MAX_SOURCE_JOB_BYTES: usize = 256 * 1024;\npub const MAX_SOURCE_JOB_STRING_BYTES: usize = 16 * 1024;\npub const MAX_SOURCE_JOB_JSON_BYTES: usize = 192 * 1024;\nconst FORMAT_VERSION: u16 = 1;"
+        },
+        {
+          "start_line": 102,
+          "end_line": 124,
+          "text": "/// Source values only. No source timestamp, owner string or attempt counter is an admission.\n#[derive(Debug, Clone, PartialEq, Eq)]\npub struct SourceJobSnapshot {\n    pub id: String,\n    pub kind: String,\n    pub tenant: String,\n    pub payload: RawJsonPayload,\n    pub run_at: i64,\n    pub state: SourceJobState,\n    pub attempts: u32,\n    pub max_attempts: u32,\n    pub lease_owner: Option<String>,\n    pub lease_until: Option<i64>,\n    pub heartbeat_at: Option<i64>,\n    pub cancel_requested: bool,\n    pub last_error: Option<String>,\n    pub dedup_key: Option<String>,\n    pub concurrency_key: Option<String>,\n    pub fair_at: i64,\n    pub trace: SourceTraceContext,\n    pub created_at: i64,\n    pub updated_at: i64,\n}"
+        }
+      ]
+    },
+    {
+      "path": "physiology/world/src/event_envelope.rs",
+      "git_blob": "ab6a79f04e10397e8b3ae8c7bcffc142720c1cbb",
+      "characters": 6264,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/physiology/world/src/event_envelope.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 60,
+          "text": "//! Strict, record-aware decoding over the existing canonical log envelope.\n//!\n//! A source job snapshot is recorded input, never a native job claim or authority.\n//! This module owns no log, writer, World, claim token or automatic dispatch.\n\nuse crate::resource_event::{ResourceEvent, RESOURCE_EVENT_SCHEMA};\nuse crate::resource_reducer::ResourceStateReducer;\nuse crate::source_job::SourceJobSnapshot;\nuse genora_primitives::codec::DecodeError;\nuse genora_primitives::{CanonicalLogRecord, CanonicalLogRecordKind};\nuse storage::materialization::{MaterializationError, WorldReducer, WorldReducerRegistry};\n\n/// Local payload schema, not an Esellios wire or executable job lifecycle.\npub const SOURCE_JOB_SNAPSHOT_SCHEMA: &str = \"chronica.source-job.snapshot\";\n\n#[derive(Debug, Clone, PartialEq, Eq)]\npub enum NativeEvent {\n    Resource(ResourceEvent),\n    SourceJobSnapshot(Box<SourceJobSnapshot>),\n}\n\n/// Retains every original identity, position, schema, evidence link and raw payload.\n/// The native log owns frame/checksum validation; this decoder claims no integrity or\n/// authority attestation and must receive records from the owning validated log.\n#[derive(Debug)]\npub struct DecodedRecord<'a> {\n    pub original: &'a CanonicalLogRecord,\n    pub event: NativeEvent,\n}\n\n/// Dispatches by explicit schema only. It never guesses from payload bytes, treats an\n/// unknown schema as a resource, or silently skips a record in a mixed history.\npub fn decode_record(record: &CanonicalLogRecord) -> Result<DecodedRecord<'_>, DecodeError> {\n    if record.kind != CanonicalLogRecordKind::CanonicalEvent {\n        return Err(DecodeError::Invalid {\n            field: \"world record kind\",\n            reason: \"expected canonical event\".into(),\n        });\n    }\n    let event = match record.event_reference.as_str() {\n        RESOURCE_EVENT_SCHEMA => NativeEvent::Resource(ResourceEvent::decode(&record.payload)?),\n        SOURCE_JOB_SNAPSHOT_SCHEMA => {\n            NativeEvent::SourceJobSnapshot(Box::new(SourceJobSnapshot::decode(&record.payload)?))\n        }\n        _ => {\n            return Err(DecodeError::Invalid {\n                field: \"world event schema\",\n                reason: format!(\"unsupported schema {:?}\", record.event_reference),\n            })\n        }\n    };\n    Ok(DecodedRecord {\n        original: record,\n        event,\n    })\n}\n\n/// Historical alias explicitly bound to resource records in the Host's World log.\n/// The general `decode_record` dispatcher continues to refuse this ambiguous schema.\nconst LEGACY_HOST_RESOURCE_SCHEMA: &str = \"legacy.unversioned\";"
+        }
+      ]
+    },
+    {
+      "path": "AGENTS.md",
+      "git_blob": "b9c2d4cf3c7f6b982718953c2908195f98715a35",
+      "characters": 30874,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/AGENTS.md",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 70,
+          "text": "# AGENTS.md\n\n\n## Canonical code ownership and named Chronica architecture\n\n**Current campaign — IMPLEMENT FULL V1.** The explicit owner instruction of 2026-10-16\n18:34 UTC, recorded as native DECISION 0182, supersedes the documentation-only pause of\nDECISION 0180. Continue bounded executable implementation toward the full accepted native scope;\nreview and directly test each coherent change before normal main-only publication. Preserve\nhistorical STOP evidence, checkpoints, unrelated held patches and immutable records. Recover held\nwork against current main before changing it; no reset, discard, force push or side branch.\nUse one writable source repository per lane and disjoint native writers/reviewers. No spending,\ncredential creation, hardware flashing or destructive deletion is authorized. Emulator evidence\nis an intermediate assay and cannot certify the mandatory physical-hardware native journeys.\n\n**Full V1 target:** Chronica Digital Intelligence Holobiont OS boots and operates independently\non one certified hardware configuration, without a mandatory Linux or Windows kernel/runtime.\nLinux is development/bootstrap/test only. P0–P3 order dependencies and implementation; all remain\nwithin the same full V1, including native OS, Genesia and offspring. The nine mandatory journeys\nare Boot-to-Intelligence, Organism Continuity, Owner Founding and Rescue, Privacy and Forgetting,\nLiving Evolution, Multi-device and Genesia, Usable Workspace, Continuous Extinction Closure and\nNative Operating Envelope. Native safety, protection, scheduling, interrupts, authority, boot\nand recovery must continue without Norl/model inference. Norl/Neurora require real native\nweights/inference and never self-authorize. Offspring have distinct organism identities while\nsharing one canonical World; devices, replicas, workers and offspring remain distinct.\n\n**Documentation authority:** the central `.Ynventa-` lane owns the blueprint, roadmap, semantic\ncontracts, OS architecture and formal Native OS V1 Completion Contract. Chronica owns native\naccepted decisions, honest source/gap references and its operating guidance; reference the exact\npublished central contract rather than inventing a second authority. Every requirement needs\nowner, input/output, state, authority, failure handling and an executable acceptance assay.\nChronica responsibility groups and proposed implementation rows are explanatory views, not new\nacceptance denominators. DECISION 0180 pins [central Blueprint §§61.3–61.4.2](https://github.com/llgtrn/.Ynventa-/blob/10d62f52f9c1496a2f1f823af57bc7332478c90c/BLUEPRINT-V1.md#613-native-operating-requirements-and-executable-acceptance)\nat `10d62f52f9c1496a2f1f823af57bc7332478c90c`: all N01–N12 labels and primary J1–J9\njoins match; shared obligations remain required. These row counts are explanatory groupings,\nnever an acceptance denominator. That immutable source's N10 `Chronica/phenotype` discrepancy\nwas corrected to `Chronica/phenora/` in central `4c85b63f220caf0ed5cbafe94dc8e3961a77f578`,\nwhich also confirms the reciprocal published reference at Chronica `d212a9e`. DECISION 0182\nrecords this readback without rewriting historical source evidence. Reference closure certifies\nno journey or hardware/kernel selection; implementation authorization comes from the explicit\n18:34 UTC owner resumption, with all identity, authority, rights and safety obligations retained.\nKernel/hardware analysis is a proposal until qualified; it authorizes no purchases, credentials,\ndevice enrollment, compute spend or changes to a user's computer. No new CN or mandatory OS,\nAGNC or Neurora directory follows from the target. Existing registry bindings remain unchanged.\n\n**Current implementation and completion gap:** published source at `09ce89f` provides hosted\nChronica/Norl foundations, not a certified native OS. Native completion requires the physical\npower-on → Chronica boot → identity/World recovery → real-weight Norl inference → native user\ninteraction and governed work → homeostasis/fault recovery → authorized Genesia offspring\noperation chain on the chosen hardware. Hosted tests, emulation, naming and software test counts\ndo not complete this chain. Hardware-specific unsupported features cannot waive it. Extinction\nstill requires dependency closure, parity, verified native replacement, real caller cutover,\nrights, retained competence and current evidence. Quiesce, migration, inference, training,\ndisclosure, activation and runtime replacement require appropriate current admission. Code\nrollback does not undo external effects; recovery creates neither rights nor canonical truth.\n\n**Compiler source names:** Genora libraries use `genora_primitives` and `genora_graph`, Metabion uses `metabion`, Lineara uses `lineara`, Axora uses `axora`, and Codara's pure language uses `codara_language` to distinguish it from the `codara` presentation. Cargo dependency aliases explicitly retain their historical `package` values; the six libraries declare their source names in `[lib]`. These compiler spellings never replace registered package/node/module/proof identities or encoded literals. Census import resolution is per consumer, keeps canonical package graph keys, and refuses ambiguous mappings. Existing machine classifiers and shared engine types require their separately qualified contract; mixed physiology/organism responsibilities are not renamed by inference.\n\n**Binding owner architectural target:** all eight active repositories use one physical Holobiont source grammar; no enduring Host/Guest exception or independent repository-specific evolution protocol. Chronica alone owns canonical identity, state, Thymora authority, Porion effect admission, Metabion execution, Lineara evidence and history. Source repos develop specialized native technologies and typed input/output contracts under one identity, never a second sovereign world.\n\n**Mandatory concept naming:** use canonical CN-0001…CN-0026 names from [Chronica nomenclature](https://github.com/llgtrn/Chronica/blob/main/.ynventa/declared/nomenclature/concepts.jsonl): Genora, Codara, Axora, Somara, Homeora, Thymora, Porion, Metabion, Lineara, Phenora, Ontogen, Myelion, Nomocyte, Symbion, Phylogena, Alloma, Immunara, Regena, Genesia, Apoptra, Ecoria, Phagora, Lysora, Endosymbra, Autophora and Neurora. **Chronica and Norl** remain named as such. DECISION 0163 requires the same canonical name for each mapped function, module and physical folder; historical aliases are evidence, not a second current organization. Genora's physical source is `genora/`; Metabion's is `metabion/`; Lineara's is `lineara/`; Axora's existing binding-verification evidence kernel is `axora/binding-verification/`; Symbion's four providers reside under `symbion/`; Phenora's seven existing expressions reside under `phenora/`; Codara's pure language library is `codara/` (package `capability-codara`), with its CLI remaining `phenora/codara/` (package `codara`). Their historical `genome/`, `physiology/metabolism` and `physiology/evidence` locators, stable keys and encoded wire forms retain their identity through explicit relocation. Other existing generic paths remain migration debt until their actual responsibility and engine grammar are coordinated. Concept registration without implementation is NOT working code. A new biological word does not create a crate or an ungoverned owner.\n\n**One UI implementation owner, many Phenora.** Product TS/TSX/JS/HTML/CSS, charts, dashboards, Studio and operator frontend source is maintained only in `Chronica/phenora/`. Other repos provide native computation, declared view data and behavior/proof evidence. Existing frontend sources in ECDEV `apps/web`, Fi-game `apps/frontend`, Mechatron `apps/operator` and Atlas-Studio `apps/studio` are bounded migration material until caller and safety parity are proved and old bundles deleted. A headless service or source test is not UI.\n\n**Agent authoring contract:** before a new capability, compare semantic identity and current code; reuse equivalent implementation or shared Phenora rendering rather than cloning. Pin leases and provenance, protect immutable records, run independent caller/authority/evidence tests, preserve domain-specific performance and safety, and only report DONE after verified migration and deletion. Old root paths below are CURRENT code locators, not permission for new permanent implementations under obsolete topology. The source code is still being migrated: do not make a false conformance claim.\n\n\n\n## 1. Where truth lives\n"
+        },
+        {
+          "start_line": 300,
+          "end_line": 350,
+          "text": "   work-run snapshot never lowers the fencing generation nor rebinds the request it was started\n   for (a request key names one request: reused for another, it is refused). Each was a replace-on-write found in\n   a durable store, and each is now refused or merged in every provider, PostgreSQL included.\n   A new \"(or replaces)\" store needs the same question asked of it\n-> assays/gate/gate.sh prepare rust census\n                                (format and regenerate the census, then fmt, clippy, test,\n                                 census verify, rebuild from history, ynventa verify; set DATABASE_URL for the\n                                 durable PostgreSQL proofs and CHRONICA_NETNS (root) for the\n                                 multi-host proofs. The census must be CERTIFIED)\n-> if doctrine changed, record it in `.ynventa` (a DECISION fact, or `ynventa fact supersede`),\n   never as a Markdown file\n-> commit\n-> assays/gate/push.sh                (push with backoff; PUSHED only once origin names HEAD)\n```\n\nPerformance claims come from `cargo run --release -p benchmark` (`chronica-bench`; current performance source is under `assays/performance`, with decisions and evidence resolved from .ynventa): record the exact values a run\nprinted, never values inferred from growth ratios, and never set a threshold from one host. To\nsee where recovery spends its time, read the `world.recover.*` phases it reports\n(`NativeRecoveryLog::recovery_profile`) rather than instrumenting the code by hand.\n\nDisk round trips are counted, not timed: every `fsync` goes through `storage::durable_fs`\n(`sync_data`, `sync_all`; never `File::sync_*` directly), and\n`phenora/node/tests/io_budget.rs` holds the exact count for opening, reading and changing. A\nchange that moves a count updates the budget in the same commit and says why; more is a\nregression the gate now catches (one once doubled open latency unseen).\n\nEvery few slices, step back: `cargo build --release -p census && target/release/census trend`\nre-derives every recorded census revision and shows, since the first CERTIFIED one, whether\ntests, capabilities and production use rose and findings fell. Pick the next slice from what it\nshows is not improving.\n\n`assays/gate/gate.sh` is exactly what CI runs (`.github/workflows/chronica.yml`). It reports each step\nas PASSED, FAILED or UNAVAILABLE and, except for the `prepare` group CI never runs, never writes\nto the tree. Report a result as passed only\nwhen it came from an executed gate step.\n\nHosted CI status (checked 2026-09-26, rechecked the same day at head 6ee46d1cf: unchanged): no\nGitHub Actions run can start in this repository.\nEvery run, on every branch including `main` and scheduled runs, concludes `startup_failure`\nunder a deleted placeholder workflow named `BuildFailed` (id 288690974). This happens before\nany workflow file is read, so it is an account- or repository-level Actions block, such as a\nbilling or spending limit or Actions being disabled, and no commit can fix it. The repository\nowner must lift it in the GitHub settings. Until then, `assays/gate/gate.sh` run locally is the only\nexecuted gate, and hosted CI is UNAVAILABLE, never passed.\n\nA `post-commit` hook from before the refoundation may exist in a local clone: it ran the retired\n`.atlas/subsystem/construction` census, which no longer exists, and printed that \"evidence was\nrecorded\" when nothing ran. It is not tracked and nothing in the tree installs it; retire it\n(`mv .git/hooks/post-commit .git/hooks/post-commit.retired`). The gate is the check.\n\nRemoving implementation: know its capabilities, consumers and replacement owner; prove the"
+        }
+      ]
+    },
+    {
+      "path": "phenora/codara/tests/e2e_native_result.rs",
+      "git_blob": "85a64891c6c3b8d2732adaf6f576c1478f7ee068",
+      "characters": 21722,
+      "url": "https://github.com/llgtrn/Chronica/blob/4b5e163042c621702d7700b53087351f40fe192f/phenora/codara/tests/e2e_native_result.rs",
+      "evidence": [
+        {
+          "start_line": 121,
+          "end_line": 138,
+          "text": "fn the_caller_reads_the_exact_verification_after_reopening_and_a_retry_never_recomputes() {\n    let (dir, _) = directory(\"native-result\");\n    let capsule = capsule(&dir, EMPTY);\n    let outcome = run(&dir, &capsule, \"native-result\");\n    assert_eq!(\n        outcome.exit,\n        exit::OK,\n        \"{}{}\",\n        outcome.stdout,\n        outcome.stderr\n    );\n    assert!(\n        outcome\n            .stdout\n            .contains(\"native verification result: persisted canonical evidence\"),\n        \"{}\",\n        outcome.stdout\n    );"
+        },
+        {
+          "start_line": 273,
+          "end_line": 300,
+          "text": "fn insufficient_local_capacity_refuses_the_caller_without_work_or_evidence() {\n    let (dir, _) = directory(\"native-capacity\");\n    let capsule = capsule(&dir, EMPTY);\n    let mut host = Host::open(&dir.0).unwrap();\n    host.declare_capacity(&root(), &cpu(), &cpu_units(), 0, \"no-capacity\", at(2000))\n        .unwrap();\n    let before = host.leases(&cpu()).unwrap();\n    drop(host);\n    let outcome = run(&dir, &capsule, \"native-capacity\");\n    assert_eq!(\n        outcome.exit,\n        exit::NOT_ADMITTED,\n        \"{}{}\",\n        outcome.stdout,\n        outcome.stderr\n    );\n    assert!(\n        outcome.stdout.contains(\"insufficient capacity\"),\n        \"{}\",\n        outcome.stdout\n    );\n    assert!(!outcome.stdout.contains(\"native verification result:\"));\n    let host = Host::open(&dir.0).unwrap();\n    assert_eq!(host.leases(&cpu()).unwrap(), before);\n    assert!(host\n        .work_evidence(&agent(), &cpu(), \"native-capacity.0.work\", at(2000))\n        .unwrap()\n        .is_none());"
+        },
+        {
+          "start_line": 389,
+          "end_line": 392,
+          "text": "fn a_real_kernel_refusal_preserves_the_bound_pending_prefix_and_never_reexecutes_after_reopen() {\n    let (dir, _) = directory(\"native-pending-prefix\");\n    let file = capsule(&dir, EMPTY);\n    let capsule ="
+        },
+        {
+          "start_line": 475,
+          "end_line": 498,
+          "text": "        &placement.provider,\n        &mut StepWork::new(&mut work, 0, step),\n        \"native-pending.work\",\n        at(2001),\n    );\n    assert!(\n        matches!(&retried, Err(HostError::Rejected(why)) if why.contains(\"outcome remains unknown\") && why.contains(\"not re-executed\")),\n        \"{retried:?}\"\n    );\n    assert!(work.native_result(0).is_none());\n    assert_eq!(work.request_binding(0, step), Some(input_binding));\n    assert!(host\n        .work_evidence(&agent(), &cpu(), \"native-pending.work\", at(2001))\n        .unwrap()\n        .is_none());\n    drop(host);\n    let runs = NativeWorkRunStore::open(dir.0.join(\"work_runs.log\")).unwrap();\n    let after = runs\n        .restore(&WorkRunId::try_from(\"native-pending.work\").unwrap())\n        .unwrap()\n        .unwrap();\n    assert_eq!(after.request(), Some(&before_request));\n    assert_eq!(after.pending_effect_ids(), [EffectId(1)]);\n}"
+        }
+      ]
+    }
+  ],
+  "central_files": [
+    {
+      "path": "BLUEPRINT-V1.md",
+      "git_blob": "9f698547d8ca27fe4b32857108cff4c15e7f6836",
+      "url": "https://github.com/llgtrn/.Ynventa-/blob/6f64251283bcdcdde41f4bfb4a066c053332e149/BLUEPRINT-V1.md",
+      "evidence": [
+        {
+          "start_line": 382,
+          "end_line": 399,
+          "text": "Codara owns typed semantic intent, parsing, resolution, intermediate representation and candidate compilation under DECISIONS 0115 and 0125. Source extraction YIR is a development projection; Atlas-Studio is a provenance-bearing physical source. Grounding a perception into canonical identity remains a separate implementation question.\n\nIts technological responsibility is:\n\n- semantic language;\n- grounding;\n- semantic compiler surfaces;\n- language-neutral semantic representation.\n\nIt does not own live cognition or effect authority. That half is STILL_CANONICAL and enforced by the type system: the Codara library has no dependency on regulation, host, metabolism, evidence or memory, so Compiled != Authorized is a compile-time fact (`physiology/capability/codara/src/lib.rs`).\n\n> **OWNER DIRECTION RESOLVED — Codara owns the canonical typed semantic-intent language and compiler contract (CN-0005).** The source artifacts in the .Ynventa- engine YIR and Atlas-Studio remain distinct implementation/donor facts requiring scoped equivalence, source-migration and real-caller proof; they are not rival owners or separate canonical languages. The exact 28-family preservation and grounding coverage remain technical gaps, not authority ambiguity.\n\nWhere each concern lives today (facts, not a ruling):\n\n| Concern | Implementation today | Status |\n|---|---|---|\n| semantic language | Codara: lexer, parser, typing in `physiology/capability/codara/src/syntax/` and `physiology/capability/codara/src/typing.rs` | IMPLEMENTED |"
+        },
+        {
+          "start_line": 1932,
+          "end_line": 1951,
+          "text": "| Repository | Valuable native algorithms and tests to retain | Legacy authority/state/identity/UI to reconcile | Target owner and required real caller | Migration dependencies and present gap |\n|---|---|---|---|---|\n| **Chronica** | Stable primitives/graph, durable framing/replay, host admission/evidence, native kernels, Ontogen/Codara, scoped Norl models. Preserve authority, crash/idempotency and oracle assays including `physiology/capability/tests/ontogen_oracle.rs`, `phenotype/node/tests/ontogen_execution.rs` and Apoptra verification assays. | Per-owner logs form one World, not a request to centralize every algorithm. Some declaration APIs bypass the full execution judgment; Norl demonstration and model record lifecycle are not a joined learner. Existing chart UI is not complete shared Phenora; frozen benchmark paths remain placement debt. | Existing `genome`/`physiology` owners; cognition in `organism/<organ>`; effect providers in `symbiosis`, unknown binding in `membrane`; all maintained product UI in `phenora/`. Actual node/Codara/SDK and governed consumers must replace each source caller. | FD-16 declaration classification, per-artifact identity/contract and native-byte matching, full Norl hand-off, durable memory/focus, real consumer/denial evidence. Native kernel selection is a mandatory full-V1 dependency; hosted cutover may supply intermediate parity evidence but cannot certify native completion. |\n| **.Ynventa-** | YIR readers, semantic/graph indexing, native hashing, ProofKey/cache, Work/Lease/Result fencing, linker, Foundry and extinction logic; retain exact-input, stale-proof, overlapping-lease/result-generation and protocol tests beside their current owners. | `yn1:` development IDs, `art1:` birth records and local coordination state are not Chronica runtime identity/history. Seven-entry `SHARDS`, role selectors and locks cannot certify ECDEV. Old `core/substrate/adapter/apps/tools/tests` layout, unauthenticated local verifier-role assumptions and no executable verified-absorption-to-admission join remain debt. | Permanent evolution/index/proof/Foundry responsibility enters Chronica under admitted semantic owners; runtime work/authority/evidence retain existing physiology owners. Required callers are the eight-source engine consumers and ultimately a governed Chronica development caller, not only `ynventa` unit tests. | All-eight enrollment and lock/schema migration first; preserve artifact birth/provenance and recoverable coordination; decide AO-7/10 and prove non-self-activating hand-off. Current local state is ignored and not restored by a fresh clone. No engine source moves have been proved. |\n| **Esellios** | Commerce/economic ledger and operations, exact arithmetic, crypto/sealing, business invariants and actual integration tests: `apps/server/tests/{workflow_approval,execution_commits,duplicates,credentials,durable_postgres}.rs`. Keep stronger business rejection and tenant/privacy cases. | Local `core/{identity,authorization,approval,policy,evidence,audit,store,tenant}` and `substrate/{scheduler,workflow,events,orchestration}` cannot remain sovereign generic owners. Currency/minor-unit semantics and business event identities need explicit mapping. Esellios grant hierarchy, wildcard, risk and currency-cap restrictions exceed Chronica's current Any/One resource-scope representation; preserve every restriction through an explicit contract before cutover, never silently widen it. Local auth/store history cannot just be cast into Chronica types. No separate product UI is established by this inventory. | World/economic facts under `physiology/world`; grants/norms under regulation; evidence/storage/metabolism under their owners; commerce algorithms as typed native capabilities. Existing `apps/server` HTTP/MCP/workflow consumers must call admitted Chronica contracts; commerce Phenora uses the shared frontend. | Money/currency/rate/rounding and ledger invariants, tenant/credential mapping, storage/history export, workflow effect identity and independent production caller proof. Reverse crypto transcription into Esellios is provenance, not completed convergence back into Chronica. |\n| **Fi-game** | Exact finance arithmetic, ordered market replay, OMS/reconciliation, venue decoding, exposure/margin/throttling, allocation/arbitrage/maker learning. Retain `core/genome/tests/ccxt_decimal_to_precision.rs`, `domain/authority/tests/{admit_one_differential,exposure_differential,margin_kept_differential}.rs` and `apps/frontend/src/{api,format}.test.ts`. | `core/genome` identity/time/seed sequences; `domain/authority`, memory journals, `ControlAuthority`, execution state and policy provenance; accepted control tokens currently map to an operator and must bind the canonical principal, while FIGJ replay identity remains exact; `domain/brain` is source vocabulary, not a second Norl. `apps/frontend` rendering/build ownership migrates. Historical free-text promotion-provenance gap FG1 requires fresh verification, not an assumed fix. | Fixed-point/market kernels under their capability owners; identity/storage/memory/regulation/metabolism under Chronica; generic cognition only in the appropriate Norl organ. Market/OMS callers and operator typed requests must traverse the governed contracts; maintained UI in `phenora/`. | Ordered-input/zero-look-ahead and exact precision contracts, live fill/unknown-order reconciliation, seed/ID mapping, scoped generic-cognition classification and latency/resource evidence. Domain-specific risk checks remain required in addition to canonical authority. |\n| **Mechatron** | Robotics/planning/geometry, physical units, control and protocol codecs, device-specific safety and local deadline behavior. Preserve `substrate/{planning,robotics,spatial,protocol,safety}` source tests and `apps/operator/src/test/{request,schema,render,incidents}.test.ts`. | `core/entity` IDs/time/units; local `substrate/{authority,storage,runtime,world}` and leases; operator snapshot/request state. `substrate/authority/src/chronica.rs` exchange grant/lease shapes omit current canonical fields: their lossless-mapping comment requires field-level semantic and negative/replay tests, not trust in the type name. A local interlock is essential protection, not a sovereign World. `apps/operator` UI/CLI must be split by actual rendering versus native safety responsibilities. | World/lease/regulation/storage/metabolism contracts; native control kernels retain bounded local execution; device partners in `symbiosis`; permitted perception to Norl. A real supervisor/device caller plus shared operator Phenora must exercise requests and refusal. | Device binding, unit/frame/clock semantics, actuator/effect IDs, hard deadlines and offline limits, physical interlocks, Modbus owner conflict DR-10 and measured local materialization. No requirement to turn a servo into central graph/RPC traversal. |\n| **Atlas-Studio** | Extraction/census, graph/composition, ADL/`.atlas`/`.atlasx` codecs, exact quantities, BLAKE3 and legacy verification. Retain `core/src/atlas/tests.rs`, `core/src/atlasx/codec/tests.rs`, `core/src/atlasx/manifest/tests.rs`, `core/src/language/adl/census/tests.rs` and identity vectors at their source paths. | Name-derived historical IDs and seals, source graph/census/evidence controllers and broad JS/TS tooling need classification. Frozen artifact bytes remain exact. `apps/studio` currently contains only README, package metadata and design tokens: no tracked routes, TS/TSX renderer, interactions or build script were found. Preserve the metadata/tokens and design intent as historical migration evidence only. They authorize no auxiliary UI development; all new engineering views are developed exclusively in `Chronica/phenora/`. Historical donor status is not an assertion that later governance commits never occurred. | Codara owns typed intent; capability kernels own extraction/codecs; world owns quantities, regulation owns seals as actually mapped. Real Codara/import consumers must preserve the supported historical formats; all UI expressions are developed and maintained exclusively under `Chronica/phenora/`. | Inventory actual 28-family/other retained capability requirements, historical identity map, compiler/YIR semantic differences and incremental-delta gaps. Already copied seams do not close every family or source-retirement obligation; placeholder metadata supplies no current Studio caller or route-parity oracle. |\n| **Universal-Connector** | Protocol parsing/compilation and binding evidence; native JS, web, regex/IDNA/schema implementations and actual source oracles. Preserve `core/src/{binding,verification}.rs` scoped assertions and `substrate/script/tests/{engine,modules}.rs`, plus format/protocol fixtures beside their owners. | Local principal/credential/grant/capability/evidence state, `core/agent2all` cognition/evolution and connector runtime cannot become independent generic authority or a second Norl. Source `uc` wire/provenance spellings remain frozen. This inventory establishes no separate product frontend. | Axora binding evidence in `membrane`, capability-local parser/runtime kernels, governed external providers in `symbiosis`; identity/regulation/evidence remain physiology owners. Required callers include host binding/admission and actual protocol/partner clients; copied verification has no established production caller. | Separate protocol discovery from effect permission; prove isolation/rights/egress/resource and malformed/adversarial input behavior. Reconcile actual broad interaction consumers before deletion. Ongoing connector implementation work is outside this milestone. |\n| **ECDEV** | Native acquisition/DOM/HTML/JSON-LD/microdata, URL/robots/cache/frontier, product evidence/economics, native HTTP/MCP and embedded-SQL/WAL. Retain `adapter/web/tests/{html_parity,scrapy_robots,gzip_oracle}.rs`, `substrate/storage/tests/{sql_parity,durability}.rs`, `.ecdev/tests/{universe,false_extinction,knowledge,research_value}.rs` and server inline tests. | Independent `.ecdev` governor and `.ecg` evidence/knowledge/history/denominators; domain run/cache/budget/state and identities; `.ecdev-data` raw observations; `apps/web` JS/HTML/CSS. Native SQL is useful specialized technology, not permission for a second canonical store. | Typed extraction/SQL capabilities under existing natural owners; canonical identity/regulation/evidence/storage remain Chronica. Existing server MCP/HTTP/research/watch consumers must retain observed behavior through governed calls; web views migrate to `phenora/`. `.ecdev` development governance converges into shared `.ynventa`. | **Historical inspected source conflict:** `.ecdev/src/conformance/mod.rs::external_governance_tokens/references` rejected external governance tokens; preserve that stamped evidence rather than deleting canonical references to satisfy it. Current `00c50c86…` already supplies `ecdev-source-mapping-proposal-v1`, but target mappings/custody are null. Reuse the lossless bound capture/proposal consumer, obtain explicit selected targets and an independent Chronica owner/commit/tree witness, then qualify migration and coordinate all eight consumer schema/engine locks and acknowledgements before enrollment (§40.1 of Repository Protocol). Source receipt/checks are custody interoperability only; no registration or native integration credit. |\n\nThe native algorithm and the state it currently happens to store must be classified separately. For example, an embedded SQL engine can remain a qualified native kernel, while canonical log durability and authority still use Chronica's owner contracts. A finance risk evaluator or machine safety guard can retain stronger local restrictions without independently granting any action. Economics/evidence projections cannot become authority to trade or buy. Domain is vocabulary and behavior, never a permanent domain sovereign subsystem.\n\n### 20.1.2 Parity, caller cutover, removal and rollback matrix\n\nEvery row inherits exact source/target revisions, input/artifact digests, source rights, identity mapping, independent expected behavior, required consumer list, resource envelope, negative authority cases, crash/replay evidence and a named verifier. A directory listing, locally passing legacy check or test-file existence closes none of these gates. Expected behavioral differences require an explicit accepted contract; they cannot be hidden as parity.\n\n| Repository | Independent parity and actual consumer cutover tests | Temporary adapter/removal gate | Rollback and stop gate |\n|---|---|---|---|\n| Chronica | Differential source/target outputs and refusal dimensions; cold replay and corrupted/torn log tests; trace a real node/Codara request through authority, admission, native/provider execution, evidence and authorized UI read-back. Verify no Norl/provider bypass. | Remove obsolete entrypoints/shims only after every required caller uses the target and dependency/origin scans show no forbidden source edge; preserve frozen readers/evidence as required. | Lost acknowledged history, identity drift, unexplained semantic difference or missing admission stops cutover. Reopen compatible owner stores using the known-good supported implementation; reconcile/compensate effects, never reset World. |"
+        },
+        {
+          "start_line": 2714,
+          "end_line": 2719,
+          "text": "**Codara (CN-0005)** is the canonical named semantic compiler in the Chronica organism. It is a graph-native semantic-intent language that compiles bounded typed candidates only; it neither owns Norl cognition nor grants execution authority. A program states what must become true, what must remain true, what may change, what evidence is required and what constraints govern the transformation. Status: IMPLEMENTED. Decisions: 0125 (ACCEPTED as the skeleton), 0126 to 0128, 0131, 0133, and the kernel integrations 0146, 0149, 0150, 0154 (PROVISIONAL).\n\nOwners: the pure library `physiology/capability/codara` (crate `capability-codara`: `syntax`, `typing`, `resolve`, `lower`, `ir`, `prove`, `capsule`, `encode`, `refusal`, `world`) and the binary `codara` in `phenotype/codara` with `check | graph | plan | prove | run | build FILE` (`--data DIR`, `--time VALID --known TRANSACTION`). Exit codes: 0 done, 2 refused (something does not resolve), 3 not offered or withheld, 4 refused by authority or admission; `run` also uses 5 for work that ran and did not meet its contract and 6 for a requester not authenticated. The library has no dependency on regulation, host, metabolism, evidence or memory: a compiled program cannot name an authority witness, so Compiled != Authorized is a compile-time fact. The chain it keeps apart: Source != Meaning (the IR) != Plan (a pathway) != Authority != Admission != Execution != Observation != Truth.\n\nDiagram D40 (Level 2). The compile pipeline and its purity boundary. Names mint nothing: `HeldRef` is built only from a node the reading holds. The semantic IR has 19 clause tags (entity, relation, time, goal, requires, budget, steps, exclude, pre, invariant, effect, evidence verified, evidence furnished, observe, confidence, prefer, input, output, as) and four classes (Resolved, Deferred, Dynamic, Unresolved). The dotted wall is the crate manifest. Sources: `physiology/capability/codara/src/{lib,ir,resolve,lower,prove,capsule}.rs`, `phenotype/codara/src/{main,cli,plan,run,build,host_world}.rs`; Chronica DECISIONS 0125 to 0128, 0131, 0133. CURRENT.\n"
+        }
+      ]
+    },
+    {
+      "path": "UPGRADE-ROADMAP-V1.md",
+      "git_blob": "5b8c7db6bbd9628f47ecf69324ca2396e4454b97",
+      "url": "https://github.com/llgtrn/.Ynventa-/blob/6f64251283bcdcdde41f4bfb4a066c053332e149/UPGRADE-ROADMAP-V1.md",
+      "evidence": [
+        {
+          "start_line": 1525,
+          "end_line": 1525,
+          "text": "The binding dependencies are schema/lock coherence before normal scheduling, exact source and closure inputs before proof reuse, native target evidence before consumer cutover, admission before effects, and verified deletion conditions before source retirement. Norl cognition and Foundry work may advance in concurrent lanes when their own prerequisites hold. Source convergence does not waive cognitive, neural, immune or research requirements."
+        },
+        {
+          "start_line": 3863,
+          "end_line": 3863,
+          "text": "- **Current constraints:** A source checkout is not runtime authority. Central development verification is not Chronica admission; the source-to-runtime hand-off remains missing. Each artifact class retains its own lifecycle."
+        }
+      ]
+    },
+    {
+      "path": "TECHNOLOGY-FOUNDRY-V1.md",
+      "git_blob": "b7939bede103041ada31e95803d1c8e588940954",
+      "url": "https://github.com/llgtrn/.Ynventa-/blob/6f64251283bcdcdde41f4bfb4a066c053332e149/TECHNOLOGY-FOUNDRY-V1.md",
+      "evidence": [
+        {
+          "start_line": 1871,
+          "end_line": 1871,
+          "text": "Intake requires identified origin/revision, integrity and rights evidence, declared purpose, resource/egress limits and an authorized isolation/inspection method. An unknown license constrains adoption decisions; it does not erase the source from the knowledge denominator or justify an evidence-free rejection. Source acquisition, static inspection, executing donor code, generating teacher outputs, training and activating a candidate are different operations, each with its own applicable authority and evidence requirements."
+        },
+        {
+          "start_line": 1974,
+          "end_line": 1974,
+          "text": "For the first native-digestion experiment, choose one small donor capability with inspectable source and permitted reuse. Pin identity/rights/revision, establish its behavior and independent oracle, identify reusable semantics/dependencies, build a separately identified candidate through the existing authorized development process, compare correctness/refusals/performance, integrate a real consumer and record its cutover. Native absorption, verification, runtime admission, consumer migration, donor extinction and repository retirement remain separate facts. No generic digestion runtime is inferred from one successful case."
+        },
+        {
+          "start_line": 2209,
+          "end_line": 2212,
+          "text": "| `source-contract` | Historical AtlasX implements FUNCTIONS (class 4) and ROOT_MANIFEST (class 1), rather than all 21 reserved object classes. The pinned FUNCTIONS fixture is 465 bytes: an 80-byte header and 385-byte codec-NONE payload. Its BLAKE3 payload address is `5b8223605edbd24c18a1033e9007ffef0c7d7d8385a56a4ce6ca3cf92a1241ed`. Source [codec](https://github.com/llgtrn/Atlas-Studio/blob/b87472dee45b89e8dda355aad8c528b7b4cc64d4/core/src/atlasx/codec.rs), [manifest](https://github.com/llgtrn/Atlas-Studio/blob/b87472dee45b89e8dda355aad8c528b7b4cc64d4/core/src/atlasx/manifest.rs). |\n| `source-oracles` | [Codec tests](https://github.com/llgtrn/Atlas-Studio/blob/b87472dee45b89e8dda355aad8c528b7b4cc64d4/core/src/atlasx/codec/tests.rs) declare pinned bytes/address, deterministic permutations, corrupt bytes, truncation/extension and rehashed malformed-record refusals. [Exporter tests](https://github.com/llgtrn/Atlas-Studio/blob/b87472dee45b89e8dda355aad8c528b7b4cc64d4/adapter/runtime/src/atlasx.rs#L599) declare identical replay and preserved conflicts plus address/class/header/payload/record-kind refusals. These are read test declarations, not new execution receipts or proof of arbitrary world-object semantics. |\n| `export-io-admission` | [The exporter](https://github.com/llgtrn/Atlas-Studio/blob/b87472dee45b89e8dda355aad8c528b7b4cc64d4/adapter/runtime/src/atlasx.rs#L449) validates the named object before exporting bytes after its header, requires an existing output parent, accepts only create-or-identical replay and preserves conflicting evidence. Refused decode writes nothing. Report `address` and `decoded_length` supply `claimed` and `input_bytes`; the [source program](https://github.com/llgtrn/Atlas-Studio/blob/b87472dee45b89e8dda355aad8c528b7b4cc64d4/core/src/atlasx/codec/fixture_verify.codara) requests one CPU unit. The target must still supply actual declarations, binding, authentication, current authority, capacity/envelope, pre-effect admission and its own capsule. Export creates no grant or capsule. |\n| `target-consumer` | Chronica has a concrete [local-binary test consumer](https://github.com/llgtrn/Chronica/blob/d9e8a067f18cdb931715027631a2fb60125a6166/phenotype/codara/tests/e2e_source_native_result.rs) for the unchanged program/payload, with persisted-result, mismatched-payload, revoked-authority and exhausted-budget assertions. Its [provenance](https://github.com/llgtrn/Chronica/blob/d9e8a067f18cdb931715027631a2fb60125a6166/phenotype/codara/tests/fixtures/native_result/provenance.json) binds these bytes to the Atlas source. The source and target program share Git blob `fbc284360c5d095f73984da27f91b2665d1fee29`; source and target object share `b099b6a63a425cdbc1a38916c4c1236fe4f19ba8`. This is a digest-verification consumer, not Atlas semantic execution, complete family parity, production cutover or general Foundry-to-admission integration. |"
+        }
+      ]
+    }
+  ],
+  "blockers": [
+    "No existing target-native Atlas reconstruction input decoder/registered kernel/caller identified",
+    "ArtifactBook remains metadata only; dedicated source-observation capture/read exists but no approved reconstruction output/provider mapping; existing result1 cap is 1024 bytes",
+    "Target-owned payload identity, durable known outcome, effect/resource/current observe/disclosure and bounded output contracts still need concrete integration",
+    "Shadow compiler workflow additionally needs admitted filesystem/compiler/oracle/toolchain/dependency boundaries",
+    "Atlas Cargo workspace license UNLICENSED; source rights/OD-15 unresolved in published source handoff"
+  ],
+  "limits": {
+    "functions_result_decoder": 1024,
+    "work_receipt_result": 1024,
+    "cli_printed_text": 16384,
+    "source_job_capture_bytes": 262144,
+    "source_job_payload_json_bytes": 196608,
+    "warning": "Independent limits; source-job codec and CLI text are not substitute result transport; reconstruction resource demand is unmeasured.",
+    "source_observation": {
+      "corpus": 131072,
+      "case": 131072,
+      "phase": 16384,
+      "text": 4096,
+      "envelope": 327680,
+      "scope": "Dedicated untrusted source assertion capture; pump import known one-unit local validation outcome; not reconstruction result semantics."
+    }
+  },
+  "eligibility": {
+    "pure_kernel": "Candidate for target-owned port after rights and scoped independent semantic/caller qualification; no target module path selected.",
+    "hosted_workflow": "Effects and resource/authority/disclosure/admission contracts additionally required; not pure merely because lift is deterministic.",
+    "source_relocation": "Same-crate source compatibility work can proceed independently; no native adoption/extinction/full V1 claim.",
+    "new_existing_target_mechanism": "Evaluate Host-private work_under_lease_with_codec and dedicated source observation capture/authorized read before creating parallel byte storage. Pump provider scope cannot be silently broadened."
+  },
+  "final_readback_utc": "2026-10-17T00:00:35Z",
+  "final_delta": {
+    "repository_full_name": "llgtrn/Chronica",
+    "base": "4b5e163042c621702d7700b53087351f40fe192f",
+    "head": "59f4e409a61ef1044515d80f7dca66e7decead4d",
+    "status": "ahead",
+    "ahead_by": 1,
+    "behind_by": 0,
+    "total_commits": 1,
+    "too_large": null,
+    "base_commit": {
+      "sha": "4b5e163042c621702d7700b53087351f40fe192f",
+      "url": "https://api.github.com/repos/llgtrn/Chronica/commits/4b5e163042c621702d7700b53087351f40fe192f",
+      "html_url": "https://github.com/llgtrn/Chronica/commit/4b5e163042c621702d7700b53087351f40fe192f"
+    },
+    "merge_base_commit": {
+      "sha": "4b5e163042c621702d7700b53087351f40fe192f",
+      "url": "https://api.github.com/repos/llgtrn/Chronica/commits/4b5e163042c621702d7700b53087351f40fe192f",
+      "html_url": "https://github.com/llgtrn/Chronica/commit/4b5e163042c621702d7700b53087351f40fe192f"
+    },
+    "files": [
+      {
+        "filename": ".ynventa/declared/v1/edges.jsonl",
+        "status": "modified",
+        "additions": 32,
+        "deletions": 3,
+        "changes": 35,
+        "previous_filename": null
+      },
+      {
+        "filename": ".ynventa/knowledge/06051a930f6e4fcf4133642b2f4016fc.ynv",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "changes": 0,
+        "previous_filename": null
+      },
+      {
+        "filename": ".ynventa/knowledge/1ae5b05f0cea48d451415c46fc3262df.ynv",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "changes": 0,
+        "previous_filename": null
+      },
+      {
+        "filename": ".ynventa/knowledge/3272077a7e3bb2b47bff42f029f960cd.ynv",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "changes": 0,
+        "previous_filename": null
+      },
+      {
+        "filename": ".ynventa/knowledge/818d552ea983e0f0a7b24ef38d884ba1.ynv",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0,
+        "changes": 1,
+        "previous_filename": null
+      },
+      {
+        "filename": ".ynventa/knowledge/c042f3863af85327e8cb0d5581cc15de.ynv",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0,
+        "changes": 1,
+        "previous_filename": null
+      },
+      {
+        "filename": ".ynventa/knowledge/ff92ba567c1a6dce93b35792d16627f9.ynv",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0,
+        "changes": 1,
+        "previous_filename": null
+      },
+      {
+        "filename": "Cargo.lock",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 0,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "assays/gate/fixtures/pump-source-import/contract.json",
+        "status": "added",
+        "additions": 854,
+        "deletions": 0,
+        "changes": 854,
+        "previous_filename": null
+      },
+      {
+        "filename": "assays/gate/mutations/pump_source.toml",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0,
+        "changes": 38,
+        "previous_filename": null
+      },
+      {
+        "filename": "assays/gate/mutations/pump_source_cli.toml",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0,
+        "changes": 20,
+        "previous_filename": null
+      },
+      {
+        "filename": "assays/gate/mutations/source_import_host.toml",
+        "status": "added",
+        "additions": 28,
+        "deletions": 0,
+        "changes": 28,
+        "previous_filename": null
+      },
+      {
+        "filename": "assays/gate/mutations/source_observation.toml",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0,
+        "changes": 30,
+        "previous_filename": null
+      },
+      {
+        "filename": "lineara/src/lib.rs",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 0,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "lineara/src/source_observation.rs",
+        "status": "added",
+        "additions": 574,
+        "deletions": 0,
+        "changes": 574,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/Cargo.toml",
+        "status": "modified",
+        "additions": 3,
+        "deletions": 0,
+        "changes": 3,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/src/lib.rs",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 0,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/src/main.rs",
+        "status": "modified",
+        "additions": 136,
+        "deletions": 1,
+        "changes": 137,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/src/pump_source.rs",
+        "status": "added",
+        "additions": 1032,
+        "deletions": 0,
+        "changes": 1032,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/tests/fixtures/pump-source/2026-10-16-operator-phenora-inventory.json",
+        "status": "added",
+        "additions": 2946,
+        "deletions": 0,
+        "changes": 2946,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/tests/fixtures/pump-source/chronica-pump-v1.json",
+        "status": "added",
+        "additions": 2333,
+        "deletions": 0,
+        "changes": 2333,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/tests/fixtures/pump-source/provenance.json",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0,
+        "changes": 21,
+        "previous_filename": null
+      },
+      {
+        "filename": "phenora/node/tests/pump_source_cli.rs",
+        "status": "added",
+        "additions": 636,
+        "deletions": 0,
+        "changes": 636,
+        "previous_filename": null
+      },
+      {
+        "filename": "physiology/host/src/allocation.rs",
+        "status": "modified",
+        "additions": 108,
+        "deletions": 26,
+        "changes": 134,
+        "previous_filename": null
+      },
+      {
+        "filename": "physiology/host/src/lib.rs",
+        "status": "modified",
+        "additions": 13,
+        "deletions": 0,
+        "changes": 13,
+        "previous_filename": null
+      },
+      {
+        "filename": "physiology/host/src/source_observation.rs",
+        "status": "added",
+        "additions": 1219,
+        "deletions": 0,
+        "changes": 1219,
+        "previous_filename": null
+      },
+      {
+        "filename": "physiology/storage/src/record_log.rs",
+        "status": "modified",
+        "additions": 68,
+        "deletions": 1,
+        "changes": 69,
+        "previous_filename": null
+      }
+    ]
+  },
+  "final_target_files": [
+    {
+      "path": "lineara/src/source_observation.rs",
+      "git_blob": "186f65aa96be3c9931814d5e90ab3641eeae93ca",
+      "url": "https://github.com/llgtrn/Chronica/blob/59f4e409a61ef1044515d80f7dca66e7decead4d/lineara/src/source_observation.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 55,
+          "text": "//! Exact bounded source assertions imported as local work evidence.\n//!\n//! A valid receipt proves only which bytes the local import provider acknowledged. Source\n//! status and commit metadata remain untrusted claims; even `Accepted` is not proof of a source\n//! actuation, authority, a current source state, or permission to retry an unknown source effect.\n//! The envelope is private to Lineara's opaque `ProviderAck`; shared evidence framing and the\n//! historical work receipt/result codecs are unchanged. Its digest detects changed content, not\n//! authorship. Callers must join the complete target binding before using a local work report.\n\nuse genora_primitives::codec::{DecodeError, Reader, Writer};\nuse genora_primitives::digest::{hex, unhex, Sha256};\nuse genora_primitives::Generation;\nuse metabion::lease_work::WorkReport;\nuse metabion::work_run::{EffectId, EffectRef, RequestDigest, WorkRunId};\n\npub const MAX_CORPUS_BYTES: usize = 128 * 1024;\npub const MAX_CASE_BYTES: usize = 128 * 1024;\npub const MAX_PHASE_BYTES: usize = 16 * 1024;\npub const MAX_TEXT_BYTES: usize = 4096;\nconst MAX_ENVELOPE_BYTES: usize = 320 * 1024;\nconst MARK: &str = \"chronica.source-observation1 \";\nconst VERSION: u16 = 1;\nconst DIGEST_DOMAIN: &[u8] = b\"chronica.source-observation.v1\\0\";\n\n/// The target local import's existing admitted work identity. No field grants admission.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub struct TargetBinding {\n    pub effect: EffectRef,\n    pub generation: Generation,\n    pub lease: String,\n    pub provider: String,\n    pub request: RequestDigest,\n}\n\n/// What the supplied source bytes claim, distinct from the known local import outcome.\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum SourceOutcome {\n    Accepted,\n    Refused,\n    Unknown,\n    Unseen,\n}\n\n/// Exact supplied source bytes and provenance claims, never authenticated source truth.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub struct SourceObservation {\n    pub target: TargetBinding,\n    pub source_repository: String,\n    pub source_commit: String,\n    pub source_path: String,\n    pub corpus: Vec<u8>,\n    pub case: Vec<u8>,\n    pub phase: Vec<u8>,\n    pub outcome: SourceOutcome,\n}"
+        },
+        {
+          "start_line": 234,
+          "end_line": 251,
+          "text": "pub fn decode_for(\n    receipt: &str,\n    expected: &TargetBinding,\n) -> Result<SourceObservation, DecodeError> {\n    let observation = decode(receipt)?;\n    if &observation.target != expected {\n        return Err(invalid(\n            \"source observation target\",\n            \"complete target binding mismatch\",\n        ));\n    }\n    Ok(observation)\n}\n\n/// The known outcome of importing these bytes locally, never the supplied source outcome.\n/// A caller handling an existing effect must separately check [`decode_for`].\npub fn report(receipt: &str) -> Option<WorkReport> {\n    decode(receipt).ok().map(|_| WorkReport::known(1, true))"
+        }
+      ]
+    },
+    {
+      "path": "physiology/host/src/source_observation.rs",
+      "git_blob": "96fb4289f5a8195ead7a1b58424068ff98e4c72b",
+      "url": "https://github.com/llgtrn/Chronica/blob/59f4e409a61ef1044515d80f7dca66e7decead4d/physiology/host/src/source_observation.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 113,
+          "text": "//! Governed local validation and immutable capture of source assertions.\n//!\n//! This bounded provider imports bytes; it neither actuates a pump nor authenticates source\n//! rights, clocks or outcomes. `Unknown` remains source data. The known local report accounts\n//! for one CPU unit of validation, using an existing lease through the normal execution spine.\n\nuse crate::{allocation::WorkDone, storage, Checks, Host, HostError, EFFECT};\nuse genora_primitives::{Generation, Timestamp};\nuse homeostasis::allocation::EnvelopeStore;\nuse lineara::record::{EvidenceProof, EvidenceStore};\nuse lineara::source_observation::{self as codec, SourceObservation, TargetBinding};\nuse metabion::lease_work::{LeaseWork, WorkReport};\nuse metabion::work_run::{RequestDigest, WorkRunId, WorkRunStore};\nuse world::holding::HoldingId;\nuse world::identity::PrincipalId;\nuse world::quantity::Unit;\nuse world::resource::{Parameter, ResourceId, ResourceLifecycleState};\nuse world::resource_event::{ResourceChange, ResourceEvent};\nuse world::store::WorldTransaction;\n\npub const PROVIDER: &str = \"chronica.pump-source-import\";\npub const PROVIDER_VERSION: &str = \"1\";\npub const PARAMETER: &str = \"cpu_units\";\npub const UNIT: &str = \"unit\";\n\n/// One native import fence for this canonical resource/lease pair. Source inputs deliberately\n/// do not affect this key: changed inputs must not escape a prior unknown local execution.\npub fn source_import_key(resource: &ResourceId, lease: &str) -> String {\n    let digest = RequestDigest::of(&[\n        b\"chronica.source-import.lease-fence.v1\",\n        resource.as_str().as_bytes(),\n        lease.as_bytes(),\n    ]);\n    genora_primitives::digest::hex(&digest.0)\n}\n\n/// The provider retains the result of its actual `perform`, then supplies original assertions\n/// with the Host's complete target binding. It must not fabricate a result before execution.\npub trait SourceObservationWork: LeaseWork {\n    fn source_observation(&self, target: TargetBinding) -> Result<SourceObservation, String>;\n}\n\n/// Original target context, independent of the source's raw clock and authority assertions.\n/// `amount` is the existing lease's amount; this local operation consumes exactly one unit.\n#[derive(Clone, Debug, PartialEq, Eq)]\npub struct SourceImportContext {\n    pub requester: PrincipalId,\n    pub resource: ResourceId,\n    pub holding: HoldingId,\n    pub purpose: String,\n    pub lease: String,\n    pub provider: String,\n    pub provider_version: String,\n    pub clock: String,\n    pub requested_at: Timestamp,\n    pub expires_at: Timestamp,\n    pub generation: Generation,\n    pub parameter: Parameter,\n    pub unit: Unit,\n    pub amount: i64,\n}\n\nfn refused(reason: impl std::fmt::Display) -> HostError {\n    HostError::Rejected(format!(\"source observation: {reason}\"))\n}\n\nimpl SourceImportContext {\n    pub fn work_key(&self) -> String {\n        source_import_key(&self.resource, &self.lease)\n    }\n\n    /// Commits target context and provider's original byte identity. No source identity is\n    /// converted to a target principal, Holding, generation or authority witness.\n    pub fn request_binding(&self, source: &RequestDigest) -> Result<RequestDigest, HostError> {\n        for (name, value) in [\n            (\"purpose\", self.purpose.as_str()),\n            (\"lease\", self.lease.as_str()),\n            (\"clock\", self.clock.as_str()),\n        ] {\n            if value.is_empty() || value.len() > 1024 || value.chars().any(char::is_control) {\n                return Err(refused(format!(\"invalid {name}\")));\n            }\n        }\n        crate::purpose_of(&self.purpose)?;\n        if self.provider != PROVIDER\n            || self.provider_version != PROVIDER_VERSION\n            || self.parameter.as_str() != PARAMETER\n            || self.unit.as_str() != UNIT\n            || self.amount < 1\n            || self.generation != Generation::INITIAL\n        {\n            return Err(refused(\n                \"unsupported provider, version, CPU quantity/unit, amount or generation\",\n            ));\n        }\n        Ok(RequestDigest::of(&[\n            b\"chronica.source-import.context.v1\",\n            self.requester.as_str().as_bytes(),\n            self.resource.as_str().as_bytes(),\n            self.holding.as_str().as_bytes(),\n            self.purpose.as_bytes(),\n            self.lease.as_bytes(),\n            self.provider.as_bytes(),\n            self.provider_version.as_bytes(),\n            self.clock.as_bytes(),\n            &self.requested_at.0.to_le_bytes(),\n            &self.expires_at.0.to_le_bytes(),\n            &self.generation.0.to_le_bytes(),\n            self.parameter.as_str().as_bytes(),\n            self.unit.as_str().as_bytes(),\n            &self.amount.to_le_bytes(),\n            &source.0,\n        ]))"
+        },
+        {
+          "start_line": 117,
+          "end_line": 180,
+          "text": "impl Host {\n    /// Validates locally only after current purpose/quantity-aware admission. The existing\n    /// lease is not allocated again. A durable pending fence precedes the verifier. Any prior\n    /// request without a valid receipt remains held; this API never reexecutes it.\n    pub fn import_source_observation(\n        &mut self,\n        context: &SourceImportContext,\n        work: &mut impl SourceObservationWork,\n        key: &str,\n        at: Timestamp,\n    ) -> Result<WorkDone, HostError> {\n        self.writable()?;\n        if key != context.work_key() {\n            return Err(refused(\n                \"request key must be the deterministic resource/lease import fence\",\n            ));\n        }\n        let source = work\n            .request_binding()\n            .ok_or_else(|| refused(\"provider lacks original input binding\"))?;\n        let binding = context.request_binding(&source)?;\n        let id = WorkRunId::try_from(key).map_err(|e| crate::invalid(\"request key\", e))?;\n        self.owns(&context.resource, at)?;\n        if self.holding_at(&context.resource, at)? != Some(context.holding.clone()) {\n            return Err(refused(\"canonical Holding differs\"));\n        }\n        let previous = self.runs.restore(&id).map_err(storage)?;\n        let allocation = if let Some(run) = previous {\n            // Retrying is observation/reconciliation, not renewed execution admission.\n            self.observe_for(\n                &context.requester,\n                &context.resource,\n                &context.holding,\n                Some(&context.purpose),\n                None,\n                at,\n            )?;\n            if run.current_generation() != context.generation\n                || run.pending_effect_ids().iter().any(|e| *e != EFFECT)\n            {\n                return Err(refused(\n                    \"unsupported stored generation or pending effects remain held\",\n                ));\n            }\n            None\n        } else {\n            // Canonical consumption cannot account for an unobserved local import. Until a\n            // complete receipt is reconciled, admit no additional work in this bounded lane,\n            // even under another lease/Holding. Expiry alone is not evidence of zero cost.\n            if self.has_unresolved_source_import()? {\n                return Err(refused(\"another local source import remains unresolved\"));\n            }\n            if context.requested_at > at || at >= context.expires_at {\n                return Err(refused(\"request is future-issued or expired\"));\n            }\n            let state = self\n                .world\n                .current(&context.resource)\n                .map_err(storage)?\n                .0\n                .ok_or_else(|| refused(\"budget resource does not exist\"))?;\n            if state.lifecycle() != ResourceLifecycleState::Active {\n                return Err(refused(\"budget resource is not Active\"));\n            }"
+        },
+        {
+          "start_line": 235,
+          "end_line": 268,
+          "text": "        self.work_under_lease_with_codec(\n            &context.requester,\n            &context.resource,\n            &context.lease,\n            &context.provider,\n            work,\n            key,\n            at,\n            Some(binding),\n            Checks {\n                via: Some(&context.provider),\n                purpose: Some(&context.purpose),\n                quantity: Some(context.parameter.as_str()),\n                authority_value: Some(1),\n                allocation,\n                ..Checks::default()\n            },\n            Some(&context.provider_version),\n            |work, target, report| {\n                if *report != WorkReport::known(1, true) {\n                    return Err(refused(\n                        \"local verifier did not report known one-unit completion\",\n                    ));\n                }\n                let observation = work.source_observation(target.clone()).map_err(refused)?;\n                let receipt = codec::encode(&observation).map_err(refused)?;\n                codec::decode_for(&receipt, target).map_err(refused)?;\n                Ok(receipt)\n            },\n            |receipt, target| {\n                codec::decode_for(receipt, target).map_err(refused)?;\n                Ok(Some(WorkReport::known(1, true)))\n            },\n        )"
+        },
+        {
+          "start_line": 333,
+          "end_line": 418,
+          "text": "    /// Current Holding and purpose-aware read rights precede all historical evidence reads.\n    /// A key alone discloses nothing. No original source file, import right, retry or pump\n    /// state transition is needed or produced by observing the committed assertion bytes.\n    #[allow(clippy::too_many_arguments)]\n    pub fn observe_source_observation(\n        &self,\n        observer: &PrincipalId,\n        on: &ResourceId,\n        holding: &HoldingId,\n        purpose: Option<&str>,\n        key: &str,\n        at: Timestamp,\n    ) -> Result<Option<SourceObservation>, HostError> {\n        self.observe_for(observer, on, holding, purpose, None, at)?;\n        self.source_observation_receipt(on, key)\n    }\n\n    fn source_observation_receipt(\n        &self,\n        on: &ResourceId,\n        key: &str,\n    ) -> Result<Option<SourceObservation>, HostError> {\n        let effect = Self::evidence_of(key)?;\n        let Some(run) = self.runs.restore(&effect.work_run).map_err(storage)? else {\n            return Ok(None);\n        };\n        let Some(request) = run.request().copied() else {\n            return Err(refused(\"unbound historical run\"));\n        };\n        if run.current_generation() != Generation::INITIAL\n            || run.pending_effect_ids().iter().any(|e| *e != EFFECT)\n        {\n            return Err(refused(\"unsupported stored generation or pending effects\"));\n        }\n        let canonical = lineara::canonicalization::idempotency_key(&effect.work_run, EFFECT);\n        let Some(revision) = self\n            .world\n            .applied(on.as_str(), &canonical)\n            .map_err(storage)?\n        else {\n            return Ok(None);\n        };\n        let event = self\n            .world\n            .replay(on.as_str())\n            .map_err(storage)?\n            .into_iter()\n            .find(|(r, _)| *r == revision)\n            .map(|(_, event)| event);\n        let Some(ResourceEvent {\n            change:\n                ResourceChange::LeaseSettled {\n                    lease,\n                    parameter,\n                    consumed: Some(1),\n                    completed: Some(true),\n                },\n            ..\n        }) = event\n        else {\n            return Err(refused(\n                \"canonical event is not a one-unit completed settlement\",\n            ));\n        };\n        if parameter.as_str() != PARAMETER {\n            return Err(refused(\"canonical settlement has another quantity\"));\n        }\n        let Some(evidence) = EvidenceStore::get(&self.evidence, &effect).map_err(storage)? else {\n            return Ok(None);\n        };\n        if evidence.effect != effect {\n            return Err(refused(\"evidence effect differs\"));\n        }\n        let EvidenceProof::ProviderAck(receipt) = evidence.proof else {\n            return Ok(None);\n        };\n        let expected = TargetBinding {\n            effect,\n            generation: run.current_generation(),\n            lease,\n            provider: PROVIDER.into(),\n            request,\n        };\n        codec::decode_for(&receipt, &expected)\n            .map(Some)\n            .map_err(refused)"
+        }
+      ]
+    },
+    {
+      "path": "physiology/host/src/allocation.rs",
+      "git_blob": "abc1e2bac432a4587ed03aac214e9f2a11b5a8d5",
+      "url": "https://github.com/llgtrn/Chronica/blob/59f4e409a61ef1044515d80f7dca66e7decead4d/physiology/host/src/allocation.rs",
+      "evidence": [
+        {
+          "start_line": 1077,
+          "end_line": 1174,
+          "text": "    pub fn work_under_lease(\n        &mut self,\n        who: &PrincipalId,\n        on: &ResourceId,\n        lease: &str,\n        provider: &str,\n        work: &mut impl LeaseWork,\n        key: &str,\n        at: Timestamp,\n    ) -> Result<WorkDone, HostError> {\n        // This newly introduced local provider has a dedicated complete receipt codec and\n        // deterministic lease fence. Generic work cannot bypass either door or reuse a lease\n        // whose import may have consumed an unobserved unit. Other historical providers keep\n        // their existing request/receipt grammar. This fences only this Host's writer custody.\n        let source_key = crate::source_observation::source_import_key(on, lease);\n        if provider == crate::source_observation::PROVIDER\n            || self\n                .runs\n                .restore(\n                    &WorkRunId::try_from(source_key.as_str())\n                        .map_err(|e| invalid(\"source import fence\", e))?,\n                )\n                .map_err(storage)?\n                .is_some()\n        {\n            return Err(HostError::Rejected(\n                \"source import lease requires its dedicated fenced pathway\".into(),\n            ));\n        }\n        let binding = work.request_binding();\n        self.work_under_lease_with_codec(\n            who,\n            on,\n            lease,\n            provider,\n            work,\n            key,\n            at,\n            binding,\n            Checks {\n                via: Some(provider),\n                ..Checks::default()\n            },\n            None,\n            |work, target, report| {\n                let result = work.outcome_evidence();\n                if result.is_some() && !report.is_known() {\n                    return Err(HostError::Rejected(\n                        \"native result evidence cannot turn an unknown work outcome into a fact\"\n                            .into(),\n                    ));\n                }\n                match result.as_deref() {\n                    Some(result) => lineara::work_receipt::encode(\n                        &target.provider,\n                        &target.effect,\n                        &target.lease,\n                        report,\n                        Some(result),\n                    )\n                    .map_err(|e| HostError::Rejected(format!(\"native result evidence: {e:?}\"))),\n                    None => Ok(work_receipt(\n                        &target.provider,\n                        &target.effect,\n                        &target.lease,\n                        report,\n                    )),\n                }\n            },\n            |receipt, _| Ok(reported(receipt)),\n        )\n    }\n\n    /// Same execution spine, with a private receipt codec. New callers must bind their complete\n    /// inputs and validate the full persisted target before a receipt can settle any lease.\n    #[allow(clippy::too_many_arguments)]\n    pub(super) fn work_under_lease_with_codec<W: LeaseWork>(\n        &mut self,\n        who: &PrincipalId,\n        on: &ResourceId,\n        lease: &str,\n        provider: &str,\n        work: &mut W,\n        key: &str,\n        at: Timestamp,\n        binding: Option<RequestDigest>,\n        checks: Checks<'_>,\n        expected_version: Option<&str>,\n        encode: impl FnOnce(\n            &W,\n            &lineara::source_observation::TargetBinding,\n            &WorkReport,\n        ) -> Result<String, HostError>,\n        decode: impl Fn(\n            &str,\n            &lineara::source_observation::TargetBinding,\n        ) -> Result<Option<WorkReport>, HostError>,\n    ) -> Result<WorkDone, HostError> {"
+        },
+        {
+          "start_line": 1190,
+          "end_line": 1276,
+          "text": "        // Optional native input binding extends only that provider's new requests. The default\n        // retains every historical request digest and receipt byte-for-byte.\n        let request = lease_work_request(who, on, lease, provider, binding.as_ref());\n        let previous = self.runs.restore(&run_id).map_err(storage)?;\n        if let Some(held_run) = &previous {\n            if held_run.request().is_some_and(|held| held != &request)\n                || (binding.is_some() && held_run.request().is_none())\n            {\n                return Err(HostError::RequestKeyReused(format!(\n                    \"{key} is bound to another work input\"\n                )));\n            }\n        }\n        let effect = EffectRef {\n            work_run: run_id.clone(),\n            effect: EFFECT,\n        };\n        let receipt_target = lineara::source_observation::TargetBinding {\n            effect: effect.clone(),\n            generation: previous\n                .as_ref()\n                .map(|r| r.current_generation())\n                .unwrap_or(genora_primitives::Generation::INITIAL),\n            lease: lease.to_owned(),\n            provider: provider.to_owned(),\n            request,\n        };\n\n        let settle = |report: &WorkReport| ResourceEvent {\n            occurred_at: at,\n            change: ResourceChange::LeaseSettled {\n                lease: lease.to_owned(),\n                parameter: held.parameter.clone(),\n                consumed: report.consumed,\n                completed: report.completed,\n            },\n        };\n        // A run evidenced before a crash is settled with what it reported.\n        let evidenced = match EvidenceStore::get(&self.evidence, &Self::evidence_of(key)?)\n            .map_err(storage)?\n            .map(|e| e.proof)\n        {\n            Some(EvidenceProof::ProviderAck(receipt)) => decode(&receipt, &receipt_target)?,\n            _ => None,\n        };\n        if let Some(report) = evidenced {\n            if let Some(outcome) = resume_request(\n                &mut self.runs,\n                &mut self.evidence,\n                &run_id,\n                &request,\n                settle(&report),\n                Target {\n                    world: &mut self.world,\n                    entity: on.as_str(),\n                    expected: head,\n                    to_event: |e| e,\n                },\n            )? {\n                return Ok(WorkDone {\n                    outcome: outcome.into(),\n                    report,\n                });\n            }\n        }\n        // Native work with no durable observed outcome cannot authorize its own retry. Keep\n        // pending work unknown, even though this particular kernel is pure and deterministic.\n        if binding.is_some() && previous.is_some() {\n            return Err(HostError::Rejected(format!(\n                \"{key}: work outcome remains unknown; native work was not re-executed\"\n            )));\n        }\n        let selected = self.admit(who, &action(\"resource.work\")?, on, key, at, checks)?;\n        if expected_version.is_some_and(|version| selected.binding().version != version) {\n            return Err(HostError::Rejected(\n                \"source import provider version differs from the request\".into(),\n            ));\n        }\n        if binding.is_some() {\n            let mut begun = GovernedWorkRun::begin_for(run_id.clone(), selected.clone(), request);\n            begun.run_mut().record_effect_emitted(EFFECT);\n            self.runs.snapshot(begun.run()).map_err(storage)?;\n        }\n        let report = work\n            .perform(&effect, lease, &held)\n            .map_err(|e| HostError::Rejected(format!(\"{provider}: {e}\")))?;\n        let receipt = encode(work, &receipt_target, &report)?;"
+        },
+        {
+          "start_line": 1306,
+          "end_line": 1363,
+          "text": "    /// Reads an observed work outcome only after it is canonical on `on`. Current observation\n    /// rights are required, including for historical work; a request key alone reveals nothing.\n    /// Pending, unobserved or partly unknown outcomes return None and never authorize execution.\n    pub fn work_evidence(\n        &self,\n        who: &PrincipalId,\n        on: &ResourceId,\n        key: &str,\n        at: Timestamp,\n    ) -> Result<Option<Evidence>, HostError> {\n        self.require(who, \"resource.observe\", on, at)?;\n        let effect = Self::evidence_of(key)?;\n        let canonical_key = lineara::canonicalization::idempotency_key(&effect.work_run, EFFECT);\n        let Some(revision) = self\n            .world\n            .applied(on.as_str(), &canonical_key)\n            .map_err(storage)?\n        else {\n            return Ok(None);\n        };\n        let Some(evidence) = EvidenceStore::get(&self.evidence, &effect).map_err(storage)? else {\n            return Ok(None);\n        };\n        let EvidenceProof::ProviderAck(receipt) = &evidence.proof else {\n            return Ok(None);\n        };\n        let Some(report) = reported(receipt).filter(WorkReport::is_known) else {\n            return Ok(None);\n        };\n        let event = self\n            .world\n            .replay(on.as_str())\n            .map_err(storage)?\n            .into_iter()\n            .find(|(r, _)| *r == revision)\n            .map(|(_, event)| event);\n        let Some(ResourceEvent {\n            change:\n                ResourceChange::LeaseSettled {\n                    lease,\n                    consumed,\n                    completed,\n                    ..\n                },\n            ..\n        }) = event\n        else {\n            return Ok(None);\n        };\n        if consumed != report.consumed\n            || completed != report.completed\n            || !receipt.contains(&format!(\" ran effect {effect} under lease {lease} · work \"))\n        {\n            return Err(HostError::Rejected(format!(\n                \"{key}: work evidence disagrees with its canonical settlement\"\n            )));\n        }\n        Ok(Some(evidence))"
+        }
+      ]
+    },
+    {
+      "path": "physiology/host/src/lib.rs",
+      "git_blob": "c86b67b210bc28855c56d92b61d8040ae3a5ed76",
+      "url": "https://github.com/llgtrn/Chronica/blob/59f4e409a61ef1044515d80f7dca66e7decead4d/physiology/host/src/lib.rs",
+      "evidence": [
+        {
+          "start_line": 150,
+          "end_line": 168,
+          "text": "pub const OBSERVE: &str = \"resource.observe\";\n/// The action a setpoint change is authorized, and its safety bounds declared, as.\npub const SETPOINT: &str = \"resource.setpoint\";\n\npub mod allocation;\npub mod artifact;\npub mod boolean_setpoint;\npub mod cluster;\npub mod demand;\npub mod demand_windows;\npub mod graph;\npub mod ledger;\npub mod partition;\npub mod pathway;\npub mod presence;\npub mod service;\npub mod source_observation;\n/// The action recording memory about a resource is authorized as.\npub const MEMORY_WRITE: &str = \"memory.write\";"
+        }
+      ]
+    },
+    {
+      "path": "phenora/node/src/pump_source.rs",
+      "git_blob": "fa5b4545e938e2163aa29b238577dd77a94e0c03",
+      "url": "https://github.com/llgtrn/Chronica/blob/59f4e409a61ef1044515d80f7dca66e7decead4d/phenora/node/src/pump_source.rs",
+      "evidence": [
+        {
+          "start_line": 1,
+          "end_line": 26,
+          "text": "//! Local verification/import of pinned SIMULATED source assertions, never pump actuation.\n//!\n//! Independently authored against the public value contracts in Mechatron\n//! c43b8de6997d3f9857371aa8bdac4d18e0a72b79 (`substrate/runtime/src/chronica{,/wire}.rs`\n//! and [storage](https://github.com/llgtrn/Mechatron/blob/c43b8de6997d3f9857371aa8bdac4d18e0a72b79/substrate/storage/src/lib.rs)). No source implementation was copied. The two supplied\n//! fixtures are retained as explicitly authorized construction evidence with separate provenance.\n//! Source hashes establish content consistency, not signer identity, authority or physical truth.\n//! Source generations, clocks and identifiers remain source assertions. A successful local\n//! verification of an Unknown source outcome does not resolve that outcome or permit a retry.\n\nuse genora_primitives::digest::{hex, sha256};\nuse genora_primitives::{codec::Writer, Generation};\nuse host::source_observation::SourceObservationWork;\nuse lineara::source_observation::{SourceObservation, TargetBinding};\nuse metabion::lease_work::{LeaseWork, WorkReport};\nuse metabion::work_run::{EffectRef, RequestDigest};\nuse serde::de::{Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};\nuse serde_json::{Map, Value};\nuse std::collections::{BTreeMap, BTreeSet};\nuse std::fmt;\n\npub use lineara::source_observation::SourceOutcome;\npub const PROVIDER: &str = \"chronica.pump-source-import\";\npub const VERSION: &str = \"1\";\npub const SOURCE_COMMIT: &str = \"c43b8de6997d3f9857371aa8bdac4d18e0a72b79\";\npub const CORPUS_REVISION: &str = \"0844ffa170f8990238ef27d563c261a9451ce9e6\";"
+        },
+        {
+          "start_line": 952,
+          "end_line": 1032,
+          "text": "pub struct PumpObservationWork {\n    corpus: Vec<u8>,\n    case_id: String,\n    phase: String,\n    performed: Option<(EffectRef, String, VerifiedPumpObservation)>,\n}\nimpl PumpObservationWork {\n    pub fn new(corpus: Vec<u8>, case_id: impl Into<String>, phase: impl Into<String>) -> Self {\n        Self {\n            corpus,\n            case_id: case_id.into(),\n            phase: phase.into(),\n            performed: None,\n        }\n    }\n    pub fn verified(&self) -> Option<&VerifiedPumpObservation> {\n        self.performed.as_ref().map(|(_, _, v)| v)\n    }\n}\nimpl LeaseWork for PumpObservationWork {\n    fn request_binding(&self) -> Option<RequestDigest> {\n        if self.corpus.len() > lineara::source_observation::MAX_CORPUS_BYTES\n            || self.case_id.len() > lineara::source_observation::MAX_CASE_BYTES\n            || self.phase.len() > lineara::source_observation::MAX_PHASE_BYTES\n        {\n            return None;\n        }\n        let mut selectors = Writer::new();\n        selectors\n            .u16(1)\n            .str(SOURCE_COMMIT)\n            .str(&self.case_id)\n            .str(&self.phase);\n        Some(RequestDigest::of(&[\n            b\"chronica.pump-source.local-import.v1\",\n            &selectors.finish(),\n            &self.corpus,\n        ]))\n    }\n    fn perform(\n        &mut self,\n        effect: &EffectRef,\n        lease: &str,\n        _: &world::lease::Lease,\n    ) -> Check<WorkReport> {\n        if let Some((known, known_lease, _)) = &self.performed {\n            if known != effect || known_lease != lease {\n                return Err(\"local importer reused for a different effect or lease\".into());\n            }\n            return Ok(WorkReport::known(1, true));\n        }\n        let verified = verify(&self.corpus, &self.case_id, &self.phase)?;\n        self.performed = Some((effect.clone(), lease.into(), verified));\n        Ok(WorkReport::known(1, true))\n    }\n}\nimpl SourceObservationWork for PumpObservationWork {\n    fn source_observation(&self, target: TargetBinding) -> Check<SourceObservation> {\n        let (effect, lease, verified) = self\n            .performed\n            .as_ref()\n            .ok_or(\"local source import did not perform\")?;\n        if *effect != target.effect\n            || *lease != target.lease\n            || target.generation != Generation::INITIAL\n            || target.provider != PROVIDER\n        {\n            return Err(\"source receipt target does not match performed local work\".into());\n        }\n        Ok(SourceObservation {\n            target,\n            source_repository: \"llgtrn/Mechatron\".into(),\n            source_commit: SOURCE_COMMIT.into(),\n            source_path: SOURCE_PATH.into(),\n            corpus: verified.raw_corpus.clone(),\n            case: verified.case_id.as_bytes().to_vec(),\n            phase: verified.phase.as_bytes().to_vec(),\n            outcome: verified.outcome,\n        })\n    }\n}"
+        }
+      ]
+    }
+  ]
+}

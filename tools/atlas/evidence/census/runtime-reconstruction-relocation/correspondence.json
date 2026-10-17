@@ -1,0 +1,50 @@
+{
+  "source_base": "492406ea795bd6fe73018e15c2c545353b0e33b4",
+  "scope": "One same-package reconstruction source responsibility, not authority/native target adoption/rights/extinction",
+  "native": {
+    "count": 2566,
+    "all_ids_retained": true,
+    "only_changed_row": {
+      "before": {
+        "id": "art1:5840ab4120952af87788c8ac9c138fe1",
+        "path": "adapter/runtime/src/self_reconstruction.rs",
+        "digest": "sha256:4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd"
+      },
+      "after": {
+        "id": "art1:5840ab4120952af87788c8ac9c138fe1",
+        "path": "adapter/runtime/src/codara/reconstruction.rs",
+        "digest": "sha256:4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd"
+      }
+    },
+    "native_cli_log": "2566 artifacts: 0 born, 1 moved, 0 changed, 0 retired, 0 ambiguous\n"
+  },
+  "native_seed": {
+    "source_revision": "492406ea795bd6fe73018e15c2c545353b0e33b4",
+    "source_root": "/workspace/Atlas-Studio-docs-native-v1-app",
+    "witness_root": "/tmp/atlas-runtime-reconstruction-relocation/identity-witness",
+    "seed_registry": "/tmp/atlas-runtime-container-relocation/artifacts-edited-source.jsonl",
+    "seed_count": 2559,
+    "native_baseline_count": 2566,
+    "target_row": {
+      "id": "art1:5840ab4120952af87788c8ac9c138fe1",
+      "path": "adapter/runtime/src/self_reconstruction.rs",
+      "digest": "sha256:4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd"
+    },
+    "seed_ids_all_retained": true,
+    "scope": "Fresh isolated full-index engine witness; prior witnesses and active state untouched"
+  },
+  "runtime_inventory": [
+    "/tmp/atlas-runtime-reconstruction-relocation/coordinate-before\tadapter/runtime/src/self_reconstruction.rs\tartifact:758c0ca9abc83983\tblake3-256:57a8d162b8d413e451fc197a9d71c2b211c36d3f094795f83a65771c5e5d36fe",
+    "/tmp/atlas-runtime-reconstruction-relocation/coordinate-byte-moved\tadapter/runtime/src/codara/reconstruction.rs\tartifact:08a77c9d8de25769\tblake3-256:57a8d162b8d413e451fc197a9d71c2b211c36d3f094795f83a65771c5e5d36fe",
+    "/tmp/atlas-runtime-reconstruction-relocation/coordinate-edited\tadapter/runtime/src/codara/reconstruction.rs\tartifact:08a77c9d8de25769\tblake3-256:e3138448eca5048b7b0738b9f96b6b6538c561063a42bbed5ebe1240c5386e4f"
+  ],
+  "current_api": "runtime::self_reconstruction (preserved); runtime::codara::reconstruction (same definitions)",
+  "production_cli_references": 6,
+  "current_test_include_only_edit": "../../../core/src/donor/mod.rs -> ../../../../core/src/donor/mod.rs",
+  "source_original_sha256": "4766575ab49868be918c1cfeef3149ece3ac5743fee27da1b227dfacfd0598dd",
+  "source_current_sha256": "03215bb4f8302dfa33d3fa9a778b21e0fc3bc1f84fa7d5e524835ad9032ffdae",
+  "all53_function_occurrences_exact_except_fixture_include": true,
+  "target_contract": "target-contract-audit.json",
+  "target_status": "Read-only pinned target audit; no target caller or authority supplied",
+  "historical_evidence": "All prior bytes remain qualified by original revision; actual new source census correspondence follows separate candidate proof"
+}

@@ -20,6 +20,7 @@ pub mod product;
 pub mod recensus;
 pub mod sandbox;
 pub mod seal;
+#[path = "codara/reconstruction.rs"]
 pub mod self_reconstruction;
 pub mod verification;
 pub mod visual;

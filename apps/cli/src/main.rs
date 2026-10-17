@@ -707,10 +707,10 @@ fn run(args: &[String]) -> Result<(), String> {
             let limit = value(rest, "--limit")?
                 .map_or(Ok(usize::MAX), |l| l.parse::<usize>())
                 .map_err(|e| format!("--limit: {e}"))?;
-            let all = runtime::self_reconstruction::candidates(&model);
+            let all = runtime::codara::reconstruction::candidates(&model);
             let constructible = all.iter().filter(|c| c.constructible).count();
             let out = serde_json::json!({
-                "schema": runtime::self_reconstruction::CANDIDATES_SCHEMA,
+                "schema": runtime::codara::reconstruction::CANDIDATES_SCHEMA,
                 "revision": model.revision,
                 "types": all.len(),
                 "constructible": constructible,
@@ -725,8 +725,11 @@ fn run(args: &[String]) -> Result<(), String> {
             let name = value(rest, "--type")?.ok_or("self-reconstruct roots requires --type")?;
             let (container, _) =
                 runtime::design::read_container(&atlas).map_err(|e| format!("{atlas}: {e}"))?;
-            let roots =
-                runtime::self_reconstruction::target_roots(&container.typed_records, &path, &name);
+            let roots = runtime::codara::reconstruction::target_roots(
+                &container.typed_records,
+                &path,
+                &name,
+            );
             println!("{}", roots.join(","));
         }
         [cmd, sub, rest @ ..] if cmd == "self-reconstruct" && sub == "attempt" => {
@@ -759,8 +762,8 @@ fn run(args: &[String]) -> Result<(), String> {
                     design.parent_root
                 ));
             }
-            let (module, emission, report) =
-                runtime::self_reconstruction::attempt(&runtime::self_reconstruction::Attempt {
+            let (module, emission, report) = runtime::codara::reconstruction::attempt(
+                &runtime::codara::reconstruction::Attempt {
                     root: std::path::Path::new(&root),
                     container: &container,
                     container_root: &container_root,
@@ -769,8 +772,10 @@ fn run(args: &[String]) -> Result<(), String> {
                     design_id: &design.design_id,
                     design_state: design.state,
                     comparison_id: comparison.as_ref().map(|c| c.comparison_id.as_str()),
-                })?;
-            let violations = runtime::self_reconstruction::validate(&container, &module, &report);
+                },
+            )?;
+            let violations =
+                runtime::codara::reconstruction::validate(&container, &module, &report);
             std::fs::create_dir_all(&out_dir).map_err(|e| format!("{out_dir}: {e}"))?;
             let write = |file: &str, text: String| {
                 std::fs::write(format!("{out_dir}/{file}"), text)
