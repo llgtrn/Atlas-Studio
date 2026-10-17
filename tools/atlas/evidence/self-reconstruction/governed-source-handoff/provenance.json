@@ -1,0 +1,351 @@
+{
+  "classification": "UNCHANGED_IMMUTABLE_EXPORT_OF_HISTORICAL_GENERATED_SOURCE_ARTIFACTS",
+  "export_utc": "2026-10-17T04:00:26.693734+00:00",
+  "export_base": "a84836dbb5ed6fccbb6612789aaec0b6f1022801",
+  "origin": "These3602/4393byte files were generated outputs of the recorded2026-10-17T00:11 source-only ownedfixture workflow, not separate raw tracked blobs at a84836db. They were already retained losslessly within committed source-cdbe2ff5-run.json. This export copies their exact bytes into individual tracked blobs; no regeneration, normalization, sorting, deduplication or identity change.",
+  "assets": [
+    {
+      "path": "attempt/module.json",
+      "bytes": 3602,
+      "sha256": "99af30ee1593a2c41893053642e188ac5d94f911f07865612c3e5699d7aa74c0",
+      "source_original": "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/attempt/module.json",
+      "git_blob": "0d3e0f5f6142964aeb548723bf85c67d9839eba6"
+    },
+    {
+      "path": "attempt/report.json",
+      "bytes": 4393,
+      "sha256": "ba52049caeaac42a29124248ea6ffbf2d715c6cbfae6b1e4ace32b4e6f943dcd",
+      "source_original": "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/attempt/report.json",
+      "git_blob": "5a2726bca32f54a47881b9ac0755e7a81cf37b7c"
+    },
+    {
+      "path": "attempt/shadow.rs.txt",
+      "bytes": 428,
+      "sha256": "899ac904cb1f012a336edda3060f480e36bdfcac7e8501fd1813cca9240b3636",
+      "source_original": "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/attempt/shadow.rs.txt",
+      "git_blob": "f86f520dea2da737c5d1ac7701327b593922ae6d"
+    },
+    {
+      "path": "source.atlas",
+      "bytes": 45834,
+      "sha256": "46317c1fd72ad8b79a8138118e18e2f97d4c4a4472e8623e020d7c65af58b4b8",
+      "source_original": "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/source.atlas",
+      "git_blob": "cb34674f090a06e2d87b50965a5fc3ebcbc151f4"
+    },
+    {
+      "path": "design.json",
+      "bytes": 679,
+      "sha256": "d2c9a93866e7b21a7258eba53c6d36c0d85c8851593236c4a233f88081e3487b",
+      "source_original": "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/design.json",
+      "git_blob": "8f3087c7b5081b8ef3edd6bfc835b6231fbc04ca"
+    }
+  ],
+  "module_id": "construction-module:blake3-256:501a1d01ea42e042c2f4feb7cee4debe30f856865c5dda4350da15e2f71706ce",
+  "report_id": "self-reconstruction:blake3-256:f82d23579a5f671f0e06ee800149620c7526f7532433f1c46144cb8a198bd38b",
+  "container_root": "blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe",
+  "design_state": "CANDIDATE",
+  "ordered_checks": 11,
+  "array_policy": "All original bytes, array order and duplicate occurrences are preserved verbatim. This particular report has11checks; no new duplicate is invented or removed.",
+  "historical_generation": {
+    "status": "PASS",
+    "candidate": {
+      "candidate_commit": "59143e4d32169c9557d17e534a9f860bac58c9e3",
+      "candidate_tree": "72c9b4aa9f76be19f752e5a6eff0da32995c2c8d",
+      "source_commit": "a4e7f0d0479a8eb9cb910374235d5d9d8cb56da0"
+    },
+    "stages": [
+      {
+        "stage": "pack",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "atlas",
+          "pack",
+          "--root",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/repo",
+          "--out",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/source.atlas"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 33.178518470005656,
+        "utc": "2026-10-17T00:11:13.767931+00:00"
+      },
+      {
+        "stage": "prepare",
+        "command": [
+          "/tmp/atlas-runtime-reconstruction-relocation/prepare-workflow",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 14.012299014997552,
+        "utc": "2026-10-17T00:11:27.781321+00:00"
+      },
+      {
+        "stage": "candidates",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "self-reconstruct",
+          "candidates",
+          "--model",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/model.json",
+          "--limit",
+          "5"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.019089713001449127,
+        "utc": "2026-10-17T00:11:27.800734+00:00"
+      },
+      {
+        "stage": "roots",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "self-reconstruct",
+          "roots",
+          "--atlas",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/source.atlas",
+          "--path",
+          "core/src/lib.rs",
+          "--type",
+          "Mode"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.03400242800125852,
+        "utc": "2026-10-17T00:11:27.835011+00:00"
+      },
+      {
+        "stage": "attempt",
+        "command": [
+          "/workspace/atlas-proof-repair-target/debug/atlas-systemizer",
+          "self-reconstruct",
+          "attempt",
+          "--atlas",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/source.atlas",
+          "--path",
+          "core/src/lib.rs",
+          "--type",
+          "Mode",
+          "--design",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/design.json",
+          "--root",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/repo",
+          "--out-dir",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/attempt"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 8.347286887001246,
+        "utc": "2026-10-17T00:11:36.182557+00:00"
+      },
+      {
+        "stage": "audit",
+        "command": [
+          "/tmp/atlas-runtime-reconstruction-relocation/prepare-workflow",
+          "/tmp/atlas-runtime-reconstruction-relocation/positive-workflow",
+          "audit"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.0382429309975123,
+        "utc": "2026-10-17T00:11:36.221254+00:00"
+      }
+    ],
+    "audit": {
+      "checks": 11,
+      "design_state": "CANDIDATE",
+      "full_module_matches_historical_lift": true,
+      "gaps": 0,
+      "module_id": "construction-module:blake3-256:501a1d01ea42e042c2f4feb7cee4debe30f856865c5dda4350da15e2f71706ce",
+      "oracle_uses": [
+        {
+          "kind": "ORACLE_EXECUTION",
+          "purpose": "behavioral differential: the compiled original, every variant pair",
+          "reference": "crate:atlas_core::Mode"
+        }
+      ],
+      "report_id": "self-reconstruction:blake3-256:f82d23579a5f671f0e06ee800149620c7526f7532433f1c46144cb8a198bd38b",
+      "root": "blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe",
+      "scope": "Actual source fixture offline compiler caller; unselected and not target/rights/nativeV1 admission",
+      "shadow": {
+        "backend": "atlas.construction.rust-backend.v1",
+        "content_hash": "blake3-256:e30ebd48ff020984fb451707de4a4cc1c29d74ec7971f02b0941fe94ea4551f0",
+        "emitted": [
+          "type:core/src/lib.rs::Mode",
+          "fn:core/src/lib.rs::Mode::is_local"
+        ],
+        "omitted": [],
+        "path": "target/atlas/shadow/mode/src/lib.rs",
+        "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+      },
+      "status": "PASS",
+      "verdict": "RECONSTRUCTED_EQUIVALENT"
+    },
+    "binary_sha256": "75689896901dfa245b4f5239eb79b46668227b0529ede021b6a4f6c8e2cc374f",
+    "helper_source_sha256": "b72677f841f45491af4a61188d34f88fc4301a086199cd4c046f6c076f201165",
+    "helper_binary_sha256": "afbe86fe288c44f008e0bc6c24422b7c7e022c6a0eaa4b5a3fd73f56983e3e8b",
+    "fixture_head": "86e35c46123777124cb7cfba408b22688be322f9",
+    "fixture_clean": true,
+    "active_source_clean": true,
+    "scope": "Actual real CLI source-only offline shadow/compiler workflow on owned fixture, unselected CANDIDATE design. No target authority, live effects, licensing or native V1 qualification. Existing source container is fixture-specific."
+  },
+  "original_command_environment": {
+    "cwd": "/workspace/Atlas-Studio-docs-native-v1-app",
+    "PATH_prefix": "/workspace/.cargo/bin",
+    "CARGO_HOME": "/workspace/.cargo",
+    "RUSTUP_HOME": "/workspace/.rustup",
+    "CARGO_TARGET_DIR": "/workspace/atlas-proof-repair-target",
+    "RUSTUP_TOOLCHAIN": "1.90.0-x86_64-unknown-linux-gnu",
+    "qualification": "These explicit pins are from the preserved original runner; all other original ambient variables were inherited and are not invented."
+  },
+  "original_runner": {
+    "path": "/tmp/atlas-runtime-reconstruction-relocation/run-positive-workflow.py",
+    "sha256": "8ab5b4263f518be1e39d9c825dccd05a4bd96e0063edb19467cefc84748c3779",
+    "utf8": "import datetime,hashlib,json,os,pathlib,subprocess,time\nr=pathlib.Path('/tmp/atlas-runtime-reconstruction-relocation');base=r/'positive-workflow';root=pathlib.Path('/workspace/Atlas-Studio-docs-native-v1-app');pin=json.loads((r/'candidate-pin.json').read_text());assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()==pin['candidate_commit'];assert not subprocess.check_output(['git','status','--porcelain'],cwd=root)\nenv=os.environ.copy();env.update(PATH='/workspace/.cargo/bin:'+env['PATH'],CARGO_HOME='/workspace/.cargo',RUSTUP_HOME='/workspace/.rustup',CARGO_TARGET_DIR='/workspace/atlas-proof-repair-target',RUSTUP_TOOLCHAIN='1.90.0-x86_64-unknown-linux-gnu');binary='/workspace/atlas-proof-repair-target/debug/atlas-systemizer';bh=hashlib.sha256(pathlib.Path(binary).read_bytes()).hexdigest();assert bh==json.loads((r/'candidate/snapshot-run.json').read_text())['binary_sha256'];fixture=base/'repo';commands=[('pack',[binary,'atlas','pack','--root',str(fixture),'--out',str(base/'source.atlas')]),('prepare',[str(r/'prepare-workflow'),str(base)]),('candidates',[binary,'self-reconstruct','candidates','--model',str(base/'model.json'),'--limit','5']),('roots',[binary,'self-reconstruct','roots','--atlas',str(base/'source.atlas'),'--path','core/src/lib.rs','--type','Mode']),('attempt',[binary,'self-reconstruct','attempt','--atlas',str(base/'source.atlas'),'--path','core/src/lib.rs','--type','Mode','--design',str(base/'design.json'),'--root',str(fixture),'--out-dir',str(base/'attempt')]),('audit',[str(r/'prepare-workflow'),str(base),'audit'])];results=[]\nfor label,cmd in commands:\n start=time.monotonic()\n with(base/(label+'.stdout')).open('wb') as out,(base/(label+'.stderr')).open('wb') as err:p=subprocess.run(cmd,cwd=root,env=env,stdout=out,stderr=err)\n result=dict(stage=label,command=cmd,exit_code=p.returncode,elapsed_seconds=time.monotonic()-start,utc=datetime.datetime.now(datetime.timezone.utc).isoformat());results.append(result);(base/'stages.json').write_text(json.dumps(results,indent=2)+'\\n');print(json.dumps(result),flush=True)\n if p.returncode!=0:break\nscope=json.loads((base/'audit.stdout').read_text()) if (base/'audit.stdout').exists() and(base/'audit.stdout').stat().st_size else None\nresult=dict(status='PASS' if len(results)==6 and all(x['exit_code']==0 for x in results) and scope and scope['status']=='PASS' else 'NOT_PROVEN',candidate=pin,stages=results,audit=scope,binary_sha256=bh,helper_source_sha256=hashlib.sha256((r/'prepare-workflow.rs').read_bytes()).hexdigest(),helper_binary_sha256=hashlib.sha256((r/'prepare-workflow').read_bytes()).hexdigest(),fixture_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=fixture,text=True).strip(),fixture_clean=not subprocess.check_output(['git','status','--porcelain'],cwd=fixture),active_source_clean=not subprocess.check_output(['git','status','--porcelain'],cwd=root),scope='Actual real CLI source-only offline shadow/compiler workflow on owned fixture, unselected CANDIDATE design. No target authority, live effects, licensing or native V1 qualification. Existing source container is fixture-specific.')\n(base/'result.json').write_text(json.dumps(result,indent=2)+'\\n');print(json.dumps(result),flush=True)\n"
+  },
+  "original_helper": {
+    "path": "/tmp/atlas-runtime-reconstruction-relocation/prepare-workflow.rs",
+    "sha256": "b72677f841f45491af4a61188d34f88fc4301a086199cd4c046f6c076f201165",
+    "utf8": "use std::{fs,path::Path};\nuse atlas_core::design::{SelectedDesign,DesignState,AuthorityMode,DESIGN_SCHEMA_VERSION,container_candidate,design_identity};\nuse atlas_core::codara::construction::{ConstructionModule,SelfReconstructionReport,module_identity,report_identity,CheckResult};\nfn main(){\n let args:Vec<_>=std::env::args().collect();\n let base=Path::new(&args[1]);\n let (atlas,root)=runtime::design::read_container(base.join(\"source.atlas\")).unwrap();\n let mut design=SelectedDesign{schema:DESIGN_SCHEMA_VERSION.into(),design_id:String::new(),parent_root:root.clone(),candidate:container_candidate(&atlas),scope:\"owned-source-fixture\".into(),target_kind:\"RUST\".into(),variant:\"unselected\".into(),state:DesignState::Candidate,roots:vec![],bindings:vec![],candidate_set:vec![],evidence_refs:vec![],authority_mode:AuthorityMode::HumanRequired,authority_event:None,rationale:\"Unselected source-only workflow; never Chronica admission\".into(),supersedes:None,comparison:None};\n design.design_id=design_identity(&design);\n if args.len()==2{fs::write(base.join(\"model.json\"),serde_json::to_vec_pretty(&runtime::agent::world_model(base.join(\"repo\")).unwrap()).unwrap()).unwrap();fs::write(base.join(\"design.json\"),serde_json::to_vec_pretty(&design).unwrap()).unwrap();println!(\"{}\",serde_json::json!({\"root\":root,\"design_id\":design.design_id,\"state\":\"CANDIDATE\",\"authority\":false}));return;}\n let module:ConstructionModule=serde_json::from_slice(&fs::read(base.join(\"attempt/module.json\")).unwrap()).unwrap();\n let report:SelfReconstructionReport=serde_json::from_slice(&fs::read(base.join(\"attempt/report.json\")).unwrap()).unwrap();\n let expected=runtime::self_reconstruction::lift(&atlas.typed_records,&root,\"core/src/lib.rs\",\"Mode\",&design.design_id,None).unwrap();\n assert_eq!(module,expected);assert_eq!(module.module_id,module_identity(&module));assert_eq!(report.report_id,report_identity(&report));\n assert!(runtime::self_reconstruction::validate(&atlas,&module,&report).is_empty());\n assert!(report.gaps.is_empty());assert!(report.checks.iter().all(|c|c.result==CheckResult::Equivalent));assert!(!report.checks.is_empty());\n assert_eq!(report.design_state,DesignState::Candidate);assert!(report.shadow.is_some());assert!(!report.oracle_uses.is_empty());\n let emission=atlas_core::codara::construction::rust::emit(&expected);\n assert_eq!(fs::read_to_string(base.join(\"attempt/shadow.rs.txt\")).unwrap(),emission.source);\n assert_eq!(runtime::self_reconstruction::declared_variations(&atlas.typed_records,&module,&emission),report.declared_variations);\n println!(\"{}\",serde_json::json!({\"status\":\"PASS\",\"module_id\":module.module_id,\"report_id\":report.report_id,\"root\":root,\"verdict\":report.verdict,\"checks\":report.checks.len(),\"gaps\":report.gaps.len(),\"design_state\":report.design_state,\"oracle_uses\":report.oracle_uses,\"shadow\":report.shadow,\"full_module_matches_historical_lift\":true,\"scope\":\"Actual source fixture offline compiler caller; unselected and not target/rights/nativeV1 admission\"}));\n}\n"
+  },
+  "original_helper_build": {
+    "compiler": "/workspace/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+    "compiler_version": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "edition": "2024",
+    "dependency_search": "/workspace/atlas-proof-repair-target/debug/deps",
+    "libraries": [
+      {
+        "path": "/workspace/atlas-proof-repair-target/debug/deps/libcore-6e94ae9430555dcb.rlib",
+        "sha256": "723d203c1756f8c04332d9668eb376de60061c39301c187c8869871aebe3c971"
+      },
+      {
+        "path": "/workspace/atlas-proof-repair-target/debug/deps/libserde_json-e1cf8eace1d1a041.rlib",
+        "sha256": "752d6c9e931b821a3679d745367b03a79ecf2ed0fb90f4508607f8412b64e0db"
+      },
+      {
+        "path": "/workspace/atlas-proof-repair-target/debug/deps/libruntime-e6ff6bc75d3e8023.rlib",
+        "sha256": "c46beb7b7803aad1dd33202a48a46b00f4bd305fb0b102221930ab172b2f06d2"
+      }
+    ],
+    "helpers": [
+      {
+        "source": "/tmp/atlas-runtime-reconstruction-relocation/read-container.rs",
+        "source_sha256": "2fc381d35136fc01e568f5da08893e769c7550f9e6bf77caa7b09a24c18754ff",
+        "binary": "/tmp/atlas-runtime-reconstruction-relocation/read-container",
+        "binary_sha256": "db6c13b0525ebf6b4114d159f5554a23510386435f2c9e2edbe95cead077ce05",
+        "actual_final_compile_exit": 0
+      },
+      {
+        "source": "/tmp/atlas-runtime-reconstruction-relocation/prepare-workflow.rs",
+        "source_sha256": "b72677f841f45491af4a61188d34f88fc4301a086199cd4c046f6c076f201165",
+        "binary": "/tmp/atlas-runtime-reconstruction-relocation/prepare-workflow",
+        "binary_sha256": "afbe86fe288c44f008e0bc6c24422b7c7e022c6a0eaa4b5a3fd73f56983e3e8b",
+        "actual_final_compile_exit": 0
+      }
+    ],
+    "qualification": "External inspection/ownedfixture preparation only, existing publicsourcecontracts. Actual commands retained in toolhistory; no product authority or shared wire. Initial read-container compile hadE0609 function.name; correctedexisting function.symbol.name before successful1.90compile."
+  },
+  "original_fixture_sources": {
+    ".gitignore": {
+      "bytes": 8,
+      "sha256": "b53ee26e6ff1da219b0563333a76d2c9ec19eec713d6ee54e11a1edacb0e9f3d",
+      "utf8": "target/\n"
+    },
+    "Cargo.lock": {
+      "bytes": 8087,
+      "sha256": "fda6c3f81e273d909ce821a4f5d36d65dc8392bfb031ed83589cffe1076dc645",
+      "utf8": "# This file is automatically @generated by Cargo.\n# It is not intended for manual editing.\nversion = 4\n\n[[package]]\nname = \"adapter\"\nversion = \"0.1.0\"\ndependencies = [\n \"core\",\n \"proc-macro2\",\n \"quote\",\n \"serde\",\n \"serde_json\",\n \"syn\",\n \"tree-sitter\",\n \"tree-sitter-javascript\",\n \"tree-sitter-typescript\",\n]\n\n[[package]]\nname = \"aho-corasick\"\nversion = \"1.1.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba\"\ndependencies = [\n \"memchr\",\n]\n\n[[package]]\nname = \"arrayvec\"\nversion = \"0.7.8\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56\"\n\n[[package]]\nname = \"atlas-cli\"\nversion = \"0.1.0\"\ndependencies = [\n \"ed25519-compact\",\n \"runtime\",\n \"serde\",\n \"serde_json\",\n]\n\n[[package]]\nname = \"blake3\"\nversion = \"1.8.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"6d9e454fc11f76977dc803893aff6304ed33d6a26efae8696573bea74baa27ae\"\ndependencies = [\n \"arrayvec\",\n \"cc\",\n \"cfg-if\",\n \"constant_time_eq\",\n \"cpufeatures\",\n]\n\n[[package]]\nname = \"cc\"\nversion = \"1.4.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"54413ede23c2daf518f35156dfde027feb2374004d63bd497f983c8db9c0e313\"\ndependencies = [\n \"find-msvc-tools\",\n \"shlex\",\n]\n\n[[package]]\nname = \"cfg-if\"\nversion = \"1.0.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600\"\n\n[[package]]\nname = \"constant_time_eq\"\nversion = \"0.4.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b\"\n\n[[package]]\nname = \"core\"\nversion = \"0.1.0\"\ndependencies = [\n \"blake3\",\n \"ed25519-compact\",\n \"serde\",\n \"serde_json\",\n]\n\n[[package]]\nname = \"cpufeatures\"\nversion = \"0.3.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566\"\ndependencies = [\n \"libc\",\n]\n\n[[package]]\nname = \"ed25519-compact\"\nversion = \"2.6.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1454db4f2edb7f0e8fe0c5b375b0c978fc63244cc9f010d160e417eb10139aa8\"\n\n[[package]]\nname = \"equivalent\"\nversion = \"1.0.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f\"\n\n[[package]]\nname = \"find-msvc-tools\"\nversion = \"0.1.13\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ef25905e51abafe4dcea6c15fec58c57b601cdbd0ee53d22ea1d3016c587d39b\"\n\n[[package]]\nname = \"hashbrown\"\nversion = \"0.17.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a\"\n\n[[package]]\nname = \"indexmap\"\nversion = \"2.14.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855\"\ndependencies = [\n \"equivalent\",\n \"hashbrown\",\n]\n\n[[package]]\nname = \"itoa\"\nversion = \"1.0.18\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682\"\n\n[[package]]\nname = \"libc\"\nversion = \"0.2.189\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2\"\n\n[[package]]\nname = \"memchr\"\nversion = \"2.8.3\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98\"\n\n[[package]]\nname = \"proc-macro2\"\nversion = \"1.0.107\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9\"\ndependencies = [\n \"unicode-ident\",\n]\n\n[[package]]\nname = \"quote\"\nversion = \"1.0.47\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001\"\ndependencies = [\n \"proc-macro2\",\n]\n\n[[package]]\nname = \"regex\"\nversion = \"1.13.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d\"\ndependencies = [\n \"aho-corasick\",\n \"memchr\",\n \"regex-automata\",\n \"regex-syntax\",\n]\n\n[[package]]\nname = \"regex-automata\"\nversion = \"0.4.18\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2\"\ndependencies = [\n \"aho-corasick\",\n \"memchr\",\n \"regex-syntax\",\n]\n\n[[package]]\nname = \"regex-syntax\"\nversion = \"0.8.11\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4\"\n\n[[package]]\nname = \"runtime\"\nversion = \"0.1.0\"\ndependencies = [\n \"adapter\",\n \"core\",\n \"ed25519-compact\",\n \"serde\",\n \"serde_json\",\n]\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.229\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba\"\ndependencies = [\n \"serde_core\",\n \"serde_derive\",\n]\n\n[[package]]\nname = \"serde_core\"\nversion = \"1.0.229\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48\"\ndependencies = [\n \"serde_derive\",\n]\n\n[[package]]\nname = \"serde_derive\"\nversion = \"1.0.229\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"syn\",\n]\n\n[[package]]\nname = \"serde_json\"\nversion = \"1.0.151\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14\"\ndependencies = [\n \"indexmap\",\n \"itoa\",\n \"memchr\",\n \"serde\",\n \"serde_core\",\n \"zmij\",\n]\n\n[[package]]\nname = \"shlex\"\nversion = \"2.0.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba\"\n\n[[package]]\nname = \"streaming-iterator\"\nversion = \"0.1.9\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"2b2231b7c3057d5e4ad0156fb3dc807d900806020c5ffa3ee6ff2c8c76fb8520\"\n\n[[package]]\nname = \"syn\"\nversion = \"3.0.6\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"8593e8e72159ed2257d083c7a454a85cbf854f37a0966d8d483aff8c8a3ebcee\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"unicode-ident\",\n]\n\n[[package]]\nname = \"tree-sitter\"\nversion = \"0.25.10\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"78f873475d258561b06f1c595d93308a7ed124d9977cb26b148c2084a4a3cc87\"\ndependencies = [\n \"cc\",\n \"regex\",\n \"regex-syntax\",\n \"serde_json\",\n \"streaming-iterator\",\n \"tree-sitter-language\",\n]\n\n[[package]]\nname = \"tree-sitter-javascript\"\nversion = \"0.23.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"bf40bf599e0416c16c125c3cec10ee5ddc7d1bb8b0c60fa5c4de249ad34dc1b1\"\ndependencies = [\n \"cc\",\n \"tree-sitter-language\",\n]\n\n[[package]]\nname = \"tree-sitter-language\"\nversion = \"0.1.8\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ca0d1bf6fdd806e43ae5198f82f527056d359def39e54e67a0f478ac09dac081\"\n\n[[package]]\nname = \"tree-sitter-typescript\"\nversion = \"0.23.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"6c5f76ed8d947a75cc446d5fccd8b602ebf0cde64ccf2ffa434d873d7a575eff\"\ndependencies = [\n \"cc\",\n \"tree-sitter-language\",\n]\n\n[[package]]\nname = \"unicode-ident\"\nversion = \"1.0.26\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"d245f478577f809a851594d02313b640fb437e0bb33866753cff937863096954\"\n\n[[package]]\nname = \"zmij\"\nversion = \"1.0.23\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b\"\n"
+    },
+    "Cargo.toml": {
+      "bytes": 46,
+      "sha256": "7a9dc24ab67fc37cc42b431bd8698774a5b9b3c234135d327bf8b89b83015a29",
+      "utf8": "[workspace]\nresolver = \"2\"\nmembers = [\"core\"]\n"
+    },
+    "core/Cargo.toml": {
+      "bytes": 59,
+      "sha256": "f6912903429206c5a85b83c60cbdc95f2ba71ce37af6cc58993a21e263f0e020",
+      "utf8": "[package]\nname = \"core\"\nversion = \"0.1.0\"\nedition = \"2024\"\n"
+    },
+    "core/src/lib.rs": {
+      "bytes": 242,
+      "sha256": "1113f4313de4bf1ae4943d40639f259b024ccd69004462c01eb12fb8b754bd9b",
+      "utf8": "\n#[derive(Debug, Clone, Copy, PartialEq, Eq)]\npub enum Mode { Remote, Local }\nimpl Mode { pub fn is_local(self) -> bool { self != Self::Remote } }\npub enum Opaque { Value(u8) }\npub struct Unsafe;\nimpl Unsafe { pub unsafe fn touch(&self) {} }\n"
+    },
+    "tools/atlas/declared/system.adl": {
+      "bytes": 181,
+      "sha256": "04084577d69e07272ccb66831265cceded72ce144395a3a1215a6b327c9e6e69",
+      "utf8": "atlas 1\nsystem Fixture\nentity Runtime Core {\n kind = backend\n language = rust\n responsibility = fixture\n}\nmaterialize Core {\n path = \"core\"\n language = rust\n glob = \"src/**/*.rs\"\n}\n"
+    },
+    "tools/atlas/genome/atlas.genome.toml": {
+      "bytes": 27,
+      "sha256": "b6cf60e397706d56b4a389d2531d265ce164c972de531e494ddc98f53f289136",
+      "utf8": "schema = \"atlas.genome.v1\"\n"
+    }
+  },
+  "complete_original_outer_logs": {
+    "attempt.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utf8": ""
+    },
+    "attempt.stdout": {
+      "bytes": 205,
+      "sha256": "3bbeb3ecddb3f81c88c8ffd2ef0b6c3229b8e572277739b868c68c2ce3027d2e",
+      "utf8": "{\n  \"checks\": 11,\n  \"emitted\": [\n    \"type:core/src/lib.rs::Mode\",\n    \"fn:core/src/lib.rs::Mode::is_local\"\n  ],\n  \"gaps\": 0,\n  \"omitted\": [],\n  \"verdict\": \"RECONSTRUCTED_EQUIVALENT\",\n  \"violations\": []\n}\n"
+    },
+    "audit.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utf8": ""
+    },
+    "audit.stdout": {
+      "bytes": 1057,
+      "sha256": "8bc0882873a04a714486d74a5a3d5a3ebde9fcc6706d26e5afd4158161c411ad",
+      "utf8": "{\"checks\":11,\"design_state\":\"CANDIDATE\",\"full_module_matches_historical_lift\":true,\"gaps\":0,\"module_id\":\"construction-module:blake3-256:501a1d01ea42e042c2f4feb7cee4debe30f856865c5dda4350da15e2f71706ce\",\"oracle_uses\":[{\"kind\":\"ORACLE_EXECUTION\",\"purpose\":\"behavioral differential: the compiled original, every variant pair\",\"reference\":\"crate:atlas_core::Mode\"}],\"report_id\":\"self-reconstruction:blake3-256:f82d23579a5f671f0e06ee800149620c7526f7532433f1c46144cb8a198bd38b\",\"root\":\"blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe\",\"scope\":\"Actual source fixture offline compiler caller; unselected and not target/rights/nativeV1 admission\",\"shadow\":{\"backend\":\"atlas.construction.rust-backend.v1\",\"content_hash\":\"blake3-256:e30ebd48ff020984fb451707de4a4cc1c29d74ec7971f02b0941fe94ea4551f0\",\"emitted\":[\"type:core/src/lib.rs::Mode\",\"fn:core/src/lib.rs::Mode::is_local\"],\"omitted\":[],\"path\":\"target/atlas/shadow/mode/src/lib.rs\",\"toolchain\":\"rustc 1.90.0 (1159e78c4 2025-09-14)\"},\"status\":\"PASS\",\"verdict\":\"RECONSTRUCTED_EQUIVALENT\"}\n"
+    },
+    "candidates.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utf8": ""
+    },
+    "candidates.stdout": {
+      "bytes": 828,
+      "sha256": "b313beb9afbda667e637c9b6c62c4a2beef6ca0d95b5bc843e0d961806da9c33",
+      "utf8": "{\n  \"candidates\": [\n    {\n      \"constructible\": true,\n      \"control_blocks\": 1,\n      \"excluded_by\": [],\n      \"external_callers\": 0,\n      \"functions\": [\n        \"semantic:FUNCTION_IDENTITY:8dc46b495cae3f4d\"\n      ],\n      \"owner_type\": \"Mode\",\n      \"path\": \"core/src/lib.rs\",\n      \"target\": \"core/src/lib.rs::Mode\"\n    },\n    {\n      \"constructible\": false,\n      \"control_blocks\": 1,\n      \"excluded_by\": [\n        \"UNSAFE_OR_ASYNC\"\n      ],\n      \"external_callers\": 0,\n      \"functions\": [\n        \"semantic:FUNCTION_IDENTITY:5a1ff5b90bbec74c\"\n      ],\n      \"owner_type\": \"Unsafe\",\n      \"path\": \"core/src/lib.rs\",\n      \"target\": \"core/src/lib.rs::Unsafe\"\n    }\n  ],\n  \"constructible\": 1,\n  \"revision\": \"86e35c46123777124cb7cfba408b22688be322f9\",\n  \"schema\": \"atlas.self-reconstruction-candidates.v1\",\n  \"types\": 2\n}\n"
+    },
+    "pack.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utf8": ""
+    },
+    "pack.stdout": {
+      "bytes": 481,
+      "sha256": "03dddc0d1a7f8d362abf7ea7c954025b75ec7a401fe4485fc3b1973ec8872224",
+      "utf8": "{\n  \"path\": \"/tmp/atlas-runtime-reconstruction-relocation/positive-workflow/source.atlas\",\n  \"root_id\": \"blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe\",\n  \"bytes\": 45834,\n  \"census_digest\": \"blake3-256:e843e0cedaaa9d2d30cf2100091ead30c1eaceb7f185528a16bc420f70bef5ee\",\n  \"facts\": 80,\n  \"obligations\": 45,\n  \"declared_nodes\": 1,\n  \"declared_edges\": 0,\n  \"certificate_state\": \"RECONCILED\",\n  \"typed_records\": 28,\n  \"evidence\": 29,\n  \"diagnostics\": 16\n}\n"
+    },
+    "prepare.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utf8": ""
+    },
+    "prepare.stdout": {
+      "bytes": 215,
+      "sha256": "516fb50f936177ae5a6d31273a40d3d50781e6eefabe9a9debb9b5b548859576",
+      "utf8": "{\"authority\":false,\"design_id\":\"blake3-256:5df32bd57223a378f18170ad05c152415a5f5cec88f4a2e355517045f6117d25\",\"root\":\"blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe\",\"state\":\"CANDIDATE\"}\n"
+    },
+    "roots.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "utf8": ""
+    },
+    "roots.stdout": {
+      "bytes": 102,
+      "sha256": "cdd13135a77cdcfecd5a5f2eefff5659314fa26ad65894f79fa17441832e15e1",
+      "utf8": "SYMBOL:semantic:SYMBOL:f5c3cb434bc903e9,FUNCTION_IDENTITY:semantic:FUNCTION_IDENTITY:8dc46b495cae3f4d\n"
+    }
+  },
+  "prior_committed_retention": {
+    "path": "tools/atlas/evidence/verification/admission-memory-lifetime/source-cdbe2ff5-run.json",
+    "commit": "2cb6bb93bef82e873ce30cd38d6f72d37ecd9e81",
+    "sha256": "118c7a5b9d8614220587e436468b7ae0306eda4b620f8bfb58fb1fdc6236b85f",
+    "encoding": "Each retained_originals value is original gzip+base64 bytes with length/SHA256; exportedassets matched these exact originalbyte strings."
+  },
+  "effect_boundary": "Capture/read/import of these supplied historical byte strings is separate from semantic reconstruction execution. The recorded source attempt wrote target/atlas/shadow and invoked rustc/offlineCargo/oracle work. This export does not rerun those effects or authorize a target replay. A fresh target reconstruction requires its own current admitted execution/resource/provider/cost/toolchain/isolation contract.",
+  "rights": "No license assumption, source custody/authorship authentication, reuse permission or canonical grant follows from this export. Atlas Cargo remains UNLICENSED; priorOD15 rights dependency remains open.",
+  "target_scope": "Source-only unselectedCANDIDATE design. HistoricalRECONSTRUCTED_EQUIVALENT is the recorded ownedfixture assay outcome, not nativeChronica reconstruction qualification, authority, disclosure permission or permission to retry unknown effects."
+}

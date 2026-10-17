@@ -1,0 +1,18 @@
+{
+  "schema": "atlas.selected-design.v1",
+  "design_id": "blake3-256:5df32bd57223a378f18170ad05c152415a5f5cec88f4a2e355517045f6117d25",
+  "parent_root": "blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe",
+  "candidate": "blake3-256:e843e0cedaaa9d2d30cf2100091ead30c1eaceb7f185528a16bc420f70bef5ee",
+  "scope": "owned-source-fixture",
+  "target_kind": "RUST",
+  "variant": "unselected",
+  "state": "CANDIDATE",
+  "roots": [],
+  "bindings": [],
+  "candidate_set": [],
+  "evidence_refs": [],
+  "authority_mode": "HUMAN_REQUIRED",
+  "authority_event": null,
+  "rationale": "Unselected source-only workflow; never Chronica admission",
+  "supersedes": null
+}

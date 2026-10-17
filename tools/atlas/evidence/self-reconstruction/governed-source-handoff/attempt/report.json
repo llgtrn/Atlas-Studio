@@ -1,0 +1,137 @@
+{
+  "schema": "atlas.self-reconstruction-report.v1",
+  "report_id": "self-reconstruction:blake3-256:f82d23579a5f671f0e06ee800149620c7526f7532433f1c46144cb8a198bd38b",
+  "level": "SH1",
+  "target": "core/src/lib.rs::Mode",
+  "construction_target": "RUST",
+  "module_id": "construction-module:blake3-256:501a1d01ea42e042c2f4feb7cee4debe30f856865c5dda4350da15e2f71706ce",
+  "design_ref": "blake3-256:5df32bd57223a378f18170ad05c152415a5f5cec88f4a2e355517045f6117d25",
+  "design_state": "CANDIDATE",
+  "comparison_ref": null,
+  "construction_inputs": [
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_IDENTITY:8dc46b495cae3f4d"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_SIGNATURE:62843db424826f63"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:3012211eef654ab5"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:426f07fdd5a294ac"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:f5c3cb434bc903e9"
+    },
+    {
+      "kind": "DESIGN",
+      "reference": "blake3-256:5df32bd57223a378f18170ad05c152415a5f5cec88f4a2e355517045f6117d25"
+    }
+  ],
+  "oracle_uses": [
+    {
+      "kind": "ORACLE_EXECUTION",
+      "reference": "crate:atlas_core::Mode",
+      "purpose": "behavioral differential: the compiled original, every variant pair"
+    }
+  ],
+  "shadow": {
+    "path": "target/atlas/shadow/mode/src/lib.rs",
+    "content_hash": "blake3-256:e30ebd48ff020984fb451707de4a4cc1c29d74ec7971f02b0941fe94ea4551f0",
+    "backend": "atlas.construction.rust-backend.v1",
+    "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "emitted": [
+      "type:core/src/lib.rs::Mode",
+      "fn:core/src/lib.rs::Mode::is_local"
+    ],
+    "omitted": []
+  },
+  "checks": [
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "mode",
+      "property": "clone",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "mode",
+      "property": "debug",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "mode",
+      "property": "equality",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "mode",
+      "property": "exhaustive",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "BEHAVIORAL",
+      "subject": "mode",
+      "property": "method_is_local",
+      "result": "EQUIVALENT",
+      "detail": "shadow against the original crate, every variant pair"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "fn:core/src/lib.rs::Mode::is_local",
+      "property": "body",
+      "result": "EQUIVALENT",
+      "detail": "the shadow's body lowered again: lowered; token-identical to the original's: true"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "fn:core/src/lib.rs::Mode::is_local",
+      "property": "signature",
+      "result": "EQUIVALENT",
+      "detail": "visibility, parameters and result: Some((\"pub\", [(\"self\", \"Self\")], Some(\"bool\")))"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/lib.rs::Mode",
+      "property": "declaration",
+      "result": "EQUIVALENT",
+      "detail": "kind, visibility, derives and attributes: Some(Declaration { item: Enum, visibility: \"pub\", derives: [\"Debug\", \"Clone\", \"Copy\", \"PartialEq\", \"Eq\"], attributes: [], shape: None })"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/lib.rs::Mode",
+      "property": "definition",
+      "result": "EQUIVALENT",
+      "detail": "the shadow defines the type at its root"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/lib.rs::Mode",
+      "property": "documentation",
+      "result": "EQUIVALENT",
+      "detail": "None against None"
+    },
+    {
+      "kind": "SEMANTIC",
+      "subject": "type:core/src/lib.rs::Mode",
+      "property": "members_in_order",
+      "result": "EQUIVALENT",
+      "detail": "2 members (name, documentation, attributes, shape) against 2"
+    }
+  ],
+  "gaps": [],
+  "declared_variations": [],
+  "verdict": "RECONSTRUCTED_EQUIVALENT"
+}

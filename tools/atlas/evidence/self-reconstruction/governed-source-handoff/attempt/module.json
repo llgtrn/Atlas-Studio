@@ -1,0 +1,139 @@
+{
+  "schema": "atlas.construction-ir.v1",
+  "module_id": "construction-module:blake3-256:501a1d01ea42e042c2f4feb7cee4debe30f856865c5dda4350da15e2f71706ce",
+  "target": "core/src/lib.rs::Mode",
+  "construction_target": "RUST",
+  "container_root": "blake3-256:fe09e202b53f0f343c7b99a3441a31a4c2fd318f2d51adaced40ad298246fbbe",
+  "inputs": [
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_IDENTITY:8dc46b495cae3f4d"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:FUNCTION_SIGNATURE:62843db424826f63"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:3012211eef654ab5"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:426f07fdd5a294ac"
+    },
+    {
+      "kind": "CENSUS_RECORD",
+      "reference": "semantic:SYMBOL:f5c3cb434bc903e9"
+    },
+    {
+      "kind": "DESIGN",
+      "reference": "blake3-256:5df32bd57223a378f18170ad05c152415a5f5cec88f4a2e355517045f6117d25"
+    }
+  ],
+  "types": [
+    {
+      "id": "type:core/src/lib.rs::Mode",
+      "name": "Mode",
+      "kind": "ENUM",
+      "visibility": "pub",
+      "documentation": null,
+      "derives": [
+        "Debug",
+        "Clone",
+        "Copy",
+        "PartialEq",
+        "Eq"
+      ],
+      "attributes": [],
+      "variants": [
+        {
+          "name": "Remote",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:3012211eef654ab5"
+          ]
+        },
+        {
+          "name": "Local",
+          "documentation": null,
+          "attributes": [],
+          "lineage": [
+            "semantic:SYMBOL:426f07fdd5a294ac"
+          ]
+        }
+      ],
+      "lineage": [
+        "semantic:SYMBOL:f5c3cb434bc903e9"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "id": "fn:core/src/lib.rs::Mode::is_local",
+      "name": "is_local",
+      "owner": "Mode",
+      "dispatch": "INHERENT_METHOD",
+      "visibility": "pub",
+      "documentation": null,
+      "params": [
+        {
+          "name": "self",
+          "type_spelling": "Self"
+        }
+      ],
+      "result": "bool",
+      "body_fingerprint": "blake3-256:1cd3d26cde1e556060ac44da33e6345d499f230faf1fc3f4e60541fb1dc9ad1d",
+      "body": {
+        "root": 2,
+        "nodes": [
+          {
+            "id": 0,
+            "kind": "COPY",
+            "result_type": "type:core/src/lib.rs::Mode",
+            "value": "self",
+            "intrinsic": null,
+            "operands": [],
+            "arms": [],
+            "lineage": [
+              "semantic:FUNCTION_SIGNATURE:62843db424826f63"
+            ]
+          },
+          {
+            "id": 1,
+            "kind": "CONST",
+            "result_type": "type:core/src/lib.rs::Mode",
+            "value": "type:core/src/lib.rs::Mode::Remote",
+            "intrinsic": null,
+            "operands": [],
+            "arms": [],
+            "lineage": [
+              "semantic:FUNCTION_SIGNATURE:62843db424826f63",
+              "semantic:SYMBOL:3012211eef654ab5"
+            ]
+          },
+          {
+            "id": 2,
+            "kind": "INTRINSIC",
+            "result_type": "bool",
+            "value": null,
+            "intrinsic": "NE",
+            "operands": [
+              0,
+              1
+            ],
+            "arms": [],
+            "lineage": [
+              "semantic:FUNCTION_SIGNATURE:62843db424826f63"
+            ]
+          }
+        ]
+      },
+      "lineage": [
+        "semantic:FUNCTION_IDENTITY:8dc46b495cae3f4d",
+        "semantic:FUNCTION_SIGNATURE:62843db424826f63"
+      ]
+    }
+  ],
+  "gaps": []
+}
