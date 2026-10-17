@@ -1,0 +1,105 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "MEMORY-LIFETIME-OBSERVED-DELTA-NOT-INDEPENDENT-REPLAY",
+  "base_revision": "59143e4d32169c9557d17e534a9f860bac58c9e3",
+  "candidate_revision": "cdbe2ff5be6b0699f8ef8e3460e5edb919916da8",
+  "candidate_dirty": false,
+  "before_census_digest": "blake3-256:e66cebf486ee7c89ec0f3ef12fab0b1a5614ceaf5e3d993c18705decaeb1e57b",
+  "after_census_digest": "blake3-256:bca7305a371641b6d66670abfa22a49efd45d32f0a52a16a8cce78e9156eb624",
+  "replay_digest": "blake3-256:bca7305a371641b6d66670abfa22a49efd45d32f0a52a16a8cce78e9156eb624",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/runtime/src/certificate.rs",
+      "adapter/runtime/src/codara/container.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/runtime/src/certificate.rs",
+      "adapter/runtime/src/codara/container.rs"
+    ],
+    "counts": {
+      "record:CALL|OBSERVED": 15,
+      "record:DATA_FLOW|OBSERVED": 30,
+      "record:OWNERSHIP|OBSERVED": 15
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 105,
+    "graph_nodes": 61
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`adapter/runtime` certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing()."
+      ],
+      "after": [
+        "`adapter/runtime` certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "after": [
+        "`adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+      ],
+      "evidence": "body"
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 3005,
+    "total_after": 3005
+  },
+  "intent": {
+    "objective": "",
+    "changed_paths": [],
+    "total_changes": [],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": []
+  },
+  "intended_changes": [],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [
+    "path adapter/runtime/src/certificate.rs",
+    "path adapter/runtime/src/codara/container.rs",
+    "total +evidence",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED `adapter/runtime` certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing().",
+    "entity CHANGED `adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+  ],
+  "regressions": [
+    "no declared objective: a generation must state its bounded change"
+  ],
+  "verdict": "GENERATION_NOT_PROVEN"
+}

@@ -1,0 +1,25 @@
+{
+  "objective": "Release fifteen completed owned allocations in two existing full-admission tests. Preserve every original assertion, mutation, certification/container call and order, production definitions, canonical evidence, identities and complete workspace/compatibility scope. No target authority, rights, wire, budget or native-V1 change.",
+  "changed_paths": [
+    "adapter/runtime/src/certificate.rs",
+    "adapter/runtime/src/codara/container.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "dependency_changes": [],
+  "adl_changes": [],
+  "coverage_changes": [],
+  "explained_unknowns": [],
+  "accepted_unexpected": [],
+  "entity_changes": [
+    "CHANGED `adapter/runtime` certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing().",
+    "CHANGED `adapter/runtime` codara/container/tests/the_self_census_packages_into_a_verified_unsealed_container()."
+  ]
+}
