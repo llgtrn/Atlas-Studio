@@ -616,13 +616,13 @@ fn run(args: &[String]) -> Result<(), String> {
                     let text = json(&report)? + "\n";
                     // Count exactly the UTF-8 bytes the unbounded caller emits, including LF.
                     // Refuse before stdout, report creation, replay checks or parent creation.
-                    if let Some(max) = max_report_bytes {
-                        if text.len() > max {
-                            return Err(format!(
-                                "ATLASX_REPORT_CAPACITY_EXCEEDED: bytes={}; max={max}",
-                                text.len()
-                            ));
-                        }
+                    if let Some(max) = max_report_bytes
+                        && text.len() > max
+                    {
+                        return Err(format!(
+                            "ATLASX_REPORT_CAPACITY_EXCEEDED: bytes={}; max={max}",
+                            text.len()
+                        ));
                     }
                     match value(rest, "--out")? {
                         Some(out) => write_codec_report_or_replay(&out, &text)?,

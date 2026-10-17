@@ -1,0 +1,287 @@
+{
+  "utc": "2026-10-17T03:50:41.413485+00:00",
+  "classification": "SCOPED_SEMANTIC_NEUTRAL_CLI_CLIPPY_CORRECTION_ONLY",
+  "base_commit": "2cb6bb93bef82e873ce30cd38d6f72d37ecd9e81",
+  "source_path": "apps/cli/src/main.rs",
+  "source_sha256": "f77b72dfaad2cfa6da090364dd1e80920e2a005f958220cfcb1ed0f4b682bc8d",
+  "result": {
+    "result": "PASS",
+    "utc": "2026-10-17T03:47:09.514259+00:00",
+    "base_commit": "2cb6bb93bef82e873ce30cd38d6f72d37ecd9e81",
+    "scope": "Only apps/cli/src/main.rs report-capacity nested conditional collapsed to short-circuit let-chain. No staging/commit/push or other source edits.",
+    "semantics": "Option match still precedes byte-count comparison; absent limit does not evaluate comparison; exact UTF8 text.len including LF, strict greater-than boundary, error text and ordering before all output/read/replay/parent creation unchanged.",
+    "stages": [
+      {
+        "name": "codec-unit",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--bin",
+          "atlas-systemizer",
+          "--offline",
+          "codec_"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 3.7727693780034315
+      },
+      {
+        "name": "full-evidence",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "atlas-cli",
+          "--test",
+          "full_evidence",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 2.844778556987876
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 1.7403052060108166
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--workspace",
+          "--all-targets",
+          "--offline",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.180330712988507
+      }
+    ],
+    "tests": {
+      "focused_unit_passed": 5,
+      "full_evidence_integration_passed": 4,
+      "integration_oracle_cases": 7
+    },
+    "inherited_or_new_lints": [],
+    "source_sha256": "f77b72dfaad2cfa6da090364dd1e80920e2a005f958220cfcb1ed0f4b682bc8d",
+    "patch_sha256": "a6d4da16270d102f9dcb19c93ecabf50763dec4420b5a36e9f13b713b830382e",
+    "raw_receipts": [
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/change.patch",
+        "bytes": 1293,
+        "sha256": "a6d4da16270d102f9dcb19c93ecabf50763dec4420b5a36e9f13b713b830382e"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/clippy.stderr",
+        "bytes": 245,
+        "sha256": "a0c4aa4ed9e5d59e9ad8b6b7d19d1e5d82f9b8eee3279062f43f241fba6073c9"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/codec-unit.stderr",
+        "bytes": 276,
+        "sha256": "463d21eea79825d266ff79e4cb0a009ba4a137ef27688d8613b2c5c50a2a9e17"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/codec-unit.stdout",
+        "bytes": 563,
+        "sha256": "a340b5283921cd0827f253b3a2c1c289bdb792a8e0cd2a028a3ddb5aa5e55943"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/full-evidence.stderr",
+        "bytes": 274,
+        "sha256": "eaa63eda9c444066b1640c295d7ac6a015d2c48a4d1682c634548b89ea18137d"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/full-evidence.stdout",
+        "bytes": 450,
+        "sha256": "fe178a54703ffb418342ddae34036d0a191beaebd9edc3a8af75ae515dbcb1d7"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/stages.json",
+        "bytes": 935,
+        "sha256": "a81a601b2d7487e99c5c8cd47c75f9dc18f35f19f400b7bfbfa624c1e5e8a95d"
+      }
+    ],
+    "limitations": "Focused correctness and direct lint checks only; no full workspace unit/census/proof/admission claim. Independent review remains parent-owned before publication."
+  },
+  "independent_review": {
+    "result": "PASS",
+    "utc": "2026-10-17T03:49:22.214102+00:00",
+    "reviewer": "Independent gpt-6.1-sol oneblockClippy reviewer",
+    "scope": "Read-only exactsourcepatch/rawexistingtestlogs/coverage/order/sourcepin review. No source/index/state writes or tests,census,proof execution. Only this newexternalreceipt.",
+    "base_commit": "2cb6bb93bef82e873ce30cd38d6f72d37ecd9e81",
+    "source_sha256": "f77b72dfaad2cfa6da090364dd1e80920e2a005f958220cfcb1ed0f4b682bc8d",
+    "patch_sha256": "a6d4da16270d102f9dcb19c93ecabf50763dec4420b5a36e9f13b713b830382e",
+    "checks": {
+      "entirefileexactsole_nestedif_to_letchain_replacement": true,
+      "Option_None_shortcircuits_comparison_Somebinds_same_usize": true,
+      "textUTF8byte_len_includingLF_strictgreater_boundary_equalallowed": true,
+      "exacterrorformat_and_textbytecount_preserved": true,
+      "capacityguard_before_stdout_outputlookup_write_replay_parentcreation": true,
+      "codecverdict_reportserialization_exitordering_unchanged": true,
+      "onlyoneunstagedsourcefile_emptyindex_baseF": true,
+      "allretainedrawlogs_hashes_valid": true,
+      "existing5codecunit_plus4full_evidence_tests_allpass_noignored": true,
+      "all7oraclecases_exactboundary_unicode_LF_refusal_replay_paths_covered": true,
+      "fmt0_workspacealltargetsclippy_Dwarnings0": true,
+      "API_wire_proofproducer_sources_untouched": true
+    },
+    "existing_tests_coverage": {
+      "codec_unit_passed": 5,
+      "full_evidence_integration_passed": 4,
+      "oracle_cases": 7,
+      "specific_boundaries": [
+        "no capacitylimit retainsunbounded path",
+        "exact emitted UTF8+LFbytecapacity preservescompletebytes/verdict",
+        "zero and onelessthanfull capacity refuses before output",
+        "Unicode charcountbelowbytecount refuses",
+        "absentparent notcreated",
+        "priorimmutableevidence notmodified",
+        "adequatecapacity conflict refusal preservespriorbytes",
+        "fulltypedrefusalreport and exit retained on replay",
+        "inputobject and fixturebytes immutable",
+        "invalid/repeated/wrongmodecapacity rejected before read/write"
+      ]
+    },
+    "findings": [],
+    "doctrine_assessment": "This is a separately scoped semantic-neutralClippy correction supported by existing focusedcorrectness tests and directwholeworkspacealltargetslint. The relocationcontract candidate census/replay/fulladmission/finalartifact requirements govern sourcepackagequalification claims; they do not make this focusedcheckreceipt a newqualifiedcurrentpackage. If owner claims or republishes a currentfullyqualified sourcepackage/container for changedHEAD, produce freshbound census/proof/admission/finalartifact under that workflow. Do not attach historicalFartifact/root/admission to changedHEAD. Explicitly scopedClippy-only publication may retain historicalqualification as history without asserting a newfulladmission; no newproof is claimed here.",
+    "qualifications": [
+      "No newtests,census,proof,fullworkspaceunittest or sourcepackageadmission were executed/established by thisreview. Current directlint0 resolves theprevious inheritedlint locally; historicalFreceipts remain truthful to priorlint101 and must not be rewritten.",
+      "UTF8len andLFconstruction are unchanged and covered byexisting7case integrationtests. Let-chain builtin&& preserves left-to-right shortcircuit; no call or formatting expression moves across guard.",
+      "HistoricalfinalFcontainer remains boundexactF; anynewcommit makes it historical. No target/governedcaller/nativeV1/rights/wire qualification inferred."
+    ],
+    "raw_receipts": [
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/change.patch",
+        "bytes": 1293,
+        "sha256": "a6d4da16270d102f9dcb19c93ecabf50763dec4420b5a36e9f13b713b830382e"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/clippy.stderr",
+        "bytes": 245,
+        "sha256": "a0c4aa4ed9e5d59e9ad8b6b7d19d1e5d82f9b8eee3279062f43f241fba6073c9"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/codec-unit.stderr",
+        "bytes": 276,
+        "sha256": "463d21eea79825d266ff79e4cb0a009ba4a137ef27688d8613b2c5c50a2a9e17"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/codec-unit.stdout",
+        "bytes": 563,
+        "sha256": "a340b5283921cd0827f253b3a2c1c289bdb792a8e0cd2a028a3ddb5aa5e55943"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/full-evidence.stderr",
+        "bytes": 274,
+        "sha256": "eaa63eda9c444066b1640c295d7ac6a015d2c48a4d1682c634548b89ea18137d"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/full-evidence.stdout",
+        "bytes": 450,
+        "sha256": "fe178a54703ffb418342ddae34036d0a191beaebd9edc3a8af75ae515dbcb1d7"
+      },
+      {
+        "path": "/tmp/atlas-reconstruction-governed-caller/clippy/stages.json",
+        "bytes": 935,
+        "sha256": "a81a601b2d7487e99c5c8cd47c75f9dc18f35f19f400b7bfbfa624c1e5e8a95d"
+      }
+    ]
+  },
+  "complete_raw_logs": {
+    "change.patch": {
+      "bytes": 1293,
+      "sha256": "a6d4da16270d102f9dcb19c93ecabf50763dec4420b5a36e9f13b713b830382e",
+      "text": "diff --git a/apps/cli/src/main.rs b/apps/cli/src/main.rs\nindex f8c97e8971..fa83e68947 100644\n--- a/apps/cli/src/main.rs\n+++ b/apps/cli/src/main.rs\n@@ -616,13 +616,13 @@ fn run(args: &[String]) -> Result<(), String> {\n                     let text = json(&report)? + \"\\n\";\n                     // Count exactly the UTF-8 bytes the unbounded caller emits, including LF.\n                     // Refuse before stdout, report creation, replay checks or parent creation.\n-                    if let Some(max) = max_report_bytes {\n-                        if text.len() > max {\n-                            return Err(format!(\n-                                \"ATLASX_REPORT_CAPACITY_EXCEEDED: bytes={}; max={max}\",\n-                                text.len()\n-                            ));\n-                        }\n+                    if let Some(max) = max_report_bytes\n+                        && text.len() > max\n+                    {\n+                        return Err(format!(\n+                            \"ATLASX_REPORT_CAPACITY_EXCEEDED: bytes={}; max={max}\",\n+                            text.len()\n+                        ));\n                     }\n                     match value(rest, \"--out\")? {\n                         Some(out) => write_codec_report_or_replay(&out, &text)?,\n"
+    },
+    "clippy.stderr": {
+      "bytes": 245,
+      "sha256": "a0c4aa4ed9e5d59e9ad8b6b7d19d1e5d82f9b8eee3279062f43f241fba6073c9",
+      "text": "    Checking atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Checking runtime v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/adapter/runtime)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.08s\n"
+    },
+    "clippy.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "codec-unit.stderr": {
+      "bytes": 276,
+      "sha256": "463d21eea79825d266ff79e4cb0a009ba4a137ef27688d8613b2c5c50a2a9e17",
+      "text": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.62s\n     Running unittests src/main.rs (/workspace/atlas-proof-repair-target/debug/deps/atlas_systemizer-0ff4842d67bc09f8)\n"
+    },
+    "codec-unit.stdout": {
+      "bytes": 563,
+      "sha256": "a340b5283921cd0827f253b3a2c1c289bdb792a8e0cd2a028a3ddb5aa5e55943",
+      "text": "\nrunning 5 tests\ntest tests::atlasx_codec_encodes_and_decodes_the_sr1_module_and_refuses_a_flipped_byte ... ok\ntest tests::codec_decode_refusal_keeps_the_full_typed_report_and_refusal_exit_on_replay ... ok\ntest tests::codec_decode_reports_preserve_input_and_prior_evidence_and_allow_exact_replay ... ok\ntest tests::codec_report_capacity_rejects_other_modes_before_any_operation ... ok\ntest tests::codec_report_capacity_requires_one_canonical_usize_or_absence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.01s\n\n"
+    },
+    "fmt.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "fmt.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "full-evidence.stderr": {
+      "bytes": 274,
+      "sha256": "eaa63eda9c444066b1640c295d7ac6a015d2c48a4d1682c634548b89ea18137d",
+      "text": "   Compiling atlas-cli v0.1.0 (/workspace/Atlas-Studio-docs-native-v1-app/apps/cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.40s\n     Running tests/full_evidence.rs (/workspace/atlas-proof-repair-target/debug/deps/full_evidence-17726615c616c8bd)\n"
+    },
+    "full-evidence.stdout": {
+      "bytes": 450,
+      "sha256": "fe178a54703ffb418342ddae34036d0a191beaebd9edc3a8af75ae515dbcb1d7",
+      "text": "\nrunning 4 tests\ntest bounded_decode_preserves_exact_bytes_and_refuses_without_output_for_all_seven_cases ... ok\ntest decode_stdout_and_exit_preserve_all_seven_full_source_reports ... ok\ntest payload_export_preserves_full_reports_and_existing_evidence_for_all_seven_cases ... ok\ntest report_capacity_argument_errors_fail_before_reading_or_writing ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s\n\n"
+    },
+    "stages.json": {
+      "bytes": 935,
+      "sha256": "a81a601b2d7487e99c5c8cd47c75f9dc18f35f19f400b7bfbfa624c1e5e8a95d",
+      "text": "[\n  {\n    \"name\": \"codec-unit\",\n    \"command\": [\n      \"cargo\",\n      \"test\",\n      \"-p\",\n      \"atlas-cli\",\n      \"--bin\",\n      \"atlas-systemizer\",\n      \"--offline\",\n      \"codec_\"\n    ],\n    \"exit_code\": 0,\n    \"elapsed_seconds\": 3.7727693780034315\n  },\n  {\n    \"name\": \"full-evidence\",\n    \"command\": [\n      \"cargo\",\n      \"test\",\n      \"-p\",\n      \"atlas-cli\",\n      \"--test\",\n      \"full_evidence\",\n      \"--offline\"\n    ],\n    \"exit_code\": 0,\n    \"elapsed_seconds\": 2.844778556987876\n  },\n  {\n    \"name\": \"fmt\",\n    \"command\": [\n      \"cargo\",\n      \"fmt\",\n      \"--all\",\n      \"--\",\n      \"--check\"\n    ],\n    \"exit_code\": 0,\n    \"elapsed_seconds\": 1.7403052060108166\n  },\n  {\n    \"name\": \"clippy\",\n    \"command\": [\n      \"cargo\",\n      \"clippy\",\n      \"--workspace\",\n      \"--all-targets\",\n      \"--offline\",\n      \"--\",\n      \"-D\",\n      \"warnings\"\n    ],\n    \"exit_code\": 0,\n    \"elapsed_seconds\": 5.180330712988507\n  }\n]\n"
+    }
+  },
+  "scope": "Only nested capacity if is collapsed to equivalent let-chain; existing complete UTF8/LF output, exact boundary, immutable refusal/replay and error ordering retained.",
+  "qualification_limit": "Focused5unit+4integration tests and fullworkspacealltargetslint/fmt passed. No new census/replay/fullworkspaceunit/fulladmission/finalcontainer qualification claimed. Earlier full source/admission/container remain bound to exact historical2cb6bb93 and are never rebound to this changedHEAD. Historical clippy101receipts remain unchanged.",
+  "target_runtime": "No target caller, provider, shared wire, budget, rights or authority change. Current reconstruction integration blockers are reported separately from this lint correction."
+}
